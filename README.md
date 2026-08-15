@@ -18,14 +18,14 @@
 
 ```
 /plugin marketplace add utomore/dev-flow
-/plugin install dev-flow@dev-flow
+/plugin install dev-flow@uto-skills
 ```
 
 或在終端機執行:
 
 ```
 claude plugin marketplace add utomore/dev-flow
-claude plugin install dev-flow@dev-flow
+claude plugin install dev-flow@uto-skills
 ```
 
 ## 更新
@@ -33,7 +33,7 @@ claude plugin install dev-flow@dev-flow
 repo 有新版本後:
 
 ```
-/plugin marketplace update dev-flow
+/plugin marketplace update uto-skills
 ```
 
 ## 文檔慣例摘要

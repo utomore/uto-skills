@@ -1,6 +1,6 @@
 {
-  "name": "dev-flow",
-  "description": "utomore 的文檔驅動開發流程 plugin marketplace",
+  "name": "uto-skills",
+  "description": "utomore 的 Claude Code plugin marketplace",
   "owner": {
     "name": "utomore"
   },

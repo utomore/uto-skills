@@ -1,0 +1,17 @@
+{
+  "name": "dev-flow",
+  "description": "utomore 的文檔驅動開發流程 plugin marketplace",
+  "owner": {
+    "name": "utomore"
+  },
+  "plugins": [
+    {
+      "name": "dev-flow",
+      "description": "文檔驅動開發流程 skills:架構設計、功能規格、專案分析(含 status 掃描)、依文檔開發、整合發 PR",
+      "author": {
+        "name": "utomore"
+      },
+      "source": "./"
+    }
+  ]
+}

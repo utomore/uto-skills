@@ -22,7 +22,7 @@ user-invocable: true
 ## 3. 實作
 
 1. 開工前:目標文檔 `status` 改為 `in-progress`、更新 `updated`
-2. 依 TodoList **逐項**實作;**每完成一項就把該 checkbox 勾掉**(`- [x]`)並更新 `updated`
+2. 依 TodoList **逐項**實作;項目帶 `dep:` 標註時,先確認其前置 Todo 已完成、引用的 spec id 已 done,否則不得開工該項;**每完成一項就把該 checkbox 勾掉**(`- [x]`)並更新 `updated`
 3. 實作方式以文檔為準;發現文檔方案行不通或需偏離時,先與開發者確認,並把偏差寫進文檔的「實作備註」節
 4. 程式碼風格遵循專案既有慣例與 architecture.md 的架構規劃
 

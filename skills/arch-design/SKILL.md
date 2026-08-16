@@ -42,6 +42,7 @@ user-invocable: true
 id: architecture
 type: architecture
 title: <project-slug>
+description: <一句話,40 字內:這個專案在做什麼>
 status: active
 created: <today>
 updated: <today>
@@ -68,6 +69,7 @@ updated: <today>
 id: adr-0001
 type: adr
 title: <decision-slug>
+description: <一句話,40 字內:這份 ADR 決定了什麼>
 status: accepted        # proposed | accepted | superseded
 created: <today>
 updated: <today>

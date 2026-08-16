@@ -24,7 +24,8 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [docs目錄,預設 ./
 ```
 
 - 把腳本輸出(表格 + 統計 + 未完成清單)整理後呈現給開發者
-- 有 `missing-metadata` 警示時,提醒開發者該檔案缺 frontmatter 或 status 欄位,違反慣例
+- 表格的 `description` 欄可直接看出每份文檔的主軸,不必開檔
+- 有 `missing-metadata` 警示時,提醒開發者該檔案缺 frontmatter 或 status 欄位,違反慣例;`description` 顯示為 `-` 代表缺這欄,提醒補上
 - **禁止**為了補充資訊而去讀取各文檔全文 — 此模式的重點就是省 context
 
 ## 模式 B — 文檔對照程式碼分析
@@ -57,6 +58,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [docs目錄,預設 ./
 id: report-<date>-<slug>
 type: report
 title: <slug>
+description: <一句話,40 字內:這份報告分析了什麼>
 status: done
 created: <today>
 updated: <today>
@@ -77,8 +79,8 @@ related-spec: []        # 分析特定 spec 時填入
 
 ### 5. 視情況產生後續文檔(先詢問開發者)
 
-- 確定的缺陷 → `docs/bugfix/bug-000x-<slug>.md`(編號遞增,status: open,`related-spec` 回鏈,內容:重現方式、根因分析、修復方向、驗證方式)
-- 改善建議 → `docs/enhance/enhance-<YYYY-MM-DD>-<slug>.md`(status: open,`related-spec` 回鏈,內容:現況、建議做法、預期效益)
+- 確定的缺陷 → `docs/bugfix/bug-000x-<slug>.md`(編號遞增,status: open,`description` 一句話寫「什麼壞了」,`related-spec` 回鏈,內容:重現方式、根因分析、修復方向、驗證方式)
+- 改善建議 → `docs/enhance/enhance-<YYYY-MM-DD>-<slug>.md`(status: open,`description` 一句話寫「要改善什麼」,`related-spec` 回鏈,內容:現況、建議做法、預期效益)
 
 ### 6. 收尾
 

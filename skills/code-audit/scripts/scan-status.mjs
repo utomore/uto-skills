@@ -13,6 +13,7 @@ const docsDir = process.argv[2] ?? "./docs";
 const SCAN_DIRS = ["spec", "bugfix", "enhance"];
 const HEAD_BYTES = 2048;
 const DONE_STATUSES = new Set(["done", "closed"]);
+const DESC_WIDTH = 40; // description 欄顯示寬度上限(全形字算 2)
 
 if (!existsSync(docsDir)) {
   console.error(`找不到 docs 目錄: ${docsDir}`);
@@ -40,9 +41,36 @@ function parseFrontmatter(text) {
     const line = lines[i];
     if (line.trim() === "---") return meta;
     const m = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
-    if (m) meta[m[1]] = m[2].replace(/\s+#.*$/, "").trim();
+    if (m) meta[m[1]] = parseValue(m[2]);
   }
   return null; // 沒有結尾 --- 視為無 frontmatter
+}
+
+/** 取值:引號字串取引號內容,否則去掉行尾 # 註解 */
+function parseValue(raw) {
+  const v = raw.trim();
+  const q = v.match(/^(['"])([\s\S]*?)\1/);
+  if (q) return q[2];
+  return v.replace(/\s+#.*$/, "").trim();
+}
+
+/** 顯示寬度(CJK 全形字算 2)*/
+function dispWidth(s) {
+  let w = 0;
+  for (const ch of String(s)) w += /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹯＀-｠￠-￦]/.test(ch) ? 2 : 1;
+  return w;
+}
+
+/** 依顯示寬度截斷 */
+function truncate(s, max) {
+  const str = String(s);
+  if (dispWidth(str) <= max) return str;
+  let out = "";
+  for (const ch of str) {
+    if (dispWidth(out + ch) > max - 1) break;
+    out += ch;
+  }
+  return out + "…";
 }
 
 const rows = [];
@@ -53,10 +81,11 @@ for (const sub of SCAN_DIRS) {
     const path = join(dir, name);
     const meta = parseFrontmatter(readHead(path));
     const rel = relative(docsDir, path).replaceAll("\\", "/");
+    const description = meta?.description ? truncate(meta.description, DESC_WIDTH) : "-";
     if (!meta || !meta.status) {
-      rows.push({ id: meta?.id ?? "-", type: sub, status: "⚠ missing-metadata", created: meta?.created ?? "-", dependsOn: meta?.["depends-on"] ?? "-", file: rel });
+      rows.push({ id: meta?.id ?? "-", type: sub, status: "⚠ missing-metadata", created: meta?.created ?? "-", dependsOn: meta?.["depends-on"] ?? "-", file: rel, description });
     } else {
-      rows.push({ id: meta.id ?? "-", type: meta.type ?? sub, status: meta.status, created: meta.created ?? "-", dependsOn: meta["depends-on"] ?? "-", file: rel });
+      rows.push({ id: meta.id ?? "-", type: meta.type ?? sub, status: meta.status, created: meta.created ?? "-", dependsOn: meta["depends-on"] ?? "-", file: rel, description });
     }
   }
 }
@@ -67,11 +96,12 @@ if (rows.length === 0) {
 }
 
 // 對齊表格輸出
-const headers = { id: "id", type: "type", status: "status", created: "created", dependsOn: "depends-on", file: "file" };
+const headers = { id: "id", type: "type", status: "status", created: "created", dependsOn: "depends-on", file: "file", description: "description" };
 const cols = Object.keys(headers);
 const width = {};
-for (const c of cols) width[c] = Math.max(headers[c].length, ...rows.map((r) => String(r[c]).length));
-const fmt = (r) => cols.map((c) => String(r[c]).padEnd(width[c])).join("  ");
+for (const c of cols) width[c] = Math.max(dispWidth(headers[c]), ...rows.map((r) => dispWidth(r[c])));
+const pad = (v, w) => String(v) + " ".repeat(Math.max(0, w - dispWidth(v)));
+const fmt = (r) => cols.map((c) => pad(r[c], width[c])).join("  ").trimEnd();
 console.log(fmt(headers));
 console.log(cols.map((c) => "-".repeat(width[c])).join("  "));
 for (const r of rows) console.log(fmt(r));
@@ -85,8 +115,15 @@ for (const [status, n] of Object.entries(counts).sort()) console.log(`${status}:
 const unfinished = rows.filter((r) => !DONE_STATUSES.has(r.status));
 if (unfinished.length > 0) {
   console.log(`\n=== 未完成 / metadata 缺失(${unfinished.length})===`);
-  for (const r of unfinished) console.log(`- [${r.status}] ${r.id} ${r.file}`);
-  process.exit(1);
+  for (const r of unfinished) console.log(`- [${r.status}] ${r.id} ${r.file}  ${r.description}`);
 }
-console.log("\n全部項目皆已完成(done/closed)。");
+
+const noDesc = rows.filter((r) => r.description === "-");
+if (noDesc.length > 0) {
+  console.log(`\n=== 缺少 description(${noDesc.length})===`);
+  for (const r of noDesc) console.log(`- ${r.id} ${r.file}`);
+}
+
+if (unfinished.length > 0 || noDesc.length > 0) process.exit(1);
+console.log("\n全部項目皆已完成(done/closed),且 metadata 完整。");
 process.exit(0);

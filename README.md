@@ -50,4 +50,6 @@ docs/
 └── enhance/enhance-<YYYY-MM-DD>-<slug>.md
 ```
 
-spec / bugfix / enhance 開頭必須有 YAML frontmatter(`id` / `type` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-spec`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`skills/code-audit/scripts/scan-status.mjs`)只解析這一段。
+spec / bugfix / enhance 開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-spec`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`skills/code-audit/scripts/scan-status.mjs`)只解析這一段。
+
+`description` 為**一句話、繁體中文、40 字以內**的文檔主軸(spec 寫「這功能做什麼」、bug 寫「什麼壞了」、adr 寫「決定了什麼」),讓 `/code-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規。

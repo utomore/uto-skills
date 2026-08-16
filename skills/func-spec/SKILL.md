@@ -36,6 +36,7 @@ user-invocable: true
 id: func-000x
 type: spec
 title: <slug>
+description: <一句話,40 字內:這個功能做什麼>
 status: open
 created: <today>
 updated: <today>

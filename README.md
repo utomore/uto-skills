@@ -14,7 +14,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄一個 plugin:
 | `/spec-impl` | 依 spec / bug / enhance 文檔開發,逐項勾 TodoList、跑 1-to-1 測試、回寫 status |
 | `/branch-pr` | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
 
-共用文檔慣例(資料夾結構、命名、YAML frontmatter)在 `skills/_shared/conventions.md`。
+共用文檔慣例(資料夾結構、命名、YAML frontmatter)在 `plugins/dev-flow/skills/_shared/conventions.md`。
 
 ## 安裝(新環境一鍵導入)
 
@@ -56,7 +56,7 @@ docs/
 
 檔名以**編號優先**、四位數遞增,不放日期(日期在 frontmatter 的 `created` / `updated`);只有 `analysis/report-*` 以日期命名。
 
-spec / bugfix / enhance 開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-spec`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`skills/code-audit/scripts/scan-status.mjs`)只解析這一段。
+spec / bugfix / enhance 開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-spec`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/code-audit/scripts/scan-status.mjs`)只解析這一段。
 
 `description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(spec 寫「這功能做什麼」、bug 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」、report 寫「分析了什麼」),讓 `/code-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。
 
@@ -64,10 +64,17 @@ spec / bugfix / enhance 開頭必須有 YAML frontmatter(`id` / `type` / `title`
 
 ## Repo 結構
 
-本 repo 同時是 marketplace 與 plugin 本體:
+本 repo 同時是 marketplace 與 plugin 本體,但兩者分層:
 
-- `.claude-plugin/marketplace.json` — marketplace `uto-skills`,登錄的 plugin 以 `source: "./"` 指向 repo 根目錄
-- `.claude-plugin/plugin.json` — plugin `dev-flow`(skill 前綴 `dev-flow:`)
-- `skills/` — 各 skill 的 `SKILL.md` 與腳本
+```
+.claude-plugin/marketplace.json     # marketplace「uto-skills」定義
+plugins/
+└── dev-flow/                       # ← 安裝時只有這個目錄被複製
+    ├── .claude-plugin/plugin.json  # plugin「dev-flow」(skill 前綴 dev-flow:)
+    └── skills/                     # 各 skill 的 SKILL.md 與腳本
+README.md                           # 只在 repo,不進 payload
+```
 
-marketplace 名稱、plugin 名稱與 GitHub repo 名稱彼此獨立;日後要在同 repo 新增第二個 plugin,把各 plugin 移進子目錄並改 `plugins[].source` 即可。
+`marketplace.json` 的 `plugins[].source` 指向 `./plugins/dev-flow`,**只有該子目錄**會被複製進使用者的 `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`。repo 根目錄的 `README.md`、`docs/` 等開發用檔案不會進到 payload — 使用者每裝一個版本就多一份快照,payload 保持精簡是有意義的。
+
+日後新增第二個 plugin:在 `plugins/` 下開新目錄,到 `marketplace.json` 的 `plugins[]` 加一筆即可。marketplace 名稱、plugin 名稱與 GitHub repo 名稱彼此獨立。

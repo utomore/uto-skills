@@ -10,7 +10,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄一個 plugin:
 |---|---|
 | `/arch-design` | 專案初始架構設計 — 深度訪談後產出 `docs/architecture.md` + `docs/adr/adr-000x-*.md` |
 | `/func-spec` | 新功能規格書 — 深度討論後產出 `docs/spec/func-000x-*.md`(相依性、介面、TodoList、1-to-1 測試),寫完回頭檢查 architecture.md |
-| `/code-audit` | 專案分析 — `status` 模式用腳本掃 metadata 進度;預設模式拿文檔對照程式碼分析(穩健性/解耦/資安/效能/過時套件)→ `docs/analysis/report-*.md` |
+| `/code-audit` | 專案分析 — `status` 模式用腳本掃 metadata 進度;預設模式先掃狀態、再拿文檔對照程式碼分析(穩健性/解耦/資安/效能/過時套件),產出同時涵蓋文檔狀態總覽與程式碼發現的 `docs/analysis/report-*.md` |
 | `/spec-impl` | 依 spec / bug / enhance 文檔開發,逐項勾 TodoList、跑 1-to-1 測試、回寫 status |
 | `/branch-pr` | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
 
@@ -51,12 +51,16 @@ docs/
 ├── spec/func-0001-<slug>.md
 ├── analysis/report-<YYYY-MM-DD>-<slug>.md
 ├── bugfix/bug-0001-<slug>.md
-└── enhance/enhance-<YYYY-MM-DD>-<slug>.md
+└── enhance/enhance-0001-<slug>.md
 ```
+
+檔名以**編號優先**、四位數遞增,不放日期(日期在 frontmatter 的 `created` / `updated`);只有 `analysis/report-*` 以日期命名。
 
 spec / bugfix / enhance 開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-spec`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`skills/code-audit/scripts/scan-status.mjs`)只解析這一段。
 
-`description` 為**一句話、繁體中文、40 字以內**的文檔主軸(spec 寫「這功能做什麼」、bug 寫「什麼壞了」、adr 寫「決定了什麼」),讓 `/code-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規。
+`description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(spec 寫「這功能做什麼」、bug 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」、report 寫「分析了什麼」),讓 `/code-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。
+
+`/code-audit status` 的表格欄位順序為 `主軸 | id | type | status | created | depends-on | file` — 主軸擺第一欄、id 第二欄,先看內容再看編號。
 
 ## Repo 結構
 

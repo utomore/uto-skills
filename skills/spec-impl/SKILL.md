@@ -10,7 +10,7 @@ user-invocable: true
 
 ## 1. 確定目標文檔
 
-- 開發者有給 id(`func-XXXX` / `bug-XXXX` / `enhance-...`)→ 在 `docs/spec|bugfix|enhance/` 找到對應檔案
+- 開發者有給 id(`func-XXXX` / `bug-XXXX` / `enhance-XXXX`)→ 在 `docs/spec|bugfix|enhance/` 找到對應檔案
 - 沒給 → 執行 `node "<code-audit skill 目錄>/scripts/scan-status.mjs" docs` 列出未完成項目,用 AskUserQuestion 讓開發者選
 
 ## 2. 載入 context(遵守載入紀律)

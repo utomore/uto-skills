@@ -13,7 +13,7 @@ const docsDir = process.argv[2] ?? "./docs";
 const SCAN_DIRS = ["spec", "bugfix", "enhance"];
 const HEAD_BYTES = 2048;
 const DONE_STATUSES = new Set(["done", "closed"]);
-const DESC_WIDTH = 40; // description 欄顯示寬度上限(全形字算 2)
+const DESC_WIDTH = 44; // 主軸(description)欄顯示寬度上限(全形字算 2)
 
 if (!existsSync(docsDir)) {
   console.error(`找不到 docs 目錄: ${docsDir}`);
@@ -83,9 +83,9 @@ for (const sub of SCAN_DIRS) {
     const rel = relative(docsDir, path).replaceAll("\\", "/");
     const description = meta?.description ? truncate(meta.description, DESC_WIDTH) : "-";
     if (!meta || !meta.status) {
-      rows.push({ id: meta?.id ?? "-", type: sub, status: "⚠ missing-metadata", created: meta?.created ?? "-", dependsOn: meta?.["depends-on"] ?? "-", file: rel, description });
+      rows.push({ description, id: meta?.id ?? "-", type: sub, status: "⚠ missing-metadata", created: meta?.created ?? "-", dependsOn: meta?.["depends-on"] ?? "-", file: rel });
     } else {
-      rows.push({ id: meta.id ?? "-", type: meta.type ?? sub, status: meta.status, created: meta.created ?? "-", dependsOn: meta["depends-on"] ?? "-", file: rel, description });
+      rows.push({ description, id: meta.id ?? "-", type: meta.type ?? sub, status: meta.status, created: meta.created ?? "-", dependsOn: meta["depends-on"] ?? "-", file: rel });
     }
   }
 }
@@ -96,7 +96,8 @@ if (rows.length === 0) {
 }
 
 // 對齊表格輸出
-const headers = { id: "id", type: "type", status: "status", created: "created", dependsOn: "depends-on", file: "file", description: "description" };
+// 欄位順序:主軸(description)優先,id 次之
+const headers = { description: "主軸", id: "id", type: "type", status: "status", created: "created", dependsOn: "depends-on", file: "file" };
 const cols = Object.keys(headers);
 const width = {};
 for (const c of cols) width[c] = Math.max(dispWidth(headers[c]), ...rows.map((r) => dispWidth(r[c])));
@@ -115,12 +116,12 @@ for (const [status, n] of Object.entries(counts).sort()) console.log(`${status}:
 const unfinished = rows.filter((r) => !DONE_STATUSES.has(r.status));
 if (unfinished.length > 0) {
   console.log(`\n=== 未完成 / metadata 缺失(${unfinished.length})===`);
-  for (const r of unfinished) console.log(`- [${r.status}] ${r.id} ${r.file}  ${r.description}`);
+  for (const r of unfinished) console.log(`- ${r.description}  [${r.status}] ${r.id}  ${r.file}`);
 }
 
 const noDesc = rows.filter((r) => r.description === "-");
 if (noDesc.length > 0) {
-  console.log(`\n=== 缺少 description(${noDesc.length})===`);
+  console.log(`\n=== 缺少 description / 主軸(${noDesc.length})===`);
   for (const r of noDesc) console.log(`- ${r.id} ${r.file}`);
 }
 

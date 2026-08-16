@@ -1,4 +1,8 @@
-# dev-flow
+# uto-skills
+
+utomore 的 Claude Code plugin marketplace。目前收錄一個 plugin:
+
+## dev-flow
 
 文檔驅動開發流程的 Claude Code plugin,包含五個 skills:
 
@@ -17,14 +21,14 @@
 在 Claude Code 內執行:
 
 ```
-/plugin marketplace add utomore/dev-flow
+/plugin marketplace add utomore/uto-skills
 /plugin install dev-flow@uto-skills
 ```
 
 或在終端機執行:
 
 ```
-claude plugin marketplace add utomore/dev-flow
+claude plugin marketplace add utomore/uto-skills
 claude plugin install dev-flow@uto-skills
 ```
 
@@ -53,3 +57,13 @@ docs/
 spec / bugfix / enhance 開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-spec`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`skills/code-audit/scripts/scan-status.mjs`)只解析這一段。
 
 `description` 為**一句話、繁體中文、40 字以內**的文檔主軸(spec 寫「這功能做什麼」、bug 寫「什麼壞了」、adr 寫「決定了什麼」),讓 `/code-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規。
+
+## Repo 結構
+
+本 repo 同時是 marketplace 與 plugin 本體:
+
+- `.claude-plugin/marketplace.json` — marketplace `uto-skills`,登錄的 plugin 以 `source: "./"` 指向 repo 根目錄
+- `.claude-plugin/plugin.json` — plugin `dev-flow`(skill 前綴 `dev-flow:`)
+- `skills/` — 各 skill 的 `SKILL.md` 與腳本
+
+marketplace 名稱、plugin 名稱與 GitHub repo 名稱彼此獨立;日後要在同 repo 新增第二個 plugin,把各 plugin 移進子目錄並改 `plugins[].source` 即可。

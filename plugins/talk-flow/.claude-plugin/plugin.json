@@ -1,7 +1,7 @@
 {
   "name": "talk-flow",
   "description": "演講內容產生流程 skills:主軸設計(topic-design)、段落討論(section-discuss,含 status 掃描)、段落實作(section-impl)、頁面調整(page-adjust)、整體審查(review,唯讀逐頁目視 + 十一項指標),產出 SVG+HTML 投影片與講稿",
-  "version": "0.4.0",
+  "version": "0.2.0",
   "author": {
     "name": "utomore"
   },

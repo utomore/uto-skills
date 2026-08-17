@@ -1,7 +1,7 @@
 {
   "name": "dev-flow",
   "description": "文檔驅動開發流程 skills:架構設計(arch-design)、子系統架構含功能規劃(subarch-design)、功能/改善規格(func-spec:feature / func-spec:enhance)、專案分析(code-audit)、依文檔開發 feature/enhance/bugfix(spec-impl)、整合發 PR(branch-pr)",
-  "version": "0.6.0",
+  "version": "0.5.2",
   "author": {
     "name": "utomore"
   },

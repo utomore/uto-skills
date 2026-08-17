@@ -56,6 +56,7 @@ parent-arch: architecture  # subarch 用:回鏈主架構的 id(固定為 archite
 
 - 主架構 `docs/arch/architecture.md` 的 `subarchs` 是子系統的**唯一權威清單**:`/subarch-design` 建檔或廢棄子系統時必須同步回填
 - 每份 `subarch-*` 都必須有 `parent-arch`,讓任何讀者能從子系統回溯到主架構
+- `/code-audit status` 會雙向比對 `subarchs` 與實際 `subarch-*` 檔案,並解析每份 subarch 的「功能規劃」表格算出子系統進度;因此**功能規劃的 `spec` 欄要即時回填**(`/func-spec:feature` 建檔後就填),沒回填的項目會被列為「待展開的 feature」、該子系統進度也會偏低
 
 ### 清單欄位格式(唯一寫法:行內陣列)
 

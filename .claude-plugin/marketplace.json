@@ -15,7 +15,7 @@
     },
     {
       "name": "talk-flow",
-      "description": "演講內容產生流程 skills:主軸設計、段落討論(含 status 掃描)、段落實作、頁面調整、整體審查(唯讀,逐頁目視 + 十項指標),產出 SVG+HTML 投影片與講稿",
+      "description": "演講內容產生流程 skills:主軸設計、段落討論(含 status 掃描)、段落實作、頁面調整、整體審查(唯讀,逐頁目視 + 十一項指標),產出 SVG+HTML 投影片與講稿",
       "author": {
         "name": "utomore"
       },

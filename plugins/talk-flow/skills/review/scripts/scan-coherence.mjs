@@ -197,8 +197,96 @@ function textPixelWidth(value, size) {
 }
 
 /**
+ * 解析 path 的 d 屬性成頂點序列(曲線只取端點,用於粗估方向變化)。
+ * 回傳 { pts, closed };closed 代表有 Z(閉合形狀,不是連接線)。
+ */
+function pathVertices(d) {
+  const tokens = d.match(/[MmLlHhVvCcSsQqTtAaZz]|-?\d*\.?\d+(?:e[-+]?\d+)?/g) ?? [];
+  const pts = [];
+  let cur = [0, 0];
+  let start = [0, 0];
+  let cmd = null;
+  let closed = false;
+  let i = 0;
+  const num = () => Number(tokens[i++] ?? 0);
+  while (i < tokens.length) {
+    if (/^[A-Za-z]$/.test(tokens[i])) cmd = tokens[i++];
+    if (!cmd) { i++; continue; }
+    const rel = cmd === cmd.toLowerCase();
+    const C = cmd.toUpperCase();
+    const move = (x, y) => {
+      cur = rel ? [cur[0] + x, cur[1] + y] : [x, y];
+      pts.push([...cur]);
+    };
+    if (C === "Z") { closed = true; cur = [...start]; continue; }
+    if (C === "M") { const x = num(), y = num(); move(x, y); start = [...cur]; cmd = rel ? "l" : "L"; }
+    else if (C === "L" || C === "T") { const x = num(), y = num(); move(x, y); }
+    else if (C === "H") { const x = num(); cur = [rel ? cur[0] + x : x, cur[1]]; pts.push([...cur]); }
+    else if (C === "V") { const y = num(); cur = [cur[0], rel ? cur[1] + y : y]; pts.push([...cur]); }
+    else if (C === "C") { i += 4; const x = num(), y = num(); move(x, y); }
+    else if (C === "S" || C === "Q") { i += 2; const x = num(), y = num(); move(x, y); }
+    else if (C === "A") { i += 5; const x = num(), y = num(); move(x, y); }
+    else i++;
+  }
+  return { pts, closed };
+}
+
+/** 數轉折次數:相鄰線段夾角 > 20° 算一折(忽略 <2px 的雜訊段) */
+function countTurns(pts) {
+  const segs = [];
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i][0] - pts[i - 1][0];
+    const dy = pts[i][1] - pts[i - 1][1];
+    if (Math.hypot(dx, dy) >= 2) segs.push([dx, dy]);
+  }
+  let turns = 0;
+  for (let i = 1; i < segs.length; i++) {
+    const [ax, ay] = segs[i - 1];
+    const [bx, by] = segs[i];
+    const cos = (ax * bx + ay * by) / (Math.hypot(ax, ay) * Math.hypot(bx, by));
+    const ang = (Math.acos(Math.min(1, Math.max(-1, cos))) * 180) / Math.PI;
+    if (ang > 20) turns++;
+  }
+  return turns;
+}
+
+/**
+ * 抽出流程圖/架構圖的連接線(無填色、有描邊、未閉合的 path/polyline)並數轉折。
+ * 兩折是人眼能快速追完的極限,3 折以上就該重畫布局。
+ */
+function findConnectors(body) {
+  const out = [];
+  for (const m of body.matchAll(/<(path|polyline)\b([^>]*?)\/?>/g)) {
+    const tag = m[1];
+    const attrs = m[2];
+    const fill = attrs.match(/fill\s*[:=]\s*["']?([^"';\s>]+)/)?.[1]?.toLowerCase() ?? "";
+    const stroke = attrs.match(/stroke\s*[:=]\s*["']?([^"';\s>]+)/)?.[1]?.toLowerCase() ?? "";
+    if (fill && fill !== "none") continue; // 有填色 → 是形狀不是線
+    if (!stroke || stroke === "none") continue; // 沒描邊 → 看不見
+    let pts = [];
+    let closed = false;
+    if (tag === "polyline") {
+      const raw = attrs.match(/points\s*=\s*["']([^"']+)["']/)?.[1] ?? "";
+      pts = [...raw.matchAll(/(-?\d*\.?\d+)[\s,]+(-?\d*\.?\d+)/g)].map((p) => [Number(p[1]), Number(p[2])]);
+    } else {
+      const d = attrs.match(/\bd\s*=\s*["']([^"']+)["']/)?.[1] ?? "";
+      ({ pts, closed } = pathVertices(d));
+    }
+    if (closed || pts.length < 2) continue;
+    out.push({
+      turns: pts.length < 3 ? 0 : countTurns(pts),
+      arrow: /marker-(end|start)/.test(attrs),
+      from: pts[0].map(Math.round),
+      to: pts[pts.length - 1].map(Math.round),
+    });
+  }
+  return out;
+}
+
+/**
  * 抽出可機械驗證的視覺規格:viewBox、寫死尺寸、字級、字體、色票、元素數、
- * 外部資源、emoji、粗估文字溢出。判斷 Layout 好壞仍要開檔目視,這裡只給證據。
+ * 連接線轉折、外部資源、emoji、粗估文字溢出。
+ * 判斷 Layout 好壞仍要開檔目視,這裡只給證據。
  */
 function analyzeStyle(body, textNodes) {
   const svgTag = body.match(/<svg\b[^>]*>/)?.[0] ?? "";
@@ -244,7 +332,9 @@ function analyzeStyle(body, textNodes) {
     }
   }
 
-  return { viewBox, hardWidth, hardHeight, fontSizes, fontFamilies, colors, gradients, shapes, chars, emoji, hasImage, external, base64, overflow };
+  const connectors = findConnectors(body);
+
+  return { viewBox, hardWidth, hardHeight, fontSizes, fontFamilies, colors, gradients, shapes, chars, emoji, hasImage, external, base64, overflow, connectors };
 }
 
 // ---------- 讀取素材 ----------
@@ -595,6 +685,8 @@ if (svgs.length) {
     if (minSize !== null && minSize < 18) flags.push(`字級${minSize}px`);
     else if (minSize !== null && minSize < 24) flags.push(`小字${minSize}px`);
     if (v.overflow.length) flags.push(`溢出?${v.overflow.length}`);
+    const maxTurns = v.connectors.length ? Math.max(...v.connectors.map((c) => c.turns)) : 0;
+    if (maxTurns >= 3) flags.push(`折${maxTurns}`);
     if (v.external.length) flags.push("外部資源");
     if (v.hasImage || v.base64) flags.push("點陣圖");
     if (v.emoji) flags.push(`emoji${v.emoji}`);
@@ -606,12 +698,15 @@ if (svgs.length) {
       shapes: String(v.shapes),
       colors: String(v.colors.length),
       grad: String(v.gradients),
+      lines: v.connectors.length
+        ? `${v.connectors.length}/${Math.max(...v.connectors.map((c) => c.turns))}`
+        : "-",
       size: v.fontSizes.length ? `${minSize}–${Math.max(...v.fontSizes)}` : "-",
       flags: flags.join(" ") || "",
     };
   });
   printTable(
-    { page: "頁", section: "section", texts: "text", chars: "字數", shapes: "圖形", colors: "色數", grad: "漸層", size: "字級", flags: "旗標" },
+    { page: "頁", section: "section", texts: "text", chars: "字數", shapes: "圖形", colors: "色數", grad: "漸層", lines: "連線/最大折", size: "字級", flags: "旗標" },
     rows,
   );
 
@@ -629,6 +724,11 @@ if (svgs.length) {
     if (s.texts.length === 0) warn(`第 ${p} 頁沒有任何 <text>(確認不是把文字轉成圖形或圖片)`);
     if (v.emoji) warn(`第 ${p} 頁有 ${v.emoji} 個 emoji — 檢查是否符合 topic.md 的風格,常見的 AI 感來源`);
     for (const o of v.overflow) warn(`第 ${p} 頁文字可能超出畫面:${o}(粗估,開檔確認)`);
+    for (const c of v.connectors.filter((c) => c.turns >= 3).sort((a, b) => b.turns - a.turns)) {
+      const where = `(${c.from[0]},${c.from[1]})→(${c.to[0]},${c.to[1]})`;
+      if (c.arrow) warn(`第 ${p} 頁連接線 ${where} 有 ${c.turns} 次轉折(有箭頭,確定是連接線)— 兩折是人眼能追完的極限,圖解可讀性必扣分,要靠重排節點解決`);
+      else warn(`第 ${p} 頁有 ${c.turns} 折的線條 ${where} — 若是流程圖/架構圖的連接線就扣分(兩折為極限);裝飾線不算,開檔確認`);
+    }
   }
 
   // 全簡報收斂度
@@ -681,5 +781,7 @@ if (svgs.length) {
 console.log("\n=== 機械檢查結論 ===");
 if (hard > 0) console.log(`硬性不一致 ${hard} 項(上面標 ✗ 的項目)。這些先修掉,再談判斷題。`);
 else console.log("無硬性不一致。");
+const bendy = svgs.reduce((n, s) => n + s.style.connectors.filter((c) => c.turns >= 3).length, 0);
+if (bendy) console.log(`連接線轉折 ≥3 的線條共 ${bendy} 條 — 逐頁開檔時確認哪些真的是流程圖/架構圖的連接線,那些要計入圖解可讀性扣分。`);
 console.log(`Layout、配色統一、用語/概念一致、AI 感這四項算不出來 — /review 必須逐頁開 ${svgs.length} 個 SVG 目視判斷,上表只是證據與檢查清單。`);
 process.exit(hard > 0 ? 1 : 0);

@@ -128,7 +128,7 @@ related-spec: []        # 分析特定 spec 時填入
   ---
   ```
 
-- 改善建議 → `docs/enhance/enhance-000x-<slug>.md`,內容:現況、建議做法、預期效益
+- 改善建議 → `docs/enhance/enhance-000x-<slug>.md`,內容:現況、建議做法、預期效益;需要展開成可直接實作的完整改善規格(含介面表、TodoList、1-to-1 測試)時,改用或後續接 `/func-spec:enhance`
 
   ```yaml
   ---

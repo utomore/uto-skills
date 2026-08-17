@@ -1,6 +1,6 @@
 ---
 name: subarch-design
-description: 子系統架構設計 — 基於 docs/arch/architecture.md 的整體架構,深度訪談後產出 docs/arch/subarch-000x-<slug>.md,含 ASCII 架構圖與介面定義,並回填主架構的 subarchs 清單。觸發詞:子系統架構、子系統設計、subarch、subsystem、模組架構。Use when designing the architecture of a subsystem under the main architecture.
+description: 子系統架構設計 — 基於 docs/arch/architecture.md 的整體架構,深度訪談後產出 docs/arch/subarch-000x-<slug>.md,含 ASCII 架構圖、介面定義與「完成子系統所需的 feature 規劃列表」(幾個 features、分幾個階段),並回填主架構的 subarchs 清單。觸發詞:子系統架構、子系統設計、subarch、subsystem、模組架構。Use when designing the architecture of a subsystem under the main architecture.
 user-invocable: true
 ---
 
@@ -40,7 +40,17 @@ user-invocable: true
 
 每輪訪談後摘要目前已確認的內容,列出仍不明確的點繼續問。全部明確後,向開發者做最終確認再產出。
 
-### 2. 產出 `docs/arch/subarch-000x-<slug>.md`
+### 2. 功能規劃(主動提出,不可跳過)
+
+設計明確後、產出文件前,**由你主動規劃並列出**「完成這個子系統需要哪些 features」——這一步不是問開發者要什麼,而是你基於訪談結果先提出一份完整草案再請開發者修改確認:
+
+1. 依元件切分與開發階段,拆出**大致的 feature 清單**:大概需要幾個 features、分幾個階段、各是哪些;合起來要能覆蓋整個子系統(對外介面、內部元件、資料流全部有人負責),每個 feature 的粒度以「一份 func-spec 可以承載」為準
+2. 每個 feature 給:一句話說明、所屬階段、與其他 feature 的先後依賴
+3. 呈現給開發者確認:太大就拆、太細就併、缺的補上;開發者同意後定案寫進文件
+
+這份清單是**規劃層級**的路線圖,不是規格——細節留給 `/func-spec:feature` 逐一展開;之後實際建了規格,再把 spec id 回填進清單。
+
+### 3. 產出 `docs/arch/subarch-000x-<slug>.md`
 
 檔名英文 kebab-case、內文繁體中文,固定章節:
 
@@ -82,19 +92,35 @@ related-adr: []             # 本子系統相關的 ADR id
 
 ## 開發階段
 (對應主架構開發階段;有內部里程碑則列出)
+
+## 功能規劃
+(完成本子系統所需的 feature 路線圖,依階段分組;
+ 「spec」欄在 /func-spec 建檔後回填實際 id,未建檔時填 `-`)
+
+### 階段一:<階段名稱>
+| # | feature | 一句話說明 | 依賴 | spec |
+|---|---------|-----------|------|------|
+| 1 | <feature-slug> | <做什麼> | - | - |
+| 2 | <feature-slug> | <做什麼> | #1 | - |
+
+### 階段二:<階段名稱>
+| # | feature | 一句話說明 | 依賴 | spec |
+|---|---------|-----------|------|------|
+
+(小結:共 N 個 features、M 個階段;全部完成即代表子系統可交付)
 ```
 
-### 3. 回填與同步(必做)
+### 4. 回填與同步(必做)
 
 1. 主架構 frontmatter 的 `subarchs` 加入新 id(更新模式免),同步 `updated`
 2. 主架構「子系統劃分」對應小節補上本檔的 id 與檔名
 3. 訪談若修正了子系統邊界或對外介面,回頭更新主架構的對應描述與架構圖(經開發者同意)
 
-### 4. 產出 ADR(視情況)
+### 5. 產出 ADR(視情況)
 
 子系統層級的**重大技術選擇**(子系統特有的框架、儲存方案、關鍵演算法)各產出一份 `docs/adr/adr-000x-<slug>.md`(格式同 `/arch-design`,編號接續 `docs/adr/` 現有最大值),並把 id 填入本 subarch 的 `related-adr`。沿用主架構既有決策的不必重開 ADR。
 
-### 5. 收尾
+### 6. 收尾
 
-- 向開發者摘要:產出的檔案、子系統設計重點、主架構有哪些同步更新、新增了哪些 ADR
-- 說明之後 `/func-spec` 撰寫落在此子系統的功能規格時,會以主架構 + 本 subarch 文件為依據
+- 向開發者摘要:產出的檔案、子系統設計重點、功能規劃結論(幾個 features、幾個階段)、主架構有哪些同步更新、新增了哪些 ADR
+- 說明之後可用 `/func-spec:feature` 依「功能規劃」清單逐一展開規格(撰寫時以主架構 + 本 subarch 文件為依據,建檔後回填清單的 spec 欄)

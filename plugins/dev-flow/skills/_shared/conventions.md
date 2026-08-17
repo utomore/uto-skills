@@ -18,7 +18,7 @@ docs/
 ├── bugfix/
 │   └── bug-0001-<slug>.md                 # 缺陷紀錄
 └── enhance/
-    └── enhance-0001-<slug>.md             # 改善提案
+    └── enhance-0001-<slug>.md             # 改善規格(/func-spec:enhance 或 /code-audit 產出)
 ```
 
 ## 命名規則
@@ -41,7 +41,7 @@ description: 以 JWT 實作使用者註冊、登入與權限驗證   # 一句話
 status: open             # open | in-progress | done | closed(ADR 改用 proposed | accepted | superseded)
 created: 2026-08-15
 updated: 2026-08-15
-depends-on: []           # spec 用:依賴的其他 spec id,判斷任務可否平行開發
+depends-on: []           # spec / enhance 用:依賴的其他 spec id,判斷任務可否平行開發
 related-adr: []          # 相關 ADR id
 related-spec: []         # bug/enhance 回鏈到 spec id
 ---

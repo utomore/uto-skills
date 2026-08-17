@@ -95,5 +95,5 @@ updated: <today>
 ### 4. 收尾
 
 - 向開發者摘要:產出了哪些檔案、架構重點、子系統劃分結論、各階段規劃
-- 說明 `docs/arch/architecture.md` 是專案燈塔,之後 `/func-spec` 撰寫規格都會以它為依據;`docs/adr/` 未來有新決策會持續擴充
+- 說明 `docs/arch/architecture.md` 是專案燈塔,之後 `/func-spec:feature` / `/func-spec:enhance` 撰寫規格都會以它為依據;`docs/adr/` 未來有新決策會持續擴充
 - 「子系統劃分」中值得單獨設計的子系統,建議開發者逐一執行 `/subarch-design` 展開細節(建檔後 `subarchs` 會回填)

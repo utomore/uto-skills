@@ -9,10 +9,10 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | 指令 | 職責 |
 |---|---|
 | `/arch-design` | 專案整體架構設計 — 深度訪談後產出 `docs/arch/architecture.md` + `docs/adr/adr-000x-*.md`,並規劃子系統邊界 |
-| `/subarch-design` | 子系統架構設計 — 基於整體架構產出 `docs/arch/subarch-000x-*.md`(含 ASCII 架構圖、對外介面),並回填主架構的 `subarchs` 清單 |
-| `/func-spec` | 新功能規格書 — 深度討論後產出 `docs/spec/func-000x-*.md`(相依性、介面、TodoList、1-to-1 測試),寫完回頭檢查架構文件 |
+| `/subarch-design` | 子系統架構設計 — 基於整體架構產出 `docs/arch/subarch-000x-*.md`(含 ASCII 架構圖、對外介面、完成子系統所需的 feature 規劃列表),並回填主架構的 `subarchs` 清單 |
+| `/func-spec` | 功能/改善規格書 — `:feature` 深度討論新功能後產出 `docs/spec/func-000x-*.md`;`:enhance` 檢視現有程式碼後產出 `docs/enhance/enhance-000x-*.md`(皆含相依性、介面、TodoList、1-to-1 測試),寫完回頭檢查架構文件 |
 | `/code-audit` | 專案分析 — `status` 模式用腳本掃 metadata 進度;預設模式先掃狀態、再拿文檔對照程式碼分析(穩健性/解耦/資安/效能/過時套件),產出同時涵蓋文檔狀態總覽與程式碼發現的 `docs/analysis/report-*.md` |
-| `/spec-impl` | 依 spec / bug / enhance 文檔開發,逐項勾 TodoList、跑 1-to-1 測試、回寫 status |
+| `/spec-impl` | 依文檔開發 — 開發者指定要實作哪一份(feature / enhance / bugfix),逐項勾 TodoList、跑 1-to-1 測試、回寫 status |
 | `/branch-pr` | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
 
 共用文檔慣例(資料夾結構、命名、YAML frontmatter)在 `plugins/dev-flow/skills/_shared/conventions.md`。

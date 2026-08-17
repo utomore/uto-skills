@@ -12,6 +12,14 @@
         "name": "utomore"
       },
       "source": "./plugins/dev-flow"
+    },
+    {
+      "name": "talk-flow",
+      "description": "演講內容產生流程 skills:主軸設計、段落討論(含 status 掃描)、段落實作、頁面調整,產出 SVG+HTML 投影片與講稿",
+      "author": {
+        "name": "utomore"
+      },
+      "source": "./plugins/talk-flow"
     }
   ]
 }

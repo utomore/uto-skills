@@ -84,7 +84,7 @@ user-invocable: true
 ```
 
 3. 為每個段落產出佔位文檔 `docs/section-<編號:01>-<slug>.md`:**只放 frontmatter(status: open)與一段「段落說明」**(目的與預計內容方向,2–3 句),其餘留給 `/section-discuss`
-4. `topic.md` 的 `sections` 回填全部段落 id
+4. `topic.md` 的 `sections` 回填全部段落 id,一律行內陣列 `sections: [section-01, section-02]`(清單欄位不用 YAML 區塊列表)
 
 ### 5. 收尾
 

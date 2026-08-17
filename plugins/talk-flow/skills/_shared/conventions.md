@@ -122,6 +122,26 @@ section: section-02          # 所屬段落 id
 -->
 ```
 
+### 清單欄位格式(唯一寫法:行內陣列)
+
+`sections`、`pages`、`depends-on`、`covers-sections` 等清單欄位**一律寫成行內陣列**,空值寫 `[]`:
+
+```yaml
+sections: [section-01, section-02, section-03]   # ✅ 唯一合規寫法
+pages: []                                        # ✅ 空清單
+depends-on: [section-02]                         # ✅ 單一元素也用陣列
+```
+
+```yaml
+sections:                                        # ❌ 不使用 YAML 區塊列表
+  - section-01
+  - section-02
+```
+
+- 理由:狀態掃描腳本只讀檔頭、只認行內陣列;兩種格式並存會讓清單被讀成空值而誤報「清單不一致」
+- 值含冒號 `:`、`#` 或空白時,該元素用雙引號括起來:`pages: ["03", "04"]`
+- `/section-discuss status` 偵測到區塊列表會列進「frontmatter 格式不合規」並以 exit code 1 收場,改回行內陣列即可
+
 ### `description` 欄位規則(必填)
 
 - **所有類型都要寫**:topic / section / scripts / slide / svg,一個都不能少

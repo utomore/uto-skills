@@ -16,7 +16,9 @@ user-invocable: true
 node <本 skill 目錄>/scripts/scan-status.mjs [docs目錄]
 ```
 
-腳本掃描 `docs/topic.md` 與 `docs/section-*.md` 的 metadata,輸出各段落的主軸、狀態(open / in-progress / done / rejected)、時長與頁碼,並比對 `topic.md` 的 `sections` 清單找出缺漏。把表格轉述給使用者,不合規項目(缺 metadata、清單不一致)逐條說明。
+腳本掃描 `docs/topic.md` 與 `docs/section-*.md` 的 metadata,輸出各段落的主軸、狀態(open / in-progress / done / rejected)、時長與頁碼,並比對 `topic.md` 的 `sections` 清單找出缺漏。把表格轉述給使用者,不合規項目(缺 metadata、清單不一致、frontmatter 格式)逐條說明。
+
+出現「frontmatter 格式不合規」時,先把該欄位改回行內陣列(`sections: [section-01, section-02]`)再重跑,不要憑印象解讀清單不一致 —— 清單欄位寫成 YAML 區塊列表時腳本讀不到內容,後面的比對結果不可信。
 
 ## 前置
 

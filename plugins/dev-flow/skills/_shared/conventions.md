@@ -57,6 +57,26 @@ parent-arch: architecture  # subarch 用:回鏈主架構的 id(固定為 archite
 - 主架構 `docs/arch/architecture.md` 的 `subarchs` 是子系統的**唯一權威清單**:`/subarch-design` 建檔或廢棄子系統時必須同步回填
 - 每份 `subarch-*` 都必須有 `parent-arch`,讓任何讀者能從子系統回溯到主架構
 
+### 清單欄位格式(唯一寫法:行內陣列)
+
+`depends-on`、`related-adr`、`related-spec`、`subarchs` 等清單欄位**一律寫成行內陣列**,空值寫 `[]`:
+
+```yaml
+depends-on: [func-0001, func-0002]   # ✅ 唯一合規寫法
+related-adr: []                      # ✅ 空清單
+subarchs: [subarch-0001]             # ✅ 單一元素也用陣列
+```
+
+```yaml
+depends-on:                          # ❌ 不使用 YAML 區塊列表
+  - func-0001
+  - func-0002
+```
+
+- 理由:狀態掃描腳本只讀檔頭、只認行內陣列;兩種格式並存會讓清單被讀成空值,相依關係與權威清單就對不上
+- 值含冒號 `:`、`#` 或空白時,該元素用雙引號括起來
+- `/code-audit status` 偵測到區塊列表會列進「frontmatter 格式不合規」並以 exit code 1 收場,改回行內陣列即可
+
 ### `description` 欄位規則(必填)
 
 - **所有類型都要寫**:architecture / subarch / adr / spec / **bug** / **enhance** / report,一個都不能少

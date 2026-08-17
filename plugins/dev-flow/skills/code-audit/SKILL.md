@@ -27,6 +27,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [docs目錄,預設 ./
 - 腳本欄位順序為 `主軸 | id | type | status | created | depends-on | file`;轉成 markdown 表格呈現時**維持這個順序**,讓「主軸」是第一眼看到的欄位、id 只在第二欄
 - `主軸`(frontmatter 的 `description`)可直接看出每份文檔在做什麼,不必開檔
 - 有 `missing-metadata` 警示時,提醒開發者該檔案缺 frontmatter 或 status 欄位,違反慣例;`主軸` 顯示為 `-` 代表缺 `description`,提醒補上
+- 有「frontmatter 格式不合規」時,把該清單欄位改回行內陣列(`depends-on: [func-0001]`)再重跑;寫成 YAML 區塊列表時腳本讀不到內容,`depends-on` 欄會空掉、相依關係不可信
 - **禁止**為了補充資訊而去讀取各文檔全文 — 此模式的重點就是省 context
 
 ## 模式 B — 文檔對照程式碼分析

@@ -1,6 +1,6 @@
 # 演講內容產生流程文檔慣例(共用)
 
-所有演講流程 skills(topic-design、section-discuss、section-impl、page-adjust)共用本慣例。
+所有演講流程 skills(topic-design、section-discuss、section-impl、page-adjust、review)共用本慣例。
 
 ## 資料夾結構(演講專案內)
 
@@ -161,6 +161,7 @@ sections:                                        # ❌ 不使用 YAML 區塊列�
 - **頁碼同步**:頁碼是全域的,插入/刪除頁面必須重新編號後續頁面,並同步五處 — SVG 檔名、SVG metadata 的 `page`、section 文件的 `pages`、`scripts.md` 的頁碼標記、`slide.html` 的頁面清單
 - **時間帳**:所有非 rejected section 的 `est-minutes` 總和必須 ≈ `duration-minutes`(留 5–10% 緩衝給開場與 Q&A 銜接);任何段落增刪或時長調整後重算一次
 - **Context 載入紀律**:工作時只讀 `docs/topic.md`、當前目標 section、與其 `depends-on` 相關的 section;`rejected` 的段落除非必要否則不載入
+- **上台前驗收**:`/review` 唯讀交叉比對上述五處頁碼同步、段落覆蓋、依賴順序與時間帳,並審查主軸貼合度、偏題比例、銜接與難度峰值;它不修改任何檔案,修正由 `/page-adjust`、`/section-discuss`、`/section-impl` 執行
 
 ## 投影片規格
 

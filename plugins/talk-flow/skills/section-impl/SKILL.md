@@ -71,4 +71,4 @@ user-invocable: true
 
 ### 7. 收尾
 
-摘要:本段產出的檔案(講稿區段、SVG 頁碼、slide.html 變動、demo)、與設計文檔的偏差及理由、時間帳現況;建議下一個要實作的段落,或全部完成時建議用 `/page-adjust` 微調與 `/section-discuss status` 總覽。
+摘要:本段產出的檔案(講稿區段、SVG 頁碼、slide.html 變動、demo)、與設計文檔的偏差及理由、時間帳現況;建議下一個要實作的段落,或全部完成時建議用 `/page-adjust` 微調、`/section-discuss status` 總覽,並在上台前跑 `/review` 做整體審查(主軸貼合度、銜接、講稿與投影片一致性)。

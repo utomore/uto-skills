@@ -19,7 +19,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ## talk-flow
 
-演講內容產生流程的 Claude Code plugin,協助產出投影片(SVG + HTML)與講稿(.md),包含四個 skills:
+演講內容產生流程的 Claude Code plugin,協助產出投影片(SVG + HTML)與講稿(.md),包含五個 skills:
 
 | 指令 | 職責 |
 |---|---|
@@ -27,6 +27,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | `/section-discuss` | 段落討論 — 逐段深談存在理由、內容要點、先備知識與頁面規劃,產出完整 `docs/section-0x-*.md`;子命令 `status` 用腳本掃描各段落狀態(open / in-progress / done / rejected)並比對 `topic.md` 的 `sections` 清單 |
 | `/section-impl` | 段落實作 — 依 topic.md 與 section 文檔撰寫 `talk/scripts.md` 講稿、產出 SVG 頁面並組進 `talk/slide.html`,需要時建立 `demo/`(預設 uv + python + notebook) |
 | `/page-adjust` | 單頁調整 — 針對指定頁碼的 SVG 深談風格/描述/圖畫/Layout,修改 SVG 並同步 section 文檔、講稿與 slide.html |
+| `/review` | 整體審查(唯讀)— 腳本交叉比對頁碼五處同步、段落覆蓋、依賴順序與講稿對時,再判斷主軸貼合度、偏題比例、段落/頁面銜接是否突兀、難度峰值位置,輸出七項指標的符合度與修正優先序;不產出任何文檔 |
 
 演講專案的資料夾結構:`docs/`(topic.md 與 section 設計文件)、`talk/assets/`(SVG 頁面,全域兩位數頁碼)、`talk/scripts.md`(講稿,含 `(→ page XX)` 翻頁標記)、`talk/slide.html`(鍵盤翻頁的離線簡報)、`demo/`(可選)。每份文件(含 SVG 與 slide.html)都有 metadata;共用慣例在 `plugins/talk-flow/skills/_shared/conventions.md`。
 

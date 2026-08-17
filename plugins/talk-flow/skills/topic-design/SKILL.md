@@ -89,5 +89,5 @@ user-invocable: true
 ### 5. 收尾
 
 - 摘要:產出了哪些檔案、選定的主軸、段落切分與時間分配
-- 說明 `docs/topic.md` 是演講燈塔,之後 `/section-discuss` 逐段深談、`/section-impl` 實作講稿與 SVG、`/page-adjust` 微調單頁
+- 說明 `docs/topic.md` 是演講燈塔,之後 `/section-discuss` 逐段深談、`/section-impl` 實作講稿與 SVG、`/page-adjust` 微調單頁、`/review` 上台前做整體審查
 - 建議使用者從 `order: 1` 的段落開始執行 `/section-discuss`

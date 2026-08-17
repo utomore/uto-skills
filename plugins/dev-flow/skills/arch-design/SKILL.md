@@ -1,21 +1,24 @@
 ---
 name: arch-design
-description: 專案初始架構設計 — 透過深度訪談產出 docs/architecture.md 與 ADR 文件。觸發詞:架構設計、architecture、ADR、專案初始化、技術選型、系統設計、開新專案。Use when starting a new project, designing system architecture, or recording architecture decisions (ADR).
+description: 專案整體架構設計 — 透過深度訪談產出 docs/arch/architecture.md 與 ADR 文件,並規劃子系統邊界(細節交給 subarch-design)。觸發詞:架構設計、architecture、ADR、專案初始化、技術選型、系統設計、開新專案。Use when starting a new project, designing system architecture, or recording architecture decisions (ADR).
 user-invocable: true
 ---
 
-# /arch-design — 專案初始架構設計
+# /arch-design — 專案整體架構設計
 
 先讀取本檔同層的 `../_shared/conventions.md`,遵守其中所有文檔慣例(資料夾結構、命名、frontmatter)。
 
 ## 目標
 
-產出專案的燈塔文件 `docs/architecture.md` 與對應的 `docs/adr/adr-000x-<slug>.md`,確立整體專案方向與指引。**在需求與架構明確之前,禁止產出任何文件。**
+產出專案的燈塔文件 `docs/arch/architecture.md` 與對應的 `docs/adr/adr-000x-<slug>.md`,確立整體專案方向與指引。**在需求與架構明確之前,禁止產出任何文件。**
+
+本文件是專案**最上層**的架構:寫到「子系統邊界」的顆粒度即可(每個子系統的定位、職責、對外介面與資料流)。子系統內部細節不要塞進來 — 夠大、值得單獨設計的子系統,交給 `/subarch-design` 展開成 `docs/arch/subarch-000x-<slug>.md`,避免單一檔案過度膨脹。
 
 ## 模式判斷
 
-- `docs/architecture.md` 不存在 → **初始模式**:完整訪談後從零產出
-- 已存在 → **更新模式**:先讀取現有內容,針對要調整的部分訪談,更新文件並視情況新增 ADR
+- `docs/arch/architecture.md` 不存在、舊版 `docs/architecture.md` 也不存在 → **初始模式**:完整訪談後從零產出
+- 只有舊版 `docs/architecture.md` → **遷移 + 更新模式**:徵得開發者同意後把檔案搬到 `docs/arch/architecture.md`(內容照舊,frontmatter 補上 `subarchs: []`),再依更新模式進行
+- `docs/arch/architecture.md` 已存在 → **更新模式**:先讀取現有內容,針對要調整的部分訪談,更新文件並視情況新增 ADR
 
 ## 流程
 
@@ -25,15 +28,16 @@ user-invocable: true
 
 1. **需求釐清**:這個專案要解決什麼問題?核心功能有哪些?誰會使用?希望的功能清單與優先順序?
 2. **垂直切片分析**:把需求切成端到端的垂直切片,和開發者確認切片邊界
-3. **專案體量評估**:預期規模(原型/工具/長期產品)、資料量、使用者量、效能要求
-4. **技術選型**:語言、框架、執行環境 — 每個選擇都要問偏好並給出建議與理由
-5. **資料儲存**:要儲存什麼資料?用什麼儲存(檔案/SQLite/PostgreSQL/其他)?資料結構的框架格式?
-6. **關鍵演算法**:核心邏輯用什麼演算法?有無效能或正確性的取捨?
-7. **開發階段切分**:整個專案分幾個階段?每階段的里程碑?
+3. **子系統切分**:專案是否大到需要拆子系統?哪些元件群職責獨立、值得單獨設計?和開發者確認每個子系統的名稱、職責與邊界(細節之後由 `/subarch-design` 展開,這裡只定邊界)
+4. **專案體量評估**:預期規模(原型/工具/長期產品)、資料量、使用者量、效能要求
+5. **技術選型**:語言、框架、執行環境 — 每個選擇都要問偏好並給出建議與理由
+6. **資料儲存**:要儲存什麼資料?用什麼儲存(檔案/SQLite/PostgreSQL/其他)?資料結構的框架格式?
+7. **關鍵演算法**:核心邏輯用什麼演算法?有無效能或正確性的取捨?
+8. **開發階段切分**:整個專案分幾個階段?每階段的里程碑?
 
 每輪訪談後摘要目前已確認的內容,列出仍不明確的點繼續問。全部明確後,向開發者做最終確認再產出。
 
-### 2. 產出 `docs/architecture.md`
+### 2. 產出 `docs/arch/architecture.md`
 
 內文繁體中文,固定章節:
 
@@ -46,15 +50,19 @@ description: <一句話,40 字內:這個專案在做什麼>
 status: active
 created: <today>
 updated: <today>
+subarchs: []            # 子系統架構 id 清單,由 /subarch-design 建檔時回填
 ---
 
 # <專案名稱> 系統架構
 
 ## 需求說明
 ## 架構規劃(含垂直切片說明)
+## 子系統劃分
+(每個子系統一小節:定位、職責、對外介面;已有 subarch 文件的註明其 id 與檔名。
+ 未拆子系統的小專案此節寫「不拆分」與理由)
 ## 使用的技術
 ## 架構圖
-(ASCII 繪製,呈現元件與資料流)
+(ASCII 繪製,呈現元件與資料流;有子系統時以框線標出各子系統邊界)
 ## 資料結構的框架格式
 ## 使用到的套件
 ## 開發階段
@@ -86,5 +94,6 @@ updated: <today>
 
 ### 4. 收尾
 
-- 向開發者摘要:產出了哪些檔案、架構重點、各階段規劃
-- 說明 `docs/architecture.md` 是專案燈塔,之後 `/func-spec` 撰寫規格都會以它為依據;`docs/adr/` 未來有新決策會持續擴充
+- 向開發者摘要:產出了哪些檔案、架構重點、子系統劃分結論、各階段規劃
+- 說明 `docs/arch/architecture.md` 是專案燈塔,之後 `/func-spec` 撰寫規格都會以它為依據;`docs/adr/` 未來有新決策會持續擴充
+- 「子系統劃分」中值得單獨設計的子系統,建議開發者逐一執行 `/subarch-design` 展開細節(建檔後 `subarchs` 會回填)

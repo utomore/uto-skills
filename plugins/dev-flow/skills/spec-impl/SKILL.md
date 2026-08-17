@@ -15,7 +15,8 @@ user-invocable: true
 
 ## 2. 載入 context(遵守載入紀律)
 
-- 目標文檔全文 + `docs/architecture.md` + frontmatter `related-adr` 列出的 ADR
+- 目標文檔全文 + `docs/arch/architecture.md`(舊專案為 `docs/architecture.md`)+ frontmatter `related-adr` 列出的 ADR
+- 目標落在某個子系統(主架構 `subarchs` 有對應文件)時,加讀該 `docs/arch/subarch-*`;不相關的子系統不讀
 - bug / enhance 另讀 `related-spec` 指向的規格
 - 目標是 spec 且 `depends-on` 非空 → 先確認被依賴的 spec 是否已 done;未完成時警告開發者並詢問是否繼續
 
@@ -24,7 +25,7 @@ user-invocable: true
 1. 開工前:目標文檔 `status` 改為 `in-progress`、更新 `updated`
 2. 依 TodoList **逐項**實作;項目帶 `dep:` 標註時,先確認其前置 Todo 已完成、引用的 spec id 已 done,否則不得開工該項;**每完成一項就把該 checkbox 勾掉**(`- [x]`)並更新 `updated`
 3. 實作方式以文檔為準;發現文檔方案行不通或需偏離時,先與開發者確認,並把偏差寫進文檔的「實作備註」節
-4. 程式碼風格遵循專案既有慣例與 architecture.md 的架構規劃
+4. 程式碼風格遵循專案既有慣例與 architecture.md(及相關 subarch)的架構規劃
 
 ## 4. 測試(1-to-1)
 

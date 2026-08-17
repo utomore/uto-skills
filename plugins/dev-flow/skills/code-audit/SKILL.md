@@ -33,7 +33,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [docs目錄,預設 ./
 
 ### 1. 決定分析範圍
 
-- **全局**:對照 architecture.md 分析整個程式碼庫
+- **全局**:對照 architecture.md(及其 `subarchs` 列出的子系統架構)分析整個程式碼庫
 - **特定 func-spec**:只分析該 spec 對應的程式碼
 
 不明確就用 AskUserQuestion 問。
@@ -51,14 +51,14 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [docs目錄,預設 ./
 
 ### 3. Context 載入紀律(嚴格遵守)
 
-只讀:`docs/architecture.md`、**最新的**相關 `docs/adr/`、當前目標 func-spec(全局模式則讀 status 非 closed 的 spec)。已 Closed 的 bugfix 檔除非必要否則不載入。狀態表已提供每份文檔的主軸,**不要**為了寫報告去讀文檔全文。
+只讀:`docs/arch/architecture.md`(舊專案為 `docs/architecture.md`)、與分析範圍相關的 `docs/arch/subarch-*`(全局模式讀全部 subarch;特定 spec 模式只讀該功能所屬子系統)、**最新的**相關 `docs/adr/`、當前目標 func-spec(全局模式則讀 status 非 closed 的 spec)。已 Closed 的 bugfix 檔除非必要否則不載入。狀態表已提供每份文檔的主軸,**不要**為了寫報告去讀文檔全文。
 
 ### 4. 分析面向
 
 對照文檔逐項檢查程式碼:
 
 1. **穩健性**:錯誤處理、邊界條件、資源釋放、並發安全
-2. **解耦程度**:模組邊界是否清晰、是否符合 architecture.md 的架構規劃、有無循環依賴
+2. **解耦程度**:模組邊界是否清晰、是否符合 architecture.md 與相關 subarch 的架構規劃(含子系統邊界與對外介面)、有無循環依賴
 3. **潛在資安問題**:注入、未驗證輸入、秘密硬編碼、不安全的反序列化等
 4. **潛在效能疑慮**:N+1、不必要的複製、演算法複雜度與 spec 描述不符
 5. **過時語法 / 工具 / 套件**:是否採用已被淘汰或棄用的寫法;套件是否已 deprecated 或有已知漏洞(不確定時可 WebSearch 查證)

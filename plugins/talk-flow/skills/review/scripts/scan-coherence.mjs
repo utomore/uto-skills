@@ -172,6 +172,81 @@ function speechMinutes(text) {
 
 const pageNo = (n) => String(n).padStart(2, "0");
 
+// ---------- SVG 視覺規格分析 ----------
+
+/** 色值正規化:#abc → #aabbcc,一律小寫;none / transparent / currentColor 不算色票 */
+function normColor(raw) {
+  const v = raw.trim().toLowerCase();
+  if (!v || v === "none" || v === "transparent" || v === "currentcolor" || v.startsWith("url(")) return null;
+  const hex = v.match(/^#([0-9a-f]{3,8})$/);
+  if (hex) {
+    const h = hex[1];
+    if (h.length === 3) return `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}`;
+    if (h.length === 4) return `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}`; // 忽略 alpha
+    if (h.length === 8) return `#${h.slice(0, 6)}`;
+    return `#${h}`;
+  }
+  return v.replace(/\s+/g, "");
+}
+
+/** 粗估文字顯示寬度(px):CJK 約 1 個字寬,西文約 0.55 */
+function textPixelWidth(value, size) {
+  let w = 0;
+  for (const ch of value) w += /[㐀-鿿぀-ヿ가-힯，。、：;！？（）「」]/.test(ch) ? 1 : 0.55;
+  return w * size;
+}
+
+/**
+ * 抽出可機械驗證的視覺規格:viewBox、寫死尺寸、字級、字體、色票、元素數、
+ * 外部資源、emoji、粗估文字溢出。判斷 Layout 好壞仍要開檔目視,這裡只給證據。
+ */
+function analyzeStyle(body, textNodes) {
+  const svgTag = body.match(/<svg\b[^>]*>/)?.[0] ?? "";
+  const viewBox = svgTag.match(/viewBox\s*=\s*["']([^"']+)["']/)?.[1]?.trim().replace(/\s+/g, " ") ?? "";
+  const hardWidth = /\bwidth\s*=\s*["'][^"']*["']/.test(svgTag);
+  const hardHeight = /\bheight\s*=\s*["'][^"']*["']/.test(svgTag);
+
+  const fontSizes = [...body.matchAll(/font-size\s*[:=]\s*["']?(\d+(?:\.\d+)?)/g)].map((m) => Number(m[1]));
+  const fontFamilies = [
+    ...new Set(
+      [...body.matchAll(/font-family\s*[:=]\s*["']?([^"';>]+)/g)].map((m) => m[1].trim().replace(/\s+/g, " ")),
+    ),
+  ];
+  const colors = [
+    ...new Set(
+      [...body.matchAll(/(?:fill|stroke|stop-color|flood-color)\s*[:=]\s*["']?([^"';>\s]+)/g)]
+        .map((m) => normColor(m[1]))
+        .filter(Boolean),
+    ),
+  ];
+  const gradients = (body.match(/<(?:linear|radial)Gradient\b/g) ?? []).length;
+  const shapes = (body.match(/<(?:rect|circle|ellipse|path|polygon|polyline|line)\b/g) ?? []).length;
+  const chars = textNodes.reduce((n, t) => n + t.value.length, 0);
+  const emoji = (body.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu) ?? []).length;
+  const hasImage = /<image\b/.test(body);
+  const external = [...body.matchAll(/(?:href|src)\s*=\s*["'](https?:\/\/[^"']+)["']/g)].map((m) => m[1]);
+  const base64 = /data:[^;]+;base64,/.test(body);
+
+  // 粗估溢出:考慮 text-anchor
+  const overflow = [];
+  for (const t of textNodes) {
+    if (!t.value) continue;
+    const x = Number(t.attrs.match(/\bx\s*=\s*["']([-\d.]+)/)?.[1] ?? NaN);
+    const y = Number(t.attrs.match(/\by\s*=\s*["']([-\d.]+)/)?.[1] ?? NaN);
+    const size = Number(t.attrs.match(/font-size\s*[:=]\s*["']?(\d+(?:\.\d+)?)/)?.[1] ?? 32);
+    const anchor = t.attrs.match(/text-anchor\s*[:=]\s*["']?(start|middle|end)/)?.[1] ?? "start";
+    if (Number.isNaN(x) || Number.isNaN(y)) continue;
+    const w = textPixelWidth(t.value, size);
+    const left = anchor === "middle" ? x - w / 2 : anchor === "end" ? x - w : x;
+    const right = left + w;
+    if (left < -4 || right > 1284 || y > 724 || y < 0) {
+      overflow.push(`「${truncate(t.value, 20)}」x${Math.round(left)}→${Math.round(right)} y${y}`);
+    }
+  }
+
+  return { viewBox, hardWidth, hardHeight, fontSizes, fontFamilies, colors, gradients, shapes, chars, emoji, hasImage, external, base64, overflow };
+}
+
 // ---------- 讀取素材 ----------
 
 if (!existsSync(DOCS)) {
@@ -225,9 +300,10 @@ if (existsSync(ASSETS)) {
     const parsed = parseCommentMeta(body.slice(0, HEAD_BYTES * 2));
     checkFormat(`talk/assets/${name}`, parsed.blockListKeys);
     const meta = parsed.meta ?? {};
-    const texts = [...body.matchAll(/<text\b[^>]*>([\s\S]*?)<\/text>/g)]
-      .map((m) => m[1].replace(/<[^>]+>/g, " ").replace(/&[a-z]+;|&#\d+;/g, " ").replace(/\s+/g, " ").trim())
-      .filter(Boolean);
+    const textNodes = [...body.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)].map((m) => ({
+      attrs: m[1],
+      value: m[2].replace(/<[^>]+>/g, " ").replace(/&[a-z]+;|&#\d+;/g, " ").replace(/\s+/g, " ").trim(),
+    }));
     svgs.push({
       name,
       filePage,
@@ -236,7 +312,8 @@ if (existsSync(ASSETS)) {
       description: String(meta.description ?? ""),
       status: String(meta.status ?? "⚠ missing"),
       hasMeta: Boolean(parsed.meta),
-      texts,
+      texts: textNodes.map((t) => t.value).filter(Boolean),
+      style: analyzeStyle(body, textNodes),
     });
   }
 }
@@ -505,27 +582,104 @@ if (!scriptSections.length) {
   console.log("(標記存在只代表有寫;銜接理由是否成立要由審查者讀內容判斷)");
 }
 
-// ---------- 各頁投影片文字摘要 ----------
+// ---------- 視覺規格(機械可驗部分)----------
 
 if (svgs.length) {
-  console.log("\n=== 各頁投影片文字摘要(用於比對講稿說法,異常頁再開原檔)===");
-  const rows = svgs.map((s) => ({
+  console.log("\n=== 視覺規格(逐頁;Layout 好壞與 AI 感仍須開檔目視)===");
+  const rows = svgs.map((s) => {
+    const v = s.style;
+    const minSize = v.fontSizes.length ? Math.min(...v.fontSizes) : null;
+    const flags = [];
+    if (v.viewBox !== "0 0 1280 720") flags.push(`viewBox=${v.viewBox || "缺"}`);
+    if (v.hardWidth || v.hardHeight) flags.push("寫死尺寸");
+    if (minSize !== null && minSize < 18) flags.push(`字級${minSize}px`);
+    else if (minSize !== null && minSize < 24) flags.push(`小字${minSize}px`);
+    if (v.overflow.length) flags.push(`溢出?${v.overflow.length}`);
+    if (v.external.length) flags.push("外部資源");
+    if (v.hasImage || v.base64) flags.push("點陣圖");
+    if (v.emoji) flags.push(`emoji${v.emoji}`);
+    return {
+      page: pageNo(s.filePage),
+      section: s.section || "-",
+      texts: String(s.texts.length),
+      chars: String(v.chars),
+      shapes: String(v.shapes),
+      colors: String(v.colors.length),
+      grad: String(v.gradients),
+      size: v.fontSizes.length ? `${minSize}–${Math.max(...v.fontSizes)}` : "-",
+      flags: flags.join(" ") || "",
+    };
+  });
+  printTable(
+    { page: "頁", section: "section", texts: "text", chars: "字數", shapes: "圖形", colors: "色數", grad: "漸層", size: "字級", flags: "旗標" },
+    rows,
+  );
+
+  for (const s of svgs) {
+    const v = s.style;
+    const p = pageNo(s.filePage);
+    if (v.viewBox !== "0 0 1280 720") problem(`第 ${p} 頁 viewBox 是「${v.viewBox || "缺"}」,慣例要求 0 0 1280 720`);
+    if (v.hardWidth || v.hardHeight) problem(`第 ${p} 頁 <svg> 寫死了 width/height,會影響縮放`);
+    const tooSmall = v.fontSizes.filter((n) => n < 18);
+    if (tooSmall.length) problem(`第 ${p} 頁有 ${tooSmall.length} 處字級 < 18px(${[...new Set(tooSmall)].join("/")})— 現場看不到`);
+    const smallish = v.fontSizes.filter((n) => n >= 18 && n < 24);
+    if (smallish.length) warn(`第 ${p} 頁有 ${smallish.length} 處字級 18–23px — 只有備註/來源可以這麼小,開檔確認`);
+    if (v.external.length) problem(`第 ${p} 頁引用外部資源(${truncate(v.external[0], 40)})— slide.html 必須離線可用`);
+    if (v.hasImage || v.base64) warn(`第 ${p} 頁含點陣圖(<image> 或 base64)— 確認是必要的截圖而非拿圖代替 <text>`);
+    if (s.texts.length === 0) warn(`第 ${p} 頁沒有任何 <text>(確認不是把文字轉成圖形或圖片)`);
+    if (v.emoji) warn(`第 ${p} 頁有 ${v.emoji} 個 emoji — 檢查是否符合 topic.md 的風格,常見的 AI 感來源`);
+    for (const o of v.overflow) warn(`第 ${p} 頁文字可能超出畫面:${o}(粗估,開檔確認)`);
+  }
+
+  // 全簡報收斂度
+  console.log("\n--- 全簡報一致性(配色與字體)---");
+  const colorPages = new Map();
+  for (const s of svgs) for (const c of s.style.colors) {
+    if (!colorPages.has(c)) colorPages.set(c, []);
+    colorPages.get(c).push(pageNo(s.filePage));
+  }
+  const palette = [...colorPages.entries()].sort((a, b) => b[1].length - a[1].length);
+  if (palette.length === 0) warn("沒有任何 fill/stroke 色值 — 全簡報都走瀏覽器預設黑,不可能符合 topic.md 的配色方向");
+  else console.log(`色票 ${palette.length} 種:` + palette.map(([c, ps]) => `${c}(${ps.length}頁)`).join(" "));
+  if (palette.length > 10) warn(`色票 ${palette.length} 種,配色發散 — 主色/輔色/強調色/背景/文字五類以內才看得出系統`);
+  const outliers = palette.filter(([, ps]) => ps.length === 1);
+  if (outliers.length && palette.length > 5) {
+    warn(`只出現在單一頁的離群色 ${outliers.length} 種:` + outliers.map(([c, ps]) => `${c}@${ps[0]}`).join(" ") + " — 確認是刻意強調還是隨手挑的");
+  }
+  const familyPages = new Map();
+  for (const s of svgs) for (const f of s.style.fontFamilies) {
+    const key = f.split(",")[0].trim().replace(/^['"]|['"]$/g, "");
+    if (!familyPages.has(key)) familyPages.set(key, []);
+    familyPages.get(key).push(pageNo(s.filePage));
+  }
+  if (familyPages.size === 0) warn("沒有任何頁面寫 font-family — 中文字體 fallback 必須寫入,否則換機器就變形");
+  else {
+    console.log(`字體 ${familyPages.size} 種:` + [...familyPages.entries()].map(([f, ps]) => `${f}(${ps.length}頁)`).join(" "));
+    if (familyPages.size > 2) warn(`字體 ${familyPages.size} 種,跨頁不一致 — 標題與正文各一種就夠`);
+    const missingFamily = svgs.filter((s) => s.style.fontFamilies.length === 0 && s.texts.length);
+    if (missingFamily.length) warn(`有文字但沒寫 font-family 的頁:${missingFamily.map((s) => pageNo(s.filePage)).join(", ")}`);
+  }
+  const charCounts = svgs.map((s) => s.style.chars);
+  if (charCounts.length >= 3) {
+    const avg = charCounts.reduce((a, b) => a + b, 0) / charCounts.length;
+    const dense = svgs.filter((s) => s.style.chars > avg * 1.8);
+    if (dense.length) warn(`字數明顯高於平均(${Math.round(avg)} 字)的頁:` + dense.map((s) => `${pageNo(s.filePage)}(${s.style.chars})`).join(" ") + " — 資訊超載候選,開檔確認是否該拆頁");
+  }
+
+  console.log("\n=== 各頁文字索引(逐頁開檔時對照講稿與用語)===");
+  const textRows = svgs.map((s) => ({
     page: pageNo(s.filePage),
     section: s.section || "-",
     st: s.status,
-    n: String(s.texts.length),
     digest: truncate(s.texts.join(" | "), TEXT_DIGEST_WIDTH) || "(無 <text>,純圖形頁)",
   }));
-  printTable({ page: "頁", section: "section", st: "status", n: "字塊", digest: "頁面文字" }, rows);
-  for (const s of svgs) if (s.texts.length === 0) warn(`第 ${pageNo(s.filePage)} 頁沒有任何 <text>(確認不是把文字轉成圖形或圖片)`);
+  printTable({ page: "頁", section: "section", st: "status", digest: "頁面文字" }, textRows);
 }
 
 // ---------- 結論 ----------
 
 console.log("\n=== 機械檢查結論 ===");
-if (hard === 0) {
-  console.log("無硬性不一致。主軸貼合度、偏題比例、銜接理由、難度峰值屬於判斷題,由 /review 的審查流程接手。");
-  process.exit(0);
-}
-console.log(`硬性不一致 ${hard} 項(上面標 ✗ 的項目)。這些先修掉,再談主軸與節奏的判斷題。`);
-process.exit(1);
+if (hard > 0) console.log(`硬性不一致 ${hard} 項(上面標 ✗ 的項目)。這些先修掉,再談判斷題。`);
+else console.log("無硬性不一致。");
+console.log(`Layout、配色統一、用語/概念一致、AI 感這四項算不出來 — /review 必須逐頁開 ${svgs.length} 個 SVG 目視判斷,上表只是證據與檢查清單。`);
+process.exit(hard > 0 ? 1 : 0);

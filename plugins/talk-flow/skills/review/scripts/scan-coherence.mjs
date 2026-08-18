@@ -27,7 +27,7 @@ const NOTE_MAX_CHARS = 200; // 備註超過此字數視為逐字稿化候選
 const TEXT_DIGEST_WIDTH = 80; // 頁面文字摘要顯示寬度上限
 
 const PAGE_CLASSES = new Set(["title", "divider", "center"]);
-const LAYOUT_CLASSES = new Set(["cols-2", "cols-2-1", "cols-1-2", "cols-3", "rows-2", "grid-2x2", "grid-3x2", "grid-2x3", "rows-3-2"]);
+const LAYOUT_CLASSES = new Set(["cols-2", "cols-2-1", "cols-1-2", "cols-3", "rows-2", "rows-3", "grid-2x2", "grid-3x2", "grid-2x3", "rows-3-2"]);
 const DIRECTIVE_KEYS = new Set([
   "class", "paginate", "header", "footer", "color", "backgroundcolor", "backgroundimage",
   "backgroundposition", "backgroundrepeat", "backgroundsize", "theme", "style", "size", "math", "transition",

@@ -19,8 +19,11 @@ talk/
 │   ├── build.mjs                   # 合併 section 檔 → slides.md → marp-cli 輸出
 │   └── slides.md                   # build 產物(合併結果),不手改
 ├── assets/
-│   └── diagram-02-1-<slug>.svg     # 圖形資產(所屬 section 編號 + 段內序號)
+│   ├── diagram-02-1-<slug>.svg     # 圖形資產(所屬 section 編號 + 段內序號)
+│   └── img-02-1-<slug>.png         # 截圖加註的原始圖(base64 內嵌進對應 SVG 後保留備改)
 └── dist/                           # marp-cli 輸出(slides.html / slides.pdf / ...),不手改
+review/
+└── review-2026-08-18-1.md          # /review 審查報告(日期 + 當日序號)
 demo/                               # (可選)示範操作,預設 uv + python + notebook
 ```
 
@@ -163,14 +166,17 @@ sections:                                        # ❌ 不使用 YAML 區塊列�
 - **對應同步**:每個非 rejected 且有頁面的 section,三處必須一致 — docs section 的 `slides`/`diagrams`、deck 檔的實際張數與 frontmatter `slides`、`talk/assets/` 的圖形檔;deck 檔引用的圖形檔必須存在,沒被任何 deck 引用的圖形是孤兒
 - **時間帳**:所有非 rejected section 的 `est-minutes` 總和必須 ≈ `duration-minutes`(留 5–10% 緩衝給開場與 Q&A 銜接);任何段落增刪或時長調整後重算一次
 - **Context 載入紀律**:工作時只讀 `docs/topic.md`、當前目標 section(設計文件 + deck 檔)、與其 `depends-on` 相關的 section;`rejected` 的段落除非必要否則不載入
-- **上台前驗收**:`/review` 唯讀交叉比對段落覆蓋、對應同步、依賴順序與時間帳,並 build 後逐頁審查版面、配色、圖形與備註;它不修改任何原始碼與文檔(重新 build 產物除外),修正由 `/page-adjust`、`/section-design`、`/section-impl` 執行
+- **上台前驗收**:`/review` 交叉比對段落覆蓋、對應同步、依賴順序與時間帳,並 build 後逐頁審查版面、視覺引導、文字規範、配色、圖形與備註,產出報告 `review/review-<YYYY-MM-DD>-<序號>.md`;它不修改任何原始碼與文檔(重新 build 產物與 review 報告除外),修正由 `/page-adjust`、`/section-design`、`/section-impl` 執行
 
 ## 投影片規格(Marp)
 
 - 頁面 1280×720(theme.css 已設定);**一頁一重點**,超過就拆頁
-- **Layout 用 theme.css 的版型類別**,不逐頁手刻 CSS;版型詞彙表與用法見 `_shared/layouts.md`
+- **Layout 用 theme.css 的版型類別**,不逐頁手刻 CSS;版型詞彙表與用法見 `_shared/layouts.md`。整頁單一區塊也是合法版型 — 切格只在內容有並列/對比關係時用
+- **視覺引導是每頁的必要設計項**:每頁要說得出動線(眼睛從哪進、依什麼順序看、在哪停),動線與內容邏輯順序一致;圖形的連接線方向要順著動線,不得把視線拉回頭
+- **文字技法一律出自 `topic.md` 的「文字規範」**:字級(哪個級別用在哪個情境)、強調方式(粗體/底線/強調色各用在哪)、列表符號(各符號的語意)都在 topic 設計時定案;實作與調整只能**從中選用**,不得自創新的字級、強調或符號用法 — 同一情境全簡報必須同一種寫法,要偏離必須有明確理由(如刻意做出差異對比)並記錄
 - 內文形式三選:**條列**(一層為主,每點一行內講完)、**表格**(維度對比才用)、**段落文字**(一頁最多一小段);同一格內不混用
 - 圖形一律 SVG 置於 `talk/assets/`,以 `![](../assets/diagram-XX-N-<slug>.svg)` 嵌入指定區塊;圖內文字在**版面上的最終渲染大小**不得小於約 18px(嵌入區塊會縮放,畫圖時要回推)
 - 禁止外部資源(網路圖片、CDN 字型)— 離線必須可用;點陣圖(截圖)僅在必要時使用
+- **截圖加註**:使用者提供截圖或參考圖時,可直接以該圖為底、用 SVG 疊加**編號標記**呈現(不必重畫成圖形)— 原始圖檔存 `talk/assets/img-<section編號>-<段內序號>-<slug>.<ext>`,加註 SVG 照 diagram 命名與 metadata;截圖必須以 **base64 data URI 內嵌**進 SVG(SVG 經 `<img>` 載入時讀不到外部檔案,外連會整張空白);說明文字不寫進圖裡,放頁面內文作圖例(編號 + 短標 + 一行說明,遵守文字規範),與標記一一對應
 - 配色、字體只改 `theme.css` 的 tokens(CSS variables),不在單頁內寫死色值;全簡報一致
 - **備註**:每頁結尾一個 `<!-- ... -->` 註解作 presenter note,**只寫提醒**(要點、關鍵措辭、時間提醒),1–5 行,禁止逐字稿與情境描述;段落第一頁備註以 `銜接:` 開頭(怎麼接上一段)、最後一頁含 `交棒:`(怎麼帶到下一段)

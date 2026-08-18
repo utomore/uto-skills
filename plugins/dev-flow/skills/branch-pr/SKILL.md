@@ -1,6 +1,6 @@
 ---
 name: branch-pr
-description: 整合多條 branch 並發 PR 到主 branch — 建整合分支、依序 merge、跑測試、gh pr create(標題英文、內文繁中)並打上對應 labels。觸發詞:發 PR、整合分支、merge branch、pull request、整合開發分支。Use when integrating feature branches and creating a pull request.
+description: 整合多條 branch 並發 PR 到主 branch — 建整合分支、依序 merge、跑測試、gh pr create 直接送出(標題英文、內文繁中)並打上對應 labels,不需使用者確認內容,發完回報 PR 大綱與說明。觸發詞:發 PR、整合分支、merge branch、pull request、整合開發分支。Use when integrating feature branches and creating a pull request.
 user-invocable: true
 ---
 
@@ -12,7 +12,7 @@ user-invocable: true
 
 1. `git fetch --all --prune`;用 `gh repo view --json defaultBranchRef` 確認主 branch
 2. 列出候選 branch(`git branch -a --no-merged <主branch>`)與各自對應的文檔 id(從 branch 名或 commit 訊息推斷)
-3. 用 AskUserQuestion 讓開發者確認:要整合哪些 branch、merge 順序、PR 目標 branch
+3. 若使用者已指明要整合的 branch,或候選只有一條、順序無疑義,直接進行;僅在多條候選且無法從文檔或 branch 名推斷取捨時,才用 AskUserQuestion 詢問要整合哪些 branch 與順序
 
 ## 2. 整合
 
@@ -21,12 +21,12 @@ user-invocable: true
    - 無衝突 → 繼續
    - 簡單衝突(格式、相鄰行)→ 處理後向開發者說明怎麼解的
    - 實質衝突(邏輯互斥)→ 停下,呈現兩邊差異,詢問開發者
-3. 整合完成後執行專案的測試 / build,**如實回報結果**;失敗則停下詢問,不得帶著紅燈發 PR
+3. 整合完成後執行專案的測試 / build,**如實回報結果**;失敗則停下回報,不得帶著紅燈發 PR
 
 ## 3. 發 PR
 
 1. Push 整合分支
-2. 組 PR 內容並**先給開發者確認**(標題 / 內文 / labels),確認後才 `gh pr create`:
+2. 測試 / build 全綠後,組好 PR 內容**直接 `gh pr create` 送出,不需先向開發者確認**(發完後在收尾階段回報大綱與說明):
    - **標題**:英文 conventional commit 風格 + 對應文檔 id
      例:`feat: add user authentication (func-0003)`、`fix: login timeout (bug-0007)`
    - **內文**:繁體中文,固定章節:
@@ -53,5 +53,5 @@ user-invocable: true
 
 ## 4. 收尾
 
-- 回報 PR 網址、包含的 branch 清單、labels
+- 向使用者回報 PR 的大綱與說明:PR 網址、標題、內文各章節的重點摘要(摘要 / 變更內容 / 對應文檔 / 測試結果 / 注意事項)、包含的 branch 清單、labels
 - 提醒:PR merge 後可執行 `/code-audit status` 確認對應文檔狀態是否已標 done

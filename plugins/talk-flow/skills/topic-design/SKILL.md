@@ -1,21 +1,21 @@
 ---
 name: topic-design
-description: 演講主軸設計 — 深度訪談時長、聽眾、會議類型後,提供 3 組主題方案供選擇,產出 docs/topic.md 燈塔文件、資料夾結構與各 section 佔位文檔。觸發詞:演講主軸、演講設計、topic design、新演講、簡報企劃、talk planning。Use when starting a new talk or presentation and defining its core topic and structure.
+description: 演講主軸設計 — 深度訪談時長、聽眾、會議類型後,提供 3 組主題方案供選擇,產出 docs/topic.md 燈塔文件、talk/src Marp 鷹架(theme.css、build.mjs)與各 section 佔位文檔。觸發詞:演講主軸、演講設計、topic design、新演講、簡報企劃、talk planning。Use when starting a new talk or presentation and defining its core topic and structure.
 user-invocable: true
 ---
 
 # /topic-design — 演講主軸設計
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例(資料夾結構、命名、metadata)。
+先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例(資料夾結構、命名、metadata、Marp 建置)。
 
 ## 目標
 
-與使用者討論出演講的**真正主軸**,產出燈塔文件 `docs/topic.md`、資料夾結構(`docs/`、`talk/assets/`)與各段落佔位文檔。**在主軸與段落切分明確之前,禁止產出任何文件。**
+與使用者討論出演講的**真正主軸**,產出燈塔文件 `docs/topic.md`、資料夾結構與 Marp 鷹架(`talk/src/`)、各段落佔位文檔。**在主軸與段落切分明確之前,禁止產出任何文件。**
 
 ## 模式判斷
 
 - `docs/topic.md` 不存在 → **初始模式**:完整訪談後從零產出
-- `docs/topic.md` 已存在 → **更新模式**:先讀取現有內容與各 section 狀態,針對要調整的部分訪談;主軸變動會牽動所有 section,必須列出受影響段落並取得使用者同意後才動手
+- `docs/topic.md` 已存在 → **更新模式**:先讀取現有內容與各 section 狀態,針對要調整的部分訪談;主軸變動會牽動所有 section,必須列出受影響段落並取得使用者同意後才動手;`slide-style` 變動要同步 `talk/src/theme.css` 的 tokens
 
 ## 流程
 
@@ -28,8 +28,9 @@ user-invocable: true
 3. **聽眾範圍**:誰會來聽?人數規模?聽眾的技術能力(beginner / intermediate / advanced / mixed)與先備知識?
 4. **會議類型**:deep-tech(深度技術分享)、intro(啟蒙/科普)、workshop(工作坊)、lightning(閃電秀)、keynote(主題演講)、internal(內部分享)、lecture(教學課程)— 類型決定深度與節奏
 5. **講者先備知識**:使用者對題材的熟悉度、想避開或想突顯的部分
-6. **風格偏好**:投影片視覺風格(深色/淺色、極簡/資訊密集、手繪/幾何)、演講風格(敘事型、示範型、論證型)
-7. **Demo 需求**:是否需要現場示範?(需要時建議 uv + python + notebook,依使用者要求可置換;demo 屬於某個 section,細節留給 `/section-discuss`)
+6. **風格偏好**:投影片視覺風格(深色/淺色、極簡/資訊密集、色彩傾向)、演講風格(敘事型、示範型、論證型)
+7. **輸出格式**:上台用什麼?(html 鍵盤翻頁 / pdf 備援分發 / pptx 交主辦方;可複選,記入 `outputs`)
+8. **Demo 需求**:是否需要現場示範?(需要時建議 uv + python + notebook,依使用者要求可置換;demo 屬於某個 section,細節留給 `/section-design`)
 
 每輪訪談後摘要目前已確認的內容,列出仍不明確的點繼續問。
 
@@ -50,8 +51,13 @@ user-invocable: true
 
 全部明確並經使用者最終確認後:
 
-1. 建立資料夾:`docs/`、`talk/assets/`(`demo/` 只在確定需要時建立)
-2. 產出 `docs/topic.md`,frontmatter 依 conventions,內文固定章節:
+1. 建立資料夾:`docs/`、`talk/src/`、`talk/assets/`(`demo/` 只在確定需要時建立)
+2. 鋪設 Marp 鷹架 — 從本 skill 的 `assets/` 複製到 `talk/src/`:
+   - `theme.css`:複製後**依訪談出的 slide-style 調整 tokens 區**(色票 CSS variables 與字體;深色風格連 `--c-bg`/`--c-text` 對調並檢查表格、卡片底色),版型類別區**不要動**
+   - `deck-header.md`:照抄(theme 名稱 `talk` 與 theme.css 的 `@theme` 一致)
+   - `build.mjs`:照抄
+   - `marprc.yml` → 複製為 `talk/src/.marprc.yml`
+3. 產出 `docs/topic.md`,frontmatter 依 conventions(含 `outputs`),內文固定章節:
 
 ```markdown
 # <演講題目> 主軸設計
@@ -74,20 +80,20 @@ user-invocable: true
 |---|---|---|---|---|
 
 ## 投影片風格
-(視覺風格、配色方向、版面原則 — 之後所有 SVG 遵守此節)
+(視覺風格關鍵字;theme.css tokens 的色票值與用途對照表 — 之後所有頁面與圖形遵守此節,改色只改 theme.css)
 
 ## 演講風格
-(敘事/示範/論證、語氣、互動方式)
+(敘事/示範/論證、語氣、互動方式;備註提醒的密度偏好)
 
 ## Demo 規劃
 (不需要則寫「無」;需要則寫目的、形式(預設 uv + python + notebook)與掛在哪個段落)
 ```
 
-3. 為每個段落產出佔位文檔 `docs/section-<編號:01>-<slug>.md`:**只放 frontmatter(status: open)與一段「段落說明」**(目的與預計內容方向,2–3 句),其餘留給 `/section-discuss`
-4. `topic.md` 的 `sections` 回填全部段落 id,一律行內陣列 `sections: [section-01, section-02]`(清單欄位不用 YAML 區塊列表)
+4. 為每個段落產出佔位文檔 `docs/section-<編號:01>-<slug>.md`:**只放 frontmatter(status: open、slides: 0、diagrams: [])與一段「段落說明」**(目的與預計內容方向,2–3 句),其餘留給 `/section-design`
+5. `topic.md` 的 `sections` 回填全部段落 id,一律行內陣列(清單欄位不用 YAML 區塊列表)
 
 ### 5. 收尾
 
-- 摘要:產出了哪些檔案、選定的主軸、段落切分與時間分配
-- 說明 `docs/topic.md` 是演講燈塔,之後 `/section-discuss` 逐段深談、`/section-impl` 實作講稿與 SVG、`/page-adjust` 微調單頁、`/review` 上台前做整體審查
-- 建議使用者從 `order: 1` 的段落開始執行 `/section-discuss`
+- 摘要:產出了哪些檔案、選定的主軸、段落切分與時間分配、theme tokens 怎麼對應 slide-style
+- 說明 `docs/topic.md` 是演講燈塔,之後 `/section-design` 逐段規劃內容與圖形、`/section-impl` 實作 Marp 頁面與圖形 SVG、`/page-adjust` 微調單頁、`/review` 上台前做整體審查
+- 建議使用者從 `order: 1` 的段落開始執行 `/section-design`

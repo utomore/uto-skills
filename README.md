@@ -19,17 +19,17 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ## talk-flow
 
-演講內容產生流程的 Claude Code plugin,協助產出投影片(SVG + HTML)與講稿(.md),包含五個 skills:
+演講內容產生流程的 Claude Code plugin,投影片以 **Marp Markdown** 撰寫、**marp-cli** 建置輸出(html / pdf / pptx),SVG 只用來畫圖形(架構圖、流程圖等),講稿簡化為頁內備註(presenter notes,提醒式、不寫逐字稿)。包含五個 skills:
 
 | 指令 | 職責 |
 |---|---|
-| `/topic-design` | 演講主軸設計 — 深度訪談時長/聽眾/會議類型,提供 3 組主題方案供選擇,產出燈塔文件 `docs/topic.md`、資料夾結構(`docs/`、`talk/assets/`)與各 section 佔位文檔 |
-| `/section-discuss` | 段落討論 — 逐段深談存在理由、內容要點、先備知識與頁面規劃,產出完整 `docs/section-0x-*.md`;子命令 `status` 用腳本掃描各段落狀態(open / in-progress / done / rejected)並比對 `topic.md` 的 `sections` 清單 |
-| `/section-impl` | 段落實作 — 依 topic.md 與 section 文檔撰寫 `talk/scripts.md` 講稿、產出 SVG 頁面並組進 `talk/slide.html`,需要時建立 `demo/`(預設 uv + python + notebook) |
-| `/page-adjust` | 單頁調整 — 針對指定頁碼的 SVG 深談風格/描述/圖畫/Layout,修改 SVG 並同步 section 文檔、講稿與 slide.html |
-| `/review` | 整體審查(唯讀)— 腳本交叉比對頁碼五處同步、段落覆蓋、依賴順序、講稿對時與 SVG 視覺規格(viewBox/字級/色票/溢出),再**逐頁開 SVG 目視** Layout、配色統一、流程圖/架構圖連接線轉折(>2 折扣分)、用語概念一致與 AI 感,並判斷主軸貼合度、偏題比例、段落/頁面銜接與難度峰值,輸出十一項指標的符合度與修正優先序;不產出任何文檔 |
+| `/topic-design` | 演講主軸設計 — 深度訪談時長/聽眾/會議類型/輸出格式,提供 3 組主題方案供選擇,產出燈塔文件 `docs/topic.md`、Marp 鷹架(`talk/src/`:theme.css、deck-header.md、build.mjs、.marprc.yml)與各 section 佔位文檔 |
+| `/section-design` | 段落設計 — 逐段規劃討論方向、內文內容與形式(條列/表格/段落)、是否需要圖形輔助與圖形類型(架構圖/流程圖/分層圖/金字塔圖/象限圖…),產出完整 `docs/section-0x-*.md`;子命令 `status` 用腳本掃描各段落狀態並比對 `topic.md` 的 `sections` 清單 |
+| `/section-impl` | 段落實作 — 依設計文件逐頁決定 Layout(左右/上下/三等份/四象限/上三下二…,版型詞彙見 `_shared/layouts.md`),撰寫 `talk/src/section-0x-*.md` 的 Marp 頁面與 `<!-- 備註 -->`,繪製圖形 SVG(`talk/assets/diagram-*`)嵌入,`node build.mjs` 建置驗收;需要時建立 `demo/` |
+| `/page-adjust` | 單頁調整 — 針對指定頁面深談 Layout/內文/圖形/備註調整,修改 Marp 原始碼與 SVG 後重 build,同步 section 設計文件 |
+| `/review` | 整體審查(唯讀)— 腳本交叉比對段落覆蓋、deck↔docs 頁數同步、圖形引用完整性、依賴順序、時間帳與產物新鮮度,再 **build 後逐頁目視** Layout、版型與配色收斂、圖形連接線轉折(>2 折扣分)、備註品質、用語概念一致與 AI 感,並判斷主軸貼合度、偏題比例、銜接與難度峰值,輸出十一項指標的符合度與修正優先序;不產出任何文檔 |
 
-演講專案的資料夾結構:`docs/`(topic.md 與 section 設計文件)、`talk/assets/`(SVG 頁面,全域兩位數頁碼)、`talk/scripts.md`(講稿,含 `(→ page XX)` 翻頁標記)、`talk/slide.html`(鍵盤翻頁的離線簡報)、`demo/`(可選)。每份文件(含 SVG 與 slide.html)都有 metadata;共用慣例在 `plugins/talk-flow/skills/_shared/conventions.md`。
+演講專案的資料夾結構:`docs/`(topic.md 與 section 設計文件)、`talk/src/`(Marp 原始碼與設定:deck-header.md、每 section 一檔 `section-0x-*.md`、theme.css、build.mjs、.marprc.yml)、`talk/assets/`(圖形 SVG,`diagram-<section>-<序號>-<slug>.svg`)、`talk/dist/`(marp-cli 輸出產物,不手改)、`demo/`(可選)。每份手寫文件(含圖形 SVG)都有 metadata;共用慣例在 `plugins/talk-flow/skills/_shared/conventions.md`,版型詞彙在 `_shared/layouts.md`。
 
 ## 安裝(新環境一鍵導入)
 

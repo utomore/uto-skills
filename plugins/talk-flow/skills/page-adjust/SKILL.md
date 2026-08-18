@@ -1,18 +1,18 @@
 ---
 name: page-adjust
-description: 投影片單頁調整 — 針對指定頁碼的 SVG 深談風格、描述、圖畫或 Layout 調整,修改 SVG 並同步 section 文檔、講稿與 slide.html。觸發詞:頁面調整、page adjust、改投影片、調整某頁、修改 SVG、換版面。Use when adjusting a single slide page (SVG) and syncing its related docs.
+description: 投影片單頁調整 — 針對指定頁面的 Marp 原始碼深談 Layout、內文、圖形 SVG 或備註的調整,修改 talk/src 與 talk/assets 後重 build 並同步 section 設計文件。觸發詞:頁面調整、page adjust、改投影片、調整某頁、換版面、改圖、修架構圖。Use when adjusting a single slide page (Marp source, layout, diagram SVG, or note) and syncing its related docs.
 user-invocable: true
 ---
 
 # /page-adjust — 投影片單頁調整
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例(metadata、頁碼同步、投影片規格)。
+先讀取 `../_shared/conventions.md` 與 `../_shared/layouts.md`,遵守所有文檔慣例與版型詞彙。
 
 ## 前置
 
-1. 確認目標頁:使用者給頁碼則找 `talk/assets/svg-<頁碼>-*.svg`;給的是內容描述則列出候選頁面讓使用者確認。找不到檔案時列出現有頁碼清單請使用者指認
-2. 讀取目標 SVG 與其 metadata,依 `section` 欄位讀取所屬 section 文檔;讀取 `docs/topic.md` 的「投影片風格」章節與 `talk/scripts.md` 中該頁前後的講稿
-3. 可行時先在瀏覽器打開該 SVG(或 slide.html 跳到該頁)看現況,再開始討論
+1. 定位目標頁:全域頁碼是推導值,先依 `talk/src/section-*.md` 檔名順序累加各檔張數算出「頁碼 → section 檔 + 段內第幾頁」的對照(或由使用者給的內容描述列出候選頁確認)。找不到就把對照表印給使用者指認
+2. 讀取該 deck 檔、該頁引用的圖形 SVG 與 metadata、對應的 `docs/section-XX-*.md`(「頁面規劃」該列)、`docs/topic.md` 的「投影片風格」與 `talk/src/theme.css`
+3. 可行時先 build(`node build.mjs`)並在瀏覽器開 `talk/dist/slides.html` 跳到該頁看現況,再開始討論
 
 ## 流程
 
@@ -20,26 +20,26 @@ user-invocable: true
 
 與使用者確認要調整的面向與期望結果,**不確定就問,禁止腦補**:
 
-- **風格**:配色、字體、視覺語彙 — 注意:偏離 `topic.md` 投影片風格的改動要先問清楚是「只有這頁特例」還是「整份簡報都要改」
-- **描述**:文字內容、標題、措辭 — 是否連動講稿的說法
-- **圖畫**:圖解、示意圖的畫法與元素增減
-- **Layout**:版面配置、資訊層級、留白 — 一頁一重點,資訊超載時建議拆頁
+- **Layout**:換版型(從 layouts.md 詞彙表選)、格內配置、圖文比例 — 一頁一重點,資訊超載時建議拆頁
+- **內文**:文字內容、措辭、內文形式(條列/表格/段落)互換
+- **圖形**:SVG 圖的畫法、元素增減、換圖形類型;遵守圖形紀律(轉折 ≤2、單一流向、節點 ≤7)
+- **備註**:該頁提醒的增刪 — 維持提醒式,不寫成逐字稿
+- **風格**:配色、字級 — 注意:色值與字體只住在 `theme.css` tokens,改 tokens 是**全簡報**的改動;先問清楚是「只有這頁特例」(頁內以 class 處理)還是「整份都要改」(改 tokens 並確認其他頁不被打壞)
 
-拆頁/刪頁會動到全域頁碼:先列出受影響的頁面與需同步的五處(SVG 檔名、SVG metadata、section `pages`、scripts.md 頁碼標記、slide.html),取得使用者同意後才執行。
+拆頁/刪頁會改變後續全域頁碼(推導值,無需改檔名),但要同步 deck 檔 `slides`、docs section 的 `slides` 與「頁面規劃」表;先列出影響取得同意後執行。
 
 ### 2. 執行修改
 
-1. 修改目標 SVG(維持 `viewBox="0 0 1280 720"`、文字最小 24px),更新其 metadata 的 `updated`(內容方向改變時連同 `description`)
-2. 同步 section 文檔:「頁面規劃」表對應列改成調整後的畫面構想,`updated` 更新;調整動到內容要點時一併回寫
-3. 講稿連動:該頁的說法、翻頁時機有變時,同步 `talk/scripts.md` 對應段落
-4. slide.html:頁面增刪或改檔名時更新頁面清單與 metadata 的 `pages`;僅改頁內內容則不動
-5. 涉及**整份簡報的風格改動**時:先更新 `topic.md` 的「投影片風格」章節(經使用者同意),再列出其他受影響頁面,問使用者是否本次一併調整或之後逐頁處理
+1. 修改該 deck 檔的目標頁(版型類別、內容、備註),更新 frontmatter 的 `slides`(張數有變時)與 `updated`
+2. 圖形調整:修改對應的 `talk/assets/diagram-*.svg`,更新其 metadata(`updated`;構想改變時連同 `description` 與 `diagram-type`);新增圖形取該段內最大序號 +1 命名,並回填 docs section 的 `diagrams`
+3. 同步 docs section:「頁面規劃」表對應列改成調整後的構想,`updated` 更新;調整動到內容要點時一併回寫
+4. 涉及**整份簡報的風格改動**時:先更新 `topic.md` 的「投影片風格」章節與 `theme.css` tokens(經使用者同意),重 build 後檢查其他頁是否被波及,列出需要跟進的頁面問使用者是否本次一併調整
 
 ### 3. 驗收
 
-- 在瀏覽器打開 slide.html 跳到該頁(或請使用者開)確認渲染:文字不溢出、對比足夠、與前後頁風格銜接自然
+- `node build.mjs`(含 `outputs` 的其他格式)重新建置,在瀏覽器開 `talk/dist/slides.html` 跳到該頁(或請使用者開)確認:文字不溢出、grid 沒塌陷、圖形清晰、與前後頁風格銜接自然
 - 使用者不滿意就回到步驟 1 繼續調,直到確認為止
 
 ### 4. 收尾
 
-摘要:改了哪一頁、調整了什麼面向、同步更新了哪些檔案(section / scripts / slide.html / topic.md)、是否留下待逐頁處理的風格一致化清單。
+摘要:改了哪一頁(section + 段內頁 + 全域頁碼)、調整了什麼面向、同步更新了哪些檔案(deck / SVG / docs section / theme.css / topic.md)、是否留下待跟進的風格一致化清單。

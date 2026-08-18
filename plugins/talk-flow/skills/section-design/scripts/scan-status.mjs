@@ -2,7 +2,7 @@
 /**
  * scan-status.mjs — 掃描 docs/topic.md 與 docs/section-*.md 的 frontmatter metadata,
  * 列出各段落狀態並比對 topic.md 的 sections 權威清單。只讀每檔開頭 4KB,不載入全文。
- * 清單欄位(sections / pages / depends-on)一律**行內陣列** `[a, b]`;寫成 YAML 區塊列表
+ * 清單欄位(sections / diagrams / depends-on)一律**行內陣列** `[a, b]`;寫成 YAML 區塊列表
  * 會被列為格式不合規並以 exit code 1 收場(不做兩種格式並存的容忍解析)。
  *
  * 用法: node scan-status.mjs [docs目錄]   (預設 ./docs)
@@ -183,7 +183,8 @@ for (const name of files) {
     order: fmtValue(meta?.order),
     status,
     min: fmtValue(meta?.["est-minutes"]),
-    pages: fmtValue(meta?.pages),
+    slides: fmtValue(meta?.slides),
+    diagrams: fmtValue(meta?.diagrams),
     file: rel,
   });
 }
@@ -195,7 +196,7 @@ if (rows.length === 0) {
 }
 
 // 對齊表格輸出(主軸優先,id 次之)
-const headers = { description: "主軸", id: "id", order: "order", status: "status", min: "分鐘", pages: "pages", file: "file" };
+const headers = { description: "主軸", id: "id", order: "order", status: "status", min: "分鐘", slides: "頁數", diagrams: "圖形", file: "file" };
 const cols = Object.keys(headers);
 const width = {};
 for (const c of cols) width[c] = Math.max(dispWidth(headers[c]), ...rows.map((r) => dispWidth(r[c])));

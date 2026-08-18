@@ -1,0 +1,87 @@
+---
+name: arch-audit
+description: 架構檢測與分析 — 四種 scope:「system」檢查子系統循環依賴與對外 I/O 契約一致性;「subsys」檢查子系統資料流管線、SRP 與邊界外洩;「feature」審查實作是否符合 Level 2 介面、edge cases 與型別安全;「status」用腳本盤點各 feature 完成度、spec 階段項目與待優化模組。觸發詞:架構檢測、arch audit、架構分析、循環依賴、邊界檢查、status、進度確認、專案健檢。Use for architecture auditing at system/subsystem/feature scope, or scanning overall progress and health.
+user-invocable: true
+---
+
+# /arch-audit — 架構檢測與分析
+
+先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例(樹狀結構、引用格式、frontmatter、資訊抽象邊界規範)。
+
+## Scope 判斷
+
+分析範圍採樹狀結構:根節點是主架構,第二層是各 subsystem,第三層是 feature 實作。
+
+- 引數含 `status` / 「狀態」 / 「進度」 → **status**:整體進度與健康度(只跑腳本,不產文檔)
+- 引數含 `system` / 「全域」 / 「主架構」 → **system**:全域架構檢測
+- 引數含 `subsys` / 子系統名稱 → **subsys**:子系統一致性檢測(需指定哪個子系統,沒指定就用 AskUserQuestion 問)
+- 引數含 `feature` / 文檔 id(如 `F001`、`auth/F001`)→ **feature**:功能實作審查(需指定哪個 feature)
+- 無法判斷 → 用 AskUserQuestion 讓開發者選 scope
+
+---
+
+## Scope: status — 整體進度與健康度
+
+執行本 skill 目錄下的腳本(解析 `.design/` 全樹的 frontmatter 與各 `design.md` 的功能規劃):
+
+```
+node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 ./.design]
+```
+
+腳本輸出兩張表加數個清單,**全部**整理後呈現給開發者:
+
+- **任務文檔表**(`主軸 | id | 子系統 | type | status | created | depends-on | file`):轉成 markdown 表格時**維持欄位順序**,「主軸」是第一眼看到的欄位;`子系統` 欄為 `global` 代表全域 G- 文檔
+- **子系統狀態表**(`主軸 | id | status | 階段 | features | 已建文檔 | 已完成 | 未結E/B | 進度`):回答「哪些 feature 已完成、哪些還在規劃/設計階段、哪些模組有未結的優化與缺陷」;欄位顯示 `-` 代表該 `design.md` 沒有「功能規劃」表格,建議用 `/subsys-design` 更新模式補上
+- **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步 `/feature-design` 的待辦清單
+- **架構 / 子系統不一致**必須逐條轉達:`subsystems` 權威清單與實際資料夾對不上(雙向)、功能規劃指向不存在的文檔、id 與檔名不一致、depends-on 無法解析、全域文檔缺 `subsystems` 欄、design.md 缺 `parent` 等
+- 有「frontmatter 格式不合規」時,把清單欄位改回行內陣列再重跑;寫成 YAML 區塊列表時腳本讀不到內容,相依關係與歸屬都不可信
+- 有 `missing-metadata` / 缺 description 警示時,提醒開發者補上
+
+**禁止**為了補充資訊而去讀取各文檔全文——此 scope 的重點就是省 context(功能規劃已由腳本解析成進度數字,不必自己開檔)。
+
+---
+
+## 分析型 scope 共通規則(system / subsys / feature)
+
+1. **先跑一次 status 腳本**,把不一致清單帶進本次分析(文檔樹本身有問題時,對照分析的結論不可信,先讓開發者修)
+2. **Context 載入紀律**:只讀 scope 對應層級的文檔(見各 scope);已 closed 的 bugfix 除非必要否則不載入
+3. 發現一律**依嚴重度排序**在對話中回報:每條附具體檔案與程式碼位置、違反了哪條契約/原則、建議動作
+4. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/enhance-design`(需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號與 frontmatter,`status: open`,內文附本次發現的分析依據)
+5. 本 skill **不修改程式碼**,也不改架構文檔(發現文檔該改時,列出差異建議開發者走對應 design skill)
+
+### Scope: system — 全域架構檢測
+
+讀 `.design/system.md` + 各子系統 `design.md` 的「對外契約」章節,對照整個程式碼庫檢查:
+
+1. **子系統循環依賴(Circular Dependency)**:從程式碼的 import/引用關係建出子系統間的依賴圖,檢查有無環;有環就指出環上的每一邊(哪個檔案引用了哪個檔案)與建議的切法(introduce interface / 事件反轉 / 搬移職責)
+2. **對外 I/O 契約完整性**:system.md 定義的最外層 Input/Output 規格,程式碼是否完整實作?有無程式碼暴露了契約沒寫的對外介面(未登記的 endpoint / CLI 參數 / 匯出符號)?
+3. **通訊協定一致性**:子系統間實際的通訊方式是否與「通訊拓撲」一致(該走 Event Bus 的有沒有偷偷直接 call)?全域錯誤處理策略是否被各子系統遵守?
+4. **抽象邊界檢查**:system.md 是否越界寫了 Level 2/3 的細節(私有函數、內部資料結構)?有就列出建議下放
+
+### Scope: subsys — 子系統一致性檢測
+
+讀 `.design/system.md` 的對應小節 + 該子系統 `design.md` 全文,對照該子系統的程式碼檢查:
+
+1. **資料流管線一致性**:程式碼實際的資料流(輸入 → 驗證 → 業務處理 → 儲存/外部呼叫 → 輸出)是否符合 `design.md` 的 Pipeline 與上層主架構?有無跳段、繞道?
+2. **單一職責(SRP)**:各模組是否只做 `design.md` 寫的那件事?有無模組偷偷長出第二職責?
+3. **邊界外洩**:其他子系統是否繞過本子系統的對外契約直接存取內部模組?本子系統是否直接摸了別人的內部?內部型別/資料結構有無洩漏到公開介面?
+4. **模組介面一致性**:程式碼的模組間呼叫是否走 `design.md` 定義的抽象 Interface?簽名是否漂移?
+5. **抽象邊界檢查**:`design.md` 是否越界寫了私有實作細節?有就列出建議刪除(實作自主權)
+
+### Scope: feature — 功能實作審查
+
+讀該 feature 文檔全文 + 所屬 `design.md` 的相關介面定義,對照該 feature 的實作程式碼檢查:
+
+1. **Level 2 介面符合度**:實作的公開介面是否逐一符合 `design.md` 定義的 Interface 與 DTO(簽名、型別、錯誤語意)?文檔「新增的介面」與程式碼是否一致?
+2. **Edge cases**:邊界條件有無遺漏(空值、零長度、極大值、並發、時序)?逐條列出「輸入/狀態 → 現在會發生什麼 → 應該發生什麼」
+3. **例外處理**:錯誤路徑是否完整(捕捉、傳播、資源釋放)?是否符合全域錯誤處理策略?
+4. **型別安全**:有無 any/interface{}/未檢查的轉型、隱式轉換、nullable 未處理?
+5. **TodoList 與測試對照**:文檔勾掉的 Todo 程式碼是否真的做了?1-to-1 測試是否都存在且涵蓋對應 Todo?
+6. **內部實作不評分**:私有函數命名、內部結構選擇屬實作自主權,不列為發現(除非違反上述任一項)
+
+---
+
+## 收尾
+
+- status scope:摘要整體進度(done/總數、各子系統進度、待展開 feature 數、不一致數),建議下一步命令
+- 分析型 scope:摘要發現數量(依嚴重度)、最關鍵的前幾條、建議的後續文檔(走 `/bugfix` 或 `/enhance-design` 的清單)

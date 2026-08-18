@@ -4,18 +4,21 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ## dev-flow
 
-文檔驅動開發流程的 Claude Code plugin,包含六個 skills:
+三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。包含九個 skills:
 
-| 指令 | 職責 |
-|---|---|
-| `/arch-design` | 專案整體架構設計 — 深度訪談後產出 `docs/arch/architecture.md` + `docs/adr/adr-000x-*.md`,並規劃子系統邊界 |
-| `/subarch-design` | 子系統架構設計 — 基於整體架構產出 `docs/arch/subarch-000x-*.md`(含 ASCII 架構圖、對外介面、完成子系統所需的 feature 規劃列表),並回填主架構的 `subarchs` 清單 |
-| `/func-spec` | 功能/改善規格書 — `:feature` 深度討論新功能後產出 `docs/spec/func-000x-*.md`;`:enhance` 檢視現有程式碼後產出 `docs/enhance/enhance-000x-*.md`(皆含相依性、介面、TodoList、1-to-1 測試),寫完回頭檢查架構文件 |
-| `/code-audit` | 專案分析 — `status` 模式用腳本掃 metadata 進度;預設模式先掃狀態、再拿文檔對照程式碼分析(穩健性/解耦/資安/效能/過時套件),產出同時涵蓋文檔狀態總覽與程式碼發現的 `docs/analysis/report-*.md` |
-| `/spec-impl` | 依文檔開發 — 開發者指定要實作哪一份(feature / enhance / bugfix),逐項勾 TodoList、跑 1-to-1 測試、回寫 status |
-| `/branch-pr` | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
+| 指令 | 層級 | 職責 |
+|---|---|---|
+| `/system-design` | L1 | 系統主架構 — 深度訪談後產出 `.design/system.md` + `.design/adr/ADR-00x-*.md`:技術棧、對外 I/O 契約、子系統劃分(Bounded Contexts)、通訊拓撲;只到子系統邊界顆粒度 |
+| `/subsys-design` | L2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、內部模組劃分、資料流管線、模組間抽象介面、feature 路線圖(功能規劃),並回填主架構 `subsystems` 清單 |
+| `/feature-design` | L3 | 功能設計 — 深度討論後產出 `features/F00x-*.md`,介面必須落在 L2 契約內;含相依性查證、介面表、TodoList、1-to-1 測試 |
+| `/enhance-design` | L3 | 優化設計 — 先讀程式碼、**與開發者討論確認 scope 涵蓋範圍**後,產出 `enhancements/E00x-*.md`(跨子系統為 `.design/enhancements/G-E00x-*.md`) |
+| `/feature-impl` | L3 | 功能實作 — 依 feature 文檔逐項勾 TodoList、跑 1-to-1 測試、回寫 status;L2 契約內實作自主 |
+| `/enhance-impl` | L3 | 優化實作 — 回歸測試先行,scope 標明不動的範圍絕對不碰,收尾記錄量化結果 |
+| `/bugfix` | L3 | 缺陷修復 — 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
+| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩)/ `feature`(L2 介面符合度、edge cases、型別安全)/ `status`(腳本盤點各 feature 完成度與待優化模組) |
+| `/branch-pr` | — | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
 
-共用文檔慣例(資料夾結構、命名、YAML frontmatter)在 `plugins/dev-flow/skills/_shared/conventions.md`。
+共用文檔慣例(樹狀資料夾結構、編號、引用格式、YAML frontmatter、資訊抽象邊界規範)在 `plugins/dev-flow/skills/_shared/conventions.md`。
 
 ## talk-flow
 
@@ -57,29 +60,29 @@ repo 有新版本後:
 /plugin marketplace update uto-skills
 ```
 
-## 文檔慣例摘要
+## 文檔慣例摘要(dev-flow)
 
-所有文檔放在專案 `docs/`,檔名英文 kebab-case、內文繁體中文:
+設計文檔樹與系統架構樹同構:根節點是主架構、第二層是各 subsystem。所有文檔放在專案 `.design/`,檔名英文 kebab-case、內文繁體中文:
 
 ```
-docs/
-├── arch/
-│   ├── architecture.md                    # 專案燈塔(整體架構,frontmatter `subarchs` 列出子系統)
-│   └── subarch-0001-<slug>.md             # 子系統架構(frontmatter `parent-arch` 回鏈主架構)
-├── adr/adr-0001-<slug>.md
-├── spec/func-0001-<slug>.md
-├── analysis/report-<YYYY-MM-DD>-<slug>.md
-├── bugfix/bug-0001-<slug>.md
-└── enhance/enhance-0001-<slug>.md
+.design/
+├── system.md                        # /system-design:Level 1 主架構(frontmatter `subsystems` 為權威清單)
+├── subsystems/
+│   └── <subsystem-slug>/
+│       ├── design.md                # /subsys-design:Level 2 子系統架構(frontmatter `parent: system` 回鏈)
+│       ├── features/F001-<slug>.md          # /feature-design
+│       ├── enhancements/E001-<slug>.md      # /enhance-design
+│       └── bugfixes/B001-<slug>.md          # /bugfix
+├── enhancements/G-E001-<slug>.md    # 跨子系統的全域優化
+├── bugfixes/G-B001-<slug>.md        # 跨子系統的全域修復
+└── adr/ADR-001-<slug>.md            # 架構決策紀錄,全局共用
 ```
 
-檔名以**編號優先**、四位數遞增,不放日期(日期在 frontmatter 的 `created` / `updated`);只有 `analysis/report-*` 以日期命名。
+編號**三位數**遞增、不放日期(日期在 frontmatter 的 `created` / `updated`);**每個子系統自己一組編號**(F/E/B 各自計數)、全域 G- 自己一組、ADR 全局一組。跨子系統引用寫 `<subsystem>/<id>`(如 `auth/F002`),同子系統直寫 id,全域直寫 `G-E001` / `ADR-003`。
 
-spec / bugfix / enhance 開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-spec`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/code-audit/scripts/scan-status.mjs`)只解析這一段。
+任務文檔開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-feature`;全域文檔另加 `subsystems`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/arch-audit/scripts/scan-status.mjs`)只解析這一段,清單欄位一律行內陣列 `[a, b]`。
 
-`description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(spec 寫「這功能做什麼」、bug 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」、report 寫「分析了什麼」),讓 `/code-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。
-
-`/code-audit status` 的表格欄位順序為 `主軸 | id | type | status | created | depends-on | file` — 主軸擺第一欄、id 第二欄,先看內容再看編號。
+`description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(feature 寫「這功能做什麼」、bugfix 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」),讓 `/arch-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。
 
 ## Repo 結構
 

@@ -1,0 +1,130 @@
+---
+name: subsys-design
+description: Level 2 子系統架構設計 — 基於 .design/system.md,深度訪談後產出 .design/subsystems/<slug>/design.md,定義公開介面與 DTO、內部模組劃分、資料流管線、模組間抽象介面與 feature 路線圖,並回填主架構 subsystems 清單;禁止定義私有實作細節。觸發詞:子系統設計、子系統架構、subsys design、subsystem、模組架構。Use when designing the Level 2 architecture of a subsystem under the system master architecture.
+user-invocable: true
+---
+
+# /subsys-design — Level 2 子系統架構設計
+
+先讀取本檔同層的 `../_shared/conventions.md`,遵守其中所有文檔慣例(資料夾結構、命名、frontmatter、**資訊抽象邊界規範**)。
+
+## 目標
+
+基於主架構,為**單一子系統**產出 `.design/subsystems/<subsystem-slug>/design.md`(並建立 `features/`、`enhancements/`、`bugfixes/` 空資料夾結構):承接 Level 1 定下的邊界與職責,把子系統設計到「可以撰寫 feature 設計文檔」的程度。**在範圍與設計明確之前,禁止產出任何文件。**
+
+本文件是三層階梯的 **Level 2**:只定義「模組邊界契約」與「資料流管線」。**絕對禁止**定義內部私有函數、helper 名稱、私有變數或內部暫存資料結構——模組間的抽象 Interface(Go Interface / TypeScript Type / Rust Trait)是本層的下限,再往下屬於 Level 3 的實作自主權。
+
+## 前置(不可跳過)
+
+1. 讀取 `.design/system.md`。**不存在時**:停止,告知開發者必須先執行 `/system-design` 建立主架構——沒有 Level 1 就沒有子系統可言(只有舊版 `docs/arch/` 體系時,提醒先用 `/system-design` 遷移)
+2. 讀取與本子系統相關的 `.design/adr/`(依主題挑選,不必全讀)
+3. 讀主架構 frontmatter 的 `subsystems` 與「子系統劃分」章節,確認要設計的子系統是否已有 `design.md`
+
+## 模式判斷
+
+- 目標子系統無 `subsystems/<slug>/design.md` → **初始模式**:完整訪談後從零產出
+- 已存在 → **更新模式**:先讀取現有內容,針對要調整的部分訪談,更新文件並視情況新增 ADR
+
+## 流程
+
+### 1. 訪談階段(核心,不可跳過)
+
+先向開發者確認**要設計哪一個子系統**(主架構「子系統劃分」有列的,用 AskUserQuestion 讓開發者選;沒列的,先確認是否要回頭更新主架構)。之後分多輪詢問直到設計完全明確,**不確定就再問,禁止自行腦補**。必須涵蓋:
+
+1. **邊界確認**:主架構寫的職責、邊界、對外契約還成立嗎?本子系統做什麼、明確不做什麼?與主架構描述衝突時,先和開發者確認以哪邊為準(需要改主架構就先改)
+2. **對外契約(Public Interface & DTOs)**:其他子系統或外部呼叫者怎麼使用它?輸入輸出的 DTO 長什麼樣?如何對齊 Level 1 定義的通訊契約?
+3. **內部模組劃分**:子系統內有哪些核心模組(Controller / Service / Repository / Pipeline Engine…)?各自的單一職責?
+4. **資料流管線(Data Flow Pipeline)**:資料從「輸入 → 驗證 → 業務處理 → 儲存/外部呼叫 → 輸出」怎麼流動?
+5. **模組間介面**:模組互相調用的抽象 Interface 怎麼定義?(只定簽名與 DTO,不寫內部邏輯)
+6. **技術選型**:沿用主架構技術棧?有無子系統特有的框架、儲存?——每個新選擇都要問偏好並給建議與理由
+7. **開發階段**:對應主架構哪個(些)階段?內部有無自己的里程碑?
+
+每輪訪談後摘要目前已確認的內容,列出仍不明確的點繼續問。全部明確後,向開發者做最終確認再產出。
+
+### 2. 功能規劃(主動提出,不可跳過)
+
+設計明確後、產出文件前,**由你主動規劃並列出**「完成這個子系統需要哪些 features」——不是問開發者要什麼,而是基於訪談結果先提出完整草案再請開發者修改確認:
+
+1. 依模組劃分與開發階段,拆出 feature 清單:幾個 features、分幾個階段、各是哪些;合起來要能覆蓋整個子系統(對外契約、內部模組、資料流管線全部有人負責),每個 feature 的粒度以「一份 feature 設計文檔可以承載」為準
+2. 每個 feature 給:一句話說明、所屬階段、與其他 feature 的先後依賴
+3. 呈現給開發者確認:太大就拆、太細就併、缺的補上;同意後定案寫進文件
+
+這份清單是**規劃層級**的路線圖,不是規格——細節留給 `/feature-design` 逐一展開;建了設計文檔後,把 doc id 回填進清單。
+
+### 3. 產出 `.design/subsystems/<slug>/design.md`
+
+檔名固定 `design.md`,資料夾名 = 子系統 slug(英文 kebab-case),內文繁體中文,固定章節:
+
+```markdown
+---
+id: <subsystem-slug>
+type: subsystem
+title: <subsystem-slug>
+description: <一句話,40 字內:這個子系統負責什麼>
+status: active
+created: <today>
+updated: <today>
+parent: system
+related-adr: []
+---
+
+# <子系統名稱> 子系統架構
+
+## 定位與範圍
+(在主架構中的位置、承接的職責、明確不做什麼;引用 system.md「子系統劃分」對應小節)
+
+## 對外契約(Public Interface & DTOs)
+(其他子系統/外部呼叫者使用的介面:函式/API 簽名、輸入輸出 DTO Schema;
+ 必須對齊 Level 1 的通訊契約)
+
+## 內部模組劃分(Internal Modules)
+(各核心模組與其單一職責;只寫模組邊界,不寫內部實作)
+
+## 資料流管線(Data Flow Pipeline)
+(輸入 → 驗證 → 業務處理 → 儲存/外部呼叫 → 輸出 的完整流動路徑)
+
+## 模組間公開介面(Module Interfaces)
+(模組互相調用的抽象 Interface 定義:簽名與 DTO,不寫具體內部邏輯)
+
+## 使用的技術
+(沿用主架構的部分一句帶過,只詳述子系統特有的選型;不羅列基礎函式庫)
+
+## 架構圖
+(ASCII 繪製:子系統內部模組與資料流管線,標出對外契約的出入口)
+
+## 開發階段
+(對應主架構開發階段;有內部里程碑則列出)
+
+## 功能規劃
+(完成本子系統所需的 feature 路線圖,依階段分組;
+ 「doc」欄在 /feature-design 建檔後回填 F 編號,未建檔時填 `-`)
+
+### 階段一:<階段名稱>
+| # | feature | 一句話說明 | 依賴 | doc |
+|---|---------|-----------|------|-----|
+| 1 | <feature-slug> | <做什麼> | - | - |
+| 2 | <feature-slug> | <做什麼> | #1 | - |
+
+### 階段二:<階段名稱>
+| # | feature | 一句話說明 | 依賴 | doc |
+|---|---------|-----------|------|-----|
+
+(小結:共 N 個 features、M 個階段;全部完成即代表子系統可交付)
+```
+
+**產出前自我檢查(資訊抽象邊界)**:全文不得出現私有函數名、helper 名稱、私有變數命名、內部暫存資料結構;Interface 定義只到「模組間互相調用」的層級。發現越界就刪掉。
+
+### 4. 回填與同步(必做)
+
+1. `system.md` frontmatter 的 `subsystems` 加入本子系統 slug(更新模式免),同步 `updated`
+2. `system.md`「子系統劃分」對應小節補上 `design.md` 路徑
+3. 訪談若修正了子系統邊界或對外契約,回頭更新主架構的對應描述與架構圖(經開發者同意)
+
+### 5. 產出 ADR(視情況)
+
+子系統層級的**重大技術選擇**(特有框架、儲存方案、關鍵協定)各產出一份 `.design/adr/ADR-00x-<slug>.md`(格式同 `/system-design`,編號接續現有最大值),並把 id 填入本 `design.md` 的 `related-adr`。沿用主架構既有決策的不必重開 ADR。
+
+### 6. 收尾
+
+- 向開發者摘要:產出的檔案、子系統設計重點、功能規劃結論(幾個 features、幾個階段)、主架構同步了什麼、新增了哪些 ADR
+- 說明之後可用 `/feature-design` 依「功能規劃」清單逐一展開設計文檔(建檔後回填 doc 欄)

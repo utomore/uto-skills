@@ -68,6 +68,8 @@ audience: <聽眾範圍描述,如:後端工程師為主的技術社群>
 audience-level: intermediate # beginner | intermediate | advanced | mixed
 speaker-background: <講者先備知識一句話>
 language: zh-TW
+style-base: tech-deep        # 風格基底,見 _shared/styles.md:tech-deep | keynote-impact |
+                             # intro-friendly | workshop-guide | exec-brief | custom
 slide-style: <風格關鍵字,如:深色極簡、單色強調>
 outputs: [html, pdf]         # marp-cli 輸出格式(html | pdf | pptx),依使用者需求
 sections: []                 # 段落 id 的唯一權威清單(含 rejected),依演講順序
@@ -171,6 +173,7 @@ sections:                                        # ❌ 不使用 YAML 區塊列�
 ## 投影片規格(Marp)
 
 - 頁面 1280×720(theme.css 已設定);**一頁一重點**,超過就拆頁
+- **風格基底**:`topic.md` 的 `style-base` 從 `_shared/styles.md` 選定(依場合:技術/主題演講/科普/工作坊/匯報),為版面、配色、文字規範、圖形風格與節奏提供預設方向;偏離基底的決定記錄在「投影片風格」章節,執行與審查都以基底 + 記錄的偏離為準
 - **Layout 用 theme.css 的版型類別**,不逐頁手刻 CSS;版型詞彙表與用法見 `_shared/layouts.md`。整頁單一區塊也是合法版型 — 切格只在內容有並列/對比關係時用
 - **視覺引導是每頁的必要設計項**:每頁要說得出動線(眼睛從哪進、依什麼順序看、在哪停),動線與內容邏輯順序一致;圖形的連接線方向要順著動線,不得把視線拉回頭
 - **文字技法一律出自 `topic.md` 的「文字規範」**:字級(哪個級別用在哪個情境)、強調方式(粗體/底線/強調色各用在哪)、列表符號(各符號的語意)都在 topic 設計時定案;實作與調整只能**從中選用**,不得自創新的字級、強調或符號用法 — 同一情境全簡報必須同一種寫法,要偏離必須有明確理由(如刻意做出差異對比)並記錄

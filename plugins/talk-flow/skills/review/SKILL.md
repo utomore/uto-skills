@@ -6,7 +6,7 @@ user-invocable: true
 
 # /review — 演講整體審查
 
-先讀取 `../_shared/conventions.md` 與 `../_shared/layouts.md`,遵守所有文檔慣例與版型詞彙。
+先讀取 `../_shared/conventions.md`、`../_shared/layouts.md` 與 `../_shared/styles.md`,遵守所有文檔慣例、版型詞彙與風格基底詞彙。
 
 ## 唯讀原則(不可違反)
 
@@ -33,7 +33,7 @@ node <本 skill 目錄>/scripts/scan-coherence.mjs [專案根目錄,預設 .]
 腳本交叉比對段落覆蓋、頁數三處同步(deck 實際張數 / deck frontmatter / docs section)、圖形引用完整性、先備知識順序、時間帳與產物新鮮度,並輸出**頁面地圖**(版型、內文形式、圖、備註字數、文字摘要)、**圖形 SVG 分析表**(viewBox、字級、色數、節點、連接線轉折)、**theme tokens 與寫死色值清單**。
 
 2. 有「frontmatter 格式不合規」時**先停下**:清單欄位讀不到值,後面的比對全部不可信。請使用者(或經同意)改回行內陣列 `[a, b]` 再重跑。
-3. 讀取 `docs/topic.md`(核心訊息、聽眾輪廓、投影片風格與**文字規範**是所有判斷的基準)、全部非 rejected 的 `docs/section-*.md`(含「文字技法選用」)、全部 `talk/src/section-*.md`(含備註)。rejected 段落不讀。
+3. 讀取 `docs/topic.md`(核心訊息、聽眾輪廓、`style-base` 風格基底、投影片風格與**文字規範**是所有判斷的基準)、全部非 rejected 的 `docs/section-*.md`(含「文字技法選用」)、全部 `talk/src/section-*.md`(含備註)。rejected 段落不讀。
 4. **build 後逐頁目視,一頁都不能跳過**。腳本的表格只是證據與清單,不是替代品 — Layout、配色統一、用語一致、AI 感、圖形實際可讀性只能看:
    - 產物過期或缺席時先在 `talk/src/` 執行 `node build.mjs`(依 `topic.md` 的 `outputs`)
    - 可行時**用瀏覽器開 `talk/dist/slides.html` 逐頁目視**(claude-in-chrome),這對 Layout 與 AI 感最準;同時讀 `talk/src/` 原始碼確認版型類別、備註內容與圖形 SVG 的色值座標
@@ -72,6 +72,8 @@ node <本 skill 目錄>/scripts/scan-coherence.mjs [專案根目錄,預設 .]
 3. 峰後有沒有喘息 — 複習頁、圖解、呼吸點
 
 ### 逐頁看什麼(開頁時的八個面向)
+
+八個面向的「收斂 vs 失控」都**以 `topic.md` 的風格基底為準**:`styles.md` 各基底附有「review 提示」— 同一現象在不同基底下判法不同(center 大字頁佔比高在 keynote-impact 是特性、在 tech-deep 是離群;版型多變在 keynote-impact 不扣、在 tech-deep 從嚴),「投影片風格」記錄的偏離視為合規,不重複扣分。
 
 **Layout 與版型**
 
@@ -222,7 +224,7 @@ verdict: <判定帶,如:小修即可上台>
 
 - **證據優先**:每個扣分都要指得出檔案、段落、頁碼,視覺問題還要指得出元素或色值(「第 04 頁 #00ff88 不在 tokens 且不是強調」勝過「配色不統一」);講不出證據的扣分不要寫
 - **沒看過不評**:逐頁檢視表缺哪一頁就寫「未檢視」,不要用腳本表格或原始碼推測那頁渲染起來長什麼樣
-- **AI 感要留餘地**:先找反面證據(真實數字、專案名、取捨),找不到才扣分;風格偏好是使用者的,`topic.md` 允許的風格不算 AI 感
+- **AI 感要留餘地**:先找反面證據(真實數字、專案名、取捨),找不到才扣分;風格偏好是使用者的,`topic.md` 允許的風格與選定的風格基底特性(見 styles.md 各基底 review 提示)不算 AI 感
 - **不腦補主軸**:核心訊息以 `docs/topic.md` 為準;覺得主軸本身有問題,寫進建議讓使用者決定,不要自己換一個主軸來評分
 - **不重寫內容**:報告寫「哪裡不對、為什麼、建議往哪個方向」,不要在報告裡代寫頁面、備註或 SVG
 - 使用者反駁某項評分時,重新檢視證據:證據不足就下修結論,證據充足就把證據攤開,不要為了順從而改分

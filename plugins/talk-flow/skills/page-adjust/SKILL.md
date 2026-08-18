@@ -11,7 +11,7 @@ user-invocable: true
 ## 前置
 
 1. 定位目標頁:全域頁碼是推導值,先依 `talk/src/section-*.md` 檔名順序累加各檔張數算出「頁碼 → section 檔 + 段內第幾頁」的對照(或由使用者給的內容描述列出候選頁確認)。找不到就把對照表印給使用者指認
-2. 讀取該 deck 檔、該頁引用的圖形 SVG 與 metadata、對應的 `docs/section-XX-*.md`(「頁面規劃」該列與「文字技法選用」)、`docs/topic.md` 的「投影片風格」與「文字規範」、`talk/src/theme.css`
+2. 讀取該 deck 檔、該頁引用的圖形 SVG 與 metadata、對應的 `docs/section-XX-*.md`(「頁面規劃」該列與「文字技法選用」)、`docs/topic.md` 的 `style-base`、「投影片風格」與「文字規範」、`talk/src/theme.css`;調整方向以風格基底為準(`_shared/styles.md`)
 3. 可行時先 build(`node build.mjs`)並在瀏覽器開 `talk/dist/slides.html` 跳到該頁看現況,再開始討論
 
 ## 流程

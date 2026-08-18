@@ -23,13 +23,13 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 | 指令 | 職責 |
 |---|---|
-| `/topic-design` | 演講主軸設計 — 深度訪談時長/聽眾/會議類型/輸出格式,提供 3 組主題方案供選擇,產出燈塔文件 `docs/topic.md`(含**文字規範**:字級↔情境、強調方式用途、列表符號語意,執行期只能從中選用)、Marp 鷹架(`talk/src/`:theme.css、deck-header.md、build.mjs、.marprc.yml)與各 section 佔位文檔 |
+| `/topic-design` | 演講主軸設計 — 深度訪談時長/聽眾/會議類型/輸出格式,依場合選定**風格基底**(tech-deep/keynote-impact/intro-friendly/workshop-guide/exec-brief,見 `_shared/styles.md`,為版面/配色/文字/圖形/節奏定預設方向),提供 3 組主題方案供選擇,產出燈塔文件 `docs/topic.md`(含**文字規範**:字級↔情境、強調方式用途、列表符號語意,執行期只能從中選用)、Marp 鷹架(`talk/src/`:theme.css、deck-header.md、build.mjs、.marprc.yml)與各 section 佔位文檔 |
 | `/section-design` | 段落設計 — 逐段規劃討論方向、內文內容與形式(條列/表格/段落)、從 topic.md 文字規範圈出本段的**文字技法選用**、是否需要圖形輔助與圖形類型(架構圖/流程圖/分層圖/金字塔圖/象限圖…),產出完整 `docs/section-0x-*.md`;子命令 `status` 用腳本掃描各段落狀態並比對 `topic.md` 的 `sections` 清單 |
 | `/section-impl` | 段落實作 — 依設計文件逐頁決定 Layout(整頁單一區塊/左右/上下/上中下/三等份/四象限/上三下二…,版型詞彙見 `_shared/layouts.md`)並對每頁說得出**視覺動線**,文字技法只從文字規範選用,撰寫 `talk/src/section-0x-*.md` 的 Marp 頁面與 `<!-- 備註 -->`,繪製圖形 SVG(`talk/assets/diagram-*`;使用者提供截圖/參考圖時可用**截圖加註**:原圖 base64 內嵌 SVG 疊編號標記 + 圖下對應圖例)嵌入,`node build.mjs` 建置驗收;需要時建立 `demo/` |
 | `/page-adjust` | 單頁調整 — 針對指定頁面深談 Layout/內文/圖形/備註調整(文字技法仍受 topic.md 文字規範約束),修改 Marp 原始碼與 SVG 後重 build,同步 section 設計文件 |
 | `/review` | 整體審查 — 腳本交叉比對段落覆蓋、deck↔docs 頁數同步、圖形引用完整性、依賴順序、時間帳與產物新鮮度,再 **build 後逐頁目視** Layout、視覺引導動線、文字規範遵循(字級/強調/列表符號/行距)、版型與配色收斂、圖形連接線轉折(>2 折扣分)、備註品質、用語概念一致與 AI 感,並判斷主軸貼合度、偏題比例、銜接與難度峰值,產出十三項指標的審查報告 `review/review-<日期>-<序號>.md`;不修改任何原始碼 |
 
-演講專案的資料夾結構:`docs/`(topic.md 與 section 設計文件)、`talk/src/`(Marp 原始碼與設定:deck-header.md、每 section 一檔 `section-0x-*.md`、theme.css、build.mjs、.marprc.yml)、`talk/assets/`(圖形 SVG,`diagram-<section>-<序號>-<slug>.svg`)、`talk/dist/`(marp-cli 輸出產物,不手改)、`review/`(審查報告)、`demo/`(可選)。每份手寫文件(含圖形 SVG)都有 metadata;共用慣例在 `plugins/talk-flow/skills/_shared/conventions.md`,版型詞彙在 `_shared/layouts.md`。
+演講專案的資料夾結構:`docs/`(topic.md 與 section 設計文件)、`talk/src/`(Marp 原始碼與設定:deck-header.md、每 section 一檔 `section-0x-*.md`、theme.css、build.mjs、.marprc.yml)、`talk/assets/`(圖形 SVG,`diagram-<section>-<序號>-<slug>.svg`)、`talk/dist/`(marp-cli 輸出產物,不手改)、`review/`(審查報告)、`demo/`(可選)。每份手寫文件(含圖形 SVG)都有 metadata;共用慣例在 `plugins/talk-flow/skills/_shared/conventions.md`,版型詞彙在 `_shared/layouts.md`,風格基底在 `_shared/styles.md`。
 
 ## 安裝(新環境一鍵導入)
 

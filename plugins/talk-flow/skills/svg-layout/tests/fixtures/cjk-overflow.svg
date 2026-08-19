@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+id: diagram-fixture-cjk-overflow
+type: diagram
+title: cjk-label-overflow
+description: 中文與中英混排標籤溢出 node 的案例,測 font metrics 與 text-overflow
+diagram-type: 架構圖
+status: done
+created: 2026-08-19
+updated: 2026-08-19
+section: fixture
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720"
+     font-family="Noto Sans TC, PingFang TC, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+            orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2456a4"/>
+    </marker>
+  </defs>
+
+  <!-- 標籤明顯塞不下:「服務註冊與發現中心」9 個全寬字 @24px 約 216px,盒寬僅 180px -->
+  <rect id="node-registry" data-role="node" data-layer="row-1" x="120" y="180" width="180" height="90"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-registry-label" data-role="label" x="210" y="232" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">服務註冊與發現中心</text>
+
+  <!-- 中英混排:全寬 + 半寬混合,不能用平均字寬估 -->
+  <rect id="node-gateway" data-role="node" data-layer="row-1" x="420" y="180" width="200" height="90"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-gateway-label" data-role="label" x="520" y="232" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">API Gateway 閘道器</text>
+
+  <!-- 剛好塞得下但內距很擠 -->
+  <rect id="node-cache" data-role="node" data-layer="row-1" x="740" y="180" width="132" height="90"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-cache-label" data-role="label" x="806" y="232" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">Redis 快取</text>
+
+  <!-- 字太小,投影看不見;而且對比不足 -->
+  <rect id="node-metrics" data-role="node" data-layer="row-2" x="420" y="420" width="200" height="90"
+        fill="#8fa4c4" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-metrics-label" data-role="label" x="520" y="470" font-size="13"
+        text-anchor="middle" fill="#a8b6cc">監控與指標收集</text>
+
+  <path id="edge-gateway-to-registry" data-role="edge"
+        data-from="node-gateway" data-to="node-registry"
+        d="M 420 225 L 300 225" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+  <path id="edge-gateway-to-cache" data-role="edge"
+        data-from="node-gateway" data-to="node-cache"
+        d="M 620 225 L 740 225" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+  <path id="edge-gateway-to-metrics" data-role="edge"
+        data-from="node-gateway" data-to="node-metrics"
+        d="M 520 270 L 520 420" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>

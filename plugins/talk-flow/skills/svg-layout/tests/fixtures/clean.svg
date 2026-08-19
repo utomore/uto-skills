@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+id: diagram-fixture-clean
+type: diagram
+title: clean-microservice-arch
+description: 乾淨的三層微服務架構圖,供 svg-layout 迴歸測試使用
+diagram-type: 架構圖
+status: done
+created: 2026-08-19
+updated: 2026-08-19
+section: fixture
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720"
+     font-family="Noto Sans TC, PingFang TC, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+            orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2456a4"/>
+    </marker>
+  </defs>
+
+  <rect id="container-vpc" data-role="container" x="60" y="80" width="1160" height="540"
+        fill="none" stroke="#9aa7bd" stroke-width="2" stroke-dasharray="8 6" rx="12"/>
+  <text id="container-vpc-label" data-role="label" x="84" y="118" font-size="24" fill="#6b6b6b">VPC 10.0.0.0/16</text>
+
+  <rect id="node-api-gateway" data-role="node" data-layer="row-1" x="140" y="160" width="240" height="90"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-api-gateway-label" data-role="label" x="260" y="212" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">API Gateway</text>
+
+  <rect id="node-auth-service" data-role="node" data-layer="row-2" x="520" y="160" width="240" height="90"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-auth-service-label" data-role="label" x="640" y="212" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">認證服務</text>
+
+  <rect id="node-order-service" data-role="node" data-layer="row-2" x="520" y="380" width="240" height="90"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-order-service-label" data-role="label" x="640" y="432" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">訂單服務</text>
+
+  <rect id="node-postgres" data-role="node" data-layer="row-3" x="900" y="380" width="240" height="90"
+        fill="#e8efe4" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-postgres-label" data-role="label" x="1020" y="432" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">PostgreSQL</text>
+
+  <path id="edge-api-gateway-to-auth-service" data-role="edge"
+        data-from="node-api-gateway" data-to="node-auth-service"
+        d="M 380 205 L 520 205" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+  <text id="edge-api-gateway-to-auth-service-label" data-role="label" x="450" y="188" font-size="20"
+        text-anchor="middle" fill="#6b6b6b">JWT 驗證</text>
+
+  <path id="edge-api-gateway-to-order-service" data-role="edge"
+        data-from="node-api-gateway" data-to="node-order-service"
+        d="M 260 250 L 260 425 L 520 425" fill="none" stroke="#2456a4" stroke-width="2"
+        marker-end="url(#arrow)"/>
+
+  <path id="edge-order-service-to-postgres" data-role="edge"
+        data-from="node-order-service" data-to="node-postgres"
+        d="M 760 425 L 900 425" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+  <text id="edge-order-service-to-postgres-label" data-role="label" x="830" y="408" font-size="20"
+        text-anchor="middle" fill="#6b6b6b">讀寫</text>
+
+  <path id="edge-auth-service-to-postgres" data-role="edge"
+        data-from="node-auth-service" data-to="node-postgres"
+        d="M 760 205 L 1020 205 L 1020 380" fill="none" stroke="#2456a4" stroke-width="2"
+        marker-end="url(#arrow)"/>
+</svg>

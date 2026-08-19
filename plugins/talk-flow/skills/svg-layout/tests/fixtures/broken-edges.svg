@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+id: diagram-fixture-broken-edges
+type: diagram
+title: broken-edge-routing
+description: 連線端點未貼齊、穿過其他 node、標籤壓線的案例,測連線品質規則
+diagram-type: 架構圖
+status: done
+created: 2026-08-19
+updated: 2026-08-19
+section: fixture
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720"
+     font-family="Noto Sans TC, PingFang TC, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+            orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2456a4"/>
+    </marker>
+  </defs>
+
+  <rect id="node-client" data-role="node" data-layer="row-1" x="100" y="150" width="200" height="80"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-client-label" data-role="label" x="200" y="198" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">客戶端</text>
+
+  <!-- 這個 node 比同層矮 6px:near-alignment + inconsistent-node-size -->
+  <rect id="node-gateway" data-role="node" data-layer="row-1" x="500" y="153" width="200" height="80"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-gateway-label" data-role="label" x="600" y="198" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">閘道器</text>
+
+  <rect id="node-service" data-role="node" data-layer="row-1" x="900" y="150" width="200" height="80"
+        fill="#dbe6f6" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-service-label" data-role="label" x="1000" y="198" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">訂單服務</text>
+
+  <rect id="node-database" data-role="node" data-layer="row-2" x="900" y="420" width="200" height="80"
+        fill="#e8efe4" stroke="#2456a4" stroke-width="2" rx="10"/>
+  <text id="node-database-label" data-role="label" x="1000" y="468" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">資料庫</text>
+
+  <rect id="node-audit" data-role="node" data-layer="row-2" x="500" y="420" width="200" height="80"
+        fill="#f6e6db" stroke="#d96c2c" stroke-width="2" rx="10"/>
+  <text id="node-audit-label" data-role="label" x="600" y="468" font-size="24"
+        text-anchor="middle" fill="#1a1a1a">稽核日誌</text>
+
+  <!-- 端點沒貼齊:起點離 node-client 右緣 9px,終點離 node-gateway 左緣 12px -->
+  <path id="edge-client-to-gateway" data-role="edge"
+        data-from="node-client" data-to="node-gateway"
+        d="M 309 190 L 488 190" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- 標籤壓在線段正上方 -->
+  <text id="edge-client-to-gateway-label" data-role="label" x="398" y="197" font-size="20"
+        text-anchor="middle" fill="#6b6b6b">HTTP 請求</text>
+
+  <!-- 從 client 直穿 node-gateway 打到 node-service -->
+  <path id="edge-client-to-service" data-role="edge"
+        data-from="node-client" data-to="node-service"
+        d="M 300 210 L 900 210" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 端點穿入 node-database 內部 8px -->
+  <path id="edge-service-to-database" data-role="edge"
+        data-from="node-service" data-to="node-database"
+        d="M 1000 230 L 1000 428" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 與 edge-gateway-to-database 交叉,且缺箭頭 -->
+  <path id="edge-audit-to-service" data-role="edge"
+        data-from="node-audit" data-to="node-service"
+        d="M 700 440 L 900 190" fill="none" stroke="#2456a4" stroke-width="2"/>
+
+  <path id="edge-gateway-to-database" data-role="edge"
+        data-from="node-gateway" data-to="node-database"
+        d="M 700 200 L 900 450" fill="none" stroke="#2456a4" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>

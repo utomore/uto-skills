@@ -1,7 +1,7 @@
 {
   "name": "talk-flow",
-  "description": "演講內容產生流程 skills:主軸設計(topic-design,含風格基底選定、前景/背景分層、Marp 鷹架與文字規範)、段落設計(section-design,含 status 掃描與文字技法選用)、段落實作(section-impl,Marp 排版 + 視覺引導 + 逐頁背景 + SVG 圖形 + 頁內備註)、頁面調整(page-adjust)、整體審查(review,build 後逐頁目視 + 十三項指標,產出 review/ 報告)、架構圖排版量測(svg-layout,normalize/inspect/lint 三支腳本),投影片以 marp-cli 建置輸出",
-  "version": "0.7.2",
+  "description": "演講內容產生流程 skills,三層階梯(L1 語意 / L2 內容 / L3 呈現,視覺數值唯一真相是 theme.css):主軸設計(topic-design,風格基底、分層語意、Marp 鷹架與文字規範)、段落設計(section-design,含 status 掃描與圖形選型)、段落實作(section-impl,Marp 排版 + 視覺引導 + 逐頁背景 + SVG 圖形 + 頁內備註,在上層規範內有完全呈現自主權)、頁面調整(page-adjust)、整體審查(review,build 後逐頁目視 + 十三項指標,產出 review/ 報告)、架構圖排版量測(svg-layout,normalize/inspect/lint 三支腳本),投影片以 marp-cli 建置輸出",
+  "version": "0.8.0",
   "author": {
     "name": "utomore"
   },

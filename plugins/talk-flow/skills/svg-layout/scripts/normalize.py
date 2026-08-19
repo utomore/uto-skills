@@ -19,19 +19,10 @@ ID 穩定性是硬性要求:重跑時既有的 id 與 data-* 一律保留,只補
 
 from __future__ import annotations
 
-import os
-import sys
+import argparse
+from pathlib import Path as FsPath
 
-# 同目錄有 inspect.py,會遮蔽標準庫的 inspect(dataclasses 會 import 它)。
-# 把腳本目錄移到 sys.path 最後:標準庫優先,_core 仍找得到。
-_HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.getcwd()) != _HERE]
-sys.path.append(_HERE)
-
-import argparse  # noqa: E402
-from pathlib import Path as FsPath  # noqa: E402
-
-from _core import (  # noqa: E402
+from _core import (
     BOX_SHAPES, LINE_SHAPES, El, Sym, SvgDoc, TextMeasurer, has_fill, infer_roles,
     is_dashed, label_text_of, load_glossary, setup_stdout, slugify,
 )
@@ -239,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     out = args.svg if args.in_place else args.output
     doc.write(out)
     print(f"\n{S.ok} 已寫入 {out}(僅 id 與 data-*;幾何值未變動)")
-    print(f"  {S.arrow} 下一步:uv run inspect.py {out}")
+    print(f"  {S.arrow} 下一步:uv run inspect_svg.py {out}")
     _ = before
     return 0
 

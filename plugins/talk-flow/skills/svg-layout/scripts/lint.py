@@ -16,22 +16,13 @@
 
 from __future__ import annotations
 
-import os
-import sys
+import argparse
+import json
+import re
+from dataclasses import asdict, dataclass, field
+from pathlib import Path as FsPath
 
-# 同目錄有 inspect.py,會遮蔽標準庫的 inspect(dataclasses 會 import 它)。
-# 把腳本目錄移到 sys.path 最後:標準庫優先,_core 仍找得到。
-_HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.getcwd()) != _HERE]
-sys.path.append(_HERE)
-
-import argparse  # noqa: E402
-import json  # noqa: E402
-import re  # noqa: E402
-from dataclasses import asdict, dataclass, field  # noqa: E402
-from pathlib import Path as FsPath  # noqa: E402
-
-from _core import (  # noqa: E402
+from _core import (
     El, Sym, SvgDoc, TextMeasurer, dist_point_to_box, infer_roles, num,
     seg_intersects_box, seg_seg_intersect, setup_stdout,
 )

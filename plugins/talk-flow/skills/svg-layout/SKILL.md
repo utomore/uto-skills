@@ -25,29 +25,33 @@ font metrics(中文全寬、英文半寬,中英混排不能用平均字寬估)�
 ## 強制流程(不可跳步)
 
 ```
-1. normalize.py   # 元素缺 id 或 data-role 時必跑;只寫 id 與 data-*,不動幾何
-2. inspect.py     # 取得 scene digest:絕對 bbox、標籤實測寬度、edge 拓撲、對齊與間距
-3. lint.py        # 找出既有問題與量化偏差
+1. normalize.py      # 元素缺 id 或 data-role 時必跑;只寫 id 與 data-*,不動幾何
+2. inspect_svg.py    # 取得 scene digest:絕對 bbox、標籤實測寬度、edge 拓撲、對齊與間距
+3. lint.py           # 找出既有問題與量化偏差
 4. 基於 digest 與 diagnostics 推理並修改 SVG
-5. lint.py        # 驗證修改結果(必跑,不可假設改對了)
+5. lint.py           # 驗證修改結果(必跑,不可假設改對了)
 6. 重新 build 投影片或請使用者確認視覺結果
 ```
 
 腳本用 uv 執行,依賴自動安裝(PEP 723 inline metadata):
 
 ```bash
-uv run <skill目錄>/scripts/normalize.py diagram.svg --dry-run
-uv run <skill目錄>/scripts/normalize.py diagram.svg --in-place
-uv run <skill目錄>/scripts/inspect.py   diagram.svg
-uv run <skill目錄>/scripts/lint.py      diagram.svg
+uv run <skill目錄>/scripts/normalize.py   diagram.svg --dry-run
+uv run <skill目錄>/scripts/normalize.py   diagram.svg --in-place
+uv run <skill目錄>/scripts/inspect_svg.py diagram.svg
+uv run <skill目錄>/scripts/lint.py        diagram.svg
 ```
 
 三支腳本都有 `--help`;終端不支援 `✓ ⚠` 時加 `--ascii`(Windows 主控台會自動降級)。
 
+腳本檔名刻意避開標準庫模組名(`inspect_svg.py` 而非 `inspect.py`)— 腳本目錄會排在
+`sys.path` 最前面,同名檔會遮蔽標準庫(`dataclasses` 需要 `inspect`),三支腳本都會
+啟動失敗。日後新增腳本時同理。
+
 ## 明確禁止
 
-- **不准直接讀原始 SVG 檔案內容去猜座標** — 幾何一律由 inspect.py 提供
-- **不准在未跑 inspect.py 的情況下修改任何幾何值**(x/y/width/height/d/points/transform)
+- **不准直接讀原始 SVG 檔案內容去猜座標** — 幾何一律由 inspect_svg.py 提供
+- **不准在未跑 inspect_svg.py 的情況下修改任何幾何值**(x/y/width/height/d/points/transform)
 - **不准跳過修改後的 lint 驗證** — 改完必跑,不可假設改對了
 - 不准自行生成 path-based 識別碼(如 `svg>g:nth-child(3)>rect`)代替 id:
   那種識別碼會在結構變動時漂移,破壞多輪對話的一致性 — 缺 id 就跑 normalize.py
@@ -69,7 +73,7 @@ uv run <skill目錄>/scripts/lint.py      diagram.svg
   改對之後 inspect 與 lint 才會把它算進拓撲
 - `--force-relabel` 會重建全部 id,**破壞既有引用**,只在使用者明確要求時用
 
-### inspect.py — scene digest
+### inspect_svg.py — scene digest
 
 輸出階層樹(container → node → label)、edges 拓撲、layout 三段。讀的時候注意:
 

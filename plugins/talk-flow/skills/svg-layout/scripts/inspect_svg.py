@@ -3,33 +3,28 @@
 # requires-python = ">=3.10"
 # dependencies = ["svgelements>=1.9", "fonttools>=4.50", "pypinyin>=0.53"]
 # ///
-"""inspect.py — 輸出架構圖的 scene digest(把絕對座標還原成關係)。
+"""inspect_svg.py — 輸出架構圖的 scene digest(把絕對座標還原成關係)。
 
 給 LLM 讀的精簡文字摘要,不是 JSON dump。所有幾何都是程式量測的結果:
 巢狀 transform 已累積成絕對 bbox,文字寬度用 fontTools 量真實 advance
 (中英混排逐字元分類,不用平均字寬);量不到字型時標記為 (est.)。
 
 用法:
-  uv run inspect.py diagram.svg
-  uv run inspect.py diagram.svg --expand-paths
+  uv run inspect_svg.py diagram.svg
+  uv run inspect_svg.py diagram.svg --expand-paths
+
+檔名刻意不叫 inspect.py:腳本目錄會排在 sys.path 最前面,叫 inspect.py 會遮蔽
+標準庫的 inspect(dataclasses 會 import 它),三支腳本都會啟動失敗。
+新增腳本時同理,不要用標準庫模組名。
 """
 
 from __future__ import annotations
 
-import os
-import sys
+import argparse
+from math import gcd
+from pathlib import Path as FsPath
 
-# 本檔名為 inspect.py,會遮蔽標準庫的 inspect(dataclasses 會 import 它)。
-# 把腳本目錄移到 sys.path 最後:標準庫優先,_core 仍找得到。
-_HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.getcwd()) != _HERE]
-sys.path.append(_HERE)
-
-import argparse  # noqa: E402
-from math import gcd  # noqa: E402
-from pathlib import Path as FsPath  # noqa: E402
-
-from _core import (  # noqa: E402
+from _core import (
     El, Sym, SvgDoc, TextMeasurer, dist, dist_point_to_box, infer_roles,
     label_text_of, num, seg_intersects_box, setup_stdout,
 )
@@ -285,13 +280,13 @@ def layout_lines(nodes: list[El], S: Sym) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
-        prog="inspect.py",
+        prog="inspect_svg.py",
         description="輸出 SVG 架構圖的 scene digest:絕對 bbox、標籤實測寬度、"
                     "edge 拓撲、對齊與間距關係。",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="範例:\n"
-               "  uv run inspect.py diagram.svg\n"
-               "  uv run inspect.py diagram.svg --expand-paths   # 展開 path 的 d\n",
+               "  uv run inspect_svg.py diagram.svg\n"
+               "  uv run inspect_svg.py diagram.svg --expand-paths   # 展開 path 的 d\n",
     )
     ap.add_argument("svg", type=FsPath, help="輸入的 SVG 檔")
     ap.add_argument("--expand-paths", action="store_true",

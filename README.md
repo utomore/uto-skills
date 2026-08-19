@@ -4,21 +4,32 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ## dev-flow
 
-三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。包含九個 skills:
+三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。包含十個 skills:
 
 | 指令 | 層級 | 職責 |
 |---|---|---|
 | `/system-design` | L1 | 系統主架構 — 深度訪談後產出 `.design/system.md` + `.design/adr/ADR-00x-*.md`:技術棧、對外 I/O 契約、子系統劃分(Bounded Contexts)、通訊拓撲;只到子系統邊界顆粒度 |
-| `/subsys-design` | L2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、內部模組劃分、資料流管線、模組間抽象介面、feature 路線圖(功能規劃),並回填主架構 `subsystems` 清單 |
-| `/feature-design` | L3 | 功能設計 — 深度討論後產出 `features/F00x-*.md`,介面必須落在 L2 契約內;含相依性查證、介面表、TodoList、1-to-1 測試 |
+| `/subsys-design` | L2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、內部模組劃分、資料流管線、模組間抽象介面、feature 路線圖(功能規劃)與每個 feature 的**契約卡**,並回填主架構 `subsystems` 清單 |
+| `/subsys-build` | L2→L3 | 子系統委派展開 — 依功能規劃的「依賴」欄排波次,**批次澄清一次問完** → 預先配號 → 委派 subagent 平行寫設計、階段內序列實作 → 每階段跑 `arch-audit` 後**停下來給人驗收**;配號、`design.md` 回填、`build-log.md` 由編排者單線負責 |
+| `/feature-design` | L3 | 功能設計 — 深度討論後產出 `features/F00x-*.md`,介面必須落在 L2 契約內;含相依性查證、介面表、TodoList、1-to-1 測試(被委派時走「委派模式」:不提問,不確定寫成「待確認假設」) |
 | `/enhance-design` | L3 | 優化設計 — 先讀程式碼、**與開發者討論確認 scope 涵蓋範圍**後,產出 `enhancements/E00x-*.md`(跨子系統為 `.design/enhancements/G-E00x-*.md`) |
-| `/feature-impl` | L3 | 功能實作 — 依 feature 文檔逐項勾 TodoList、跑 1-to-1 測試、回寫 status;L2 契約內實作自主 |
+| `/feature-impl` | L3 | 功能實作 — 依 feature 文檔逐項勾 TodoList、跑 1-to-1 測試、回寫 status;L2 契約內實作自主(被委派時碰到契約邊界就停下回報,不擅自改契約) |
 | `/enhance-impl` | L3 | 優化實作 — 回歸測試先行,scope 標明不動的範圍絕對不碰,收尾記錄量化結果 |
 | `/bugfix` | L3 | 缺陷修復 — 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
-| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩)/ `feature`(L2 介面符合度、edge cases、型別安全)/ `status`(腳本盤點各 feature 完成度與待優化模組) |
+| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、契約卡對帳)/ `feature`(L2 介面符合度、edge cases、型別安全、待確認假設)/ `status`(腳本盤點各 feature 完成度、契約卡就緒度與待優化模組) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
 
-共用文檔慣例(樹狀資料夾結構、編號、引用格式、YAML frontmatter、資訊抽象邊界規範)在 `plugins/dev-flow/skills/_shared/conventions.md`。
+共用文檔慣例(樹狀資料夾結構、編號、引用格式、YAML frontmatter、資訊抽象邊界規範、**委派模式共通契約**)在 `plugins/dev-flow/skills/_shared/conventions.md`。
+
+### 委派展開(`/subsys-build`)的設計要點
+
+Level 2 把契約鎖死之後,Level 3 就變成**可委派**的:相依性查證、介面表、TodoList、1-to-1 測試都是機械性工作,不需要人。真正需要人的只有「功能邊界的取捨」,而那些可以**批次前置**到一次問完。整個流程建立在三個約束上:
+
+- **subagent 問不了人** → 所有人類決策移到 fan out 之前的「批次澄清」;之後的不確定一律寫成文檔裡的「待確認假設」,由編排者在階段閘門呈報
+- **誤差沿依賴鏈複利** → 閘門設在**階段**邊界(不是每個 feature,也不是全自動跑完);測試失敗或有阻塞就立刻停下本階段後續實作
+- **平行會撞** → 配號(`F00x`)、`design.md` 回填、`build-log.md` 一律由編排者**單線**負責;feature 設計平行(各寫各的檔案),實作在階段內**序列**(同子系統常改同一批檔案)
+
+用 subagent 的主要理由是 **context 隔離**:相依性查證要讀大量原始碼,那些 context 留在 subagent 裡,編排者只收結構化回報——即 conventions 裡「Context 載入紀律」的自動化版本。`build-log.md` 記配號表、委派決策、待確認假設彙總與各階段結果,讓中斷後能接續、事後查得到當初為什麼這樣決定。
 
 ## talk-flow
 
@@ -74,7 +85,8 @@ repo 有新版本後:
 ├── system.md                        # /system-design:Level 1 主架構(frontmatter `subsystems` 為權威清單)
 ├── subsystems/
 │   └── <subsystem-slug>/
-│       ├── design.md                # /subsys-design:Level 2 子系統架構(frontmatter `parent: system` 回鏈)
+│       ├── design.md                # /subsys-design:Level 2 子系統架構(功能規劃 + Feature 契約卡;`parent: system` 回鏈)
+│       ├── build-log.md             # /subsys-build:配號表、委派決策、待確認假設彙總、階段結果(跑過才有)
 │       ├── features/F001-<slug>.md          # /feature-design
 │       ├── enhancements/E001-<slug>.md      # /enhance-design
 │       └── bugfixes/B001-<slug>.md          # /bugfix

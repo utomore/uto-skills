@@ -4,12 +4,12 @@
  *
  * 掃描範圍:
  *   .design/system.md                                  主架構(frontmatter subsystems 為權威清單)
- *   .design/subsystems/<slug>/design.md                子系統架構(含「功能規劃」路線圖)
+ *   .design/subsystems/<slug>/design.md                子系統架構(含「功能規劃」路線圖與「Feature 契約卡」)
  *   .design/subsystems/<slug>/{features,enhancements,bugfixes}/*.md   子系統任務文檔
  *   .design/{enhancements,bugfixes}/*.md               全域任務文檔(G-E / G-B)
  *   .design/adr/*.md                                   ADR
  *
- * 任務文檔只讀每檔開頭 4KB;design.md 需讀全文才能解析「功能規劃」表格。
+ * 任務文檔只讀每檔開頭 4KB;design.md 需讀全文才能解析「功能規劃」表格與「Feature 契約卡」。
  * 清單欄位(depends-on / related-adr / related-feature / subsystems)一律**行內陣列** `[a, b]`;
  * 寫成 YAML 區塊列表會被列為格式不合規並以 exit code 1 收場。
  *
@@ -203,7 +203,7 @@ const subsysDocs = new Map(); // slug → { designMeta, designFile, roadmap, ids
 
 for (const slug of subsysDirs) {
   const dir = join(subsysRoot, slug);
-  const entry = { designMeta: null, designFile: null, roadmap: { phases: 0, features: [] }, ids: new Map() };
+  const entry = { designMeta: null, designFile: null, roadmap: { phases: 0, features: [] }, cards: new Set(), ids: new Map() };
   subsysDocs.set(slug, entry);
 
   const designPath = join(dir, "design.md");
@@ -222,6 +222,7 @@ for (const slug of subsysDirs) {
       if (meta.id && meta.id !== slug) archIssues.push(`${entry.designFile}:id(${meta.id})與資料夾名(${slug})不一致`);
     }
     entry.roadmap = parseRoadmap(text);
+    entry.cards = parseCards(text);
   }
 
   for (const [sub, kind] of Object.entries(TASK_KINDS)) {
@@ -330,11 +331,39 @@ function parseRoadmap(text) {
     if (!feature || feature === "-" || /^<.+>$/.test(feature)) continue; // 空列或模板列
     features.push({
       phase: phases.at(-1) ?? "-",
-      feature,
+      feature: normName(feature),
       doc: (cells[colIdx.doc] ?? "").match(/F\d{3}/)?.[0] ?? "",
     });
   }
   return { phases: phases.length, features };
+}
+
+/** 標準化 feature 名稱:去掉 markdown 強調符號與前後空白,讓表格與卡片標題對得上 */
+function normName(s) {
+  return String(s).replace(/[`*_]/g, "").trim();
+}
+
+/**
+ * 從 design.md 內文抓「Feature 契約卡」章節下的卡片標題(`### <feature-slug>`)。
+ * 契約卡是 feature 可被 /subsys-build 無訪談委派的門檻。
+ * 沒有這個章節時回傳空 Set —— 舊版 design.md 屬正常,只提示不算不一致。
+ */
+function parseCards(text) {
+  const cards = new Set();
+  let inSection = false;
+  for (const line of text.split(/\r?\n/)) {
+    const heading = line.match(/^(#{2,6})\s+(.+?)\s*$/);
+    if (!heading) continue;
+    const level = heading[1].length;
+    if (level === 2) {
+      inSection = /契約卡/.test(heading[2]);
+      continue;
+    }
+    if (!inSection || level !== 3) continue;
+    const name = normName(heading[2]);
+    if (name && !/^<.+>$/.test(name)) cards.add(name); // 模板列不算
+  }
+  return cards;
 }
 
 const subsysRows = [];
@@ -366,6 +395,23 @@ for (const slug of subsysDirs) {
       archNotes.push(`${row.file}:未出現在 ${slug}/design.md 的功能規劃(建議回填 doc 欄)`);
   }
 
+  // Feature 契約卡覆蓋率(/subsys-build 委派展開的門檻;缺卡只提示,不列為不一致)
+  const cards = entry.cards;
+  const carded = roadmap.features.filter((f) => cards.has(f.feature)).length;
+  if (entry.designFile && roadmap.features.length > 0) {
+    if (cards.size === 0) {
+      archNotes.push(`${entry.designFile}:沒有「Feature 契約卡」章節,無法用 /subsys-build 委派展開(用 /subsys-design 更新模式補上)`);
+    } else {
+      for (const f of roadmap.features) {
+        if (!cards.has(f.feature)) archNotes.push(`${entry.designFile}:功能規劃的 ${f.feature} 缺 Feature 契約卡(該項無法委派)`);
+      }
+      for (const c of cards) {
+        if (!roadmap.features.some((f) => f.feature === c))
+          archNotes.push(`${entry.designFile}:Feature 契約卡「${c}」不在功能規劃清單內(孤兒卡片,建議刪除或補進清單)`);
+      }
+    }
+  }
+
   const openE = [...entry.ids.values()].filter((r) => r.type === "enhance" && !DONE_STATUSES.has(r.status)).length;
   const openB = [...entry.ids.values()].filter((r) => r.type === "bugfix" && !DONE_STATUSES.has(r.status)).length;
 
@@ -379,6 +425,7 @@ for (const slug of subsysDirs) {
     status: !meta || !meta.status ? "⚠ missing-metadata" : String(meta.status),
     phases: total === 0 ? "-" : String(roadmap.phases || 1),
     features: total === 0 ? "-" : String(total),
+    cards: total === 0 || cards.size === 0 ? "-" : `${carded}/${total}`,
     specced: total === 0 ? "-" : String(specced),
     done: total === 0 ? "-" : String(done),
     openEB: `${openE}E/${openB}B`,
@@ -449,7 +496,7 @@ if (subsysRows.length === 0) {
   console.log("(subsystems/ 下沒有任何子系統;專案未拆子系統時屬正常,否則請用 /subsys-design 建立)");
 } else {
   printTable(
-    { description: "主軸", id: "id", status: "status", phases: "階段", features: "features", specced: "已建文檔", done: "已完成", openEB: "未結E/B", progress: "進度" },
+    { description: "主軸", id: "id", status: "status", phases: "階段", features: "features", cards: "契約卡", specced: "已建文檔", done: "已完成", openEB: "未結E/B", progress: "進度" },
     subsysRows,
   );
   const tracked = subsysRows.filter((s) => s.hasRoadmap);

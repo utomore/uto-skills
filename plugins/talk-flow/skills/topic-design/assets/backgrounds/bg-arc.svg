@@ -1,0 +1,21 @@
+<!--
+id: bg-arc
+type: background
+title: bg-arc
+description: 右下同心弧線,單色收斂
+status: draft
+created: 2026-08-19
+updated: 2026-08-19
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <!-- 色值抄自 theme.css tokens 的主色與強調色(此處為預設色票);換色票時要一併改這裡。
+       圖案只走右下角:標題(左上)與內容區(中央)一律讓開。 -->
+  <g fill="none" stroke="#2456a4" stroke-width="2" opacity="0.45">
+    <circle cx="1280" cy="720" r="200" />
+    <circle cx="1280" cy="720" r="300" />
+    <circle cx="1280" cy="720" r="400" />
+    <circle cx="1280" cy="720" r="520" />
+  </g>
+  <path d="M1280 720 A 200 200 0 0 0 1080 720 Z" fill="#2456a4" opacity="0.10" />
+  <path d="M1280 720 A 90 90 0 0 0 1190 720 Z" fill="#d96c2c" opacity="0.35" />
+</svg>

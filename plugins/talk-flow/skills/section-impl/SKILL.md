@@ -6,11 +6,11 @@ user-invocable: true
 
 # /section-impl — 演講段落實作
 
-先讀取 `../_shared/conventions.md`、`../_shared/layouts.md` 與 `../_shared/styles.md`,遵守所有文檔慣例(metadata、命名、Marp 建置)、版型詞彙與風格基底詞彙。
+先讀取 `../_shared/conventions.md`、`../_shared/layouts.md`、`../_shared/styles.md` 與 `../_shared/layers.md`,遵守所有文檔慣例(metadata、命名、Marp 建置)、版型詞彙、風格基底詞彙與分層詞彙。
 
 ## 前置
 
-1. 讀取 `docs/topic.md`(燈塔;不存在時建議先執行 `/topic-design`),特別是 `style-base` 與「投影片風格」(**風格基底決定版面、圖形與節奏的預設方向** — 如 tech-deep 標題固定左上、版型收斂;keynote-impact 大字置中頁為主力)、「**文字規範**」(執行期唯一合法的字級/強調/列表符號選單)與 `talk/src/theme.css` 的 tokens
+1. 讀取 `docs/topic.md`(燈塔;不存在時建議先執行 `/topic-design`),特別是 `style-base` 與「投影片風格」(**風格基底決定版面、圖形與節奏的預設方向** — 如 tech-deep 標題固定左上、版型收斂;keynote-impact 大字置中頁為主力)、「**投影片分層**」(有幾套背景、各用在哪、哪些頁型一律關背景)、「**文字規範**」(執行期唯一合法的字級/強調/列表符號選單)與 `talk/src/theme.css` 的 tokens
 2. 確認目標段落:使用者指定編號則用之;未指定則建議 `order` 最小、status 為 open 且已完成設計的段落。**目標段落必須已經過 `/section-design`**(內文有「內容要點」與「頁面規劃」章節且非空);只有佔位說明時,告知使用者建議先執行 `/section-design`,除非使用者明確要求直接實作
 3. 讀取目標段落設計文件與其 `depends-on` 段落(掌握銜接);確認 `talk/src/` 鷹架存在(deck-header.md、theme.css、build.mjs;缺了先回 `/topic-design` 補)
 4. 掃描 `talk/src/section-*.md` 與 `talk/assets/` 現況,確認本段的 deck 檔與圖形序號沒有撞名
@@ -26,6 +26,7 @@ user-invocable: true
 - **內文**:條列、表格或段落文字,放在哪一格
 - **文字技法**:字級、強調方式、列表符號**只從 `topic.md`「文字規範」與本段設計文件「文字技法選用」中選**,不自創;同類內容跨頁用同一種寫法(同是要點就同字級同符號),要做出差異必須有明確理由(如刻意對比)並在備註或設計文件記錄
 - **圖形**:有圖的頁,圖放哪一格、佔多大(限高/限寬),圖是主角還是輔助;連接線方向順著本頁動線
+- **分層(每頁必答)**:這頁的背景用哪一個 —— 沿用預設、`bg-none`(圖表/截圖/密集表格頁)、`bg-soft`(文字密)、`bg-strong`(封面/divider/結論)、`bg-2` / `bg-3`(topic.md 定義過語意的第二、三套)。**只能用 `topic.md`「投影片分層」定義過的套數與語意**,不自創;真正一次性的一頁才用 `<style scoped>` 覆寫並在備註記理由。背景不得蓋過第一眼落點
 
 與設計文件的「頁面規劃」有出入(實作時發現要拆頁/併頁/換圖形類型)時,先說明理由取得同意並回寫該表。開工時把段落 `status` 改為 `in-progress`。
 
@@ -49,7 +50,7 @@ user-invocable: true
 
 建立與設計文件**同編號同 slug** 的 deck 檔,frontmatter 依 conventions(`type: deck`、`section`、`slides`),內文依排版方案逐頁撰寫:
 
-- 頁與頁之間以 `---` 分隔;整頁類別用 `<!-- _class: title|divider|center -->`,內容區用 layouts.md 的 grid 容器 div(**div 與 Markdown 內容之間留空行**)
+- 頁與頁之間以 `---` 分隔;整頁類別用 `<!-- _class: title|divider|center -->`,背景類別接在同一個 `_class` 後面(如 `<!-- _class: divider bg-2 bg-strong -->`),內容區用 layouts.md 的 grid 容器 div(**div 與 Markdown 內容之間留空行**)
 - 文字內容依設計文件「內容要點」;一頁一重點,不搬運整段文件
 - 字級、強調、列表符號依排版方案定案的文字技法(出自 topic.md「文字規範」);行距等排版值住在 theme.css,不逐頁覆寫
 - 圖形以 `![h:400](../assets/diagram-XX-N-<slug>.svg)` 嵌入規劃的格
@@ -59,7 +60,7 @@ user-invocable: true
 ### 4. 建置與驗收(必做)
 
 1. 在 `talk/src/` 執行 `node build.mjs`(加上 `topic.md` `outputs` 列的其他格式,如 `node build.mjs html pdf`);build 失敗先修再往下
-2. 打開 `talk/dist/slides.html`(可行時用瀏覽器,否則請使用者開)檢查本段每一頁:文字不溢出格子、grid 沒塌陷(格數 = 子 div 數)、圖形清晰且文字讀得到、風格與前後段一致;**每頁重走一次動線**(第一眼落點是不是重點、閱讀順序有沒有被版面或連接線帶偏)、**文字技法對照文字規範**(字級/強調/列表符號都出自選單、同情境同寫法、標題與內文行距讀起來分得開)
+2. 打開 `talk/dist/slides.html`(可行時用瀏覽器,否則請使用者開)檢查本段每一頁:文字不溢出格子、grid 沒塌陷(格數 = 子 div 數)、圖形清晰且文字讀得到、風格與前後段一致;**每頁重走一次動線**(第一眼落點是不是重點、閱讀順序有沒有被版面或連接線帶偏)、**文字技法對照文字規範**(字級/強調/列表符號都出自選單、同情境同寫法、標題與內文行距讀起來分得開)、**分層檢查**(背景有沒有搶走第一眼、正文疊在背景最深處還讀得清、該關背景的頁有沒有關、換背景的頁對得上 topic.md 定義的語意、深色頁的角標對比夠不夠)
 3. 逐項核對設計文件:「內容要點」每一點都有落頁或落備註;「頁面規劃」每一列都有對應頁面與圖形(拆併頁差異回寫該表,附理由)
 4. 回寫 metadata:deck 檔 `slides` = 實際張數、`status: done`;各 diagram `status: done`;docs section 的 `slides`、`diagrams` 回填實際值、`status: done`;`topic.md` 段落規劃表的頁數欄同步(經使用者同意)
 5. 節奏粗檢:本段 `est-minutes` × 60 ÷ 頁數落在 20–180 秒/頁之外時告知使用者,建議調頁數或時間
@@ -71,4 +72,4 @@ user-invocable: true
 
 ### 6. 收尾
 
-摘要:本段產出的檔案(deck 檔、圖形 SVG、dist 輸出)、每頁用的版型、與設計文件的偏差及理由、節奏檢查結果;建議下一個要實作的段落,或全部完成時建議用 `/page-adjust` 微調、`/section-design status` 總覽,並在上台前跑 `/review` 做整體審查。
+摘要:本段產出的檔案(deck 檔、圖形 SVG、dist 輸出)、每頁用的版型與背景類別、與設計文件的偏差及理由、節奏檢查結果;建議下一個要實作的段落,或全部完成時建議用 `/page-adjust` 微調、`/section-design status` 總覽,並在上台前跑 `/review` 做整體審查。

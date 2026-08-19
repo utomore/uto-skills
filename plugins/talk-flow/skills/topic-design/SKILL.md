@@ -1,12 +1,12 @@
 ---
 name: topic-design
-description: 演講主軸設計 — 深度訪談時長、聽眾、會議類型後,提供 3 組主題方案供選擇,產出 docs/topic.md 燈塔文件、talk/src Marp 鷹架(theme.css、build.mjs)與各 section 佔位文檔。觸發詞:演講主軸、演講設計、topic design、新演講、簡報企劃、talk planning。Use when starting a new talk or presentation and defining its core topic and structure.
+description: 演講主軸設計 — 深度訪談時長、聽眾、會議類型後,提供 3 組主題方案供選擇,並討論投影片的前景/背景分層(使用者提供背景圖片或與 LLM 討論風格,可定多套背景讓每頁不同),產出 docs/topic.md 燈塔文件、talk/src Marp 鷹架(theme.css、build.mjs)與各 section 佔位文檔。觸發詞:演講主軸、演講設計、topic design、新演講、簡報企劃、talk planning、投影片背景、背景圖、前景背景、分層。Use when starting a new talk or presentation, defining its core topic and structure, or setting up slide background layering.
 user-invocable: true
 ---
 
 # /topic-design — 演講主軸設計
 
-先讀取 `../_shared/conventions.md` 與 `../_shared/styles.md`,遵守所有文檔慣例(資料夾結構、命名、metadata、Marp 建置)與風格基底詞彙。
+先讀取 `../_shared/conventions.md`、`../_shared/styles.md` 與 `../_shared/layers.md`,遵守所有文檔慣例(資料夾結構、命名、metadata、Marp 建置)、風格基底詞彙與分層詞彙。
 
 ## 目標
 
@@ -15,7 +15,7 @@ user-invocable: true
 ## 模式判斷
 
 - `docs/topic.md` 不存在 → **初始模式**:完整訪談後從零產出
-- `docs/topic.md` 已存在 → **更新模式**:先讀取現有內容與各 section 狀態,針對要調整的部分訪談;主軸變動會牽動所有 section,必須列出受影響段落並取得使用者同意後才動手;`slide-style` 變動要同步 `talk/src/theme.css` 的 tokens;「文字規範」變動要列出已實作頁面中受影響的用法,提醒使用者跑 `/page-adjust` 跟進;`style-base` 換基底是**全簡報級改動**(版面、配色、文字規範、圖形風格全部重看),必須列出已實作段落並確認使用者理解影響範圍
+- `docs/topic.md` 已存在 → **更新模式**:先讀取現有內容與各 section 狀態,針對要調整的部分訪談;主軸變動會牽動所有 section,必須列出受影響段落並取得使用者同意後才動手;`slide-style` 變動要同步 `talk/src/theme.css` 的 tokens;「投影片分層」變動(換背景、改強度、增減背景套數)同樣只改 theme.css 的分層 tokens 與 `talk/assets/` 的背景資產,改完**必須重 build 抽看最文字密與最空的頁面**,並列出原本寫了 `bg-*` 類別的頁面確認語意還對得上;「文字規範」變動要列出已實作頁面中受影響的用法,提醒使用者跑 `/page-adjust` 跟進;`style-base` 換基底是**全簡報級改動**(版面、配色、文字規範、圖形風格全部重看),必須列出已實作段落並確認使用者理解影響範圍
 
 ## 流程
 
@@ -28,9 +28,16 @@ user-invocable: true
 3. **聽眾範圍**:誰會來聽?人數規模?聽眾的技術能力(beginner / intermediate / advanced / mixed)與先備知識?
 4. **會議類型**:deep-tech(深度技術分享)、intro(啟蒙/科普)、workshop(工作坊)、lightning(閃電秀)、keynote(主題演講)、internal(內部分享)、lecture(教學課程)— 類型決定深度與節奏
 5. **講者先備知識**:使用者對題材的熟悉度、想避開或想突顯的部分
-6. **風格基底與偏好**:先依會議類型從 `styles.md` 推薦風格基底(tech-deep / keynote-impact / intro-friendly / workshop-guide / exec-brief),用 AskUserQuestion 讓使用者選定或改選 — **基底定案後,版面、配色、文字規範、圖形風格、節奏都有了預設方向**;再細調視覺偏好(深色/淺色、色彩傾向)、演講風格(敘事型、示範型、論證型)與文字技法偏好(強調習慣用粗體還是色彩、列表符號偏好)— 細調結果與偏離基底之處都會寫死進「投影片風格」與「文字規範」
-7. **輸出格式**:上台用什麼?(html 鍵盤翻頁 / pdf 備援分發 / pptx 交主辦方;可複選,記入 `outputs`)
-8. **Demo 需求**:是否需要現場示範?(需要時建議 uv + python + notebook,依使用者要求可置換;demo 屬於某個 section,細節留給 `/section-design`)
+6. **風格基底與偏好**:先依會議類型從 `styles.md` 推薦風格基底(tech-deep / keynote-impact / intro-friendly / workshop-guide / exec-brief),用 AskUserQuestion 讓使用者選定或改選 — **基底定案後,版面、配色、分層、文字規範、圖形風格、節奏都有了預設方向**;再細調視覺偏好(深色/淺色、色彩傾向)、演講風格(敘事型、示範型、論證型)與文字技法偏好(強調習慣用粗體還是色彩、列表符號偏好)— 細調結果與偏離基底之處都會寫死進「投影片風格」與「文字規範」
+7. **前景/背景分層**(依 `layers.md`,基底的「分層」節是起點):先講清楚兩層的分工 —— 背景層是裝飾(色塊、漸層、品牌圖樣),前景層是標題、內文、圖形與固定角標,**要聽眾讀的東西一律在前景**。然後問到定案:
+   - **要不要背景?** 用 AskUserQuestion 給「不要(純色底)/ 要」;`none` 是完全合法的答案,資訊密度高或要印出來時反而是最佳解
+   - **素材從哪來?**(要背景才問)三選一:①**使用者提供背景圖片**(品牌背景、照片 — 請他給檔案路徑,存進 `talk/assets/bg-<slug>.<ext>`);②**跟你討論風格現做**(問風格關鍵字:柔和有機 / 幾何弧線 / 格線科技 / 單側色帶 / 其他;可直接拿本 skill `assets/backgrounds/` 的三張範本當選項給他挑,或依關鍵字用 CSS 漸層與新畫的 SVG 現做);③**先用 CSS 漸層**(免資產,改色最快)
+   - **要幾套?每頁背景可以不同** — 問全場一套夠不夠,還是封面/轉場、某個段落、demo 頁要換一套;要多套就當場定義**每一套對應哪一組頁面**(填 `--bg-image-2` / `--bg-image-3`,頁面用 `bg-2` / `bg-3`),語意寫進「投影片分層」;超過三套要回頭確認是設計還是失控
+   - **強度**:`--bg-opacity` 從偏淡起(0.35–0.5),照片背景壓到 0.2–0.35 或配 `plate`;哪些頁型一律關背景(圖表頁、截圖頁、密集表格頁 → `bg-none`)、哪些加強(封面、divider、結論頁 → `bg-strong`)
+   - **固定角標**:每頁要不要放 logo / 活動名 / 講者 handle?要就請使用者提供圖檔(存 `talk/assets/logo.<ext>`),定位置(預設左下,頁碼在右下)
+   - 產出後**必須 build 抽看**:最文字密的一頁(讀得清嗎)與最空的一頁(不空嗎),不滿意就調 `--bg-opacity` 或換素材,調到使用者點頭為止
+8. **輸出格式**:上台用什麼?(html 鍵盤翻頁 / pdf 備援分發 / pptx 交主辦方;可複選,記入 `outputs`)
+9. **Demo 需求**:是否需要現場示範?(需要時建議 uv + python + notebook,依使用者要求可置換;demo 屬於某個 section,細節留給 `/section-design`)
 
 每輪訪談後摘要目前已確認的內容,列出仍不明確的點繼續問。
 
@@ -53,11 +60,12 @@ user-invocable: true
 
 1. 建立資料夾:`docs/`、`talk/src/`、`talk/assets/`(`demo/` 只在確定需要時建立)
 2. 鋪設 Marp 鷹架 — 從本 skill 的 `assets/` 複製到 `talk/src/`:
-   - `theme.css`:複製後**依選定的風格基底與訪談細調調整 tokens 區**(色票 CSS variables 與字體 — 基底的「配色」節給方向,如 keynote-impact 高對比敢用色、exec-brief 樸素印表機友善;深色風格連 `--c-bg`/`--c-text` 對調並檢查表格、卡片底色),版型類別區**不要動**
-   - `deck-header.md`:照抄(theme 名稱 `talk` 與 theme.css 的 `@theme` 一致)
+   - `theme.css`:複製後**依選定的風格基底與訪談細調調整 tokens 區**(色票 CSS variables 與字體 — 基底的「配色」節給方向,如 keynote-impact 高對比敢用色、exec-brief 樸素印表機友善;深色風格連 `--c-bg`/`--c-text` 對調並檢查表格、卡片底色),以及**分層 tokens**(`--bg-image` / `--bg-image-2` / `--bg-image-3` / `--bg-opacity` / `--fg-plate` / `--fg-mark-*`,依訪談定案的分層填);版型類別區與分層機制區(`section::before`、z-index、`bg-*` 類別)**不要動**
+   - `deck-header.md`:照抄(theme 名稱 `talk` 與 theme.css 的 `@theme` 一致);有固定角標時加一行 `footer: '![h:26](../assets/logo.svg)'`
    - `build.mjs`:照抄
    - `marprc.yml` → 複製為 `talk/src/.marprc.yml`
-3. 產出 `docs/topic.md`,frontmatter 依 conventions(含 `outputs`),內文固定章節:
+   - **背景資產**(選了資產檔路線才做):使用者提供的圖 → 複製進 `talk/assets/bg-<slug>.<ext>`;選用範本 → 從本 skill `assets/backgrounds/` 複製對應的 `bg-*.svg` 到 `talk/assets/` 並**把色值改成本演講的色票**;現畫的 SVG 一樣放 `talk/assets/`,規範見 `layers.md`(XML 註解不得含連續兩個減號、柔邊用 radialGradient 不用 blur)。`talk/src/` 底下**不要留第二份 .css**
+3. 產出 `docs/topic.md`,frontmatter 依 conventions(含 `outputs` 與 `background`),內文固定章節:
 
 ```markdown
 # <演講題目> 主軸設計
@@ -81,6 +89,25 @@ user-invocable: true
 
 ## 投影片風格
 (第一行寫**風格基底**:`style-base` 的值與選擇理由;接著列出偏離基底的決定(每條「基底說 X,本演講改 Y,因為 Z」,無偏離寫「無」);再放視覺風格關鍵字與 theme.css tokens 的色票值與用途對照表 — 之後所有頁面與圖形遵守此節,改色只改 theme.css)
+
+## 投影片分層
+(前景/背景分層的定案,執行期以此為準;沒有背景就第一行寫「背景:無(`--bg-image: none`)」與理由,其餘留空)
+
+### 背景套數與語意(每頁背景可以不同,但每一套都要說得出用在哪)
+| 槽位 | token | 素材 | 用在哪(語意) |
+|---|---|---|---|
+| 預設 | `--bg-image` | <CSS 漸層 / `bg-<slug>.svg` / 使用者提供的圖> | <如:一般內容頁> |
+| 2 | `--bg-image-2` | <或 none> | <如:封面與 divider,頁面寫 `bg-2`> |
+| 3 | `--bg-image-3` | <或 none> | <如:demo 段落,頁面寫 `bg-3`> |
+
+### 強度與逐頁規則
+- `--bg-opacity`:<值>(<為什麼是這個值:在最文字密的頁看過>)
+- `bg-none`:<哪些頁型一律關,如 圖表頁、截圖頁、密集表格頁>
+- `bg-soft` / `bg-strong`:<各用在哪>
+- 素材來源與再製方式:<使用者提供 / 範本改色 / 現畫 / CSS 漸層;漸層色碼是抄的,**改色票時要一併重抄**>
+
+### 前景固定角標
+(有:放什麼、檔案、位置、哪些頁不放(深色頁對比不足時);無:寫「無」)
 
 ## 文字規範
 (**執行期唯一合法的文字技法選單** — section-design 從這裡選、section-impl 只能用選過的,不得自創;每張表都要「用在哪」明確到執行期不需再判斷。**起點是風格基底的「文字規範預設」**,依訪談細調後逐格寫死)
@@ -122,6 +149,7 @@ user-invocable: true
 
 ### 5. 收尾
 
-- 摘要:產出了哪些檔案、選定的主軸、段落切分與時間分配、選定的風格基底與偏離之處、theme tokens 怎麼對應 slide-style、文字規範定了哪幾種字級/強調/列表符號
+- 摘要:產出了哪些檔案、選定的主軸、段落切分與時間分配、選定的風格基底與偏離之處、theme tokens 怎麼對應 slide-style、**分層怎麼定(幾套背景、各用在哪、強度、角標)**、文字規範定了哪幾種字級/強調/列表符號
+- 有背景時附上驗收結果:build 抽看了哪兩頁、前景讀得清嗎
 - 說明 `docs/topic.md` 是演講燈塔,之後 `/section-design` 逐段規劃內容與圖形、`/section-impl` 實作 Marp 頁面與圖形 SVG、`/page-adjust` 微調單頁、`/review` 上台前做整體審查
 - 建議使用者從 `order: 1` 的段落開始執行 `/section-design`

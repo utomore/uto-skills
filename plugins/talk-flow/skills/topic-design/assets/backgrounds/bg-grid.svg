@@ -1,0 +1,26 @@
+<!--
+id: bg-grid
+type: background
+title: bg-grid
+description: 細格線加單角色塊,精確收斂的技術感
+status: draft
+created: 2026-08-19
+updated: 2026-08-19
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <!-- 色值抄自 theme.css tokens 的主色(此處為預設色票);換色票時要一併改這裡 -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0 L0 0 0 40" fill="none" stroke="#2456a4" stroke-width="1" opacity="0.28" />
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="1" />
+    </linearGradient>
+    <mask id="corner">
+      <rect width="1280" height="720" fill="url(#fade)" />
+    </mask>
+  </defs>
+  <rect width="1280" height="720" fill="url(#grid)" mask="url(#corner)" />
+  <rect x="0" y="640" width="1280" height="80" fill="#2456a4" opacity="0.10" />
+</svg>

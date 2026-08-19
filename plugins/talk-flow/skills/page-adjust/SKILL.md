@@ -6,12 +6,12 @@ user-invocable: true
 
 # /page-adjust — 投影片單頁調整
 
-先讀取 `../_shared/conventions.md` 與 `../_shared/layouts.md`,遵守所有文檔慣例與版型詞彙。
+先讀取 `../_shared/conventions.md`、`../_shared/layouts.md` 與 `../_shared/layers.md`,遵守所有文檔慣例、版型詞彙與分層詞彙。
 
 ## 前置
 
 1. 定位目標頁:全域頁碼是推導值,先依 `talk/src/section-*.md` 檔名順序累加各檔張數算出「頁碼 → section 檔 + 段內第幾頁」的對照(或由使用者給的內容描述列出候選頁確認)。找不到就把對照表印給使用者指認
-2. 讀取該 deck 檔、該頁引用的圖形 SVG 與 metadata、對應的 `docs/section-XX-*.md`(「頁面規劃」該列與「文字技法選用」)、`docs/topic.md` 的 `style-base`、「投影片風格」與「文字規範」、`talk/src/theme.css`;調整方向以風格基底為準(`_shared/styles.md`)
+2. 讀取該 deck 檔、該頁引用的圖形 SVG 與 metadata、對應的 `docs/section-XX-*.md`(「頁面規劃」該列與「文字技法選用」)、`docs/topic.md` 的 `style-base`、「投影片風格」、「投影片分層」與「文字規範」、`talk/src/theme.css`;調整方向以風格基底為準(`_shared/styles.md`)
 3. 可行時先 build(`node build.mjs`)並在瀏覽器開 `talk/dist/slides.html` 跳到該頁看現況,再開始討論
 
 ## 流程
@@ -24,7 +24,8 @@ user-invocable: true
 - **內文**:文字內容、措辭、內文形式(條列/表格/段落)互換;字級、強調、列表符號仍只從 `topic.md`「文字規範」選用 — 使用者要的效果不在規範內時,先確認是「改規範」(回 `/topic-design`,全簡報生效)還是換一種規範內的作法
 - **圖形**:SVG 圖的畫法、元素增減、換圖形類型;遵守圖形紀律(轉折 ≤2、單一流向、節點 ≤7)。動到架構圖的幾何時用 `/svg-layout`(normalize → inspect → 改 → lint),不要憑目視猜座標。使用者提供截圖/參考圖時可改用或調整**截圖加註圖**(換底圖、標記增刪移位、圖例同步)— 底圖 base64 內嵌、標記 ≤5、與頁面圖例一一對應,規則見 conventions 與 section-impl
 - **備註**:該頁提醒的增刪 — 維持提醒式,不寫成逐字稿
-- **風格**:配色、字級 — 注意:色值與字體只住在 `theme.css` tokens,改 tokens 是**全簡報**的改動;先問清楚是「只有這頁特例」(頁內以 class 處理)還是「整份都要改」(改 tokens 並確認其他頁不被打壞)
+- **背景(分層)**:這頁背景太搶/太空/干擾判讀時,依 `layers.md` 三段處理 —— ①換強度或關掉(`bg-soft` / `bg-none` / `bg-strong`,只動這頁的 `_class`);②換成 topic.md 定義過的另一套(`bg-2` / `bg-3`);③這頁真的是一次性的特例才用 `<style scoped>` 覆寫 `--bg-image`。**改 `--bg-image` / `--bg-opacity` 本身是全簡報改動**(見下條),而且要先確認使用者要的是「這頁例外」還是「整份都太濃」
+- **風格**:配色、字級、背景 — 注意:色值、字體與背景 tokens 只住在 `theme.css`,改 tokens 是**全簡報**的改動;先問清楚是「只有這頁特例」(頁內以 class 或 scoped style 處理)還是「整份都要改」(改 tokens 並確認其他頁不被打壞)
 
 拆頁/刪頁會改變後續全域頁碼(推導值,無需改檔名),但要同步 deck 檔 `slides`、docs section 的 `slides` 與「頁面規劃」表;先列出影響取得同意後執行。
 
@@ -37,9 +38,10 @@ user-invocable: true
 
 ### 3. 驗收
 
-- `node build.mjs`(含 `outputs` 的其他格式)重新建置,在瀏覽器開 `talk/dist/slides.html` 跳到該頁(或請使用者開)確認:文字不溢出、grid 沒塌陷、圖形清晰、與前後頁風格銜接自然
+- `node build.mjs`(含 `outputs` 的其他格式)重新建置,在瀏覽器開 `talk/dist/slides.html` 跳到該頁(或請使用者開)確認:文字不溢出、grid 沒塌陷、圖形清晰、背景沒搶走第一眼且正文讀得清、與前後頁風格銜接自然
+- 動到 theme.css 分層 tokens 時,額外抽看全簡報最文字密的一頁與各套背景各一頁
 - 使用者不滿意就回到步驟 1 繼續調,直到確認為止
 
 ### 4. 收尾
 
-摘要:改了哪一頁(section + 段內頁 + 全域頁碼)、調整了什麼面向、同步更新了哪些檔案(deck / SVG / docs section / theme.css / topic.md)、是否留下待跟進的風格一致化清單。
+摘要:改了哪一頁(section + 段內頁 + 全域頁碼)、調整了什麼面向(含背景類別的變動)、同步更新了哪些檔案(deck / SVG / 背景資產 / docs section / theme.css / topic.md)、是否留下待跟進的風格一致化清單。

@@ -1,8 +1,9 @@
 /* @theme talk */
 /*
  * talk-flow 自訂 Marp 主題鷹架。
- * /topic-design 依訪談出的 slide-style 只改 tokens 區(色票與字體);
- * 版型類別(cols-* / grid-* / rows-*)是所有頁面的共同語言,見 _shared/layouts.md,勿隨意增刪。
+ * /topic-design 依訪談出的 slide-style 只改 tokens 區(色票、字體與分層);
+ * 版型類別(cols-* / grid-* / rows-*)是所有頁面的共同語言,見 _shared/layouts.md,勿隨意增刪;
+ * 分層區(section::before 背景層 + 前景 z-index)見 _shared/layers.md,勿改機制,只改 tokens。
  */
 @import "default";
 
@@ -16,6 +17,22 @@
   --c-surface: #f4f4f2;   /* 卡片/表頭底色 */
   --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   --f-mono: "JetBrains Mono", "Menlo", monospace;
+
+  /* 分層(背景層;none = 純色底。三種來源與強度準則見 _shared/layers.md)
+     CSS 漸層範例:
+       --bg-image:
+         radial-gradient(circle at 88% 6%, #f7c9a3 0%, rgba(247,201,163,0) 42%),
+         radial-gradient(circle at 4% 96%, #f9d9bd 0%, rgba(249,217,189,0) 40%);
+     資產檔範例:--bg-image: url("../assets/bg-<slug>.svg"); */
+  --bg-image: none;       /* 全場預設背景 */
+  --bg-image-2: none;     /* 第二套背景(逐頁用 class bg-2 切換;語意寫進 topic.md「投影片分層」)*/
+  --bg-image-3: none;     /* 第三套背景(class bg-3)*/
+  --bg-opacity: 0.5;      /* 背景層透明度;前景讀不清就往下調 */
+  --bg-size: cover;
+  --bg-position: center;
+  --fg-plate: rgba(255, 255, 255, 0.82);  /* 照片背景時文字區的襯底(.plate) */
+  --fg-mark-left: 72px;   /* 固定角標(footer logo)水平位置;要靠右改成 auto + --fg-mark-right */
+  --fg-mark-right: auto;
 }
 
 /* ===== 頁面基礎 ===== */
@@ -28,7 +45,11 @@ section {
   font-family: var(--f-body);
   font-size: 26px;
   line-height: 1.55;
+  display: flex;              /* 內容由上往下排(marp 預設會置中,必須明寫)*/
+  flex-direction: column;
   justify-content: flex-start;
+  position: relative;         /* 背景層 section::before 的定位基準 */
+  overflow: hidden;
 }
 section h1 { font-size: 54px; color: var(--c-primary); }
 section h2 { font-size: 38px; color: var(--c-primary); margin-bottom: 28px; }
@@ -45,6 +66,41 @@ section li + li { margin-top: 10px; } /* 條列行距:讓每點可明確區分,�
 section footer, section header { color: var(--c-muted); font-size: 18px; }
 section::after { color: var(--c-muted); font-size: 18px; } /* 頁碼 */
 .small, .caption { font-size: 20px; color: var(--c-muted); }
+
+/* ===== 分層(前景 / 背景)— 機制勿改,只調 tokens 與逐頁類別 ===== */
+/* 背景層畫在 section::before(裝飾,不承載資訊);前景層是所有內容 + 頁碼 + 角標。 */
+section::before {
+  content: "";
+  position: absolute;
+  top: 0;                       /* 用 top/left/width/height,不要用 inset:marp 渲染下 inset 不生效 */
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background-image: var(--bg-image);
+  background-size: var(--bg-size);
+  background-position: var(--bg-position);
+  background-repeat: no-repeat;
+  opacity: var(--bg-opacity);
+  pointer-events: none;
+}
+section > *:not(header):not(footer) { position: relative; z-index: 1; }
+section > header, section > footer { z-index: 1; }
+section::after { z-index: 1; }   /* 頁碼在前景層 */
+
+/* 逐頁背景(寫在該頁 `<!-- _class: ... -->`,可與 title/divider/center 並用,強度與換圖可並寫) */
+section.bg-none::before { display: none; }                                  /* 圖表/截圖/密集表格頁 */
+section.bg-soft::before { opacity: calc(var(--bg-opacity) * 0.45); }        /* 文字密的頁 */
+section.bg-strong::before { opacity: calc(var(--bg-opacity) * 1.8); }       /* 封面、divider、結論頁 */
+section.bg-2::before { background-image: var(--bg-image-2); }               /* 換成第二套背景 */
+section.bg-3::before { background-image: var(--bg-image-3); }               /* 換成第三套背景 */
+
+/* 前景固定角標:deck-header.md 用 `footer: '![h:26](../assets/logo.svg)'` */
+section footer { left: var(--fg-mark-left); right: var(--fg-mark-right); }
+section footer img { height: 26px; vertical-align: middle; }
+
+/* 照片類背景時,文字區包一層 .plate 才讀得清 */
+.plate { background: var(--fg-plate); border-radius: 12px; padding: 20px 24px; }
 
 /* ===== 整頁類別 ===== */
 section.title { justify-content: center; text-align: center; }

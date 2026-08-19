@@ -1,0 +1,34 @@
+<!--
+id: bg-blobs
+type: background
+title: bg-blobs
+description: 對角柔和有機色塊,中央留白
+status: draft
+created: 2026-08-19
+updated: 2026-08-19
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <!-- 色值抄自 theme.css tokens(此處為預設色票);換色票時要一併改這裡。
+       用 radialGradient 收到透明做柔邊,不用 feGaussianBlur:blur 在低透明度下會出現可見的接縫。 -->
+  <defs>
+    <radialGradient id="peach">
+      <stop offset="0" stop-color="#f2a469" stop-opacity="0.85" />
+      <stop offset="1" stop-color="#f2a469" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="lilac">
+      <stop offset="0" stop-color="#c3aee0" stop-opacity="0.7" />
+      <stop offset="1" stop-color="#c3aee0" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="sky">
+      <stop offset="0" stop-color="#87b8e8" stop-opacity="0.65" />
+      <stop offset="1" stop-color="#87b8e8" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <!-- 右上 -->
+  <ellipse cx="1150" cy="40" rx="330" ry="250" fill="url(#peach)" />
+  <ellipse cx="1290" cy="215" rx="290" ry="235" fill="url(#lilac)" />
+  <ellipse cx="1240" cy="105" rx="200" ry="165" fill="url(#sky)" />
+  <!-- 左下(對角呼應,中央保持乾淨) -->
+  <ellipse cx="10" cy="655" rx="330" ry="245" fill="url(#peach)" />
+  <ellipse cx="170" cy="745" rx="245" ry="185" fill="url(#lilac)" />
+</svg>

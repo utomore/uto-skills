@@ -27,6 +27,7 @@ const NOTE_MAX_CHARS = 200; // 備註超過此字數視為逐字稿化候選
 const TEXT_DIGEST_WIDTH = 80; // 頁面文字摘要顯示寬度上限
 
 const PAGE_CLASSES = new Set(["title", "divider", "center"]);
+const BG_CLASSES = new Set(["bg-none", "bg-soft", "bg-strong", "bg-2", "bg-3"]);
 const LAYOUT_CLASSES = new Set(["cols-2", "cols-2-1", "cols-1-2", "cols-3", "rows-2", "rows-3", "grid-2x2", "grid-3x2", "grid-2x3", "rows-3-2"]);
 const DIRECTIVE_KEYS = new Set([
   "class", "paginate", "header", "footer", "color", "backgroundcolor", "backgroundimage",
@@ -316,6 +317,12 @@ function parseSlides(content) {
     const notes = comments.filter((c) => !isDirectiveComment(c)).map((c) => c.trim());
     const classDirective = directives.map((d) => d.match(/_?class\s*:\s*([^\n]+)/)?.[1]).find(Boolean)?.trim() ?? "";
     const pageClass = classDirective.split(/\s+/).find((c) => PAGE_CLASSES.has(c)) ?? "";
+    const classTokens = classDirective.split(/\s+/).filter(Boolean);
+    const bgClasses = classTokens.filter((c) => BG_CLASSES.has(c));
+    const unknownClasses = classTokens.filter((c) => !PAGE_CLASSES.has(c) && !BG_CLASSES.has(c));
+    // 頁內 scoped style 覆寫背景(一次性特例;`--bg-image: url(...)` 的引用要能找到檔案)
+    const scopedBg = [...chunk.matchAll(/<style[^>]*scoped[^>]*>([\s\S]*?)<\/style>/gi)]
+      .flatMap((m) => [...m[1].matchAll(/--bg-image[^:]*:\s*([^;}]+)/g)].map((x) => x[1].trim()));
     const layouts = [...new Set([...chunk.matchAll(/<div\s+class="([^"]+)"/g)]
       .flatMap((m) => m[1].split(/\s+/))
       .filter((c) => LAYOUT_CLASSES.has(c)))];
@@ -337,7 +344,7 @@ function parseSlides(content) {
     if (hasBullets) forms.push("條列");
     if (hasTable) forms.push("表格");
     if (!hasBullets && !hasTable && digest) forms.push("段落");
-    return { pageClass, layouts, images, notes, noteChars: notes.join("").replace(/\s+/g, "").length, forms, inlineHex, emoji, external, digest };
+    return { pageClass, bgClasses, unknownClasses, scopedBg, layouts, images, notes, noteChars: notes.join("").replace(/\s+/g, "").length, forms, inlineHex, emoji, external, digest };
   });
 }
 
@@ -429,8 +436,12 @@ if (existsSync(ASSETS)) {
       style: analyzeDiagram(body),
     });
   }
-  const strays = readdirSync(ASSETS).filter((f) => f.endsWith(".svg") && !/^diagram-\d{2,}-\d+-.*\.svg$/.test(f));
-  for (const f of strays) warn(`talk/assets/${f} 不符合 diagram-<section>-<序號>-<slug>.svg 命名`);
+  const strays = readdirSync(ASSETS).filter((f) =>
+    f.endsWith(".svg") &&
+    !/^diagram-\d{2,}-\d+-.*\.svg$/.test(f) &&
+    !/^bg-.*\.svg$/.test(f) &&          // 背景資產(全簡報共用,不帶 section 編號)
+    !/^logo\.svg$/.test(f));            // 前景固定角標
+  for (const f of strays) warn(`talk/assets/${f} 不符合 diagram-<section>-<序號>-<slug>.svg 命名(背景請用 bg-<slug>.svg、角標用 logo.svg)`);
 }
 
 const totalPages = decks.reduce((n, d) => n + d.slides.length, 0);
@@ -515,11 +526,14 @@ if (hasSrc && decks.length) {
       if (sl.emoji) flags.push(`emoji${sl.emoji}`);
       if (sl.external.length) flags.push("外部圖");
       if (sl.layouts.length > 1) flags.push("多版型");
+      if (sl.unknownClasses.length) flags.push(`未知class:${sl.unknownClasses.join(",")}`);
+      if (sl.scopedBg.length) flags.push("頁內覆寫背景");
       rows.push({
         page: pageNo(page),
         section: d.section || d.base,
         idx: `${i + 1}/${d.slides.length}`,
         layout: sl.pageClass || sl.layouts.join("+") || "(無)",
+        bg: sl.scopedBg.length ? "scoped" : sl.bgClasses.join("+") || "預設",
         forms: sl.forms.join("+") || "-",
         img: sl.images.length ? String(sl.images.length) : "-",
         note: sl.notes.length ? `${sl.noteChars}字` : "✗",
@@ -529,7 +543,7 @@ if (hasSrc && decks.length) {
     }
   }
   printTable(
-    { page: "頁", section: "section", idx: "段內", layout: "版型", forms: "內文", img: "圖", note: "備註", digest: "頁面文字", flags: "旗標" },
+    { page: "頁", section: "section", idx: "段內", layout: "版型", bg: "背景", forms: "內文", img: "圖", note: "備註", digest: "頁面文字", flags: "旗標" },
     rows,
   );
 
@@ -647,11 +661,77 @@ if (hasSrc && decks.length) {
     if (colorMap.size > 8) warn(`圖形色票 ${colorMap.size} 種,發散 — 圖形應沿用 theme.css tokens 的色值`);
   }
 
+  // ---------- 分層(前景 / 背景)----------
+  console.log("\n=== 分層(前景 / 背景;詞彙見 _shared/layers.md)===");
+  const beforeLayer = hard;
+  const stripCssComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, " "); // 註解裡的範例不算宣告
+  const themeCss = existsSync(join(SRC, "theme.css")) ? stripCssComments(readFileSync(join(SRC, "theme.css"), "utf8")) : "";
+  const headerMd = existsSync(join(SRC, "deck-header.md")) ? readFileSync(join(SRC, "deck-header.md"), "utf8") : "";
+  // theme.css 分層機制是否還在(被改壞的話所有背景都不會出現)
+  if (themeCss && !/section::before/.test(themeCss)) {
+    problem("theme.css 沒有 section::before 分層機制 — 背景層不會被畫出來(從 topic-design 的 theme.css 補回分層區)");
+  }
+  if (/section::before[\s\S]{0,400}?inset\s*:/.test(themeCss)) {
+    problem("theme.css 的 section::before 用了 inset — marp 渲染下不生效,改成 top/left/width/height");
+  }
+  // 背景槽位:theme tokens + 頁內 scoped 覆寫,逐一確認引用的檔案存在
+  const slotDefs = [...themeCss.matchAll(/--(bg-image(?:-\d)?)\s*:\s*([^;]+);/g)].map((m) => ({ slot: m[1], value: m[2].trim().replace(/\s+/g, " ") }));
+  const usedSlots = new Set(slotDefs.filter((s) => s.value !== "none").map((s) => s.slot));
+  if (!slotDefs.length && themeCss) warn("theme.css 沒有 --bg-image token — 確認是刻意不用背景還是鷹架過舊");
+  for (const s of slotDefs) console.log(`  ${s.slot}:${truncate(s.value, 72)}`);
+  const bgRefs = new Map(); // 檔名 → 來源說明
+  const collectUrls = (css, where) => {
+    for (const m of css.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)) {
+      const src = m[1].trim();
+      if (/^https?:\/\//.test(src)) { problem(`${where} 引用外部資源 ${truncate(src, 40)} — 離線必掛`); continue; }
+      if (/^data:/.test(src)) continue;
+      const base = src.replace(/^(\.\.\/)?assets\//, "");
+      if (!bgRefs.has(base)) bgRefs.set(base, []);
+      bgRefs.get(base).push(where);
+    }
+  };
+  collectUrls(themeCss, "theme.css");
+  collectUrls(headerMd, "deck-header.md(角標)");
+  let pgL = 0;
+  for (const d of decks) for (const sl of d.slides) {
+    pgL++;
+    for (const v of sl.scopedBg) collectUrls(v, `第 ${pageNo(pgL)} 頁 scoped style`);
+  }
+  for (const [base, wheres] of bgRefs) {
+    if (existsSync(join(ASSETS, base))) ok(`背景/角標資產 ${base} 存在(${[...new Set(wheres)].join("、")})`);
+    else problem(`${[...new Set(wheres)].join("、")} 引用 ${base},但 talk/assets/ 沒有這個檔 — build 不會報錯,該頁會只剩底色`);
+  }
+  // 逐頁背景類別分布
+  const bgUse = new Map();
+  let pgB = 0;
+  const scopedPages = [];
+  for (const d of decks) for (const sl of d.slides) {
+    pgB++;
+    const key = sl.scopedBg.length ? "scoped 覆寫" : sl.bgClasses.join("+") || "預設";
+    if (!bgUse.has(key)) bgUse.set(key, []);
+    bgUse.get(key).push(pageNo(pgB));
+    if (sl.scopedBg.length) scopedPages.push(pageNo(pgB));
+    for (const c of sl.bgClasses) {
+      const slot = c === "bg-2" ? "bg-image-2" : c === "bg-3" ? "bg-image-3" : null;
+      if (slot && themeCss && !usedSlots.has(slot)) {
+        problem(`第 ${pageNo(pgB)} 頁用了 ${c},但 theme.css 的 --${slot} 是 none/未定義 — 這頁會退回預設背景`);
+      }
+    }
+  }
+  if (bgUse.size) console.log("背景類別使用:" + [...bgUse.entries()].map(([k, ps]) => `${k}(${ps.length})`).join(" "));
+  for (const [k, ps] of bgUse) if (k !== "預設") console.log(`  ${k}:第 ${ps.join("、")} 頁`);
+  if (scopedPages.length > 3) warn(`有 ${scopedPages.length} 頁用 scoped style 覆寫背景(第 ${scopedPages.join("、")} 頁)— 一次性特例應是少數,超過就該進 theme.css 的背景槽`);
+  const topicBody = existsSync(topicPath) ? readFileSync(topicPath, "utf8") : "";
+  if (topic && !/##\s*投影片分層/.test(topicBody)) {
+    warn("topic.md 沒有「投影片分層」章節 — 逐頁背景的語意無從比對,建議補跑 /topic-design");
+  }
+  if (hard === beforeLayer) okUnless(unreliable, bgRefs.size || usedSlots.size ? "分層資產與槽位一致" : "本簡報沒有背景層(純色底)");
+
   // ---------- theme 與寫死色值 ----------
   console.log("\n=== 主題與色彩紀律 ===");
   const themePath = join(SRC, "theme.css");
   if (existsSync(themePath)) {
-    const css = readFileSync(themePath, "utf8");
+    const css = readFileSync(themePath, "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
     const tokens = [...css.matchAll(/--([a-z-]+)\s*:\s*([^;]+);/g)].map((m) => `--${m[1]}=${m[2].trim()}`);
     console.log(`theme tokens:${tokens.join("  ") || "(無)"}`);
     const themeColors = new Set([...css.matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((m) => normColor(m[0])).filter(Boolean));
@@ -671,6 +751,10 @@ if (hasSrc && decks.length) {
     if (offTheme.length) warn(`圖形用了 theme.css 沒有的色值:${offTheme.join(" ")} — 確認是刻意語意色還是隨手挑的`);
   } else if (hasSrc) {
     problem("talk/src/theme.css 不存在");
+  }
+  if (hasSrc) {
+    const cssFiles = readdirSync(SRC).filter((f) => f.endsWith(".css"));
+    if (cssFiles.length > 1) problem(`talk/src/ 有 ${cssFiles.length} 份 .css(${cssFiles.join(", ")})— build 會把整個目錄當 theme set 載入,同名 theme 會讓 marp-cli 卡住不結束,備份請移出 src/`);
   }
 
   // ---------- 產物新鮮度 ----------

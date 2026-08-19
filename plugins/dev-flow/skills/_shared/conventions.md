@@ -1,6 +1,6 @@
 # 開發流程文檔慣例(共用)
 
-所有開發流程 skills(system-design、subsys-design、feature-design、enhance-design、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr)共用本慣例。
+所有開發流程 skills(system-design、subsys-design、subsys-build、feature-design、enhance-design、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr)共用本慣例。
 
 ## 角色與設計哲學
 
@@ -11,8 +11,11 @@
 | Level 1 系統主架構 | `/system-design` | 系統邊界、跨系統通訊、全域契約與技術選型 |
 | Level 2 子系統架構 | `/subsys-design` | 子系統內部模組化、資料流管線、模組邊界介面 |
 | Level 3 Feature 與模組實作 | `/feature-design` → `/feature-impl`(以及 `/enhance-design` → `/enhance-impl`、`/bugfix`) | 業務邏輯落地、演算法細節、單元測試 |
+| 編排層(L2 → L3) | `/subsys-build` | 依 Level 2 的功能規劃自動展開整個子系統:批次澄清 → 波次委派 → 階段閘門 |
 
 預設工作順序:需求進來先產出 Level 1,待開發者確認架構邊界後,再逐步推進 Level 2 與 Level 3。開發者要求直接實作特定功能時,先確認該功能落在 Level 2 介面契約內,再直接給出乾淨可執行的 Level 3 程式碼,無需過多客套。
+
+Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` 一次展開整個子系統:由編排者統一配號、批次澄清、委派 subagent 執行 Level 3,人只在批次澄清與各階段閘門出現。逐一手動推進(`/feature-design` → `/feature-impl`)永遠是合法的替代路徑。
 
 ## 資訊抽象邊界規範(嚴格遵守)
 
@@ -25,6 +28,39 @@
 3. **依賴管理簡化**:
    - 架構文檔不羅列無關緊要的基礎函式庫;依賴項由標準套件管理檔(`go.mod`、`package.json`、`Cargo.toml`、`pyproject.toml` 等)統一宣告。架構文檔只記「影響架構的關鍵依賴」(框架、儲存引擎、通訊協定實作)。
 
+## 委派模式(Delegated Mode)共通契約
+
+`/subsys-build` 會把 Level 3 的工作**委派給 subagent** 執行。凡 prompt 開頭標明 `【委派模式】` 的執行,一律套用本節規則(適用 `/feature-design`、`/feature-impl`;沒有這個標記時各 skill 照原本的互動流程走)。
+
+**核心前提:subagent 問不了人。** 所有需要開發者判斷的事都已經在編排者的「批次澄清」階段問完了,所以委派模式下:
+
+1. **禁止呼叫 AskUserQuestion,禁止在對話中提問等待回覆**。訪談/討論類步驟一律跳過,改以「Level 2 契約卡 + 委派決策記錄」為輸入
+2. **遇到不確定不得腦補、也不得停擺**:採取當下最合理的作法繼續推進,並把該判斷寫進文檔的「待確認假設」段落(格式見下),由編排者在階段閘門一併呈報開發者
+3. **編號與檔名由編排者指定**,不得自行掃描資料夾配號(平行執行會撞號)
+4. **不得寫入 `design.md` 與 `system.md`**(含回填 `doc` 欄):架構文檔一律由編排者單線更新。需要動上層契約時,把「該改什麼、為什麼」寫進回報,不自己改
+5. **機械性查證不可跳過**:相依性查證(打開原始碼讀真實簽名)、一致性檢查、1-to-1 測試對照——這些不需要人,是委派模式下品質的唯一防線,必須完整執行
+6. **契約不得偏離**:公開介面/DTO 只能落在 Level 2 契約內。發現非偏離不可時,**停下該項**、記入回報,不擅自改契約也不硬做
+7. **如實回報**:測試失敗就貼輸出,不得宣稱通過;做不完的項目明確標為未完成
+
+### 「待確認假設」段落
+
+委派模式下產出或修改任務文檔時,若有第 2 條的判斷,在文檔的「實作備註」之前插入本段落(沒有假設就不要放空段落):
+
+```markdown
+## 待確認假設
+- A1: <不確定的點> → 採取:<你的判斷> → 影響:<若判斷錯誤會需要改什麼>
+```
+
+### 回報格式(subagent 的最終輸出)
+
+委派模式的最終輸出是**給編排者看的結構化資料**,不是給人看的說明文;固定回報:
+
+- 產出/修改的檔案路徑與文檔 id
+- 完成的項目(Todo 勾選數/總數)與測試結果(通過/失敗數,失敗的貼摘要)
+- 「待確認假設」清單(A1、A2…)
+- 建議編排者做的上層動作:要回填的 `doc` 欄、建議修改的 Level 2 契約、建議補的 ADR
+- 阻塞項:哪一項做不下去、原因
+
 ## 資料夾結構(專案內,樹狀)
 
 設計文檔樹與系統架構樹同構:根節點是主專案架構,第二層是各 subsystem。
@@ -34,7 +70,8 @@
 ├── system.md                        # /system-design 產出:Level 1 主架構
 ├── subsystems/
 │   └── <subsystem-slug>/            # 資料夾名 = 子系統 slug(英文 kebab-case)
-│       ├── design.md                # /subsys-design 產出:Level 2 子系統架構
+│       ├── design.md                # /subsys-design 產出:Level 2 子系統架構(含功能規劃與 Feature 契約卡)
+│       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只有跑過才有)
 │       ├── features/
 │       │   └── F001-<slug>.md       # /feature-design 產出,如 F001-auth-login.md
 │       ├── enhancements/
@@ -127,9 +164,28 @@ related-adr: []
 ---
 ```
 
+`subsystems/<slug>/build-log.md`(只有跑過 `/subsys-build` 才存在):
+
+```yaml
+---
+id: <subsystem-slug>-build
+type: build-log
+title: <subsystem-slug>-build
+description: <一句話,40 字內:這次委派展開了什麼>
+status: in-progress     # in-progress | done
+created: 2026-08-19
+updated: 2026-08-19
+parent: <subsystem-slug> # 回鏈所屬子系統的 design.md
+---
+```
+
+- `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設、閘門結論)
+- `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
+
 - `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
 - 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
-- 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**,沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
+- 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
+- 每份 `design.md` 的「Feature 契約卡」章節,功能規劃裡的每個 feature 都要有一張(`###` 一張卡,標題 = feature slug)。契約卡是「這個 feature 可以被無訪談委派」的門檻:寫得夠完整才跑得動 `/subsys-build`,缺卡的項目會被 `/arch-audit status` 列進提示
 
 ### ADR
 

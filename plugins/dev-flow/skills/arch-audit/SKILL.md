@@ -1,6 +1,6 @@
 ---
 name: arch-audit
-description: 架構檢測與分析 — 四種 scope:「system」檢查子系統循環依賴與對外 I/O 契約一致性;「subsys」檢查子系統資料流管線、SRP 與邊界外洩;「feature」審查實作是否符合 Level 2 介面、edge cases 與型別安全;「status」用腳本盤點各 feature 完成度、spec 階段項目與待優化模組。觸發詞:架構檢測、arch audit、架構分析、循環依賴、邊界檢查、status、進度確認、專案健檢。Use for architecture auditing at system/subsystem/feature scope, or scanning overall progress and health.
+description: 架構檢測與分析 — 四種 scope:「system」檢查子系統循環依賴與對外 I/O 契約一致性;「subsys」檢查子系統資料流管線、SRP、邊界外洩與契約卡對帳;「feature」審查實作是否符合 Level 2 介面、edge cases、型別安全與委派留下的待確認假設;「status」用腳本盤點各 feature 完成度、契約卡就緒度、spec 階段項目與待優化模組。觸發詞:架構檢測、arch audit、架構分析、循環依賴、邊界檢查、status、進度確認、專案健檢。Use for architecture auditing at system/subsystem/feature scope, or scanning overall progress and health.
 user-invocable: true
 ---
 
@@ -31,8 +31,9 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 腳本輸出兩張表加數個清單,**全部**整理後呈現給開發者:
 
 - **任務文檔表**(`主軸 | id | 子系統 | type | status | created | depends-on | file`):轉成 markdown 表格時**維持欄位順序**,「主軸」是第一眼看到的欄位;`子系統` 欄為 `global` 代表全域 G- 文檔
-- **子系統狀態表**(`主軸 | id | status | 階段 | features | 已建文檔 | 已完成 | 未結E/B | 進度`):回答「哪些 feature 已完成、哪些還在規劃/設計階段、哪些模組有未結的優化與缺陷」;欄位顯示 `-` 代表該 `design.md` 沒有「功能規劃」表格,建議用 `/subsys-design` 更新模式補上
-- **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步 `/feature-design` 的待辦清單
+- **子系統狀態表**(`主軸 | id | status | 階段 | features | 契約卡 | 已建文檔 | 已完成 | 未結E/B | 進度`):回答「哪些 feature 已完成、哪些還在規劃/設計階段、哪些模組有未結的優化與缺陷」;欄位顯示 `-` 代表該 `design.md` 沒有「功能規劃」表格,建議用 `/subsys-design` 更新模式補上
+- **契約卡欄**(`n/總數`):功能規劃有幾項備妥「Feature 契約卡」= 委派展開的就緒度。滿格才跑得動 `/subsys-build`;顯示 `-` 表示整份 `design.md` 沒有契約卡章節(舊版文檔屬正常,只是不能委派)。缺卡與孤兒卡片會出現在「提示」清單,**不列為不一致**(不影響 exit code)
+- **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步的待辦清單(逐一走 `/feature-design`,或契約卡滿格時用 `/subsys-build` 委派展開)
 - **架構 / 子系統不一致**必須逐條轉達:`subsystems` 權威清單與實際資料夾對不上(雙向)、功能規劃指向不存在的文檔、id 與檔名不一致、depends-on 無法解析、全域文檔缺 `subsystems` 欄、design.md 缺 `parent` 等
 - 有「frontmatter 格式不合規」時,把清單欄位改回行內陣列再重跑;寫成 YAML 區塊列表時腳本讀不到內容,相依關係與歸屬都不可信
 - 有 `missing-metadata` / 缺 description 警示時,提醒開發者補上
@@ -67,6 +68,9 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 3. **邊界外洩**:其他子系統是否繞過本子系統的對外契約直接存取內部模組?本子系統是否直接摸了別人的內部?內部型別/資料結構有無洩漏到公開介面?
 4. **模組介面一致性**:程式碼的模組間呼叫是否走 `design.md` 定義的抽象 Interface?簽名是否漂移?
 5. **抽象邊界檢查**:`design.md` 是否越界寫了私有實作細節?有就列出建議刪除(實作自主權)
+6. **契約卡對帳**(有「Feature 契約卡」章節時):卡片寫的負責模組、Level 2 介面、資料流段落,與該 feature 實際落地的位置是否相符?卡片引用的介面條目在契約章節都找得到嗎?**這是 `/subsys-build` 委派品質的上游**——卡片與現實脫節,下一次委派就會照著錯的契約做
+
+**本子系統跑過 `/subsys-build` 時**(存在 `build-log.md`):讀它的「待確認假設彙總」,逐條檢查那些假設在程式碼裡實際被怎麼落實、有沒有與契約牴觸;閘門裁決為「要改」但尚未處理的,列進發現
 
 ### Scope: feature — 功能實作審查
 
@@ -77,11 +81,12 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 3. **例外處理**:錯誤路徑是否完整(捕捉、傳播、資源釋放)?是否符合全域錯誤處理策略?
 4. **型別安全**:有無 any/interface{}/未檢查的轉型、隱式轉換、nullable 未處理?
 5. **TodoList 與測試對照**:文檔勾掉的 Todo 程式碼是否真的做了?1-to-1 測試是否都存在且涵蓋對應 Todo?
-6. **內部實作不評分**:私有函數命名、內部結構選擇屬實作自主權,不列為發現(除非違反上述任一項)
+6. **待確認假設**(文檔有這一段時,代表本 feature 由 `/subsys-build` 委派產出):逐條檢查每個假設在程式碼裡實際採取了什麼、是否與 Level 2 契約牴觸、是否需要升級成正式的契約決定。**委派產出的文檔要優先看這一段**——它就是「沒有人在旁邊時 AI 自己做的判斷」清單
+7. **內部實作不評分**:私有函數命名、內部結構選擇屬實作自主權,不列為發現(除非違反上述任一項)
 
 ---
 
 ## 收尾
 
-- status scope:摘要整體進度(done/總數、各子系統進度、待展開 feature 數、不一致數),建議下一步命令
+- status scope:摘要整體進度(done/總數、各子系統進度、契約卡就緒度、待展開 feature 數、不一致數),建議下一步命令(契約卡滿格的子系統可提 `/subsys-build` 委派展開)
 - 分析型 scope:摘要發現數量(依嚴重度)、最關鍵的前幾條、建議的後續文檔(走 `/bugfix` 或 `/enhance-design` 的清單)

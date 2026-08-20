@@ -58,8 +58,11 @@ created: 2026-08-19
 updated: 2026-08-19
 parent: system           # 回鏈主架構(固定值)
 related-adr: []
+code-paths: []           # 選填:本子系統的程式碼落在哪些路徑(見下)
 ---
 ```
+
+- `code-paths`(**選填**):本子系統的程式碼路徑前綴,相對於專案根目錄,如 `code-paths: [src/auth, src/middleware/auth]`。它是把檔案級的工具產出(程式碼知識圖、覆蓋率報告等)捲回子系統級的唯一依據——沒填的話只能靠「路徑片段 = slug」猜測,檔案歸屬可能整批錯。用得到 `_shared/codegraph.md` 的專案建議補上;不用那些工具的專案留空或整欄省略都可以,不影響任何既有流程
 
 `subsystems/<slug>/build-log.md`(只有跑過 `/subsys-build` 才存在):
 
@@ -125,4 +128,3 @@ depends-on:                          # ❌ 不使用 YAML 區塊列表
 | feature | 這個功能做什麼 | `以 JWT 實作使用者註冊、登入與權限驗證` |
 | enhance | 要改善什麼 | `將檔案掃描改為增量更新以縮短啟動時間` |
 | bugfix | 什麼壞了 | `並發寫入時索引損毀導致搜尋結果缺漏` |
-

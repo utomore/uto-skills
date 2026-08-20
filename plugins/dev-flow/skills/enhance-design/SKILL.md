@@ -6,7 +6,7 @@ user-invocable: true
 
 # /enhance-design — Level 3 優化設計
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例(樹狀結構、編號、引用格式、frontmatter)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔)。
 
 ## 目標
 

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /bugfix — 缺陷修復
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例(樹狀結構、編號、引用格式、frontmatter)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 bugfix 文檔)。
 
 本 skill 一條龍完成:**記錄缺陷 → 重現 → 根因分析 → 修復 → 回歸測試 → 回寫狀態**。缺陷文檔是修復的過程紀錄與回歸依據,不是待辦——建檔與修復在同一次執行內完成(開發者明確只要「先記錄、之後修」時例外,建檔後停在 `open`)。
 

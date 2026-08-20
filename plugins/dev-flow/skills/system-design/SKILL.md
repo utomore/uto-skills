@@ -6,7 +6,7 @@ user-invocable: true
 
 # /system-design — Level 1 系統主架構設計
 
-先讀取本檔同層的 `../_shared/conventions.md`,遵守其中所有文檔慣例(資料夾結構、命名、frontmatter、**資訊抽象邊界規範**)。
+先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、命名、**資訊抽象邊界規範**);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/frontmatter.md`。
 
 ## 目標
 

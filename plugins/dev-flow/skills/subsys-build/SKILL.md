@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(編排層)
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例,**特別是「委派模式(Delegated Mode)共通契約」**——你是那一節裡的「編排者」。
+先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/delegation.md`(**委派模式共通契約**——你是那一節裡的「編排者」);要建或改 `build-log.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`。
 
 ## 目標
 
@@ -90,7 +90,7 @@ user-invocable: true
 
 **這一步不能省也不能延後**:`/feature-design` 原本的配號規則是「掃資料夾取最大值 +1」,平行 subagent 同時掃會全部拿到同一個號。號由你發,衝突就不存在。
 
-同一時間決定每個 feature 的**執行模型**,一併寫進配號表。預設是**不指定**——subagent 繼承主 session 的模型;要壓成本或加速時才降級:
+同時決定每個 feature 的**執行模型**,一併寫進配號表。預設**不指定**(繼承主 session),要壓成本才降級;有疑慮就不要降——設計錯了整條依賴鏈重跑,實作錯了還有 1-to-1 測試接得住:
 
 | 契約卡的樣子 | 建議 |
 |---|---|
@@ -98,9 +98,7 @@ user-invocable: true
 | 單一入口、依賴 0~1 條、行為在卡上已寫死 | 設計繼承、實作可降 |
 | 純樣板(CRUD、DTO 轉換、既有模式的複製) | 兩者都可降 |
 
-原則:**設計比實作值得給好模型**。設計錯了整條依賴鏈要重跑,實作錯了還有 1-to-1 測試接得住。有疑慮就不要降——省下來的成本遠小於一個階段重跑。
-
-機制上要注意:模型是**呼叫 Agent 工具時的參數,不是 prompt 內容**,寫進 3b/3c 的 prompt 模板裡不會生效。可用值只有 `opus` / `sonnet` / `haiku` / `fable`(不是完整 model id);不帶就是繼承。
+模型是**呼叫 Agent 工具時的參數,不是 prompt 內容**——寫進 3b/3c 的 prompt 模板不會報錯,只是靜默沒作用。可用值 `opus` / `sonnet` / `haiku` / `fable`;不帶就是繼承。
 
 ### 3b. 委派 feature 設計(平行)
 
@@ -111,7 +109,7 @@ user-invocable: true
 每個 subagent 的 prompt 必須包含:
 
 ```
-【委派模式】遵守 <conventions.md 路徑> 的「委派模式共通契約」:不得提問、
+【委派模式】遵守 <delegation.md 路徑> 的委派模式共通契約:不得提問、
 不得寫 design.md/system.md、不得自行配號、機械性查證不可跳過。
 
 執行 dev-flow:feature-design,目標:
@@ -162,59 +160,9 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 6. 開發者要修契約 → 由**你**更新 `design.md`(不是 subagent),更新後受影響的 feature 要重跑,不能靠既有產出將就
 7. 詢問是否為本階段收尾(squash 成一個 commit 或打 tag 皆可;checkpoint 已在過程中留下,這裡只處理歷史整理)。**不主動 push**;整合發 PR 走 `/branch-pr`
 
-## 4. `build-log.md` 格式
+## 4. `build-log.md`
 
-路徑 `.design/subsystems/<slug>/build-log.md`,frontmatter 見 conventions:
-
-```markdown
----
-id: <subsystem-slug>-build
-type: build-log
-title: <subsystem-slug>-build
-description: <一句話,40 字內:這次委派展開了什麼>
-status: in-progress
-created: <today>
-updated: <today>
-parent: <subsystem-slug>
----
-
-# <子系統名稱> 委派展開紀錄
-
-## 排程
-(階段 → 波次 → features;跨子系統依賴的處理決定)
-
-| 階段 | 波次 | features | 狀態 |
-|---|---|---|---|
-| 階段一 | W1 | a, b | done |
-| 階段一 | W2 | c | in-progress |
-
-## 委派決策記錄
-(批次澄清中「執行取向類」的問答結論;契約類的已回寫 design.md,這裡不重複)
-
-| # | 問題 | 開發者決定 | 影響範圍 |
-|---|------|-----------|---------|
-| D1 | <問題> | <決定> | <哪些 feature> |
-
-## 配號表
-(fan out 前預先分配,平行執行不得自行配號;模型欄填實際用的,繼承就寫「繼承」)
-
-| feature | id | 檔名 | 設計模型 | 實作模型 | 狀態 |
-|---|---|---|---|---|---|
-| <feature-slug> | F001 | F001-<slug>.md | 繼承 | sonnet | design-done / impl-done |
-
-模型欄是閘門的診斷依據:品質有問題時,能區分是契約卡寫得不夠,還是模型降級造成的。
-
-## 待確認假設彙總
-(各 feature 文檔「待確認假設」段落的彙總,含開發者在閘門的裁決)
-
-| 來源 | 假設 | 採取的判斷 | 閘門裁決 |
-|---|---|---|---|
-| F001 A1 | <...> | <...> | 接受 / 要改 |
-
-## 階段結果
-### 階段一
-(完成的 features、測試結果、arch-audit 發現、閘門結論、契約有無變更)
-```
+路徑 `.design/subsystems/<slug>/build-log.md`。版面照本 skill 目錄下的 `templates/build-log.md`——建檔或更新時打開它照抄,五個章節:排程、委派決策記錄、配號表(含設計/實作模型欄)、待確認假設彙總、階段結果。
 
 全部階段完成後 `status` 改 `done`。
 

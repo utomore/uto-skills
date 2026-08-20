@@ -6,7 +6,7 @@ user-invocable: true
 
 # /branch-pr — 整合 branch 發 PR
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例。
+先讀取 `../_shared/conventions.md`(核心慣例)。本 skill 不動 `.design/` 文檔,不需要另外兩片分片。
 
 ## 1. 盤點
 

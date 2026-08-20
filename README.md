@@ -19,7 +19,9 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、契約卡對帳)/ `feature`(L2 介面符合度、edge cases、型別安全、待確認假設)/ `status`(腳本盤點各 feature 完成度、契約卡就緒度與待優化模組) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
 
-共用文檔慣例(樹狀資料夾結構、編號、引用格式、YAML frontmatter、資訊抽象邊界規範、**委派模式共通契約**)在 `plugins/dev-flow/skills/_shared/conventions.md`。
+共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分三片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)。每個 skill 開頭明列自己要讀哪幾片。
+
+改 skill 前請先看 [docs/skill-authoring.md](docs/skill-authoring.md)——撰寫與維護準則(追加閘門、分片規則、成本量測)。
 
 ### 委派展開(`/subsys-build`)的設計要點
 

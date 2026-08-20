@@ -1,6 +1,13 @@
-# 開發流程文檔慣例(共用)
+# 開發流程文檔慣例(共用核心)
 
 所有開發流程 skills(system-design、subsys-design、subsys-build、feature-design、enhance-design、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr)共用本慣例。
+
+本檔是**每個 skill 都要讀**的核心。另外兩片按需載入,沒踩到條件就不用讀:
+
+| 分片 | 內容 | 什麼時候讀 |
+|---|---|---|
+| `frontmatter.md` | 各類文檔的 YAML frontmatter 規格、清單欄位寫法、`description` 規則 | 要**新建 `.design/` 文檔**,或要確認某個 frontmatter 欄位怎麼寫時(只改 `status` / `updated` 不用) |
+| `delegation.md` | 委派模式共通契約、「待確認假設」段落、回報格式 | prompt 標明 `【委派模式】`,或你是 `/subsys-build` 的編排者 |
 
 ## 角色與設計哲學
 
@@ -28,39 +35,6 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
 3. **依賴管理簡化**:
    - 架構文檔不羅列無關緊要的基礎函式庫;依賴項由標準套件管理檔(`go.mod`、`package.json`、`Cargo.toml`、`pyproject.toml` 等)統一宣告。架構文檔只記「影響架構的關鍵依賴」(框架、儲存引擎、通訊協定實作)。
 
-## 委派模式(Delegated Mode)共通契約
-
-`/subsys-build` 會把 Level 3 的工作**委派給 subagent** 執行。凡 prompt 開頭標明 `【委派模式】` 的執行,一律套用本節規則(適用 `/feature-design`、`/feature-impl`;沒有這個標記時各 skill 照原本的互動流程走)。
-
-**核心前提:subagent 問不了人。** 所有需要開發者判斷的事都已經在編排者的「批次澄清」階段問完了,所以委派模式下:
-
-1. **禁止呼叫 AskUserQuestion,禁止在對話中提問等待回覆**。訪談/討論類步驟一律跳過,改以「Level 2 契約卡 + 委派決策記錄」為輸入
-2. **遇到不確定不得腦補、也不得停擺**:採取當下最合理的作法繼續推進,並把該判斷寫進文檔的「待確認假設」段落(格式見下),由編排者在階段閘門一併呈報開發者
-3. **編號與檔名由編排者指定**,不得自行掃描資料夾配號(平行執行會撞號)
-4. **不得寫入 `design.md` 與 `system.md`**(含回填 `doc` 欄):架構文檔一律由編排者單線更新。需要動上層契約時,把「該改什麼、為什麼」寫進回報,不自己改
-5. **機械性查證不可跳過**:相依性查證(打開原始碼讀真實簽名)、一致性檢查、1-to-1 測試對照——這些不需要人,是委派模式下品質的唯一防線,必須完整執行
-6. **契約不得偏離**:公開介面/DTO 只能落在 Level 2 契約內。發現非偏離不可時,**停下該項**、記入回報,不擅自改契約也不硬做
-7. **如實回報**:測試失敗就貼輸出,不得宣稱通過;做不完的項目明確標為未完成
-
-### 「待確認假設」段落
-
-委派模式下產出或修改任務文檔時,若有第 2 條的判斷,在文檔的「實作備註」之前插入本段落(沒有假設就不要放空段落):
-
-```markdown
-## 待確認假設
-- A1: <不確定的點> → 採取:<你的判斷> → 影響:<若判斷錯誤會需要改什麼>
-```
-
-### 回報格式(subagent 的最終輸出)
-
-委派模式的最終輸出是**給編排者看的結構化資料**,不是給人看的說明文;固定回報:
-
-- 產出/修改的檔案路徑與文檔 id
-- 完成的項目(Todo 勾選數/總數)與測試結果(通過/失敗數,失敗的貼摘要)
-- 「待確認假設」清單(A1、A2…)
-- 建議編排者做的上層動作:要回填的 `doc` 欄、建議修改的 Level 2 契約、建議補的 ADR
-- 阻塞項:哪一項做不下去、原因
-
 ## 資料夾結構(專案內,樹狀)
 
 設計文檔樹與系統架構樹同構:根節點是主專案架構,第二層是各 subsystem。
@@ -86,6 +60,16 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
     └── ADR-001-<slug>.md            # 架構決策紀錄,全局共用
 ```
 
+## 文檔角色與權威來源
+
+- `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設、閘門結論)
+- `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
+
+- `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
+- 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
+- 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
+- 每份 `design.md` 的「Feature 契約卡」章節,功能規劃裡的每個 feature 都要有一張(`###` 一張卡,標題 = feature slug)。契約卡是「這個 feature 可以被無訪談委派」的門檻:寫得夠完整才跑得動 `/subsys-build`,缺卡的項目會被 `/arch-audit status` 列進提示
+
 ## 命名與編號規則
 
 - 檔名一律**英文 kebab-case**;內文一律**繁體中文**;日期一律 `YYYY-MM-DD`
@@ -106,136 +90,6 @@ id 只在子系統內唯一,跨界引用必須帶路徑:
 | 跨子系統引用 | `<subsystem-slug>/<id>` | `auth/F002` |
 | 引用全域文檔 | 直接寫全域 id | `G-E001` |
 | 引用 ADR | 直接寫 ADR id | `ADR-003` |
-
-## Metadata 標準(YAML frontmatter)
-
-所有 `.design/` 文檔**開頭必須**是 YAML frontmatter,狀態掃描腳本只解析這一段。
-
-### 任務文檔(feature / enhance / bugfix,含全域 G-)
-
-```yaml
----
-id: F001                 # 檔名編號前綴:F001 | E001 | B001 | G-E001 | G-B001
-type: feature            # feature | enhance | bugfix
-title: auth-login        # 檔名 slug
-description: 以 JWT 實作使用者註冊、登入與權限驗證   # 一句話主軸,見下方規則
-status: open             # open | in-progress | done | closed
-created: 2026-08-19
-updated: 2026-08-19
-depends-on: []           # 依賴的其他任務文檔(引用格式見上);空陣列 = 可平行開發
-related-adr: []          # 相關 ADR id
-related-feature: []      # enhance / bugfix 回鏈到被優化 / 出問題的 feature id
----
-```
-
-- `id` 必須與檔名的編號前綴一致(`F001-auth-login.md` → `id: F001`);`type` 必須與所在資料夾一致(features/ → feature、enhancements/ → enhance、bugfixes/ → bugfix)
-- 文檔屬於哪個子系統由**檔案路徑**決定,不另設欄位;**全域 G- 文檔**須額外加 `subsystems: [subsys-a, subsys-b]` 列出受影響的子系統
-
-### 架構文檔(system / subsystem)
-
-`system.md`:
-
-```yaml
----
-id: system
-type: system
-title: <project-slug>
-description: <一句話,40 字內:這個專案在做什麼>
-status: active
-created: 2026-08-19
-updated: 2026-08-19
-subsystems: []           # 子系統 slug 的唯一權威清單,/subsys-design 建檔時回填
----
-```
-
-`subsystems/<slug>/design.md`:
-
-```yaml
----
-id: <subsystem-slug>     # 與資料夾名一致
-type: subsystem
-title: <subsystem-slug>
-description: <一句話,40 字內:這個子系統負責什麼>
-status: active
-created: 2026-08-19
-updated: 2026-08-19
-parent: system           # 回鏈主架構(固定值)
-related-adr: []
----
-```
-
-`subsystems/<slug>/build-log.md`(只有跑過 `/subsys-build` 才存在):
-
-```yaml
----
-id: <subsystem-slug>-build
-type: build-log
-title: <subsystem-slug>-build
-description: <一句話,40 字內:這次委派展開了什麼>
-status: in-progress     # in-progress | done
-created: 2026-08-19
-updated: 2026-08-19
-parent: <subsystem-slug> # 回鏈所屬子系統的 design.md
----
-```
-
-- `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設、閘門結論)
-- `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
-
-- `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
-- 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
-- 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
-- 每份 `design.md` 的「Feature 契約卡」章節,功能規劃裡的每個 feature 都要有一張(`###` 一張卡,標題 = feature slug)。契約卡是「這個 feature 可以被無訪談委派」的門檻:寫得夠完整才跑得動 `/subsys-build`,缺卡的項目會被 `/arch-audit status` 列進提示
-
-### ADR
-
-```yaml
----
-id: ADR-001
-type: adr
-title: <decision-slug>
-description: <一句話,40 字內:這份 ADR 決定了什麼>
-status: accepted         # proposed | accepted | superseded
-created: 2026-08-19
-updated: 2026-08-19
----
-```
-
-### 清單欄位格式(唯一寫法:行內陣列)
-
-`depends-on`、`related-adr`、`related-feature`、`subsystems` 等清單欄位**一律寫成行內陣列**,空值寫 `[]`:
-
-```yaml
-depends-on: [F001, auth/F002]        # ✅ 唯一合規寫法
-related-adr: []                      # ✅ 空清單
-subsystems: [auth]                   # ✅ 單一元素也用陣列
-```
-
-```yaml
-depends-on:                          # ❌ 不使用 YAML 區塊列表
-  - F001
-```
-
-- 理由:狀態掃描腳本只讀檔頭、只認行內陣列;兩種格式並存會讓清單被讀成空值,相依關係與權威清單就對不上
-- 值含冒號 `:`、`#` 或空白時,該元素用雙引號括起來
-- `/arch-audit status` 偵測到區塊列表會列進「frontmatter 格式不合規」並以 exit code 1 收場
-
-### `description` 欄位規則(必填)
-
-- **所有類型都要寫**:system / subsystem / adr / feature / enhance / bugfix,一個都不能少
-- **一句話**描述本文檔的**主軸**:繁體中文、40 字以內,不加句號;超過就是寫太細,砍掉細節只留主軸
-- 只寫主題,不寫實作細節、不列步驟、不寫理由(那些屬於內文)
-- 值含冒號 `:` 或 `#` 時整句用雙引號括起來(YAML 規則)
-- 建立文檔時就要寫;除非文檔主題本身改變,否則後續修改不動這欄
-
-| 類型 | 描述對象 | 範例 |
-|---|---|---|
-| system | 專案在做什麼 | `本地端 Markdown 筆記管理與全文檢索工具` |
-| subsystem | 這個子系統負責什麼 | `全文檢索子系統:索引建立、查詢解析與排名` |
-| adr | 決定了什麼 | `選用 SQLite FTS5 作為全文檢索引擎` |
-| feature | 這個功能做什麼 | `以 JWT 實作使用者註冊、登入與權限驗證` |
-| enhance | 要改善什麼 | `將檔案掃描改為增量更新以縮短啟動時間` |
-| bugfix | 什麼壞了 | `並發寫入時索引損毀導致搜尋結果缺漏` |
 
 ## 通用規則
 

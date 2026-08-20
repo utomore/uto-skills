@@ -295,6 +295,44 @@ function analyzeDiagram(body) {
   return { viewBox, fontSizes, fontFamilies, colors, nodes, emoji, external, hasImage, overflow, connectors: findConnectors(body), texts: textNodes.map((t) => t.value).filter(Boolean) };
 }
 
+// ---------- 文案語感規則(基準 _shared/wording.md)----------
+
+/** 禁用句型:對比翻轉句、人稱代名詞、空泛詞。命中是「證據」,是否成立要開檔確認 */
+const WORDING_RULES = [
+  { id: "翻轉句", eg: "不是 A,而是 B", pat: /不[是為][^。;;!?!?\n]{0,24}?(?:[,,、]\s*)?(?:而是|才是|反而是)/ },
+  { id: "翻轉句", eg: "不是 A,是 B", pat: /不是[^。;;!?!?\n]{1,24}[,,]\s*(?:是|就是)/ },
+  { id: "翻轉句", eg: "是 A,不是 B", pat: /[是為][^。;;!?!?\n]{1,24}[,,]\s*(?:而不是|並不是|不是)/ },
+  { id: "翻轉句", eg: "A,不等於 B", pat: /不(?:等於|代表|意味著?|見得)/ },
+  { id: "翻轉句", eg: "不只 A,更 B", pat: /不[只僅止][^。\n]{0,24}[,,]?\s*(?:更|還|也|甚至)/ },
+  { id: "翻轉句", eg: "與其 A,不如 B", pat: /與其[^。\n]{0,24}[,,]?\s*不如/ },
+  { id: "翻轉句", eg: "不在 A,而在 B", pat: /不在[^。\n]{0,20}[,,]?\s*(?:而在|在於)/ },
+  { id: "翻轉句", eg: "看似 A,其實 B", pat: /(?:看似|表面上|乍看|表面看)[^。\n]{0,24}[,,]?\s*(?:其實|實際上|事實上|真正)/ },
+  { id: "翻轉句", eg: "並非 A,而是 B", pat: /並非[^。\n]{0,24}[,,]?\s*(?:而是|而)/ },
+  { id: "翻轉句", eg: "A —— 其實是 B", pat: /[—–]{1,2}\s*(?:其實|而是|真正|反而)/ },
+  { id: "翻轉句", eg: "A 重要,B 更重要", pat: /重要[,,][^。\n]{0,12}(?:更重要|才重要|更關鍵)/ },
+  { id: "翻轉句", eg: "Not X, but Y", pat: /\bnot\s+(?:just\s+)?[^.,\n]{1,30},\s*but\b/i },
+  { id: "翻轉句", eg: "It's not about X, it's about Y", pat: /\bit['’]?s\s+not\s+about\b[\s\S]{0,60}?\bit['’]?s\s+about\b/i },
+  { id: "翻轉句", eg: "less X, more Y", pat: /\bless\s+\w+,\s*more\s+\w+/i },
+  { id: "人稱", eg: "我/我們/你/你們/大家/各位", pat: /(?<![自忘無])我們?|你們?|大家|各位|咱們/ },
+  { id: "空泛詞", eg: "賦能/助力/一站式/全方位/無縫/打造…", pat: /賦能|助力|一站式|全方位|無縫|深度融合|極致|打造|閉環|抓手|顛覆|革命性|全新升級|下一代/ },
+];
+
+const EMPTY_TITLE = /^(概述|總結|摘要|簡介|介紹|背景|前言|結語|結論|內容|大綱|關於.{0,10}|overview|summary|introduction|background|conclusion|agenda)$/i;
+
+/** 回傳這段文字命中的規則(同一類只回一次) */
+function scanWording(text, isTitle = false) {
+  const t = String(text).replace(/`[^`]*`/g, " ").replace(/\s+/g, " ").trim();
+  if (!t) return [];
+  const hits = [];
+  const seen = new Set();
+  for (const r of WORDING_RULES) {
+    const m = t.match(r.pat);
+    if (m && !seen.has(r.id)) { seen.add(r.id); hits.push({ id: r.id, eg: r.eg, hit: m[0].trim() }); }
+  }
+  if (isTitle && EMPTY_TITLE.test(t.replace(/[::。!!??\s]+$/, ""))) hits.push({ id: "無資訊標題", eg: "標題要寫這頁的結論或問題", hit: t });
+  return hits;
+}
+
 // ---------- Marp deck 解析 ----------
 
 /** 判斷 HTML 註解是 Marp 指令(全是 directive 行)還是備註 */
@@ -344,7 +382,25 @@ function parseSlides(content) {
     if (hasBullets) forms.push("條列");
     if (hasTable) forms.push("表格");
     if (!hasBullets && !hasTable && digest) forms.push("段落");
-    return { pageClass, bgClasses, unknownClasses, scopedBg, layouts, images, notes, noteChars: notes.join("").replace(/\s+/g, "").length, forms, inlineHex, emoji, external, digest };
+    // 逐行文字(文案語感掃描用):標題 / 副標 / 小標 / 內文
+    const textLines = noComments
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+      .replace(/<[^>]+>/g, " ")
+      .split(/\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((l) => {
+        const h = l.match(/^(#{1,6})\s+(.*)$/);
+        if (h) return { kind: h[1].length <= 2 ? "標題" : "小標", text: h[2].replace(/[*_`]/g, "").trim() };
+        return { kind: "內文", text: l.replace(/^([-*+]|\d+\.|>)\s*/, "").replace(/[*_`|]/g, " ").replace(/\s+/g, " ").trim() };
+      })
+      .filter((x) => x.text && !/^[-=|:\s]+$/.test(x.text));
+    if (PAGE_CLASSES.has(pageClass) && pageClass !== "divider") {
+      const firstBody = textLines.find((x) => x.kind === "內文");
+      if (firstBody) firstBody.kind = "副標";
+    }
+    return { pageClass, bgClasses, unknownClasses, scopedBg, layouts, images, notes, noteChars: notes.join("").replace(/\s+/g, "").length, forms, inlineHex, emoji, external, digest, textLines };
   });
 }
 
@@ -570,6 +626,40 @@ if (hasSrc && decks.length) {
     }
   }
   if (hard === beforeNotes) ok("備註覆蓋合格(△ 項仍請逐條確認)");
+
+  // ---------- 文案語感(禁用句型與人稱)----------
+  console.log("\n=== 文案語感(禁用句型與人稱;基準 _shared/wording.md)===");
+  const wordRows = [];
+  const pushHits = (page, where, text, isTitle) => {
+    for (const h of scanWording(text, isTitle)) {
+      wordRows.push({ page, where, rule: h.id, hit: truncate(h.hit, 20), text: truncate(text, 42), eg: h.eg });
+    }
+  };
+  let pgW = 0;
+  for (const d of decks) {
+    for (const sl of d.slides) {
+      pgW++;
+      for (const ln of sl.textLines) pushHits(pageNo(pgW), ln.kind, ln.text, ln.kind !== "內文");
+      for (const n of sl.notes) for (const line of n.split(/\r?\n/)) pushHits(pageNo(pgW), "備註", line, false);
+    }
+  }
+  for (const dg of diagrams) for (const t of dg.style.texts) pushHits(dg.id, "圖形標籤", t, false);
+  if (wordRows.length) {
+    printTable(
+      { page: "頁/圖", where: "位置", rule: "命中", hit: "片段", text: "原句", eg: "禁用句型" },
+      wordRows.map((r) => ({ page: r.page, where: r.where, rule: r.rule, hit: r.hit, text: r.text, eg: r.eg })),
+    );
+    const titleHits = wordRows.filter((r) => r.where === "標題" || r.where === "副標");
+    const byRule = new Map();
+    for (const r of wordRows) byRule.set(r.rule, (byRule.get(r.rule) ?? 0) + 1);
+    console.log("命中分布:" + [...byRule.entries()].map(([k, n]) => `${k}(${n})`).join(" "));
+    if (titleHits.length) {
+      warn(`標題/副標命中 ${titleHits.length} 條(第 ${[...new Set(titleHits.map((r) => r.page))].join("、")} 頁)— /review 判定為阻斷項,逐句改成直述句`);
+    }
+    warn(`文案語感候選 ${wordRows.length} 條 — 逐條開檔確認是真命中還是正則誤判(「是不是」「不是…就是…」等並列不算),確認後計入第 14 項`);
+  } else {
+    ok("投影片文字、備註與圖形標籤都沒有命中禁用句型(仍以逐頁目視為準)");
+  }
 
   // ---------- 圖形引用 ----------
   console.log("\n=== 圖形引用完整性 ===");
@@ -830,4 +920,5 @@ else console.log("無硬性不一致。");
 const bendy = diagrams.reduce((n, dg) => n + dg.style.connectors.filter((c) => c.turns >= 3).length, 0);
 if (bendy) console.log(`連接線轉折 ≥3 的線條共 ${bendy} 條 — 開檔確認哪些真的是連接線,計入圖解可讀性扣分。`);
 console.log(`版面、配色統一、用語/概念一致、AI 感、備註品質算不出來 — /review 必須 build 後逐頁開 ${totalPages} 頁目視判斷,上表只是證據與檢查清單。`);
+console.log("文案語感的命中清單是正則證據:每條都要開檔確認(誤判要排除),確認後逐條列進報告的「文案語感」段並計入第 14 項;標題/副標命中是阻斷項。")
 process.exit(hard > 0 ? 1 : 0);

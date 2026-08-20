@@ -45,7 +45,7 @@ Level 2 把契約鎖死之後,Level 3 就變成**可委派**的:相依性查證�
 
 ## talk-flow
 
-演講內容產生流程的 Claude Code plugin,投影片以 **Marp Markdown** 撰寫、**marp-cli** 建置輸出(html / pdf / pptx),SVG 只用來畫圖形(架構圖、流程圖等),講稿簡化為頁內備註(presenter notes,提醒式、不寫逐字稿)。包含六個 skills:
+演講內容產生流程的 Claude Code plugin,投影片以 **Marp Markdown** 撰寫、**marp-cli** 建置輸出(html / pdf / pptx),SVG 只用來畫圖形(架構圖、流程圖等),講稿簡化為頁內備註(presenter notes,提醒式、不寫逐字稿)。**投影片上的文案一律直述句** —— 對比翻轉句(「分不出差別,不等於一樣好」)與人稱代名詞(「我們」「大家」)是全流程的硬性禁區,產文時不得寫出、`/review` 逐條扣分,規範見 `_shared/wording.md`。包含六個 skills:
 
 流程是三層階梯,**每層只決定自己顆粒度的事**:L1 定語意(核心訊息、段落切分、視覺規範的語意)、L2 定內容(每頁講什麼、要不要圖)、L3 定呈現(版型、動線、SVG 幾何、theme 數值)。**視覺數值的唯一真相是 `talk/src/theme.css`**,`docs/` 的文件只記決定與理由,不複製一份 px 或色碼;下層需要上層沒定義的東西就回上層加,不在本層私設。
 
@@ -56,9 +56,9 @@ Level 2 把契約鎖死之後,Level 3 就變成**可委派**的:相依性查證�
 | `/section-impl` | **L3** 段落實作(在上層規範內有完全的呈現自主權)— 逐頁決定 Layout(整頁單一區塊/左右/上下/上中下/三等份/四象限/上三下二…,版型詞彙見 `_shared/layouts.md`)與**背景類別**(`bg-none`/`bg-soft`/`bg-strong`/`bg-2`/`bg-3`),並對每頁說得出**視覺動線**,文字技法只從文字規範選用,撰寫 `talk/src/section-0x-*.md` 的 Marp 頁面與 `<!-- 備註 -->`,繪製圖形 SVG(規範見 `_shared/diagrams.md`,含**截圖加註**:原圖 base64 內嵌 SVG 疊編號標記 + 圖下對應圖例),`node build.mjs` 建置驗收;第一段完成後做**分層強度定案**(調 theme.css 的 `--bg-opacity`,不回寫 topic.md);需要時建立 `demo/` |
 | `/page-adjust` | **L3** 單頁調整 — 針對指定頁面深談 Layout/內文/圖形/背景/備註調整(文字技法仍受 topic.md 文字規範約束、背景仍受投影片分層的語意約束;theme.css 數值調整屬本層職權,不回寫 topic.md),修改 Marp 原始碼與 SVG 後重 build,同步 section 設計文件 |
 | `/svg-layout` | 架構圖 SVG 排版量測(唯讀三腳本)— `normalize.py` 補齊語意化 id 與 `data-role/from/to`(只寫標註不動幾何,id 穩定不漂移);`inspect_svg.py` 輸出 scene digest(累積巢狀 transform 的絕對 bbox、以 fontTools 實測中英混排標籤寬度、edge 拓撲、對齊與間距序列);`lint.py` 診斷 15 條規則(文字溢出/內距/投影字級/對比、連線端點間隙/穿越節點/標籤壓線/缺箭頭/交叉、尺寸間距不一致/幾乎對齊/超出畫布),每條給量化偏差與修正方向 |
-| `/review` | 整體審查 — 腳本交叉比對段落覆蓋、deck↔docs 頁數同步、圖形引用完整性、**分層資產與背景槽位**、依賴順序、時間帳與產物新鮮度,再 **build 後逐頁目視** Layout、視覺引導動線、文字規範遵循(字級/強調/列表符號/行距)、版型與配色收斂、**前景/背景分層**(背景有沒有搶第一眼、正文讀不讀得清、換背景對不對得上語意)、圖形連接線轉折(>2 折扣分)、備註品質、用語概念一致與 AI 感,並判斷主軸貼合度、偏題比例、銜接與難度峰值,產出十三項指標的審查報告 `review/review-<日期>-<序號>.md`;不修改任何原始碼 |
+| `/review` | 整體審查 — 腳本交叉比對段落覆蓋、deck↔docs 頁數同步、圖形引用完整性、**分層資產與背景槽位**、依賴順序、時間帳與產物新鮮度,再 **build 後逐頁目視** Layout、視覺引導動線、文字規範遵循(字級/強調/列表符號/行距)、版型與配色收斂、**前景/背景分層**(背景有沒有搶第一眼、正文讀不讀得清、換背景對不對得上語意)、圖形連接線轉折(>2 折扣分)、備註品質、用語概念一致、**文案語感**(對比翻轉句「A,不等於 B」「不是 A,而是 B」、人稱代名詞「我們/你/大家」、空泛詞與無資訊標題 —— 腳本先給命中清單,確認後逐條扣分,標題/副標命中是阻斷項)與 AI 感,並判斷主軸貼合度、偏題比例、銜接與難度峰值,產出十四項指標的審查報告 `review/review-<日期>-<序號>.md`;不修改任何原始碼 |
 
-演講專案的資料夾結構:`docs/`(topic.md 與 section 設計文件)、`talk/src/`(Marp 原始碼與設定:deck-header.md、每 section 一檔 `section-0x-*.md`、theme.css、build.mjs、.marprc.yml)、`talk/assets/`(圖形 SVG `diagram-<section>-<序號>-<slug>.svg`、背景 `bg-<slug>.svg`、角標 `logo.svg`)、`talk/dist/`(marp-cli 輸出產物,不手改)、`review/`(審查報告)、`demo/`(可選)。每份手寫文件(含圖形與背景 SVG)都有 metadata;共用慣例與**層級顆粒度表**在 `plugins/talk-flow/skills/_shared/conventions.md`,版型詞彙在 `_shared/layouts.md`,風格基底在 `_shared/styles.md`,分層(前景/背景)詞彙在 `_shared/layers.md`,圖形(選型表、繪圖紀律、截圖加註)在 `_shared/diagrams.md`。
+演講專案的資料夾結構:`docs/`(topic.md 與 section 設計文件)、`talk/src/`(Marp 原始碼與設定:deck-header.md、每 section 一檔 `section-0x-*.md`、theme.css、build.mjs、.marprc.yml)、`talk/assets/`(圖形 SVG `diagram-<section>-<序號>-<slug>.svg`、背景 `bg-<slug>.svg`、角標 `logo.svg`)、`talk/dist/`(marp-cli 輸出產物,不手改)、`review/`(審查報告)、`demo/`(可選)。每份手寫文件(含圖形與背景 SVG)都有 metadata;共用慣例與**層級顆粒度表**在 `plugins/talk-flow/skills/_shared/conventions.md`,版型詞彙在 `_shared/layouts.md`,風格基底在 `_shared/styles.md`,分層(前景/背景)詞彙在 `_shared/layers.md`,圖形(選型表、繪圖紀律、截圖加註)在 `_shared/diagrams.md`,**文案語感**(禁用句型、人稱指稱與正面寫法)在 `_shared/wording.md`。
 
 投影片分**背景層**(裝飾,`section::before` 畫,不承載資訊)與**前景層**(標題、內文、圖形、頁碼、固定角標)。背景可以是 CSS 漸層、使用者提供的圖片,或 LLM 依討論出的風格現畫的 SVG(`topic-design/assets/backgrounds/` 附三張起手範本);全場最多三套背景槽(`--bg-image` / `--bg-image-2` / `--bg-image-3`),**每頁背景都可以不同** —— 頁面用 `<!-- _class: bg-2 bg-strong -->` 這類類別切換,強度由 `--bg-opacity` 控制,圖表/截圖頁用 `bg-none` 關掉。`/topic-design` 定「幾套、各代表什麼」,`/section-impl` 決定逐頁用哪一個並在有真實頁面後定案強度。
 

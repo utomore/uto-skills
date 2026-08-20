@@ -6,7 +6,7 @@ user-invocable: true
 
 # /enhance-design — Level 3 優化設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來估影響面,不取代讀程式碼)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔)。
 
 ## 目標
 
@@ -28,7 +28,6 @@ user-invocable: true
 2. **打開標的的原始碼實際閱讀**:現有模組劃分、資料流、演算法、錯誤處理;把「現況怎麼運作」讀到能複述的程度
 3. 對照 `system.md` 與相關 `design.md`:現況與架構文件是否一致?不一致本身可能就是要優化的點
 4. 找出標的對應的 feature 文檔(之後回鏈進 `related-feature`)
-5. **有程式碼知識圖時**(判定與指令見 `../_shared/codegraph.md`):用「反向可達」的能力查出誰依賴這個標的,當作步驟 2 討論涵蓋範圍的**候選清單**。這是估算,不是結論——清單上每個要納入 scope 的位置,一樣要打開原始碼讀過(本 skill 的核心紀律「先讀程式碼、再談優化」不因為有圖而放寬),圖也可能漏掉動態呼叫、反射、設定檔驅動的相依
 
 ### 2. Scope 討論與確認(不可跳過,必須與開發者達成共識)
 

@@ -2,13 +2,12 @@
 
 所有開發流程 skills(system-design、subsys-design、subsys-build、feature-design、enhance-design、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr)共用本慣例。
 
-本檔是**每個 skill 都要讀**的核心。另外三片按需載入,沒踩到條件就不用讀:
+本檔是**每個 skill 都要讀**的核心。另外兩片按需載入,沒踩到條件就不用讀:
 
 | 分片 | 內容 | 什麼時候讀 |
 |---|---|---|
 | `frontmatter.md` | 各類文檔的 YAML frontmatter 規格、清單欄位寫法、`description` 規則 | 要**新建 `.design/` 文檔**,或要確認某個 frontmatter 欄位怎麼寫時(只改 `status` / `updated` 不用) |
 | `delegation.md` | 委派模式共通契約、「待確認假設」段落、回報格式 | prompt 標明 `【委派模式】`,或你是 `/subsys-build` 的編排者 |
-| `codegraph.md` | 程式碼知識圖的格式契約、能力對照、查詢紀律與禁止事項 | 某個 skill 的步驟明確指向本片,**且**該專案建過圖(判定方式見該片開頭);兩者缺一就不讀、照原流程走 |
 
 ## 角色與設計哲學
 
@@ -65,6 +64,7 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
 
 - `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設、閘門結論)
 - `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
+
 - `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
 - 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
 - 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低

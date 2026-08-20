@@ -19,19 +19,9 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、契約卡對帳)/ `feature`(L2 介面符合度、edge cases、型別安全、待確認假設)/ `status`(腳本盤點各 feature 完成度、契約卡就緒度與待優化模組) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
 
-共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分四片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)、`codegraph.md`(**程式碼知識圖整合**,專案建過圖時才讀)。每個 skill 開頭明列自己要讀哪幾片。
+共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分三片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)。每個 skill 開頭明列自己要讀哪幾片。
 
 改 skill 前請先看 [docs/skill-authoring.md](docs/skill-authoring.md)——撰寫與維護準則(追加閘門、分片規則、成本量測)。
-
-### 選配:程式碼知識圖
-
-專案裡有程式碼知識圖時,dev-flow 會把它當成**導航層**:`/arch-audit` 的 system / subsys scope 用 `scan-graph.mjs` 直接算出子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單與架構 hub;`/feature-design` 用它定位既有介面在哪個檔案;`/enhance-design` 估改動的影響面;`/bugfix` 追呼叫鏈;實作類 skill 收尾時把圖更新到最新。
-
-**契約是 `graph.json` 的格式,不是產生它的工具。** 下游只認「節點帶 `source_file`、邊帶 `relation`」這個形狀(完整規格見 `_shared/codegraph.md`),換產生器只要吐同格式,`scan-graph.mjs` 與七個 skill 接點一行都不用改;只給 `graph.json`、沒有查詢 CLI 的產生器也可用,架構檢測那一整塊由腳本自己算。目前登記的產生器是 graphify(支援語言與指令見該片的「目前的產生器」表)。
-
-界線只有一條:**圖是導航,不是查證**——它只說「去哪裡看」,寫進 `.design/` 的每個簽名、相依、契約違反都必須回原始碼讀到原文再確認。圖會過期、會漏抽、`INFERRED` 的邊是推測的,所以它不能取代 `/feature-design` 那條「必須打開原始碼讀到實際定義」的防線。
-
-檔案級的圖要捲回子系統級,靠 `design.md` frontmatter 的選填欄位 `code-paths: [src/auth]`;沒填就只能猜路徑,腳本會把可信度警告印出來。**沒有圖的專案完全不受影響**:各 skill 判定不到圖就整段略過,照原流程走。
 
 ### 委派展開(`/subsys-build`)的設計要點
 
@@ -109,7 +99,7 @@ repo 有新版本後:
 
 編號**三位數**遞增、不放日期(日期在 frontmatter 的 `created` / `updated`);**每個子系統自己一組編號**(F/E/B 各自計數)、全域 G- 自己一組、ADR 全局一組。跨子系統引用寫 `<subsystem>/<id>`(如 `auth/F002`),同子系統直寫 id,全域直寫 `G-E001` / `ADR-003`。
 
-任務文檔開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-feature`;全域文檔另加 `subsystems`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/arch-audit/scripts/scan-status.mjs`)只解析這一段,清單欄位一律行內陣列 `[a, b]`。子系統 `design.md` 另有選填的 `code-paths`(程式碼路徑前綴),供 `scan-graph.mjs` 把檔案級的圖捲回子系統級。
+任務文檔開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-feature`;全域文檔另加 `subsystems`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/arch-audit/scripts/scan-status.mjs`)只解析這一段,清單欄位一律行內陣列 `[a, b]`。
 
 `description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(feature 寫「這功能做什麼」、bugfix 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」),讓 `/arch-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。
 

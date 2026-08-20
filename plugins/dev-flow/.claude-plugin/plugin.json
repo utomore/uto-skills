@@ -1,7 +1,7 @@
 {
   "name": "dev-flow",
   "description": "三層階梯式文檔驅動開發流程 skills:主架構(system-design)、子系統架構(subsys-design,含 Feature 契約卡)、子系統委派展開(subsys-build:批次澄清 → 波次委派 → 階段閘門)、功能/優化設計(feature-design / enhance-design)、實作(feature-impl / enhance-impl / bugfix)、架構檢測(arch-audit: system|subsys|feature|status)、整合發 PR(branch-pr)",
-  "version": "0.8.1",
+  "version": "0.8.0",
   "author": {
     "name": "utomore"
   },

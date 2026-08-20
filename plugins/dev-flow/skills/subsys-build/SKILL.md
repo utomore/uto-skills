@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(編排層)
 
-先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/delegation.md`(**委派模式共通契約**——你是那一節裡的「編排者」);要建或改 `build-log.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`;要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用)。
+先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/delegation.md`(**委派模式共通契約**——你是那一節裡的「編排者」);要建或改 `build-log.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`。
 
 ## 目標
 
@@ -40,11 +40,9 @@ user-invocable: true
 1. 確定目標子系統:引數有給就用;沒給就讀 `.design/system.md` 的 `subsystems`,用 AskUserQuestion 讓開發者選
 2. 讀 `.design/system.md` + 該 `subsystems/<slug>/design.md` 全文 + frontmatter `related-adr` 列的 ADR。**不相關的子系統不讀**
 3. 跑一次狀態掃描,取得現有 feature 文檔與不一致清單:
-
    ```
    node "<arch-audit skill 目錄>/scripts/scan-status.mjs" .design
    ```
-
 4. **委派門檻檢查**(任一項不過就停下來,不要硬跑):
    - 有「功能規劃」表格,且「依賴」欄構成的圖無環
    - 功能規劃每一列都有對應的「Feature 契約卡」;卡片的五個欄位都填了實質內容
@@ -65,7 +63,6 @@ user-invocable: true
 2. 跨子系統或全域的依賴:確認那份文檔是否已 `done`。未完成的,在批次澄清時問開發者是「等」還是「照介面約定先做」
 3. 拓撲排序切波次:同一波 = 所有依賴都已滿足的 features,可平行
 4. **階段(`###` 標題)是硬邊界**:波次不跨階段——階段 N 全部驗收通過才進階段 N+1
-5. 本子系統已有程式碼(接續模式,或在既有程式碼上加功能)且專案有程式碼知識圖時,跑一次 `node "<arch-audit skill 目錄>/scripts/scan-graph.mjs" .design --subsys <slug>` 對帳:程式碼實際的跨子系統依賴,與契約卡宣告的依賴對不對得起來?**對不上的差異不要自己吸收**,帶進步驟 2 的批次澄清問開發者(契約卡與現實脫節時就委派出去,等於讓 subagent 照著錯的前提做)
 
 把「階段 → 波次 → features」的排程呈現給開發者(這是後面一切的骨架,值得先讓人看一眼)。
 
@@ -152,17 +149,16 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 本階段全部實作完成(或提前停下)後:
 
 1. 跑 `node "<arch-audit skill 目錄>/scripts/scan-status.mjs" .design`
-2. 專案有程式碼知識圖時,先照 `../_shared/codegraph.md` 把圖更新到最新再進下一步——本階段剛寫進去的程式碼不在舊圖裡,不更新的話閘門的架構檢測看到的是上一階段的世界
-3. 跑 `/arch-audit subsys <slug>`——檢查資料流管線一致性、SRP、邊界外洩、模組介面漂移。**這是委派品質的把關點**,不可跳過
-4. 更新 `build-log.md` 的本階段結果
-5. 向開發者回報,固定四塊:
+2. 跑 `/arch-audit subsys <slug>`——檢查資料流管線一致性、SRP、邊界外洩、模組介面漂移。**這是委派品質的把關點**,不可跳過
+3. 更新 `build-log.md` 的本階段結果
+4. 向開發者回報,固定四塊:
    - **完成了什麼**:features、Todo 數、測試結果(通過/失敗);有降級模型的 feature 要標出來
    - **待確認假設**:全部條列(來自哪個 feature 的 A1/A2…、採取了什麼判斷、判斷錯要改什麼)——**這是閘門的重點,不能只講「都完成了」**
    - **arch-audit 發現**:依嚴重度排序
    - **建議的上層變更**:哪些 Level 2 契約 subagent 認為該改
-6. 用 AskUserQuestion 讓開發者選:**進下一階段** / **先修這些問題**(走 `/bugfix`、`/enhance-design`,或回 `/subsys-design` 改契約後重跑本階段) / **就此停下**
-7. 開發者要修契約 → 由**你**更新 `design.md`(不是 subagent),更新後受影響的 feature 要重跑,不能靠既有產出將就
-8. 詢問是否為本階段收尾(squash 成一個 commit 或打 tag 皆可;checkpoint 已在過程中留下,這裡只處理歷史整理)。**不主動 push**;整合發 PR 走 `/branch-pr`
+5. 用 AskUserQuestion 讓開發者選:**進下一階段** / **先修這些問題**(走 `/bugfix`、`/enhance-design`,或回 `/subsys-design` 改契約後重跑本階段) / **就此停下**
+6. 開發者要修契約 → 由**你**更新 `design.md`(不是 subagent),更新後受影響的 feature 要重跑,不能靠既有產出將就
+7. 詢問是否為本階段收尾(squash 成一個 commit 或打 tag 皆可;checkpoint 已在過程中留下,這裡只處理歷史整理)。**不主動 push**;整合發 PR 走 `/branch-pr`
 
 ## 4. `build-log.md`
 

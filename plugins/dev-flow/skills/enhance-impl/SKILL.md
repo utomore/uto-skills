@@ -6,7 +6,7 @@ user-invocable: true
 
 # /enhance-impl — Level 3 優化實作
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例。
+先讀取 `../_shared/conventions.md`(核心慣例)。本 skill 只改既有文檔的 `status` / `updated`,不需要 `../_shared/frontmatter.md`。
 
 ## 實作自主權(本階段的核心原則)
 

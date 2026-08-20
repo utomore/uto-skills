@@ -6,7 +6,7 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例(樹狀結構、引用格式、frontmatter、資訊抽象邊界規範)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、引用格式、資訊抽象邊界規範);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`。
 
 ## Scope 判斷
 
@@ -47,7 +47,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 1. **先跑一次 status 腳本**,把不一致清單帶進本次分析(文檔樹本身有問題時,對照分析的結論不可信,先讓開發者修)
 2. **Context 載入紀律**:只讀 scope 對應層級的文檔(見各 scope);已 closed 的 bugfix 除非必要否則不載入
 3. 發現一律**依嚴重度排序**在對話中回報:每條附具體檔案與程式碼位置、違反了哪條契約/原則、建議動作
-4. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/enhance-design`(需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號與 frontmatter,`status: open`,內文附本次發現的分析依據)
+4. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/enhance-design`(需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號規則與 `frontmatter.md` 的規格,`status: open`,內文附本次發現的分析依據)
 5. 本 skill **不修改程式碼**,也不改架構文檔(發現文檔該改時,列出差異建議開發者走對應 design skill)
 
 ### Scope: system — 全域架構檢測

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /feature-impl — Level 3 功能實作
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例。
+先讀取 `../_shared/conventions.md`(核心慣例);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`。本 skill 只改既有文檔的 `status` / `updated`,不需要 `../_shared/frontmatter.md`。
 
 ## 實作自主權(本階段的核心原則)
 
@@ -14,7 +14,7 @@ user-invocable: true
 
 ## 委派模式(prompt 標明【委派模式】時)
 
-被 `/subsys-build` 委派執行時,先讀 `../_shared/conventions.md` 的「委派模式共通契約」,並對本 skill 做以下替換(**沒有這個標記時完全不適用,照原流程走**):
+被 `/subsys-build` 委派執行時,先讀 `../_shared/delegation.md`,並對本 skill 做以下替換(**沒有這個標記時完全不適用,照原流程走**):
 
 | 步驟 | 委派模式下的作法 |
 |---|---|
@@ -23,7 +23,7 @@ user-invocable: true
 | 3. 實作 | 照原規則。**唯一差別**:發現「文檔方案行不通」或「公開介面需偏離契約」時,原本要問開發者——委派模式下改為**停下該 Todo**(不擅自改契約、也不硬做),寫進「實作備註」與「待確認假設」,列為阻塞項回報 |
 | 4. 測試 | 照原規則,**如實回報**。失敗就貼輸出並嘗試修復;修不掉就列為阻塞項,**絕不宣稱通過** |
 | 回寫架構文檔 | **不做**。要改 `design.md` / `system.md` 的,寫進回報給編排者裁決 |
-| 5. 收尾 | 全綠才把 `status` 改 `done`;有阻塞項則留 `in-progress`。輸出改為 conventions 定義的**結構化回報** |
+| 5. 收尾 | 全綠才把 `status` 改 `done`;有阻塞項則留 `in-progress`。輸出改為 `delegation.md` 定義的**結構化回報** |
 
 實作階段的自主權在委派模式下**完全不變**——內部演算法、私有函數、變數命名照樣由你決定,不需要為這些記假設或回報。只有「碰到契約邊界」才需要停下來。
 

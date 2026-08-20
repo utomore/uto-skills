@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-design — Level 2 子系統架構設計
 
-先讀取本檔同層的 `../_shared/conventions.md`,遵守其中所有文檔慣例(資料夾結構、命名、frontmatter、**資訊抽象邊界規範**)。
+先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、命名、**資訊抽象邊界規範**);本 skill 要新建 `design.md`,另讀 `../_shared/frontmatter.md`。
 
 ## 目標
 

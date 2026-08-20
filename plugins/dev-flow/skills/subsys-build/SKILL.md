@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(編排層)
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例,**特別是「委派模式(Delegated Mode)共通契約」**——你是那一節裡的「編排者」。
+先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/delegation.md`(**委派模式共通契約**——你是那一節裡的「編排者」);要建或改 `build-log.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`。
 
 ## 目標
 
@@ -109,7 +109,7 @@ user-invocable: true
 每個 subagent 的 prompt 必須包含:
 
 ```
-【委派模式】遵守 <conventions.md 路徑> 的「委派模式共通契約」:不得提問、
+【委派模式】遵守 <delegation.md 路徑> 的委派模式共通契約:不得提問、
 不得寫 design.md/system.md、不得自行配號、機械性查證不可跳過。
 
 執行 dev-flow:feature-design,目標:

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /feature-design — Level 3 功能設計
 
-先讀取 `../_shared/conventions.md`,遵守其中所有文檔慣例(樹狀結構、編號、引用格式、frontmatter)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 feature 文檔);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`。
 
 ## 目標
 
@@ -14,7 +14,7 @@ user-invocable: true
 
 ## 委派模式(prompt 標明【委派模式】時)
 
-被 `/subsys-build` 委派執行時,先讀 `../_shared/conventions.md` 的「委派模式共通契約」,並對本 skill 做以下替換(**沒有這個標記時完全不適用,照原流程走**):
+被 `/subsys-build` 委派執行時,先讀 `../_shared/delegation.md`,並對本 skill 做以下替換(**沒有這個標記時完全不適用,照原流程走**):
 
 | 步驟 | 委派模式下的作法 |
 |---|---|
@@ -25,7 +25,7 @@ user-invocable: true
 | 4. 一致性檢查 | **完整執行**。發現不一致就改文件重跑,不得帶著矛盾交出去 |
 | 5. 回頭檢查架構文件 | **只檢查、不修改**。要改 `design.md` / `system.md` 的,寫進回報給編排者裁決 |
 | 回填 `design.md` 的 `doc` 欄 | **不做**。由編排者單線回填(平行寫同一檔會互蓋) |
-| 6. 收尾 | 改為輸出 conventions 定義的**結構化回報**,不是給人看的摘要 |
+| 6. 收尾 | 改為輸出 `delegation.md` 定義的**結構化回報**,不是給人看的摘要 |
 
 契約卡不足以支撐某個決定時:採當下最合理的作法繼續,記進「待確認假設」——**不要停擺、也不要在對話中提問**(沒有人會回答)。契約卡本身與 `design.md` 契約章節矛盾時,以 `design.md` 為準並回報這個矛盾。
 

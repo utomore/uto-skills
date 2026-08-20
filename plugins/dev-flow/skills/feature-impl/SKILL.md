@@ -54,5 +54,6 @@ user-invocable: true
 ## 5. 收尾
 
 - 全部 Todo 完成且測試通過 → `status` 改 `done`、更新 `updated`
+- 專案有程式碼知識圖時,依 `../_shared/codegraph.md`「目前的產生器」表的更新指令讓圖跟上這次的改動;沒有圖或跑不動就略過並在摘要提一句,不要卡住收尾
 - 摘要給開發者:完成了哪些 Todo、測試結果、文檔狀態變更、有無偏差記錄
 - 提醒:可用 `/branch-pr` 整合分支發 PR,或用 `/arch-audit status` 檢視整體進度;整個子系統還有多個 feature 待做時,可用 `/subsys-build <slug>` 委派展開剩下的階段

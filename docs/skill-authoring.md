@@ -38,6 +38,7 @@ for f in skills/*/SKILL.md skills/_shared/*.md; do printf "%4d %s\n" "$(wc -l < 
 | `conventions.md` | 每個 skill 都讀 |
 | `frontmatter.md` | 要新建 `.design/` 文檔,或要確認某個 frontmatter 欄位怎麼寫時 |
 | `delegation.md` | prompt 標明 `【委派模式】`,或身為 `/subsys-build` 的編排者時 |
+| `codegraph.md` | 某個 skill 的步驟明確指向它,**且**專案建過程式碼知識圖時(opt-in,判定不過就整片不讀) |
 
 新增共用內容時先判斷它屬於哪一片。判斷不出來,通常表示它其實是單一 skill 的規則。
 

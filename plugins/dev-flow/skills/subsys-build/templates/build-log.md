@@ -33,13 +33,13 @@ parent: <subsystem-slug>
 | D1 | <問題> | <決定> | <哪些 feature> |
 
 ## 配號表
-(fan out 前預先分配,平行執行不得自行配號;模型欄填實際用的,繼承就寫「繼承」)
+(fan out 前預先分配,平行執行不得自行配號;委派模型固定 `sonnet`,兩個模型欄都照填)
 
 | feature | id | 檔名 | 設計模型 | 實作模型 | 狀態 |
 |---|---|---|---|---|---|
-| <feature-slug> | F001 | F001-<slug>.md | 繼承 | sonnet | design-done / impl-done |
+| <feature-slug> | F001 | F001-<slug>.md | sonnet | sonnet | design-done / impl-done |
 
-模型欄是閘門的診斷依據:品質有問題時,能區分是契約卡寫得不夠,還是模型降級造成的。
+模型欄是閘門的診斷依據:委派模型固定 `sonnet`,所以品質有問題時歸因得回契約卡寫得夠不夠,不會混進模型差異。
 
 ## 待確認假設彙總
 (各 feature 文檔「待確認假設」段落的彙總,含開發者在閘門的裁決)

@@ -87,25 +87,21 @@ user-invocable: true
 
 對當前階段的每一波:
 
-### 3a. 預先配號與模型分配(你做,fan out 之前)
+### 3a. 預先配號與模型指定(你做,fan out 之前)
 
 掃 `subsystems/<slug>/features/` 取 `F` 最大編號,**為本波(建議直接為整個階段)每個 feature 預先分配** `F00x` 與檔名 slug,寫進 `build-log.md` 的配號表。
 
 **這一步不能省也不能延後**:`/feature-design` 原本的配號規則是「掃資料夾取最大值 +1」,平行 subagent 同時掃會全部拿到同一個號。號由你發,衝突就不存在。
 
-同時決定每個 feature 的**執行模型**,一併寫進配號表。預設**不指定**(繼承主 session),要壓成本才降級;有疑慮就不要降——設計錯了整條依賴鏈重跑,實作錯了還有 1-to-1 測試接得住:
+**執行模型固定為 `sonnet`,而且一定要帶。** 3b 的設計委派與 3c 的實作委派,每一次呼叫 Agent 工具都**必須明確帶上 `model: "sonnet"`**——不得省略讓它繼承主 session,也不得依 feature 大小改用別的模型。配號表的兩個模型欄一律填 `sonnet`。
 
-| 契約卡的樣子 | 建議 |
-|---|---|
-| 跨多個模組介面、依賴鏈長、後面還有 feature 疊在上面 | 不指定(繼承) |
-| 單一入口、依賴 0~1 條、行為在卡上已寫死 | 設計繼承、實作可降 |
-| 純樣板(CRUD、DTO 轉換、既有模式的複製) | 兩者都可降 |
+理由:委派出去的是 Level 3 的工作,契約卡已經把邊界寫死,判斷空間有限;把模型固定下來,子代的成本與行為就不隨主 session 當下用哪個模型漂移,閘門看到品質問題時也能直接歸因到契約卡寫得夠不夠,而不是模型差異。
 
-模型是**呼叫 Agent 工具時的參數,不是 prompt 內容**——寫進 3b/3c 的 prompt 模板不會報錯,只是靜默沒作用。可用值 `opus` / `sonnet` / `haiku` / `fable`;不帶就是繼承。
+模型是**呼叫 Agent 工具時的參數,不是 prompt 內容**——寫進 3b/3c 的 prompt 模板不會報錯,只是靜默沒作用。
 
 ### 3b. 委派 feature 設計(平行)
 
-本波每個 feature 各開一個 subagent,**同一則訊息內一次送出**讓它們併發。設計文檔各寫各的檔案,互不衝突,所以平行安全。呼叫時依配號表帶 `model`(該欄是「繼承」就不帶),同一批混用不同模型沒問題。
+本波每個 feature 各開一個 subagent,**同一則訊息內一次送出**讓它們併發。設計文檔各寫各的檔案,互不衝突,所以平行安全。每一個呼叫都要帶 `model: "sonnet"`(見 3a,不得省略、不得換模型)。
 
 用 subagent 的真正理由是 **context 隔離**:相依性查證要讀大量原始碼,那些 context 留在 subagent 裡,你只收回結構化回報。這就是 conventions 的「Context 載入紀律」自動化版本。
 
@@ -138,7 +134,7 @@ user-invocable: true
 
 理由:同一子系統的 features 常改同一批檔案,平行實作會互相蓋掉。序列跑就沒有這個問題;真要平行得用 git worktree 隔離再 merge,成本明顯高一截,不是預設選項。
 
-prompt 同 3b 的格式,skill 換成 `dev-flow:feature-impl`,目標填文檔 id,`model` 依配號表的「實作模型」欄。每個回報收到後:
+prompt 同 3b 的格式,skill 換成 `dev-flow:feature-impl`,目標填文檔 id,同樣帶 `model: "sonnet"`(不得省略)。每個回報收到後:
 
 - 測試失敗或有阻塞 → **立刻停下本階段的後續實作**,不要繼續往下堆(誤差沿依賴鏈複利是本流程最大的風險),直接進閘門
 - 順利完成 → 記進 build-log,**立刻 commit(checkpoint)**,再發下一個
@@ -156,7 +152,7 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 3. 跑 `/arch-audit subsys <slug>`——檢查資料流管線一致性、SRP、邊界外洩、模組介面漂移。**這是委派品質的把關點**,不可跳過
 4. 更新 `build-log.md` 的本階段結果
 5. 向開發者回報,固定四塊:
-   - **完成了什麼**:features、Todo 數、測試結果(通過/失敗);有降級模型的 feature 要標出來
+   - **完成了什麼**:features、Todo 數、測試結果(通過/失敗)
    - **待確認假設**:全部條列(來自哪個 feature 的 A1/A2…、採取了什麼判斷、判斷錯要改什麼)——**這是閘門的重點,不能只講「都完成了」**
    - **arch-audit 發現**:依嚴重度排序
    - **建議的上層變更**:哪些 Level 2 契約 subagent 認為該改
@@ -166,7 +162,7 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 
 ## 4. `build-log.md`
 
-路徑 `.design/subsystems/<slug>/build-log.md`。版面照本 skill 目錄下的 `templates/build-log.md`——建檔或更新時打開它照抄,五個章節:排程、委派決策記錄、配號表(含設計/實作模型欄)、待確認假設彙總、階段結果。
+路徑 `.design/subsystems/<slug>/build-log.md`。版面照本 skill 目錄下的 `templates/build-log.md`——建檔或更新時打開它照抄,五個章節:排程、委派決策記錄、配號表(設計/實作模型欄一律 `sonnet`)、待確認假設彙總、階段結果。
 
 全部階段完成後 `status` 改 `done`。
 

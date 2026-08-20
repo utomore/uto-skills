@@ -31,8 +31,9 @@ user-invocable: true
 | 寫入 `design.md`(回填 `doc` 欄)與 `system.md` | 寫程式碼與測試 |
 | 寫入 `build-log.md` | 勾 TodoList、回寫任務文檔 `status` |
 | 跑 `/arch-audit`、彙整回報 | — |
+| git commit(波次 checkpoint、階段收尾) | **不碰 git**:不 add、不 commit、不切分支 |
 
-你**不寫任何 feature 設計內容,也不寫任何程式碼**。你的產出只有:`build-log.md`、`design.md` 的回填、給開發者的回報。
+你**不寫任何 feature 設計內容,也不寫任何程式碼**。你的產出只有:`build-log.md`、`design.md` 的回填、git commit、給開發者的回報。
 
 ## 前置(不可跳過)
 
@@ -51,6 +52,8 @@ user-invocable: true
    不過關時:列出缺什麼,告知開發者先走 `/subsys-design` 更新模式補齊(契約卡不完整就委派,等於讓 subagent 腦補契約——這正是本流程要避免的事),然後結束。
 
 5. `build-log.md` 已存在 → **接續模式**:讀它,跳過已完成的波次,從中斷處繼續(配號沿用既有的表,不重配)
+
+6. **工作樹檢查**:`git status` 要乾淨。checkpoint commit 用 `git add -A`,開跑時若有無關的改動會被一起吞進去——不乾淨就請開發者先 stash 或 commit。接續模式下另外對照 `git log`,確認 build-log 記的進度與 git 歷史一致(對不上以 git 為準,build-log 補正)
 
 ## 1. 排波次
 
@@ -81,15 +84,27 @@ user-invocable: true
 
 對當前階段的每一波:
 
-### 3a. 預先配號(你做,fan out 之前)
+### 3a. 預先配號與模型分配(你做,fan out 之前)
 
 掃 `subsystems/<slug>/features/` 取 `F` 最大編號,**為本波(建議直接為整個階段)每個 feature 預先分配** `F00x` 與檔名 slug,寫進 `build-log.md` 的配號表。
 
 **這一步不能省也不能延後**:`/feature-design` 原本的配號規則是「掃資料夾取最大值 +1」,平行 subagent 同時掃會全部拿到同一個號。號由你發,衝突就不存在。
 
+同一時間決定每個 feature 的**執行模型**,一併寫進配號表。預設是**不指定**——subagent 繼承主 session 的模型;要壓成本或加速時才降級:
+
+| 契約卡的樣子 | 建議 |
+|---|---|
+| 跨多個模組介面、依賴鏈長、後面還有 feature 疊在上面 | 不指定(繼承) |
+| 單一入口、依賴 0~1 條、行為在卡上已寫死 | 設計繼承、實作可降 |
+| 純樣板(CRUD、DTO 轉換、既有模式的複製) | 兩者都可降 |
+
+原則:**設計比實作值得給好模型**。設計錯了整條依賴鏈要重跑,實作錯了還有 1-to-1 測試接得住。有疑慮就不要降——省下來的成本遠小於一個階段重跑。
+
+機制上要注意:模型是**呼叫 Agent 工具時的參數,不是 prompt 內容**,寫進 3b/3c 的 prompt 模板裡不會生效。可用值只有 `opus` / `sonnet` / `haiku` / `fable`(不是完整 model id);不帶就是繼承。
+
 ### 3b. 委派 feature 設計(平行)
 
-本波每個 feature 各開一個 subagent,**同一則訊息內一次送出**讓它們併發。設計文檔各寫各的檔案,互不衝突,所以平行安全。
+本波每個 feature 各開一個 subagent,**同一則訊息內一次送出**讓它們併發。設計文檔各寫各的檔案,互不衝突,所以平行安全。呼叫時依配號表帶 `model`(該欄是「繼承」就不帶),同一批混用不同模型沒問題。
 
 用 subagent 的真正理由是 **context 隔離**:相依性查證要讀大量原始碼,那些 context 留在 subagent 裡,你只收回結構化回報。這就是 conventions 的「Context 載入紀律」自動化版本。
 
@@ -114,6 +129,7 @@ user-invocable: true
 1. 回填 `design.md` 功能規劃的 `doc` 欄(**單線寫,一次寫完所有列**,同步 `updated`)——這是唯一避免平行寫同一檔互蓋的方法
 2. 彙整所有「待確認假設」與「建議修改的 Level 2 契約」,**先不要自己改契約**,留到階段閘門讓開發者裁決
 3. 有 subagent 回報阻塞 → 不要換個說法重試同一件事;記進 build-log,帶到閘門
+4. commit 本波的設計產出(只含 `.design/`,message 例:`docs(<slug>): W2 feature 設計`)——回填完再 commit,一次一波
 
 ### 3c. 委派實作(階段內序列)
 
@@ -121,10 +137,14 @@ user-invocable: true
 
 理由:同一子系統的 features 常改同一批檔案,平行實作會互相蓋掉。序列跑就沒有這個問題;真要平行得用 git worktree 隔離再 merge,成本明顯高一截,不是預設選項。
 
-prompt 同 3b 的格式,skill 換成 `dev-flow:feature-impl`,目標填文檔 id。每個回報收到後:
+prompt 同 3b 的格式,skill 換成 `dev-flow:feature-impl`,目標填文檔 id,`model` 依配號表的「實作模型」欄。每個回報收到後:
 
 - 測試失敗或有阻塞 → **立刻停下本階段的後續實作**,不要繼續往下堆(誤差沿依賴鏈複利是本流程最大的風險),直接進閘門
-- 順利完成 → 記進 build-log,發下一個
+- 順利完成 → 記進 build-log,**立刻 commit(checkpoint)**,再發下一個
+
+checkpoint commit 由**你**做,subagent 不碰 git。一次只有一個實作在跑,所以 `git add -A` 是安全的;message 帶上文檔 id(例:`feat(<slug>): F006 <feature-slug>`),讓 build-log 的進度與 git 歷史對得起來。
+
+checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。它是**可回退的已知良好狀態**:上面那條「測試失敗就停下」的規則,要有 checkpoint 才退得回去;閘門裁決某個 feature 要重做時,也才拆得掉單一 feature 的改動。
 
 ### 3d. 階段閘門(人放行)
 
@@ -134,13 +154,13 @@ prompt 同 3b 的格式,skill 換成 `dev-flow:feature-impl`,目標填文檔 id�
 2. 跑 `/arch-audit subsys <slug>`——檢查資料流管線一致性、SRP、邊界外洩、模組介面漂移。**這是委派品質的把關點**,不可跳過
 3. 更新 `build-log.md` 的本階段結果
 4. 向開發者回報,固定四塊:
-   - **完成了什麼**:features、Todo 數、測試結果(通過/失敗)
+   - **完成了什麼**:features、Todo 數、測試結果(通過/失敗);有降級模型的 feature 要標出來
    - **待確認假設**:全部條列(來自哪個 feature 的 A1/A2…、採取了什麼判斷、判斷錯要改什麼)——**這是閘門的重點,不能只講「都完成了」**
    - **arch-audit 發現**:依嚴重度排序
    - **建議的上層變更**:哪些 Level 2 契約 subagent 認為該改
 5. 用 AskUserQuestion 讓開發者選:**進下一階段** / **先修這些問題**(走 `/bugfix`、`/enhance-design`,或回 `/subsys-design` 改契約後重跑本階段) / **就此停下**
 6. 開發者要修契約 → 由**你**更新 `design.md`(不是 subagent),更新後受影響的 feature 要重跑,不能靠既有產出將就
-7. 詢問是否 commit 本階段成果(不主動 push;整合發 PR 走 `/branch-pr`)
+7. 詢問是否為本階段收尾(squash 成一個 commit 或打 tag 皆可;checkpoint 已在過程中留下,這裡只處理歷史整理)。**不主動 push**;整合發 PR 走 `/branch-pr`
 
 ## 4. `build-log.md` 格式
 
@@ -176,11 +196,13 @@ parent: <subsystem-slug>
 | D1 | <問題> | <決定> | <哪些 feature> |
 
 ## 配號表
-(fan out 前預先分配,平行執行不得自行配號)
+(fan out 前預先分配,平行執行不得自行配號;模型欄填實際用的,繼承就寫「繼承」)
 
-| feature | id | 檔名 | 狀態 |
-|---|---|---|---|
-| <feature-slug> | F001 | F001-<slug>.md | design-done / impl-done |
+| feature | id | 檔名 | 設計模型 | 實作模型 | 狀態 |
+|---|---|---|---|---|---|
+| <feature-slug> | F001 | F001-<slug>.md | 繼承 | sonnet | design-done / impl-done |
+
+模型欄是閘門的診斷依據:品質有問題時,能區分是契約卡寫得不夠,還是模型降級造成的。
 
 ## 待確認假設彙總
 (各 feature 文檔「待確認假設」段落的彙總,含開發者在閘門的裁決)
@@ -200,6 +222,7 @@ parent: <subsystem-slug>
 
 - 摘要:跑了幾個階段、產出幾份 feature 文檔、幾個 Todo、測試總結、契約卡是否在過程中被修訂
 - **未裁決的待確認假設**:如果開發者選擇提前停下,明確列出還懸著的假設
+- **git 狀態**:已 checkpoint 到哪一個 feature、有沒有未 commit 的殘留
 - 剩下的階段與繼續方式(再跑一次 `/subsys-build <slug>` 會走接續模式)
 - 建議下一步:`/arch-audit system`(跨子系統一致性)、`/branch-pr`(整合發 PR)
 

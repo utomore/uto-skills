@@ -319,8 +319,15 @@ const WORDING_RULES = [
 
 const EMPTY_TITLE = /^(概述|總結|摘要|簡介|介紹|背景|前言|結語|結論|內容|大綱|關於.{0,10}|overview|summary|introduction|background|conclusion|agenda)$/i;
 
-/** 回傳這段文字命中的規則(同一類只回一次) */
-function scanWording(text, isTitle = false) {
+/** 標題專屬規則(wording.md 禁區四):一句話講完、寫重點主軸而不是描述 */
+const TITLE_RULES = [
+  { id: "標題串兩件事", eg: "標題一句話講完,非必要不用逗號", pat: /[,,]/ },
+  { id: "描述式標題", eg: "標題寫這頁的結論,不寫「介紹/說明什麼」", pat: /^(?:介紹|說明|解析|剖析|淺談|漫談|概述|概觀|探討|分享|認識|了解|瞭解|回顧|盤點|比較)|(?:說明|介紹|解析|概觀|總覽|一覽|簡介|分析|流程|方法)$/ },
+  { id: "標題帶前提", eg: "前提/範圍/方法留給內文", pat: /^(?:在|當|如果|若|針對|對於)[^\n]{2,}?(?:時|下|的情況|的情境|來說)/ },
+];
+
+/** 回傳這段文字命中的規則(同一類只回一次);kind = 標題 / 小標 / 內文 / 備註 / 圖形標籤 */
+function scanWording(text, kind = "內文") {
   const t = String(text).replace(/`[^`]*`/g, " ").replace(/\s+/g, " ").trim();
   if (!t) return [];
   const hits = [];
@@ -329,7 +336,16 @@ function scanWording(text, isTitle = false) {
     const m = t.match(r.pat);
     if (m && !seen.has(r.id)) { seen.add(r.id); hits.push({ id: r.id, eg: r.eg, hit: m[0].trim() }); }
   }
-  if (isTitle && EMPTY_TITLE.test(t.replace(/[::。!!??\s]+$/, ""))) hits.push({ id: "無資訊標題", eg: "標題要寫這頁的結論或問題", hit: t });
+  const bare = t.replace(/[::。!!??\s]+$/, "");
+  if ((kind === "標題" || kind === "小標") && EMPTY_TITLE.test(bare)) {
+    hits.push({ id: "無資訊標題", eg: "標題要寫這頁的結論或問題", hit: t });
+  }
+  if (kind === "標題") {
+    for (const r of TITLE_RULES) {
+      const m = bare.match(r.pat);
+      if (m) hits.push({ id: r.id, eg: r.eg, hit: m[0].trim().length > 1 ? m[0].trim() : bare });
+    }
+  }
   return hits;
 }
 
@@ -628,10 +644,10 @@ if (hasSrc && decks.length) {
   if (hard === beforeNotes) ok("備註覆蓋合格(△ 項仍請逐條確認)");
 
   // ---------- 文案語感(禁用句型與人稱)----------
-  console.log("\n=== 文案語感(禁用句型與人稱;基準 _shared/wording.md)===");
+  console.log("\n=== 文案語感(禁用句型、人稱與標題寫法;基準 _shared/wording.md)===");
   const wordRows = [];
-  const pushHits = (page, where, text, isTitle) => {
-    for (const h of scanWording(text, isTitle)) {
+  const pushHits = (page, where, text, kind = "內文") => {
+    for (const h of scanWording(text, kind)) {
       wordRows.push({ page, where, rule: h.id, hit: truncate(h.hit, 20), text: truncate(text, 42), eg: h.eg });
     }
   };
@@ -639,26 +655,31 @@ if (hasSrc && decks.length) {
   for (const d of decks) {
     for (const sl of d.slides) {
       pgW++;
-      for (const ln of sl.textLines) pushHits(pageNo(pgW), ln.kind, ln.text, ln.kind !== "內文");
-      for (const n of sl.notes) for (const line of n.split(/\r?\n/)) pushHits(pageNo(pgW), "備註", line, false);
+      for (const ln of sl.textLines) pushHits(pageNo(pgW), ln.kind, ln.text, ln.kind);
+      for (const n of sl.notes) for (const line of n.split(/\r?\n/)) pushHits(pageNo(pgW), "備註", line, "備註");
     }
   }
-  for (const dg of diagrams) for (const t of dg.style.texts) pushHits(dg.id, "圖形標籤", t, false);
+  for (const dg of diagrams) for (const t of dg.style.texts) pushHits(dg.id, "圖形標籤", t, "圖形標籤");
   if (wordRows.length) {
     printTable(
       { page: "頁/圖", where: "位置", rule: "命中", hit: "片段", text: "原句", eg: "禁用句型" },
       wordRows.map((r) => ({ page: r.page, where: r.where, rule: r.rule, hit: r.hit, text: r.text, eg: r.eg })),
     );
-    const titleHits = wordRows.filter((r) => r.where === "標題" || r.where === "副標");
+    const TITLE_RULE_IDS = new Set(["標題串兩件事", "描述式標題", "標題帶前提", "無資訊標題"]);
+    const titleHits = wordRows.filter((r) => (r.where === "標題" || r.where === "副標") && !TITLE_RULE_IDS.has(r.rule));
+    const titleFormHits = wordRows.filter((r) => TITLE_RULE_IDS.has(r.rule));
     const byRule = new Map();
     for (const r of wordRows) byRule.set(r.rule, (byRule.get(r.rule) ?? 0) + 1);
     console.log("命中分布:" + [...byRule.entries()].map(([k, n]) => `${k}(${n})`).join(" "));
     if (titleHits.length) {
-      warn(`標題/副標命中 ${titleHits.length} 條(第 ${[...new Set(titleHits.map((r) => r.page))].join("、")} 頁)— /review 判定為阻斷項,逐句改成直述句`);
+      warn(`標題/副標命中禁用句型或人稱 ${titleHits.length} 條(第 ${[...new Set(titleHits.map((r) => r.page))].join("、")} 頁)— /review 判定為阻斷項,逐句改成直述句`);
+    }
+    if (titleFormHits.length) {
+      warn(`標題寫法命中 ${titleFormHits.length} 條(第 ${[...new Set(titleFormHits.map((r) => r.page))].join("、")} 頁)— 標題要一句話講完並寫出這頁的重點主軸;逗號串兩件事先確認該拆頁還是砍一半,計入第 14 項`);
     }
     warn(`文案語感候選 ${wordRows.length} 條 — 逐條開檔確認是真命中還是正則誤判(「是不是」「不是…就是…」等並列不算),確認後計入第 14 項`);
   } else {
-    ok("投影片文字、備註與圖形標籤都沒有命中禁用句型(仍以逐頁目視為準)");
+    ok("投影片文字、備註與圖形標籤都沒有命中禁用句型,標題也都是一句話(仍以逐頁目視為準)");
   }
 
   // ---------- 圖形引用 ----------
@@ -920,5 +941,5 @@ else console.log("無硬性不一致。");
 const bendy = diagrams.reduce((n, dg) => n + dg.style.connectors.filter((c) => c.turns >= 3).length, 0);
 if (bendy) console.log(`連接線轉折 ≥3 的線條共 ${bendy} 條 — 開檔確認哪些真的是連接線,計入圖解可讀性扣分。`);
 console.log(`版面、配色統一、用語/概念一致、AI 感、備註品質算不出來 — /review 必須 build 後逐頁開 ${totalPages} 頁目視判斷,上表只是證據與檢查清單。`);
-console.log("文案語感的命中清單是正則證據:每條都要開檔確認(誤判要排除),確認後逐條列進報告的「文案語感」段並計入第 14 項;標題/副標命中是阻斷項。")
+console.log("文案語感的命中清單是正則證據:每條都要開檔確認(誤判要排除),確認後逐條列進報告的「文案語感」段並計入第 14 項;標題/副標出現翻轉句或人稱是阻斷項,標題寫法(逗號串兩件事/描述式/帶前提)計入扣分並在報告寫出這頁真正的重點。")
 process.exit(hard > 0 ? 1 : 0);

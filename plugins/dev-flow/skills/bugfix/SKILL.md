@@ -6,7 +6,7 @@ user-invocable: true
 
 # /bugfix — 缺陷修復
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 bugfix 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來定位,不取代重現與根因驗證)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 bugfix 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來定位,不取代重現與根因驗證);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 本 skill 一條龍完成:**記錄缺陷 → 重現 → 根因分析 → 修復 → 回歸測試 → 回寫狀態**。缺陷文檔是修復的過程紀錄與回歸依據,不是待辦——建檔與修復在同一次執行內完成(開發者明確只要「先記錄、之後修」時例外,建檔後停在 `open`)。
 
@@ -78,4 +78,4 @@ related-feature: []     # 回鏈到出問題的 feature id(跨子系統引用帶
 
 - 修復完成且測試全綠 → 填寫「修復紀錄」、`status` 改 `done`、更新 `updated`
 - 摘要給開發者:文檔路徑與編號(B 或 G-B)、根因一句話、修法一句話、測試結果、有無另建議的 enhance 項目
-- 提醒:可用 `/branch-pr` 整合分支發 PR
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列被修到的介面/資料結構與狀態;修法若動到契約沒寫的東西,上偏離清單;下一步從樹上推(常見:`/branch-pr`,或另建議的 `/enhance-design`)

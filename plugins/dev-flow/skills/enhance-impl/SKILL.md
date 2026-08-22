@@ -6,7 +6,7 @@ user-invocable: true
 
 # /enhance-impl — Level 3 優化實作
 
-先讀取 `../_shared/conventions.md`(核心慣例)。本 skill 只改既有文檔的 `status` / `updated`,不需要 `../_shared/frontmatter.md`。
+先讀取 `../_shared/conventions.md`(核心慣例)。本 skill 只改既有文檔的 `status` / `updated`,不需要 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 實作自主權(本階段的核心原則)
 
@@ -42,4 +42,4 @@ user-invocable: true
 - 在「實作備註」記錄改善目標的**量化結果**(改善前後的數字或狀態,對照「改善目標」的驗收標準)
 - 專案有程式碼知識圖時,依 `../_shared/codegraph.md`「目前的產生器」表的更新指令讓圖跟上這次的改動(重構會大幅改變依賴關係,圖不更新會誤導下一次架構檢測);沒有圖或跑不動就略過並在摘要提一句
 - 摘要給開發者:完成了哪些 Todo、量化結果、測試結果、文檔狀態變更、有無偏差記錄
-- 提醒:可用 `/branch-pr` 整合分支發 PR,或用 `/arch-audit status` 檢視整體進度
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列「介面變動」各條的狀態;scope 標明不動的範圍若被碰到,必上偏離清單;下一步從樹上推(常見:`/arch-audit subsys <slug>` 確認重構後的邊界,或 `/branch-pr`)

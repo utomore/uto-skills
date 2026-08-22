@@ -6,7 +6,7 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、引用格式、資訊抽象邊界規範);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、引用格式、資訊抽象邊界規範);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## Scope 判斷
 
@@ -97,3 +97,4 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 
 - status scope:摘要整體進度(done/總數、各子系統進度、契約卡就緒度、待展開 feature 數、不一致數),建議下一步命令(契約卡滿格的子系統可提 `/subsys-build` 委派展開)
 - 分析型 scope:摘要發現數量(依嚴重度)、最關鍵的前幾條、建議的後續文檔(走 `/bugfix` 或 `/enhance-design` 的清單)
+- 兩種 scope 最後都輸出**定錨區塊**(`../_shared/anchor.md`):status scope 的數字直接取自剛跑的腳本,位置樹以開發者指定(沒指定就取進度最落後)的子系統為「所在」;分析型 scope 以被檢測的子系統/feature 為「目前」,本次發現裡屬於契約與程式碼不符的,照樣寫進偏離清單

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /feature-design — Level 3 功能設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 feature 文檔);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(只用來加速步驟 2 的**定位**,不改變任何查證要求)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 feature 文檔);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(只用來加速步驟 2 的**定位**,不改變任何查證要求);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -153,4 +153,4 @@ TodoList 的每一項都必須在測試對照表有對應的一條測試(1-to-1)
 
 ### 6. 收尾
 
-摘要:文檔路徑與編號、相依性結論(可否平行、`depends-on` 最終值與依據)、一致性檢查是否修正過相依結論、架構文件是否有更新、「功能規劃」doc 欄是否已回填。最後提醒:可用 `/feature-impl <id>` 依本文檔實作。
+摘要:文檔路徑與編號、相依性結論(可否平行、`depends-on` 最終值與依據)、一致性檢查是否修正過相依結論、架構文件是否有更新、「功能規劃」doc 欄是否已回填。最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列出「新增的介面」與 DTO(此時狀態皆為「設計」);下一步通常是 `/feature-impl <id>`。

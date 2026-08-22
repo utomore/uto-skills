@@ -6,7 +6,7 @@ user-invocable: true
 
 # /branch-pr — 整合 branch 發 PR
 
-先讀取 `../_shared/conventions.md`(核心慣例)。本 skill 不動 `.design/` 文檔,不需要另外兩片分片。
+先讀取 `../_shared/conventions.md`(核心慣例);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。本 skill 不動 `.design/` 文檔,不需要其他分片。
 
 ## 1. 盤點
 
@@ -54,4 +54,4 @@ user-invocable: true
 ## 4. 收尾
 
 - 向使用者回報 PR 的大綱與說明:PR 網址、標題、內文各章節的重點摘要(摘要 / 變更內容 / 對應文檔 / 測試結果 / 注意事項)、包含的 branch 清單、labels
-- 提醒:PR merge 後可執行 `/arch-audit status` 確認對應文檔狀態是否已標 done
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本 PR 涵蓋的 feature/E/B 文檔全部標出,狀態以其 frontmatter 為準;PR 內有變更卻對不到任何文檔的檔案,上偏離清單;下一步通常是 merge 後 `/arch-audit status`

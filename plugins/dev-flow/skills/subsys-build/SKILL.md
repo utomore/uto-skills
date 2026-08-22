@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(編排層)
 
-先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/delegation.md`(**委派模式共通契約**——你是那一節裡的「編排者」);要建或改 `build-log.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`;要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用)。
+先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/delegation.md`(**委派模式共通契約**——你是那一節裡的「編排者」);要建或改 `build-log.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`;要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -156,6 +156,7 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
    - **待確認假設**:全部條列(來自哪個 feature 的 A1/A2…、採取了什麼判斷、判斷錯要改什麼)——**這是閘門的重點,不能只講「都完成了」**
    - **arch-audit 發現**:依嚴重度排序
    - **建議的上層變更**:哪些 Level 2 契約 subagent 認為該改
+   - **定錨區塊**(`../_shared/anchor.md`):位置樹以本階段的 features 為「目前」、逐條列介面與 DTO 的狀態;待確認假設中與契約牴觸的一律進偏離清單;下一步 = 下一點的三個選項
 6. 用 AskUserQuestion 讓開發者選:**進下一階段** / **先修這些問題**(走 `/bugfix`、`/enhance-design`,或回 `/subsys-design` 改契約後重跑本階段) / **就此停下**
 7. 開發者要修契約 → 由**你**更新 `design.md`(不是 subagent),更新後受影響的 feature 要重跑,不能靠既有產出將就
 8. 詢問是否為本階段收尾(squash 成一個 commit 或打 tag 皆可;checkpoint 已在過程中留下,這裡只處理歷史整理)。**不主動 push**;整合發 PR 走 `/branch-pr`
@@ -172,7 +173,7 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 - **未裁決的待確認假設**:如果開發者選擇提前停下,明確列出還懸著的假設
 - **git 狀態**:已 checkpoint 到哪一個 feature、有沒有未 commit 的殘留
 - 剩下的階段與繼續方式(再跑一次 `/subsys-build <slug>` 會走接續模式)
-- 建議下一步:`/arch-audit system`(跨子系統一致性)、`/branch-pr`(整合發 PR)
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹展開本子系統全部 features 的最終狀態;未裁決的待確認假設進偏離清單;下一步從樹上推(全部階段完成 → `/arch-audit system`、`/branch-pr`;提前停下 → 再跑 `/subsys-build <slug>` 接續)
 
 ## 邊界
 

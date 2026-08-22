@@ -6,7 +6,7 @@ user-invocable: true
 
 # /system-design — Level 1 系統主架構設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、命名、**資訊抽象邊界規範**);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/frontmatter.md`。
+先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、命名、**資訊抽象邊界規範**);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -109,4 +109,4 @@ updated: <today>
 
 - 向開發者摘要:產出了哪些檔案、架構重點、子系統劃分結論、通訊拓撲、各階段規劃
 - 說明 `.design/system.md` 是專案燈塔,之後 `/subsys-design`、`/feature-design`、`/enhance-design` 都以它為依據;`.design/adr/` 有新決策會持續擴充
-- 「子系統劃分」中列出的子系統,建議開發者逐一執行 `/subsys-design` 展開 Level 2 細節(建檔後 `subsystems` 會回填)
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹畫 `system.md` 加「子系統劃分」的每個子系統一行(已建 / 未建);下一步通常是對下一個未建的子系統跑 `/subsys-design`(建檔後 `subsystems` 會回填)

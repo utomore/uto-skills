@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-design — Level 2 子系統架構設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、命名、**資訊抽象邊界規範**);本 skill 要新建 `design.md`,另讀 `../_shared/frontmatter.md`。
+先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、命名、**資訊抽象邊界規範**);本 skill 要新建 `design.md`,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -168,6 +168,6 @@ code-paths: []          # 選填,見下
 ### 6. 收尾
 
 - 向開發者摘要:產出的檔案、子系統設計重點、功能規劃結論(幾個 features、幾個階段、契約卡幾張)、主架構同步了什麼、新增了哪些 ADR
-- 說明兩條後續路徑,讓開發者選:
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹畫到功能規劃的每個 feature 一行(此時全是「待展開」);下一步二選一,讓開發者選:
   - **逐一手動**:`/feature-design` 依「功能規劃」清單一次展開一個(建檔後回填 doc 欄),每個 feature 都能訪談深談
   - **委派展開**:`/subsys-build <slug>` 一次跑完整個子系統——批次澄清一次問完、依「依賴」欄排波次委派 subagent、每個階段結束停下來給你驗收

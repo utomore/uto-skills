@@ -6,7 +6,7 @@ user-invocable: true
 
 # /enhance-design — Level 3 優化設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來估影響面,不取代讀程式碼)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來估影響面,不取代讀程式碼);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -132,4 +132,4 @@ TodoList 的每一項都必須在測試對照表有對應的一條測試(1-to-1)
 
 ### 7. 收尾
 
-摘要:文檔路徑與編號(E 或 G-E)、scope 定案結論(涵蓋/排除了什麼)、相依性結論、一致性檢查是否有修正、架構文件是否有更新。最後提醒:可用 `/enhance-impl <id>` 依本文檔實作。
+摘要:文檔路徑與編號(E 或 G-E)、scope 定案結論(涵蓋/排除了什麼)、相依性結論、一致性檢查是否有修正、架構文件是否有更新。最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列出「介面變動」的條目(此時狀態皆為「設計」;被排除的「順便改」不上樹);下一步通常是 `/enhance-impl <id>`。

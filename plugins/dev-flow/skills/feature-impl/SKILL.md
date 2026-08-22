@@ -6,7 +6,7 @@ user-invocable: true
 
 # /feature-impl — Level 3 功能實作
 
-先讀取 `../_shared/conventions.md`(核心慣例);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`。本 skill 只改既有文檔的 `status` / `updated`,不需要 `../_shared/frontmatter.md`。
+先讀取 `../_shared/conventions.md`(核心慣例);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`。本 skill 只改既有文檔的 `status` / `updated`,不需要 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 實作自主權(本階段的核心原則)
 
@@ -56,4 +56,4 @@ user-invocable: true
 - 全部 Todo 完成且測試通過 → `status` 改 `done`、更新 `updated`
 - 專案有程式碼知識圖時,依 `../_shared/codegraph.md`「目前的產生器」表的更新指令讓圖跟上這次的改動;沒有圖或跑不動就略過並在摘要提一句,不要卡住收尾
 - 摘要給開發者:完成了哪些 Todo、測試結果、文檔狀態變更、有無偏差記錄
-- 提醒:可用 `/branch-pr` 整合分支發 PR,或用 `/arch-audit status` 檢視整體進度;整個子系統還有多個 feature 待做時,可用 `/subsys-build <slug>` 委派展開剩下的階段
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下每條介面與 DTO 的狀態依實際程式碼與測試結果填(完成 / 實作中 / 偏離),「實作備註」裡的偏差要出現在偏離清單;下一步從樹上推:同子系統還有待做 feature → `/feature-impl <下一個 id>` 或 `/subsys-build <slug>`,都做完 → `/branch-pr`

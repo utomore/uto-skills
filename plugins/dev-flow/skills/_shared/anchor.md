@@ -1,0 +1,55 @@
+# 收尾定錨
+
+`_shared/conventions.md` 的分片。每個 skill 的收尾、以及 `/subsys-build` 的每個階段閘門,回報的**最後**都要附本片定義的「定錨區塊」。
+
+一次執行只看得到自己那一小塊,連做幾次,方向就會被眼前的工作帶著走。定錨區塊把「現在在整棵樹的哪裡、離完成多遠、有沒有偏離主軸、下一步是什麼」固定在每次收尾的最後,讓開發者每次都用同一個視角核對。
+
+委派模式下的 subagent **不輸出**定錨區塊(它回報給編排者,不是給人);由編排者在閘門輸出。
+
+## 區塊格式(四段,順序固定,總長不超過一個畫面)
+
+### 1. 位置樹
+
+從 `.design/system.md` 畫到目前工作的文檔,**只畫最近的**:所在子系統完整展開、其他子系統各一行;目前文檔之下列出它的介面與資料結構及各自狀態。目前所在的節點一律標 `◀ 目前`,所在子系統標 `◀ 所在`。
+
+```
+.design/system.md  <專案一句話>                          整體 done 3/9
+├─ subsystems/auth/design.md  ◀ 所在                    features 2/4 done · 契約卡 4/4
+│  ├─ F001-login                                         done
+│  ├─ F002-token-refresh  ◀ 目前                         in-progress · Todo 3/5 · 測試 3/5
+│  │  ├─ 介面 `refreshToken(req: RefreshReq): Promise<TokenPair>`   實作中(對外契約 §2)
+│  │  ├─ 介面 `TokenStore.rotate(id: string): Promise<void>`        完成(模組間公開介面 §1)
+│  │  ├─ DTO  `RefreshReq { refreshToken, deviceId }`              完成(對外契約 §2)
+│  │  └─ DTO  `TokenPair { access, refresh, expiresAt, scope }`    偏離:`scope` 欄契約沒有
+│  ├─ F003-logout                                        設計(文檔已建,未實作)
+│  └─ F004-session-list                                  待展開
+├─ subsystems/billing/design.md                          features 1/3 done
+└─ subsystems/notify/design.md                           未建(system.md 有列,無 design.md)
+```
+
+介面與資料結構的狀態只用這五個詞:
+
+| 狀態 | 意思 |
+|---|---|
+| 契約 | `design.md` 有定義,還沒有 feature 文檔承接 |
+| 設計 | feature 文檔已列出簽名,程式碼還沒有 |
+| 實作中 | 程式碼有了,對應測試未寫或未過 |
+| 完成 | 程式碼 + 1-to-1 測試通過 |
+| 偏離 | 程式碼與契約簽名不同、或程式碼有但契約/文檔沒登記 |
+
+每條介面後面括號註明它對應 `design.md` 的哪一章(對外契約 / 模組間公開介面);找不到對應條目就是「偏離」。狀態來源只有三個:`scan-status.mjs` 的數字、目前文檔的 TodoList 與測試對照表、本次實際讀到或寫過的程式碼——沒讀到的不准猜,標「未查」。
+
+畫到哪一層依 skill 而定:`/system-design` 畫 `system.md` 加每個子系統一行(已建 / 未建);`/subsys-design` 畫到功能規劃的每個 feature 一行(待展開 / 設計 / 實作中 / done);Level 3 的 skill 畫到介面與資料結構。專案沒有 `.design/`(例如 `/study` 讀純程式碼)時,畫程式碼目錄樹的對應層級,並在樹頂標明「無 .design/,完成度無法量化」。
+
+### 2. 完成度
+
+一行數字,由外到內:整體 done/總數 → 所在子系統 done/總數(契約卡 n/m)→ 目前文檔 Todo n/m、測試 n/m。數字只能來自 `node "<arch-audit 目錄>/scripts/scan-status.mjs" .design` 與目前文檔,**不得自己估一個百分比**。Level 1/2 的 skill 寫到對應層級為止。
+
+### 3. 主軸檢查
+
+- **對應到哪裡**:本次動作對應 `system.md` 的哪個子系統職責、`design.md` 功能規劃的哪一列、契約卡的哪一條驗收標準——一句話,指到章節
+- **偏離清單**:本次做了、但上面任一層沒寫的事——新介面沒登記進契約、「順便改」到別的模組、碰到別的子系統的內部、做了契約卡「明確不做」的東西。每條附位置與建議(回填契約 / 另開 E 或 B 文檔 / 撤回)。沒有就寫「無」——**這一行不能省**,省掉就分不出「沒偏離」和「沒檢查」
+
+### 4. 下一步
+
+一條**具體命令**(含參數,如 `/feature-impl auth/F002`)加一句為什麼;最多再給兩條替代。下一步必須從位置樹的「目前」往下或往旁推得出來,不得建議樹上沒有的工作——想做樹上沒有的事,先走對應的 design skill 把它放上樹。

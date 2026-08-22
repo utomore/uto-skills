@@ -6,7 +6,7 @@ user-invocable: true
 
 # /study — 專案導讀
 
-先讀取 `../_shared/conventions.md`(核心慣例:`.design/` 樹狀結構、三層階梯的分層語意、Context 載入紀律);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來找入口、算呼叫鏈候選,不取代讀程式碼)。不建檔,不讀 `frontmatter.md`。
+先讀取 `../_shared/conventions.md`(核心慣例:`.design/` 樹狀結構、三層階梯的分層語意、Context 載入紀律);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來找入口、算呼叫鏈候選,不取代讀程式碼)。不建檔,不讀 `frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -123,3 +123,5 @@ user-invocable: true
 ## 收尾
 
 開發者說「夠了」或課程走完時,給一份**本次導讀的路線圖**:走過哪幾課、每課一句話結論、證據指到的關鍵檔案清單、標了 [推測] 的項目彙總(這些是開發者該去問作者或自己驗證的)、還沒走的區域。開發者要留存就請他自己存;本 skill 不寫檔。
+
+最後輸出**定錨區塊**(`../_shared/anchor.md`):有 `.design/` 就照格式畫、目前所在 = 導讀走到的子系統/feature;沒有就畫程式碼目錄樹並標明無法量化。偏離清單改填「本次導讀發現文檔與程式碼不一致之處」;下一步是還沒走的課,或該不一致對應的 dev-flow 命令。

@@ -1,6 +1,6 @@
 ---
 name: branch-pr
-description: 整合多條 branch 並發 PR 到主 branch — 建整合分支、依序 merge、跑測試、gh pr create 直接送出(標題英文、內文繁中)並打上對應 labels,不需使用者確認內容,發完回報 PR 大綱與說明。觸發詞:發 PR、整合分支、merge branch、pull request、整合開發分支。Use when integrating feature branches and creating a pull request.
+description: 整合多條 branch 並發 PR 到主 branch — 先確認當前分支(在主 branch 上就先開新分支把變更帶走,禁止從主 branch 直接發 PR)、建整合分支、依序 merge、跑測試、gh pr create 直接送出(標題英文、內文繁中)並打上對應 labels,不需使用者確認內容,發完回報 PR 大綱與說明。觸發詞:發 PR、整合分支、merge branch、pull request、整合開發分支。Use when integrating feature branches and creating a pull request.
 user-invocable: true
 ---
 
@@ -8,11 +8,21 @@ user-invocable: true
 
 先讀取 `../_shared/conventions.md`(核心慣例);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。本 skill 不動 `.design/` 文檔,不需要其他分片。
 
+## 0. 確認當前分支(必做,不得跳過)
+
+1. `git fetch --all --prune`;用 `gh repo view --json defaultBranchRef` 確認主 branch,`git branch --show-current` 取得當前分支
+2. **當前分支 = 主 branch 時,禁止直接在主 branch 上發 PR**,先開新分支把變更帶走:
+   - 用 `git status --porcelain` 與 `git log origin/<主branch>..HEAD --oneline` 盤點主 branch 上的未提交變更與領先 origin 的本地 commit
+   - 從變更內容推斷文檔 id 與 type,開分支 `<type>/<slug>`(如 `feat/auth-F001`、`fix/auth-B002`、`enhance/G-E001`);推斷不出來才用 AskUserQuestion 問分支名
+   - `git switch -c <新分支>`:未提交變更會跟著過去,領先的本地 commit 也保留在新分支;接著把本地主 branch 還原到 `origin/<主branch>`(`git branch -f <主branch> origin/<主branch>`),避免主 branch 留著未發 PR 的 commit
+   - 未提交變更在新分支上 commit(conventional commit 風格,訊息附文檔 id)後,以這條新分支當唯一候選,直接進入 §3 發 PR(不需整合分支)
+   - 主 branch 上既無未提交變更也無領先 commit → 沒有東西可發,回報後停止
+3. 當前分支不是主 branch → 照常進入 §1 盤點
+
 ## 1. 盤點
 
-1. `git fetch --all --prune`;用 `gh repo view --json defaultBranchRef` 確認主 branch
-2. 列出候選 branch(`git branch -a --no-merged <主branch>`)與各自對應的文檔 id(從 branch 名或 commit 訊息推斷;引用格式如 `auth/F001`、`G-E001`)
-3. 若使用者已指明要整合的 branch,或候選只有一條、順序無疑義,直接進行;僅在多條候選且無法從文檔或 branch 名推斷取捨時,才用 AskUserQuestion 詢問要整合哪些 branch 與順序
+1. 列出候選 branch(`git branch -a --no-merged <主branch>`;當前分支有未 push 的變更也算候選)與各自對應的文檔 id(從 branch 名或 commit 訊息推斷;引用格式如 `auth/F001`、`G-E001`)
+2. 若使用者已指明要整合的 branch,或候選只有一條、順序無疑義,直接進行;僅在多條候選且無法從文檔或 branch 名推斷取捨時,才用 AskUserQuestion 詢問要整合哪些 branch 與順序
 
 ## 2. 整合
 
@@ -25,7 +35,7 @@ user-invocable: true
 
 ## 3. 發 PR
 
-1. Push 整合分支
+1. 再次確認 `git branch --show-current` 不是主 branch,Push 要發 PR 的分支(整合分支,或 §0 新開的分支)
 2. 測試 / build 全綠後,組好 PR 內容**直接 `gh pr create` 送出,不需先向開發者確認**(發完後在收尾階段回報大綱與說明):
    - **標題**:英文 conventional commit 風格 + 對應文檔 id
      例:`feat: add user authentication (auth/F001)`、`fix: login timeout (auth/B002)`、`perf: incremental file scan (G-E001)`

@@ -1,6 +1,6 @@
 # 開發流程文檔慣例(共用核心)
 
-所有開發流程 skills(system-design、subsys-design、subsys-build、feature-design、enhance-design、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr)共用本慣例。
+所有開發流程 skills(system-design、subsys-design、subsys-build、feature-design、enhance-design、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
 
 本檔是**每個 skill 都要讀**的核心。另外三片按需載入,沒踩到條件就不用讀:
 

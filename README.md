@@ -4,7 +4,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ## dev-flow
 
-三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。包含十個 skills:
+三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。包含十一個 skills:
 
 | 指令 | 層級 | 職責 |
 |---|---|---|
@@ -18,6 +18,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | `/bugfix` | L3 | 缺陷修復 — 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
 | `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、契約卡對帳)/ `feature`(L2 介面符合度、edge cases、型別安全、待確認假設)/ `status`(腳本盤點各 feature 完成度、契約卡就緒度與待優化模組) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(標題英文 conventional commit、內文繁中、labels 英文) |
+| `/study` | — | 專案導讀(唯讀)— 由上而下帶開發者理解既有專案:全景(入口、技術棧、目錄職責)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量)→ **逐跳 trace code**(沿一條真實路徑從入口到輸出,附呼叫鏈摘要表);每課固定「結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
 
 共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分四片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)、`codegraph.md`(**程式碼知識圖整合**,專案建過圖時才讀)。每個 skill 開頭明列自己要讀哪幾片。
 

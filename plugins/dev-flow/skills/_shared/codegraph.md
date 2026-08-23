@@ -32,8 +32,15 @@
 | 產生器 | 建圖 | 更新 | 圖的位置 | 語言 |
 |---|---|---|---|---|
 | graphify | `graphify extract . --code-only --directed` | `graphify update .` | `graphify-out/graph.json` | py / ts / js / go / rs / java / c / cpp / rb / swift / kt / cs / scala / php / lua…(**不含 Haskell**) |
+| knot([utomore/knot-hs](https://github.com/utomore/knot-hs)) | `knot extract .` | `knot extract .`(同一指令,增量) | `codegraph.json` | **只有 Haskell**(cabal 專案;前提是 `cabal build all` 建得起來,且 knot 與專案用**同版 GHC**——`knot --version` 括號裡就是它能掃的版本,不合會以 `VersionMismatch` 整體失敗) |
 
-保留邊方向的選項(graphify 是 `--directed`)**不能省**:無向圖會把 A→B 與 B→A 併成一條,循環依賴直接消失。換或加產生器時只改這張表與下面的「指令對應」,其他檔案不動。
+保留邊方向的選項(graphify 是 `--directed`;knot 恆為有向,沒有這個旗標)**不能省**:無向圖會把 A→B 與 B→A 併成一條,循環依賴直接消失。換或加產生器時只改這張表與下面的「指令對應」,其他檔案不動。
+
+knot 的幾個特性會影響怎麼用它:
+
+- 它從 GHC 的 `.hie` 抽事實(型別檢查後、名稱全部解析完),所以 `confidence` 恆為 `EXTRACTED`、`built_at_commit` 一定有——新鮮度比對直接可靠;但**建圖 = 把專案完整建一次**,第一次可能要幾十秒到一分鐘,之後只重編改過的模組
+- 對專案唯讀,唯一副作用是根目錄的 `.knot/` 快取(自帶 `.gitignore`);建不起來就 exit 1、**不寫圖**,沒有「只剩 module 層」的降級版——拿到舊圖時要看的是上面那條新鮮度比對,不是猜它有沒有半成品
+- 預設**排除** test-suite / benchmark;要問「哪些測試會壞」時,建圖改跑 `knot extract . --include-tests`(節點多一個選填欄位 `component`;查詢端預設 `--scope product` 仍會把測試節點收掉,rank 不會被測試檔灌水)
 
 ## 判定
 
@@ -53,7 +60,16 @@
 | 追資料流 / 根因 | 兩點間最短路徑 | 沿路徑逐跳讀原始碼驗證,路徑只是假說 |
 | 找上帝物件 | 連通度排名 | 高連通 ≠ 有問題,只是 SRP 檢查的候選 |
 
-**graphify 的指令對應**:關鍵字查節點 `graphify query "<識別字>"`、反向可達 `graphify affected "<符號>" --depth 2`、最短路徑 `graphify path "<起點>" "<終點>"`、連通度排名 `graphify god-nodes --top 15`。它的比對是子字串 + IDF,沒有詞幹還原、沒有同義詞、沒有跨語言對應,所以**查詢詞要用程式碼裡真實存在的識別字**(`TokenStore`、`refresh_token`),不要用中文需求詞或抽象概念。查到 0 筆就換識別字重試一兩次,再沒有就退回一般搜尋,不要在圖上鑽。產生器只給 `graph.json` 沒給 CLI 時,這四項能力就沒有,只用得到上表第一列——那已經涵蓋架構檢測的全部價值。
+**graphify 的指令對應**:關鍵字查節點 `graphify query "<識別字>"`、反向可達 `graphify affected "<符號>" --depth 2`、最短路徑 `graphify path "<起點>" "<終點>"`、連通度排名 `graphify god-nodes --top 15`。它的比對是子字串 + IDF,沒有詞幹還原、沒有同義詞、沒有跨語言對應,所以**查詢詞要用程式碼裡真實存在的識別字**(`TokenStore`、`refresh_token`),不要用中文需求詞或抽象概念。查到 0 筆就換識別字重試一兩次,再沒有就退回一般搜尋,不要在圖上鑽。
+
+**knot 的指令對應**:關鍵字查節點 `knot query find "<識別字>"`(id 或 label 的子字串,不分大小寫)、反向可達 `knot query reachable "<節點 id>" --reverse --depth 2`、最短路徑 `knot query path "<起點 id>" "<終點 id>"`、連通度排名 `knot query rank --top 15`。兩條紀律:
+
+- `reachable` / `path` 吃的是**節點 id 不是名字**——module 是裸名(`Demo.Core`),值宣告是 `<module>.<occ>`(`Demo.Core.render`),型別宣告尾綴 `#t`(`Demo.Core.Foo#t`,與同名建構子區分)。先 `find` 拿到 id 再餵給其他子命令,不要手打猜
+- 架構層級的問題(誰依賴誰、哪個 module 是 hub)加 `--level module` 只看 module 節點與 `imports` 邊;追呼叫鏈用 `--level decl`(預設 `all` 兩層混在一起,rank 會被 module 節點佔掉)。`--graph` / `--level` / `--scope` 要寫在子命令**之前**:`knot query --level module rank --top 10`
+
+它多一項 graphify 沒有的能力:`knot query tests-of "<節點 id>"` 列出直接或間接依賴該符號的**測試節點**(圖要建時帶 `--include-tests`)——`/enhance-design` 與 `/bugfix` 估「改它會壞哪些測試」時可當回歸測試的候選清單;一樣只是候選,測試要不要補、補在哪仍以讀過測試原始碼為準。
+
+產生器只給 `graph.json` 沒給 CLI 時,上述能力就沒有,只用得到上表第一列——那已經涵蓋架構檢測的全部價值。
 
 ## 另外兩條
 

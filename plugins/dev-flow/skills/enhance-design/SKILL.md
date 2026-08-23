@@ -6,7 +6,7 @@ user-invocable: true
 
 # /enhance-design — Level 3 優化設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來估影響面,不取代讀程式碼);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)與 `../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來估影響面,不取代讀程式碼);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -39,11 +39,11 @@ user-invocable: true
 3. **對外契約是否受影響**:維持相容,還是要動 Level 2 甚至 Level 1 的契約?要動契約的,先確認開發者同意回頭更新對應架構文件
 4. **範圍蔓延防線**:討論中冒出來的「順便改」項目,逐一問開發者要不要納入;不納入的記下來,建議另開文檔
 
-用 AskUserQuestion 呈現 scope 選項讓開發者拍板;**scope 定案後才決定產出位置與編號**。
+用 AskUserQuestion 呈現 scope 選項讓開發者拍板(每個選項遵守 `boundary-rules.md`「每個『建議』的義務」:當下成本 + 三個月後的代價 + 是否觸碰 invariant);**scope 定案後才決定產出位置與編號**。
 
 ### 3. 深度討論(不可跳過)
 
-基於步驟 1 讀到的現況與定案的 scope,與開發者討論,**不確定就問,禁止腦補**:
+基於步驟 1 讀到的現況與定案的 scope,與開發者討論,**不確定就問,禁止腦補**(問法見 `boundary-rules.md`「發問協議」):
 
 - 現況痛點:哪裡慢、哪裡難維護、哪裡耦合過深?痛點要能指到**具體的檔案與程式碼位置**,不能只是印象
 - 優化目標與量化標準:改善後怎麼衡量?(效能數字、複雜度、重複程度、測試覆蓋…)怎樣算完成?
@@ -84,6 +84,13 @@ related-feature: []     # 回鏈到被優化的 feature id(跨子系統引用帶
 
 ## 改善目標
 (要達成什麼、量化的驗收標準)
+
+## 邊界與知識歸屬
+(`boundary-rules.md`「設計階段規則」四問,針對被改動的元件)
+- 擁有的知識:<改動後哪些事實由誰唯一持有;有沒有把重複持有的事實收攏>
+- 依賴方向:<改動後的依賴方向;**新增/移除的依賴邊**單獨標出>
+- 不可逆決定:<存檔格式 / 對外 API / FFI 邊界 / 資料 schema 的變更;每條附一個被否決的替代方案與理由,無則寫「無」>
+- 公開介面可測性:<怎麼只從公開介面驗證改善結果與既有行為>
 
 ## 相依性
 (frontmatter depends-on 的文字說明:依賴/影響哪些文檔、為什麼、

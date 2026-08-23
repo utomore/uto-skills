@@ -6,7 +6,7 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、引用格式、資訊抽象邊界規範);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、引用格式、資訊抽象邊界規範)與 `../_shared/boundary-rules.md`(檢查知識歸屬、依賴邊與測試後門的判準);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## Scope 判斷
 
@@ -76,6 +76,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 4. **模組介面一致性**:程式碼的模組間呼叫是否走 `design.md` 定義的抽象 Interface?簽名是否漂移?
 5. **抽象邊界檢查**:`design.md` 是否越界寫了私有實作細節?有就列出建議刪除(實作自主權)
 6. **契約卡對帳**(有「Feature 契約卡」章節時):卡片寫的負責模組、Level 2 介面、資料流段落,與該 feature 實際落地的位置是否相符?卡片引用的介面條目在契約章節都找得到嗎?**這是 `/subsys-build` 委派品質的上游**——卡片與現實脫節,下一次委派就會照著錯的契約做
+7. **知識歸屬**:同一個事實(設定值、狀態、換算規則、格式定義)有沒有兩個模組各存一份?有 → 指出應該由誰唯一持有,其他人怎麼改走介面拿(`boundary-rules.md`「知識歸屬」)
 
 **本子系統跑過 `/subsys-build` 時**(存在 `build-log.md`):讀它的「待確認假設彙總」,逐條檢查那些假設在程式碼裡實際被怎麼落實、有沒有與契約牴觸;閘門裁決為「要改」但尚未處理的,列進發現
 
@@ -89,7 +90,8 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 4. **型別安全**:有無 any/interface{}/未檢查的轉型、隱式轉換、nullable 未處理?
 5. **TodoList 與測試對照**:文檔勾掉的 Todo 程式碼是否真的做了?1-to-1 測試是否都存在且涵蓋對應 Todo?
 6. **待確認假設**(文檔有這一段時,代表本 feature 由 `/subsys-build` 委派產出):逐條檢查每個假設在程式碼裡實際採取了什麼、是否與 Level 2 契約牴觸、是否需要升級成正式的契約決定。**委派產出的文檔要優先看這一段**——它就是「沒有人在旁邊時 AI 自己做的判斷」清單
-7. **內部實作不評分**:私有函數命名、內部結構選擇屬實作自主權,不列為發現(除非違反上述任一項)
+7. **邊界與依賴**:本 feature 新增的 import 方向,文檔的「相依性」/介面表有沒有登記?沒登記 = 未申報的架構變更。核心層有沒有混進表現層 / 前端 / 測試的概念?有沒有為測試開的後門(test-only export、setter、繞過正常流程的建構子)?後門一律列為介面設計缺陷
+8. **內部實作不評分**:私有函數命名、內部結構選擇屬實作自主權,不列為發現(除非違反上述任一項)
 
 ---
 

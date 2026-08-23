@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(編排層)
 
-先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/delegation.md`(**委派模式共通契約**——你是那一節裡的「編排者」);要建或改 `build-log.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`;要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/delegation.md`(**委派模式共通契約**——你是那一節裡的「編排者」);批次澄清要分類問題層級時,另讀 `../_shared/boundary-rules.md`;要建或改 `build-log.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`;要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -73,7 +73,7 @@ user-invocable: true
 
 **這一步的品質決定整個委派的品質。** subagent 問不了人,所以現在要把**所有** feature 的人類決策一次挖乾淨。
 
-先逐張契約卡讀過,自己找出「執行者會卡住或會亂猜」的點,分類:
+先逐張契約卡讀過,自己找出「執行者會卡住或會亂猜」的點,依 `../_shared/boundary-rules.md`「層級判斷」分類(影響半徑只在模組內 → 執行者自己決定,不必問;會動到邊界、依賴或未來修改代價 → 要問):
 
 - **契約類**(介面、DTO、錯誤語意、邊界歸屬):屬 Level 2。開發者答完後,**回寫進 `design.md` 的對應章節或契約卡**——這是契約的補完,本來就該留在 Level 2
 - **執行取向類**(套件選擇、資料結構偏好、測試深度、遷移相容性、要不要先做假資料):不屬 Level 2(寫進去會違反抽象邊界)。答完後寫進 `build-log.md` 的「委派決策記錄」

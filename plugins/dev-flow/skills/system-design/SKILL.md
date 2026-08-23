@@ -6,7 +6,7 @@ user-invocable: true
 
 # /system-design — Level 1 系統主架構設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、命名、**資訊抽象邊界規範**);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、命名、**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -31,7 +31,7 @@ user-invocable: true
 3. **對外 I/O 契約**:系統最外層接收什麼 Input、產出什麼 Output?用什麼形式描述(OpenAPI / Protobuf / CLI 介面 / 頂層 DTO Schema)?
 4. **子系統劃分**:依單一職責切出哪些子系統(Bounded Contexts)?和開發者確認每個子系統的名稱(英文 kebab-case slug)、職責與邊界——**這裡只定邊界,內部細節之後由 `/subsys-design` 展開**
 5. **通訊拓撲**:子系統之間怎麼通訊(REST / gRPC / Event Bus / Direct In-Memory Call)?全域錯誤處理策略是什麼?
-6. **技術棧與環境**:語言、編譯器/運行環境版本、核心架構模式(Clean Architecture / EDA / Microservices…)——每個選擇都要問偏好並給出建議與理由
+6. **技術棧與環境**:語言、編譯器/運行環境版本、核心架構模式(Clean Architecture / EDA / Microservices…)——每個選擇都要問偏好並給出建議與理由(給建議時遵守 `boundary-rules.md`「每個『建議』的義務」:當下成本 + 三個月後的代價 + 是否觸碰 invariant)
 7. **專案體量評估**:預期規模(原型/工具/長期產品)、資料量、使用者量、效能要求
 8. **開發階段切分**:整個專案分幾個階段?每階段的里程碑?
 
@@ -79,7 +79,12 @@ subsystems: []          # 子系統 slug 權威清單,由 /subsys-design 建檔�
 (分幾個階段、各階段里程碑與涵蓋的子系統)
 ```
 
-**產出前自我檢查(資訊抽象邊界)**:全文不得出現私有函數名、helper 名稱、私有變數命名、內部暫存資料結構;發現就刪掉或上移為邊界契約描述。
+**產出前自我檢查**:
+
+1. **資訊抽象邊界**:全文不得出現私有函數名、helper 名稱、私有變數命名、內部暫存資料結構;發現就刪掉或上移為邊界契約描述
+2. **知識歸屬**:每個子系統小節說得出它是哪些事實的唯一真相來源;同一個事實有兩個子系統宣稱擁有 = 邊界沒切乾淨,回去重切
+3. **不可逆決定**:對外 I/O 契約、通訊協定、儲存格式都屬不可逆,各要有一份 ADR 寫出被否決的替代方案與否決理由
+4. **完成定義**:開發者能用兩句話向第三者說明「這個系統做什麼、為什麼這樣切」;做不到就是文件寫成了細節清單,回頭改
 
 ### 3. 產出 ADR
 

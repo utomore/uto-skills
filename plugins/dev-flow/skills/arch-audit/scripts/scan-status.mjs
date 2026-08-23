@@ -5,6 +5,7 @@
  * 掃描範圍:
  *   .design/system.md                                  主架構(frontmatter subsystems 為權威清單)
  *   .design/subsystems/<slug>/design.md                子系統架構(含「功能規劃」路線圖與「Feature 契約卡」)
+ *   .design/subsystems/<slug>/spec-gaps.md             qa / impl 提出的 spec 模糊處(未結條目影響 exit code)
  *   .design/subsystems/<slug>/{features,enhancements,bugfixes}/*.md   子系統任務文檔
  *   .design/{enhancements,bugfixes}/*.md               全域任務文檔(G-E / G-B)
  *   .design/adr/*.md                                   ADR
@@ -270,6 +271,37 @@ for (const name of listMd(join(designDir, "adr"))) {
   adrCounts[st] = (adrCounts[st] ?? 0) + 1;
 }
 
+// ---------------------------------------------------------------- spec-gaps
+
+/**
+ * 解析 spec-gaps.md:每個條目是 `## G<n>(<來源> / <角色>)`,底下有一行 `- 狀態:open|resolved`。
+ * 未結(open)的條目代表有項目正卡著等 spec 修訂,列進輸出並影響 exit code。
+ */
+function parseSpecGaps(path, scope) {
+  const out = [];
+  let text;
+  try {
+    text = readFileSync(path, "utf8");
+  } catch {
+    return out;
+  }
+  const blocks = text.split(/^##\s+/m).slice(1);
+  for (const b of blocks) {
+    const head = b.split("\n", 1)[0].trim();
+    const id = head.match(/^(G\d+)/)?.[1];
+    if (!id) continue;
+    const state = b.match(/^\s*[-*]\s*狀態\s*[::]\s*(\S+)/m)?.[1] ?? "open";
+    if (/^resolved/i.test(state)) continue;
+    const topic = b.match(/^\s*[-*]\s*模糊點\s*[::]\s*(.+)$/m)?.[1]?.trim() ?? "-";
+    out.push({ scope, id, head, topic, file: rel(path) });
+  }
+  return out;
+}
+
+const openGaps = [];
+for (const slug of subsysDirs) openGaps.push(...parseSpecGaps(join(subsysRoot, slug, "spec-gaps.md"), slug));
+openGaps.push(...parseSpecGaps(join(designDir, "spec-gaps.md"), "global"));
+
 // ---------------------------------------------------------------- 主架構
 
 const systemPath = join(designDir, "system.md");
@@ -516,6 +548,12 @@ if (pendingFeatures.length > 0) {
   for (const f of pendingFeatures) console.log(`- ${f.subsystem} ${f.phase}:${f.feature}`);
 }
 
+if (openGaps.length > 0) {
+  console.log(`\n=== 未結的 spec-gaps:qa / impl 提出、spec 尚未修訂(${openGaps.length})===`);
+  console.log("每一條都代表有項目正卡著;修 spec 前不要繼續往下做,也不要委派展開。");
+  for (const g of openGaps) console.log(`- [${g.scope}] ${g.head}  ${g.topic}  ${g.file}`);
+}
+
 const unfinished = rows.filter((r) => !DONE_STATUSES.has(r.status));
 if (unfinished.length > 0) {
   console.log(`\n=== 未完成 / metadata 缺失(${unfinished.length})===`);
@@ -552,7 +590,7 @@ if (badFormat.length > 0) {
   }
 }
 
-if (unfinished.length > 0 || openSubsysRows.length > 0 || pendingFeatures.length > 0 || noDesc.length > 0 || archIssues.length > 0 || badFormat.length > 0) {
+if (unfinished.length > 0 || openSubsysRows.length > 0 || pendingFeatures.length > 0 || noDesc.length > 0 || archIssues.length > 0 || badFormat.length > 0 || openGaps.length > 0) {
   process.exit(1);
 }
 console.log("\n全部項目皆已完成(done/closed)、子系統功能規劃全數完成,且 metadata 完整。");

@@ -16,7 +16,7 @@
 .design/system.md  <專案一句話>                          整體 done 3/9
 ├─ subsystems/auth/design.md  ◀ 所在                    features 2/4 done · 契約卡 4/4
 │  ├─ F001-login                                         done
-│  ├─ F002-token-refresh  ◀ 目前                         in-progress · Todo 3/5 · 測試 3/5
+│  ├─ F002-token-refresh  ◀ 目前                         in-progress · 介面 3/5 · 測試 8/12 綠
 │  │  ├─ 介面 `refreshToken(req: RefreshReq): Promise<TokenPair>`   實作中(對外契約 §2)
 │  │  ├─ 介面 `TokenStore.rotate(id: string): Promise<void>`        完成(模組間公開介面 §1)
 │  │  ├─ DTO  `RefreshReq { refreshToken, deviceId }`              完成(對外契約 §2)
@@ -43,12 +43,12 @@
 
 ### 2. 完成度
 
-一行數字,由外到內:整體 done/總數 → 所在子系統 done/總數(契約卡 n/m)→ 目前文檔 Todo n/m、測試 n/m。數字只能來自 `node "<arch-audit 目錄>/scripts/scan-status.mjs" .design` 與目前文檔,**不得自己估一個百分比**。Level 1/2 的 skill 寫到對應層級為止。
+一行數字,由外到內:整體 done/總數 → 所在子系統 done/總數(契約卡 n/m)→ 目前文檔 **介面 n/m 已實作**(骨架裡還剩幾個未實作標記)、**測試 n/m 綠**(分母是 Laws + Examples 的總條數)。數字只能來自 `node "<arch-audit 目錄>/scripts/scan-status.mjs" .design`、目前文檔與**實際跑過的測試輸出**,**不得自己估一個百分比**,也不得引用別人回報而自己沒跑過的測試結果。Level 1/2 的 skill 寫到對應層級為止。
 
 ### 3. 主軸檢查
 
 - **對應到哪裡**:本次動作對應 `system.md` 的哪個子系統職責、`design.md` 功能規劃的哪一列、契約卡的哪一條驗收標準——一句話,指到章節
-- **偏離清單**:本次做了、但上面任一層沒寫的事——新介面沒登記進契約、**新增了設計文檔沒有的依賴邊**、**為測試在核心層開的後門**、「順便改」到別的模組、碰到別的子系統的內部、做了契約卡「明確不做」的東西。每條附位置與建議(回填契約 / 另開 E 或 B 文檔 / 撤回)。沒有就寫「無」——**這一行不能省**,省掉就分不出「沒偏離」和「沒檢查」
+- **偏離清單**:本次做了、但上面任一層沒寫的事——新介面沒登記進契約、**新增了設計文檔沒有的依賴邊**、**為測試在核心層開的後門**、**改動了骨架的簽名**、**未結的 spec-gaps**(有 gap 就代表有項目卡著沒做)、「順便改」到別的模組、碰到別的子系統的內部、做了契約卡「明確不做」的東西。每條附位置與建議(回填契約 / 修 spec / 另開 E 或 B 文檔 / 撤回)。沒有就寫「無」——**這一行不能省**,省掉就分不出「沒偏離」和「沒檢查」
 
 ### 4. 下一步
 

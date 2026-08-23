@@ -39,7 +39,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 專案裡有程式碼知識圖時,dev-flow 會把它當成**導航層**:`/arch-audit` 的 system / subsys scope 用 `scan-graph.mjs` 直接算出子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單與架構 hub;`/feature-design` 用它定位既有介面在哪個檔案;`/enhance-design` 估改動的影響面;`/bugfix` 追呼叫鏈;實作類 skill 收尾時把圖更新到最新。
 
-**契約是 `graph.json` 的格式,不是產生它的工具。** 下游只認「節點帶 `source_file`、邊帶 `relation`」這個形狀(完整規格見 `_shared/codegraph.md`),換產生器只要吐同格式,`scan-graph.mjs` 與七個 skill 接點一行都不用改;只給 `graph.json`、沒有查詢 CLI 的產生器也可用,架構檢測那一整塊由腳本自己算。目前登記的產生器是 graphify(支援語言與指令見該片的「目前的產生器」表)。
+**契約是 `graph.json` 的格式,不是產生它的工具。** 下游只認「節點帶 `source_file`、邊帶 `relation`」這個形狀(完整規格見 `_shared/codegraph.md`),換產生器只要吐同格式,`scan-graph.mjs` 與七個 skill 接點一行都不用改;只給 `graph.json`、沒有查詢 CLI 的產生器也可用,架構檢測那一整塊由腳本自己算。目前登記的產生器有兩個:graphify(多語言啟發式抽取,不含 Haskell)與 [knot](https://github.com/utomore/knot-hs)(只服務 Haskell,從 GHC `.hie` 抽型別檢查後的事實,圖直接落在專案根的 `codegraph.json`);支援語言、建圖 / 更新指令與各自的查詢對應見該片的「目前的產生器」表。
 
 界線只有一條:**圖是導航,不是查證**——它只說「去哪裡看」,寫進 `.design/` 的每個簽名、相依、契約違反都必須回原始碼讀到原文再確認。圖會過期、會漏抽、`INFERRED` 的邊是推測的,所以它不能取代 `/feature-design` 那條「必須打開原始碼讀到實際定義」的防線。
 

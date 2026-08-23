@@ -6,7 +6,7 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、引用格式、資訊抽象邊界規範)與 `../_shared/boundary-rules.md`(檢查知識歸屬、依賴邊與測試後門的判準);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、引用格式、資訊抽象邊界規範)與 `../_shared/boundary-rules.md`(檢查知識歸屬、依賴邊與測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## Scope 判斷
 
@@ -34,6 +34,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 - **子系統狀態表**(`主軸 | id | status | 階段 | features | 契約卡 | 已建文檔 | 已完成 | 未結E/B | 進度`):回答「哪些 feature 已完成、哪些還在規劃/設計階段、哪些模組有未結的優化與缺陷」;欄位顯示 `-` 代表該 `design.md` 沒有「功能規劃」表格,建議用 `/subsys-design` 更新模式補上
 - **契約卡欄**(`n/總數`):功能規劃有幾項備妥「Feature 契約卡」= 委派展開的就緒度。滿格才跑得動 `/subsys-build`;顯示 `-` 表示整份 `design.md` 沒有契約卡章節(舊版文檔屬正常,只是不能委派)。缺卡與孤兒卡片會出現在「提示」清單,**不列為不一致**(不影響 exit code)
 - **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步的待辦清單(逐一走 `/feature-design`,或契約卡滿格時用 `/subsys-build` 委派展開)
+- **未結的 spec-gaps**:qa / impl 提出、尚未被 spec 修訂的問題。**每一條都代表有項目正卡著**,要逐條轉達並建議走對應的 design skill 更新模式修 spec;有未結條目時 `/subsys-build` 會擋著不啟動
 - **架構 / 子系統不一致**必須逐條轉達:`subsystems` 權威清單與實際資料夾對不上(雙向)、功能規劃指向不存在的文檔、id 與檔名不一致、depends-on 無法解析、全域文檔缺 `subsystems` 欄、design.md 缺 `parent` 等
 - 有「frontmatter 格式不合規」時,把清單欄位改回行內陣列再重跑;寫成 YAML 區塊列表時腳本讀不到內容,相依關係與歸屬都不可信
 - 有 `missing-metadata` / 缺 description 警示時,提醒開發者補上
@@ -77,8 +78,9 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 5. **抽象邊界檢查**:`design.md` 是否越界寫了私有實作細節?有就列出建議刪除(實作自主權)
 6. **契約卡對帳**(有「Feature 契約卡」章節時):卡片寫的負責模組、Level 2 介面、資料流段落,與該 feature 實際落地的位置是否相符?卡片引用的介面條目在契約章節都找得到嗎?**這是 `/subsys-build` 委派品質的上游**——卡片與現實脫節,下一次委派就會照著錯的契約做
 7. **知識歸屬**:同一個事實(設定值、狀態、換算規則、格式定義)有沒有兩個模組各存一份?有 → 指出應該由誰唯一持有,其他人怎麼改走介面拿(`boundary-rules.md`「知識歸屬」)
+8. **未結的 spec-gaps**(存在 `spec-gaps.md` 時):每一條 `open` 的條目都代表有項目卡著沒做、或有人在等 spec 修訂。逐條檢查:那個項目在程式碼裡是真的空著,還是有人繞過協議自己補了實作或測試?後者一律列為發現(spec 沒改就先做,等於用實作定義了契約)
 
-**本子系統跑過 `/subsys-build` 時**(存在 `build-log.md`):讀它的「待確認假設彙總」,逐條檢查那些假設在程式碼裡實際被怎麼落實、有沒有與契約牴觸;閘門裁決為「要改」但尚未處理的,列進發現
+**本子系統跑過 `/subsys-build` 時**(存在 `build-log.md`):讀它的「待確認假設彙總」,逐條檢查那些假設在程式碼裡實際被怎麼落實、有沒有與契約牴觸;閘門裁決為「要改」但尚未處理的,列進發現。另讀「仲裁紀錄」:歸因為 **spec bug** 的每一條,確認 spec 後來真的被修過(文檔 `updated` 有動、對應條文有變),沒修就繼續往下跑的,是本流程最嚴重的違規
 
 ### Scope: feature — 功能實作審查
 
@@ -88,7 +90,8 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 2. **Edge cases**:邊界條件有無遺漏(空值、零長度、極大值、並發、時序)?逐條列出「輸入/狀態 → 現在會發生什麼 → 應該發生什麼」
 3. **例外處理**:錯誤路徑是否完整(捕捉、傳播、資源釋放)?是否符合全域錯誤處理策略?
 4. **型別安全**:有無 any/interface{}/未檢查的轉型、隱式轉換、nullable 未處理?
-5. **TodoList 與測試對照**:文檔勾掉的 Todo 程式碼是否真的做了?1-to-1 測試是否都存在且涵蓋對應 Todo?
+5. **Laws / Examples 與測試對照**:spec 的每一條 law 是否都有對應的 property test、每個 example 是否都有對應的 example test(對照表在測試檔頂端)?有沒有 spec 沒定義、卻被測試斷言的行為(qa 腦補)?反過來,有沒有 law 寫了卻沒人測?
+5b. **骨架符合度**:程式碼的簽名與型別定義,與 spec「介面」/「數據」表的原文是否逐字相同?impl 改過骨架簽名 = 偷改契約,列為最高嚴重度
 6. **待確認假設**(文檔有這一段時,代表本 feature 由 `/subsys-build` 委派產出):逐條檢查每個假設在程式碼裡實際採取了什麼、是否與 Level 2 契約牴觸、是否需要升級成正式的契約決定。**委派產出的文檔要優先看這一段**——它就是「沒有人在旁邊時 AI 自己做的判斷」清單
 7. **邊界與依賴**:本 feature 新增的 import 方向,文檔的「相依性」/介面表有沒有登記?沒登記 = 未申報的架構變更。核心層有沒有混進表現層 / 前端 / 測試的概念?有沒有為測試開的後門(test-only export、setter、繞過正常流程的建構子)?後門一律列為介面設計缺陷
 8. **內部實作不評分**:私有函數命名、內部結構選擇屬實作自主權,不列為發現(除非違反上述任一項)

@@ -4,32 +4,75 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ## dev-flow
 
-三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。包含十一個 skills:
+三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。Level 3 再切成 **spec 驅動的三角色**(設計 / qa / impl,見下方專節)。包含十三個 skills:
 
 | 指令 | 層級 | 職責 |
 |---|---|---|
 | `/system-design` | L1 | 系統主架構 — 深度訪談後產出 `.design/system.md` + `.design/adr/ADR-00x-*.md`:技術棧、對外 I/O 契約、子系統劃分(Bounded Contexts)、通訊拓撲;只到子系統邊界顆粒度 |
 | `/subsys-design` | L2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、內部模組劃分、資料流管線、模組間抽象介面、feature 路線圖(功能規劃)與每個 feature 的**契約卡**,並回填主架構 `subsystems` 清單 |
-| `/subsys-build` | L2→L3 | 子系統委派展開 — 依功能規劃的「依賴」欄排波次,**批次澄清一次問完** → 預先配號 → 委派 subagent 平行寫設計、階段內序列實作 → 每階段跑 `arch-audit` 後**停下來給人驗收**;配號、`design.md` 回填、`build-log.md` 由編排者單線負責 |
-| `/feature-design` | L3 | 功能設計 — 深度討論後產出 `features/F00x-*.md`,介面必須落在 L2 契約內;含相依性查證、介面表、TodoList、1-to-1 測試(被委派時走「委派模式」:不提問,不確定寫成「待確認假設」) |
-| `/enhance-design` | L3 | 優化設計 — 先讀程式碼、**與開發者討論確認 scope 涵蓋範圍**後,產出 `enhancements/E00x-*.md`(跨子系統為 `.design/enhancements/G-E00x-*.md`) |
-| `/feature-impl` | L3 | 功能實作 — 依 feature 文檔逐項勾 TodoList、跑 1-to-1 測試、回寫 status;L2 契約內實作自主(被委派時碰到契約邊界就停下回報,不擅自改契約) |
-| `/enhance-impl` | L3 | 優化實作 — 回歸測試先行,scope 標明不動的範圍絕對不碰,收尾記錄量化結果 |
-| `/bugfix` | L3 | 缺陷修復 — 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
-| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、契約卡對帳)/ `feature`(L2 介面符合度、edge cases、型別安全、待確認假設)/ `status`(腳本盤點各 feature 完成度、契約卡就緒度與待優化模組) |
+| `/subsys-build` | L2→L3 | 子系統委派展開(orchestrator)— 依功能規劃的「依賴」欄排波次,**批次澄清一次問完** → 預先配號與指派骨架路徑 → 委派 spec(平行,opus)→ **spec 批准閘門** → qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(同一 feature 上限 3 輪)** → 每階段跑 `arch-audit` 後**停下來給人驗收**;配號、`design.md` 回填、`build-log.md`、git commit 由編排者單線負責 |
+| `/feature-design` | L3 · spec | 功能設計 — 深度討論後產出 `features/F00x-*.md`(目的 / 數據 / 介面 / **Laws** / **Examples** / 依賴 / 不可逆決定)與**程式碼骨架**(型別與簽名完整、本體 `undefined`);相依性**必用**程式碼知識圖定位再開原始碼查證;介面必須落在 L2 契約內 |
+| `/enhance-design` | L3 · spec | 優化設計 — 先讀程式碼、**與開發者確認 scope**後產出 `enhancements/E00x-*.md`(跨子系統為 `G-E00x`)與骨架;Laws 分「回歸 law(改完必須一模一樣的現有行為)」與「新 law」兩類 |
+| `/spec-build` | 編排 | 單份 spec 的委派迴圈(orchestrator)— 拿一份寫好的 spec(F00x / E00x):門檻檢查(骨架編得過、介面對得上、無未結 gap)→ **spec 批准閘門** → 委派 qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(上限 3 輪)** → 回寫 status。enhance 的 scope 談完之後就走這條 |
+| `/spec-qa` | L3 · qa | 從 spec 寫測試 — 只讀 spec 的數據 / 介面 / Laws / Examples 與骨架,每條 law 翻成 property test、每個 example 翻成 example test;**禁止讀任何實作程式碼與程式碼知識圖**,交付前確認測試「編譯通過 + 紅綠符合預期」 |
+| `/feature-impl` | L3 · impl | 功能實作 — 以骨架為工作清單,把 `undefined` 換成實作;**禁止讀寫任何測試檔、禁止改動骨架簽名**;紅燈只做歸因走仲裁協議,不自行猜 spec |
+| `/enhance-impl` | L3 · impl | 優化實作 — 動工前先跑回歸測試留基準線,scope 標明不動的範圍絕對不碰,收尾記錄量化結果;同樣禁碰測試檔 |
+| `/bugfix` | L3 | 缺陷修復(單角色)— 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
+| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、契約卡對帳、未結 spec-gaps、仲裁紀錄)/ `feature`(L2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點完成度、契約卡就緒度與未結 spec-gaps) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(先確認當前分支,在 main 上就先開新分支;標題英文 conventional commit、內文繁中、labels 英文) |
 | `/study` | — | 專案導讀(唯讀)— 由上而下帶開發者理解既有專案:全景(入口、技術棧、目錄職責)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量)→ **逐跳 trace code**(沿一條真實路徑從入口到輸出,附呼叫鏈摘要表);每課固定「結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
 
-共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分六片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`boundary-rules.md`(**邊界判斷規則**:知識歸屬、層級判斷「哪些自己決定、哪些要問人」、發問協議、測試政策,外加設計/實作各自的階段規則,設計或實作動手前讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)、`codegraph.md`(**程式碼知識圖整合**,專案建過圖時才讀)、`anchor.md`(**收尾定錨區塊**,每次收尾與階段閘門才讀)。每個 skill 開頭明列自己要讀哪幾片。
+共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分七片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`spec-roles.md`(**spec 三角色契約**:各角色的輸入與禁區、骨架規格、qa 交付判準、spec-gaps 協議、仲裁協議,走 spec 驅動流程時讀)、`boundary-rules.md`(**邊界判斷規則**:知識歸屬、層級判斷「哪些自己決定、哪些要問人」、發問協議、測試政策,外加設計/實作各自的階段規則,設計或實作動手前讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)、`codegraph.md`(**程式碼知識圖整合**,設計類 skill 必用、`/spec-qa` 限用、其餘選配)、`anchor.md`(**收尾定錨區塊**,每次收尾與階段閘門才讀)。每個 skill 開頭明列自己要讀哪幾片。
 
 改 skill 前請先看 [docs/skill-authoring.md](docs/skill-authoring.md)——撰寫與維護準則(追加閘門、分片規則、成本量測)。
+
+### spec 驅動的三角色(Level 3)
+
+Level 3 的一句話:**spec 是唯一真相,測試與實作都只是 spec 的投影。**
+
+```
+     設計 ──> spec 文檔 + 骨架(型別完整、簽名完整、本體 undefined)
+                          │
+              ┌───────────┴───────────┐
+        qa 讀 │                       │ impl 讀
+        寫測試 │                       │ 填本體
+              └───────> 編排者 <───────┘
+                    跑測試 → 仲裁
+```
+
+| 角色 | 唯一輸入 | 產出 | 絕對禁區 |
+|---|---|---|---|
+| **設計**(`/feature-design`、`/enhance-design`) | 需求 + L2 契約卡 + 既有程式碼(必用程式碼知識圖定位) | spec 文檔 + 骨架 | 不寫任何實作邏輯、不寫測試 |
+| **qa**(`/spec-qa`) | spec 的數據 / 介面 / Laws / Examples + 骨架 | 測試檔 | 不讀實作;程式碼知識圖只能導航(型別、測試檔位置、既有測試候選),不得推論行為;不改骨架、不要後門 |
+| **impl**(`/feature-impl`、`/enhance-impl`) | spec 全文 + 骨架 | 把 `undefined` 換成本體 | 不讀不改任何測試檔、不動骨架簽名與型別 |
+| **編排者**(`/spec-build` 單份、`/subsys-build` 整個子系統,或開發者本人) | 全部 | 跑測試、仲裁、閘門 | 不寫 spec、不寫測試、不寫實作 |
+
+四個設計要點:
+
+- **骨架讓隔離變得可執行**。設計階段直接把檔案框架寫進原始碼樹——型別定義與函數簽名完整,函數本體一律 `undefined`(各語言的等價標記見 `spec-roles.md`)。qa 因此有東西可以 import,impl 的紀律變成機械的(只准替換未實作標記,`git diff` 一眼看得出有沒有偷改簽名),進度也變成客觀的(骨架裡還剩幾個 `undefined`)。骨架有兩條硬規則:**必須通過編譯**、**未實作處必須在執行期明確失敗**(回傳 `0` 或 `[]` 會讓測試假綠,比沒寫還糟)
+- **Laws 是 spec 的一部分,不是 QA 的發明**。每個核心函數至少一條可被 property-based 測試驗證的代數性質,寫成「對所有 x,P(x) 成立」;再配 3-5 個覆蓋邊界的 Examples。qa 的工作是**翻譯**這些條文,不是設計性質。連帶把「1-to-1 測試對照」的錨點從 TodoList 換成 Laws/Examples——`/feature-design` 的 TodoList 與「實作方式」段因此整段刪除,完成的定義變成「骨架無未實作標記 + Laws 與 Examples 全綠」
+- **qa 的交付判準可機械驗證**:測試必須「編譯通過 + 紅綠符合預期」——feature 與 enhance 新增/簽名變動的介面對應的測試應**全紅**(骨架還沒實作),enhance 的**回歸 law** 對應的測試應**全綠**(捕捉現況)。該紅卻綠 = 那條測試沒真的測到東西,退回重寫
+- **紅燈先歸因,誰都不准先改碼**。失敗的測試對得上某條 law/example 且與原文一致 → impl 錯;與原文不符 → qa 誤讀(判定只看 spec 原文,**不得拿實作行為當依據**);對不上或 spec 沒涵蓋 → **spec bug**,停下來等 spec 修訂,禁止 qa 與 impl 私下協商。**同一 feature 上限 3 輪**,三輪不綠就升級給人並附結構性原因——三輪收斂不了,問題幾乎不在這一輪的程式碼
+
+qa 或 impl 發現 spec 模糊時,**停下該項**、追加一條到 `.design/subsystems/<slug>/spec-gaps.md`,其餘照做完。這與委派模式的「待確認假設」是兩種不可互換的機制:待確認假設是**設計者**自己做判斷後繼續推進,spec-gaps 是 **qa/impl 停下來等 spec**。未結的 gap 會被 `/arch-audit status` 列出來(並讓它以 exit 1 收場),也會擋住 `/subsys-build` 啟動。
+
+**兩個編排者,差別只在規模。** 後半段(spec 批准 → qa ∥ impl → 跑測試 → 仲裁)在 feature 與 enhance 上完全相同,所以拆成兩層:
+
+| | 何時用 | 多做了什麼 |
+|---|---|---|
+| `/spec-build <id>` | 手上有**一份**寫好的 spec(F00x 或 E00x) | — (最小迴圈;enhance 另加「委派前先跑一次測試留基準線」,才分得出「本來就紅」與「這次改壞」) |
+| `/subsys-build <slug>` | 一次跑完**整個子系統**的多個 features | 批次澄清、排波次、配號與指派骨架路徑、`design.md` 回填、`build-log.md`、階段閘門 |
+
+`/enhance-design` 需要人讀程式碼、談 scope,所以不能被無訪談委派——但 scope 談完、spec 寫好之後就交給 `/spec-build`,這就是 enhance 的編排路徑。
+
+`/bugfix` 不套三角色:它的輸入是既有程式碼而不是 spec,沒有可投影的唯一真相,而且「先寫重現測試」本來就需要看實作才寫得出來。
 
 ### 收尾定錨
 
 每個 skill 的收尾與 `/subsys-build` 的每個階段閘門,回報的最後都固定附一個**定錨區塊**(格式在 `_shared/anchor.md`),五段順序固定:
 
 1. **位置樹**:從 `.design/system.md` 畫到目前工作的文檔的 ASCII 樹,只畫最近的(所在子系統展開、其他子系統各一行),目前文檔之下列出它的介面與資料結構,狀態只用五個詞——契約 / 設計 / 實作中 / 完成 / 偏離——每條介面都註明對應 `design.md` 的哪一章,找不到就是偏離
-2. **完成度**:整體 → 所在子系統 → 目前文檔的 done/Todo/測試數字,只能來自 `scan-status.mjs` 與文檔,不准估百分比
+2. **完成度**:整體 → 所在子系統 → 目前文檔的 done 數、**介面 n/m 已實作**、**測試 n/m 綠**(分母是 Laws + Examples 總條數),只能來自 `scan-status.mjs`、文檔與實際跑過的測試輸出,不准估百分比
 3. **主軸檢查**:本次動作對應到 `system.md` / `design.md` / 契約卡的哪一條,以及**偏離清單**(做了但上層沒寫的事,每條附位置與建議;沒有也要寫「無」)
 4. **下一步**:一條具體命令,必須從樹上的「目前」推得出來,不得建議樹上沒有的工作
 5. **Knot 使用心得**:本次有沒有跑 [knot](https://github.com/utomore/knot-hs)、跑了哪些子命令、查到什麼、對結論有沒有實質幫助;沒跑就寫具體原因(不是 Haskell 專案、沒建圖、`extract` 失敗、任務不需要導航…),不准用「不適用」帶過
@@ -38,9 +81,11 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ### 選配:程式碼知識圖
 
-專案裡有程式碼知識圖時,dev-flow 會把它當成**導航層**:`/arch-audit` 的 system / subsys scope 用 `scan-graph.mjs` 直接算出子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單與架構 hub;`/feature-design` 用它定位既有介面在哪個檔案;`/enhance-design` 估改動的影響面;`/bugfix` 追呼叫鏈;實作類 skill 收尾時把圖更新到最新。
+專案裡有程式碼知識圖時,dev-flow 會把它當成**導航層**:`/arch-audit` 的 system / subsys scope 用 `scan-graph.mjs` 直接算出子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單與架構 hub;`/bugfix` 追呼叫鏈;實作類 skill 收尾時把圖更新到最新。
 
-**契約是 `graph.json` 的格式,不是產生它的工具。** 下游只認「節點帶 `source_file`、邊帶 `relation`」這個形狀(完整規格見 `_shared/codegraph.md`),換產生器只要吐同格式,`scan-graph.mjs` 與七個 skill 接點一行都不用改;只給 `graph.json`、沒有查詢 CLI 的產生器也可用,架構檢測那一整塊由腳本自己算。目前登記的產生器有兩個:graphify(多語言啟發式抽取,不含 Haskell)與 [knot](https://github.com/utomore/knot-hs)(只服務 Haskell,從 GHC `.hie` 抽型別檢查後的事實,圖直接落在專案根的 `codegraph.json`);支援語言、建圖 / 更新指令與各自的查詢對應見該片的「目前的產生器」表。
+適用範圍分三級:**設計類 skill 必用**(`/feature-design` 定位既有介面並用反向可達查出誰會被新介面影響、`/enhance-design` 估改動的影響面——設計階段的相依結論會直接變成 qa 與 impl 的前提,不能靠印象);**`/spec-qa` 限用**(可以查型別建構子、既有測試放在哪、`tests-of` 抓回歸候選,**不准順著受測函數追內部呼叫鏈、不准拿圖上看到的東西當斷言依據**——圖決定「測試放哪、輸入怎麼建」,不決定「預期輸出是什麼」);其餘選配。必用不等於有保證:跑不了圖(沒建過、產生器不支援這個語言、`extract` 失敗)時退回一般搜尋,但要在收尾寫明具體原因。
+
+**契約是 `graph.json` 的格式,不是產生它的工具。** 下游只認「節點帶 `source_file`、邊帶 `relation`」這個形狀(完整規格見 `_shared/codegraph.md`),換產生器只要吐同格式,`scan-graph.mjs` 與各 skill 的接點一行都不用改;只給 `graph.json`、沒有查詢 CLI 的產生器也可用,架構檢測那一整塊由腳本自己算。目前登記的產生器有兩個:graphify(多語言啟發式抽取,不含 Haskell)與 [knot](https://github.com/utomore/knot-hs)(只服務 Haskell,從 GHC `.hie` 抽型別檢查後的事實,圖直接落在專案根的 `codegraph.json`);支援語言、建圖 / 更新指令與各自的查詢對應見該片的「目前的產生器」表。
 
 界線只有一條:**圖是導航,不是查證**——它只說「去哪裡看」,寫進 `.design/` 的每個簽名、相依、契約違反都必須回原始碼讀到原文再確認。圖會過期、會漏抽、`INFERRED` 的邊是推測的,所以它不能取代 `/feature-design` 那條「必須打開原始碼讀到實際定義」的防線。
 
@@ -48,13 +93,16 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ### 委派展開(`/subsys-build`)的設計要點
 
-Level 2 把契約鎖死之後,Level 3 就變成**可委派**的:相依性查證、介面表、TodoList、1-to-1 測試都是機械性工作,不需要人。真正需要人的只有「功能邊界的取捨」,而那些可以**批次前置**到一次問完。整個流程建立在三個約束上:
+Level 2 把契約鎖死之後,Level 3 就變成**可委派**的:相依性查證、骨架、把 law 翻成 property test、把 `undefined` 換成實作,都是機械性工作,不需要人。真正需要人的只有「功能邊界的取捨」,而那些可以**批次前置**到一次問完。整個流程建立在四個約束上:
 
-- **subagent 問不了人** → 所有人類決策移到 fan out 之前的「批次澄清」;之後的不確定一律寫成文檔裡的「待確認假設」,由編排者在階段閘門呈報
-- **誤差沿依賴鏈複利** → 閘門設在**階段**邊界(不是每個 feature,也不是全自動跑完);測試失敗或有阻塞就立刻停下本階段後續實作
-- **平行會撞** → 配號(`F00x`)、`design.md` 回填、`build-log.md` 一律由編排者**單線**負責;feature 設計平行(各寫各的檔案),實作在階段內**序列**(同子系統常改同一批檔案)
+- **subagent 問不了人** → 所有人類決策移到 fan out 之前的「批次澄清」;之後設計端的不確定寫成「待確認假設」繼續推進,qa/impl 端的不確定寫成 `spec-gaps` 停下該項,兩者都由編排者在閘門呈報
+- **spec 錯了就是兩邊一起錯** → spec 寫完後設 **spec 批准閘門**(每一波批一次),人放行才 fan out qa 與 impl
+- **誤差沿依賴鏈複利** → 閘門設在**波次**(spec)與**階段**(驗收)邊界,不是全自動跑完;有阻塞或 spec bug 就立刻停下後續實作。仲裁**同一 feature 上限 3 輪**
+- **平行會撞** → 配號(`F00x`)、**骨架檔案路徑**、`design.md` 回填、`build-log.md`、git commit 一律由編排者**單線**負責;spec 平行(各寫各的文檔與骨架,路徑由編排者指派不重疊)、qa 平行(測試檔互不衝突)、impl 在階段內**序列**(同子系統常改同一批實作檔案)
 
-用 subagent 的主要理由是 **context 隔離**:相依性查證要讀大量原始碼,那些 context 留在 subagent 裡,編排者只收結構化回報——即 conventions 裡「Context 載入紀律」的自動化版本。`build-log.md` 記配號表、委派決策、待確認假設彙總與各階段結果,讓中斷後能接續、事後查得到當初為什麼這樣決定。
+**測試由編排者跑,不是由 subagent 自己宣稱**——qa 與 impl 各自只看得到自己那一半,只有編排者兩邊都看得到,所以仲裁只能發生在這一層。委派模型固定:spec 用 **opus**(唯一在做契約判斷的一層,錯誤要到仲裁才浮出來),qa 與 impl 用 **sonnet**(拿到的是已鎖死的 spec 與骨架),編排者不指定、跟隨開發者當下的 session。固定下來,閘門看到品質問題時就歸因得回 spec 寫得夠不夠,不會混進模型差異。
+
+用 subagent 的主要理由是 **context 隔離**:相依性查證要讀大量原始碼,那些 context 留在 subagent 裡,編排者只收結構化回報——即 conventions 裡「Context 載入紀律」的自動化版本。`build-log.md` 記配號表(含骨架路徑與模型欄)、委派決策、待確認假設彙總、**仲裁紀錄**與各階段結果,讓中斷後能接續、事後查得到當初為什麼這樣決定;仲裁紀錄那張表是事後判斷「spec 哪裡寫不清楚」的唯一資料。
 
 ## talk-flow
 
@@ -111,8 +159,9 @@ repo 有新版本後:
 ├── subsystems/
 │   └── <subsystem-slug>/
 │       ├── design.md                # /subsys-design:Level 2 子系統架構(功能規劃 + Feature 契約卡;`parent: system` 回鏈)
-│       ├── build-log.md             # /subsys-build:配號表、委派決策、待確認假設彙總、階段結果(跑過才有)
-│       ├── features/F001-<slug>.md          # /feature-design
+│       ├── build-log.md             # /subsys-build:配號表、委派決策、待確認假設彙總、仲裁紀錄、階段結果(跑過才有)
+│       ├── spec-gaps.md             # /spec-qa 與實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
+│       ├── features/F001-<slug>.md          # /feature-design(spec 文檔;骨架寫在專案原始碼樹)
 │       ├── enhancements/E001-<slug>.md      # /enhance-design
 │       └── bugfixes/B001-<slug>.md          # /bugfix
 ├── enhancements/G-E001-<slug>.md    # 跨子系統的全域優化

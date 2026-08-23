@@ -1,15 +1,16 @@
 # 開發流程文檔慣例(共用核心)
 
-所有開發流程 skills(system-design、subsys-design、subsys-build、feature-design、enhance-design、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
+所有開發流程 skills(system-design、subsys-design、subsys-build、spec-build、feature-design、enhance-design、spec-qa、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
 
-本檔是**每個 skill 都要讀**的核心。另外五片按需載入,沒踩到條件就不用讀:
+本檔是**每個 skill 都要讀**的核心。另外六片按需載入,沒踩到條件就不用讀:
 
 | 分片 | 內容 | 什麼時候讀 |
 |---|---|---|
-| `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議、測試政策,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、feature-design、enhance-design、feature-impl、enhance-impl、bugfix |
+| `spec-roles.md` | **spec 三角色契約**:設計 / qa / impl 各自的輸入與禁區、骨架規格、qa 的交付判準、spec-gaps 協議、仲裁協議與 3 輪上限 | **走 spec 驅動流程時**:feature-design、enhance-design、spec-qa、feature-impl、enhance-impl、spec-build、subsys-build(bugfix 不適用) |
+| `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議、測試政策,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、feature-design、enhance-design、spec-qa、feature-impl、enhance-impl、bugfix |
 | `frontmatter.md` | 各類文檔的 YAML frontmatter 規格、清單欄位寫法、`description` 規則 | 要**新建 `.design/` 文檔**,或要確認某個 frontmatter 欄位怎麼寫時(只改 `status` / `updated` 不用) |
-| `delegation.md` | 委派模式共通契約、「待確認假設」段落、回報格式 | prompt 標明 `【委派模式】`,或你是 `/subsys-build` 的編排者 |
-| `codegraph.md` | 程式碼知識圖的格式契約、能力對照、查詢紀律與禁止事項 | 某個 skill 的步驟明確指向本片,**且**該專案建過圖(判定方式見該片開頭);兩者缺一就不讀、照原流程走 |
+| `delegation.md` | 委派模式共通契約、「待確認假設」段落、回報格式 | prompt 標明 `【委派模式】`,或你是 `/spec-build` / `/subsys-build` 的編排者 |
+| `codegraph.md` | 程式碼知識圖的格式契約、能力對照、查詢紀律與禁止事項 | 設計類 skill **必用**、`/spec-qa` **限用**(界線見該片)、其餘 opt-in;專案沒建過圖就整片不讀、照原流程走 |
 | `anchor.md` | 收尾定錨區塊的格式:位置樹、完成度、主軸檢查、下一步、Knot 使用心得 | **每次收尾**與 `/subsys-build` 的每個階段閘門(每個 skill 都會用到,但到收尾才讀) |
 
 ## 角色與設計哲學
@@ -20,12 +21,15 @@
 |---|---|---|
 | Level 1 系統主架構 | `/system-design` | 系統邊界、跨系統通訊、全域契約與技術選型 |
 | Level 2 子系統架構 | `/subsys-design` | 子系統內部模組化、資料流管線、模組邊界介面 |
-| Level 3 Feature 與模組實作 | `/feature-design` → `/feature-impl`(以及 `/enhance-design` → `/enhance-impl`、`/bugfix`) | 業務邏輯落地、演算法細節、單元測試 |
-| 編排層(L2 → L3) | `/subsys-build` | 依 Level 2 的功能規劃自動展開整個子系統:批次澄清 → 波次委派 → 階段閘門 |
+| Level 3 Feature 與模組實作 | `/feature-design` → `/spec-qa` ∥ `/feature-impl`(以及 `/enhance-design` → `/spec-qa` ∥ `/enhance-impl`;`/bugfix` 走單角色) | 業務邏輯落地、演算法細節、測試 |
+| 編排層(單份 spec) | `/spec-build` | 拿一份寫好的 spec(F00x / E00x):spec 批准閘門 → 委派 qa ∥ impl → 跑測試 → 仲裁 |
+| 編排層(L2 → L3) | `/subsys-build` | 依 Level 2 的功能規劃自動展開整個子系統:批次澄清 → 波次委派 → spec 批准閘門 → 仲裁 → 階段閘門 |
+
+Level 3 採 **spec 驅動的三角色**:設計寫 spec 文檔與程式碼骨架(型別與簽名完整、函數本體未實作),qa 與 impl 各自只讀 spec、彼此不可見,測試與實作都只是 spec 的投影。角色契約見 `spec-roles.md`。
 
 預設工作順序:需求進來先產出 Level 1,待開發者確認架構邊界後,再逐步推進 Level 2 與 Level 3。開發者要求直接實作特定功能時,先確認該功能落在 Level 2 介面契約內,再直接給出乾淨可執行的 Level 3 程式碼,無需過多客套。
 
-Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` 一次展開整個子系統;逐一手動推進(`/feature-design` → `/feature-impl`)永遠是合法的替代路徑。
+Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` 一次展開整個子系統;逐一手動推進(`/feature-design` → `/spec-build`,或自己扮演編排者跑 `/spec-qa` 與 `/feature-impl`)永遠是合法的替代路徑。
 
 ## 資訊抽象邊界規範(嚴格遵守)
 
@@ -51,6 +55,7 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
 │   └── <subsystem-slug>/            # 資料夾名 = 子系統 slug(英文 kebab-case)
 │       ├── design.md                # /subsys-design 產出:Level 2 子系統架構(含功能規劃與 Feature 契約卡)
 │       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只有跑過才有)
+│       ├── spec-gaps.md             # /spec-qa、實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
 │       ├── features/
 │       │   └── F001-<slug>.md       # /feature-design 產出,如 F001-auth-login.md
 │       ├── enhancements/
@@ -61,6 +66,7 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
 │   └── G-E001-<slug>.md             # 跨子系統的全域優化(/enhance-design 產出)
 ├── bugfixes/
 │   └── G-B001-<slug>.md             # 跨子系統的全域修復(/bugfix 產出)
+├── spec-gaps.md                     # 全域文檔的 spec 模糊處(有 gap 才有)
 └── adr/
     └── ADR-001-<slug>.md            # 架構決策紀錄,全局共用
 ```
@@ -69,6 +75,7 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
 
 - `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設、閘門結論)
 - `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
+- `spec-gaps.md` 也不是任務文檔、不參與編號。它是 **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`):有 `open` 的條目,就代表有項目正卡著等 spec 修訂——`/arch-audit status` 會把未結的條目列出來,`/subsys-build` 開跑前會擋
 - `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
 - 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
 - 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低

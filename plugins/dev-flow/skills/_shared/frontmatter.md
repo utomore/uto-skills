@@ -79,6 +79,23 @@ parent: <subsystem-slug> # 回鏈所屬子系統的 design.md
 ---
 ```
 
+`subsystems/<slug>/spec-gaps.md`(qa / impl 發現 spec 模糊時才存在;全域文檔的 gap 放 `.design/spec-gaps.md`,`id` 用 `global-gaps`、省略 `parent`):
+
+```yaml
+---
+id: <subsystem-slug>-gaps
+type: spec-gaps
+title: <subsystem-slug>-gaps
+description: <一句話,40 字內:這個子系統有哪些 spec 待釐清>
+status: open            # open(還有未結條目)| done(全部 resolved)
+created: 2026-08-19
+updated: 2026-08-19
+parent: <subsystem-slug> # 回鏈所屬子系統的 design.md
+---
+```
+
+內文格式(只追加、不改既有條目,修訂後回填狀態)見 `spec-roles.md`「spec-gaps 協議」。條目編號 `G1`、`G2`… 在該檔內遞增,不跨檔共用。
+
 ### ADR
 
 ```yaml

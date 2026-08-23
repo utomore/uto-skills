@@ -2,14 +2,15 @@
 
 所有開發流程 skills(system-design、subsys-design、subsys-build、feature-design、enhance-design、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
 
-本檔是**每個 skill 都要讀**的核心。另外四片按需載入,沒踩到條件就不用讀:
+本檔是**每個 skill 都要讀**的核心。另外五片按需載入,沒踩到條件就不用讀:
 
 | 分片 | 內容 | 什麼時候讀 |
 |---|---|---|
+| `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議、測試政策,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、feature-design、enhance-design、feature-impl、enhance-impl、bugfix |
 | `frontmatter.md` | 各類文檔的 YAML frontmatter 規格、清單欄位寫法、`description` 規則 | 要**新建 `.design/` 文檔**,或要確認某個 frontmatter 欄位怎麼寫時(只改 `status` / `updated` 不用) |
 | `delegation.md` | 委派模式共通契約、「待確認假設」段落、回報格式 | prompt 標明 `【委派模式】`,或你是 `/subsys-build` 的編排者 |
 | `codegraph.md` | 程式碼知識圖的格式契約、能力對照、查詢紀律與禁止事項 | 某個 skill 的步驟明確指向本片,**且**該專案建過圖(判定方式見該片開頭);兩者缺一就不讀、照原流程走 |
-| `anchor.md` | 收尾定錨區塊的格式:位置樹、完成度、主軸檢查、下一步 | **每次收尾**與 `/subsys-build` 的每個階段閘門(每個 skill 都會用到,但到收尾才讀) |
+| `anchor.md` | 收尾定錨區塊的格式:位置樹、完成度、主軸檢查、下一步、Knot 使用心得 | **每次收尾**與 `/subsys-build` 的每個階段閘門(每個 skill 都會用到,但到收尾才讀) |
 
 ## 角色與設計哲學
 
@@ -24,7 +25,7 @@
 
 預設工作順序:需求進來先產出 Level 1,待開發者確認架構邊界後,再逐步推進 Level 2 與 Level 3。開發者要求直接實作特定功能時,先確認該功能落在 Level 2 介面契約內,再直接給出乾淨可執行的 Level 3 程式碼,無需過多客套。
 
-Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` 一次展開整個子系統:由編排者統一配號、批次澄清、委派 subagent 執行 Level 3,人只在批次澄清與各階段閘門出現。逐一手動推進(`/feature-design` → `/feature-impl`)永遠是合法的替代路徑。
+Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` 一次展開整個子系統;逐一手動推進(`/feature-design` → `/feature-impl`)永遠是合法的替代路徑。
 
 ## 資訊抽象邊界規範(嚴格遵守)
 
@@ -36,6 +37,8 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
    - **禁止**因為內部私有函數命名、變數名稱或輔助工具的選擇而回頭修改上層架構文檔;上層文檔只在「邊界契約本身變動」時才更新。
 3. **依賴管理簡化**:
    - 架構文檔不羅列無關緊要的基礎函式庫;依賴項由標準套件管理檔(`go.mod`、`package.json`、`Cargo.toml`、`pyproject.toml` 等)統一宣告。架構文檔只記「影響架構的關鍵依賴」(框架、儲存引擎、通訊協定實作)。
+
+某個決定屬於哪一層(自己決定,還是必須問開發者),判準見 `boundary-rules.md`「層級判斷」;系統裡每個事實該住在哪個模組,見同檔「知識歸屬」。
 
 ## 資料夾結構(專案內,樹狀)
 
@@ -98,6 +101,6 @@ id 只在子系統內唯一,跨界引用必須帶路徑:
 - feature / enhance / bugfix 完成(實作完成且測試通過)後 `status` 改 `done`;確認不再需要或已廢棄時改 `closed`
 - **Context 載入紀律**:分析或開發時只讀 `.design/system.md`、目標所屬子系統的 `design.md`(不相關的子系統不讀)、相關(最新)ADR、當前目標文檔;已 closed 的 bugfix 檔除非必要否則不載入
 - `.design/system.md` 是專案燈塔:任何文檔產出後若與其描述衝突,必須回頭檢查並(經開發者同意)更新
-- **層級分工**:主架構只寫到「子系統邊界」的顆粒度(職責、對外契約、通訊方式);子系統內部的模組、資料流管線放對應 `design.md`;實作細節只存在於 Level 3 文檔與程式碼。兩層描述衝突時以上層為準,並回頭修正下層
-- **收尾定錨**:每個 skill 的收尾與每個階段閘門,回報的最後必須附定錨區塊(格式見 `anchor.md`):位置樹標出目前在哪、完成度數字、主軸檢查(含偏離清單)、下一步命令。目的是讓開發者每次都用同一個視角核對方向有沒有被眼前的工作帶偏
+- **層級分工**:顆粒度見上方「資訊抽象邊界規範」;兩層描述衝突時以上層為準,並回頭修正下層
+- **收尾定錨**:每個 skill 的收尾與每個階段閘門,回報的最後必須附定錨區塊(格式見 `anchor.md`):位置樹標出目前在哪、完成度數字、主軸檢查(含偏離清單)、下一步命令、Knot 使用心得。前四段讓開發者每次都用同一個視角核對方向有沒有被眼前的工作帶偏,第五段回收工具本身的使用回饋
 - **舊版路徑相容**:0.6.0 起設計文檔改放 `.design/`;若專案只有舊版 `docs/arch/architecture.md` 體系,各 skill 應提醒開發者用 `/system-design` 遷移,遷移前可照舊以舊檔為燈塔運作,但不得在舊結構下新建文檔

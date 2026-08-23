@@ -43,9 +43,15 @@ user-invocable: true
 
      ```markdown
      ## 摘要
+     (兩句話:改了系統的哪個部分、為什麼)
 
      ## 變更內容
-     (依 branch / 文檔分組列點)
+     (依「動了哪個部分、為什麼」分組列點,不用檔案清單)
+
+     ## 依賴與決定
+     - 新增的依賴邊:<模組 / 子系統之間新增的 import 方向,無則「無」>
+     - 實作層級決定:<實作中自行決定、設計文檔沒寫的事>
+     - 發現但沒做的事:<建議另開任務的項目>
 
      ## 對應文檔
      - .design/subsystems/auth/features/F001-user-authentication.md

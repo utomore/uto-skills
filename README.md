@@ -20,20 +20,21 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | `/branch-pr` | — | 整合多條 branch 發 PR(先確認當前分支,在 main 上就先開新分支;標題英文 conventional commit、內文繁中、labels 英文) |
 | `/study` | — | 專案導讀(唯讀)— 由上而下帶開發者理解既有專案:全景(入口、技術棧、目錄職責)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量)→ **逐跳 trace code**(沿一條真實路徑從入口到輸出,附呼叫鏈摘要表);每課固定「結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
 
-共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分五片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)、`codegraph.md`(**程式碼知識圖整合**,專案建過圖時才讀)、`anchor.md`(**收尾定錨區塊**,每次收尾與階段閘門才讀)。每個 skill 開頭明列自己要讀哪幾片。
+共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分六片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`boundary-rules.md`(**邊界判斷規則**:知識歸屬、層級判斷「哪些自己決定、哪些要問人」、發問協議、測試政策,外加設計/實作各自的階段規則,設計或實作動手前讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)、`codegraph.md`(**程式碼知識圖整合**,專案建過圖時才讀)、`anchor.md`(**收尾定錨區塊**,每次收尾與階段閘門才讀)。每個 skill 開頭明列自己要讀哪幾片。
 
 改 skill 前請先看 [docs/skill-authoring.md](docs/skill-authoring.md)——撰寫與維護準則(追加閘門、分片規則、成本量測)。
 
 ### 收尾定錨
 
-每個 skill 的收尾與 `/subsys-build` 的每個階段閘門,回報的最後都固定附一個**定錨區塊**(格式在 `_shared/anchor.md`),四段順序固定:
+每個 skill 的收尾與 `/subsys-build` 的每個階段閘門,回報的最後都固定附一個**定錨區塊**(格式在 `_shared/anchor.md`),五段順序固定:
 
 1. **位置樹**:從 `.design/system.md` 畫到目前工作的文檔的 ASCII 樹,只畫最近的(所在子系統展開、其他子系統各一行),目前文檔之下列出它的介面與資料結構,狀態只用五個詞——契約 / 設計 / 實作中 / 完成 / 偏離——每條介面都註明對應 `design.md` 的哪一章,找不到就是偏離
 2. **完成度**:整體 → 所在子系統 → 目前文檔的 done/Todo/測試數字,只能來自 `scan-status.mjs` 與文檔,不准估百分比
 3. **主軸檢查**:本次動作對應到 `system.md` / `design.md` / 契約卡的哪一條,以及**偏離清單**(做了但上層沒寫的事,每條附位置與建議;沒有也要寫「無」)
 4. **下一步**:一條具體命令,必須從樹上的「目前」推得出來,不得建議樹上沒有的工作
+5. **Knot 使用心得**:本次有沒有跑 [knot](https://github.com/utomore/knot-hs)、跑了哪些子命令、查到什麼、對結論有沒有實質幫助;沒跑就寫具體原因(不是 Haskell 專案、沒建圖、`extract` 失敗、任務不需要導航…),不准用「不適用」帶過
 
-目的只有一個:一次執行只看得到自己那一小塊,連做幾次方向就會被眼前的工作帶走;把「在哪、多遠、偏了沒、接著做什麼」釘在每次收尾的最後,開發者每次都用同一個視角核對,LLM 就帶不歪。
+前四段的目的只有一個:一次執行只看得到自己那一小塊,連做幾次方向就會被眼前的工作帶走;把「在哪、多遠、偏了沒、接著做什麼」釘在每次收尾的最後,開發者每次都用同一個視角核對,LLM 就帶不歪。第五段方向相反,是回收工具本身的使用回饋——每次任務都留下一筆「用了沒、有沒有用」,累積起來才知道 knot 要往哪裡改。
 
 ### 選配:程式碼知識圖
 
@@ -138,9 +139,14 @@ plugins/
 └── talk-flow/
     ├── .claude-plugin/plugin.json  # plugin「talk-flow」(skill 前綴 talk-flow:)
     └── skills/
+wip/                                # 未上架的 plugin 草稿,只在 repo,不進 payload
 README.md                           # 只在 repo,不進 payload
 ```
 
 `marketplace.json` 的 `plugins[].source` 指向各 plugin 目錄(如 `./plugins/dev-flow`),安裝時**只有該子目錄**會被複製進使用者的 `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`。repo 根目錄的 `README.md`、`docs/` 等開發用檔案不會進到 payload — 使用者每裝一個版本就多一份快照,payload 保持精簡是有意義的。
 
 日後新增 plugin:在 `plugins/` 下開新目錄,到 `marketplace.json` 的 `plugins[]` 加一筆即可。marketplace 名稱、plugin 名稱與 GitHub repo 名稱彼此獨立。
+
+`wip/` 放**還沒上架**的 plugin 草稿:目錄結構與 `plugins/` 下的一樣,但不在 `marketplace.json` 裡,Claude Code 也不會把它當成 skill(發現路徑是 `plugins/<plugin>/skills/<name>/SKILL.md`)。目前有一個:
+
+- [`wip/game-flow/`](wip/game-flow/) —— 遊戲資源設計流程(八個 skill),包裝 [story-flow](https://github.com/utomore/story-flow)(設定片段圖譜與場景樹)與 [assetdb](https://github.com/utomore/assetdb)(素材庫索引與專案配置)。**兩個 CLI 都還在開發中,等它們穩定後一次整合再上架**;內容、上架前的確認事項與上架步驟見該目錄的 `README.md`

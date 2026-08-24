@@ -73,7 +73,7 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
 
 ## 文檔角色與權威來源
 
-- `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設、閘門結論)
+- `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)
 - `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
 - `spec-gaps.md` 也不是任務文檔、不參與編號。它是 **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`):有 `open` 的條目,就代表有項目正卡著等 spec 修訂——`/arch-audit status` 會把未結的條目列出來,`/subsys-build` 開跑前會擋
 - `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾

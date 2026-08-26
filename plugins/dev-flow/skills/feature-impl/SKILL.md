@@ -6,7 +6,7 @@ user-invocable: true
 
 # /feature-impl — Level 3 功能實作(impl 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;要新建 `spec-gaps.md` 時,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。
 
 ## 你的角色邊界(本階段的核心原則)
 
@@ -29,7 +29,7 @@ user-invocable: true
 |---|---|
 | 1. 確定目標文檔 | **跳過選檔**。文檔 id 由編排者在 prompt 指定,不跑 scan-status、不用 AskUserQuestion |
 | 2. 載入 context | 照原規則。`depends-on` 未完成時**不詢問是否繼續**:依編排者 prompt 給的前置狀態判斷——前置未 done 就不動工,記為阻塞項回報 |
-| 3. 實作 | 照原規則。**唯一差別**:發現「spec 講不清楚」或「非改簽名不可」時,原本要問開發者——委派模式下改為**停下該項**,記 spec-gaps 並列為阻塞項回報,不擅自改契約、也不硬做 |
+| 3. 實作 | 照原規則。**唯一差別**:發現「spec 講不清楚」或「非改簽名不可」時,原本要問開發者——委派模式下改為**停下該項**,把 gap 的四個欄位寫進回報並列為阻塞項,不擅自改契約、也不硬做。**不寫 `spec-gaps.md`**:那是共用檔案,qa 此刻很可能正在併發跑,兩邊各自建檔寫回會互相覆蓋又撞號;編號用局部序號(`本次-1`),`G` 編號由編排者發 |
 | 4. 跑測試 | 照原規則,**如實回報**。紅燈只做歸因,**不做仲裁**(仲裁是編排者的職責);絕不宣稱通過 |
 | 回寫架構文檔 | **不做**。要改 `design.md` / `system.md` 的,寫進回報給編排者裁決 |
 | 5. 收尾 | 全綠才把 `status` 改 `done`;有阻塞項則留 `in-progress`。輸出改為 `delegation.md` 定義的**結構化回報** |
@@ -56,7 +56,7 @@ user-invocable: true
 3. 簽名與型別定義**一個字都不准動**。需要私有 helper、內部型別就自己加(那是自主權範圍),但公開匯出的清單以骨架為準
 4. 程式碼風格遵循專案既有慣例;不得越過子系統邊界直接存取其他子系統的內部模組(只能走對方的對外契約)
 5. **依賴檢查(每次提交前自查)**:本次改動新增了哪些 import 方向?spec 的「依賴方向 / 新增的依賴邊」裡沒有這條邊 = 架構變更,停下來發問。核心層有沒有冒出表現層 / 前端 / 測試的概念?有 → 移除
-6. **spec 講不清楚時**:照 `spec-roles.md`「spec-gaps 協議」追加到 `.design/subsystems/<slug>/spec-gaps.md`,**停下該項**,其餘照做完。不准腦補、不准從測試反推(你也看不到測試)
+6. **spec 講不清楚時**:照 `spec-roles.md`「spec-gaps 協議」寫出四個欄位,**停下該項**,其餘照做完。互動模式追加到 `.design/subsystems/<slug>/spec-gaps.md`;**委派模式只寫進回報,不碰那個檔**(見上表)。不准腦補、不准從測試反推(你也看不到測試)
 
 ## 4. 跑測試(不寫測試)
 

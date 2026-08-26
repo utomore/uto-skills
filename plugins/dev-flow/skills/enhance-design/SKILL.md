@@ -6,7 +6,7 @@ user-invocable: true
 
 # /enhance-design — Level 3 優化設計(spec 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、編號、引用格式)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔)與 `../_shared/codegraph.md`(本 skill **必用**程式碼知識圖估影響面,不取代讀程式碼);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md`(編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 enhancement 文檔)與 `../_shared/codegraph.md`(本 skill **必用**程式碼知識圖估影響面,不取代讀程式碼);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(orchestrator 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」,仲裁協議是你的職責)與 `../_shared/delegation.md`(**委派模式共通契約**);批次澄清與 3b 的層級複審要分類問題層級時,另讀 `../_shared/boundary-rules.md`;要建或改 `build-log.md` / `spec-gaps.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`;要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」,仲裁協議是你的職責)與 `../_shared/delegation.md`(**委派模式共通契約**);批次澄清與 3b 的層級複審要分類問題層級時,另讀 `../_shared/boundary-rules.md`;要配 `F00x` / `G` 編號,或建改 `build-log.md` / `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(編號與引用格式)與 `../_shared/frontmatter.md`;要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 

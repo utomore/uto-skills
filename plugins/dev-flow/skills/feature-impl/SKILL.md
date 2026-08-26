@@ -6,7 +6,7 @@ user-invocable: true
 
 # /feature-impl — Level 3 功能實作(impl 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 與 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後三片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 不讀。
 
 ## 你的角色邊界(本階段的核心原則)
 

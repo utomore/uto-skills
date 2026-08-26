@@ -6,7 +6,7 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、引用格式、資訊抽象邊界規範)與 `../_shared/boundary-rules.md`(檢查知識歸屬、依賴邊與測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、資訊抽象邊界規範)、`../_shared/doc-lifecycle.md`(引用格式與權威來源,對帳用)、`../_shared/boundary-rules.md`(檢查知識歸屬與依賴邊的判準)與 `../_shared/testing-policy.md`(檢查測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## Scope 判斷
 

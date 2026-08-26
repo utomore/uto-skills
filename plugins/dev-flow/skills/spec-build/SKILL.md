@@ -6,7 +6,7 @@ user-invocable: true
 
 # /spec-build — 單份 spec 的委派執行迴圈(orchestrator 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」,仲裁協議是你的職責)與 `../_shared/delegation.md`(**委派模式共通契約**);要建或改 `spec-gaps.md` 的 frontmatter 時,另讀 `../_shared/frontmatter.md`;目標 spec 帶「待確認假設」段落時,另讀 `../_shared/boundary-rules.md`(層級複審用);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」,仲裁協議是你的職責)與 `../_shared/delegation.md`(**委派模式共通契約**);要建或改 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(`G` 編號規則)與 `../_shared/frontmatter.md`;目標 spec 帶「待確認假設」段落時,另讀 `../_shared/boundary-rules.md`(層級複審用);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 

@@ -2,12 +2,14 @@
 
 所有開發流程 skills(system-design、subsys-design、subsys-build、spec-build、feature-design、enhance-design、spec-qa、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
 
-本檔是**每個 skill 都要讀**的核心。另外六片按需載入,沒踩到條件就不用讀:
+本檔是**每個 skill 都要讀**的核心。另外八片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
 
 | 分片 | 內容 | 什麼時候讀 |
 |---|---|---|
 | `spec-roles.md` | **spec 三角色契約**:設計 / qa / impl 各自的輸入與禁區、骨架規格、qa 的交付判準、spec-gaps 協議、仲裁協議與 3 輪上限 | **走 spec 驅動流程時**:feature-design、enhance-design、spec-qa、feature-impl、enhance-impl、spec-build、subsys-build(bugfix 不適用) |
-| `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議、測試政策,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、feature-design、enhance-design、spec-qa、feature-impl、enhance-impl、bugfix |
+| `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、feature-design、enhance-design、feature-impl、enhance-impl、bugfix;`/subsys-build`、`/spec-build` 做層級複審時 |
+| `testing-policy.md` | 只測公開介面、property-based 測 law、`*.Internal`、禁止測試後門 | **要寫或改測試時**:spec-qa、bugfix、arch-audit(查後門)。spec 驅動的 impl 不寫測試,不讀 |
+| `doc-lifecycle.md` | 文檔角色與權威來源、命名與編號規則、跨文檔引用格式 | 要**新建 / 改名 / 編號 `.design/` 文檔**,或要寫跨文檔引用時(與 `frontmatter.md` 同一觸發條件,通常一起讀);只改 `status` / `updated` 不用 |
 | `frontmatter.md` | 各類文檔的 YAML frontmatter 規格、清單欄位寫法、`description` 規則 | 要**新建 `.design/` 文檔**,或要確認某個 frontmatter 欄位怎麼寫時(只改 `status` / `updated` 不用) |
 | `delegation.md` | 委派模式共通契約、「待確認假設」段落、回報格式 | prompt 標明 `【委派模式】`,或你是 `/spec-build` / `/subsys-build` 的編排者 |
 | `codegraph.md` | 程式碼知識圖的格式契約、能力對照、查詢紀律與禁止事項 | 設計類 skill **必用**、`/spec-qa` **限用**(界線見該片)、其餘 opt-in;專案沒建過圖就整片不讀、照原流程走 |
@@ -42,7 +44,7 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
 3. **依賴管理簡化**:
    - 架構文檔不羅列無關緊要的基礎函式庫;依賴項由標準套件管理檔(`go.mod`、`package.json`、`Cargo.toml`、`pyproject.toml` 等)統一宣告。架構文檔只記「影響架構的關鍵依賴」(框架、儲存引擎、通訊協定實作)。
 
-某個決定屬於哪一層(自己決定,還是必須問開發者),判準見 `boundary-rules.md`「層級判斷」;系統裡每個事實該住在哪個模組,見同檔「知識歸屬」。
+某個決定屬於哪一層(自己決定,還是必須問開發者),判準見 `boundary-rules.md`「層級判斷」;系統裡每個事實該住在哪個模組,見同檔「知識歸屬」。文檔怎麼編號、怎麼互相引用、哪份文檔是哪件事的權威,見 `doc-lifecycle.md`。
 
 ## 資料夾結構(專案內,樹狀)
 
@@ -71,39 +73,9 @@ Level 2 完成且每個 feature 都有**契約卡**時,可用 `/subsys-build` �
     └── ADR-001-<slug>.md            # 架構決策紀錄,全局共用
 ```
 
-## 文檔角色與權威來源
-
-- `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)
-- `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
-- `spec-gaps.md` 也不是任務文檔、不參與編號。它是 **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`):有 `open` 的條目,就代表有項目正卡著等 spec 修訂——`/arch-audit status` 會把未結的條目列出來,`/subsys-build` 開跑前會擋。它是**共用檔案**:委派模式下只由編排者單線寫入與配號,subagent 一律只回報(併發各自寫會互相覆蓋)
-- `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
-- 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
-- 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
-- 每份 `design.md` 的「Feature 契約卡」章節,功能規劃裡的每個 feature 都要有一張(`###` 一張卡,標題 = feature slug)。契約卡是「這個 feature 可以被無訪談委派」的門檻:寫得夠完整才跑得動 `/subsys-build`,缺卡的項目會被 `/arch-audit status` 列進提示
-
-## 命名與編號規則
-
-- 檔名一律**英文 kebab-case**;內文一律**繁體中文**;日期一律 `YYYY-MM-DD`
-- 編號**三位數**遞增,建新檔前先掃描該資料夾現有檔名,取同前綴的最大編號 +1
-- **每個子系統自己一組編號**(F/E/B 各自獨立計數);**全域(G-)自己一組編號**;ADR 全局一組編號:
-  - 子系統內:`F001`、`E001`、`B001`(features / enhancements / bugfixes 各自從 001 起算)
-  - 全域:`G-E001`、`G-B001`
-  - ADR:`ADR-001`
-- 檔名不放日期(日期在 frontmatter 的 `created` / `updated`)
-
-### 文檔引用格式(depends-on、related-* 等欄位與內文引用)
-
-id 只在子系統內唯一,跨界引用必須帶路徑:
-
-| 情境 | 寫法 | 例 |
-|---|---|---|
-| 同一子系統內互相引用 | 直接寫 id | `F001` |
-| 跨子系統引用 | `<subsystem-slug>/<id>` | `auth/F002` |
-| 引用全域文檔 | 直接寫全域 id | `G-E001` |
-| 引用 ADR | 直接寫 ADR id | `ADR-003` |
-
 ## 通用規則
 
+- **書寫慣例**:檔名一律英文 kebab-case、內文一律繁體中文、日期一律 `YYYY-MM-DD`(編號、引用格式等完整規則見 `doc-lifecycle.md`)
 - 修改任何文檔內容時,同步更新 frontmatter 的 `updated`
 - feature / enhance / bugfix 完成(實作完成且測試通過)後 `status` 改 `done`;確認不再需要或已廢棄時改 `closed`
 - **Context 載入紀律**:分析或開發時只讀 `.design/system.md`、目標所屬子系統的 `design.md`(不相關的子系統不讀)、相關(最新)ADR、當前目標文檔;已 closed 的 bugfix 檔除非必要否則不載入

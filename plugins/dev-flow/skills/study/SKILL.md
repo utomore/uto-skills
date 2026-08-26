@@ -6,7 +6,7 @@ user-invocable: true
 
 # /study — 專案導讀
 
-先讀取 `../_shared/conventions.md`(核心慣例:`.design/` 樹狀結構、三層階梯的分層語意、Context 載入紀律);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來找入口、算呼叫鏈候選,不取代讀程式碼)。不建檔,不讀 `frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:`.design/` 樹狀結構、三層階梯的分層語意、Context 載入紀律);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(用來找入口、算呼叫鏈候選,不取代讀程式碼)。不建檔,不讀 `frontmatter.md` 與 `doc-lifecycle.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 

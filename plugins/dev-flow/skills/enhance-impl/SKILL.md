@@ -6,7 +6,7 @@ user-invocable: true
 
 # /enhance-impl — Level 3 優化實作(impl 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);要新建 `spec-gaps.md` 時,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。prompt 標明 `【委派模式】` 時另讀 `../_shared/delegation.md`,且**最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。
 
 ## 你的角色邊界(本階段的核心原則)
 
@@ -39,7 +39,7 @@ user-invocable: true
 3. **以骨架為工作清單**:逐一把未實作標記換成真實實作。簽名一個字都不准動;需要私有 helper、內部型別就自己加(那是自主權範圍)
 4. 程式碼風格遵循專案既有慣例;不得越過子系統邊界直接存取其他子系統的內部模組
 5. **依賴檢查(每次提交前自查)**:本次改動新增 / 移除了哪些 import 方向?與 spec 的「新增/移除的依賴邊」對不上 = 架構變更,停下來發問。核心層有沒有冒出表現層 / 前端 / 測試的概念?有 → 移除
-6. **spec 講不清楚時**:照 `spec-roles.md`「spec-gaps 協議」追加到 `spec-gaps.md`,**停下該項**,其餘照做完。不准腦補、不准從測試反推(你也看不到測試)
+6. **spec 講不清楚時**:照 `spec-roles.md`「spec-gaps 協議」寫出四個欄位,**停下該項**,其餘照做完。互動模式追加到 `spec-gaps.md`;**委派模式只寫進回報,不碰那個檔**(qa 併發跑,兩邊各自寫會互相覆蓋又撞號,`G` 編號由編排者發)。不准腦補、不准從測試反推(你也看不到測試)
 
 ## 4. 跑測試(不寫測試)
 

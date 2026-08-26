@@ -6,7 +6,7 @@ user-invocable: true
 
 # /spec-qa — 從 spec 寫測試(qa 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/spec-roles.md`(**三角色契約**:你的輸入、禁區、交付判準、spec-gaps 協議);測試政策見 `../_shared/boundary-rules.md`「測試政策」;專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;要新建 `spec-gaps.md` 時,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)與 `../_shared/spec-roles.md`(**三角色契約**:你的輸入、禁區、交付判準、spec-gaps 協議);測試政策見 `../_shared/boundary-rules.md`「測試政策」;專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。
 
 ## 你的角色邊界(本 skill 的核心原則)
 
@@ -103,7 +103,10 @@ example 與某條 law 互相矛盾時:**不要自己選一邊**,兩條都照寫,
 
 ## 7. spec-gaps
 
-發現 spec 模糊、矛盾、或沒涵蓋時,照 `spec-roles.md`「spec-gaps 協議」追加到 `.design/subsystems/<slug>/spec-gaps.md`(全域文檔寫 `.design/spec-gaps.md`),**停下該項**,其餘照做完。檔案不存在就建一份(frontmatter 規格見 `../_shared/frontmatter.md`)。
+發現 spec 模糊、矛盾、或沒涵蓋時,照 `spec-roles.md`「spec-gaps 協議」寫出四個欄位,**停下該項**,其餘照做完。
+
+- **互動模式**:追加到 `.design/subsystems/<slug>/spec-gaps.md`(全域文檔寫 `.design/spec-gaps.md`),檔案不存在就建一份(frontmatter 規格見 `../_shared/frontmatter.md`)
+- **委派模式**:**不寫檔、不建檔、不配 `G` 編號**,四個欄位全文寫進回報,編號用局部序號(`本次-1`、`本次-2`),由編排者單線寫入並統一配號。impl 此刻很可能正在併發跑,兩邊各自建檔寫回會**互相覆蓋又撞號**,而且不會有任何錯誤訊息
 
 **不准腦補**:任何「spec 沒寫但我覺得應該這樣」的行為假設,一條都不許進測試。
 

@@ -1,6 +1,6 @@
 # 邊界判斷規則
 
-`_shared/conventions.md` 的分片。**設計與實作 skill 動手前先讀這份**(`/system-design`、`/subsys-design`、`/feature-design`、`/enhance-design`、`/feature-impl`、`/enhance-impl`、`/bugfix`)。前四節共用;「設計階段」只有設計 skill 用,「實作階段」只有實作 skill 用。
+`_shared/conventions.md` 的分片。**設計與實作 skill 動手前先讀這份**(`/system-design`、`/subsys-design`、`/feature-design`、`/enhance-design`、`/feature-impl`、`/enhance-impl`、`/bugfix`)。前三節共用;「設計階段」只有設計 skill 用,「實作階段」只有實作 skill 用。測試怎麼寫在 `testing-policy.md`,只有真的要動測試的角色才讀。
 
 ## 知識歸屬
 
@@ -36,13 +36,6 @@
 
 禁止問可以自己查到答案的問題;禁止問實作層級的問題。委派模式下一律不得提問,改記「待確認假設」(見 `delegation.md`)。
 
-## 測試政策
-
-- **測試不在依賴圖裡**:「X 不能被依賴」管的是 production 模組之間的 import;測試 import X 不違反此規則,不要為此發問
-- **預設只測公開介面**:純函式給輸入看輸出;代數性質用 property-based 測 law
-- 需要測內部時走 `*.Internal`(或該語言的等價形式):測試可以 import,production 模組不准 import
-- **禁止為測試在核心層開後門**(test-only export、setter、繞過正常流程的建構子)。不開後門就測不到 = 介面設計缺陷,停下來回報,並指出缺的觀察點是什麼
-
 ## 設計階段規則(設計 skill 適用)
 
 每個新增或修改的元件,設計文檔要明確回答四件事:
@@ -65,5 +58,5 @@
 - **範圍紀律**:只實作設計文檔裡有的東西。實作中發現設計沒涵蓋的情況——屬實作層級 → 自己決定,記進「實作備註」與 PR 描述;屬架構層級 → **停下來**按發問協議發問,不准先寫再說
 - **禁止「順便」**:順便重構、順便加功能、順便改介面,一律不做。發現值得做的事記成清單回報,由開發者決定要不要開新任務
 - **依賴檢查(每次提交前自查)**:本次改動有沒有新增任何 import 方向?有 → 對照設計文檔,文件裡沒有這條邊就是架構變更,停下來發問。核心層有沒有出現表現層/前端/測試的概念?有 → 移除
-- **測試**:走 spec 驅動流程時(`/feature-impl`、`/enhance-impl`)**你不寫測試也不讀測試**,測試是 qa 的產出——只跑,紅燈照 `spec-roles.md`「仲裁協議」歸因。`/bugfix` 走單角色,自己寫重現測試,遵守上面的測試政策;「不開後門就測不到」一律視為介面設計缺陷回報
+- **測試**:走 spec 驅動流程時(`/feature-impl`、`/enhance-impl`)**你不寫測試也不讀測試**,測試是 qa 的產出——只跑,紅燈照 `spec-roles.md`「仲裁協議」歸因。`/bugfix` 走單角色,自己寫重現測試,遵守 `testing-policy.md`;「不開後門就測不到」一律視為介面設計缺陷回報
 - **PR 描述**:用「改了系統的哪個部分、為什麼」描述,不用檔案清單(格式見 `/branch-pr`)

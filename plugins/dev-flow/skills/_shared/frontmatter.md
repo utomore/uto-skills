@@ -2,7 +2,7 @@
 
 `_shared/conventions.md` 的分片。**要新建 `.design/` 文檔,或修改既有文檔的 frontmatter 欄位時才需要讀這份**;只是讀文檔或改內文的話不用。
 
-各文檔扮演什麼角色、誰是權威清單,見 `conventions.md` 的「文檔角色與權威來源」。
+各文檔扮演什麼角色、誰是權威清單,以及編號與跨文檔引用格式,見 `doc-lifecycle.md`。
 
 ## Metadata 標準(YAML frontmatter)
 

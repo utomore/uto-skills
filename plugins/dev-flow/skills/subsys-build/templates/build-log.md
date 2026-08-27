@@ -20,12 +20,14 @@ parent: <subsystem-slug>
 ## 排程
 (階段 → 波次 → features;跨子系統依賴的處理決定)
 
-| 階段 | 波次 | features | 骨架快照 | 狀態 |
-|---|---|---|---|---|
-| 階段一 | W1 | a, b | `a1b2c3d` | done |
-| 階段一 | W2 | c | `e4f5g6h` | in-progress |
+| 階段 | 波次 | features | 骨架快照 | 白名單對帳 | 狀態 |
+|---|---|---|---|---|---|
+| 階段一 | W1 | a, b | `a1b2c3d` | OK | done |
+| 階段一 | W2 | c | `e4f5g6h` | 違規:`src/Shared.hs`(F005 加了 helper)→ 併入下一輪 | in-progress |
 
 **骨架快照**是發出本波委派前的 `HEAD` sha,3e 驗 qa 紅綠的基準點,發委派前就要連 worktree 一起建好。沒記下來就補不回來——impl 一填,骨架的未實作狀態在工作樹裡就不存在了。
+
+**白名單對帳**是本波 impl 收齊回報後、checkpoint commit 之前,拿骨架快照 sha 對一次工作樹的結果(`git diff --name-only <sha>` 加 `git ls-files --others --exclude-standard`,兩行缺一不可),每條路徑都要落在「某份 impl 白名單 / 本波測試檔 / 編排者單線寫的檔案」之一。**沒違規也要記 `OK`**——空白分不出「沒違規」與「忘了對」,而白名單只是寫在 prompt 裡的要求,不記錄就沒有任何地方證明它真的成立過。
 
 ## 委派決策記錄
 (批次澄清中「執行取向類」「測試框架類」與「排程類」的問答結論,**閘門密度**選了哪一檔也記在這裡;契約類的已回寫 design.md,這裡不重複)

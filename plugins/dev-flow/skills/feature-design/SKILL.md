@@ -6,7 +6,7 @@ user-invocable: true
 
 # /feature-design — Level 3 功能設計(spec 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例:樹狀結構、資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md` 與 `../_shared/frontmatter.md`(本 skill 要新建 feature 文檔:編號、引用格式、frontmatter 規格)與 `../_shared/codegraph.md`(本 skill **必用**程式碼知識圖,見步驟 2);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式,**委派模式下不讀**——你不輸出定錨區塊)。
+先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md` 與 `../_shared/frontmatter.md`(本 skill 要新建 feature 文檔:資料夾樹、編號、引用格式、frontmatter 規格)與 `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(本 skill **必用**程式碼知識圖並要下查詢,見步驟 2);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md` 與 `../_shared/delegation-design.md`(你要產出的兩份清單格式);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式,**委派模式下不讀**——你不輸出定錨區塊)。
 
 ## 目標
 

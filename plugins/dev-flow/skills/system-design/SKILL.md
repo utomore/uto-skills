@@ -6,7 +6,7 @@ user-invocable: true
 
 # /system-design — Level 1 系統主架構設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:資料夾結構、**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/doc-lifecycle.md`(編號、引用格式、權威來源)與 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式、權威來源)與 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 

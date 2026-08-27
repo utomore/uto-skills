@@ -14,6 +14,35 @@
 - 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
 - 每份 `design.md` 的「Feature 契約卡」章節,功能規劃裡的每個 feature 都要有一張(`###` 一張卡,標題 = feature slug)。契約卡是「這個 feature 可以被無訪談委派」的門檻:寫得夠完整才跑得動 `/subsys-build`,缺卡的項目會被 `/arch-audit status` 列進提示
 
+## 資料夾結構(專案內,樹狀)
+
+設計文檔樹與系統架構樹同構:根節點是主專案架構,第二層是各 subsystem。
+
+```
+.design/
+├── system.md                        # /system-design 產出:Level 1 主架構
+├── subsystems/
+│   └── <subsystem-slug>/            # 資料夾名 = 子系統 slug(英文 kebab-case)
+│       ├── design.md                # /subsys-design 產出:Level 2 子系統架構(含功能規劃與 Feature 契約卡)
+│       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只有跑過才有)
+│       ├── spec-gaps.md             # /spec-qa、實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
+│       ├── features/
+│       │   └── F001-<slug>.md       # /feature-design 產出,如 F001-auth-login.md
+│       ├── enhancements/
+│       │   └── E001-<slug>.md       # /enhance-design 產出,如 E001-optimize-token-cache.md
+│       └── bugfixes/
+│           └── B001-<slug>.md       # /bugfix 產出,如 B001-null-pointer-auth.md
+├── enhancements/
+│   └── G-E001-<slug>.md             # 跨子系統的全域優化(/enhance-design 產出)
+├── bugfixes/
+│   └── G-B001-<slug>.md             # 跨子系統的全域修復(/bugfix 產出)
+├── spec-gaps.md                     # 全域文檔的 spec 模糊處(有 gap 才有)
+└── adr/
+    └── ADR-001-<slug>.md            # 架構決策紀錄,全局共用
+```
+
+**舊版路徑相容**:0.6.0 起設計文檔才改放 `.design/`;專案只有舊版 `docs/arch/architecture.md` 體系時,提醒開發者用 `/system-design` 遷移,遷移前可照舊以舊檔為燈塔運作,但**不得在舊結構下新建文檔**。
+
 ## 命名與編號規則
 
 - 檔名一律**英文 kebab-case**;內文一律**繁體中文**;日期一律 `YYYY-MM-DD`

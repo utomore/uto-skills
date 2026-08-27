@@ -10,7 +10,7 @@ user-invocable: true
 
 ## 目標
 
-spec 已經寫好了(`/feature-design` 或 `/enhance-design` 產出的文檔 + 骨架),把剩下的 qa 與 impl 委派出去跑完:
+spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance 都可以),把剩下的 qa 與 impl 委派出去跑完:
 
 ```
 門檻檢查 → 【spec 批准閘門:人放行】
@@ -19,7 +19,7 @@ spec 已經寫好了(`/feature-design` 或 `/enhance-design` 產出的文檔 + �
 
 **適用一份 spec**:`F001`、`auth/F002`、`E001`、`G-E001` 都可以。要一次跑完整個子系統的多個 features(排波次、配號、階段閘門),走 `/subsys-build`;`/bugfix` 不適用(單角色流程)。
 
-`/enhance-design` 需要人討論 scope、不能無訪談委派——但 scope 談完、spec 寫好之後,後半段和 feature 完全一樣,這就是本 skill 存在的理由。
+`/spec-design` 的 **enhance 模式**需要人讀程式碼、討論 scope,不能無訪談委派——但 scope 談完、spec 寫好之後,後半段和 feature 完全一樣,這就是本 skill 存在的理由。
 
 ## 你自己做什麼、不做什麼
 
@@ -50,7 +50,7 @@ spec 已經寫好了(`/feature-design` 或 `/enhance-design` 產出的文檔 + �
 4. spec「介面」表(enhance 是「數據與介面變動」表)每一條的簽名,在骨架檔案裡找得到**逐字相同**的原文
 5. `spec-gaps.md` 沒有指向本文檔的 `open` 條目——有的話代表上一輪還有 spec 沒修完,先處理
 
-不過關時:列出缺什麼,告知開發者走 `/feature-design` 或 `/enhance-design` 的更新模式補齊,然後結束。
+不過關時:列出缺什麼,告知開發者走 `/spec-design` 的更新模式補齊,然後結束。
 
 ## 3. spec 批准閘門(人放行)
 
@@ -76,7 +76,7 @@ spec 已經寫好了(`/feature-design` 或 `/enhance-design` 產出的文檔 + �
 兩種情況不問這一題,但第 1-6 點的呈報照發(**降級的是問不問,不是呈不呈報**):開發者看不到呈報,就不知道被放行的是什麼。
 
 - **議程為 0**(不可逆決定、不在宣告內的新增依賴邊、契約層級假設都是 0)**且你自己沒有疑慮**:此時要問的是「你同意這份沒有任何爭議點的 spec 嗎」,那不是審查是蓋章;呈報完直接進第 4 步,在回報裡記一行「空議程自動放行」
-- 開發者在本次對話裡剛剛才明確批准過同一份 spec(例如 `/feature-design` 收尾後直接接著跑本 skill):不重複問,但第 5 點的疑慮照樣要講出來
+- 開發者在本次對話裡剛剛才明確批准過同一份 spec(例如 `/spec-design` 收尾後直接接著跑本 skill):不重複問,但第 5 點的疑慮照樣要講出來
 
 批准之前**不得**發出任何委派。
 
@@ -97,7 +97,7 @@ feature 目標(全新程式碼)沒有既有測試,這條基準線可跳過——
 | 角色 | 委派的 skill | 模型 |
 |---|---|---|
 | qa | `dev-flow:spec-qa` | **`sonnet`** |
-| impl | `dev-flow:feature-impl`(feature)/ `dev-flow:enhance-impl`(enhance) | **`sonnet`** |
+| impl | `dev-flow:spec-impl` | **`sonnet`** |
 | 編排者(你) | — | 不指定,跟隨開發者當下的 session 模型 |
 
 spec 已經鎖死,qa 與 impl 做的是翻譯與填空,判斷空間有限。模型是**呼叫 Agent 工具時的參數,不是 prompt 內容**——寫進 prompt 模板不會報錯,只是靜默沒作用。
@@ -125,7 +125,7 @@ prompt 必須包含委派契約與角色禁區:
 **禁止讀寫 spec-gaps.md**:發現 gap 就停下該項,把四個欄位寫進回報,
 編號用「本次-1」這種局部序號,不要自己配 G 編號、不要自己建檔。
 
-執行 dev-flow:feature-impl,目標:<文檔 id>
+執行 dev-flow:spec-impl,目標:<文檔 id>
 ```
 
 兩邊都回報後才進下一步。有一邊回報阻塞或新增 spec-gaps → 照樣進第 6 步跑測試(另一半的產出還是要驗),但在回報裡明確標出哪一半沒做完。

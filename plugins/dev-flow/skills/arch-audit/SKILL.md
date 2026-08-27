@@ -33,7 +33,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 - **任務文檔表**(`主軸 | id | 子系統 | type | status | created | depends-on | file`):轉成 markdown 表格時**維持欄位順序**,「主軸」是第一眼看到的欄位;`子系統` 欄為 `global` 代表全域 G- 文檔
 - **子系統狀態表**(`主軸 | id | status | 階段 | features | 契約卡 | 已建文檔 | 已完成 | 未結E/B | 進度`):回答「哪些 feature 已完成、哪些還在規劃/設計階段、哪些模組有未結的優化與缺陷」;欄位顯示 `-` 代表該 `design.md` 沒有「功能規劃」表格,建議用 `/subsys-design` 更新模式補上
 - **契約卡欄**(`n/總數`):功能規劃有幾項備妥「Feature 契約卡」= 委派展開的就緒度。滿格才跑得動 `/subsys-build`;顯示 `-` 表示整份 `design.md` 沒有契約卡章節(舊版文檔屬正常,只是不能委派)。缺卡與孤兒卡片會出現在「提示」清單,**不列為不一致**(不影響 exit code)
-- **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步的待辦清單(逐一走 `/feature-design`,或契約卡滿格時用 `/subsys-build` 委派展開)
+- **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步的待辦清單(逐一走 `/spec-design`,或契約卡滿格時用 `/subsys-build` 委派展開)
 - **未結的 spec-gaps**:qa / impl 提出、尚未被 spec 修訂的問題。**每一條都代表有項目正卡著**,要逐條轉達並建議走對應的 design skill 更新模式修 spec;有未結條目時 `/subsys-build` 會擋著不啟動
 - **架構 / 子系統不一致**必須逐條轉達:`subsystems` 權威清單與實際資料夾對不上(雙向)、功能規劃指向不存在的文檔、id 與檔名不一致、depends-on 無法解析、全域文檔缺 `subsystems` 欄、design.md 缺 `parent` 等
 - 有「frontmatter 格式不合規」時,把清單欄位改回行內陣列再重跑;寫成 YAML 區塊列表時腳本讀不到內容,相依關係與歸屬都不可信
@@ -55,7 +55,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
    它給的是**線索**:子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單、架構 hub。腳本印出的「⚠ 影響結論可信度」整段要**原樣轉達給開發者**——圖是無向建置、過期、或對映覆蓋率過低時,任何基於它的結論都不能採信,先修再談。沒有圖(或判定沒過)就照下面各 scope 的原方法做,不提也不擋
 3. **Context 載入紀律**:只讀 scope 對應層級的文檔(見各 scope);已 closed 的 bugfix 除非必要否則不載入
 4. 發現一律**依嚴重度排序**在對話中回報:每條附具體檔案與程式碼位置、違反了哪條契約/原則、建議動作
-5. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/enhance-design`(需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號規則與 `frontmatter.md` 的規格,`status: open`,內文附本次發現的分析依據)
+5. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/spec-design`(enhance 模式,需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號規則與 `frontmatter.md` 的規格,`status: open`,內文附本次發現的分析依據)
 6. 本 skill **不修改程式碼**,也不改架構文檔(發現文檔該改時,列出差異建議開發者走對應 design skill)
 
 ### Scope: system — 全域架構檢測
@@ -101,5 +101,5 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 ## 收尾
 
 - status scope:摘要整體進度(done/總數、各子系統進度、契約卡就緒度、待展開 feature 數、不一致數),建議下一步命令(契約卡滿格的子系統可提 `/subsys-build` 委派展開)
-- 分析型 scope:摘要發現數量(依嚴重度)、最關鍵的前幾條、建議的後續文檔(走 `/bugfix` 或 `/enhance-design` 的清單)
+- 分析型 scope:摘要發現數量(依嚴重度)、最關鍵的前幾條、建議的後續文檔(走 `/bugfix` 或 `/spec-design` 的清單)
 - 兩種 scope 最後都輸出**定錨區塊**(`../_shared/anchor.md`):status scope 的數字直接取自剛跑的腳本,位置樹以開發者指定(沒指定就取進度最落後)的子系統為「所在」;分析型 scope 以被檢測的子系統/feature 為「目前」,本次發現裡屬於契約與程式碼不符的,照樣寫進偏離清單

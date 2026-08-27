@@ -1,6 +1,6 @@
 # 委派模式:spec 角色專用(待確認假設與自裁記錄)
 
-`delegation.md` 的分片。**兩種人讀這份**:委派模式下的 spec 角色(`/feature-design`、`/enhance-design`)——這兩份清單只有你會產出;以及編排者(`/spec-build`、`/subsys-build`)——你要拿這些欄位做層級複審、機械對帳與合併。
+`delegation.md` 的分片。**兩種人讀這份**:委派模式下的 spec 角色(`/spec-design`)——這兩份清單只有你會產出;以及編排者(`/spec-build`、`/subsys-build`)——你要拿這些欄位做層級複審、機械對帳與合併。
 
 qa 與 impl 不讀:你們的不確定走 `spec-roles.md`「spec-gaps 協議」,不寫這兩份清單。
 

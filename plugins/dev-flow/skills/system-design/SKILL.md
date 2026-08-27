@@ -113,5 +113,5 @@ updated: <today>
 ### 4. 收尾
 
 - 向開發者摘要:產出了哪些檔案、架構重點、子系統劃分結論、通訊拓撲、各階段規劃
-- 說明 `.design/system.md` 是專案燈塔,之後 `/subsys-design`、`/feature-design`、`/enhance-design` 都以它為依據;`.design/adr/` 有新決策會持續擴充
+- 說明 `.design/system.md` 是專案燈塔,之後 `/subsys-design`、`/spec-design` 都以它為依據;`.design/adr/` 有新決策會持續擴充
 - 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹畫 `system.md` 加「子系統劃分」的每個子系統一行(已建 / 未建);下一步通常是對下一個未建的子系統跑 `/subsys-design`(建檔後 `subsystems` 會回填)

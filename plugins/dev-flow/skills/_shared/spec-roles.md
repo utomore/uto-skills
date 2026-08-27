@@ -1,6 +1,6 @@
 # spec 三角色契約(設計 / qa / impl)
 
-`_shared/conventions.md` 的分片。**走 spec 驅動流程時讀這份**(`/feature-design`、`/enhance-design`、`/spec-qa`、`/feature-impl`、`/enhance-impl`、`/spec-build`、`/subsys-build`)。`/bugfix` 不適用(輸入是既有程式碼,沒有可投影的唯一真相)。
+`_shared/conventions.md` 的分片。**走 spec 驅動流程時讀這份**(`/spec-design`、`/spec-qa`、`/spec-impl`、`/spec-build`、`/subsys-build`)。`/bugfix` 不適用(輸入是既有程式碼,沒有可投影的唯一真相)。
 
 ## 鐵律
 

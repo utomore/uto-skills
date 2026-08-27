@@ -116,15 +116,15 @@ subagent 問不了人,所以要在 fan out 之前把**它們自己判斷不了�
 2. **骨架檔案路徑**(依步驟 1 第 5 點的預估;同一波內不得重疊)
 3. 執行模型(見下表)
 
-**這一步不能省也不能延後**:`/feature-design` 原本的配號規則是「掃資料夾取最大值 +1」,平行 subagent 同時掃會全部拿到同一個號;骨架路徑同理,不由你指派就會兩個 subagent 同時建同一個檔案。號與路徑都由你發,衝突就不存在。
+**這一步不能省也不能延後**:`/spec-design` 原本的配號規則是「掃資料夾取最大值 +1」,平行 subagent 同時掃會全部拿到同一個號;骨架路徑同理,不由你指派就會兩個 subagent 同時建同一個檔案。號與路徑都由你發,衝突就不存在。
 
 **模型分派(每次呼叫 Agent 工具都必須明確帶上 `model`,不得省略讓它繼承主 session):**
 
 | 角色 | 委派的 skill | 模型 |
 |---|---|---|
-| spec | `dev-flow:feature-design` | **`opus`** |
+| spec | `dev-flow:spec-design` | **`opus`** |
 | qa | `dev-flow:spec-qa` | **`sonnet`** |
-| impl | `dev-flow:feature-impl` | **`sonnet`** |
+| impl | `dev-flow:spec-impl` | **`sonnet`** |
 | 編排者(你) | — | 不指定,跟隨開發者當下的 session 模型 |
 
 理由:只有 spec 那一層在做**契約判斷**——寫錯會沿著 qa 與 impl 兩條投影一起錯,而且錯誤要到仲裁才浮出來,值得用最強的模型;qa 與 impl 拿到的是已經鎖死的 spec 與骨架,做的是翻譯與填空,判斷空間有限。把分派固定下來,子代的成本與行為就不隨主 session 當下用哪個模型漂移,閘門看到品質問題時也能直接歸因到 spec 寫得夠不夠,而不是模型差異。
@@ -145,7 +145,7 @@ subagent 問不了人,所以要在 fan out 之前把**它們自己判斷不了�
 你是 spec 角色,遵守 <spec-roles.md 路徑>:不寫實作邏輯、不寫測試,
 骨架的函數本體一律未實作標記且必須通過編譯。
 
-執行 dev-flow:feature-design,目標:
+執行 dev-flow:spec-design,目標:
 - 子系統:<slug>            設計文檔:.design/subsystems/<slug>/design.md
 - 指定 id / 檔名:F00x / F00x-<slug>.md     (由編排者配號,不得自行掃描)
 - 指定骨架檔案路徑:<路徑清單>              (不得寫到清單外的檔案)
@@ -229,7 +229,7 @@ subagent 的傾向裡藏著未論證的前提時(「日後要 X 加 wrapper 即�
 - **impl 也全部平行發出**(`model: "sonnet"`)——3a 已經逐 feature 指派過**互不重疊**的骨架路徑,impl 的禁區又是「只准替換未實作標記」,所以本波的 impl 寫的是各自骨架檔案的本體,寫入不重疊。**成立的前提只有一個:寫入範圍真的被鎖在那份清單裡**,所以委派 prompt 必須帶下面的寫入白名單;帶不上就退回序列
 - **qa 與 impl 之間不設先後**:檔案集不相交(測試檔 vs 實作檔),**寫入**不會互蓋。但**讀取會**——qa「該紅卻綠」判準讀的正是 impl 填的那個狀態,impl 先落地判準就靜默失效。所以紅綠的最終確認不靠誰先跑完,移到 3e 由你在骨架快照上做(見 `../_shared/orchestration.md`「骨架快照」)
 
-prompt 格式同 3b,skill 換成 `dev-flow:spec-qa` 或 `dev-flow:feature-impl`,目標填文檔 id,並明確寫上角色禁區:
+prompt 格式同 3b,skill 換成 `dev-flow:spec-qa` 或 `dev-flow:spec-impl`,目標填文檔 id,並明確寫上角色禁區:
 
 ```
 你是 qa 角色,遵守 <spec-roles.md 路徑>:只讀 spec 的數據/介面/Laws/Examples 與骨架,
@@ -300,7 +300,7 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 
 有紅 → 照 `../_shared/orchestration.md`「仲裁協議」逐條處理(先歸因 → 判 impl 錯 / qa 誤讀 / spec bug → 同一 feature 上限 3 輪),**禁止直接叫 impl 重寫**。那一片沒寫的是「裁完之後委派怎麼發」,補三條:
 
-- 判 **impl 錯** → 新開 `dev-flow:feature-impl` 委派(`model: "sonnet"`),prompt 只給失敗清單與對應的 spec 條文原文,**不得附上測試原始碼**
+- 判 **impl 錯** → 新開 `dev-flow:spec-impl` 委派(`model: "sonnet"`),prompt 只給失敗清單與對應的 spec 條文原文,**不得附上測試原始碼**
 - 判 **qa 誤讀** → 新開 `dev-flow:spec-qa` 委派(`model: "sonnet"`),只給條文原文與要改的測試名,**不得附上實作原始碼**
 - 判 **spec bug**,或同一 feature 撞到 3 輪上限 → **不發任何委派**,停下來向開發者回報,附失敗摘要與你判斷的結構性原因(介面切錯、law 互相矛盾、example 與 law 不一致、前置 feature 行為與 spec 不符)
 
@@ -321,7 +321,7 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
    - **仲裁紀錄摘要**:幾輪、歸因分佈(impl 錯 / qa 誤讀 / spec bug),spec bug 的每一條都要點名
    - **arch-audit 發現** 與 **建議的上層變更**:依嚴重度排序
    - **定錨區塊**(`../_shared/anchor.md`):位置樹以本階段的 features 為「目前」、逐條列介面與型別的狀態;未結的 spec-gaps 與與契約牴觸的假設一律進偏離清單;下一步 = 下一點的三個選項
-6. 用 AskUserQuestion 讓開發者選:**進下一階段** / **先修這些問題**(修 spec 後重跑該波的 qa+impl,或走 `/bugfix`、`/enhance-design`,或回 `/subsys-design` 改契約後重跑本階段) / **就此停下**
+6. 用 AskUserQuestion 讓開發者選:**進下一階段** / **先修這些問題**(修 spec 後重跑該波的 qa+impl,或走 `/bugfix`、`/spec-design`,或回 `/subsys-design` 改契約後重跑本階段) / **就此停下**
 7. 開發者要修契約 → 由**你**更新 `design.md`(不是 subagent),更新後受影響的 feature 要重跑,不能靠既有產出將就
 8. 詢問是否為本階段收尾(squash 成一個 commit 或打 tag 皆可;checkpoint 已在過程中留下,這裡只處理歷史整理)。**不主動 push**;整合發 PR 走 `/branch-pr`
 
@@ -344,6 +344,6 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 
 - **不跑跨子系統**:一次只展開一個子系統。多個子系統要一個一個來(先跑被依賴的那個)
 - **不改 Level 1**:過程中發現主架構要改,回報給開發者走 `/system-design` 更新模式,不自己動
-- **不做 enhancement / bugfix 的委派**:`/enhance-design` 需要先讀程式碼再與人討論 scope、`/bugfix` 需要人確認重現條件,兩者都不適合無訪談委派。過程中發現的問題,在閘門建議開發者走 `/enhance-design`、`/bugfix`;enhance 的 scope 談完、spec 寫好之後,**後半段(qa ∥ impl → 測試 → 仲裁)走 `/spec-build <id>`**——那條迴圈與 feature 完全相同
+- **不做 enhancement / bugfix 的委派**:`/spec-design` 的 **enhance 模式**需要先讀程式碼再與人討論 scope、`/bugfix` 需要人確認重現條件,兩者都不適合無訪談委派。過程中發現的問題,在閘門建議開發者走 `/spec-design`、`/bugfix`;enhance 的 scope 談完、spec 寫好之後,**後半段(qa ∥ impl → 測試 → 仲裁)走 `/spec-build <id>`**——那條迴圈與 feature 完全相同
 - **單份 spec 不必動用本 skill**:只要跑一份已寫好的 spec(F00x 或 E00x),用 `/spec-build <id>` 就夠了;本 skill 多出來的是排波次、配號、階段閘門與 `design.md` 回填
 - **契約卡不完整時不啟動**:前置第 4 條的門檻是硬性的

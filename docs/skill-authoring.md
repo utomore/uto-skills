@@ -17,7 +17,7 @@ cd plugins/dev-flow
 for f in skills/*/SKILL.md skills/_shared/*.md; do printf "%4d %s\n" "$(wc -l < "$f")" "$f"; done
 ```
 
-各 skill 的 `description` 是**永遠在 context** 的(約 6.5 KB / 13 個 skill),但那是觸發判斷的必要成本,不是優化對象。
+各 skill 的 `description` 是**永遠在 context** 的(約 6.7 KB / 11 個 skill),但那是觸發判斷的必要成本,不是優化對象。
 
 ## 三條追加閘門
 
@@ -44,7 +44,7 @@ for f in skills/*/SKILL.md skills/_shared/*.md; do printf "%4d %s\n" "$(wc -l < 
 
 新增共用內容時先判斷它屬於哪一片。判斷不出來,通常表示它其實是單一 skill 的規則。
 
-**拆片最大的風險是漏讀**,唯一的防線是:每個 `SKILL.md` 開頭必須**明列讀哪幾片、以及為什麼要讀**,不能只寫「遵守共用慣例」。加分片或改分片條件時,十三個 `SKILL.md` 的開頭都要同步檢查。
+**拆片最大的風險是漏讀**,唯一的防線是:每個 `SKILL.md` 開頭必須**明列讀哪幾片、以及為什麼要讀**,不能只寫「遵守共用慣例」。加分片或改分片條件時,十一個 `SKILL.md` 的開頭都要同步檢查。
 
 ## 什麼該搬進 `templates/`
 
@@ -54,7 +54,7 @@ for f in skills/*/SKILL.md skills/_shared/*.md; do printf "%4d %s\n" "$(wc -l < 
 
 ## 不要做的事
 
-- **不要把單一 skill 的主流程拆成多個檔案。** `_shared/` 拆片是因為它被十三個 skill 共用、需求差異大;單一 skill 的流程拆開只會提高漏讀率,省下的也有限。
+- **不要把單一 skill 的主流程拆成多個檔案。** `_shared/` 拆片是因為它被十一個 skill 共用、需求差異大;單一 skill 的流程拆開只會提高漏讀率,省下的也有限。
 - **不要為了行數砍掉能擋錯的理由。** 見閘門第 3 條——判準是「擋不擋得掉一個具體的錯誤動作」,不是長度。
 
 ## 事故紀錄

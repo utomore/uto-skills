@@ -11,7 +11,7 @@
 - `spec-gaps.md` 也不是任務文檔、不參與編號。它是 **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`):有 `open` 的條目,就代表有項目正卡著等 spec 修訂——`/arch-audit status` 會把未結的條目列出來,`/subsys-build` 開跑前會擋。它是**共用檔案**:委派模式下只由編排者單線寫入與配號,subagent 一律只回報(併發各自寫會互相覆蓋)
 - `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
 - 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
-- 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/feature-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
+- 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/spec-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
 - 每份 `design.md` 的「Feature 契約卡」章節,功能規劃裡的每個 feature 都要有一張(`###` 一張卡,標題 = feature slug)。契約卡是「這個 feature 可以被無訪談委派」的門檻:寫得夠完整才跑得動 `/subsys-build`,缺卡的項目會被 `/arch-audit status` 列進提示
 
 ## 資料夾結構(專案內,樹狀)
@@ -27,13 +27,13 @@
 │       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只有跑過才有)
 │       ├── spec-gaps.md             # /spec-qa、實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
 │       ├── features/
-│       │   └── F001-<slug>.md       # /feature-design 產出,如 F001-auth-login.md
+│       │   └── F001-<slug>.md       # /spec-design 產出,如 F001-auth-login.md
 │       ├── enhancements/
-│       │   └── E001-<slug>.md       # /enhance-design 產出,如 E001-optimize-token-cache.md
+│       │   └── E001-<slug>.md       # /spec-design 產出,如 E001-optimize-token-cache.md
 │       └── bugfixes/
 │           └── B001-<slug>.md       # /bugfix 產出,如 B001-null-pointer-auth.md
 ├── enhancements/
-│   └── G-E001-<slug>.md             # 跨子系統的全域優化(/enhance-design 產出)
+│   └── G-E001-<slug>.md             # 跨子系統的全域優化(/spec-design 產出)
 ├── bugfixes/
 │   └── G-B001-<slug>.md             # 跨子系統的全域修復(/bugfix 產出)
 ├── spec-gaps.md                     # 全域文檔的 spec 模糊處(有 gap 才有)

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /spec-qa — 從 spec 寫測試(qa 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的輸入、禁區、交付判準、spec-gaps 協議)與 `../_shared/testing-policy.md`(只測公開介面、禁止測試後門);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 與 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後三片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不設計也不實作,`boundary-rules.md` 整片不讀。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的輸入、禁區、交付判準、spec-gaps 協議)與 `../_shared/testing-policy.md`(只測公開介面、禁止測試後門);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**)與 `../_shared/codegraph-tools.md`(查詢指令);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 與 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後三片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不設計也不實作,`boundary-rules.md` 整片不讀。
 
 ## 你的角色邊界(本 skill 的核心原則)
 

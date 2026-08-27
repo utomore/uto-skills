@@ -1,6 +1,6 @@
 # `build-log.md` 版面模板
 
-路徑 `.design/subsystems/<slug>/build-log.md`,frontmatter 規格見 `_shared/frontmatter.md`。
+路徑 `.design/subsystems/<slug>/build-log.md`,frontmatter 規格見 `_shared/doc-lifecycle.md`。
 建檔或更新時照這份抄;七個章節都要有,沒內容的先留標題與表頭。
 
 ```markdown

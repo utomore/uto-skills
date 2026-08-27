@@ -6,11 +6,11 @@ user-invocable: true
 
 # /spec-build — 單份 spec 的委派執行迴圈(orchestrator 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審要用)與 `../_shared/delegation.md`(**委派模式共通契約**);要建或改 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(`G` 編號規則)與 `../_shared/frontmatter.md`;目標 spec 帶「待確認假設」段落時,另讀 `../_shared/boundary-rules.md`(層級複審用);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審要用)與 `../_shared/delegation.md`(**委派模式共通契約**);要建或改 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(`G` 編號規則與 frontmatter 規格);目標 spec 帶「待確認假設」段落時,另讀 `../_shared/boundary-rules.md`(層級複審用);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
-spec 已經寫好了(`/feature-design` 或 `/enhance-design` 產出的文檔 + 骨架),把剩下的 qa 與 impl 委派出去跑完:
+spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance 都可以),把剩下的 qa 與 impl 委派出去跑完:
 
 ```
 門檻檢查 → 【spec 批准閘門:人放行】
@@ -19,7 +19,7 @@ spec 已經寫好了(`/feature-design` 或 `/enhance-design` 產出的文檔 + �
 
 **適用一份 spec**:`F001`、`auth/F002`、`E001`、`G-E001` 都可以。要一次跑完整個子系統的多個 features(排波次、配號、階段閘門),走 `/subsys-build`;`/bugfix` 不適用(單角色流程)。
 
-`/enhance-design` 需要人討論 scope、不能無訪談委派——但 scope 談完、spec 寫好之後,後半段和 feature 完全一樣,這就是本 skill 存在的理由。
+`/spec-design` 的 **enhance 模式**需要人讀程式碼、討論 scope,不能無訪談委派——但 scope 談完、spec 寫好之後,後半段和 feature 完全一樣,這就是本 skill 存在的理由。
 
 ## 你自己做什麼、不做什麼
 
@@ -50,7 +50,7 @@ spec 已經寫好了(`/feature-design` 或 `/enhance-design` 產出的文檔 + �
 4. spec「介面」表(enhance 是「數據與介面變動」表)每一條的簽名,在骨架檔案裡找得到**逐字相同**的原文
 5. `spec-gaps.md` 沒有指向本文檔的 `open` 條目——有的話代表上一輪還有 spec 沒修完,先處理
 
-不過關時:列出缺什麼,告知開發者走 `/feature-design` 或 `/enhance-design` 的更新模式補齊,然後結束。
+不過關時:列出缺什麼,告知開發者走 `/spec-design` 的更新模式補齊,然後結束。
 
 ## 3. spec 批准閘門(人放行)
 
@@ -76,7 +76,7 @@ spec 已經寫好了(`/feature-design` 或 `/enhance-design` 產出的文檔 + �
 兩種情況不問這一題,但第 1-6 點的呈報照發(**降級的是問不問,不是呈不呈報**):開發者看不到呈報,就不知道被放行的是什麼。
 
 - **議程為 0**(不可逆決定、不在宣告內的新增依賴邊、契約層級假設都是 0)**且你自己沒有疑慮**:此時要問的是「你同意這份沒有任何爭議點的 spec 嗎」,那不是審查是蓋章;呈報完直接進第 4 步,在回報裡記一行「空議程自動放行」
-- 開發者在本次對話裡剛剛才明確批准過同一份 spec(例如 `/feature-design` 收尾後直接接著跑本 skill):不重複問,但第 5 點的疑慮照樣要講出來
+- 開發者在本次對話裡剛剛才明確批准過同一份 spec(例如 `/spec-design` 收尾後直接接著跑本 skill):不重複問,但第 5 點的疑慮照樣要講出來
 
 批准之前**不得**發出任何委派。
 
@@ -92,45 +92,11 @@ feature 目標(全新程式碼)沒有既有測試,這條基準線可跳過——
 
 **送出之前先照 `../_shared/orchestration.md`「骨架快照」記下 `HEAD` 的 sha 並建好快照 worktree**,第 6 步要拿它驗 qa 的紅綠。
 
-**同一則訊息內一次送出**兩個 subagent 讓它們併發——檔案集不相交(測試檔 vs 實作檔),**寫入**平行安全;但**讀取不是**,qa「該紅卻綠」判準讀的正是 impl 填的那個狀態,所以紅綠的確認移到第 6 步由你在快照上做(見 `../_shared/orchestration.md`「骨架快照」)。每次呼叫 Agent 工具都必須明確帶上 `model`:
+**同一則訊息內一次送出**兩個 subagent 讓它們併發——檔案集不相交(測試檔 vs 實作檔),**寫入**平行安全;但**讀取不是**,qa「該紅卻綠」判準讀的正是 impl 填的那個狀態,所以紅綠的確認移到第 6 步由你在快照上做(見 `../_shared/orchestration.md`「骨架快照」)。
 
-| 角色 | 委派的 skill | 模型 |
-|---|---|---|
-| qa | `dev-flow:spec-qa` | **`sonnet`** |
-| impl | `dev-flow:feature-impl`(feature)/ `dev-flow:enhance-impl`(enhance) | **`sonnet`** |
-| 編排者(你) | — | 不指定,跟隨開發者當下的 session 模型 |
+模型照 `../_shared/orchestration.md`「委派模型分派」(qa 與 impl 都是 `sonnet`,呼叫 Agent 工具時帶 `model` 參數);prompt 用同片「qa 與 impl 的委派 prompt」的兩段共通模板,**不加**白名單段(單份 spec 沒有平行的 impl)。
 
-spec 已經鎖死,qa 與 impl 做的是翻譯與填空,判斷空間有限。模型是**呼叫 Agent 工具時的參數,不是 prompt 內容**——寫進 prompt 模板不會報錯,只是靜默沒作用。
-
-prompt 必須包含委派契約與角色禁區:
-
-```
-【委派模式】遵守 <delegation.md 路徑> 的委派模式共通契約:不得提問、
-不得寫 design.md/system.md、機械性查證不可跳過。
-你是 qa 角色,遵守 <spec-roles.md 路徑>:只讀 spec 的數據/介面/Laws/Examples 與骨架,
-禁止閱讀任何實作程式碼;程式碼知識圖只准用來定位測試檔與型別結構,
-不得用它推論受測函數的行為。禁止修改骨架、禁止要求測試後門。
-**禁止讀寫 spec-gaps.md**:發現 gap 就停下該項,把四個欄位寫進回報,
-編號用「本次-1」這種局部序號,不要自己配 G 編號、不要自己建檔。
-交付前確認測試「編譯通過 + 紅綠符合預期」,對照表的**預期欄**逐條標明;
-不符預期的照實回報,**不得刪測試或放寬斷言去湊綠**——紅綠由編排者在骨架快照上驗。
-
-執行 dev-flow:spec-qa,目標:<文檔 id>
-```
-
-```
-【委派模式】…(同上)
-你是 impl 角色,遵守 <spec-roles.md 路徑>:禁止讀寫任何測試檔、
-禁止改動骨架的簽名與型別定義。紅燈只做歸因不做仲裁,列為阻塞項回報。
-**禁止讀寫 spec-gaps.md**:發現 gap 就停下該項,把四個欄位寫進回報,
-編號用「本次-1」這種局部序號,不要自己配 G 編號、不要自己建檔。
-
-執行 dev-flow:feature-impl,目標:<文檔 id>
-```
-
-兩邊都回報後才進下一步。有一邊回報阻塞或新增 spec-gaps → 照樣進第 6 步跑測試(另一半的產出還是要驗),但在回報裡明確標出哪一半沒做完。
-
-**gap 由你單線寫檔**:讀 `spec-gaps.md` 現有的最大 `G` 編號(檔案不存在就由**你**建,frontmatter 規格見 `../_shared/frontmatter.md`),依序往下配號,照 `spec-roles.md`「spec-gaps 協議」的格式追加,標題括號填**來源文檔 id 與角色**(例:`## G3(F004 / qa)`)。回報裡的局部序號(`本次-1`)只是那一份的順序,**不是檔案裡的編號**——照抄會撞號。追加完對一次帳:寫進去的條目數 = 兩份回報裡 gap 的總數。
+兩邊都回報後才進下一步。有一邊回報阻塞或新增 spec-gaps → 照樣進第 6 步跑測試(另一半的產出還是要驗),但在回報裡明確標出哪一半沒做完。回報裡的 gap 照 `../_shared/orchestration.md`「gap 單線寫檔」由你寫進 `spec-gaps.md`。
 
 ## 6. 跑測試與仲裁(你做,上限 3 輪)
 
@@ -142,9 +108,8 @@ prompt 必須包含委派契約與角色禁區:
 
 全綠(enhance:且基準線上綠的測試沒有一條轉紅)→ 進第 7 步。
 
-有紅 → 照 `../_shared/orchestration.md`「仲裁協議」逐條處理(先歸因 → 判 impl 錯 / qa 誤讀 / spec bug → 上限 3 輪),**禁止直接叫 impl 重寫**。那一片沒寫的兩條,補在這裡:
+有紅 → 歸因走 `spec-roles.md`「仲裁協議」的四分流,裁決後的處置(誰重派、prompt 給什麼、什麼時候停)照 `../_shared/orchestration.md`「仲裁的裁決與處置」,**禁止直接叫 impl 重寫**。那一片沒寫的一條:
 
-- **委派怎麼發**:判 impl 錯就重派 impl,prompt 只給失敗清單與對應的 spec 條文原文,**不得附上測試原始碼**;判 qa 誤讀就重派 qa,只給條文原文,**不得附上實作原始碼**;判 spec bug 或撞到 3 輪上限就**不發委派**,停下來向開發者回報,附失敗摘要與結構性原因(介面切錯、law 互相矛盾、example 與 law 不一致、前置文檔行為與 spec 不符)
 - **enhance 專屬**:基準線上綠、現在轉紅的測試是**回歸**,不論它對應哪條 law,一律要求 impl 修好或回退,不得以「新行為比較合理」放過
 
 每一輪的裁決都要記下來(第幾輪、哪條測試、歸因結論、依據的 spec 條文);目標子系統有 `build-log.md` 時寫進它的「仲裁紀錄」,沒有的話寫進回報。

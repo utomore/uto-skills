@@ -6,7 +6,7 @@ user-invocable: true
 
 # /bugfix — 缺陷修復
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則)、`../_shared/testing-policy.md`(本 skill 自己寫重現測試)、`../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 bugfix 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md` 與 `../_shared/codegraph-tools.md`(用來定位,不取代重現與根因驗證);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則)、`../_shared/testing-policy.md`(本 skill 自己寫重現測試)、`../_shared/doc-lifecycle.md`(本 skill 要新建 bugfix 文檔:資料夾樹、編號、引用格式、frontmatter 規格);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md` 與 `../_shared/codegraph-tools.md`(用來定位,不取代重現與根因驗證);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 本 skill 一條龍完成:**記錄缺陷 → 重現 → 根因分析 → 修復 → 回歸測試 → 回寫狀態**。缺陷文檔是修復的過程紀錄與回歸依據,不是待辦——建檔與修復在同一次執行內完成(開發者明確只要「先記錄、之後修」時例外,建檔後停在 `open`)。
 
@@ -67,7 +67,7 @@ related-feature: []     # 回鏈到出問題的 feature id(跨子系統引用帶
 1. 開工前:`status` 改 `in-progress`、更新 `updated`
 2. **先寫一條能重現缺陷的測試**,執行確認**修復前失敗**——這條測試就是缺陷的存在證明,之後保留為回歸測試。測試從公開介面寫,非看內部不可時走 `*.Internal`;**不得為測試在核心層開後門**(`testing-policy.md`)
 3. 依 TodoList 逐項修復並勾選;修法以「修復方向」為準,發現行不通時先與開發者確認,把偏差寫進「修復紀錄」
-4. **最小修復原則**:只修根因,不順手重構;修復過程發現的優化機會記下來,建議開發者另走 `/enhance-design`。修法若動到 Level 2 公開契約,先與開發者確認並回頭更新對應 `design.md`
+4. **最小修復原則**:只修根因,不順手重構;修復過程發現的優化機會記下來,建議開發者另走 `/spec-design`(enhance 模式)。修法若動到 Level 2 公開契約,先與開發者確認並回頭更新對應 `design.md`
 5. **依賴檢查(提交前自查)**:修法有沒有新增 import 方向?設計文檔裡沒有這條邊 = 架構變更,按 `boundary-rules.md`「發問協議」停下來問;核心層冒出表現層 / 前端 / 測試的概念 → 移除
 
 ## 4. 驗證
@@ -79,4 +79,4 @@ related-feature: []     # 回鏈到出問題的 feature id(跨子系統引用帶
 
 - 修復完成且測試全綠 → 填寫「修復紀錄」、`status` 改 `done`、更新 `updated`
 - 摘要給開發者:文檔路徑與編號(B 或 G-B)、根因一句話、修法一句話、測試結果、有無另建議的 enhance 項目
-- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列被修到的介面/資料結構與狀態;修法若動到契約沒寫的東西,上偏離清單;下一步從樹上推(常見:`/branch-pr`,或另建議的 `/enhance-design`)
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列被修到的介面/資料結構與狀態;修法若動到契約沒寫的東西,上偏離清單;下一步從樹上推(常見:`/branch-pr`,或另建議的 `/spec-design`)

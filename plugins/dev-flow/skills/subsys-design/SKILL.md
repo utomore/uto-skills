@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-design — Level 2 子系統架構設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `design.md`、回填 `system.md` 的 `subsystems`,另讀 `../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式、權威來源)與 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `design.md`、回填 `system.md` 的 `subsystems`,另讀 `../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式、權威來源、frontmatter 規格);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -51,7 +51,7 @@ user-invocable: true
 2. 每個 feature 給:一句話說明、負責模組、所屬階段、與其他 feature 的先後依賴
 3. 呈現給開發者確認:太大就拆、太細就併、缺的補上;同意後定案寫進文件
 
-這份清單是**規劃層級**的路線圖,不是規格——細節留給 `/feature-design` 逐一展開;建了設計文檔後,把 doc id 回填進清單。
+這份清單是**規劃層級**的路線圖,不是規格——細節留給 `/spec-design` 逐一展開;建了設計文檔後,把 doc id 回填進清單。
 
 ### 2b. Feature 契約卡(不可跳過)
 
@@ -146,7 +146,7 @@ code-paths: []          # 選填,見下
 - **明確不做**:<邊界外緣,防止執行者自行擴張>
 ```
 
-`code-paths`(選填,規格見 `../_shared/frontmatter.md`):本子系統的程式碼會落在哪些路徑前綴,如 `code-paths: [src/auth]`。它把檔案級的工具產出(程式碼知識圖等)捲回子系統級;訪談時順手問一句「這個子系統的程式碼放哪」就填得起來,專案沒用這類工具就留 `[]`。**這是路徑宣告,不是實作細節**,不違反抽象邊界。
+`code-paths`(選填,規格見 `../_shared/doc-lifecycle.md`):本子系統的程式碼會落在哪些路徑前綴,如 `code-paths: [src/auth]`。它把檔案級的工具產出(程式碼知識圖等)捲回子系統級;訪談時順手問一句「這個子系統的程式碼放哪」就填得起來,專案沒用這類工具就留 `[]`。**這是路徑宣告,不是實作細節**,不違反抽象邊界。
 
 **產出前自我檢查**:
 
@@ -172,5 +172,5 @@ code-paths: []          # 選填,見下
 
 - 向開發者摘要:產出的檔案、子系統設計重點、功能規劃結論(幾個 features、幾個階段、契約卡幾張)、主架構同步了什麼、新增了哪些 ADR
 - 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹畫到功能規劃的每個 feature 一行(此時全是「待展開」);下一步二選一,讓開發者選:
-  - **逐一手動**:`/feature-design` 依「功能規劃」清單一次展開一個(建檔後回填 doc 欄),每個 feature 都能訪談深談;spec 與骨架寫完後接 `/spec-qa <id>` 與 `/feature-impl <id>`
+  - **逐一手動**:`/spec-design` 依「功能規劃」清單一次展開一個(建檔後回填 doc 欄),每個 feature 都能訪談深談;spec 與骨架寫完後接 `/spec-qa <id>` 與 `/spec-impl <id>`
   - **委派展開**:`/subsys-build <slug>` 一次跑完整個子系統——批次澄清一次問完、依「依賴」欄排波次委派 subagent、每個階段結束停下來給你驗收

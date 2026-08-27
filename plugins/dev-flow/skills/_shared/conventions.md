@@ -1,16 +1,15 @@
 # 開發流程文檔慣例(共用核心)
 
-所有開發流程 skills(system-design、subsys-design、subsys-build、spec-build、feature-design、enhance-design、spec-qa、feature-impl、enhance-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
+所有開發流程 skills(system-design、subsys-design、subsys-build、spec-build、spec-design、spec-qa、spec-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
 
-本檔是**每個 skill 都要讀**的核心。另外十一片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
+本檔是**每個 skill 都要讀**的核心。另外十片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
 
 | 分片 | 內容 | 什麼時候讀 |
 |---|---|---|
-| `spec-roles.md` | **spec 三角色契約**:設計 / qa / impl 各自的輸入與禁區、骨架規格、qa 的交付判準、spec-gaps 協議、仲裁的歸因分流 | **走 spec 驅動流程時**:feature-design、enhance-design、spec-qa、feature-impl、enhance-impl、spec-build、subsys-build(bugfix 不適用) |
-| `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、feature-design、enhance-design、feature-impl、enhance-impl、bugfix;`/subsys-build`、`/spec-build` 做層級複審時 |
+| `spec-roles.md` | **spec 三角色契約**:設計 / qa / impl 各自的輸入與禁區、骨架規格、qa 的交付判準、spec-gaps 協議、仲裁的歸因分流 | **走 spec 驅動流程時**:spec-design、spec-qa、spec-impl、spec-build、subsys-build(bugfix 不適用) |
+| `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、spec-design、spec-impl、bugfix;`/subsys-build`、`/spec-build` 做層級複審時 |
 | `testing-policy.md` | 只測公開介面、property-based 測 law、`*.Internal`、禁止測試後門 | **要寫或改測試時**:spec-qa、bugfix、arch-audit(查後門)。spec 驅動的 impl 不寫測試,不讀 |
-| `doc-lifecycle.md` | **`.design/` 資料夾樹**、文檔角色與權威來源、命名與編號規則、跨文檔引用格式、舊版路徑遷移 | 要**新建 / 改名 / 編號 `.design/` 文檔**,或要寫跨文檔引用時(與 `frontmatter.md` 同一觸發條件,通常一起讀);只改 `status` / `updated` 不用 |
-| `frontmatter.md` | 各類文檔的 YAML frontmatter 規格、清單欄位寫法、`description` 規則 | 要**新建 `.design/` 文檔**,或要確認某個 frontmatter 欄位怎麼寫時(只改 `status` / `updated` 不用) |
+| `doc-lifecycle.md` | **`.design/` 資料夾樹**、文檔角色與權威來源、命名與編號規則、跨文檔引用格式、舊版路徑遷移、各類文檔的 YAML frontmatter 規格(清單欄位寫法、`description` 規則) | 要**新建 / 改名 / 編號 `.design/` 文檔**、要寫跨文檔引用,或要確認某個 frontmatter 欄位怎麼寫時;只改 `status` / `updated` 不用 |
 | `delegation.md` | 委派模式共通契約、回報格式 | prompt 標明 `【委派模式】`,或你是 `/spec-build` / `/subsys-build` 的編排者 |
 | `delegation-design.md` | 「待確認假設」與「自裁記錄」的欄位格式 | 委派模式下的 **spec 角色**,與要做層級複審 / 對帳的編排者;qa 與 impl 不讀 |
 | `orchestration.md` | 骨架快照的建立與驗證程序、仲裁的裁決與處置 | **你是編排者**(`/spec-build`、`/subsys-build`,或互動模式下的開發者本人);qa 與 impl 不讀 |
@@ -24,12 +23,12 @@
 
 - **Level 1** `/system-design`:系統邊界、跨系統通訊、全域契約與技術選型
 - **Level 2** `/subsys-design`:子系統內部模組化、資料流管線、模組邊界介面
-- **Level 3** `/feature-design`(或 `/enhance-design`)→ `/spec-qa` ∥ `/feature-impl`(或 `/enhance-impl`):業務邏輯、演算法細節、測試。`/bugfix` 走單角色
+- **Level 3** `/spec-design` → `/spec-qa` ∥ `/spec-impl`:業務邏輯、演算法細節、測試。`/bugfix` 走單角色
 - **編排層** `/spec-build`(單份 spec)、`/subsys-build`(依 Level 2 功能規劃展開整個子系統):spec 批准閘門 → 委派 qa ∥ impl → 跑測試 → 仲裁
 
 Level 3 採 **spec 驅動的三角色**:設計寫 spec 文檔與程式碼骨架(型別與簽名完整、函數本體未實作),qa 與 impl 各自只讀 spec、彼此不可見,測試與實作都只是 spec 的投影。角色契約見 `spec-roles.md`。
 
-預設順序 Level 1 → 2 → 3,每層待開發者確認邊界才往下。開發者要求直接實作特定功能時,先確認它落在 Level 2 介面契約內,再直接給乾淨可執行的 Level 3 程式碼,無需客套。Level 2 完成且每個 feature 都有**契約卡**時可用 `/subsys-build` 一次展開;手動逐一推進(`/feature-design` → `/spec-build`,或自己扮演編排者)永遠是合法的替代路徑。
+預設順序 Level 1 → 2 → 3,每層待開發者確認邊界才往下。開發者要求直接實作特定功能時,先確認它落在 Level 2 介面契約內,再直接給乾淨可執行的 Level 3 程式碼,無需客套。Level 2 完成且每個 feature 都有**契約卡**時可用 `/subsys-build` 一次展開;手動逐一推進(`/spec-design` → `/spec-build`,或自己扮演編排者)永遠是合法的替代路徑。
 
 ## 資訊抽象邊界規範(嚴格遵守)
 

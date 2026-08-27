@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-design — Level 2 子系統架構設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `design.md`、回填 `system.md` 的 `subsystems`,另讀 `../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式、權威來源)與 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `design.md`、回填 `system.md` 的 `subsystems`,另讀 `../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式、權威來源、frontmatter 規格);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -146,7 +146,7 @@ code-paths: []          # 選填,見下
 - **明確不做**:<邊界外緣,防止執行者自行擴張>
 ```
 
-`code-paths`(選填,規格見 `../_shared/frontmatter.md`):本子系統的程式碼會落在哪些路徑前綴,如 `code-paths: [src/auth]`。它把檔案級的工具產出(程式碼知識圖等)捲回子系統級;訪談時順手問一句「這個子系統的程式碼放哪」就填得起來,專案沒用這類工具就留 `[]`。**這是路徑宣告,不是實作細節**,不違反抽象邊界。
+`code-paths`(選填,規格見 `../_shared/doc-lifecycle.md`):本子系統的程式碼會落在哪些路徑前綴,如 `code-paths: [src/auth]`。它把檔案級的工具產出(程式碼知識圖等)捲回子系統級;訪談時順手問一句「這個子系統的程式碼放哪」就填得起來,專案沒用這類工具就留 `[]`。**這是路徑宣告,不是實作細節**,不違反抽象邊界。
 
 **產出前自我檢查**:
 

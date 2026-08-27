@@ -1,12 +1,12 @@
 ---
 name: spec-impl
 description: Level 3 實作(impl 角色)— 依指定的 spec(feature 的 F00x / 優化的 E00x、G-E00x)與設計階段留下的骨架,把未實作標記逐一換成真實實作;優化目標另有基準線、scope 紀律與量化結果。禁止讀寫任何測試檔、禁止改動骨架的簽名與型別,遇紅燈走仲裁協議不自行猜 spec。觸發詞:功能實作、優化實作、spec impl、feature impl、enhance impl、實作功能、開發功能、實作優化、重構實作、執行優化、implement feature。Use when implementing code from a feature or enhancement spec and its skeleton, without touching tests.
-user-invocable: true
+user-invocable: false
 ---
 
 # /spec-impl — Level 3 實作(impl 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 與 `../_shared/frontmatter.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後三片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 不讀。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 不讀。
 
 ## 模式(由目標文檔的 id 前綴判定)
 
@@ -38,7 +38,7 @@ user-invocable: true
 |---|---|
 | 1. 確定目標文檔 | **跳過選檔**。文檔 id 由編排者在 prompt 指定,不跑 scan-status、不用 AskUserQuestion |
 | 2. 載入 context | 照原規則。`depends-on` 未完成時**不詢問是否繼續**:依編排者 prompt 給的前置狀態判斷——前置未 done 就不動工,記為阻塞項回報 |
-| 3. 實作 | 照原規則。**唯一差別**:發現「spec 講不清楚」「非改簽名不可」或「非越過 scope 不可」時,原本要問開發者——委派模式下改為**停下該項**,把 gap 的四個欄位寫進回報並列為阻塞項,不擅自改契約、也不硬做。**不寫 `spec-gaps.md`**:那是共用檔案,qa 此刻很可能正在併發跑,兩邊各自建檔寫回會互相覆蓋又撞號;編號用局部序號(`本次-1`),`G` 編號由編排者發 |
+| 3. 實作 | 照原規則。**唯一差別**:發現「spec 講不清楚」「非改簽名不可」或「非越過 scope 不可」時,原本要問開發者——委派模式下改為**停下該項**,把 gap 的四個欄位寫進回報並列為阻塞項,不擅自改契約、也不硬做。**不寫 `spec-gaps.md`**:理由見 `delegation.md` 第 4 條;編號用局部序號(`本次-1`),`G` 編號由編排者發 |
 | 4. 跑測試 | 照原規則,**如實回報**。紅燈只做歸因,**不做仲裁**(仲裁是編排者的職責);絕不宣稱通過 |
 | 回寫架構文檔 | **不做**。要改 `design.md` / `system.md` 的,寫進回報給編排者裁決 |
 | 5. 收尾 | 全綠才把 `status` 改 `done`;有阻塞項則留 `in-progress`。輸出改為 `delegation.md` 定義的**結構化回報** |

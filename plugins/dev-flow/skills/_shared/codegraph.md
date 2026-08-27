@@ -79,7 +79,7 @@ knot 的幾個特性會影響怎麼用它:
 
 用之前先讓圖跟上(上表的「更新」欄);更新不了就比對圖的 `built_at_commit` 與 `git rev-parse HEAD`,對不上要把「圖描述的是舊程式碼」講給開發者聽。
 
-檔案級的圖靠 `design.md` 的 `code-paths`(規格見 `frontmatter.md`)捲回子系統級;缺這欄只能猜路徑,子系統級結論不可採信,要提醒開發者補。
+檔案級的圖靠 `design.md` 的 `code-paths`(規格見 `doc-lifecycle.md`)捲回子系統級;缺這欄只能猜路徑,子系統級結論不可採信,要提醒開發者補。
 
 ## 能力對照與查詢指令
 

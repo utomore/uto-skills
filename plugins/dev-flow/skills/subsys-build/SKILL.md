@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(orchestrator 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審與對帳要用)與 `../_shared/delegation.md`(**委派模式共通契約**);批次澄清與 3b 的層級複審要分類問題層級時,另讀 `../_shared/boundary-rules.md`;要配 `F00x` / `G` 編號,或建改 `build-log.md` / `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(編號與引用格式)與 `../_shared/frontmatter.md`;要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審與對帳要用)與 `../_shared/delegation.md`(**委派模式共通契約**);批次澄清與 3b 的層級複審要分類問題層級時,另讀 `../_shared/boundary-rules.md`;要配 `F00x` / `G` 編號,或建改 `build-log.md` / `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(編號、引用格式與 frontmatter 規格);要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -39,7 +39,7 @@ user-invocable: true
 
 你**不寫任何 spec、不寫任何測試、不寫任何實作**。你的產出只有:`build-log.md`、`design.md` 的回填、`spec-gaps.md` 的條目、git commit、仲裁裁決、給開發者的回報。
 
-**所有共用檔案由你單線寫入**——`design.md`、`system.md`、`build-log.md`、`spec-gaps.md`。委派出去的 subagent 是併發的,兩個同時整檔寫回同一個檔案,後寫的會把先寫的內容整段蓋掉,而且**當下不會有任何錯誤訊息**;等你發現時,被蓋掉的內容只剩在各 subagent 的回報裡才救得回來。`spec-gaps.md` 特別容易中招:它平常不存在,qa 與 impl 各自「檔案不存在就自己建、編號從 G1 起」,於是同一波開出來的 gap 會**同時撞號又互相覆蓋**。所以委派 prompt 一律寫明 gap 只回報、不寫檔(見 3d)。
+**所有共用檔案由你單線寫入**——`design.md`、`system.md`、`build-log.md`、`spec-gaps.md`。委派出去的 subagent 是併發的,兩個同時整檔寫回同一個檔案,後寫的會把先寫的內容整段蓋掉,而且**當下不會有任何錯誤訊息**(spec-gaps 為什麼特別容易中招,見 `delegation.md` 第 4 條);所以委派 prompt 一律寫明 gap 只回報、不寫檔(見 3d)。
 
 ## 前置(不可跳過)
 
@@ -118,18 +118,7 @@ subagent 問不了人,所以要在 fan out 之前把**它們自己判斷不了�
 
 **這一步不能省也不能延後**:`/spec-design` 原本的配號規則是「掃資料夾取最大值 +1」,平行 subagent 同時掃會全部拿到同一個號;骨架路徑同理,不由你指派就會兩個 subagent 同時建同一個檔案。號與路徑都由你發,衝突就不存在。
 
-**模型分派(每次呼叫 Agent 工具都必須明確帶上 `model`,不得省略讓它繼承主 session):**
-
-| 角色 | 委派的 skill | 模型 |
-|---|---|---|
-| spec | `dev-flow:spec-design` | **`opus`** |
-| qa | `dev-flow:spec-qa` | **`sonnet`** |
-| impl | `dev-flow:spec-impl` | **`sonnet`** |
-| 編排者(你) | — | 不指定,跟隨開發者當下的 session 模型 |
-
-理由:只有 spec 那一層在做**契約判斷**——寫錯會沿著 qa 與 impl 兩條投影一起錯,而且錯誤要到仲裁才浮出來,值得用最強的模型;qa 與 impl 拿到的是已經鎖死的 spec 與骨架,做的是翻譯與填空,判斷空間有限。把分派固定下來,子代的成本與行為就不隨主 session 當下用哪個模型漂移,閘門看到品質問題時也能直接歸因到 spec 寫得夠不夠,而不是模型差異。
-
-模型是**呼叫 Agent 工具時的參數,不是 prompt 內容**——寫進 prompt 模板不會報錯,只是靜默沒作用。
+**模型分派**照 `../_shared/orchestration.md`「委派模型分派」(spec 用 `opus`、qa 與 impl 用 `sonnet`;每次呼叫 Agent 工具都帶 `model` 參數,理由與「參數不是 prompt 內容」的提醒見該片),把每個 feature 的模型記進配號表。
 
 ### 3b. 委派 spec(平行,opus)
 
@@ -229,28 +218,14 @@ subagent 的傾向裡藏著未論證的前提時(「日後要 X 加 wrapper 即�
 - **impl 也全部平行發出**(`model: "sonnet"`)——3a 已經逐 feature 指派過**互不重疊**的骨架路徑,impl 的禁區又是「只准替換未實作標記」,所以本波的 impl 寫的是各自骨架檔案的本體,寫入不重疊。**成立的前提只有一個:寫入範圍真的被鎖在那份清單裡**,所以委派 prompt 必須帶下面的寫入白名單;帶不上就退回序列
 - **qa 與 impl 之間不設先後**:檔案集不相交(測試檔 vs 實作檔),**寫入**不會互蓋。但**讀取會**——qa「該紅卻綠」判準讀的正是 impl 填的那個狀態,impl 先落地判準就靜默失效。所以紅綠的最終確認不靠誰先跑完,移到 3e 由你在骨架快照上做(見 `../_shared/orchestration.md`「骨架快照」)
 
-prompt 格式同 3b,skill 換成 `dev-flow:spec-qa` 或 `dev-flow:spec-impl`,目標填文檔 id,並明確寫上角色禁區:
+prompt 用 `../_shared/orchestration.md`「qa 與 impl 的委派 prompt」的兩段共通模板,impl 那段**必須加上寫入白名單段**(接在角色禁區之後):
 
 ```
-你是 qa 角色,遵守 <spec-roles.md 路徑>:只讀 spec 的數據/介面/Laws/Examples 與骨架,
-禁止閱讀任何實作程式碼;程式碼知識圖只准用來定位測試檔與型別結構,
-不得用它推論受測函數的行為。禁止修改骨架、禁止要求測試後門。
-**禁止讀寫 spec-gaps.md**:發現 gap 就停下該項,把四個欄位寫進回報,
-編號用「本次-1」這種局部序號,不要自己配 G 編號、不要自己建檔。
-交付前確認測試「編譯通過 + 紅綠符合預期」,對照表的**預期欄**逐條標明;
-不符預期的照實回報,**不得刪測試或放寬斷言去湊綠**——紅綠由編排者在骨架快照上驗。
-```
-
-```
-你是 impl 角色,遵守 <spec-roles.md 路徑>:禁止讀寫任何測試檔、
-禁止改動骨架的簽名與型別定義。紅燈只做歸因不做仲裁,列為阻塞項回報。
 **寫入白名單**:本次只准寫入下列檔案 —— <該 feature 的骨架路徑清單>。
 要新增檔案(私有 helper 模組),或要改動清單外的既有共用實作檔
 (往既有模組加 helper、動 export / mod 宣告、改共用型別),
 一律**停下該項**、把「要動哪個檔案、為什麼、想加什麼」寫進回報阻塞項,
 不要自己動手 —— 本波有其他 impl 正在平行跑,清單外的檔案不屬於你。
-**禁止讀寫 spec-gaps.md**:發現 gap 就停下該項,把四個欄位寫進回報,
-編號用「本次-1」這種局部序號,不要自己配 G 編號、不要自己建檔。
 ```
 
 白名單是平行的**唯一**防線:骨架路徑不重疊只保證「各自的骨架檔案不重疊」,擋不住 impl 為了填本體去動清單外的共用檔——那正是平行會互蓋的地方,而互蓋當下不會有任何錯誤訊息。收到「要動清單外的檔案」的阻塞回報時,**不要放行讓它自己去改**:等本波所有 impl 都回報完(此時已無併發),由你判斷是併進哪個 feature 的下一輪,還是該回頭補骨架。
@@ -276,7 +251,7 @@ git ls-files --others --exclude-standard   # 新增的未追蹤檔案
 
 這道對帳補得起「有沒有人動了不該動的檔案」,補不起「F005 的 impl 動了 F007 白名單裡的檔案」——git 不記錄哪個 subagent 寫的,路徑只要落在**某一份**白名單內就會過關。那一格只能靠 3e 的測試與 3f 的 `/arch-audit` 兜,所以「骨架路徑波內不重疊」那條規則還是得守住,對帳是它的稽核,不是它的替代品。
 
-**gap 由你單線寫檔(收到任何一份回報就做,不要積到最後)**:讀 `spec-gaps.md` 現有的最大 `G` 編號(檔案不存在就由**你**建,frontmatter 規格見 `../_shared/frontmatter.md`),依序往下配號,照 `spec-roles.md`「spec-gaps 協議」的格式追加,標題括號填**來源文檔 id 與角色**(例:`## G3(F004 / qa)`)。subagent 回報裡的局部序號(`本次-1`)只是它那一份的順序,**不是檔案裡的編號**——照抄會撞號。追加完對一次帳:寫進去的條目數 = 各回報裡 gap 的總數,對不上就是漏寫或蓋掉了,回頭補。
+**gap 由你單線寫檔(收到任何一份回報就做,不要積到最後)**:程序照 `../_shared/orchestration.md`「gap 單線寫檔」;對帳對不上(寫進去的條目數 ≠ 各回報的總數)就是漏寫或蓋掉了,回頭補。
 
 本波的 impl 全部回報完後(平行跑,沒有「發下一個」這件事):
 
@@ -298,11 +273,7 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 
 全綠 → 進 3f。
 
-有紅 → 照 `../_shared/orchestration.md`「仲裁協議」逐條處理(先歸因 → 判 impl 錯 / qa 誤讀 / spec bug → 同一 feature 上限 3 輪),**禁止直接叫 impl 重寫**。那一片沒寫的是「裁完之後委派怎麼發」,補三條:
-
-- 判 **impl 錯** → 新開 `dev-flow:spec-impl` 委派(`model: "sonnet"`),prompt 只給失敗清單與對應的 spec 條文原文,**不得附上測試原始碼**
-- 判 **qa 誤讀** → 新開 `dev-flow:spec-qa` 委派(`model: "sonnet"`),只給條文原文與要改的測試名,**不得附上實作原始碼**
-- 判 **spec bug**,或同一 feature 撞到 3 輪上限 → **不發任何委派**,停下來向開發者回報,附失敗摘要與你判斷的結構性原因(介面切錯、law 互相矛盾、example 與 law 不一致、前置 feature 行為與 spec 不符)
+有紅 → 歸因走 `spec-roles.md`「仲裁協議」的四分流,裁決後的處置(誰重派、prompt 給什麼、什麼時候停)照 `../_shared/orchestration.md`「仲裁的裁決與處置」,**禁止直接叫 impl 重寫**。
 
 每一輪的裁決都記進 `build-log.md` 的「仲裁紀錄」:第幾輪、哪條測試、歸因結論、依據的 spec 條文。這張表是事後判斷「spec 哪裡寫不清楚」的唯一資料。
 

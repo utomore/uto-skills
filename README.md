@@ -13,14 +13,14 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | `/subsys-build` | L2→L3 | 子系統委派展開(orchestrator)— 依功能規劃的「依賴」欄排波次,**批次澄清一次問完** → 預先配號與指派骨架路徑 → 委派 spec(平行,opus)→ **spec 批准閘門** → qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(同一 feature 上限 3 輪)** → 每階段跑 `arch-audit` 後**停下來給人驗收**;配號、`design.md` 回填、`build-log.md`、git commit 由編排者單線負責 |
 | `/spec-design` | L3 · spec | spec 設計 — 深度討論後產出 spec 文檔與**程式碼骨架**(型別與簽名完整、本體 `undefined`);相依性**必用**程式碼知識圖定位再開原始碼查證。**兩種模式**:**feature**(新需求 → `features/F00x-*.md`,含目的 / 數據 / 介面 / **Laws** / **Examples** / 依賴 / 不可逆決定,介面必須落在 L2 契約內)、**enhance**(既有程式碼的優化 → `enhancements/E00x-*.md`,跨子系統為 `G-E00x`;追加「檢視現況」與「**與開發者確認 scope**」兩個前置步驟,Laws 分「回歸 law(改完必須一模一樣的現有行為)」與「新 law」兩類)。文檔模板放在 `templates/`,執行時只讀模式對應的那一份 |
 | `/spec-build` | 編排 | 單份 spec 的委派迴圈(orchestrator)— 拿一份寫好的 spec(F00x / E00x):門檻檢查(骨架編得過、介面對得上、無未結 gap)→ **spec 批准閘門** → 委派 qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(上限 3 輪)** → 回寫 status。enhance 的 scope 談完之後就走這條 |
-| `/spec-qa` | L3 · qa | 從 spec 寫測試 — 只讀 spec 的數據 / 介面 / Laws / Examples 與骨架,每條 law 翻成 property test、每個 example 翻成 example test;**禁止讀任何實作程式碼與程式碼知識圖**,交付前確認測試「編譯通過 + 紅綠符合預期」 |
-| `/spec-impl` | L3 · impl | spec 實作 — 以骨架為工作清單,把 `undefined` 換成實作;**禁止讀寫任何測試檔、禁止改動骨架簽名**;紅燈只做歸因走仲裁協議,不自行猜 spec。模式由 id 前綴判定,`E00x` / `G-E00x` 追加三條:動工前先跑回歸測試留基準線、scope 標明不動的範圍絕對不碰、收尾記錄量化結果 |
+| `dev-flow:spec-qa` | L3 · qa | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。從 spec 寫測試 — 只讀 spec 的數據 / 介面 / Laws / Examples 與骨架,每條 law 翻成 property test、每個 example 翻成 example test;**禁止讀任何實作程式碼與程式碼知識圖**,交付前確認測試「編譯通過 + 紅綠符合預期」 |
+| `dev-flow:spec-impl` | L3 · impl | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。spec 實作 — 以骨架為工作清單,把 `undefined` 換成實作;**禁止讀寫任何測試檔、禁止改動骨架簽名**;紅燈只做歸因走仲裁協議,不自行猜 spec。模式由 id 前綴判定,`E00x` / `G-E00x` 追加三條:動工前先跑回歸測試留基準線、scope 標明不動的範圍絕對不碰、收尾記錄量化結果 |
 | `/bugfix` | L3 | 缺陷修復(單角色)— 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
 | `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、契約卡對帳、未結 spec-gaps、仲裁紀錄)/ `feature`(L2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點完成度、契約卡就緒度與未結 spec-gaps) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(先確認當前分支,在 main 上就先開新分支;標題英文 conventional commit、內文繁中、labels 英文) |
 | `/study` | — | 專案導讀(唯讀)— 由上而下帶開發者理解既有專案:全景(入口、技術棧、目錄職責)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量)→ **逐跳 trace code**(沿一條真實路徑從入口到輸出,附呼叫鏈摘要表);每課固定「結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
 
-共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分七片:`conventions.md`(核心:樹狀資料夾結構、編號、引用格式、資訊抽象邊界規範,每個 skill 都讀)、`spec-roles.md`(**spec 三角色契約**:各角色的輸入與禁區、骨架規格、qa 交付判準、spec-gaps 協議、仲裁協議,走 spec 驅動流程時讀)、`boundary-rules.md`(**邊界判斷規則**:知識歸屬、層級判斷「哪些自己決定、哪些要問人」、發問協議、測試政策,外加設計/實作各自的階段規則,設計或實作動手前讀)、`frontmatter.md`(YAML frontmatter 規格,要建檔時才讀)、`delegation.md`(**委派模式共通契約**,被委派或身為編排者時才讀)、`codegraph.md`(**程式碼知識圖整合**,設計類 skill 必用、`/spec-qa` 限用、其餘選配)、`anchor.md`(**收尾定錨區塊**,每次收尾與階段閘門才讀)。每個 skill 開頭明列自己要讀哪幾片。
+共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分十一片,核心 `conventions.md` 每個 skill 都讀,其餘按需:`spec-roles.md`(spec 三角色契約)、`boundary-rules.md`(邊界判斷與發問協議)、`doc-lifecycle.md`(建檔、編號、引用與 frontmatter 規格)、`delegation.md` / `delegation-design.md`(委派模式)、`orchestration.md`(編排者專用:模型分派、委派 prompt、骨架快照、仲裁處置)、`codegraph.md` / `codegraph-tools.md`(程式碼知識圖)、`testing-policy.md`、`anchor.md`(收尾定錨)。**分片對照表的唯一權威是 `conventions.md` 開頭那張表**;每個 skill 開頭明列自己要讀哪幾片。
 
 改 skill 前請先看 [docs/skill-authoring.md](docs/skill-authoring.md)——撰寫與維護準則(追加閘門、分片規則、成本量測)。
 

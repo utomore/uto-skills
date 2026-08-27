@@ -31,18 +31,13 @@ for f in skills/*/SKILL.md skills/_shared/*.md; do printf "%4d %s\n" "$(wc -l < 
 
 ## `_shared/` 的分片規則
 
-分片邊界是**「什麼時候需要」,不是「什麼主題」**:
+分片邊界是**「什麼時候需要」,不是「什麼主題」**。分片對照表(每片裝什麼、誰在什麼條件下讀)的唯一權威是 `_shared/conventions.md` 開頭那張表——本檔不抄一份,改分片時**只改那張表**與受影響的 SKILL.md 載入行。
 
-| 分片 | 什麼時候讀 |
-|---|---|
-| `conventions.md` | 每個 skill 都讀 |
-| `spec-roles.md` | 走 spec 驅動流程時(Level 3 的設計 / qa / impl 與編排者;`/bugfix` 不適用) |
-| `frontmatter.md` | 要新建 `.design/` 文檔,或要確認某個 frontmatter 欄位怎麼寫時 |
-| `delegation.md` | prompt 標明 `【委派模式】`,或身為 `/spec-build` / `/subsys-build` 的編排者時 |
-| `codegraph.md` | 設計類 skill **必用**、`/spec-qa` **限用**(界線見該片)、其餘 opt-in(判定不過就整片不讀) |
-| `anchor.md` | 每個 skill 的收尾與 `/subsys-build` 的階段閘門——每次都讀,但拖到收尾才讀,讓執行中段的規則數量不變 |
+三條邊界判準:
 
-新增共用內容時先判斷它屬於哪一片。判斷不出來,通常表示它其實是單一 skill 的規則。
+- 新增共用內容時先判斷它屬於哪一片。判斷不出來,通常表示它其實是單一 skill 的規則
+- **同觸發、同讀者集的兩片就是一片**——「通常一起讀」寫進表裡的那天,就是該合併的那天(例:frontmatter 規格併入 `doc-lifecycle.md`)。反過來,讀者集真的不同(qa/impl 刻意不讀 `delegation-design.md`、impl 刻意不讀 `testing-policy.md`)的分片,不得為了檔數好看而合併
+- **論證單一權威**:每條規則的**論證**(為什麼會出事、失效的機制)只住在一個權威位置——通常是定義該規則的分片;規則出現在其他檔案時寫「規則一行 + `(理由見 X)`」,不複製論證。同一段論證抄在四處,改一次就漂移三份(例:骨架快照的「假綠與真綠同形」住 `orchestration.md`;spec-gaps 併發互蓋住 `delegation.md` 第 4 條)
 
 **拆片最大的風險是漏讀**,唯一的防線是:每個 `SKILL.md` 開頭必須**明列讀哪幾片、以及為什麼要讀**,不能只寫「遵守共用慣例」。加分片或改分片條件時,十一個 `SKILL.md` 的開頭都要同步檢查。
 

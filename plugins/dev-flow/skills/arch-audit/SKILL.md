@@ -6,7 +6,7 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/doc-lifecycle.md`(資料夾樹、引用格式與權威來源,對帳用)、`../_shared/boundary-rules.md`(檢查知識歸屬與依賴邊的判準)與 `../_shared/testing-policy.md`(檢查測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);要檢查 frontmatter 合規或建 B/E/ADR 文檔時,另讀 `../_shared/frontmatter.md`;scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/doc-lifecycle.md`(資料夾樹、引用格式、權威來源與 frontmatter 規格,對帳用)、`../_shared/boundary-rules.md`(檢查知識歸屬與依賴邊的判準)與 `../_shared/testing-policy.md`(檢查測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## Scope 判斷
 
@@ -55,7 +55,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
    它給的是**線索**:子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單、架構 hub。腳本印出的「⚠ 影響結論可信度」整段要**原樣轉達給開發者**——圖是無向建置、過期、或對映覆蓋率過低時,任何基於它的結論都不能採信,先修再談。沒有圖(或判定沒過)就照下面各 scope 的原方法做,不提也不擋
 3. **Context 載入紀律**:只讀 scope 對應層級的文檔(見各 scope);已 closed 的 bugfix 除非必要否則不載入
 4. 發現一律**依嚴重度排序**在對話中回報:每條附具體檔案與程式碼位置、違反了哪條契約/原則、建議動作
-5. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/spec-design`(enhance 模式,需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號規則與 `frontmatter.md` 的規格,`status: open`,內文附本次發現的分析依據)
+5. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/spec-design`(enhance 模式,需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號規則與 `doc-lifecycle.md` 的規格,`status: open`,內文附本次發現的分析依據)
 6. 本 skill **不修改程式碼**,也不改架構文檔(發現文檔該改時,列出差異建議開發者走對應 design skill)
 
 ### Scope: system — 全域架構檢測

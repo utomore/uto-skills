@@ -6,7 +6,7 @@ user-invocable: true
 
 # /spec-design — Level 3 spec 設計(spec 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md` 與 `../_shared/frontmatter.md`(本 skill 要新建文檔:資料夾樹、編號、引用格式、frontmatter 規格)與 `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(本 skill **必用**程式碼知識圖並要下查詢);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md` 與 `../_shared/delegation-design.md`(你要產出的兩份清單格式);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式,**委派模式下不讀**——你不輸出定錨區塊)。
+先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md`(本 skill 要新建文檔:資料夾樹、編號、引用格式、frontmatter 規格)與 `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(本 skill **必用**程式碼知識圖並要下查詢);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md` 與 `../_shared/delegation-design.md`(你要產出的兩份清單格式);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式,**委派模式下不讀**——你不輸出定錨區塊)。
 
 文檔模板在 `templates/`,**只讀模式對應的那一份**(步驟 5 才打開):`feature-spec.md` / `enhancement-spec.md`。
 
@@ -50,7 +50,7 @@ user-invocable: true
 | 回填 `design.md` 的 `doc` 欄 | **不做**。由編排者單線回填(平行寫同一檔會互蓋) |
 | 9. 收尾 | 改為輸出 `delegation.md` 定義的**結構化回報**,不是給人看的摘要。**不輸出定錨區塊,因此不讀 `anchor.md`** |
 
-契約卡不足以支撐某個決定時:採當下最合理的作法繼續,記進「待確認假設」——**不要停擺、也不要在對話中提問**(沒有人會回答)。契約卡本身與 `design.md` 契約章節矛盾時,以 `design.md` 為準並回報這個矛盾。
+契約卡不足以支撐某個決定時,照 `delegation.md` 第 2 條:繼續推進 + 記「待確認假設」,不停擺、不提問。契約卡本身與 `design.md` 契約章節矛盾時,以 `design.md` 為準並回報這個矛盾。
 
 **「不可逆決定」段與「新增的依賴邊」在委派模式下會被編排者搬上閘門逐條裁決**,不是寫下來就算數。所以這兩處要當成要給人審的東西寫:每條不可逆決定的**否決理由**必須寫得出替代方案的代價(只寫得出好處 = 分析不完整,會被退回重寫);每條新增的依賴邊都要寫成「哪個模組 → 哪個模組」,漏一條就等於偷渡一次架構變更。
 
@@ -119,9 +119,7 @@ user-invocable: true
 2. 用「反向可達」查出**誰依賴它們**——這決定了新增介面會不會踩到別人,是「新增依賴邊」那一欄的來源(enhance 模式在步驟 1 已經查過一輪影響面,這裡對帳補齊即可)
 3. 圖過期就先更新(見該片「目前的產生器」表);更新不了就比對 `built_at_commit` 與 `git rev-parse HEAD`,並把「圖描述的是舊程式碼」講給開發者聽
 
-**圖只解決「該打開哪個檔案」,查證本身完全不變**:還是要打開那個檔案、讀到完整簽名原文,才能寫進介面表。節點標籤是符號名不是簽名,一個字都不能直接抄進文檔;圖查不到只代表這張圖裡沒有,要退回一般搜尋,不能據此下「專案裡不存在」的結論。
-
-用哪個工具由專案語言決定(`codegraph.md`「選用規則」:**Haskell 用 knot、其他語言用 graphify**);兩個都跑不了(專案沒建過、產生器不支援這個語言、`extract` 失敗)時照一般搜尋做,並在收尾寫**具體原因**,不准用「不適用」帶過。
+**圖只解決「該打開哪個檔案」,查證本身完全不變**:還是要打開那個檔案、讀到完整簽名原文,才能寫進介面表(圖的禁止事項與「圖查不到 ≠ 不存在」見 `codegraph.md`「鐵律」)。工具選用與跑不了時的退路照 `codegraph.md`「選用規則」——退回一般搜尋要在收尾寫**具體原因**。
 
 ### 5. 產出 spec 文檔
 
@@ -156,7 +154,7 @@ user-invocable: true
 
 寫完跑一次編譯 / 型別檢查,**如實回報**結果。
 
-### 7. 一致性檢查(必做,不可跳過)
+### 7. 一致性檢查(不可跳過)
 
 文件與骨架都寫完後,**由下往上**回推一次(上半部的結論不會自動跟著下半部的細節修正,必須明確回頭對帳):
 

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /bugfix — 缺陷修復
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則)、`../_shared/testing-policy.md`(本 skill 自己寫重現測試)、`../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式)與 `../_shared/frontmatter.md`(本 skill 要新建 bugfix 文檔);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md` 與 `../_shared/codegraph-tools.md`(用來定位,不取代重現與根因驗證);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則)、`../_shared/testing-policy.md`(本 skill 自己寫重現測試)、`../_shared/doc-lifecycle.md`(本 skill 要新建 bugfix 文檔:資料夾樹、編號、引用格式、frontmatter 規格);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md` 與 `../_shared/codegraph-tools.md`(用來定位,不取代重現與根因驗證);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 本 skill 一條龍完成:**記錄缺陷 → 重現 → 根因分析 → 修復 → 回歸測試 → 回寫狀態**。缺陷文檔是修復的過程紀錄與回歸依據,不是待辦——建檔與修復在同一次執行內完成(開發者明確只要「先記錄、之後修」時例外,建檔後停在 `open`)。
 

@@ -128,7 +128,7 @@ if (ageDays > 7) trustNotes.push(`圖已 ${Math.round(ageDays)} 天沒更新(${m
 
 // ---------------------------------------------------------------- 子系統 → 路徑對映
 
-/** 解析 frontmatter 的行內陣列欄位(格式規範見 _shared/frontmatter.md) */
+/** 解析 frontmatter 的行內陣列欄位(格式規範見 _shared/doc-lifecycle.md) */
 function readInlineList(path, key) {
   let text;
   try {

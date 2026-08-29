@@ -6,7 +6,7 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/doc-lifecycle.md`(資料夾樹、引用格式、權威來源與 frontmatter 規格,對帳用)、`../_shared/boundary-rules.md`(檢查知識歸屬與依賴邊的判準)與 `../_shared/testing-policy.md`(檢查測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/doc-lifecycle.md`(資料夾樹、引用格式、權威來源與 frontmatter 規格,對帳用)、`../_shared/boundary-rules.md`(檢查知識歸屬與依賴邊的判準)與 `../_shared/testing-policy.md`(檢查測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;要查文檔關係、反向依賴或共用契約時,另讀 `../_shared/design-query.md`(`scan-status.mjs` 的 `--subsys` / `--doc` 查詢能力與界線);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## Scope 判斷
 
@@ -36,10 +36,20 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 - **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步的待辦清單(逐一走 `/spec-design`,或契約卡滿格時用 `/subsys-build` 委派展開)
 - **未結的 spec-gaps**:qa / impl 提出、尚未被 spec 修訂的問題。**每一條都代表有項目正卡著**,要逐條轉達並建議走對應的 design skill 更新模式修 spec;有未結條目時 `/subsys-build` 會擋著不啟動
 - **架構 / 子系統不一致**必須逐條轉達:`subsystems` 權威清單與實際資料夾對不上(雙向)、功能規劃指向不存在的文檔、id 與檔名不一致、depends-on 無法解析、全域文檔缺 `subsystems` 欄、design.md 缺 `parent` 等
+- **全域契約表**(`主軸 | id | status | 使用的子系統 | file`,有 `contracts/` 才出現):跨子系統共用契約(`G-C00x`)。它**不是任務文檔**,不計入進度也不影響完成度;`subsystems` 少於兩個會被列為不一致(只有一個使用者的契約應該住那個子系統的 `design.md`)
 - 有「frontmatter 格式不合規」時,把清單欄位改回行內陣列再重跑;寫成 YAML 區塊列表時腳本讀不到內容,相依關係與歸屬都不可信
 - 有 `missing-metadata` / 缺 description 警示時,提醒開發者補上
 
 **禁止**為了補充資訊而去讀取各文檔全文——此 scope 的重點就是省 context(功能規劃已由腳本解析成進度數字,不必自己開檔)。
+
+**要聚焦某一個子系統或某一份文檔**時,同一支腳本有查詢模式(能力、exit code 語意與各角色界線見 `../_shared/design-query.md`):
+
+```
+node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --subsys <slug>   # 該子系統 + 進出依賴 + 反向依賴
+node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --doc <id>        # 單一文檔:歸屬 / 介面 / 契約 / 正反向依賴
+```
+
+`--doc` 的 exit code 與盤點模式**語意不同**(0 = 查到、2 = 查無),不要拿它當驗收判準。
 
 ---
 
@@ -66,6 +76,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 2. **對外 I/O 契約完整性**:system.md 定義的最外層 Input/Output 規格,程式碼是否完整實作?有無程式碼暴露了契約沒寫的對外介面(未登記的 endpoint / CLI 參數 / 匯出符號)?
 3. **通訊協定一致性**:子系統間實際的通訊方式是否與「通訊拓撲」一致(該走 Event Bus 的有沒有偷偷直接 call)?全域錯誤處理策略是否被各子系統遵守?
 4. **抽象邊界檢查**:system.md 是否越界寫了 Level 2/3 的細節(私有函數、內部資料結構)?有就列出建議下放
+5. **共用契約對帳**(有 `.design/contracts/` 時):每份 `G-C00x` 的條目,在程式碼裡是不是只有**一份**定義?有沒有哪個子系統自己抄了一份平行定義(欄位一一對應、語意照抄 = 複製,不是投影)?——複製品**編譯器不會報錯**,只有這一步抓得到。反過來,`subsystems` 欄列的每個子系統,程式碼裡真的用到了嗎?用 `scan-status.mjs .design --doc G-C00x` 拿反向依賴當候選清單,再回原始碼確認。判準與「投影 vs 複製」的界線見 `../_shared/contract-readiness.md` B2
 
 ### Scope: subsys — 子系統一致性檢測
 

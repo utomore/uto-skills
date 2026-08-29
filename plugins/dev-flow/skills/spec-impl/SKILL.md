@@ -6,7 +6,7 @@ user-invocable: false
 
 # /spec-impl — Level 3 實作(impl 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 不讀。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);要查 spec 依賴的別份文檔或共用契約時,另讀 `../_shared/design-query.md`(查詢指令與界線——**可用,但查到的東西不得拿來當 spec 沒寫到的部分的答案**,那走 spec-gaps);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 不讀。
 
 ## 模式(由目標文檔的 id 前綴判定)
 

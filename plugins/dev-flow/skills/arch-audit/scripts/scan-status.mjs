@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * scan-status.mjs — 掃描 .design/ 樹狀設計文檔,盤點任務狀態與各子系統進度。
+ * scan-status.mjs — 掃描 .design/ 樹狀設計文檔。兩種模式:
+ *   盤點模式(不給 --subsys / --doc):任務狀態與各子系統進度,全樹視角
+ *   查詢模式(--subsys / --doc):聚焦單一子系統或單一文檔,額外給出**反向依賴**
  *
  * 掃描範圍:
  *   .design/system.md                                  主架構(frontmatter subsystems 為權威清單)
@@ -8,19 +10,69 @@
  *   .design/subsystems/<slug>/spec-gaps.md             qa / impl 提出的 spec 模糊處(未結條目影響 exit code)
  *   .design/subsystems/<slug>/{features,enhancements,bugfixes}/*.md   子系統任務文檔
  *   .design/{enhancements,bugfixes}/*.md               全域任務文檔(G-E / G-B)
+ *   .design/contracts/*.md                             跨子系統共用契約(G-C;非任務文檔,不計入進度)
  *   .design/adr/*.md                                   ADR
  *
- * 任務文檔只讀每檔開頭 4KB;design.md 需讀全文才能解析「功能規劃」表格與「Feature 契約卡」。
+ * 盤點模式下任務文檔只讀每檔開頭 4KB;design.md 需讀全文才能解析「功能規劃」表格與「Feature 契約卡」。
+ * 查詢模式**只對被查的那一份與直接關聯的文檔**讀全文(要取「介面」/「數據」段與契約條目),
+ * 盤點模式一個位元組都不多讀。
  * 清單欄位(depends-on / related-adr / related-feature / subsystems)一律**行內陣列** `[a, b]`;
  * 寫成 YAML 區塊列表會被列為格式不合規並以 exit code 1 收場。
  *
- * 用法: node scan-status.mjs [design目錄]   (預設 ./.design)
- * Exit code: 0 = 全部完成(或無檔案) / 1 = 有未完成項目、metadata 缺失或架構不一致
+ * 用法:
+ *   node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
+ *   node scan-status.mjs .design --subsys <slug>       聚焦子系統:它的文檔 + 進出依賴 + 反向依賴
+ *   node scan-status.mjs .design --doc <id>            聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
+ *                                                     <id> 吃 F003、auth/F003、G-E001、G-C001
+ *   node scan-status.mjs --help
+ *
+ * Exit code(**兩種模式語意不同**,呼叫端不要混用):
+ *   盤點 / --subsys : 0 = 範圍內全部完成(或無檔案) / 1 = 有未完成項目、metadata 缺失或架構不一致
+ *   --doc           : 0 = 查到 / 2 = 查無此 id(查到但未完成仍是 0——查詢不是驗收)
+ *   任一模式        : 2 = design 目錄或 --subsys 的 slug 不存在
+ *
+ * **本腳本只產生索引,不下判斷**:它答得出「哪份文檔、什麼狀態、誰依賴誰」,
+ * 答不出「那份文檔寫的對不對」。紀律與各角色的使用界線見 _shared/design-query.md。
  */
 import { readdirSync, readFileSync, openSync, readSync, closeSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
-const designDir = process.argv[2] ?? "./.design";
+const USAGE = `用法:
+  node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
+  node scan-status.mjs .design --subsys <slug>       聚焦子系統:文檔 + 進出依賴 + 反向依賴
+  node scan-status.mjs .design --doc <id>            聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
+                                                     <id> 吃 F003、auth/F003、G-E001、G-C001
+Exit code:盤點 / --subsys → 0 全完成 / 1 有未完成;--doc → 0 查到 / 2 查無;2 目錄或 slug 不存在`;
+
+const argv = process.argv.slice(2);
+const query = { subsys: null, doc: null };
+let designDirArg = null;
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i];
+  if (a === "--help" || a === "-h") {
+    console.log(USAGE);
+    process.exit(0);
+  } else if (a === "--subsys") query.subsys = argv[++i] ?? null;
+  else if (a === "--doc") query.doc = argv[++i] ?? null;
+  else if (a.startsWith("--")) {
+    console.error(`未知選項: ${a}\n\n${USAGE}`);
+    process.exit(2);
+  } else if (designDirArg === null) designDirArg = a;
+}
+if (query.subsys === null && argv.includes("--subsys")) {
+  console.error(`--subsys 需要一個子系統 slug\n\n${USAGE}`);
+  process.exit(2);
+}
+if (query.doc === null && argv.includes("--doc")) {
+  console.error(`--doc 需要一個文檔 id\n\n${USAGE}`);
+  process.exit(2);
+}
+if (query.subsys && query.doc) {
+  console.error(`--subsys 與 --doc 不能同時使用(--doc 已經帶出它所屬的子系統)\n\n${USAGE}`);
+  process.exit(2);
+}
+
+const designDir = designDirArg ?? "./.design";
 const HEAD_BYTES = 4096;
 const DONE_STATUSES = new Set(["done", "closed"]);
 const DESC_WIDTH = 44; // 主軸(description)欄顯示寬度上限(全形字算 2)
@@ -32,14 +84,16 @@ const TASK_KINDS = {
   bugfixes: { pattern: /^(B\d{3})-[a-z0-9-]+\.md$/, type: "bugfix" },
 };
 const GLOBAL_KINDS = {
-  enhancements: { pattern: /^(G-E\d{3})-[a-z0-9-]+\.md$/, type: "enhance" },
-  bugfixes: { pattern: /^(G-B\d{3})-[a-z0-9-]+\.md$/, type: "bugfix" },
+  enhancements: { pattern: /^(G-E\d{3})-[a-z0-9-]+\.md$/, type: "enhance", example: "G-E001" },
+  bugfixes: { pattern: /^(G-B\d{3})-[a-z0-9-]+\.md$/, type: "bugfix", example: "G-B001" },
 };
+// 全域契約(G-C)不是任務文檔:不參與 F/E/B 進度統計,status 走 active/superseded/closed
+const CONTRACT_KIND = { pattern: /^(G-C\d{3})-[a-z0-9-]+\.md$/, type: "contract", example: "G-C001" };
 const ADR_PATTERN = /^(ADR-\d{3})-[a-z0-9-]+\.md$/;
 
 if (!existsSync(designDir)) {
   console.error(`找不到 design 目錄: ${designDir}`);
-  process.exit(1);
+  process.exit(2);
 }
 
 /** 只讀檔案開頭 bytes(預設 HEAD_BYTES) */
@@ -176,7 +230,7 @@ function scanTaskDoc(path, subsystem, kind) {
   const { meta, blockListKeys } = readFrontmatter(path);
   const relPath = rel(path);
   if (blockListKeys.length) badFormat.push({ file: relPath, keys: blockListKeys });
-  const fileId = path.split(/[\\/]/).pop().match(/^((?:G-)?[FEB]\d{3})/)?.[1] ?? null;
+  const fileId = path.split(/[\\/]/).pop().match(/^(G-[CEB]\d{3}|[FEB]\d{3})/)?.[1] ?? null;
   const metaId = fmtValue(meta?.id);
   if (meta && fileId && metaId !== "-" && metaId !== fileId)
     archIssues.push(`${relPath}:frontmatter id(${metaId})與檔名編號(${fileId})不一致`);
@@ -245,13 +299,50 @@ for (const [sub, kind] of Object.entries(GLOBAL_KINDS)) {
   for (const name of listMd(dir)) {
     const path = join(dir, name);
     if (!kind.pattern.test(name))
-      archNotes.push(`${rel(path)}:檔名不符全域命名規則(如 ${sub === "enhancements" ? "G-E001" : "G-B001"}-slug.md)`);
+      archNotes.push(`${rel(path)}:檔名不符全域命名規則(如 ${kind.example}-slug.md)`);
     const row = scanTaskDoc(path, null, kind);
     if (row.id !== "-") globalIds.set(row.id, row);
     if (row.affects.length === 0) archIssues.push(`${row.file}:全域文檔缺 subsystems 欄位(受影響子系統清單)`);
     for (const s of row.affects) {
       if (!subsysDirs.includes(s)) archIssues.push(`${row.file}:subsystems 列了 ${s},但 subsystems/ 沒有這個子系統`);
     }
+  }
+}
+
+// 全域契約(G-C):非任務文檔,自成一組,不進 rows、不影響進度與 exit code
+const contractIds = new Map(); // id → { id, description, status, affects, file, entries }
+{
+  const dir = join(designDir, "contracts");
+  for (const name of listMd(dir)) {
+    const path = join(dir, name);
+    const relPath = rel(path);
+    if (!CONTRACT_KIND.pattern.test(name))
+      archNotes.push(`${relPath}:檔名不符全域契約命名規則(如 ${CONTRACT_KIND.example}-slug.md)`);
+    const { meta, blockListKeys } = readFrontmatter(path);
+    if (blockListKeys.length) badFormat.push({ file: relPath, keys: blockListKeys });
+    const fileId = name.match(/^(G-C\d{3})/)?.[1] ?? null;
+    const metaId = fmtValue(meta?.id);
+    if (meta && fileId && metaId !== "-" && metaId !== fileId)
+      archIssues.push(`${relPath}:frontmatter id(${metaId})與檔名編號(${fileId})不一致`);
+    if (meta && meta.type && meta.type !== "contract")
+      archIssues.push(`${relPath}:type(${meta.type})應為 contract`);
+    if (!meta?.description) archIssues.push(`${relPath}:缺 description / 主軸`);
+    const affects = asList(meta?.subsystems);
+    // 少於兩個使用者的契約不該是全域的(doc-lifecycle.md「全域契約文檔」規則 1)
+    if (affects.length < 2)
+      archIssues.push(`${relPath}:subsystems 只列了 ${affects.length} 個子系統——共用契約至少要兩個,否則它屬於那個子系統的 design.md`);
+    for (const s of affects) {
+      if (!subsysDirs.includes(s)) archIssues.push(`${relPath}:subsystems 列了 ${s},但 subsystems/ 沒有這個子系統`);
+    }
+    const id = metaId !== "-" ? metaId : fileId ?? name.replace(/\.md$/, "");
+    contractIds.set(id, {
+      id,
+      description: meta?.description ? truncate(meta.description, DESC_WIDTH) : "-",
+      status: meta?.status ? String(meta.status) : "⚠ missing-metadata",
+      affects,
+      file: relPath,
+      path,
+    });
   }
 }
 
@@ -469,9 +560,10 @@ for (const slug of subsysDirs) {
 
 // ---------------------------------------------------------------- depends-on 解析
 
-/** 解析引用:同子系統直寫 id;跨子系統 <slug>/<id>;全域 G-*;ADR-*。回傳 true = 可解析 */
+/** 解析引用:同子系統直寫 id;跨子系統 <slug>/<id>;全域 G-*(契約可帶 #條目);ADR-*。回傳 true = 可解析 */
 function resolveRef(ref, contextSubsys) {
   if (/^ADR-\d+$/.test(ref)) return adrIds.has(ref);
+  if (/^G-C\d{3}(#.+)?$/.test(ref)) return contractIds.has(ref.split("#")[0]);
   if (/^G-[EB]\d{3}$/.test(ref)) return globalIds.has(ref);
   if (ref.includes("/")) {
     const [slug, id] = ref.split("/");
@@ -494,7 +586,266 @@ for (const r of rows) {
   }
 }
 
-// ---------------------------------------------------------------- 輸出
+// ---------------------------------------------------------------- 查詢模式(--subsys / --doc)
+
+/** 文檔的正規化鍵:子系統文檔 `<slug>/<id>`,全域文檔 `<id>` */
+const docKey = (subsystem, id) => (subsystem && subsystem !== "global" ? `${subsystem}/${id}` : id);
+
+/** 把一條引用在它的 context 下正規化成 docKey(契約去掉 `#條目`) */
+function refKey(ref, contextSubsys) {
+  const bare = ref.split("#")[0];
+  if (/^(ADR-|G-)/.test(bare) || bare.includes("/")) return bare;
+  return contextSubsys && contextSubsys !== "global" ? `${contextSubsys}/${bare}` : bare;
+}
+
+/** 反向依賴索引:docKey → [{ row, ref }];這一半散在別的資料夾,靠路徑推不出來 */
+const reverseDeps = new Map();
+for (const r of rows) {
+  for (const ref of r.dependsOn) {
+    const k = refKey(ref, r.subsystem);
+    if (!reverseDeps.has(k)) reverseDeps.set(k, []);
+    reverseDeps.get(k).push({ row: r, ref });
+  }
+}
+
+/** 取出 markdown 某個標題段落的全文(到下一個同級或更高級標題為止);找不到回傳 null */
+function section(text, titleRe) {
+  const lines = text.split(/\r?\n/);
+  let start = -1;
+  let level = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const h = lines[i].match(/^(#{2,6})\s+(.+?)\s*$/);
+    if (!h) continue;
+    if (start < 0) {
+      if (titleRe.test(h[2])) {
+        start = i;
+        level = h[1].length;
+      }
+    } else if (h[1].length <= level) {
+      return lines.slice(start, i).join("\n").trimEnd();
+    }
+  }
+  return start < 0 ? null : lines.slice(start).join("\n").trimEnd();
+}
+
+/** 掃全文裡出現的全域契約引用(frontmatter 之外的內文也算),回傳去重後的 ref 清單 */
+function contractRefsIn(text) {
+  const out = new Set();
+  for (const m of text.matchAll(/G-C\d{3}(?:#[A-Za-z0-9_.\-]+)?/g)) out.add(m[0]);
+  return [...out];
+}
+
+/** 一條引用印成一行:目標的狀態與檔案,解析不到就標明 */
+function fmtRef(key, viaRef) {
+  const shown = viaRef && viaRef !== key ? `${viaRef}` : key;
+  const bare = key.split("#")[0];
+  if (contractIds.has(bare)) {
+    const c = contractIds.get(bare);
+    return `- ${shown}  [${c.status}]  ${c.file}  ${c.description}`;
+  }
+  if (globalIds.has(bare)) {
+    const g = globalIds.get(bare);
+    return `- ${shown}  [${g.status}]  ${g.file}  ${g.description}`;
+  }
+  if (bare.includes("/")) {
+    const [slug, id] = bare.split("/");
+    const r = subsysDocs.get(slug)?.ids.get(id);
+    if (r) return `- ${shown}  [${r.status}]  ${r.file}  ${r.description}`;
+  }
+  if (adrIds.has(bare)) return `- ${shown}  [adr]  adr/`;
+  return `- ${shown}  ⚠ 解析不到(引用格式見 doc-lifecycle.md)`;
+}
+
+/** 印一段;內容為空時印 (無) */
+function printBlock(title, lines) {
+  console.log(`\n=== ${title} ===`);
+  if (!lines || lines.length === 0) console.log("(無)");
+  else for (const l of lines) console.log(l);
+}
+
+const QUERY_TAIL =
+  "\n本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。\n" +
+  "要寫進 spec 的每一條介面,仍須打開該文檔讀原文。各角色的使用界線見 _shared/design-query.md。";
+
+if (query.doc) {
+  const want = query.doc.trim();
+  const bare = want.split("#")[0];
+
+  // 1) 全域契約
+  if (contractIds.has(bare)) {
+    const c = contractIds.get(bare);
+    const text = readFileSync(c.path, "utf8");
+    console.log(`=== 全域契約 ${c.id} ===`);
+    console.log(`主軸  ${c.description}`);
+    console.log(`歸屬  全域共用契約(不屬於任何單一子系統)  |  status ${c.status}`);
+    console.log(`使用  ${c.affects.length ? c.affects.join("、") : "⚠ 未列 subsystems"}`);
+    console.log(`檔案  ${c.file}`);
+
+    const entries = section(text, /契約條目/);
+    printBlock("契約條目", entries ? entries.split("\n") : ["(這份契約沒有「契約條目」章節——格式見 doc-lifecycle.md「全域契約文檔」)"]);
+
+    const users = [];
+    for (const [k, list] of reverseDeps) {
+      if (k.split("#")[0] !== bare) continue;
+      for (const { row, ref } of list) users.push(`- ${docKey(row.subsystem, row.id)}  [${row.status}]  引用 ${ref}  ${row.file}`);
+    }
+    printBlock("誰引用這份契約(反向依賴)", users.sort());
+    console.log(QUERY_TAIL);
+    process.exit(0);
+  }
+
+  // 2) 全域任務文檔 / 子系統文檔
+  let hit = null;
+  if (globalIds.has(bare)) hit = globalIds.get(bare);
+  else if (bare.includes("/")) {
+    const [slug, id] = bare.split("/");
+    hit = subsysDocs.get(slug)?.ids.get(id) ?? null;
+  } else {
+    const candidates = [];
+    for (const [slug, entry] of subsysDocs) if (entry.ids.has(bare)) candidates.push(entry.ids.get(bare));
+    if (candidates.length === 1) hit = candidates[0];
+    else if (candidates.length > 1) {
+      console.error(`id ${bare} 在多個子系統都存在,請帶上子系統:`);
+      for (const c of candidates) console.error(`  --doc ${c.subsystem}/${c.id}   ${c.file}`);
+      process.exit(2);
+    }
+  }
+  if (!hit) {
+    console.error(`查無此文檔 id: ${want}`);
+    console.error(`(子系統文檔寫 F003 或 auth/F003;全域寫 G-E001 / G-B001;共用契約寫 G-C001)`);
+    process.exit(2);
+  }
+
+  const key = docKey(hit.subsystem, hit.id);
+  const full = readFileSync(join(designDir, hit.file), "utf8");
+  const entry = hit.subsystem !== "global" ? subsysDocs.get(hit.subsystem) : null;
+  const road = entry?.roadmap.features.find((f) => f.doc === hit.id) ?? null;
+
+  console.log(`=== 文檔 ${key} ===`);
+  console.log(`主軸  ${hit.description}`);
+  console.log(
+    `歸屬  ${hit.subsystem === "global" ? "全域(跨子系統)" : `子系統 ${hit.subsystem}`}` +
+      (road ? `  |  ${road.phase}  |  功能規劃「${road.feature}」` : "") +
+      `  |  type ${hit.type}  |  status ${hit.status}`,
+  );
+  if (hit.subsystem === "global") console.log(`受影響  ${hit.affects.length ? hit.affects.join("、") : "⚠ 未列 subsystems"}`);
+  else if (entry?.designFile) console.log(`上層  ${entry.designFile}`);
+  console.log(`檔案  ${hit.file}`);
+
+  for (const [title, re] of [
+    ["數據", /^數據$|數據與介面變動/],
+    ["介面", /^介面$/],
+  ]) {
+    const sec = section(full, re);
+    if (sec) printBlock(`${title}(原文)`, sec.split("\n"));
+  }
+  if (!section(full, /^數據$|數據與介面變動/) && !section(full, /^介面$/))
+    printBlock("介面 / 數據", ["(這份文檔沒有「數據」或「介面」段——模板見 spec-design/templates/)"]);
+
+  const usedContracts = contractRefsIn(full);
+  printBlock("引用的全域契約", usedContracts.map((r) => fmtRef(r, r)));
+
+  printBlock(
+    "正向依賴(我依賴誰)",
+    hit.dependsOn.map((ref) => fmtRef(refKey(ref, hit.subsystem), ref)),
+  );
+
+  const back = (reverseDeps.get(key) ?? []).map(
+    ({ row, ref }) => `- ${docKey(row.subsystem, row.id)}  [${row.status}]  引用 ${ref}  ${row.file}`,
+  );
+  printBlock("反向依賴(誰依賴我)", back.sort());
+
+  console.log(QUERY_TAIL);
+  process.exit(0);
+}
+
+if (query.subsys) {
+  const slug = query.subsys.trim();
+  if (!subsysDocs.has(slug)) {
+    console.error(`查無此子系統: ${slug}`);
+    console.error(`現有:${subsysDirs.length ? subsysDirs.join("、") : "(subsystems/ 下沒有任何子系統)"}`);
+    process.exit(2);
+  }
+  const entry = subsysDocs.get(slug);
+  const srow = subsysRows.find((s) => s.id === slug);
+  const mine = rows.filter((r) => r.subsystem === slug);
+  const inScope = (s) => s.includes(`subsystems/${slug}/`) || s.includes(` ${slug} `) || s.startsWith(`${slug}:`);
+
+  console.log(`=== 子系統 ${slug} ===`);
+  console.log(`主軸  ${srow?.description ?? "-"}`);
+  console.log(`狀態  status ${srow?.status ?? "-"}  |  階段 ${srow?.phases ?? "-"}  |  features ${srow?.features ?? "-"}  |  契約卡 ${srow?.cards ?? "-"}  |  進度 ${srow?.progress ?? "-"}`);
+  console.log(`檔案  ${entry.designFile ?? "⚠ 缺 design.md"}`);
+
+  console.log(`\n=== 本子系統的文檔(${mine.length})===`);
+  if (mine.length === 0) console.log("(還沒有任何 feature / enhance / bugfix 文檔)");
+  else
+    printTable(
+      { description: "主軸", id: "id", type: "type", status: "status", dependsOn: "depends-on", file: "file" },
+      mine.map((r) => ({ ...r, dependsOn: fmtValue(r.dependsOn) })),
+    );
+
+  const out = [];
+  for (const r of mine)
+    for (const ref of r.dependsOn) {
+      const k = refKey(ref, slug);
+      if (k.startsWith(`${slug}/`)) continue; // 子系統內部依賴,上表已經看得到
+      out.push(`- ${docKey(r.subsystem, r.id)} → ${ref}\n  ${fmtRef(k, ref).slice(2)}`);
+    }
+  printBlock("對外依賴(本子系統依賴誰)", out);
+
+  const back = [];
+  for (const [k, list] of reverseDeps) {
+    if (!k.startsWith(`${slug}/`)) continue;
+    for (const { row, ref } of list) {
+      if (row.subsystem === slug) continue; // 內部依賴不算反向跨界
+      back.push(`- ${docKey(row.subsystem, row.id)} → ${k}(寫成 ${ref})  [${row.status}]  ${row.file}`);
+    }
+  }
+  printBlock("反向依賴(誰依賴本子系統)—— B1 的候選清單", back.sort());
+
+  // 依契約 id 去重,把引用到的條目收在同一行(同一份契約常被多個條目引用)
+  const cmap = new Map(); // bare id → Set(條目名)
+  const noteContract = (ref) => {
+    const [bare, item] = ref.split("#");
+    if (!cmap.has(bare)) cmap.set(bare, new Set());
+    if (item) cmap.get(bare).add(item);
+  };
+  for (const r of mine) for (const ref of r.dependsOn) if (/^G-C\d{3}/.test(ref)) noteContract(ref);
+  for (const [, c] of contractIds) if (c.affects.includes(slug)) noteContract(c.id);
+  printBlock(
+    "相關的全域契約",
+    [...cmap.keys()].sort().map((bare) => {
+      const items = [...cmap.get(bare)].sort();
+      return fmtRef(bare, bare) + (items.length ? `\n  用到的條目:${items.join("、")}` : "\n  ⚠ 只引用了文檔 id,沒寫到條目(引用格式見 doc-lifecycle.md)");
+    }),
+  );
+
+  const pend = pendingFeatures.filter((f) => f.subsystem === slug);
+  printBlock(
+    `待展開的 feature(${pend.length})`,
+    pend.map((f) => `- ${f.phase}:${f.feature}`),
+  );
+
+  const gaps = openGaps.filter((g) => g.scope === slug);
+  printBlock(
+    `未結的 spec-gaps(${gaps.length})`,
+    gaps.map((g) => `- ${g.head}  ${g.topic}  ${g.file}`),
+  );
+
+  const issues = archIssues.filter(inScope);
+  const notes = archNotes.filter(inScope);
+  const bad = badFormat.filter((b) => b.file.includes(`subsystems/${slug}/`));
+  printBlock(`架構 / 子系統不一致(${issues.length})`, issues.map((m) => `- ${m}`));
+  if (notes.length) printBlock(`提示(${notes.length})`, notes.map((m) => `- ${m}`));
+  if (bad.length) printBlock(`frontmatter 格式不合規(${bad.length})`, bad.map((b) => `- ${b.file}:${b.keys.join("、")} 寫成 YAML 區塊列表`));
+
+  console.log(QUERY_TAIL);
+
+  const unfinishedHere = mine.filter((r) => !DONE_STATUSES.has(r.status));
+  process.exit(unfinishedHere.length || issues.length || bad.length || gaps.length || pend.length ? 1 : 0);
+}
+
+// ---------------------------------------------------------------- 輸出(盤點模式)
 
 if (rows.length === 0 && subsysRows.length === 0 && !systemMeta) {
   console.log(`design 目錄(${designDir})下沒有任何文檔。`);
@@ -541,6 +892,15 @@ if (subsysRows.length === 0) {
 
 if (Object.keys(adrCounts).length > 0) {
   console.log(`\nADR:${Object.entries(adrCounts).sort().map(([s, n]) => `${s} ${n}`).join("、")}(共 ${adrIds.size} 份)`);
+}
+
+if (contractIds.size > 0) {
+  console.log(`\n=== 全域契約(${contractIds.size})===`);
+  printTable(
+    { description: "主軸", id: "id", status: "status", affects: "使用的子系統", file: "file" },
+    [...contractIds.values()].map((c) => ({ ...c, affects: fmtValue(c.affects) })),
+  );
+  console.log("(契約不是任務文檔,不計入進度;查單一份用 --doc G-C00x)");
 }
 
 if (pendingFeatures.length > 0) {

@@ -9,6 +9,7 @@
 - `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)
 - `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
 - `spec-gaps.md` 也不是任務文檔、不參與編號。它是 **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`):有 `open` 的條目,就代表有項目正卡著等 spec 修訂——`/arch-audit status` 會把未結的條目列出來,`/subsys-build` 開跑前會擋。它是**共用檔案**:委派模式下只由編排者單線寫入與配號,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
+- `contracts/G-C00x-<slug>.md` 是**多方共用契約的唯一權威來源**:兩個以上子系統都要用、又不屬於任何一方的契約住這裡。判準是 `boundary-rules.md`「知識歸屬」——它是哪些子系統的共同事實,就不能住在其中任何一個的 `design.md` 裡。`/subsys-design` 建檔與修改,`/arch-audit` 對帳,消費端只引用不重新定義
 - `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
 - 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
 - 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/spec-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
@@ -32,6 +33,8 @@
 │       │   └── E001-<slug>.md       # /spec-design 產出,如 E001-optimize-token-cache.md
 │       └── bugfixes/
 │           └── B001-<slug>.md       # /bugfix 產出,如 B001-null-pointer-auth.md
+├── contracts/
+│   └── G-C001-<slug>.md             # 跨子系統共用契約(/subsys-design 產出;不屬於任何單一子系統)
 ├── enhancements/
 │   └── G-E001-<slug>.md             # 跨子系統的全域優化(/spec-design 產出)
 ├── bugfixes/
@@ -49,7 +52,7 @@
 - 編號**三位數**遞增,建新檔前先掃描該資料夾現有檔名,取同前綴的最大編號 +1
 - **每個子系統自己一組編號**(F/E/B 各自獨立計數);**全域(G-)自己一組編號**;ADR 全局一組編號:
   - 子系統內:`F001`、`E001`、`B001`(features / enhancements / bugfixes 各自從 001 起算)
-  - 全域:`G-E001`、`G-B001`
+  - 全域:`G-C001`、`G-E001`、`G-B001`(契約 / 優化 / 修復各自從 001 起算)
   - ADR:`ADR-001`
 - 檔名不放日期(日期在 frontmatter 的 `created` / `updated`)
 
@@ -61,8 +64,11 @@ id 只在子系統內唯一,跨界引用必須帶路徑:
 |---|---|---|
 | 同一子系統內互相引用 | 直接寫 id | `F001` |
 | 跨子系統引用 | `<subsystem-slug>/<id>` | `auth/F002` |
-| 引用全域文檔 | 直接寫全域 id | `G-E001` |
+| 引用全域文檔 | 直接寫全域 id | `G-E001`、`G-C001` |
+| 引用全域契約的**單一條目** | `<全域契約 id>#<條目名稱>` | `G-C001#SessionToken` |
 | 引用 ADR | 直接寫 ADR id | `ADR-003` |
+
+引用全域契約時**優先寫到條目**(`G-C001#SessionToken`)而不只是文檔 id:一份全域契約通常裝好幾個條目,只寫 `G-C001` 的話,`--doc` 查詢與 `/arch-audit` 的對帳都只知道「這裡用了那份文檔」,答不出「用了哪一條」——而契約改動幾乎都是**條目級**的。
 
 ## Metadata 標準(YAML frontmatter)
 
@@ -155,6 +161,34 @@ parent: <subsystem-slug> # 回鏈所屬子系統的 design.md
 ```
 
 內文格式(只追加、不改既有條目,修訂後回填狀態)見 `spec-roles.md`「spec-gaps 協議」。條目編號 `G1`、`G2`… 在該檔內遞增,不跨檔共用。**委派模式下這個檔只由編排者寫**(建檔、配號、追加都是),subagent 一律只回報(理由見 `delegation.md` 第 4 條)。
+
+### 全域契約文檔(G-C)
+
+`contracts/G-C001-<slug>.md`——**多方共用、不屬於任何單一子系統**的契約(共用 DTO、跨子系統事件 schema、共同遵守的錯誤語意):
+
+```yaml
+---
+id: G-C001
+type: contract
+title: <contract-slug>          # 檔名 slug
+description: <一句話,40 字內:這份契約定義了什麼>
+status: active                  # active | superseded | closed
+created: 2026-08-19
+updated: 2026-08-19
+subsystems: [subsys-a, subsys-b] # 使用這份契約的子系統(至少兩個,否則它不該是全域的)
+related-adr: []
+---
+```
+
+固定章節:**定位與範圍** → **契約條目**(每個條目一個 `###`,標題 = 條目名稱,內含欄位表:名稱 / 型別 / **單位或值域** / 語意,規格同 `contract-readiness.md` A4)→ **使用者與方向**(哪個子系統產生、哪些消費)→ **變更紀律**。
+
+三條規則:
+
+1. **`subsystems` 少於兩個就不該建這份檔**。只有一個使用者的契約屬於那個子系統,住它的 `design.md`;建成全域等於憑空多一層間接
+2. **不准塞進某一個子系統的 `design.md` 再讓別人引用**——那份 `design.md` 從此擁有一個不屬於它的事實,違反 `boundary-rules.md`「知識歸屬」(對帳條目見 `contract-readiness.md` B4)
+3. 條目是**不可逆決定**:每次改動要在「變更紀律」段記下改了哪個條目、為什麼、影響哪些子系統;重大者開 ADR 並填進 `related-adr`
+
+引用時**寫到條目**(`G-C001#SessionToken`),理由見上方引用格式表。
 
 ### ADR
 

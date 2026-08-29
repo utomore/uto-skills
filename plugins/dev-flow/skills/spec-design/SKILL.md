@@ -6,7 +6,7 @@ user-invocable: true
 
 # /spec-design — Level 3 spec 設計(spec 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md`(本 skill 要新建文檔:資料夾樹、編號、引用格式、frontmatter 規格)與 `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(本 skill **必用**程式碼知識圖並要下查詢);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md` 與 `../_shared/delegation-design.md`(你要產出的兩份清單格式);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式,**委派模式下不讀**——你不輸出定錨區塊)。
+先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md`(本 skill 要新建文檔:資料夾樹、編號、引用格式、frontmatter 規格)與 `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(本 skill **必用**程式碼知識圖並要下查詢);要查別份文檔的介面、共用契約或反向依賴時,另讀 `../_shared/design-query.md`(查詢指令與界線——本 skill **全開**,但查到的東西仍要打開原文查證);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md` 與 `../_shared/delegation-design.md`(你要產出的兩份清單格式);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式,**委派模式下不讀**——你不輸出定錨區塊)。
 
 文檔模板在 `templates/`,**只讀模式對應的那一份**(步驟 5 才打開):`feature-spec.md` / `enhancement-spec.md`。
 
@@ -166,6 +166,12 @@ user-invocable: true
 4. **簽名複驗**:「使用到的既有介面」每一列都要是從來源檔案讀出的原文;對不上就以程式碼為準,並回頭修正受影響的敘述
 5. **依賴邊**:「依賴方向」列的邊(enhance 含**移除**的邊)要與最終 `depends-on`、介面表、骨架實際的 import 一致,**一條都不能漏**——實作階段的依賴自查以這一段為對照表,漏列就會把架構變更當成正常實作放過去
 6. **介面段無實作細節**:回讀語意欄,出現演算法、資料結構選擇、呼叫順序、快取策略等字眼一律刪掉重寫成「做什麼」
+7. **Laws ↔ Examples 自洽**:**每一個 example** 逐一回答「它的預期輸出由哪幾條 law 推出來」,把 law 編號寫在「覆蓋的邊界」欄或緊接的行內。三種結果:
+   - **推得出來且一致** → 過
+   - **推得出來但不一樣** → spec **內部矛盾**,當場改到一致再往下,不准兩條都留著交出去。矛盾留到 Level 3,qa 會照 `spec-roles.md`「spec-gaps 協議」把兩條都寫下來然後**停下該項**——那時已經多繞了一整輪委派
+   - **推不出來**(沒有任何 law 涵蓋這個 example 的情況)→ 缺一條 law,補上;真的沒有可陳述的性質,就在該 example 註明「無對應 law:<具體理由>」,不准留白
+
+   第 2 條查的是**覆蓋率**(每個介面有沒有人管),這一條查的是**一致性**(管的人講的話一不一樣),兩件事不能互相取代。上面 1–6 條全部是「spec ↔ 骨架 ↔ 既有程式碼」的對帳,**只有這一條在檢查 spec 有沒有跟自己打架**
 
 有任何不一致就**改文件、再跑一次本步驟**,直到全部對齊。改動涉及相依結論時,把「原本填什麼 → 改成什麼 → 依據哪一列介面」告知開發者。
 

@@ -2,7 +2,7 @@
 
 所有開發流程 skills(system-design、subsys-design、subsys-build、spec-build、spec-design、spec-qa、spec-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
 
-本檔是**每個 skill 都要讀**的核心。另外十片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
+本檔是**每個 skill 都要讀**的核心。另外十二片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
 
 | 分片 | 內容 | 什麼時候讀 |
 |---|---|---|
@@ -10,6 +10,8 @@
 | `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、spec-design、spec-impl、bugfix;`/subsys-build`、`/spec-build` 做層級複審時 |
 | `testing-policy.md` | 只測公開介面、property-based 測 law、`*.Internal`、禁止測試後門 | **要寫或改測試時**:spec-qa、bugfix、arch-audit(查後門)。spec 驅動的 impl 不寫測試,不讀 |
 | `doc-lifecycle.md` | **`.design/` 資料夾樹**、文檔角色與權威來源、命名與編號規則、跨文檔引用格式、舊版路徑遷移、各類文檔的 YAML frontmatter 規格(清單欄位寫法、`description` 規則) | 要**新建 / 改名 / 編號 `.design/` 文檔**、要寫跨文檔引用,或要確認某個 frontmatter 欄位怎麼寫時;只改 `status` / `updated` 不用 |
+| `contract-readiness.md` | **契約就緒度檢查清單**:A 段子系統內 9 條、B 段子系統之間 4 條,全部是純文檔的機械比對(不需要程式碼) | `/subsys-design` 產出 `design.md` 之前(自評)、`/subsys-build` 的委派門檻檢查(他評) |
+| `design-query.md` | **設計文檔查詢**:`scan-status.mjs` 的 `--subsys` / `--doc` 能力對照、exit code 語意、各角色的使用界線、與程式碼知識圖的分工 | 要查「某份文檔跟誰有關係、介面怎麼寫、誰依賴我」時 |
 | `delegation.md` | 委派模式共通契約、回報格式 | prompt 標明 `【委派模式】`,或你是 `/spec-build` / `/subsys-build` 的編排者 |
 | `delegation-design.md` | 「待確認假設」與「自裁記錄」的欄位格式 | 委派模式下的 **spec 角色**,與要做層級複審 / 對帳的編排者;qa 與 impl 不讀 |
 | `orchestration.md` | 骨架快照的建立與驗證程序、仲裁的裁決與處置 | **你是編排者**(`/spec-build`、`/subsys-build`,或互動模式下的開發者本人);qa 與 impl 不讀 |

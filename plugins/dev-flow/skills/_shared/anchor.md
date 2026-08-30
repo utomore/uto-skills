@@ -15,7 +15,7 @@
 **未建 design.md 的子系統、與 `planned` 的模組群,一樣要各佔一行。** 它們是名冊上有、還沒開工的東西;樹上沒有它們,開發者就會以為畫出來的這些就是全部。
 
 ```
-.design/system.md  <專案一句話>            階段 E0 已達成 · E1 進行中 · E2–E4 未開始
+.design/system.md  <專案一句話>            階段 S0 已達成 · S1 進行中 · S2–S4 未開始
 ├─ subsystems/auth/design.md  ◀ 所在      模組群 1/2 · features 2/4 done · 契約卡 4/4
 │  ├─ 模組群 Session(active)             features 2/4
 │  │  ├─ F001-login                                       done

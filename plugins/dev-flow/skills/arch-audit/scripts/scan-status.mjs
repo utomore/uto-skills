@@ -373,7 +373,8 @@ for (const name of listMd(join(designDir, "adr"))) {
 // ---------------------------------------------------------------- spec-gaps
 
 /**
- * 解析 spec-gaps.md:每個條目是 `## G<n>(<來源> / <角色>)`,底下有一行 `- 狀態:open|resolved`。
+ * 解析 spec-gaps.md:每個條目是 `## GAP-<n>(<來源> / <角色>)`(舊制 `## G<n>` 照收),
+ * 底下有一行 `- 狀態:open|resolved`。
  * 未結(open)的條目代表有項目正卡著等 spec 修訂,列進輸出並影響 exit code。
  */
 function parseSpecGaps(path, scope) {
@@ -387,7 +388,7 @@ function parseSpecGaps(path, scope) {
   const blocks = text.split(/^##\s+/m).slice(1);
   for (const b of blocks) {
     const head = b.split("\n", 1)[0].trim();
-    const id = head.match(/^(G\d+)/)?.[1];
+    const id = head.match(/^(GAP-\d+|G\d+)/)?.[1];
     if (!id) continue;
     const state = b.match(/^\s*[-*]\s*狀態\s*[::]\s*(\S+)/m)?.[1] ?? "open";
     if (/^resolved/i.test(state)) continue;
@@ -439,6 +440,13 @@ if (systemMeta && stages.length === 0)
 for (const st of stages) {
   if (st.status === "?")
     archNotes.push(`system.md 開發階段 ${st.id}:狀態欄看不懂,請用「未開始 / 進行中 / 已達成」三選一`);
+  // 階段 id 撞到保留首碼(E/F/B/G/L/A/R/W/D + 數字):E0 會跟 E001 / EX- 混淆,L1 會跟 Level / law 混淆。
+  // 舊專案照樣解析,但提示改用工具鏈保留的 S<n>(註冊表見 doc-lifecycle.md)
+  if (/^[EFBGLARWD]\d+$/i.test(st.id))
+    archNotes.push(
+      `system.md 開發階段 ${st.id}:階段 id 撞到保留首碼(${st.id[0].toUpperCase()} 另有文檔或條目編號在用),` +
+        `建議改用 S${st.id.replace(/^\D+/, "")}(階段 id 的保留首碼是 S,見 doc-lifecycle.md 編號與縮寫註冊表)`,
+    );
   // 階段認了一個名冊不知道的子系統 = system.md 自己前後不一致,而且漏掉的正是還沒開工的那些
   for (const u of st.unknownSubsys)
     archIssues.push(

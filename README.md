@@ -8,15 +8,15 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 | 指令 | 層級 | 職責 |
 |---|---|---|
-| `/system-design` | L1 | 系統主架構 — 深度訪談後產出 `.design/system.md` + `.design/adr/ADR-00x-*.md`:技術棧、對外 I/O 契約、子系統劃分(Bounded Contexts)、通訊拓撲、**子系統完整名冊**與**開發階段表**(產品級分母);只到子系統邊界顆粒度 |
-| `/subsys-design` | L2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、**模組群**(子系統內的平行領域,含還沒開工的 `planned` 群)、內部模組劃分、資料流管線、模組間抽象介面、feature 路線圖(功能規劃)與每個 feature 的**契約卡**,並與主架構的職責逐條對帳(A10) |
-| `/subsys-build` | L2→L3 | 子系統委派展開(orchestrator)— 依功能規劃的「依賴」欄排波次,**批次澄清一次問完** → 預先配號與指派骨架路徑 → 委派 spec(平行,opus)→ **spec 批准閘門** → qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(同一 feature 上限 3 輪)** → 每階段跑 `arch-audit` 後**停下來給人驗收**;配號、`design.md` 回填、`build-log.md`、git commit 由編排者單線負責 |
-| `/spec-design` | L3 · spec | spec 設計 — 深度討論後產出 spec 文檔與**程式碼骨架**(型別與簽名完整、本體 `undefined`);相依性**必用**程式碼知識圖定位再開原始碼查證。**兩種模式**:**feature**(新需求 → `features/F00x-*.md`,含目的 / 數據 / 介面 / **Laws** / **Examples** / 依賴 / 不可逆決定,介面必須落在 L2 契約內)、**enhance**(既有程式碼的優化 → `enhancements/E00x-*.md`,跨子系統為 `G-E00x`;追加「檢視現況」與「**與開發者確認 scope**」兩個前置步驟,Laws 分「回歸 law(改完必須一模一樣的現有行為)」與「新 law」兩類)。文檔模板放在 `templates/`,執行時只讀模式對應的那一份 |
+| `/system-design` | Level 1 | 系統主架構 — 深度訪談後產出 `.design/system.md` + `.design/adr/ADR-00x-*.md`:技術棧、對外 I/O 契約、子系統劃分(Bounded Contexts)、通訊拓撲、**子系統完整名冊**與**開發階段表**(產品級分母);只到子系統邊界顆粒度 |
+| `/subsys-design` | Level 2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、**模組群**(子系統內的平行領域,含還沒開工的 `planned` 群)、內部模組劃分、資料流管線、模組間抽象介面、feature 路線圖(功能規劃)與每個 feature 的**契約卡**,並與主架構的職責逐條對帳(A10) |
+| `/subsys-build` | Level 2→3 | 子系統委派展開(orchestrator)— 依功能規劃的「依賴」欄排波次,**批次澄清一次問完** → 預先配號與指派骨架路徑 → 委派 spec(平行,opus)→ **spec 批准閘門** → qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(同一 feature 上限 3 輪)** → 每階段跑 `arch-audit` 後**停下來給人驗收**;配號、`design.md` 回填、`build-log.md`、git commit 由編排者單線負責 |
+| `/spec-design` | Level 3 · spec | spec 設計 — 深度討論後產出 spec 文檔與**程式碼骨架**(型別與簽名完整、本體 `undefined`);相依性**必用**程式碼知識圖定位再開原始碼查證。**兩種模式**:**feature**(新需求 → `features/F00x-*.md`,含目的 / 數據 / 介面 / **Laws** / **Examples** / 依賴 / 不可逆決定,介面必須落在 Level 2 契約內)、**enhance**(既有程式碼的優化 → `enhancements/E00x-*.md`,跨子系統為 `G-E00x`;追加「檢視現況」與「**與開發者確認 scope**」兩個前置步驟,Laws 分「回歸 law(改完必須一模一樣的現有行為)」與「新 law」兩類)。文檔模板放在 `templates/`,執行時只讀模式對應的那一份 |
 | `/spec-build` | 編排 | 單份 spec 的委派迴圈(orchestrator)— 拿一份寫好的 spec(F00x / E00x):門檻檢查(骨架編得過、介面對得上、無未結 gap)→ **spec 批准閘門** → 委派 qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(上限 3 輪)** → 回寫 status。enhance 的 scope 談完之後就走這條 |
-| `dev-flow:spec-qa` | L3 · qa | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。從 spec 寫測試 — 只讀 spec 的數據 / 介面 / Laws / Examples 與骨架,每條 law 翻成 property test、每個 example 翻成 example test;**禁止讀任何實作程式碼與程式碼知識圖**,交付前確認測試「編譯通過 + 紅綠符合預期」 |
-| `dev-flow:spec-impl` | L3 · impl | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。spec 實作 — 以骨架為工作清單,把 `undefined` 換成實作;**禁止讀寫任何測試檔、禁止改動骨架簽名**;紅燈只做歸因走仲裁協議,不自行猜 spec。模式由 id 前綴判定,`E00x` / `G-E00x` 追加三條:動工前先跑回歸測試留基準線、scope 標明不動的範圍絕對不碰、收尾記錄量化結果 |
-| `/bugfix` | L3 | 缺陷修復(單角色)— 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
-| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、**模組群與職責對帳**、契約卡對帳、未結 spec-gaps、仲裁紀錄)/ `feature`(L2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點**開發階段**、名冊上未建檔的子系統、未開工的模組群、完成度、契約卡就緒度與未結 spec-gaps) |
+| `dev-flow:spec-qa` | Level 3 · qa | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。從 spec 寫測試 — 只讀 spec 的數據 / 介面 / Laws / Examples 與骨架,每條 law 翻成 property test、每個 example 翻成 example test;**禁止讀任何實作程式碼與程式碼知識圖**,交付前確認測試「編譯通過 + 紅綠符合預期」 |
+| `dev-flow:spec-impl` | Level 3 · impl | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。spec 實作 — 以骨架為工作清單,把 `undefined` 換成實作;**禁止讀寫任何測試檔、禁止改動骨架簽名**;紅燈只做歸因走仲裁協議,不自行猜 spec。模式由 id 前綴判定,`E00x` / `G-E00x` 追加三條:動工前先跑回歸測試留基準線、scope 標明不動的範圍絕對不碰、收尾記錄量化結果 |
+| `/bugfix` | Level 3 | 缺陷修復(單角色)— 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
+| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、**模組群與職責對帳**、契約卡對帳、未結 spec-gaps、仲裁紀錄)/ `feature`(Level 2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點**開發階段**、名冊上未建檔的子系統、未開工的模組群、完成度、契約卡就緒度與未結 spec-gaps) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(先確認當前分支,在 main 上就先開新分支;標題英文 conventional commit、內文繁中、labels 英文) |
 | `/study` | — | 專案導讀(唯讀)— **六層縮放**由上而下帶開發者理解既有專案,範圍逐層收窄、深度逐層加深:全景(入口、技術棧、目錄職責;課末選定**主線情境**貫穿全程)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量;主線攜帶的型別優先)→ **逐跳 trace code**(沿主線從入口到輸出,附呼叫鏈摘要表,課末圈出要拆開看的跳)→ **細讀**(鑽進一兩個關鍵函式逐行講,含桌上執行表與逐分支邊界);每課固定「銜接 → 結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點(難度遞進:複述→預測→修改)→ 課程地圖」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
 
@@ -40,7 +40,7 @@ Level 3 的一句話:**spec 是唯一真相,測試與實作都只是 spec 的投
 
 | 角色 | 唯一輸入 | 產出 | 絕對禁區 |
 |---|---|---|---|
-| **設計**(`/spec-design`) | 需求 + L2 契約卡 + 既有程式碼(必用程式碼知識圖定位) | spec 文檔 + 骨架 | 不寫任何實作邏輯、不寫測試 |
+| **設計**(`/spec-design`) | 需求 + Level 2 契約卡 + 既有程式碼(必用程式碼知識圖定位) | spec 文檔 + 骨架 | 不寫任何實作邏輯、不寫測試 |
 | **qa**(`/spec-qa`) | spec 的數據 / 介面 / Laws / Examples + 骨架 | 測試檔 | 不讀實作;程式碼知識圖只能導航(型別、測試檔位置、既有測試候選),不得推論行為;不改骨架、不要後門 |
 | **impl**(`/spec-impl`) | spec 全文 + 骨架 | 把 `undefined` 換成本體 | 不讀不改任何測試檔、不動骨架簽名與型別 |
 | **編排者**(`/spec-build` 單份、`/subsys-build` 整個子系統,或開發者本人) | 全部 | 跑測試、仲裁、閘門 | 不寫 spec、不寫測試、不寫實作 |

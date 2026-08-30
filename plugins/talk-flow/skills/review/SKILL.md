@@ -48,8 +48,8 @@ node <本 skill 目錄>/scripts/scan-coherence.mjs [專案根目錄,預設 .]
 
 視覺數值的唯一真相是 `theme.css`。逐條檢查並列進報告的「機械檢查」段:
 
-- `docs/topic.md` 裡有沒有**寫死的視覺數值**(px 字級、色碼、`--bg-opacity` 的值)或 class 名(`bg-2`、`cols-2`)—— 有就是 L1 越權,而且必然與 theme.css 漂移,列出哪一節、值是多少、theme.css 的實際值是多少
-- `docs/section-*.md` 裡有沒有指定版型類別、背景類別或圖形座標 —— 有就是 L2 越權
+- `docs/topic.md` 裡有沒有**寫死的視覺數值**(px 字級、色碼、`--bg-opacity` 的值)或 class 名(`bg-2`、`cols-2`)—— 有就是 Level 1 越權,而且必然與 theme.css 漂移,列出哪一節、值是多少、theme.css 的實際值是多少
+- `docs/section-*.md` 裡有沒有指定版型類別、背景類別或圖形座標 —— 有就是 Level 2 越權
 - 設計文件的「規範外需求」有沒有還沒回 `/topic-design` 處理就直接實作的
 - 這些是**文檔一致性問題不是投影片問題**:不計入十四項指標,寫進修正建議即可(除非數值已經漂移到讓某項指標的判準失準,那要在該項註明基準以 theme.css 為準)
 

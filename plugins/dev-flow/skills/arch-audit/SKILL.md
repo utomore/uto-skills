@@ -61,6 +61,19 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --doc <id>   
 
 `--doc` 的 exit code 與盤點模式**語意不同**(0 = 查到、2 = 查無),不要拿它當驗收判準。
 
+**同目錄另有兩支輔助腳本**,回答的是「編號」而不是「進度」:
+
+```
+node "<本 SKILL.md 所在目錄>/scripts/id-map.mjs"                  編號體系的樹狀圖(哪一層鑄哪些號、誰配、活多久)
+node "<本 SKILL.md 所在目錄>/scripts/id-map.mjs" .design          這個專案實際鑄過哪些號、流程走到哪
+node "<本 SKILL.md 所在目錄>/scripts/lint-ids.mjs" .design        檢查編號有沒有違反註冊表(exit 1 = 有違規)
+```
+
+- **開發者問「這些 `S1` / `LAW-3` / `WAVE-2` 到底是什麼」** → 跑 `id-map.mjs`(不帶參數),它把 `doc-lifecycle.md`「編號與縮寫註冊表」畫成流程形狀的樹,比唸表格好懂
+- **要看這個專案過去跑過什麼** → `id-map.mjs .design`:每個子系統鑄了幾份 F/E/B、spec 裡有幾條 LAW / EX / ASM、跑過幾個波次、哪些子系統還沒建檔、哪些 spec 是**舊版模板**(沒有 Laws/Examples,qa 無從一比一投影)
+- **接手舊專案或改過慣例之後** → `lint-ids.mjs`:揪出裸寫的「單字母+數字」。被禁的形式只准出現在反引號裡(那代表在「講這個寫法」),裸寫就是真的拿它當識別碼。專案有自己的文檔前綴時用 `--allow '^N\d{3}$'` 帶進來
+- 兩支都**只讀不寫**,也都不影響 status scope 的 exit code
+
 ---
 
 ## 分析型 scope 共通規則(system / subsys / feature)

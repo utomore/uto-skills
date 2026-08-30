@@ -18,8 +18,8 @@ user-invocable: true
 
 - 視覺規範定的是**語意與數量** —— 強調有哪幾種、各代表什麼;背景幾套、各對應演講的什麼結構;哪個字級用在哪個情境。
 - **絕對禁止**把 CSS 數值(px、色碼、`--bg-opacity` 的值)、class 名或槽位編號寫進 `docs/topic.md`。那些的唯一真相是 `talk/src/theme.css`,兩份數值必然漂移。
-- 本命令**會寫 theme.css**(它是全簡報共用的鷹架,必須在 L1 就位),但寫進去的是**起始值**;之後 `/section-impl` 依真實頁面調整數值,不必回頭改 topic.md。
-- 逐頁怎麼排、哪一頁用哪個背景類別、圖怎麼畫,都屬於 `/section-design`(L2)與 `/section-impl`(L3),本階段不預先指定。
+- 本命令**會寫 theme.css**(它是全簡報共用的鷹架,必須在 Level 1 就位),但寫進去的是**起始值**;之後 `/section-impl` 依真實頁面調整數值,不必回頭改 topic.md。
+- 逐頁怎麼排、哪一頁用哪個背景類別、圖怎麼畫,都屬於 `/section-design`(Level 2)與 `/section-impl`(Level 3),本階段不預先指定。
 
 ## 模式判斷
 

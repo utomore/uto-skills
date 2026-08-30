@@ -30,20 +30,24 @@ related-feature: []
 | 型別 | 動作 | 定義 | 擁有的知識 |
 |---|---|---|---|
 | `TokenPair` | 新增 | `{ access: Token, refresh: Token, expiresAt: UTCTime }` | 一組憑證的有效期限 |
+| `TokenStatus` | 新增 | `Valid` / `Invalid` 二選一 | 一個 TokenId 當下可不可用 |
+| `TokenError` | 新增 | `Expired` / `Revoked` / `NotFound` 三選一 | 換發失敗的原因分類 |
 
 ## 介面
 (每個函數的完整型別簽名 + 語意描述。語意只寫「做什麼」,**禁止出現實作細節**:
  不寫演算法、不寫資料結構選擇、不寫呼叫順序。「骨架位置」填該簽名在原始碼的 檔案:行號)
 | 簽名 | 語意(做什麼) | 骨架位置 |
 |---|---|---|
-| `rotate :: TokenId -> IO TokenPair` | 換發一組新憑證並使舊的失效 | `src/Auth/Token.hs:42` |
+| `rotate :: TokenId -> IO (Either TokenError TokenPair)` | 換發一組新憑證並使舊的失效 | `src/Auth/Token.hs:42` |
+| `verify :: TokenId -> IO TokenStatus` | 回報一個 TokenId 當下可不可用 | `src/Auth/Token.hs:58` |
 
 ## Laws(行為性質)
 (可被 property-based 測試驗證的代數性質,一律寫成「對所有 x,P(x) 成立」的形式。
  **這是 spec 的一部分,不是 QA 的發明**;每個核心函數至少一條。
  編號用 `LAW-` 詞首碼,不寫 `L1`——`L1` 會跟 Level / 專案的 Layer 撞號,見 doc-lifecycle.md 註冊表)
-- LAW-1: 對所有 `t`,`rotate t >>= rotate` 與 `rotate t` 產生的失效集合相同(冪等)
-- LAW-2: 對所有 `t`,`rotate t` 之後 `verify t` 必為 `Invalid`
+- LAW-1: 對所有 `t`,`rotate t >> rotate t` 與 `rotate t` 造成失效的 TokenId 集合相同(冪等)
+- LAW-2: 對所有 `t`,若 `rotate t` 回傳 `Right _`,則之後 `verify t` 必為 `Invalid`
+- LAW-3: 對所有 `t`,若 `rotate t` 回傳 `Left _`,則 `verify t` 與呼叫前相同(失敗不改變狀態)
 (某個介面確實沒有可陳述的性質時,寫 `無law <介面名>:<具體理由>`——不准留空)
 
 ## Examples
@@ -51,8 +55,8 @@ related-feature: []
  編號用 `EX-` 詞首碼,不寫 `E1`——那是 `E001` 的違規簡寫,也常是專案的階段名)
 | # | 輸入 | 預期輸出 | 覆蓋的邊界 |
 |---|---|---|---|
-| EX-1 | `rotate validId` | `TokenPair{...}` | 正常路徑 |
-| EX-2 | `rotate expiredId` | `Left Expired` | 過期 |
+| EX-1 | `rotate validId` | `Right TokenPair{...}` | 正常路徑(LAW-1、LAW-2) |
+| EX-2 | `rotate expiredId` | `Left Expired` | 過期(LAW-3) |
 
 ## 依賴
 (frontmatter depends-on 的文字說明。介面表每一列的簽名必須是從來源檔案讀出的原文;
@@ -77,7 +81,7 @@ related-feature: []
 (本次寫進原始碼樹的檔案清單與各自內容範圍;impl 只准替換未實作標記,不得改動這些簽名與型別)
 | 檔案 | 內容 |
 |---|---|
-| `src/Auth/Token.hs` | `TokenPair` 型別、`rotate` / `verify` 簽名 |
+| `src/Auth/Token.hs` | `TokenPair` / `TokenStatus` / `TokenError` 型別、`rotate` / `verify` 簽名 |
 
 ## 待確認假設
 (只在委派模式下、且有**契約層級**的不確定判斷時才放這一段;互動模式下不確定就直接問開發者,不留假設。

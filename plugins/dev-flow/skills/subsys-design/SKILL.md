@@ -26,6 +26,7 @@ user-invocable: true
 
 - 目標子系統無 `subsystems/<slug>/design.md` → **初始模式**:完整訪談後從零產出
 - 已存在 → **更新模式**:先讀取現有內容,針對要調整的部分訪談,更新文件並視情況新增 ADR
+- **由 spec-gaps 觸發的更新**:`spec-gaps.md` 的 `open` 條目追到「Level 2 契約沒給」(欄位缺單位 / 值域、驗收標準指不到觀察點——就是 `contract-readiness.md` A4 與 A5 當初漏檢的東西)時,一樣走更新模式,但訪談只針對那幾條,收尾照步驟 5 回填 gap
 
 ## 流程
 
@@ -218,6 +219,7 @@ code-paths: []          # 選填,見下
 2. `system.md`「子系統劃分」對應小節把「design.md:未建」改成實際路徑
 3. 訪談若修正了子系統邊界或對外契約,回頭更新主架構的對應描述與架構圖(經開發者同意)
 4. 步驟 4 若新建或修改了 `G-C00x`,確認它的 `subsystems` 欄列全了使用者,並在本 `design.md` 的對外契約章節以 `G-C001#<條目>` 引用(不要複製條目內容)
+5. 本次更新若是為了回答 `spec-gaps.md` 的條目:逐條回填 `狀態:resolved` 與 `修訂` 行(格式見 `../_shared/spec-roles.md`「spec-gaps 協議」),全部 resolved 時把該檔 `status` 改成 `done`。**契約改動幾乎都會讓下游的 spec 與骨架失效**——在收尾列出受影響的 `F00x` / `E00x`,建議逐一走 `/spec-design` 修訂模式,不要只改 Level 2 就當作結案
 
 ### 6. 產出 ADR(視情況)
 

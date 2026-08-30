@@ -250,6 +250,7 @@ function scanTaskDoc(path, subsystem, kind) {
     type: meta?.type || kind.type,
     status: !meta || !meta.status ? "⚠ missing-metadata" : String(meta.status),
     created: fmtValue(meta?.created),
+    updated: fmtValue(meta?.updated),
     dependsOn: asList(meta?.["depends-on"]),
     affects: asList(meta?.subsystems),
     file: relPath,
@@ -374,8 +375,9 @@ for (const name of listMd(join(designDir, "adr"))) {
 
 /**
  * 解析 spec-gaps.md:每個條目是 `## GAP-<n>(<來源> / <角色>)`(舊制 `## G<n>` 照收),
- * 底下有一行 `- 狀態:open|resolved`。
- * 未結(open)的條目代表有項目正卡著等 spec 修訂,列進輸出並影響 exit code。
+ * 底下有一行 `- 狀態:open|resolved`,resolved 的另有一行 `- 修訂:<文檔 id> §<章節>(<日期>);<改了什麼>`。
+ * 未結(open)的條目代表有項目正卡著等 spec 修訂,列進輸出並影響 exit code;
+ * resolved 的條目改查「結案有沒有證據」(修訂行、指得到的文檔、updated 有沒有跟上)。
  */
 function parseSpecGaps(path, scope) {
   const out = [];
@@ -390,17 +392,48 @@ function parseSpecGaps(path, scope) {
     const head = b.split("\n", 1)[0].trim();
     const id = head.match(/^(GAP-\d+|G\d+)/)?.[1];
     if (!id) continue;
-    const state = b.match(/^\s*[-*]\s*狀態\s*[::]\s*(\S+)/m)?.[1] ?? "open";
-    if (/^resolved/i.test(state)) continue;
-    const topic = b.match(/^\s*[-*]\s*模糊點\s*[::]\s*(.+)$/m)?.[1]?.trim() ?? "-";
-    out.push({ scope, id, head, topic, file: rel(path) });
+    const state = b.match(/^\s*[-*]\s*狀態\s*[:：]\s*(\S+)/m)?.[1] ?? "open";
+    const topic = b.match(/^\s*[-*]\s*模糊點\s*[:：]\s*(.+)$/m)?.[1]?.trim() ?? "-";
+    const fix = b.match(/^\s*[-*]\s*修訂\s*[:：]\s*(.+)$/m)?.[1]?.trim() ?? null;
+    out.push({ scope, id, head, topic, fix, resolved: /^resolved/i.test(state), file: rel(path) });
   }
   return out;
 }
 
-const openGaps = [];
-for (const slug of subsysDirs) openGaps.push(...parseSpecGaps(join(subsysRoot, slug, "spec-gaps.md"), slug));
-openGaps.push(...parseSpecGaps(join(designDir, "spec-gaps.md"), "global"));
+const allGaps = [];
+for (const slug of subsysDirs) allGaps.push(...parseSpecGaps(join(subsysRoot, slug, "spec-gaps.md"), slug));
+allGaps.push(...parseSpecGaps(join(designDir, "spec-gaps.md"), "global"));
+const openGaps = allGaps.filter((g) => !g.resolved);
+
+// 結案證據:標了 resolved 就要指得出「改的是哪份文檔、什麼時候改的」。
+// 沒有證據的結案 = spec 可能根本沒改,只是把狀態改掉讓閘門放行(spec-roles.md「spec-gaps 協議」)。
+const docUpdated = new Map(); // "<subsys>/<id>" 與裸 "<id>" 都放,寬鬆比對
+for (const r of rows) {
+  const u = r.updated && r.updated !== "-" ? r.updated : null;
+  docUpdated.set(`${r.subsystem}/${r.id}`, u);
+  if (!docUpdated.has(r.id)) docUpdated.set(r.id, u);
+}
+for (const g of allGaps.filter((x) => x.resolved)) {
+  if (!g.fix) {
+    archIssues.push(`${g.file}:${g.id} 標了 resolved 但沒有「修訂」行(結案沒有證據,無法確認 spec 真的改過)`);
+    continue;
+  }
+  const docId = g.fix.match(/\b(G-[CEB]\d{3}|[FEB]\d{3})\b/)?.[1];
+  if (!docId) {
+    archIssues.push(`${g.file}:${g.id} 的「修訂」沒指出文檔 id(格式:<文檔 id> §<章節>(<日期>);<改了什麼>)`);
+    continue;
+  }
+  const key = `${g.scope}/${docId}`;
+  const known = docUpdated.has(key) ? key : docUpdated.has(docId) ? docId : null;
+  if (!known) {
+    archIssues.push(`${g.file}:${g.id} 的「修訂」指向 ${docId},但找不到這份文檔`);
+    continue;
+  }
+  const fixedAt = g.fix.match(/(\d{4}-\d{2}-\d{2})/)?.[1];
+  const updated = docUpdated.get(known);
+  if (fixedAt && updated && updated < fixedAt)
+    archIssues.push(`${g.file}:${g.id} 結案於 ${fixedAt},但 ${docId} 的 updated 是 ${updated}(spec 沒在結案當天或之後改過)`);
+}
 
 // ---------------------------------------------------------------- 主架構
 

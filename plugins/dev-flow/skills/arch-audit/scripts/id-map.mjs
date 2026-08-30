@@ -241,34 +241,21 @@ function buildProjectTree(designDir) {
   const adrs = listMd(join(designDir, "adr"));
   const contracts = listMd(join(designDir, "contracts"));
 
-  const root = {
-    label: `${designDir}  ${sys.meta.description ?? ""}`,
-    meta: `名冊 ${roster.length} 個子系統 · 階段 ${stages.length} 個 · ADR ${adrs.length} 份 · 全域契約 ${contracts.length} 份`,
-    kids: [],
-  };
+  // ---- 收集成表格列。階層靠第一欄縮排表達:子系統 → 模組群 ----
+  const rows = [];
+  let built = 0;
 
-  if (stages.length) {
-    root.kids.push({
-      label: "開發階段(產品級分母)",
-      meta: stages.map((s) => `${s.id} ${s.status}`).join(" · "),
-      kids: [],
-    });
-  } else {
-    root.kids.push({ label: "開發階段", meta: "⚠ system.md 沒有可解析的「開發階段」表 —— 這個專案答不出「還差什麼」", kids: [] });
-  }
-
-  const subsysNode = { label: "子系統", meta: `名冊 ${roster.length} 個`, kids: [] };
   for (const slug of roster) {
     const dir = join(designDir, "subsystems", slug);
     if (!existsSync(join(dir, "design.md"))) {
-      subsysNode.kids.push({ label: slug, meta: "未建 design.md(名冊有列)", kids: [] });
+      rows.push({ name: slug, status: "未建", f: "-", e: "-", b: "-", law: "-", ex: "-", asm: "-", gap: "-", wave: "-" });
       continue;
     }
+    built++;
     const d = frontmatter(join(dir, "design.md"));
     const feats = listMd(join(dir, "features"));
     const enh = listMd(join(dir, "enhancements"));
     const bugs = listMd(join(dir, "bugfixes"));
-    const kids = [];
 
     // 模組群:子系統內的平行領域。planned 的那幾群沒有契約,不在進度分母裡
     const groups = [];
@@ -292,105 +279,117 @@ function buildProjectTree(designDir) {
         groups.push({ name, planned: /planned|規劃|未建|未寫/i.test(cells[col.status] ?? "") });
       }
     }
-    if (groups.length) {
-      const act = groups.filter((x) => !x.planned);
-      kids.push({
-        label: `模組群  ${act.length} / ${groups.length} 群有契約`,
-        meta: groups.map((x) => `${x.name}${x.planned ? "(planned)" : ""}`).join(" · "),
-        note: groups.length > act.length ? "planned 的那幾群沒有契約、沒有功能規劃,不在下面的進度分母裡" : undefined,
-        kids: [],
-      });
-    }
 
-    // 功能規劃有幾項(分母)vs features/ 建了幾份(分子)
-    const planned = countRoadmapRows(d.body);
-    if (feats.length || planned) {
-      const gap = planned && planned > feats.length ? `,還有 ${planned - feats.length} 項待展開` : "";
-      kids.push({
-        label: `F 功能文檔  已建 ${feats.length} 份${planned ? ` / 規劃 ${planned} 項` : ""}`,
-        meta: feats.map((f) => f.split("-")[0]).join("、") || "-",
-        note: `一份 F 文檔 = 一個 feature 的 spec + 骨架${gap}`,
-        kids: [],
-      });
-    }
-    if (enh.length)
-      kids.push({ label: `E 優化文檔  ${enh.length} 份`, meta: enh.map((f) => f.split("-")[0]).join("、"), note: "既有程式碼的改善,不是新功能", kids: [] });
-    if (bugs.length)
-      kids.push({ label: `B 缺陷文檔  ${bugs.length} 份`, meta: bugs.map((f) => f.split("-")[0]).join("、"), note: "每份都附一個保留下來的回歸測試", kids: [] });
-
-    // spec 檔內的條目。序號在**單一檔案內**去重(同一條 law 被提兩次只算一條),跨檔相加
+    // spec 檔內的條目。序號在**單一檔案內**去重,跨檔相加;只在該住的章節裡數
     let law = 0, ex = 0, asm = 0, legacy = 0;
     for (const f of [...feats, ...enh]) {
       const b = frontmatter(join(dir, f.startsWith("F") ? "features" : "enhancements", f)).body;
       const laws = section(b, /^Laws/);
       const exs = section(b, /^Examples/);
-      if (!laws && !exs) legacy++; // 舊版模板(TodoList + 1-to-1 對照表),還沒有 Laws / Examples
+      if (!laws && !exs) legacy++; // 舊版模板(TodoList 制),沒有可被 qa 一比一投影的條文
       law += countIds(laws, "LAW", "REG", "L", "R");
       ex += countIds(exs, "EX", "E");
       asm += countIds(section(b, /待確認假設/), "ASM", "A");
     }
-    if (law + ex)
-      kids.push({
-        label: `spec 條文  LAW ${law} 條 + EX ${ex} 個 = 應有 ${law + ex} 個測試`,
-        meta: "LAW(行為性質)→ qa 一條翻成一個 property test;EX(具體範例)→ 一個翻成一個 example test",
-        note: "這是測試的**分母**,不是實際跑出來的測試數 —— 實際有幾個、綠幾個要跑測試才知道",
-        kids: [],
-      });
-    if (asm)
-      kids.push({
-        label: `ASM 待確認假設  ${asm} 條`,
-        meta: "委派時 spec subagent 自己判斷後繼續推進、留給閘門裁決的契約層級問題",
-        kids: [],
-      });
-    if (legacy)
-      kids.push({
-        label: "⚠ 舊版模板",
-        meta: `${legacy}/${feats.length + enh.length} 份 spec 沒有 Laws / Examples 章節`,
-        note: "那是 spec 驅動三角色之前的 TodoList 制;這些 feature 沒有可被 qa 一比一投影的條文",
-        kids: [],
-      });
 
+    let gapCell = "-";
     const gapPath = join(dir, "spec-gaps.md");
     if (existsSync(gapPath)) {
       const g = frontmatter(gapPath);
       const open = (g.body.match(/^\s*[-*]\s*狀態\s*[::]\s*open/gim) ?? []).length;
-      const total = countIds(g.body, "GAP", "G");
-      kids.push({
-        label: `GAP spec 疑問  ${total} 條,未結 ${open}`,
-        meta: "qa / impl 讀 spec 讀不下去時提的問題;每一條未結都代表有項目正卡著等 spec 修訂",
-        kids: [],
-      });
+      gapCell = `${open}/${countIds(g.body, "GAP", "G")}`;
     }
+
+    let waveCell = "-";
     if (existsSync(join(dir, "build-log.md"))) {
       const b = frontmatter(join(dir, "build-log.md")).body;
       const sched = section(b, /排程/);
-      const waves = new Set([...sched.matchAll(/\|[^|]*?\b(?:WAVE-|W)(\d+)\b/g)].map((m) => m[1])).size;
-      const dec = countIds(section(b, /委派決策/), "DEC", "D");
-      const asmRows = (section(b, /待確認假設彙總/).match(/^\s*\|(?!\s*(?:來源|:?-))/gm) ?? []).length;
-      kids.push({
-        label: `build-log  跑過 /subsys-build,分 ${waves} 批送出`,
-        meta: `WAVE ${waves} 批(同批平行、批間有依賴順序)· DEC ${dec} 條批次澄清裁決 · 上閘門的假設 ${asmRows} 條`,
-        note: `波次不是 feature 數 —— ${feats.length} 個 feature 被分成 ${waves} 批;一批可以有好幾個 feature 同時跑`,
-        kids: [],
-      });
+      waveCell = String(new Set([...sched.matchAll(/\|[^|]*?\b(?:WAVE-|W)(\d+)\b/g)].map((m) => m[1])).size || "-");
     }
-    subsysNode.kids.push({ label: slug, meta: d.meta.description ?? "-", kids });
-  }
-  root.kids.push(subsysNode);
 
-  if (adrs.length) root.kids.push({ label: "ADR", meta: adrs.map((f) => f.split("-").slice(0, 2).join("-")).join("、"), kids: [] });
-  if (contracts.length) root.kids.push({ label: "全域契約", meta: contracts.map((f) => f.split("-").slice(0, 2).join("-")).join("、"), kids: [] });
-
-  const globalEnh = listMd(join(designDir, "enhancements"));
-  const globalBug = listMd(join(designDir, "bugfixes"));
-  if (globalEnh.length || globalBug.length)
-    root.kids.push({
-      label: "全域任務文檔",
-      meta: `${[...globalEnh, ...globalBug].map((f) => f.split("-").slice(0, 2).join("-")).join("、")}`,
-      kids: [],
+    const planned = countRoadmapRows(d.body);
+    rows.push({
+      name: slug,
+      status: d.meta.status ?? "active",
+      f: planned ? `${feats.length}/${planned}` : String(feats.length || "-"),
+      e: String(enh.length || "-"),
+      b: String(bugs.length || "-"),
+      law: legacy && !law ? "舊模板" : String(law || "-"),
+      ex: legacy && !ex ? "舊模板" : String(ex || "-"),
+      asm: String(asm || "-"),
+      gap: gapCell,
+      wave: waveCell,
     });
 
-  return root;
+    // 模組群各一列,縮排掛在子系統底下
+    groups.forEach((g, i) => {
+      const branch = i === groups.length - 1 ? "└ " : "├ ";
+      rows.push({
+        name: `  ${branch}${g.name}`,
+        status: g.planned ? "planned" : "active",
+        f: "-", e: "-", b: "-", law: "-", ex: "-", asm: "-", gap: "-", wave: "-",
+      });
+    });
+  }
+
+  return { sys, roster, stages, adrs, contracts, rows, built };
+}
+
+/** 顯示寬度(CJK 全形字算 2)—— 與 scan-status.mjs 同一份實作 */
+function dispWidth(s) {
+  let w = 0;
+  for (const ch of String(s)) w += /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹯＀-｠￠-￦]/.test(ch) ? 2 : 1;
+  return w;
+}
+
+function padTo(s, n, right = false) {
+  const gap = " ".repeat(Math.max(0, n - dispWidth(s)));
+  return right ? gap + s : s + gap;
+}
+
+function renderProject(designDir) {
+  const { sys, roster, stages, adrs, contracts, rows, built } = buildProjectTree(designDir);
+
+  // 抬頭:專案 → 階段 → 總計。三行講完「這是什麼、走到哪、有多大」
+  console.log(bold(`${sys.meta.title ?? designDir}  ${sys.meta.description ?? ""}`));
+  if (stages.length) {
+    const gr = [];
+    for (const s of stages) {
+      const last = gr[gr.length - 1];
+      if (last && last.status === s.status) last.ids.push(s.id);
+      else gr.push({ status: s.status, ids: [s.id] });
+    }
+    const fmt = gr.map((g) => `${g.ids.length > 2 ? `${g.ids[0]}–${g.ids[g.ids.length - 1]}` : g.ids.join(" ")} ${g.status}`).join("  ·  ");
+    console.log(`階段  ${fmt}`);
+  } else {
+    console.log("階段  ⚠ system.md 沒有可解析的「開發階段」表,答不出「還差什麼」");
+  }
+  console.log(dim(`子系統 ${built}/${roster.length} 已建  ·  ADR ${adrs.length}  ·  全域契約 ${contracts.length}\n`));
+
+  const cols = [
+    { k: "name", h: "子系統 / 模組群", right: false },
+    { k: "status", h: "狀態", right: false },
+    { k: "f", h: "F", right: true },
+    { k: "e", h: "E", right: true },
+    { k: "b", h: "B", right: true },
+    { k: "law", h: "LAW", right: true },
+    { k: "ex", h: "EX", right: true },
+    { k: "asm", h: "ASM", right: true },
+    { k: "gap", h: "GAP", right: true },
+    { k: "wave", h: "WAVE", right: true },
+  ];
+  for (const c of cols) c.w = Math.max(dispWidth(c.h), ...rows.map((r) => dispWidth(r[c.k])));
+  const line = (cells) => cells.join("  ").replace(/\s+$/, "");
+  console.log(bold(line(cols.map((c) => padTo(c.h, c.w, c.right)))));
+  console.log(dim(line(cols.map((c) => "-".repeat(c.w)))));
+  for (const r of rows) console.log(line(cols.map((c) => padTo(r[c.k], c.w, c.right))));
+
+  console.log(
+    dim(
+      "\nF 已建/規劃 · E 優化 · B 缺陷(份數) │ LAW+EX = 照 spec 應有的測試數(分母,非實跑數)" +
+        "\nASM 待閘門裁決的假設 · GAP 未結/總數(未結 = 有項目卡著) · WAVE 委派分幾批送出(非 feature 數)",
+    ),
+  );
 }
 
 // ---------------------------------------------------------------- main
@@ -414,12 +413,11 @@ if (!statSync(target).isDirectory()) {
   process.exit(2);
 }
 
-console.log(dim("讀法:F/E/B 是**文檔份數**;LAW+EX 是**應有的測試數**(分母,不是跑出來的);WAVE 是**委派分幾批送出**,不是 feature 數。\n"));
-draw(buildProjectTree(target), "", true, true);
+renderProject(target);
 if (withLegend) {
   console.log("");
   draw(CONVENTION, "", true, true);
 } else {
-  console.log(dim("\n每個編號是什麼意思:node id-map.mjs(不帶參數),或加 --legend 一起看"));
+  console.log(dim("每個編號怎麼來的:node id-map.mjs(不帶參數),或加 --legend 一起看"));
 }
 process.exit(0);

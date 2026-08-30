@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(orchestrator 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審與對帳要用)與 `../_shared/delegation.md`(**委派模式共通契約**);批次澄清與 3b 的層級複審要分類問題層級時,另讀 `../_shared/boundary-rules.md`;**跑前置的委派門檻檢查時必讀** `../_shared/contract-readiness.md`(A 段九條就是門檻本身);要查文檔關係、反向依賴或共用契約時另讀 `../_shared/design-query.md`(查詢指令與界線);要配 `F00x` / `G` 編號,或建改 `build-log.md` / `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(編號、引用格式與 frontmatter 規格);要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審與對帳要用)與 `../_shared/delegation.md`(**委派模式共通契約**);批次澄清與 3b 的層級複審要分類問題層級時,另讀 `../_shared/boundary-rules.md`;**跑前置的委派門檻檢查時必讀** `../_shared/contract-readiness.md`(A 段十條就是門檻本身);要查文檔關係、反向依賴或共用契約時另讀 `../_shared/design-query.md`(查詢指令與界線);要配 `F00x` / `G` 編號,或建改 `build-log.md` / `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(編號、引用格式與 frontmatter 規格);要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -52,11 +52,13 @@ user-invocable: true
    ```
 
 4. **委派門檻檢查**(任一項不過就停下來,不要硬跑):
-   - 逐條跑 `../_shared/contract-readiness.md` 的 **A 段(A1–A9)**——`/subsys-design` 收尾時已經跑過一次,**這裡照樣要跑完整的九條**,不是複查也不是抽查
+   - 逐條跑 `../_shared/contract-readiness.md` 的 **A 段(A1–A10)**——`/subsys-design` 收尾時已經跑過一次,**這裡照樣要跑完整的十條**,不是複查也不是抽查
    - 掃描沒有「架構 / 子系統不一致」
    - `spec-gaps.md` 沒有 `open` 的條目(有的話代表上一輪還有 spec 沒修完,先處理)
 
    **為什麼同一份清單要跑第二次**:第一次是寫的人跑的(同一段訪談上下文,盲點跟著他走),這一次是你跑的——你沒讀過那段對話,只看得到文字,看不懂的地方就是真的沒寫清楚。整條流程在別處用角色隔離解決這件事(qa 與 impl 互相不可見),這裡用的是同一招。而且**你此刻還沒讀過任何原始碼**,純文檔的機械比對正好是你現在唯一做得動、也最該做的事。
+
+5. **模組群範圍確認**(`design.md` 有「模組群」表時):本次委派只展開 **active** 的那幾群——`planned` 群沒有契約、沒有功能規劃,委派出去只會腦補。開跑前**明講**「本次涵蓋 K/N 群,planned 的 J 群這一輪不做,分別是 X、Y」,收尾也要再講一次。**不准把「active 群做完」講成「子系統做完」**
 
    不過關時:列出缺什麼(指到章節、列、卡片),告知開發者先走 `/subsys-design` 更新模式補齊(契約卡不完整就委派,等於讓 subagent 腦補契約——這正是本流程要避免的事),然後結束。
 
@@ -311,7 +313,8 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 - **自裁清單**:總條數、編排者降級與升級各幾條,提醒開發者定期抽查(抽 2-3 條;裁錯率高就收緊層級門檻)
 - **git 狀態**:已 checkpoint 到哪一個 feature、有沒有未 commit 的殘留
 - 剩下的階段與繼續方式(再跑一次 `/subsys-build <slug>` 會走接續模式)
-- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹展開本子系統全部 features 的最終狀態;未結的 spec-gaps 進偏離清單;下一步從樹上推(全部階段完成 → `/arch-audit system`、`/branch-pr`;提前停下 → 再跑 `/subsys-build <slug>` 接續)
+- **本次涵蓋的範圍**:有「模組群」表時,重申「涵蓋 active 的 K 群,planned 的 J 群(X、Y)這一輪不做」。所有 active 群跑完 ≠ 子系統交付;**摘要裡不准出現讓開發者以為子系統做完的說法**
+- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹展開本子系統全部 features 的最終狀態,`planned` 模組群各一行標「未開工」;完成度第一行照樣是產品級(開發階段 + 名冊建檔數);未結的 spec-gaps 進偏離清單;下一步從樹上推(還有 planned 群 → `/subsys-design <slug>` 更新模式補契約;全部階段完成且無 planned 群 → `/arch-audit system`、`/branch-pr`;提前停下 → 再跑 `/subsys-build <slug>` 接續)
 
 ## 邊界
 

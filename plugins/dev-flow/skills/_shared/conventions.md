@@ -10,7 +10,7 @@
 | `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、spec-design、spec-impl、bugfix;`/subsys-build`、`/spec-build` 做層級複審時 |
 | `testing-policy.md` | 只測公開介面、property-based 測 law、`*.Internal`、禁止測試後門 | **要寫或改測試時**:spec-qa、bugfix、arch-audit(查後門)。spec 驅動的 impl 不寫測試,不讀 |
 | `doc-lifecycle.md` | **`.design/` 資料夾樹**、文檔角色與權威來源、命名與編號規則、跨文檔引用格式、舊版路徑遷移、各類文檔的 YAML frontmatter 規格(清單欄位寫法、`description` 規則) | 要**新建 / 改名 / 編號 `.design/` 文檔**、要寫跨文檔引用,或要確認某個 frontmatter 欄位怎麼寫時;只改 `status` / `updated` 不用 |
-| `contract-readiness.md` | **契約就緒度檢查清單**:A 段子系統內 9 條、B 段子系統之間 4 條,全部是純文檔的機械比對(不需要程式碼) | `/subsys-design` 產出 `design.md` 之前(自評)、`/subsys-build` 的委派門檻檢查(他評) |
+| `contract-readiness.md` | **契約就緒度檢查清單**:A 段子系統內 10 條、B 段子系統之間 4 條,幾乎全是純文檔的機械比對(A10 要開 system.md 對帳職責) | `/subsys-design` 產出 `design.md` 之前(自評)、`/subsys-build` 的委派門檻檢查(他評) |
 | `design-query.md` | **設計文檔查詢**:`scan-status.mjs` 的 `--subsys` / `--doc` 能力對照、exit code 語意、各角色的使用界線、與程式碼知識圖的分工 | 要查「某份文檔跟誰有關係、介面怎麼寫、誰依賴我」時 |
 | `delegation.md` | 委派模式共通契約、回報格式 | prompt 標明 `【委派模式】`,或你是 `/spec-build` / `/subsys-build` 的編排者 |
 | `delegation-design.md` | 「待確認假設」與「自裁記錄」的欄位格式 | 委派模式下的 **spec 角色**,與要做層級複審 / 對帳的編排者;qa 與 impl 不讀 |
@@ -23,8 +23,8 @@
 
 你是資深軟體架構師與技術專家,職責是把需求轉化為嚴謹、模組化、高可維護性的系統。嚴格遵循**關注點分離**與**契約優先(Interface/Contract First)**,採用**三層階梯式架構設計法**:
 
-- **Level 1** `/system-design`:系統邊界、跨系統通訊、全域契約與技術選型
-- **Level 2** `/subsys-design`:子系統內部模組化、資料流管線、模組邊界介面
+- **Level 1** `/system-design`:系統邊界、跨系統通訊、全域契約與技術選型;**子系統完整名冊**與開發階段
+- **Level 2** `/subsys-design`:子系統內部模組化、資料流管線、模組邊界介面;子系統裡有多個平行領域時,用**模組群**表把它們(含還沒開工的)一起列出
 - **Level 3** `/spec-design` → `/spec-qa` ∥ `/spec-impl`:業務邏輯、演算法細節、測試。`/bugfix` 走單角色
 - **編排層** `/spec-build`(單份 spec)、`/subsys-build`(依 Level 2 功能規劃展開整個子系統):spec 批准閘門 → 委派 qa ∥ impl → 跑測試 → 仲裁
 
@@ -55,3 +55,7 @@ Level 3 採 **spec 驅動的三角色**:設計寫 spec 文檔與程式碼骨架(
 - `.design/system.md` 是專案燈塔:任何文檔產出後若與其描述衝突,必須回頭檢查並(經開發者同意)更新
 - **層級分工**:顆粒度見上方「資訊抽象邊界規範」;兩層描述衝突時以上層為準,並回頭修正下層
 - **收尾定錨**:每個 skill 的收尾與每個階段閘門,回報的最後必須附定錨區塊(格式見 `anchor.md`):位置樹標出目前在哪、完成度數字、主軸檢查(含偏離清單)、下一步命令。四段一起讓開發者每次都用同一個視角核對方向有沒有被眼前的工作帶偏
+- **分母紀律(所有回報進度的地方都適用)**:任何百分比都要講清楚分母是什麼。
+  - **禁止**用「已經寫進文檔的項目」當分母去描述**產品**完成度——那個分母只收已完成的東西,做得愈少反而顯得愈完整
+  - 產品完成度的唯一來源是 `system.md` 的**開發階段**表;子系統完成度要扣掉 `planned` 模組群;整體要含名冊上還沒建 `design.md` 的子系統
+  - **先報還沒做的,再報做完的百分比。** 開發者看不到的永遠是前者——後者他問一句就有

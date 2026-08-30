@@ -10,7 +10,12 @@
 - `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
 - `spec-gaps.md` 也不是任務文檔、不參與編號。它是 **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`):有 `open` 的條目,就代表有項目正卡著等 spec 修訂——`/arch-audit status` 會把未結的條目列出來,`/subsys-build` 開跑前會擋。它是**共用檔案**:委派模式下只由編排者單線寫入與配號,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
 - `contracts/G-C00x-<slug>.md` 是**多方共用契約的唯一權威來源**:兩個以上子系統都要用、又不屬於任何一方的契約住這裡。判準是 `boundary-rules.md`「知識歸屬」——它是哪些子系統的共同事實,就不能住在其中任何一個的 `design.md` 裡。`/subsys-design` 建檔與修改,`/arch-audit` 對帳,消費端只引用不重新定義
-- `system.md` 的 `subsystems` 是子系統的**唯一權威清單**:`/subsys-design` 建檔或廢棄子系統時必須同步回填;`/arch-audit status` 會雙向比對清單與實際資料夾
+- `system.md` 的 `subsystems` 是子系統的**完整名冊**,不是「已建檔清單」:`/system-design` 在「子系統劃分」定案的當下就把**每一個**子系統的 slug 寫進去,含**規劃中、還沒有 `design.md`** 的。`/subsys-design` 建檔時不動名冊(它建的是名冊上早就有的那一項),只有**新增或廢棄子系統**才改名冊,而那是 `/system-design` 的事
+  - 名冊列了、`subsystems/<slug>/` 不存在 = **已規劃未建檔**,是待辦,`/arch-audit status` 會列進「已規劃、未建 design.md 的子系統」並讓 exit code 為 1;**不是**不一致
+  - 有資料夾、名冊沒列 = 名冊漏回填,**這一向才是不一致**
+  - **理由(這是本流程被修過的最嚴重的一個洞)**:名冊若只收已建檔的,它就跟資料夾清單同義,雙向比對永遠成立,而「還沒開工的那一大半」在任何進度數字裡都不存在。分母必須來自規劃,不能來自產出——否則報表只會愈做愈接近 100%,而且做得愈少、看起來愈完整
+- `system.md` 的「開發階段」表是**全專案唯一的產品級分母**:`/arch-audit status` 會解析它,狀態欄只認「未開始 / 進行中 / 已達成」三個詞。任何一階不是「已達成」,盤點就不得宣告專案完成
+- 每份 `design.md` 的「模組群」表是**子系統內部的領域劃分**:子系統裡有多個平行領域(而不是一條資料流管線上的幾個模組)時必填,狀態只有 `active` / `planned`。`planned` 的那一群代表契約章節與功能規劃都還沒寫,它**不在該子系統的進度分母裡**,`/arch-audit status` 會單獨列出來。只有一個領域的子系統可以整張表省略
 - 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
 - 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/spec-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
 - 每份 `design.md` 的「Feature 契約卡」章節,功能規劃裡的每個 feature 都要有一張(`###` 一張卡,標題 = feature slug)。契約卡是「這個 feature 可以被無訪談委派」的門檻:寫得夠完整才跑得動 `/subsys-build`,缺卡的項目會被 `/arch-audit status` 列進提示
@@ -107,8 +112,15 @@ description: <一句話,40 字內:這個專案在做什麼>
 status: active
 created: 2026-08-19
 updated: 2026-08-19
-subsystems: []           # 子系統 slug 的唯一權威清單,/subsys-design 建檔時回填
+subsystems: []           # 完整名冊:「子系統劃分」列到的每一個 slug,含還沒建 design.md 的
 ---
+```
+
+`subsystems` 是**名冊**不是**成果清單**(理由見上方「文檔角色與權威來源」)。`/system-design` 在子系統劃分定案時一次寫齊;之後只有新增或廢棄子系統才動它。
+
+```yaml
+subsystems: [kernel, gameplay, frontend, shell, farm, magic, npc-life]   # ✅ 含未建檔的 farm / magic / npc-life
+subsystems: [kernel, gameplay, frontend, shell]                          # ❌ 只列已建檔的 → 未開工的部分永遠不進分母
 ```
 
 `subsystems/<slug>/design.md`:

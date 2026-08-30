@@ -8,15 +8,15 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 | 指令 | 層級 | 職責 |
 |---|---|---|
-| `/system-design` | L1 | 系統主架構 — 深度訪談後產出 `.design/system.md` + `.design/adr/ADR-00x-*.md`:技術棧、對外 I/O 契約、子系統劃分(Bounded Contexts)、通訊拓撲;只到子系統邊界顆粒度 |
-| `/subsys-design` | L2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、內部模組劃分、資料流管線、模組間抽象介面、feature 路線圖(功能規劃)與每個 feature 的**契約卡**,並回填主架構 `subsystems` 清單 |
+| `/system-design` | L1 | 系統主架構 — 深度訪談後產出 `.design/system.md` + `.design/adr/ADR-00x-*.md`:技術棧、對外 I/O 契約、子系統劃分(Bounded Contexts)、通訊拓撲、**子系統完整名冊**與**開發階段表**(產品級分母);只到子系統邊界顆粒度 |
+| `/subsys-design` | L2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、**模組群**(子系統內的平行領域,含還沒開工的 `planned` 群)、內部模組劃分、資料流管線、模組間抽象介面、feature 路線圖(功能規劃)與每個 feature 的**契約卡**,並與主架構的職責逐條對帳(A10) |
 | `/subsys-build` | L2→L3 | 子系統委派展開(orchestrator)— 依功能規劃的「依賴」欄排波次,**批次澄清一次問完** → 預先配號與指派骨架路徑 → 委派 spec(平行,opus)→ **spec 批准閘門** → qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(同一 feature 上限 3 輪)** → 每階段跑 `arch-audit` 後**停下來給人驗收**;配號、`design.md` 回填、`build-log.md`、git commit 由編排者單線負責 |
 | `/spec-design` | L3 · spec | spec 設計 — 深度討論後產出 spec 文檔與**程式碼骨架**(型別與簽名完整、本體 `undefined`);相依性**必用**程式碼知識圖定位再開原始碼查證。**兩種模式**:**feature**(新需求 → `features/F00x-*.md`,含目的 / 數據 / 介面 / **Laws** / **Examples** / 依賴 / 不可逆決定,介面必須落在 L2 契約內)、**enhance**(既有程式碼的優化 → `enhancements/E00x-*.md`,跨子系統為 `G-E00x`;追加「檢視現況」與「**與開發者確認 scope**」兩個前置步驟,Laws 分「回歸 law(改完必須一模一樣的現有行為)」與「新 law」兩類)。文檔模板放在 `templates/`,執行時只讀模式對應的那一份 |
 | `/spec-build` | 編排 | 單份 spec 的委派迴圈(orchestrator)— 拿一份寫好的 spec(F00x / E00x):門檻檢查(骨架編得過、介面對得上、無未結 gap)→ **spec 批准閘門** → 委派 qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(上限 3 輪)** → 回寫 status。enhance 的 scope 談完之後就走這條 |
 | `dev-flow:spec-qa` | L3 · qa | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。從 spec 寫測試 — 只讀 spec 的數據 / 介面 / Laws / Examples 與骨架,每條 law 翻成 property test、每個 example 翻成 example test;**禁止讀任何實作程式碼與程式碼知識圖**,交付前確認測試「編譯通過 + 紅綠符合預期」 |
 | `dev-flow:spec-impl` | L3 · impl | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。spec 實作 — 以骨架為工作清單,把 `undefined` 換成實作;**禁止讀寫任何測試檔、禁止改動骨架簽名**;紅燈只做歸因走仲裁協議,不自行猜 spec。模式由 id 前綴判定,`E00x` / `G-E00x` 追加三條:動工前先跑回歸測試留基準線、scope 標明不動的範圍絕對不碰、收尾記錄量化結果 |
 | `/bugfix` | L3 | 缺陷修復(單角色)— 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
-| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、契約卡對帳、未結 spec-gaps、仲裁紀錄)/ `feature`(L2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點完成度、契約卡就緒度與未結 spec-gaps) |
+| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、**模組群與職責對帳**、契約卡對帳、未結 spec-gaps、仲裁紀錄)/ `feature`(L2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點**開發階段**、名冊上未建檔的子系統、未開工的模組群、完成度、契約卡就緒度與未結 spec-gaps) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(先確認當前分支,在 main 上就先開新分支;標題英文 conventional commit、內文繁中、labels 英文) |
 | `/study` | — | 專案導讀(唯讀)— **六層縮放**由上而下帶開發者理解既有專案,範圍逐層收窄、深度逐層加深:全景(入口、技術棧、目錄職責;課末選定**主線情境**貫穿全程)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量;主線攜帶的型別優先)→ **逐跳 trace code**(沿主線從入口到輸出,附呼叫鏈摘要表,課末圈出要拆開看的跳)→ **細讀**(鑽進一兩個關鍵函式逐行講,含桌上執行表與逐分支邊界);每課固定「銜接 → 結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點(難度遞進:複述→預測→修改)→ 課程地圖」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
 
@@ -158,10 +158,10 @@ repo 有新版本後:
 
 ```
 .design/
-├── system.md                        # /system-design:Level 1 主架構(frontmatter `subsystems` 為權威清單)
+├── system.md                        # /system-design:Level 1 主架構(`subsystems` 為完整名冊 + 開發階段表)
 ├── subsystems/
 │   └── <subsystem-slug>/
-│       ├── design.md                # /subsys-design:Level 2 子系統架構(功能規劃 + Feature 契約卡;`parent: system` 回鏈)
+│       ├── design.md                # /subsys-design:Level 2 子系統架構(模組群 + 功能規劃 + Feature 契約卡;`parent: system` 回鏈)
 │       ├── build-log.md             # /subsys-build:配號表、委派決策、待確認假設彙總、仲裁紀錄、階段結果(跑過才有)
 │       ├── spec-gaps.md             # /spec-qa 與實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
 │       ├── features/F001-<slug>.md          # /spec-design(spec 文檔;骨架寫在專案原始碼樹)
@@ -175,6 +175,20 @@ repo 有新版本後:
 編號**三位數**遞增、不放日期(日期在 frontmatter 的 `created` / `updated`);**每個子系統自己一組編號**(F/E/B 各自計數)、全域 G- 自己一組、ADR 全局一組。跨子系統引用寫 `<subsystem>/<id>`(如 `auth/F002`),同子系統直寫 id,全域直寫 `G-E001` / `ADR-003`。
 
 任務文檔開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-feature`;全域文檔另加 `subsystems`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/arch-audit/scripts/scan-status.mjs`)只解析這一段,清單欄位一律行內陣列 `[a, b]`。子系統 `design.md` 另有選填的 `code-paths`(程式碼路徑前綴),供 `scan-graph.mjs` 把檔案級的圖捲回子系統級。
+
+### 分母紀律:名冊、開發階段、模組群
+
+進度的分母**必須來自規劃,不能來自產出**。這條慣例是修一個真實失真修出來的:名冊若只收「已經建了 `design.md` 的子系統」,它就跟資料夾清單同義,雙向比對永遠成立,而還沒開工的那一大半在任何數字裡都不存在——報表於是宣稱一個只做了引擎層的遊戲專案「48/49 完成」。
+
+因此有三層分母,各有唯一權威:
+
+| 分母 | 住在哪 | 誰維護 | 答什麼問題 |
+|---|---|---|---|
+| **開發階段**(產品級) | `system.md` 的「開發階段」表,狀態只有 `未開始 / 進行中 / 已達成` | `/system-design` | 產品做到哪、還差什麼 |
+| **子系統名冊** | `system.md` frontmatter 的 `subsystems`,**含還沒建 `design.md` 的** | `/system-design`(新增或廢棄子系統時) | 一共要做幾個子系統、幾個還沒開工 |
+| **模組群** | 各 `design.md` 的「模組群」表,狀態只有 `active / planned` | `/subsys-design` | 這個子系統裡幾個平行領域寫了契約、幾個還沒 |
+
+`/arch-audit status` 會分別列出「已規劃、未建 design.md 的子系統」與「已規劃、契約未寫的模組群」,任一非空或任一階段未達成時 exit code 為 1。子系統狀態表的百分比**只涵蓋已展開的部分**,不是產品完成度;回報一律**先講還沒做的,再講已完成的百分比**。
 
 `description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(feature 寫「這功能做什麼」、bugfix 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」),讓 `/arch-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。
 

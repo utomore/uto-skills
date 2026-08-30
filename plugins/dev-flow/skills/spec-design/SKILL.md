@@ -57,7 +57,7 @@ user-invocable: true
 ## 前置(不可跳過)
 
 1. 讀取 `.design/system.md`(燈塔)。**不存在時**:告知開發者建議先執行 `/system-design`,除非開發者明確要求直接寫設計文檔
-2. 確認落在哪個子系統,讀取該 `subsystems/<slug>/design.md`;不相關的子系統不讀。**feature 模式**:`design.md`「功能規劃」有此項時,以該列與對應的**「Feature 契約卡」**為討論起點(卡片已定下負責模組、Level 2 介面、資料流段落、驗收標準與明確不做,討論從這裡往下深化,不要重新發明邊界);沒有對應子系統時,先和開發者確認是否要新增子系統(走 `/subsys-design`)或放寬為不拆子系統的小專案做法(此時與開發者確認文檔位置)
+2. 確認落在哪個子系統,讀取該 `subsystems/<slug>/design.md`;不相關的子系統不讀。**feature 模式**:`design.md`「功能規劃」有此項時,以該列與對應的**「Feature 契約卡」**為討論起點(卡片已定下負責模組、Level 2 介面、資料流段落、驗收標準與明確不做,討論從這裡往下深化,不要重新發明邊界);沒有對應子系統時,先和開發者確認是否要新增子系統(走 `/subsys-design`)或放寬為不拆子系統的小專案做法(此時與開發者確認文檔位置)。**要展開的東西落在一個 `planned` 模組群裡**(`design.md` 的「模組群」表)時停下來:那一群的契約章節還沒寫,沒有 Level 2 介面可以承接,先走 `/subsys-design` 更新模式把契約補上再回來
 3. 讀取與目標相關的 `.design/adr/`(依主題挑選,不必全讀)
 4. 掃描對應資料夾現有檔名決定新編號(**feature**:該子系統 `features/` 的 `F` 前綴;**enhance**:該子系統 `enhancements/` 的 `E` 前綴,或 `.design/enhancements/` 的 `G-E` 前綴;各自最大值 +1,三位數)。**enhance 模式在 scope 未定前先不掃**,等步驟 2 定案
 
@@ -130,7 +130,7 @@ user-invocable: true
 
 **撰寫順序**(兩種模式相同):先寫「數據」與「介面」(enhance 是「數據與介面變動」)→「Laws」→「Examples」,**最後**才回頭填 frontmatter 的 `depends-on` 與「依賴 / 相依性」段。相依性是介面表的**結果**,不是前提。
 
-**feature 模式**產出後,回填 `design.md`「功能規劃」對應列的 doc 欄為本檔 id(同步 `design.md` 的 `updated`)。
+**feature 模式**產出後,回填 `design.md`「功能規劃」對應列的 doc 欄為本檔 id(同步 `design.md` 的 `updated`)。該列有「模組群」欄時一併確認填了值,且對得上「模組群」表裡的名字。
 
 ### 6. 產出骨架(不可跳過)
 

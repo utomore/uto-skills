@@ -77,11 +77,13 @@ example 與某條 law 互相矛盾時:**不要自己選一邊**,兩條都照寫,
 
 ```
 -- F002 · spec 對照(預期依 spec-roles.md「qa 的交付判準」逐條標)
--- L1 rotate 具冪等性              → prop_rotate_idempotent        [紅]
--- L2 refresh 後舊 token 必失效    → prop_refresh_invalidates_old  [紅]
--- E1 正常換發                     → test_refresh_happy_path       [紅]
--- E5 TOKEN_TTL 常數為 900         → test_token_ttl_constant       [綠·骨架已承載]
+-- LAW-1 rotate 具冪等性             → prop_rotate_idempotent        [紅]
+-- LAW-2 refresh 後舊 token 必失效   → prop_refresh_invalidates_old  [紅]
+-- EX-1  正常換發                    → test_refresh_happy_path       [紅]
+-- EX-5  TOKEN_TTL 常數為 900        → test_token_ttl_constant       [綠·骨架已承載]
 ```
+
+對照表**照抄 spec 的編號原文**:spec 寫 `LAW-1` 就寫 `LAW-1`,舊 spec 寫 `L1` 就照抄 `L1`——這張表的功能是仲裁時對得回 spec,自行改號會讓對照斷掉。
 
 每條 law 與 example 都必須出現在表上;spec 有、表上沒有 = 交付不完整。**預期欄不可省略**——編排者驗紅綠時逐條對的就是這一欄,沒有它就只能數紅燈比例。
 

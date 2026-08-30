@@ -22,11 +22,23 @@ user-invocable: true
 
 ## Scope: status — 整體進度與健康度
 
-執行本 skill 目錄下的腳本(解析 `.design/` 全樹的 frontmatter 與各 `design.md` 的功能規劃):
+執行本 skill 目錄下的**兩支**腳本,順序固定:
 
 ```
-node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 ./.design]
+node "<本 SKILL.md 所在目錄>/scripts/id-map.mjs"      [design目錄,預設 ./.design]   ← 先跑,定位
+node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 ./.design]   ← 再跑,細節
 ```
+
+**`id-map.mjs` 的輸出整張表原樣貼在回報最前面**,一個字不改、不摘要、不轉述。它是一張 system → 子系統 → 模組群的階層表,三行抬頭(專案 / 階段 / 子系統已建幾個)加一張對齊的數字表加兩行圖例——**開發者掃一眼就知道整個專案長什麼樣、走到哪**,那正是他打開 status 想要的第一個東西。改寫成散文只會把它變回一段要讀的字。
+
+貼完之後才接 `scan-status.mjs` 的細節。兩支的分工:
+
+| | 回答什麼 |
+|---|---|
+| `id-map.mjs` | **形狀**:有幾個子系統(含未建的)、每個裡面有幾個模組群、各自鑄了多少 F/E/B、spec 有多少 LAW/EX、跑過幾批委派 |
+| `scan-status.mjs` | **細節與不一致**:每份文檔的狀態與依賴、待展開的 feature、未結的 spec-gaps、架構不一致清單、exit code |
+
+`id-map.mjs` 只讀不寫、一律 exit 0(它是定位工具,不做驗收);**exit code 一律以 `scan-status.mjs` 為準**。
 
 腳本輸出三張表加數個清單,**全部**整理後呈現給開發者:
 
@@ -60,6 +72,16 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --doc <id>   
 ```
 
 `--doc` 的 exit code 與盤點模式**語意不同**(0 = 查到、2 = 查無),不要拿它當驗收判準。
+
+**另外兩種用法**(都只讀不寫、不影響 exit code):
+
+```
+node "<本 SKILL.md 所在目錄>/scripts/id-map.mjs"                  不帶路徑:編號體系本身的樹(哪一層鑄哪些號、誰配、活多久)
+node "<本 SKILL.md 所在目錄>/scripts/lint-ids.mjs" .design        檢查編號有沒有違反註冊表(exit 1 = 有違規)
+```
+
+- **開發者問「這些 `S1` / `LAW-3` / `WAVE-2` 到底是什麼」** → `id-map.mjs` 不帶參數,把 `doc-lifecycle.md`「編號與縮寫註冊表」畫成流程形狀的樹;或在專案模式加 `--legend` 兩張一起出
+- **接手舊專案、或改過慣例之後** → `lint-ids.mjs`:揪出裸寫的「單字母+數字」。被禁的形式只准出現在反引號裡(那代表在「講這個寫法」),裸寫就是真的拿它當識別碼。專案有自己的文檔前綴時用 `--allow '^N\d{3}$'` 帶進來
 
 ---
 
@@ -123,6 +145,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --doc <id>   
 ## 收尾
 
 - status scope:摘要按**這個順序**寫,不准對調——
+  0. **`id-map.mjs` 的階層表**已經原樣貼在回報最前面(見上方 status scope 第一段);收尾不重貼,下面四段是它的細節
   1. **還沒開工的**:開發階段有幾階未開始 / 進行中、名冊上有幾個子系統未建 design.md、有幾個 planned 模組群。這是第一段,因為它是開發者最容易看不到、而且百分比不會告訴他的那一部分
   2. **已展開部分的進度**:done/總數、各子系統進度、契約卡就緒度、待展開 feature 數,並在句子裡點明「這個百分比的分母只有已展開的部分」
   3. **不一致與提示**:逐條轉達

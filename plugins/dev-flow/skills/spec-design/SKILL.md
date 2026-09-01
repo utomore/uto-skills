@@ -147,6 +147,16 @@ user-invocable: true
 
 **feature 模式**產出後,回填 `design.md`「功能規劃」對應列的 doc 欄為本檔 id(同步 `design.md` 的 `updated`)。該列有「模組群」欄時一併確認填了值,且對得上「模組群」表裡的名字。
 
+**同時把該 feature 的 Feature 契約卡瘦成存根**(規格與理由見 `../_shared/doc-lifecycle.md`「契約卡的生命週期」):卡片的用途是「讓沒訪談過的執行者能開始寫 feature 設計文檔」,本檔一建立就結束了。做法是把整張卡原文**搬到** `archive/cards-done.md`(沒有就建),`design.md` 裡留下:
+
+```markdown
+### <feature-slug>
+- **已建檔,本卡為存根**:權威在 `features/F00x-<slug>.md`;完整原文見 `archive/cards-done.md`
+  (負向邊界「明確不做」在 F 文檔沒有對應欄位,仍以存檔為準)
+```
+
+`###` 標題**不能動**——`scan-status.mjs` 靠它算契約卡覆蓋率。**是搬家不是刪除**:刪掉「明確不做」等於銷毀這個 feature 負向邊界的唯一紀錄。
+
 ### 6. 產出骨架(不可跳過)
 
 依「介面」與「數據」兩段,直接在專案原始碼樹寫出檔案框架。規格見 `../_shared/spec-roles.md`「骨架」,三條硬規則複述如下:

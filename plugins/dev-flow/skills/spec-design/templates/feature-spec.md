@@ -42,12 +42,36 @@ related-feature: []
 | `verify :: TokenId -> IO TokenStatus` | 回報一個 TokenId 當下可不可用 | `src/Auth/Token.hs:58` |
 
 ## Laws(行為性質)
-(可被 property-based 測試驗證的代數性質,一律寫成「對所有 x,P(x) 成立」的形式。
+(可被 property-based 測試驗證的代數性質。**每條都要填滿四格**——這四格就是測試的四個組成部件
+ (量詞→forall 變數、定義域→產生器、前提→precondition、觀察點→斷言),**填不滿等於這條 law 翻不成
+ 測試**,當場修掉,不要留給 qa 去猜。
  **這是 spec 的一部分,不是 QA 的發明**;每個核心函數至少一條。
  編號用 `LAW-` 詞首碼,不寫 `L1`——`L1` 會跟 Level / 專案的 Layer 撞號,見 doc-lifecycle.md 註冊表)
-- LAW-1: 對所有 `t`,`rotate t >> rotate t` 與 `rotate t` 造成失效的 TokenId 集合相同(冪等)
-- LAW-2: 對所有 `t`,若 `rotate t` 回傳 `Right _`,則之後 `verify t` 必為 `Invalid`
-- LAW-3: 對所有 `t`,若 `rotate t` 回傳 `Left _`,則 `verify t` 與呼叫前相同(失敗不改變狀態)
+
+- LAW-1: rotate 成功後,舊 TokenId 立刻失效
+  - 量詞:對所有 t
+  - 定義域:t ∈ TokenId 全域(含不存在的、已失效的值)
+  - 前提:`rotate t` 回傳 `Right _`
+  - 觀察點:緊接著(中間無其他呼叫)`verify t` 回傳 `Invalid`
+- LAW-2: rotate 失敗不改變任何 token 的可用性
+  - 量詞:對所有 t、對所有 u
+  - 定義域:t ∈ TokenId 全域;u ∈ 呼叫前已存在的 TokenId 集合
+  - 前提:`rotate t` 回傳 `Left _`
+  - 觀察點:`verify u` 的回傳值,呼叫前後相同
+
+**四格怎麼填**:
+
+- **量詞**:全稱變數有哪些。多個就全列出——LAW-2 的 `u` 就是這樣冒出來的,只寫 `t` 會漏掉「有沒有動到別人」
+- **定義域**:每個變數的取值範圍。**寫太窄會讓 law 恆真**(把定義域限成「有效的 t」,失敗路徑就永遠不成立、什麼都驗不到)
+- **前提**:`若 … 則 …` 的前半,翻譯時變成 precondition。不准偷偷拿掉——拿掉就是另一條 law
+- **觀察點**:**用哪個公開介面、在什麼時序上、看到什麼**。時序要明講(「緊接著」與「之後任何時候」
+  會翻成完全不同的測試)。觀察點**必須用反引號引用「介面」表裡有的介面**——引用不到就代表這條性質
+  從公開介面觀察不到,那是介面設計缺陷,回頭修介面,不准留給實作階段開後門(`lint-laws.mjs` 會擋)
+
+**填不出來的例子**:「`rotate` 具冪等性:兩次與一次造成失效的 TokenId 集合相同」——觀察點填不出來,
+因為介面表只有 `rotate` / `verify`,沒有任何列舉失效 token 的手段;定義域也填不出來(t 已失效時兩邊
+都是空集,恆真)。這種 law 不是寫得不好,是**它指向一個介面缺陷**;寫成散文就會一路活到 qa 手上才爆。
+
 (某個介面確實沒有可陳述的性質時,寫 `無law <介面名>:<具體理由>`——不准留空)
 
 ## Examples
@@ -55,8 +79,8 @@ related-feature: []
  編號用 `EX-` 詞首碼,不寫 `E1`——那是 `E001` 的違規簡寫,也常是專案的階段名)
 | # | 輸入 | 預期輸出 | 覆蓋的邊界 |
 |---|---|---|---|
-| EX-1 | `rotate validId` | `Right TokenPair{...}` | 正常路徑(LAW-1、LAW-2) |
-| EX-2 | `rotate expiredId` | `Left Expired` | 過期(LAW-3) |
+| EX-1 | `rotate validId` | `Right TokenPair{...}` | 正常路徑(LAW-1) |
+| EX-2 | `rotate expiredId` | `Left Expired` | 過期、失敗不改狀態(LAW-2) |
 
 ## 依賴
 (frontmatter depends-on 的文字說明。介面表每一列的簽名必須是從來源檔案讀出的原文;

@@ -19,6 +19,11 @@
 - 每份 `design.md` 都必須有 `parent: system`,讓任何讀者能從子系統回溯主架構
 - 每份 `design.md` 的「功能規劃」表格是該子系統的 feature 路線圖;`doc` 欄要在 `/spec-design` 建檔後**即時回填**(委派模式下由 `/subsys-build` 統一回填),沒回填的項目會被列為「待展開的 feature」、子系統進度也會偏低
 - 每份 `design.md` 的「Feature 契約卡」章節,功能規劃裡的每個 feature 都要有一張(`###` 一張卡,標題 = feature slug)。契約卡是「這個 feature 可以被無訪談委派」的門檻:寫得夠完整才跑得動 `/subsys-build`,缺卡的項目會被 `/arch-audit status` 列進提示
+- **契約卡的生命週期**:卡片的用途在流程裡寫死了是「讓沒訪談過的執行者能開始寫 feature 設計文檔」。**F 文檔一建立,那個用途就結束**——`F00x` 嚴格更豐富(驗收標準已翻成 Laws 與 Examples),權威隨即轉移過去。所以 `/spec-design` 回填 `doc` 欄的同時,把該張卡**瘦成存根**:留 `###` 標題 + 一行指向 `F00x` 與存檔,完整原文搬進 `archive/cards-done.md`
+  - **是搬家,不是刪除。** 卡片的「明確不做」在 `F00x` 沒有對應欄位(feature spec 模板沒有這一節),它是這個 feature 負向邊界的唯一紀錄;直接刪掉,三個月後「當初為什麼沒把 X 收進來」就只能從 Laws 的沉默去猜,而**沉默不可區分於遺漏**
+  - 存根不算「卡片沒填」:`contract-readiness.md` 的 A2 / A3 / A5 只對**未展開**的 feature(`doc` 欄仍是 `-`)跑,`/arch-audit` 要對帳已完成 feature 的卡片時讀 `archive/cards-done.md`
+  - `scan-status.mjs` 只解析卡片的 `###` 標題,存根照樣算進「契約卡 n/總數」,覆蓋率不受影響
+  - **為什麼要做**:卡片是逐 feature 累積的,而每次委派只用得到其中一張。實測一個五群、22 個 feature 的子系統,已展開的 14 張卡佔 `design.md` 的 12%,每個 subagent 都要載入卻一張都用不到
 
 ## 資料夾結構(專案內,樹狀)
 
@@ -32,6 +37,8 @@
 │       ├── design.md                # /subsys-design 產出:Level 2 子系統架構(含功能規劃與 Feature 契約卡)
 │       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只有跑過才有)
 │       ├── spec-gaps.md             # /spec-qa、實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
+│       ├── archive/
+│       │   └── cards-done.md        # 已展開 feature 的完整契約卡原文(design.md 裡只留存根;有展開過才有)
 │       ├── features/
 │       │   └── F001-<slug>.md       # /spec-design 產出,如 F001-auth-login.md
 │       ├── enhancements/

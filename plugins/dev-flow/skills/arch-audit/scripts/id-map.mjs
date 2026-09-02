@@ -60,7 +60,7 @@ const CONVENTION = {
         { label: "REG-1", meta: "回歸 law(enhance 專用)· 單一 spec 檔內 · 永久", note: "保護改完必須一模一樣的現有行為" },
         { label: "EX-1", meta: "具體範例 · 單一 spec 檔內 · spec 角色配 · 永久", note: "qa 一個翻一個 example test;LAW + EX 就是「這份 spec 應該有幾個測試」" },
         { label: "STEP-1", meta: "bugfix TodoList 步驟 · 單一 bugfix 檔內 · 永久", note: "dep: 欄互相引用" },
-        { label: "GAP-1", meta: "spec 疑問 · 單一 spec-gaps.md 內 · 編排者單線配 · 永久", note: "有 open 的就代表有項目卡著" },
+        { label: "GAP-1", meta: "spec 疑問 · 單一 spec-gaps.md 內 · 編排者單線配 · 永久", note: "專案表的 GAP 欄印「已結/總數」,不滿就代表有項目卡著" },
       ],
     },
     {
@@ -69,7 +69,7 @@ const CONVENTION = {
       kids: [
         { label: "WAVE-1", meta: "波次 · 單一次展開內 · 編排者算出來 · 用完即棄", note: "把 feature 分幾批送出(同批平行、批間有依賴)—— 不是 feature 數,波次數 <= feature 數" },
         { label: "DEC-1", meta: "批次澄清的裁決 · 單一 build-log 內 · 編排者配 · 永久(供事後查)" },
-        { label: "ASM-1", meta: "待確認假設 · 單一 spec 檔內 · spec subagent 配 · 上閘門後結案", note: "契約層級:設計者自己判斷後繼續推進,閘門再裁" },
+        { label: "ASM-1", meta: "待確認假設 · 單一 spec 檔內 · spec subagent 配 · 永久", note: "契約層級:設計者自己判斷後繼續推進,閘門再裁。裁決不會讓條目消失,結果寫回該條自己的「裁決:」欄(比照 GAP 的 狀態/修訂 行)—— build-log 的彙總表是索引與合併關係,不是權威" },
         { label: "SELF-1", meta: "自裁記錄 · 單一回報 / 自裁清單內 · spec subagent 配 · 供抽查", note: "實作層級:不進文檔、不上閘門" },
       ],
     },
@@ -177,6 +177,30 @@ function countIds(body, ...prefixes) {
  * 數 design.md「功能規劃」表有幾列 feature —— 那是這個子系統的**分母**,
  * features/ 裡的檔案數只是已經展開的部分(分子)。
  */
+/**
+ * 數一份 spec 的待確認假設:`{ total, ruled, marked }`。
+ *
+ * `裁決:` 欄是後來才補的(`delegation-design.md`)。**舊文檔一條 `裁決:` 都沒有,
+ * 那代表「不知道」,不是「全部未裁」** —— 裁決結果當時寫在 build-log 的彙總表裡。
+ * 分不出這兩者就會把一個早就裁完的子系統報成滿江紅,而報一個你證明不了的數字比不報還糟。
+ * 所以 `marked` 為 0 時呼叫端要退回只印總數。
+ */
+function countAssumptions(body) {
+  const sec = section(body, /待確認假設/);
+  const total = countIds(sec, "ASM", "A");
+  const rulingLines = [...sec.matchAll(/^[ \t]*[-*][ \t]*[*`_]{0,2}裁決[*`_]{0,2}[ \t]*[::][ \t]*(.*)$/gm)];
+  const marked = rulingLines.length;
+  const ruled = rulingLines.filter((m) => m[1].trim() && !/^未裁/.test(m[1].trim())).length;
+  return { total, ruled, marked };
+}
+
+/** ASM 欄:有人標過 `裁決:` 才印「已裁/總數」;一條都沒標的是舊格式,只印總數並加 `?`。 */
+function asmCell(total, ruled, marked) {
+  if (!total) return "-";
+  if (!marked) return `${total}?`;
+  return `${ruled}/${total}`;
+}
+
 function countRoadmapRows(body) {
   const road = section(body, /功能規劃/);
   let col = null;
@@ -281,7 +305,7 @@ function buildProjectTree(designDir) {
     }
 
     // spec 檔內的條目。序號在**單一檔案內**去重,跨檔相加;只在該住的章節裡數
-    let law = 0, ex = 0, asm = 0, legacy = 0;
+    let law = 0, ex = 0, asm = 0, asmRuled = 0, asmMarked = 0, legacy = 0;
     for (const f of [...feats, ...enh]) {
       const b = frontmatter(join(dir, f.startsWith("F") ? "features" : "enhancements", f)).body;
       const laws = section(b, /^Laws/);
@@ -289,7 +313,10 @@ function buildProjectTree(designDir) {
       if (!laws && !exs) legacy++; // 舊版模板(TodoList 制),沒有可被 qa 一比一投影的條文
       law += countIds(laws, "LAW", "REG", "L", "R");
       ex += countIds(exs, "EX", "E");
-      asm += countIds(section(b, /待確認假設/), "ASM", "A");
+      const a = countAssumptions(b);
+      asm += a.total;
+      asmRuled += a.ruled;
+      asmMarked += a.marked;
     }
 
     let gapCell = "-";
@@ -297,7 +324,8 @@ function buildProjectTree(designDir) {
     if (existsSync(gapPath)) {
       const g = frontmatter(gapPath);
       const open = (g.body.match(/^\s*[-*]\s*狀態\s*[::]\s*open/gim) ?? []).length;
-      gapCell = `${open}/${countIds(g.body, "GAP", "G")}`;
+      const totalGaps = countIds(g.body, "GAP", "G");
+      gapCell = `${totalGaps - open}/${totalGaps}`; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
     }
 
     let waveCell = "-";
@@ -316,7 +344,7 @@ function buildProjectTree(designDir) {
       b: String(bugs.length || "-"),
       law: legacy && !law ? "舊模板" : String(law || "-"),
       ex: legacy && !ex ? "舊模板" : String(ex || "-"),
-      asm: String(asm || "-"),
+      asm: asmCell(asm, asmRuled, asmMarked),
       gap: gapCell,
       wave: waveCell,
     });
@@ -332,7 +360,50 @@ function buildProjectTree(designDir) {
     });
   }
 
-  return { sys, roster, stages, adrs, contracts, rows, built };
+  // ---- 全域任務文檔(G-E / G-B):它們不屬於任何子系統,所以上面的迴圈一列都看不到。
+  // 少了這一列,一個有九份跨子系統優化的專案在這張表上看起來像「全域什麼都沒有」。
+  {
+    const genh = listMd(join(designDir, "enhancements"));
+    const gbugs = listMd(join(designDir, "bugfixes"));
+    let law = 0, ex = 0, asm = 0, asmRuled = 0, asmMarked = 0, legacy = 0;
+    for (const f of genh) {
+      const b = frontmatter(join(designDir, "enhancements", f)).body;
+      const laws = section(b, /^Laws/);
+      const exs = section(b, /^Examples/);
+      if (!laws && !exs) legacy++;
+      law += countIds(laws, "LAW", "REG", "L", "R");
+      ex += countIds(exs, "EX", "E");
+      const a = countAssumptions(b);
+      asm += a.total;
+      asmRuled += a.ruled;
+      asmMarked += a.marked;
+    }
+    let gapCell = "-";
+    const gapPath = join(designDir, "spec-gaps.md");
+    if (existsSync(gapPath)) {
+      const g = frontmatter(gapPath);
+      const open = (g.body.match(/^\s*[-*]\s*狀態\s*[::]\s*open/gim) ?? []).length;
+      const totalGaps = countIds(g.body, "GAP", "G");
+      gapCell = `${totalGaps - open}/${totalGaps}`; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
+    }
+    if (genh.length || gbugs.length || gapCell !== "-") {
+      rows.push({
+        name: "(全域 G-)",
+        status: "—",
+        f: "-",
+        e: String(genh.length || "-"),
+        b: String(gbugs.length || "-"),
+        law: legacy && !law ? "舊模板" : String(law || "-"),
+        ex: legacy && !ex ? "舊模板" : String(ex || "-"),
+        asm: asmCell(asm, asmRuled, asmMarked),
+        gap: gapCell,
+        wave: "-",
+      });
+    }
+    var globalCounts = { enh: genh.length, bugs: gbugs.length };
+  }
+
+  return { sys, roster, stages, adrs, contracts, rows, built, globalCounts };
 }
 
 /** 顯示寬度(CJK 全形字算 2)—— 與 scan-status.mjs 同一份實作 */
@@ -348,7 +419,7 @@ function padTo(s, n, right = false) {
 }
 
 function renderProject(designDir) {
-  const { sys, roster, stages, adrs, contracts, rows, built } = buildProjectTree(designDir);
+  const { sys, roster, stages, adrs, contracts, rows, built, globalCounts } = buildProjectTree(designDir);
 
   // 抬頭:專案 → 階段 → 總計。三行講完「這是什麼、走到哪、有多大」
   console.log(bold(`${sys.meta.title ?? designDir}  ${sys.meta.description ?? ""}`));
@@ -364,7 +435,14 @@ function renderProject(designDir) {
   } else {
     console.log("階段  ⚠ system.md 沒有可解析的「開發階段」表,答不出「還差什麼」");
   }
-  console.log(dim(`子系統 ${built}/${roster.length} 已建  ·  ADR ${adrs.length}  ·  全域契約 ${contracts.length}\n`));
+  // 全域的三種東西各報各的:「全域契約 0」單獨出現時會被讀成「全域什麼都沒有」,
+  // 而同一個專案可能有九份跨子系統的 G-E 正在跑。
+  console.log(
+    dim(
+      `子系統 ${built}/${roster.length} 已建  ·  ADR ${adrs.length}  ·  全域契約 G-C ${contracts.length}` +
+        `  ·  全域優化 G-E ${globalCounts?.enh ?? 0}  ·  全域修復 G-B ${globalCounts?.bugs ?? 0}\n`,
+    ),
+  );
 
   const cols = [
     { k: "name", h: "子系統 / 模組群", right: false },
@@ -386,8 +464,10 @@ function renderProject(designDir) {
 
   console.log(
     dim(
-      "\nF 已建/規劃 · E 優化 · B 缺陷(份數) │ LAW+EX = 照 spec 應有的測試數(分母,非實跑數)" +
-        "\nASM 待閘門裁決的假設 · GAP 未結/總數(未結 = 有項目卡著) · WAVE 委派分幾批送出(非 feature 數)",
+      "\n所有 n/m 一律「已達成/總數」——不滿就是有待辦(F 已建/規劃 · GAP 已結/總數)" +
+        "\nE 優化 · B 缺陷(份數) │ LAW+EX = 照 spec 應有的測試數(分母,非實跑數)" +
+        "\nASM 契約級假設 已裁/總數(讀 spec 裡每條的「裁決:」欄);`50?` = 舊格式沒有那一欄,裁沒裁不可考" +
+        "\nWAVE 委派分幾批送出(非 feature 數)",
     ),
   );
 }

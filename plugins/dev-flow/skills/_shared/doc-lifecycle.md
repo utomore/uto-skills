@@ -9,6 +9,14 @@
 - `build-log.md` 不是任務文檔,不參與 F/E/B 編號,也不列入進度統計;它記的是**編排過程**(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)
 - `/arch-audit status` 不掃這個檔;它的價值在於「中斷後能接續」與「事後查得到當初為什麼這樣決定」
 - `spec-gaps.md` 也不是任務文檔、不參與編號。它是 **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`):有 `open` 的條目,就代表有項目正卡著等 spec 修訂——`/arch-audit status` 會把未結的條目列出來,`/subsys-build` 開跑前會擋。它是**共用檔案**:委派模式下只由編排者單線寫入與配號,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
+- **`design.md` 的分冊**(`subsystems/<slug>/` 根層、`design.md` 以外的 `.md`):子系統的契約章節長到一份檔案裝不下時,可以拆出去,但**拆出去的仍然是 `design.md` 的一部分**。兩種:
+  - `contract-<模組群>.md`(`type: contract-part`)——某個模組群的「對外契約」與 DTO 定義
+  - `decisions.md`(`type: decisions`)——訪談定案與否決理由(契約**為什麼**長這樣)
+
+  分冊**不編號**(它們不是任務文檔),用 frontmatter 的 `parent: <子系統 slug>` 認親;`design.md` 要在「模組群」表或開頭指明哪一群的契約在哪一份分冊。**凡是讀「該子系統 `design.md` 全文」的地方,一律連分冊一起讀**——契約條目可能整段住在分冊裡,只開 `design.md` 會找不到條目而誤判「契約缺漏」(`contract-readiness.md` A3 已就此放寬為跨檔比對)。`scan-status.mjs --subsys <slug>` 會把分冊清單印出來;子系統根層出現不帶這兩種 `type` 的 `.md`,它會列為不一致。
+
+  **拆分冊是有成本的**:對帳從開一份檔變成開好幾份。契約沒有大到讀不動就不要拆。
+
 - `contracts/G-C00x-<slug>.md` 是**多方共用契約的唯一權威來源**:兩個以上子系統都要用、又不屬於任何一方的契約住這裡。判準是 `boundary-rules.md`「知識歸屬」——它是哪些子系統的共同事實,就不能住在其中任何一個的 `design.md` 裡。`/subsys-design` 建檔與修改,`/arch-audit` 對帳,消費端只引用不重新定義
 - `system.md` 的 `subsystems` 是子系統的**完整名冊**,不是「已建檔清單」:`/system-design` 在「子系統劃分」定案的當下就把**每一個**子系統的 slug 寫進去,含**規劃中、還沒有 `design.md`** 的。`/subsys-design` 建檔時不動名冊(它建的是名冊上早就有的那一項),只有**新增或廢棄子系統**才改名冊,而那是 `/system-design` 的事
   - 名冊列了、`subsystems/<slug>/` 不存在 = **已規劃未建檔**,是待辦,`/arch-audit status` 會列進「已規劃、未建 design.md 的子系統」並讓 exit code 為 1;**不是**不一致
@@ -37,6 +45,8 @@
 │       ├── design.md                # /subsys-design 產出:Level 2 子系統架構(含功能規劃與 Feature 契約卡)
 │       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只有跑過才有)
 │       ├── spec-gaps.md             # /spec-qa、實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
+│       ├── contract-<模組群>.md      # design.md「對外契約」的分冊(契約大到裝不下才拆;type: contract-part)
+│       ├── decisions.md             # 訪談定案與否決理由(拆了分冊才有;type: decisions)
 │       ├── archive/
 │       │   └── cards-done.md        # 已展開 feature 的完整契約卡原文(design.md 裡只留存根;有展開過才有)
 │       ├── features/
@@ -61,7 +71,17 @@
 ## 命名與編號規則
 
 - 檔名一律**英文 kebab-case**;內文一律**繁體中文**;日期一律 `YYYY-MM-DD`
-- 編號**三位數**遞增,建新檔前先掃描該資料夾現有檔名,取同前綴的最大編號 +1
+- 編號**三位數**遞增。**任務文檔與 ADR 一律用這一行鑄號,不准自己數資料夾**:
+
+  ```
+  node "<arch-audit skill 目錄>/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
+  ```
+
+  組寫 `G-C` / `G-E` / `G-B` / `ADR` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。它掃過所有分支與 worktree 之後配號,**並當場把檔案建在慣例位置**(只寫 frontmatter 骨架),印出 `<id>\t<路徑>`;內容由你接著填。查現況用不帶 `--claim` 的同一支腳本(`--next` 只印下一個可用號,`--fetch` 連遠端一起看)。
+
+  **配號與建檔必須是同一個動作**:掃描看得到的是檔案,你腦中記著的號碼別人看不到,「先算號、待會再建檔」中間那段空窗就是撞號發生的地方。理由與三個掃描來源寫在腳本檔頭,要細節去讀它。
+
+  這只管**文檔 id**。檔案**內部**的條目(`LAW-` / `EX-` / `ASM-` / `GAP-` / `DEC-` / `SELF-` / `WAVE-` / `STEP-` / `REG-`)不走腳本——它們只在單一檔案內唯一,寫的人手上就有那個檔案。`S0`–`Sn` 也不走:它們在 `system.md` 同一張表裡,平行修改會產生真的 merge 衝突。
 - **每個子系統自己一組編號**(F/E/B 各自獨立計數);**全域(G-)自己一組編號**;ADR 全局一組編號:
   - 子系統內:`F001`、`E001`、`B001`(features / enhancements / bugfixes 各自從 001 起算)
   - 全域:`G-C001`、`G-E001`、`G-B001`(契約 / 優化 / 修復各自從 001 起算)
@@ -78,11 +98,11 @@
 
 | 首碼 / 寫法 | 格式 | 意思 | 作用域(在哪裡唯一) | 誰配號 |
 |---|---|---|---|---|
-| `F001` | 三位數 | feature 文檔 | 子系統內一組 | 建檔時掃描 |
-| `E001` | 三位數 | enhancement 文檔 | 子系統內一組 | 建檔時掃描 |
-| `B001` | 三位數 | bugfix 文檔 | 子系統內一組 | 建檔時掃描 |
-| `G-C001` / `G-E001` / `G-B001` | 三位數 | 全域契約 / 優化 / 修復 | 全域各一組 | 建檔時掃描 |
-| `ADR-001` | 三位數 | 架構決策紀錄 | 全局一組 | 建檔時掃描 |
+| `F001` | 三位數 | feature 文檔 | 子系統內一組 | `scan-ids.mjs --claim` |
+| `E001` | 三位數 | enhancement 文檔 | 子系統內一組 | `scan-ids.mjs --claim` |
+| `B001` | 三位數 | bugfix 文檔 | 子系統內一組 | `scan-ids.mjs --claim` |
+| `G-C001` / `G-E001` / `G-B001` | 三位數 | 全域契約 / 優化 / 修復 | 全域各一組 | `scan-ids.mjs --claim` |
+| `ADR-001` | 三位數 | 架構決策紀錄 | 全局一組 | `scan-ids.mjs --claim` |
 | `S0`、`S1`… | 一~二位數 | **開發階段**(`system.md`「開發階段」表的階段 id) | 全專案固定 | `/system-design` |
 | `A1`–`A10`、`B1`–`B4` | 固定清單 | `contract-readiness.md` 的檢查條(A 段 / B 段) | 那一份檢查表 | 固定,不配號 |
 | `LAW-1` | 詞首碼 | spec 的 law(行為性質) | 單一 spec 檔內 | spec 角色 |
@@ -98,7 +118,7 @@
 | `Level 1 / 2 / 3` | **全名** | 設計三層階梯(主架構 / 子系統 / spec) | 全流程 | 固定 |
 
 - **`Level` 一律寫全名**,任何 skill 文檔與產出裡都不准縮寫成 `L1` / `L2` / `L3`——`L` 誰都不給,免得跟專案的 `Layer` 與舊寫法的 law 混在一起。專案自己的 `Layer 0–3` 之類是專案詞彙,不歸本表管,但**專案自訂縮寫不得與本表衝突**(`/system-design` 產出前檢查):想給階段取 `E0`–`E6` 就是撞了 `E001` 與 `EX-`,一律改用工具鏈保留的 `S0`–`Sn`
-- **兩支腳本在守這張表**(都在 `arch-audit/scripts/`):`lint-ids.mjs` 掃 markdown,揪出裸寫的「單字母+數字」——被禁的形式只准出現在反引號裡(那是「在講這個寫法」),裸寫就是真的拿它當識別碼在用;`id-map.mjs` 把本表畫成樹狀圖,不帶參數看慣例、給 `.design` 路徑看某個專案實際鑄過哪些號
+- **三支腳本在守這張表**(都在 `arch-audit/scripts/`):`lint-ids.mjs` 掃 markdown,揪出裸寫的「單字母+數字」——被禁的形式只准出現在反引號裡(那是「在講這個寫法」),裸寫就是真的拿它當識別碼在用;`id-map.mjs` 把本表畫成樹狀圖,不帶參數看慣例、給 `.design` 路徑看某個專案實際鑄過哪些號;`scan-ids.mjs` 跨分支與 worktree 盤點**已經被佔走的號**(見上方「命名與編號規則」),配號前跑它
 - 舊專案文檔裡的 `L1`(law)、`E1`(example)、`G1`(gap)、`A1`(假設)照舊可讀,不強制回頭改;**新寫的一律用本表**。盤點腳本對 gap 條目同時認 `GAP-n` 與舊制 `G<n>`
 
 ### 文檔引用格式(depends-on、related-* 等欄位與內文引用)
@@ -211,6 +231,23 @@ updated: 2026-08-19
 parent: <subsystem-slug> # 回鏈所屬子系統的 design.md
 ---
 ```
+
+`subsystems/<slug>/` 的**分冊**(`design.md` 拆出去的部分;只有拆過才存在,判準見上方「文檔角色與權威來源」):
+
+```yaml
+---
+id: <subsystem-slug>-contract-<模組群小寫>   # decisions.md 用 <subsystem-slug>-decisions
+type: contract-part                          # 或 decisions
+title: <與 id 相同>
+description: <一句話,40 字內:這一份裝的是哪一群的契約 / 哪些定案>
+status: active
+created: 2026-09-01
+updated: 2026-09-01
+parent: <subsystem-slug>                     # 回鏈所屬子系統的 design.md;不編號,靠這一欄認親
+---
+```
+
+分冊**不參與 F/E/B 編號**、不列入進度統計。`parent` 與所在資料夾不一致、或子系統根層出現不帶這兩種 `type` 的 `.md`,`scan-status.mjs` 會列為不一致。
 
 內文格式(只追加、不改既有條目,修訂後回填狀態)見 `spec-roles.md`「spec-gaps 協議」。條目編號 `GAP-1`、`GAP-2`… 在該檔內遞增,不跨檔共用(舊制 `G1` 照舊可讀,新寫的用 `GAP-`,見「編號與縮寫註冊表」)。**委派模式下這個檔只由編排者寫**(建檔、配號、追加都是),subagent 一律只回報(理由見 `delegation.md` 第 4 條)。
 

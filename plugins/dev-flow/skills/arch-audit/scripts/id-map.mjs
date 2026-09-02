@@ -60,7 +60,7 @@ const CONVENTION = {
         { label: "REG-1", meta: "回歸 law(enhance 專用)· 單一 spec 檔內 · 永久", note: "保護改完必須一模一樣的現有行為" },
         { label: "EX-1", meta: "具體範例 · 單一 spec 檔內 · spec 角色配 · 永久", note: "qa 一個翻一個 example test;LAW + EX 就是「這份 spec 應該有幾個測試」" },
         { label: "STEP-1", meta: "bugfix TodoList 步驟 · 單一 bugfix 檔內 · 永久", note: "dep: 欄互相引用" },
-        { label: "GAP-1", meta: "spec 疑問 · 單一 spec-gaps.md 內 · 編排者單線配 · 永久", note: "有 open 的就代表有項目卡著" },
+        { label: "GAP-1", meta: "spec 疑問 · 單一 spec-gaps.md 內 · 編排者單線配 · 永久", note: "專案表的 GAP 欄印「已結/總數」,不滿就代表有項目卡著" },
       ],
     },
     {
@@ -69,7 +69,7 @@ const CONVENTION = {
       kids: [
         { label: "WAVE-1", meta: "波次 · 單一次展開內 · 編排者算出來 · 用完即棄", note: "把 feature 分幾批送出(同批平行、批間有依賴)—— 不是 feature 數,波次數 <= feature 數" },
         { label: "DEC-1", meta: "批次澄清的裁決 · 單一 build-log 內 · 編排者配 · 永久(供事後查)" },
-        { label: "ASM-1", meta: "待確認假設 · 單一 spec 檔內 · spec subagent 配 · 上閘門後結案", note: "契約層級:設計者自己判斷後繼續推進,閘門再裁" },
+        { label: "ASM-1", meta: "待確認假設 · 單一 spec 檔內 · spec subagent 配 · 永久", note: "契約層級:設計者自己判斷後繼續推進,閘門再裁。裁決不會讓條目消失 —— 條文留在 spec 當紀錄,裁決結果記進 build-log 的「待確認假設彙總」,所以 spec 裡的 ASM 條數是累計、不是未結數" },
         { label: "SELF-1", meta: "自裁記錄 · 單一回報 / 自裁清單內 · spec subagent 配 · 供抽查", note: "實作層級:不進文檔、不上閘門" },
       ],
     },
@@ -297,7 +297,8 @@ function buildProjectTree(designDir) {
     if (existsSync(gapPath)) {
       const g = frontmatter(gapPath);
       const open = (g.body.match(/^\s*[-*]\s*狀態\s*[::]\s*open/gim) ?? []).length;
-      gapCell = `${open}/${countIds(g.body, "GAP", "G")}`;
+      const totalGaps = countIds(g.body, "GAP", "G");
+      gapCell = `${totalGaps - open}/${totalGaps}`; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
     }
 
     let waveCell = "-";
@@ -352,7 +353,8 @@ function buildProjectTree(designDir) {
     if (existsSync(gapPath)) {
       const g = frontmatter(gapPath);
       const open = (g.body.match(/^\s*[-*]\s*狀態\s*[::]\s*open/gim) ?? []).length;
-      gapCell = `${open}/${countIds(g.body, "GAP", "G")}`;
+      const totalGaps = countIds(g.body, "GAP", "G");
+      gapCell = `${totalGaps - open}/${totalGaps}`; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
     }
     if (genh.length || gbugs.length || gapCell !== "-") {
       rows.push({
@@ -432,8 +434,10 @@ function renderProject(designDir) {
 
   console.log(
     dim(
-      "\nF 已建/規劃 · E 優化 · B 缺陷(份數) │ LAW+EX = 照 spec 應有的測試數(分母,非實跑數)" +
-        "\nASM 待閘門裁決的假設 · GAP 未結/總數(未結 = 有項目卡著) · WAVE 委派分幾批送出(非 feature 數)",
+      "\n所有 n/m 一律「已達成/總數」——不滿就是有待辦(F 已建/規劃 · GAP 已結/總數)" +
+        "\nE 優化 · B 缺陷(份數) │ LAW+EX = 照 spec 應有的測試數(分母,非實跑數)" +
+        "\nASM spec 裡留過的契約級假設(累計,不是未結數——裁決結果在 build-log 的「待確認假設彙總」)" +
+        "\nWAVE 委派分幾批送出(非 feature 數)",
     ),
   );
 }

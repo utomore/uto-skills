@@ -1,7 +1,7 @@
 {
   "name": "dev-flow",
   "description": "三層階梯式 + spec 驅動三角色的文檔驅動開發流程 skills:主架構(system-design,含子系統完整名冊與開發階段表)、子系統架構(subsys-design,含模組群、Feature 契約卡、契約就緒度十條、跨子系統契約對帳與共用契約 G-C00x)、spec 設計(spec-design:feature 與 enhance 兩種模式,產出 spec 文檔 + 骨架:型別與簽名完整、本體 undefined)、測試(spec-qa:只讀 spec 的數據與介面,把 Laws 翻成 property test)、實作(spec-impl:只填骨架、禁碰測試,enhance 追加基準線與 scope 紀律;bugfix 單角色)、編排(spec-build:單份 spec 的 spec 批准閘門 → qa ∥ impl → 跑測試 → 仲裁;subsys-build:整個子系統的批次澄清 → 波次委派 → 階段閘門)、架構檢測與設計文檔查詢(arch-audit: system|subsys|feature|status;status 盤點開發階段、名冊上未建檔的子系統與未開工的模組群,scan-status.mjs 另有 --subsys / --doc 查歸屬、介面、共用契約與反向依賴)、整合發 PR(branch-pr)、專案導讀(study)",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "author": {
     "name": "utomore"
   },

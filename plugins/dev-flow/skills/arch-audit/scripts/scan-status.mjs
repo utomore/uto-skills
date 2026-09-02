@@ -687,8 +687,13 @@ function parseSubsysBriefs(text, roster) {
         continue;
       }
       if (!inSection) continue;
-      const token = normName(heading[2]).split(/[\s—–-]+/)[0].toLowerCase();
-      cur = roster.includes(token) ? token : null;
+      // slug 本身是 kebab-case,不能拿 `-` 當切分字元(magic-farmer 會被切成 magic)。
+      // 改成「名冊 slug 出現在標題開頭,後面接結尾/空白/破折號」,多個命中時取最長的。
+      const name = normName(heading[2]).toLowerCase();
+      cur =
+        roster
+          .filter((r) => name === r || new RegExp(`^${r}(?:[\\s—–]|-\\s)`).test(name))
+          .sort((a, b) => b.length - a.length)[0] ?? null;
       continue;
     }
     if (!inSection || !cur || briefs.has(cur)) continue;

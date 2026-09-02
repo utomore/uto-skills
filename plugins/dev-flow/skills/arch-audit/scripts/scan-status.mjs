@@ -262,11 +262,16 @@ function scanTaskDoc(path, subsystem, kind) {
 // 子系統
 const subsysRoot = join(designDir, "subsystems");
 const subsysDirs = listDirs(subsysRoot);
-const subsysDocs = new Map(); // slug → { designMeta, designFile, roadmap, ids: Map(id → row) }
+const subsysDocs = new Map(); // slug → { designMeta, designFile, roadmap, parts, ids: Map(id → row) }
+
+/** 子系統資料夾根層的固定檔案;其餘 .md 只能是 design.md 的分冊。 */
+const SUBSYS_CORE_FILES = new Set(["design.md", "build-log.md", "spec-gaps.md"]);
+/** 分冊的合法 type(doc-lifecycle.md「子系統文檔的分冊」是權威,改這裡之前先改那份)。 */
+const PART_TYPES = new Set(["contract-part", "decisions"]);
 
 for (const slug of subsysDirs) {
   const dir = join(subsysRoot, slug);
-  const entry = { designMeta: null, designFile: null, roadmap: { phases: 0, features: [] }, cards: new Set(), groups: [], ids: new Map() };
+  const entry = { designMeta: null, designFile: null, roadmap: { phases: 0, features: [] }, cards: new Set(), groups: [], parts: [], ids: new Map() };
   subsysDocs.set(slug, entry);
 
   const designPath = join(dir, "design.md");
@@ -287,6 +292,25 @@ for (const slug of subsysDirs) {
     entry.roadmap = parseRoadmap(text);
     entry.cards = parseCards(text);
     entry.groups = parseGroups(text);
+  }
+
+  // ---- design.md 的分冊:契約章節太大時拆出去的檔案(type: contract-part / decisions)
+  // 它們沒有編號、由 `parent` 指回子系統。不認得它們的話,子系統契約有一半是隱形的 ——
+  // A3 的契約卡對帳、/subsys 的契約檢查都會在 design.md 裡找不到條目而誤判「契約缺漏」。
+  for (const f of listMd(dir)) {
+    if (SUBSYS_CORE_FILES.has(f)) continue;
+    const p = join(dir, f);
+    const relP = rel(p);
+    const { meta } = parseFrontmatter(readFileSync(p, "utf8"));
+    if (!meta || !PART_TYPES.has(String(meta.type))) {
+      archIssues.push(
+        `${relP}:子系統資料夾下的檔案不在慣例內 —— 是 design.md 的分冊就補 frontmatter` +
+          `(type: contract-part 或 decisions、parent: ${slug}),否則搬到 features/ 或 enhancements/ 並鑄號`,
+      );
+      continue;
+    }
+    if (meta.parent !== slug) archIssues.push(`${relP}:parent(${meta.parent ?? "缺"})與所在子系統(${slug})不一致`);
+    entry.parts.push({ file: relP, type: String(meta.type), description: meta.description ?? "" });
   }
 
   for (const [sub, kind] of Object.entries(TASK_KINDS)) {
@@ -812,6 +836,7 @@ for (const slug of subsysDirs) {
     done: total === 0 ? "-" : String(done),
     openEB: `${openE}E/${openB}B`,
     progress: total === 0 ? "-" : `${done}/${total} (${Math.round((done / total) * 100)}%)`,
+    parts: entry.parts,
     hasRoadmap: total > 0,
     built: true,
     groupRows: groups,
@@ -1079,6 +1104,11 @@ if (query.subsys) {
   console.log(`主軸  ${srow?.description ?? "-"}`);
   console.log(`狀態  status ${srow?.status ?? "-"}  |  模組群 ${srow?.groups ?? "-"}  |  階段 ${srow?.phases ?? "-"}  |  features ${srow?.features ?? "-"}  |  契約卡 ${srow?.cards ?? "-"}  |  進度 ${srow?.progress ?? "-"}`);
   console.log(`檔案  ${entry.designFile ?? "⚠ 缺 design.md"}`);
+  if (entry.parts.length)
+    console.log(
+      `分冊  ${entry.parts.length} 份(design.md 的延伸,契約條目可能住在這裡,對帳要一起讀):\n` +
+        entry.parts.map((p) => `      ${p.file}  [${p.type}]${p.description ? `  ${p.description}` : ""}`).join("\n"),
+    );
 
   if (entry.groups.length > 0) {
     console.log(`\n=== 模組群(${entry.groups.length})===`);

@@ -40,10 +40,25 @@
  *   --verbose          出處印完整清單(預設:已進主 branch 的只印「已在 main」,
  *                      因為那些是已定案的號;真正要看的是還沒進主 branch 的那些)
  *   --include-archive  連 archive/ 底下的存檔文檔一起算
+ *   --claim <組> --slug <kebab-slug>
+ *                      **配號並當場鎖住**:算出該組下一個可用號,把檔案建在慣例位置
+ *                      (只寫 frontmatter 骨架),印出路徑。組寫 `G-C` / `G-E` / `G-B` /
+ *                      `ADR` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。
+ *
+ * **`--claim` 是這套流程唯一的鑄號動作**,所有角色、所有分支、所有 worktree 都走它。
+ * 「先算號、待會再建檔」中間那段空窗就是撞號發生的地方 —— 掃描看得到的是**檔案**,
+ * 你腦中記著的號碼別人看不到。所以配號與建檔必須是同一個動作,不留空窗。
+ *
+ * 它只管**文檔 id**(F / E / B / G-C / G-E / G-B / ADR)。檔案**內部**的條目編號
+ * (LAW- / REG- / EX- / ASM- / GAP- / DEC- / SELF- / WAVE- / STEP-)不歸它管,
+ * 那不是限制而是正確:那些號只在單一檔案內唯一,兩條分支各自在自己的 spec 裡寫 LAW-3
+ * 本來就不是撞號,寫的人手上就有那個檔案,繞一趟腳本只是多一次 I/O。
+ * 開發階段 `S0`–`Sn` 同理:它們住在 `system.md` 同一張表裡,兩條分支各加一個 S4 會產生
+ * **真的 merge 衝突** —— 會響的東西不需要腳本。
  *
  * Exit code:0 = 沒有撞號 / 1 = 有撞號 / 2 = 路徑不存在或不是 git repo
  */
-import { readdirSync, existsSync, statSync } from "node:fs";
+import { readdirSync, existsSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -61,7 +76,10 @@ const OPT_QUIET = flag("--quiet");
 const OPT_VERBOSE = flag("--verbose");
 const OPT_ARCHIVE = flag("--include-archive");
 const OPT_GROUP = opt("--group");
-const positional = argv.filter((a, i) => !a.startsWith("--") && argv[i - 1] !== "--group");
+const OPT_CLAIM = opt("--claim");
+const OPT_SLUG = opt("--slug");
+const VALUE_FLAGS = new Set(["--group", "--claim", "--slug"]);
+const positional = argv.filter((a, i) => !a.startsWith("--") && !VALUE_FLAGS.has(argv[i - 1]));
 const DESIGN_DIR = resolve(positional[0] ?? ".design");
 
 // ---------------------------------------------------------------- git 薄封裝
@@ -231,6 +249,77 @@ const nextIdOf = (g) => (g.includes("/") ? `${g.split("/")[1]}${pad3(nextFree.ge
 if (OPT_NEXT) {
   for (const g of groups) console.log(`${g}\t${nextIdOf(g)}`);
   process.exit(collisions.length ? 1 : 0);
+}
+
+// ---------------------------------------------------------------- --claim:配號 + 建檔(同一個動作)
+
+if (OPT_CLAIM) {
+  if (!OPT_SLUG || !/^[a-z0-9][a-z0-9-]*$/.test(OPT_SLUG)) {
+    console.error("--claim 要同時給 --slug <kebab-slug>(小寫英數與連字號)");
+    process.exit(2);
+  }
+  // 該組還一個號都沒有時,nextFree 不會有它 —— 從 001 起算
+  const g = OPT_CLAIM;
+  if (!nextFree.has(g)) nextFree.set(g, 1);
+  const id = nextIdOf(g);
+
+  // 慣例位置(doc-lifecycle.md「.design/ 資料夾樹」是權威,改這裡之前先改那份)
+  const GLOBAL_DIR = { "G-C": "contracts", "G-E": "enhancements", "G-B": "bugfixes", ADR: "adr" };
+  const SUBSYS_DIR = { F: "features", E: "enhancements", B: "bugfixes" };
+  const DOC_TYPE = { "G-C": "contract", "G-E": "enhance", "G-B": "bugfix", ADR: "adr", F: "feature", E: "enhance", B: "bugfix" };
+  let dir;
+  let docType;
+  let parentLine;
+  if (GLOBAL_DIR[g]) {
+    dir = join(DESIGN_DIR, GLOBAL_DIR[g]);
+    docType = DOC_TYPE[g];
+    parentLine = g === "ADR" ? "parent: system" : "subsystems: []            # 受影響的子系統,至少兩個";
+  } else if (/^[^/]+\/[FEB]$/.test(g)) {
+    const [subsys, kind] = g.split("/");
+    dir = join(DESIGN_DIR, "subsystems", subsys, SUBSYS_DIR[kind]);
+    docType = DOC_TYPE[kind];
+    parentLine = `parent: ${subsys}`;
+  } else {
+    console.error(`認不得的組:${g}。用 G-C / G-E / G-B / ADR / <子系統>/F / <子系統>/E / <子系統>/B`);
+    process.exit(2);
+  }
+
+  const file = join(dir, `${id}-${OPT_SLUG}.md`);
+  if (existsSync(file)) {
+    console.error(`已經存在:${file}`);
+    process.exit(2);
+  }
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; // 本地日期,不用 UTC(檔案日期跟開發者的日曆一致)
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    file,
+    [
+      "---",
+      `id: ${id}`,
+      `type: ${docType}`,
+      `title: ${OPT_SLUG}`,
+      "description:              # 一句話:這份文檔在做什麼",
+      "status: draft",
+      `created: ${today}`,
+      `updated: ${today}`,
+      parentLine,
+      "---",
+      "",
+      `# ${id} ${OPT_SLUG}`,
+      "",
+      "> 本檔由 scan-ids.mjs --claim 建立,只鑄了號與 frontmatter 骨架。",
+      "> 內容由對應的 design skill 填寫;frontmatter 的完整規格見 doc-lifecycle.md。",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+  console.log(`${id}\t${toPosix(relative(process.cwd(), file))}`);
+  if (collisions.length) {
+    console.error(`\n注意:掃描過程中發現 ${collisions.length} 組既有撞號(與本次配號無關,但要處理)。`);
+    process.exit(1);
+  }
+  process.exit(0);
 }
 
 if (!OPT_QUIET) {

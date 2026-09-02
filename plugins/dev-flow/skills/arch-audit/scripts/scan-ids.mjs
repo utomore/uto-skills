@@ -27,12 +27,19 @@
  * 掃不到的最後一個縫:**別台機器上未 push 的工作**。沒有任何本地掃描看得到它 ——
  * 那個縫由 `lint-ids.mjs` 的撞號檢查在 merge 後補上(讓它響,而不是靜默)。
  *
+ * **`archive/` 底下不算數**:存檔是舊設計樹的快照,它的號碼已經被現役文檔接手了
+ * (`.design/archive/<日期>/` 整棵樹、`subsystems/<slug>/archive/` 都算)。把存檔算進來會把
+ * 「同一個號在存檔與現役各一份」報成撞號 —— 那是正常的世代交替,不是撞號。略過幾份會明說。
+ *
  * 用法:
  *   node scan-ids.mjs [.design 路徑]     預設 ./.design
  *   --fetch            掃描前先 git fetch --quiet(預設不做:離線可用,也不擅自連網)
  *   --group <前綴>     只看某一組(G-C、G-E、G-B、ADR、<subsys>/F …)
  *   --next             只印每組的下一個可用號,一行一組(建檔時用這個)
  *   --quiet            只印撞號與下一個可用號,不印全表
+ *   --verbose          出處印完整清單(預設:已進主 branch 的只印「已在 main」,
+ *                      因為那些是已定案的號;真正要看的是還沒進主 branch 的那些)
+ *   --include-archive  連 archive/ 底下的存檔文檔一起算
  *
  * Exit code:0 = 沒有撞號 / 1 = 有撞號 / 2 = 路徑不存在或不是 git repo
  */
@@ -51,6 +58,8 @@ const opt = (name) => {
 const OPT_FETCH = flag("--fetch");
 const OPT_NEXT = flag("--next");
 const OPT_QUIET = flag("--quiet");
+const OPT_VERBOSE = flag("--verbose");
+const OPT_ARCHIVE = flag("--include-archive");
 const OPT_GROUP = opt("--group");
 const positional = argv.filter((a, i) => !a.startsWith("--") && argv[i - 1] !== "--group");
 const DESIGN_DIR = resolve(positional[0] ?? ".design");
@@ -81,21 +90,27 @@ function parseDocPath(relPath) {
   if (!m) return null;
   const [, id, slug] = m;
   const num = Number(id.slice(-3));
+  const archived = parts.includes("archive");
   if (id.startsWith("G-") || id.startsWith("ADR-")) {
-    return { group: id.slice(0, -3).replace(/-$/, ""), id, num, slug };
+    return { group: id.slice(0, -3).replace(/-$/, ""), id, num, slug, archived };
   }
   const i = parts.lastIndexOf("subsystems");
   const subsys = i >= 0 && parts.length > i + 1 ? parts[i + 1] : "?";
-  return { group: `${subsys}/${id[0]}`, id, num, slug };
+  return { group: `${subsys}/${id[0]}`, id, num, slug, archived };
 }
 
 // ---------------------------------------------------------------- 三個來源
 
 /** group -> id -> slug -> Set<出處> */
 const found = new Map();
+const archivedSeen = new Set();
 
 function record(parsed, where) {
   if (!parsed) return;
+  if (parsed.archived && !OPT_ARCHIVE) {
+    archivedSeen.add(`${parsed.id}-${parsed.slug}`);
+    return;
+  }
   if (OPT_GROUP && parsed.group !== OPT_GROUP) return;
   const byId = found.get(parsed.group) ?? new Map();
   const bySlug = byId.get(parsed.id) ?? new Map();
@@ -172,6 +187,30 @@ const GROUP_LABEL = {
   ADR: "架構決策紀錄",
 };
 
+/** 主 branch:已經進去的號就是定案的號,不必列出它散佈在哪五十條分支上。 */
+const baseBranch =
+  git(["symbolic-ref", "--short", "refs/remotes/origin/HEAD"], root ?? ".")
+    ?.trim()
+    .replace(/^origin\//, "") ||
+  ["main", "master"].find((b) => git(["rev-parse", "--verify", "--quiet", b], root ?? ".")) ||
+  null;
+
+/**
+ * 出處的顯示。實跑一個有五十條分支的專案才發現:每個號後面掛五十個 ref 名字,
+ * 輸出會膨脹到十萬字元 —— 「直接呈現出來」就失效了。已進主 branch 的號是**已定案**的,
+ * 出處沒有資訊量;真正要看的是**還沒進主 branch**的那些,而那一組永遠很短。
+ */
+function placeLabel(places) {
+  const arr = [...places];
+  if (OPT_VERBOSE) return arr.join(", ");
+  if (baseBranch && (places.has(baseBranch) || places.has(`origin/${baseBranch}`))) {
+    return `已在 ${baseBranch}`;
+  }
+  const locals = arr.filter((p) => !p.startsWith("origin/"));
+  const shown = locals.length ? locals : arr;
+  return shown.length > 5 ? `${shown.slice(0, 5).join(", ")} …+${shown.length - 5}` : shown.join(", ");
+}
+
 const groups = [...found.keys()].sort();
 const collisions = [];
 const nextFree = new Map();
@@ -205,18 +244,22 @@ if (!OPT_QUIET) {
       const dup = bySlug.size > 1;
       for (const [slug, places] of bySlug) {
         const mark = dup ? "  ← 撞號" : "";
-        console.log(`  ${id}  ${slug.padEnd(28)} ${[...places].join(", ")}${mark}`);
+        console.log(`  ${id}  ${slug.padEnd(28)} ${placeLabel(places)}${mark}`);
       }
     }
     console.log(`  下一個可用:${nextIdOf(g)}`);
   }
 }
 
+if (archivedSeen.size && !OPT_QUIET) {
+  console.log(`\n(略過 archive/ 底下 ${archivedSeen.size} 份存檔文檔——它們的號已由現役文檔接手;要一起算加 --include-archive)`);
+}
+
 if (collisions.length) {
   console.log(`\n撞號 ${collisions.length} 組:`);
   for (const c of collisions) {
     console.log(`  ${c.id} 同時是:`);
-    for (const [slug, places] of c.bySlug) console.log(`    ${slug}  (${[...places].join(", ")})`);
+    for (const [slug, places] of c.bySlug) console.log(`    ${slug}  (${placeLabel(places)})`);
   }
   console.log("\n兩份同號文檔的檔名不同,merge 時不會衝突 —— 必須手動改號並回頭修所有引用。");
   process.exit(1);

@@ -332,7 +332,46 @@ function buildProjectTree(designDir) {
     });
   }
 
-  return { sys, roster, stages, adrs, contracts, rows, built };
+  // ---- 全域任務文檔(G-E / G-B):它們不屬於任何子系統,所以上面的迴圈一列都看不到。
+  // 少了這一列,一個有九份跨子系統優化的專案在這張表上看起來像「全域什麼都沒有」。
+  {
+    const genh = listMd(join(designDir, "enhancements"));
+    const gbugs = listMd(join(designDir, "bugfixes"));
+    let law = 0, ex = 0, asm = 0, legacy = 0;
+    for (const f of genh) {
+      const b = frontmatter(join(designDir, "enhancements", f)).body;
+      const laws = section(b, /^Laws/);
+      const exs = section(b, /^Examples/);
+      if (!laws && !exs) legacy++;
+      law += countIds(laws, "LAW", "REG", "L", "R");
+      ex += countIds(exs, "EX", "E");
+      asm += countIds(section(b, /待確認假設/), "ASM", "A");
+    }
+    let gapCell = "-";
+    const gapPath = join(designDir, "spec-gaps.md");
+    if (existsSync(gapPath)) {
+      const g = frontmatter(gapPath);
+      const open = (g.body.match(/^\s*[-*]\s*狀態\s*[::]\s*open/gim) ?? []).length;
+      gapCell = `${open}/${countIds(g.body, "GAP", "G")}`;
+    }
+    if (genh.length || gbugs.length || gapCell !== "-") {
+      rows.push({
+        name: "(全域 G-)",
+        status: "—",
+        f: "-",
+        e: String(genh.length || "-"),
+        b: String(gbugs.length || "-"),
+        law: legacy && !law ? "舊模板" : String(law || "-"),
+        ex: legacy && !ex ? "舊模板" : String(ex || "-"),
+        asm: String(asm || "-"),
+        gap: gapCell,
+        wave: "-",
+      });
+    }
+    var globalCounts = { enh: genh.length, bugs: gbugs.length };
+  }
+
+  return { sys, roster, stages, adrs, contracts, rows, built, globalCounts };
 }
 
 /** 顯示寬度(CJK 全形字算 2)—— 與 scan-status.mjs 同一份實作 */
@@ -348,7 +387,7 @@ function padTo(s, n, right = false) {
 }
 
 function renderProject(designDir) {
-  const { sys, roster, stages, adrs, contracts, rows, built } = buildProjectTree(designDir);
+  const { sys, roster, stages, adrs, contracts, rows, built, globalCounts } = buildProjectTree(designDir);
 
   // 抬頭:專案 → 階段 → 總計。三行講完「這是什麼、走到哪、有多大」
   console.log(bold(`${sys.meta.title ?? designDir}  ${sys.meta.description ?? ""}`));
@@ -364,7 +403,14 @@ function renderProject(designDir) {
   } else {
     console.log("階段  ⚠ system.md 沒有可解析的「開發階段」表,答不出「還差什麼」");
   }
-  console.log(dim(`子系統 ${built}/${roster.length} 已建  ·  ADR ${adrs.length}  ·  全域契約 ${contracts.length}\n`));
+  // 全域的三種東西各報各的:「全域契約 0」單獨出現時會被讀成「全域什麼都沒有」,
+  // 而同一個專案可能有九份跨子系統的 G-E 正在跑。
+  console.log(
+    dim(
+      `子系統 ${built}/${roster.length} 已建  ·  ADR ${adrs.length}  ·  全域契約 G-C ${contracts.length}` +
+        `  ·  全域優化 G-E ${globalCounts?.enh ?? 0}  ·  全域修復 G-B ${globalCounts?.bugs ?? 0}\n`,
+    ),
+  );
 
   const cols = [
     { k: "name", h: "子系統 / 模組群", right: false },

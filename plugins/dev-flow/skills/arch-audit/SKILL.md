@@ -35,7 +35,7 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 
 | | 回答什麼 |
 |---|---|
-| `id-map.mjs` | **形狀**:有幾個子系統(含未建的)、每個裡面有幾個模組群、各自鑄了多少 F/E/B、spec 有多少 LAW/EX、跑過幾批委派 |
+| `id-map.mjs` | **形狀**:有幾個子系統(含未建的)、每個裡面有幾個模組群、各自鑄了多少 F/E/B、spec 有多少 LAW/EX、跑過幾批委派;抬頭另報 ADR 與**全域三種各幾份**(`G-C` / `G-E` / `G-B`),表尾多一列 `(全域 G-)` —— 全域文檔不屬於任何子系統,沒有這一列的話,一個有九份跨子系統優化的專案在表上看起來會像「全域什麼都沒有」 |
 | `scan-status.mjs` | **細節與不一致**:每份文檔的狀態與依賴、待展開的 feature、未結的 spec-gaps、架構不一致清單、exit code |
 
 `id-map.mjs` 只讀不寫、一律 exit 0(它是定位工具,不做驗收);**exit code 一律以 `scan-status.mjs` 為準**。

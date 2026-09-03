@@ -7,8 +7,8 @@
 **這份很長,不要整份讀。** 用 `arch-audit/scripts/doc-section.mjs` 取需要的節,它會在末尾附上**你沒讀到的章節目錄**(只有標題)——那一段是保險:章節式讀取最危險的失敗模式是「讀到空的,於是以為那條規則不存在」,或「下面這張表過期了,新加的節沒有人讀得到」,兩者都不會報錯。看到目錄裡有可疑的節,再跑一次把它讀進來。
 
 ```
-node "<arch-audit skill 目錄>/scripts/doc-section.mjs" <本檔> <節名>...
-node "<arch-audit skill 目錄>/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
+node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> <節名>...
+node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 ```
 
 | 你要做什麼 | 節名(照抄進上面的指令) |
@@ -89,7 +89,7 @@ node "<arch-audit skill 目錄>/scripts/doc-section.mjs" <本檔> --list     # �
 - 編號**三位數**遞增。**任務文檔與 ADR 一律用這一行鑄號,不准自己數資料夾**:
 
   ```
-  node "<arch-audit skill 目錄>/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
+  node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
   ```
 
   組寫 `G-C` / `G-E` / `G-B` / `ADR` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。它掃過所有分支與 worktree 之後配號,**並當場把檔案建在慣例位置**(只寫 frontmatter 骨架),印出 `<id>\t<路徑>`;內容由你接著填。查現況用不帶 `--claim` 的同一支腳本(`--next` 只印下一個可用號,`--fetch` 連遠端一起看)。

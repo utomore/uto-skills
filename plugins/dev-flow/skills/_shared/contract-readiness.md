@@ -158,7 +158,7 @@ spec 被改的原因有兩類,代價差一個數量級:
 B1 / B2 需要**反向依賴索引**(誰依賴我),那半散在別的資料夾,靠路徑推不出來:
 
 ```
-node "<arch-audit skill 目錄>/scripts/scan-status.mjs" .design --subsys <slug>
+node "<S>/arch-audit/scripts/scan-status.mjs" .design --subsys <slug>
 ```
 
 輸出的「反向依賴」段就是 B1 的候選清單。**腳本只產生索引,不下判斷**——哪些算「正當消費」、哪些算「應該有卻沒有」,逐條對照兩邊的 `design.md` 自己判(紀律見 `design-query.md`)。

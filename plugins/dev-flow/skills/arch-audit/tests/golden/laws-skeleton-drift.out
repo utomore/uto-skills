@@ -1,0 +1,13 @@
+=== spec 文檔違規(3)===
+每條 LAW- / REG- 底下要有「量詞 / 定義域 / 前提 / 觀察點」四個子項,
+觀察點必須用反引號引用一個介面表裡有的識別碼,
+介面表的「骨架位置」欄一律寫 `檔案#符號`(移除的列寫 `-`)。格式見 spec-design/templates/。
+`--skeleton` 開著,所以「骨架位置」還要在專案樹裡指得到:檔案在、符號在、且與同一列的簽名同名。
+
+- drift/features/F001-drift.md:15  骨架位置  src/Thing.hs 裡找不到符號 `gone`(骨架被改名、或這一列指到了別的地方)
+  | `gone :: Int -> Int` | 符號被改名了 | `src/Thing.hs#gone` |
+- drift/features/F001-drift.md:16  骨架位置  這一列的簽名是 `other`,骨架位置卻指向 `keep`
+  | `other :: Int -> Int` | 簽名與骨架符號不同名 | `src/Thing.hs#keep` |
+- drift/features/F001-drift.md:17  骨架位置  骨架檔案不存在:src/Missing.hs(相對於 drift)
+  | `far :: Int -> Int` | 檔案不存在 | `src/Missing.hs#far` |
+__exit__ 1

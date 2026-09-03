@@ -6,7 +6,30 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/doc-lifecycle.md`(**對帳要全份**:資料夾樹、引用格式、權威來源與 frontmatter 規格)、`../_shared/boundary-rules.md`(檢查知識歸屬與依賴邊的判準)與 `../_shared/testing-policy.md`(檢查測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;要查文檔關係、反向依賴、共用契約,或要從程式碼路徑反查文檔時,另讀 `../_shared/design-query.md`(`scan-status.mjs` 的 `--subsys` / `--doc` / `--file` 查詢能力與界線);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+## 先讀什麼(**一批送出,不要一個一個開**)
+
+`<S>` = 本 plugin 的 `skills/` 目錄,**整場對話只解析一次**(規則見 `../_shared/conventions.md`「腳本目錄」):
+`dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-flow*/skills/arch-audit/scripts' 2>/dev/null | head -1)")"`
+
+拿到 `<S>` 後,把下面**必讀**與成立的**條件式**項目放進**同一則訊息**一次讀完(多個 Read / Bash 併發)。**禁止讀一個、想一下、再讀下一個**——這一段是純載入,拆成幾趟只是把幾次 prefill 疊起來。
+
+**必讀**
+
+| 讀什麼 | 為什麼 |
+|---|---|
+| `../_shared/conventions.md` | 核心慣例:資訊抽象邊界規範、腳本目錄、**重跑紀律** |
+| `../_shared/doc-lifecycle.md` | **對帳要全份**:資料夾樹、引用格式、權威來源與 frontmatter 規格 |
+| `../_shared/boundary-rules.md` | 檢查知識歸屬與依賴邊的判準 |
+| `../_shared/testing-policy.md` | 檢查測試後門的判準 |
+
+**scope 是 `status` 時,上表只讀 `conventions.md`。** 那個 scope 只跑腳本、不讀文檔全文、不做判準比對,另外三片一條都用不到。
+
+**條件式**(先判斷條件,成立的**併進上面同一批**)
+
+- scope 是 subsys / feature → `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準)
+- scope 是 system / subsys **且**專案有程式碼知識圖 → `../_shared/codegraph.md`
+- 要查文檔關係、反向依賴、共用契約,或從程式碼路徑反查文檔 → `../_shared/design-query.md`
+- **收尾時** → `../_shared/anchor.md`(定錨區塊格式)
 
 ## Scope 判斷
 
@@ -25,8 +48,8 @@ user-invocable: true
 執行本 skill 目錄下的**兩支**腳本,順序固定:
 
 ```
-node "<本 SKILL.md 所在目錄>/scripts/id-map.mjs"      [design目錄,預設 ./.design]   ← 先跑,定位
-node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 ./.design]   ← 再跑,細節
+node "<S>/arch-audit/scripts/id-map.mjs"      [design目錄,預設 ./.design]   ← 先跑,定位
+node "<S>/arch-audit/scripts/scan-status.mjs" [design目錄,預設 ./.design]   ← 再跑,細節
 ```
 
 **`id-map.mjs` 的輸出整張表原樣貼在回報最前面**,一個字不改、不摘要、不轉述——它是 system → 子系統 → 模組群的階層表,開發者掃一眼就知道專案長什麼樣、走到哪;改寫成散文只會把它變回一段要讀的字。貼完之後才接 `scan-status.mjs`。
@@ -63,9 +86,9 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 **要聚焦某一個子系統或某一份文檔**時,同一支腳本有查詢模式(能力、exit code 語意與各角色界線見 `../_shared/design-query.md`):
 
 ```
-node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --subsys <slug>   # 該子系統 + 進出依賴 + 反向依賴
-node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --doc <id>        # 單一文檔:歸屬 / 介面 / 契約 / 正反向依賴
-node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --file <path>     # 反查程式碼路徑:歸哪個子系統、被哪些 F/E/B 動過
+node "<S>/arch-audit/scripts/scan-status.mjs" .design --subsys <slug>   # 該子系統 + 進出依賴 + 反向依賴
+node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <id>        # 單一文檔:歸屬 / 介面 / 契約 / 正反向依賴
+node "<S>/arch-audit/scripts/scan-status.mjs" .design --file <path>     # 反查程式碼路徑:歸哪個子系統、被哪些 F/E/B 動過
 ```
 
 `--doc` / `--file` 的 exit code 是「有沒有查到」,**不是驗收判準**——盤點模式那個才是。旗標與 exit code 的數值跑 `--help`。
@@ -75,24 +98,29 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --file <path>
 **另外三種用法**(都只讀不寫、不影響本 scope 的 exit code)。**每一支都吃 `--help`,旗標與 exit code 問它,不要問這份文檔**:
 
 ```
-node "<本 SKILL.md 所在目錄>/scripts/id-map.mjs"                  不帶路徑:編號體系本身的樹(哪一層鑄哪些號、誰配、活多久)
-node "<本 SKILL.md 所在目錄>/scripts/lint-ids.mjs" .design        檢查編號有沒有違反註冊表
-node "<本 SKILL.md 所在目錄>/scripts/lint-laws.mjs" .design       檢查 Laws 四格、觀察點可觀察性與骨架位置寫法
-node "<本 SKILL.md 所在目錄>/scripts/scan-ids.mjs" .design        跨分支 / worktree 盤點已佔用的編號
-node "<本 SKILL.md 所在目錄>/scripts/doc-section.mjs" --verify ../..   檢查各 skill 載入行點名的章節是否還存在
-node "<本 SKILL.md 所在目錄>/scripts/lint-commands.mjs" ../..     檢查文檔裡寫的指令與旗標,腳本本人還認不認得
+node "<S>/arch-audit/scripts/id-map.mjs"                  不帶路徑:編號體系本身的樹(哪一層鑄哪些號、誰配、活多久)
+node "<S>/arch-audit/scripts/lint-ids.mjs" .design        檢查編號有沒有違反註冊表
+node "<S>/arch-audit/scripts/lint-laws.mjs" .design       檢查 Laws 四格、觀察點可觀察性與骨架位置寫法
+node "<S>/arch-audit/scripts/lint-laws.mjs" .design --skeleton .   追加:骨架位置在專案樹裡真的指得到
+node "<S>/arch-audit/scripts/lint-cross-spec.mjs" .design 跨 spec 對帳:同名不同定義、新增依賴邊清單
+node "<S>/arch-audit/scripts/scan-ids.mjs" .design        跨分支 / worktree 盤點已佔用的編號
+node "<S>/arch-audit/scripts/doc-section.mjs" --verify "<S>"   檢查各 skill 載入行點名的章節是否還存在
+node "<S>/arch-audit/scripts/lint-commands.mjs" "<S>"     檢查文檔裡寫的指令與旗標,腳本本人還認不認得
 ```
 
 `lint-commands.mjs` 的判準是**腳本自己的 `--help`**,不另外維護旗標清單(另外維護的那份就是下一個會漂的東西)。它只查「認不認得」,不查「用得對不對」——後者是人的判斷。
 
-**改過 `scripts/` 底下任何東西之後跑 `bash "<本 SKILL.md 所在目錄>/tests/run.sh"`**:fixture 回歸(14 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 七支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
+**改過 `scripts/` 底下任何東西之後跑 `bash "<S>/arch-audit/tests/run.sh"`**:fixture 回歸(14 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 七支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
 
 `doc-section.mjs` 平常是**各 skill 自己用來只讀 `_shared/` 指定章節**的(載入行裡就寫著那一道指令);`--verify` 是給本 skill 的:分片的節被改名或刪掉時,載入行不會報錯,只會讓那個 skill 從此少讀一塊,這一關把它叫出來。
 
 - **開發者問「這些 `S1` / `LAW-3` / `WAVE-2` 到底是什麼」** → `id-map.mjs` 不帶參數,把 `doc-lifecycle.md`「編號與縮寫註冊表」畫成流程形狀的樹;或在專案模式加 `--legend` 兩張一起出
 - **接手舊專案、或改過慣例之後** → `lint-ids.mjs`:揪出裸寫的「單字母+數字」。被禁的形式只准出現在反引號裡(那代表在「講這個寫法」),裸寫就是真的拿它當識別碼。專案有自己的文檔前綴時用 `--allow '^N\d{3}$'` 帶進來
 - **要給新文檔配號、或懷疑平行開發撞了號** → `scan-ids.mjs`:取「當前工作區 + 每個 worktree 的 `.design/`(含未 commit)+ 每條分支的樹」三者聯集,列出每個號被誰佔走,並給出每組的下一個可用號(`--next` 只印這個,`--fetch` 連遠端一起看)。已進主 branch 的號只印「已在 main」——那些是定案的號,出處沒有資訊量,真正要看的是還沒進主 branch 的那幾個(要完整清單加 `--verbose`);`archive/` 底下的存檔文檔不算數(號已由現役文檔接手),略過幾份會明說,`--include-archive` 可以一起算。**只掃資料夾一定會漏**:另一條分支已鑄出 `G-C003` 未 merge、或另一個 worktree 正在寫 `G-C003` 未 commit,工作區都看不到,而兩份 `G-C003-<不同 slug>.md` 檔名不同、merge 不衝突,會靜默地兩個都落地。全域 `G-` 與 `ADR` 是全專案共用一組計數器,只要有兩條線在跑就會撞,配號前必跑
-- **spec 交付前、或接手舊專案的 spec** → `lint-laws.mjs`:三條規則。(1) 每條 `LAW-` / `REG-` 要有「量詞 / 定義域 / 前提 / 觀察點」四格;(2) 觀察點必須引用得到同一份文檔介面表裡的識別碼——抓的是**觀察點指向不存在的觀察手段**(引用了內部符號、或整句沒引用任何介面);(3) 介面表的「骨架位置」欄一律 `檔案#符號`,**寫成 `檔案:行號` 會被擋**(行號在 impl 填完本體就往下移,而沒有任何角色負責回頭修它;`-` 保留給 enhance 的「移除」列)。第二條是**下限不是上限**:law 只要提到一個真的存在的介面就過得了,「那個介面真的看得見這件事嗎」機器判不了,那一關靠填格的人——腳本的價值是讓「懶得填」與「填不出來」再也混不過去
+- **一波多份 spec 一起交付前、或閘門要做跨 feature 對帳** → `lint-cross-spec.mjs`:兩件事。(1) **同名不同定義**——兩份 spec 都以「新增」宣告同一個型別 / 欄位 / 簽名,而定義文字不同(影響 exit code);一邊是「修改 / 移除」的成對出現屬正常演進,只列進提示。(2) **新增的依賴邊清單**——把各份 spec「依賴方向」段宣告的邊蒐集起來,標出兩端名字有沒有出現在所屬 `design.md` 裡(**候選清單,不影響 exit code**:`design.md` 可能用別的寫法表達同一條邊,納不納進宣告是閘門上的裁決)。`--subsys` / `--docs` 可以把範圍縮到一個子系統或一波。**只有編排者站得到這個位置**:spec subagent 互相不可見,qa 與 impl 各自只讀分到的那一份,跨 feature 的矛盾在別的角色眼裡完全不存在
+- **spec 交付前、或接手舊專案的 spec** → `lint-laws.mjs`:三條規則,加 `--skeleton <專案根>` 開第四條。(1) 每條 `LAW-` / `REG-` 要有「量詞 / 定義域 / 前提 / 觀察點」四格;(2) 觀察點必須引用得到同一份文檔介面表裡的識別碼——抓的是**觀察點指向不存在的觀察手段**(引用了內部符號、或整句沒引用任何介面);(3) 介面表的「骨架位置」欄一律 `檔案#符號`,**寫成 `檔案:行號` 會被擋**(行號在 impl 填完本體就往下移,而沒有任何角色負責回頭修它;`-` 保留給 enhance 的「移除」列)。第二條是**下限不是上限**:law 只要提到一個真的存在的介面就過得了,「那個介面真的看得見這件事嗎」機器判不了,那一關靠填格的人——腳本的價值是讓「懶得填」與「填不出來」再也混不過去。
+
+  **第 4 條(`--skeleton`)**:把「骨架位置」的 `檔案#符號` 拿去專案樹裡對——檔案在不在、符號在不在、與同一列的簽名是不是同一個名字。逐字比對簽名是跨語言的事,機器判不了;但這三種漂移判得了,而且它們**不會產生任何錯誤訊息**——骨架照樣編得過,只是文檔指到了別的地方。**不加這個旗標時不會跑第 4 條**,摘要會明說(沒跑跟對得上,在輸出上長得一樣)
 
 ---
 
@@ -102,7 +130,7 @@ node "<本 SKILL.md 所在目錄>/scripts/lint-commands.mjs" ../..     檢查文
 2. **有程式碼知識圖就先跑圖掃描**(system / subsys scope):照 `../_shared/codegraph.md` 判定可用性,通過就執行
 
    ```
-   node "<本 SKILL.md 所在目錄>/scripts/scan-graph.mjs" .design [--subsys <slug>]
+   node "<S>/arch-audit/scripts/scan-graph.mjs" .design [--subsys <slug>]
    ```
 
    它給的是**線索**:子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單、架構 hub。腳本印出的「⚠ 影響結論可信度」整段要**原樣轉達給開發者**——圖是無向建置、過期、或對映覆蓋率過低時,任何基於它的結論都不能採信,先修再談。沒有圖(或判定沒過)就照下面各 scope 的原方法做,不提也不擋

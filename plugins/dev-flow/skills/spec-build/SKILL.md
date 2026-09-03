@@ -6,7 +6,27 @@ user-invocable: true
 
 # /spec-build — 單份 spec 的委派執行迴圈(orchestrator 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審要用)與 `../_shared/delegation.md`(**委派模式共通契約**);要建或改 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 的〈架構文檔〉一節,用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔` 取(**不要整份讀**);目標 spec 帶「待確認假設」段落時,另讀 `../_shared/boundary-rules.md`(層級複審用);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+## 先讀什麼(**一批送出,不要一個一個開**)
+
+`<S>` = 本 plugin 的 `skills/` 目錄,**整場對話只解析一次**(規則見 `../_shared/conventions.md`「腳本目錄」):
+`dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-flow*/skills/arch-audit/scripts' 2>/dev/null | head -1)")"`
+
+拿到 `<S>` 後,把下面**必讀**與成立的**條件式**項目放進**同一則訊息**一次讀完(多個 Read / Bash 併發)。**禁止讀一個、想一下、再讀下一個**——這一段是純載入,拆成幾趟只是把幾次 prefill 疊起來。
+
+**必讀**
+
+| 讀什麼 | 為什麼 |
+|---|---|
+| `../_shared/conventions.md` | 核心慣例、腳本目錄、**重跑紀律** |
+| `../_shared/spec-roles.md` | **三角色契約**——你是那一片裡的「編排者」 |
+| `../_shared/orchestration.md` | **骨架快照與仲裁的裁決處置,你的職責** |
+| `../_shared/delegation.md` | **委派模式共通契約** |
+
+**條件式**(先判斷條件,成立的**併進上面同一批**)
+
+- 目標 spec 帶「待確認假設」段落 → `../_shared/delegation-design.md`(欄位格式)+ `../_shared/boundary-rules.md`(層級複審)。**沒有這一段就兩片都不讀**——單獨跑的 `/spec-build` 目標多半是互動模式寫出來的 spec,不會有這一段
+- 要建或改 `spec-gaps.md` → `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔`(**不要整份讀**)
+- **收尾時** → `../_shared/anchor.md`(定錨區塊格式)
 
 ## 目標
 
@@ -38,7 +58,7 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
 ## 1. 確定目標 spec
 
 - 開發者有指定(`F001` / `auth/F001` / `E001` / `G-E001`,或檔名、路徑)→ 找到對應檔案;只給編號而多個子系統都有時,列出候選讓開發者確認
-- 沒指定 → 執行 `node "<arch-audit skill 目錄>/scripts/scan-status.mjs" .design` 列出未完成項目,用 AskUserQuestion 讓開發者選
+- 沒指定 → 執行 `node "<S>/arch-audit/scripts/scan-status.mjs" .design` 列出未完成項目,用 AskUserQuestion 讓開發者選
 
 讀:目標 spec 全文 + 骨架檔案 + `.design/system.md` + 所屬子系統的 `design.md` + `related-adr`。**不相關的子系統不讀。**
 
@@ -46,8 +66,12 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
 
 1. spec 有「Laws」與「Examples」兩段,且不是空的——**沒有 law 就沒有東西可以翻譯成測試**,qa 只能腦補
 2. spec 有「骨架」段,列出的檔案都存在
-3. **骨架編譯 / 型別檢查通過**:自己跑一次。編不過的骨架,qa 拿不到能 import 的東西
-4. spec「介面」表(enhance 是「數據與介面變動」表)每一條的簽名,在骨架檔案裡找得到**逐字相同**的原文
+3. **骨架編譯 / 型別檢查通過**。`/spec-design` 剛在同一場對話裡交付過這份骨架、而且**之後沒有人動過那些檔案**時,直接沿用它收尾回報的編譯結果(`conventions.md`「重跑紀律」);不是同一場對話、或中間動過檔案,才自己跑一次。編不過的骨架,qa 拿不到能 import 的東西
+4. spec「介面」表(enhance 是「數據與介面變動」表)每一條的簽名,在骨架檔案裡找得到**逐字相同**的原文。**先跑腳本**把機械性的那三種漂移(檔案不存在、符號不存在、指到別的符號)一次抓完,剩下的逐字比對才用眼睛:
+
+   ```
+   node "<S>/arch-audit/scripts/lint-laws.mjs" .design --skeleton .
+   ```
 5. `spec-gaps.md` 沒有指向本文檔的 `open` 條目——有的話代表上一輪還有 spec 沒修完,先處理
 
 不過關時:列出缺什麼,告知開發者走 `/spec-design` 的更新模式補齊,然後結束。
@@ -59,7 +83,13 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
 1. spec 的**目的、介面表、Laws、Examples** 摘要——重點是 Laws 與 Examples,那是驗收標準的可執行形式
 2. 骨架檔案清單與編譯結果
 3. **spec 的「不可逆決定」段逐條列出**(存檔格式、對外 API、FFI 邊界、資料 schema),每條附文檔裡寫的被否決替代方案與否決理由。**這一項不可省略**:依定義它們是整份 spec 裡最貴的決定,但它們是以**既定事實**的形式寫在文檔裡,不是「待確認假設」——不主動搬上議程就永遠不會有人問到。無則明說「無不可逆決定」
-4. **spec 的「新增的依賴邊」vs `design.md` 宣告的依賴**做一次 diff。**這是機械比對**:不在宣告內的每一條都列出來(哪個模組 → 哪個模組)。新增 import 方向依 `boundary-rules.md` 就是架構變更,現在攔下來只花一次裁決;等實作完才由 `/arch-audit` 撞到就晚了
+4. **spec 的「新增的依賴邊」vs `design.md` 宣告的依賴**做一次 diff。**這是機械比對**,跑腳本:
+
+   ```
+   node "<S>/arch-audit/scripts/lint-cross-spec.mjs" .design --docs <目標 id>
+   ```
+
+   它的「新增的依賴邊」段會標出每一條的兩端在不在 `design.md` 裡;**標成找不到的不等於違規**(那份文檔可能用別的寫法表達同一條邊),要不要納進宣告是這個閘門要裁的。不在宣告內的每一條都列出來(哪個模組 → 哪個模組)。新增 import 方向依 `boundary-rules.md` 就是架構變更,現在攔下來只花一次裁決;等實作完才由 `/arch-audit` 撞到就晚了
 5. 你自己讀過之後的疑慮:哪條 law 讀起來有兩種解釋、哪個介面沒有被任何 law 或 example 覆蓋、哪個邊界情況三段都沒提到
 6. enhance 目標時另外確認:「行為不變」的每一條都有對應的**回歸 law** 嗎?沒有回歸 law 的「行為不變」等於沒有保護
 7. 目標 spec 帶「待確認假設」段落時(委派產出的文檔):先做**雙向層級複審**(`boundary-rules.md` 的兩問:出現在邊界上?改錯驚動其他模組?)——
@@ -82,7 +112,7 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
 
 ## 4. 基準線(enhance 目標必做)
 
-委派之前,**先跑一次完整測試套件並記下結果**(哪些綠、哪些紅、哪些不存在)。
+委派之前,**先跑一次完整測試套件並記下結果**(哪些綠、哪些紅、哪些不存在),**並把這份結果寫進 impl 的委派 prompt**(模板見 `../_shared/orchestration.md`)。這一跑是整條流程裡唯一一次基準線:impl 的禁區含「不得跑完整套件」,它拿不到自己的基準線,你不給它就只能兩害相權——要嘛沒有護欄,要嘛偷跑一次整庫。
 
 理由:優化是在既有程式碼上動手,測試套件本來就可能有紅的。沒有基準線,仲裁時分不出「本來就紅」與「這次改壞的」——而後者是回歸,前者不是,兩者的處置完全相反。
 

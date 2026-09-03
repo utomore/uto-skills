@@ -196,11 +196,14 @@ type: system
 title: <project-slug>
 description: <一句話,40 字內:這個專案在做什麼>
 status: active
+mode: greenfield         # greenfield(全新建立)| brownfield(維護型)
 created: 2026-08-19
 updated: 2026-08-19
 subsystems: []           # 完整名冊:「子系統劃分」列到的每一個 slug,含還沒建 design.md 的
 ---
 ```
+
+**`mode` 是專案級的常數**,`/system-design` 在訪談第一題定案、之後不再改(真的從全新變成有人在用時才改成 `brownfield`,並在 ADR 記一筆)。它決定**整類問題該不該問**:`greenfield` 禁止 migration 與向後相容的討論、禁止預留相容層,決策以專案未來性為第一優先;`brownfield` 反過來,migration 與既有呼叫端是必問。完整規則見 `boundary-rules.md`「專案模式」。缺這一欄時 `/arch-audit status` 會提示,執行的人要問開發者一次再回寫——**不准自己假設**。
 
 `subsystems` 是**名冊**不是**成果清單**(理由見上方「文檔角色與權威來源」)。`/system-design` 在子系統劃分定案時一次寫齊;之後只有新增或廢棄子系統才動它。
 

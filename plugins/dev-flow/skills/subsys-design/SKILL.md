@@ -17,7 +17,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例:**資訊抽象邊界規範**、腳本目錄、**重跑紀律** |
+| `../_shared/conventions.md` | 核心慣例:**資訊抽象邊界規範**、腳本目錄、**跑東西的紀律** |
 | `../_shared/boundary-rules.md` | **邊界判斷規則** + 設計階段規則 |
 | `../_shared/contract-readiness.md` | **產出文件前必讀**:契約就緒度檢查清單,A 段與 B 段都是本 skill 的產出前關卡 |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 文檔角色與權威來源 資料夾結構 架構文檔 清單欄位格式 description` | 本 skill 要新建 `design.md`、回填 `system.md` 的 `subsystems`。**不要整份讀** |

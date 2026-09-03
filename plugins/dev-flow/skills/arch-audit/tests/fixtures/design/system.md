@@ -4,6 +4,7 @@ type: system
 title: demo
 description: "示範專案:含冒號的描述"
 status: active
+mode: greenfield
 created: 2026-08-01
 updated: 2026-08-01
 subsystems: [auth, billing]

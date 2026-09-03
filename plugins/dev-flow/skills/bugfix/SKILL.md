@@ -17,7 +17,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例、腳本目錄、**重跑紀律** |
+| `../_shared/conventions.md` | 核心慣例、腳本目錄、**跑東西的紀律** |
 | `../_shared/boundary-rules.md` | **邊界判斷規則** + 實作階段規則 |
 | `../_shared/testing-policy.md` | 本 skill 自己寫重現測試 |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description` | 本 skill 要新建 bugfix 文檔。**不要整份讀**——腳本末尾會附上你沒讀到的章節目錄 |
@@ -98,7 +98,7 @@ code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫
 
 ## 4. 驗證
 
-- 重現測試轉綠;執行完整測試套件確認沒有修壞別的地方
+- 重現測試轉綠;**先跑修到的那幾個模組的測試**,那一批全綠之後再跑**一次**完整套件確認沒有修壞別的地方(整條流程就這一次;判準見 `../_shared/conventions.md`「跑東西的紀律」)
 - **如實回報結果**:失敗就貼出輸出並繼續修,不得宣稱通過
 
 ## 5. 收尾

@@ -11,6 +11,7 @@ open: 1
 
 === 子系統狀態 ===
 主架構 system:示範專案:含冒號的描述  [active]  subsystems: [auth, billing]
+專案模式  mode: greenfield(全新建立:禁問 migration 與向後相容)
 主軸        子系統   status          模組群  階段  features  契約卡  已建文檔  已完成  未結E/B  進度
 ----------  -------  --------------  ------  ----  --------  ------  --------  ------  -------  ---------
 認證子系統  auth     active          1/2     1     3         3/3     2         1       0E/0B    1/3 (33%)

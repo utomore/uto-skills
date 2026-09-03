@@ -17,7 +17,7 @@ user-invocable: false
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例、腳本目錄、**重跑紀律** |
+| `../_shared/conventions.md` | 核心慣例、腳本目錄、**跑東西的紀律** |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/spec-roles.md 鐵律 三個角色的輸入與禁區 "qa 的交付判準" "spec-gaps 協議"` | 你的輸入、禁區、交付判準、gap 協議。**不要整份讀** |
 | `../_shared/testing-policy.md` | 只測公開介面、禁止測試後門 |
 

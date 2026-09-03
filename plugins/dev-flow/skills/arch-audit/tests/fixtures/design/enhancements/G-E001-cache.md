@@ -3,7 +3,7 @@ id: G-E001
 type: enhance
 title: cache
 description: 全域快取
-status: open
+status: specced
 created: 2026-08-22
 updated: 2026-08-22
 depends-on: []

@@ -94,15 +94,15 @@ if node "$SCRIPTS/scan-ids.mjs" "$CLAIM_TMP/.design" --claim auth/B --slug claim
 else
   echo "✗ scan-ids --claim(配出來的檔案 scan-status 查不到,兩支腳本的 frontmatter 約定分岔了)"; fail=1
 fi
-# --claim 剛建出來的 F 文檔,design.md 的功能規劃還沒認領它 —— 這是 --claim 的正常後續狀態,
-# 盤點模式必須把它印成提示,而不是在算這條提示的時候自己炸掉。
-node "$SCRIPTS/scan-ids.mjs" "$CLAIM_TMP/.design" --claim auth/F --slug claim-orphan >/dev/null 2>&1
+# --claim 剛建出來的 F 文檔是 planned:有 `## 契約`(六欄空著)、沒有 `## Laws`。
+# 那是本流程的正常起點,盤點模式必須把它讀成「契約待補」的提示,而不是結構不合規的紅燈。
+node "$SCRIPTS/scan-ids.mjs" "$CLAIM_TMP/.design" --claim auth/F --slug claim-planned >/dev/null 2>&1
 # 盤點模式有發現就以 1 收場,所以先接住輸出再判斷(pipefail 下直接接管線會被那個 1 蓋掉)
-orphan_out=$(node "$SCRIPTS/scan-status.mjs" "$CLAIM_TMP/.design" 2>&1 || true)
-if grep -q "沒有出現在 auth/design.md 的功能規劃裡" <<<"$orphan_out"; then
-  echo "✓ 盤點模式認得功能規劃還沒認領的 feature 文檔"
+claim_out=$(node "$SCRIPTS/scan-status.mjs" "$CLAIM_TMP/.design" 2>&1 || true)
+if grep -q "claim-planned.*「## 契約」還缺" <<<"$claim_out" && ! grep -q "claim-planned.*沒有「## 契約」" <<<"$claim_out"; then
+  echo "✓ --claim 建出來的 feature 是合規的 planned(契約待補只算提示)"
 else
-  echo "✗ 盤點模式碰到功能規劃沒認領的 feature 文檔(--claim 的正常後續)"; fail=1
+  echo "✗ --claim 建出來的 feature 盤點模式讀不對(planned 的骨架應該有 ## 契約)"; fail=1
 fi
 rm -rf "$CLAIM_TMP"
 

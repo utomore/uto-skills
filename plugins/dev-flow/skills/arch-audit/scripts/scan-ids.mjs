@@ -292,16 +292,22 @@ if (OPT_CLAIM) {
       status = "active";
       tail = ["subsystems: []            # 使用這份契約的子系統,至少兩個", "related-adr: []"];
     } else {
-      status = "open";
+      // 全域 G-E / G-B 沒有 planned 這一格:優化與缺陷是看著既有程式碼提出來的,
+      // 沒有 Level 2 契約可抄,建檔當下就進 specced(doc-lifecycle.md「狀態與生命週期」)
+      status = "specced";
       tail = ["subsystems: []            # 受影響的子系統,至少兩個", ...TASK_TAIL];
     }
   } else if (/^[^/]+\/[FEB]$/.test(g)) {
     const [, kind] = g.split("/");
     dir = join(DESIGN_DIR, "subsystems", g.split("/")[0], SUBSYS_DIR[kind]);
     docType = DOC_TYPE[kind];
-    status = "open";
+    // feature 從 planned 起跳(這一步是 /subsys-design 在規劃當下建檔,還沒有規格);
+    // E/B 沒有規劃階段,建檔即 specced。判準見 doc-lifecycle.md「狀態與生命週期」。
+    status = kind === "F" ? "planned" : "specced";
     // 任務文檔**不寫 `parent`**:它屬於哪個子系統由檔案路徑決定(doc-lifecycle.md「任務文檔」)
-    tail = TASK_TAIL;
+    tail = kind === "F"
+      ? ["stage:                    # 對應 system.md「開發階段」的階段 id,如 S1", "modules: []               # 負責模組(design.md「內部模組劃分」的模組名)", ...TASK_TAIL]
+      : TASK_TAIL;
   } else {
     console.error(`認不得的組:${g}。用 G-C / G-E / G-B / ADR / <子系統>/F / <子系統>/E / <子系統>/B`);
     process.exit(2);
@@ -332,9 +338,22 @@ if (OPT_CLAIM) {
       "",
       `# ${full}`,
       "",
-      "> 本檔由 scan-ids.mjs --claim 建立,只鑄了號與 frontmatter 骨架。",
+      "> 本檔由 scan-ids.mjs --claim 建立,只鑄了號與骨架。",
       "> 內容由對應的 design skill 填寫;frontmatter 的完整規格見 doc-lifecycle.md。",
       "",
+      // feature 的 `## 契約` 節不是「之後補」的:planned 的定義就是「有契約、沒有 Laws」。
+      // 骨架不帶這一節的話,剛建好的檔會立刻被 scan-status 判成結構不合規 —— 而那個狀態
+      // 是本流程的正常起點,不該是紅燈。六欄的判準見 contract-readiness.md A2。
+      ...(docType === "feature"
+        ? ["## 契約", "",
+           "- **階段**:",
+           "- **負責模組**:",
+           "- **實作的 Level 2 介面**:",
+           "- **資料流管線段落**:",
+           "- **驗收標準**:",
+           "- **明確不做**:",
+           ""]
+        : []),
     ].join("\n"),
     "utf8",
   );

@@ -37,6 +37,7 @@ const ROOT = ARGS.find((a) => !a.startsWith("--") && a !== ONLY) ?? "./.design";
 
 const plan = [];   // {kind, file, note, write?}
 const blockers = [];
+const warnings = [];  // 不擋遷移,但遷移後要有人補的
 const cleanups = [];   // 遷移順手修掉的髒資料(舊腳本靜默吃掉的)
 
 /** 取 `## <名>` 到下一個 `## ` 之間(含標題行);找不到回 null */
@@ -70,26 +71,44 @@ function parseCards(text) {
   return out;
 }
 
-/** 功能規劃表:每一列 + 它所屬的 `### 階段…(S3)` 標題 */
+/**
+ * 功能規劃表:每一列 + 它所屬的 `### 階段…(S3)` 標題。
+ *
+ * **欄位靠表頭認,不靠位置**:實測到的表頭至少兩種
+ * (`# | feature | 一句話說明 | 模組 | 依賴 | doc` 與 `# | feature | 模組群 | 目標 | 依賴 | doc`),
+ * 位置式解析會把「模組群」讀成說明、把「目標」讀成模組,而且不會出聲。
+ */
 function parseRoadmap(text) {
   const lines = text.split(/\r?\n/);
   const start = lines.findIndex((l) => l.trim() === "## 功能規劃");
   if (start < 0) return [];
   let end = lines.length;
   for (let i = start + 1; i < lines.length; i++) if (/^## /.test(lines[i])) { end = i; break; }
+  const cells = (l) => l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((x) => x.trim().replace(/^\*\*|\*\*$/g, ""));
+  const COLS = { feature: /^feature$/i, desc: /說明|目標|摘要/, modules: /^模組$|^負責模組$/, group: /模組群/, deps: /依賴/, doc: /^doc$/i };
+  let map = null, stage = null;
   const rows = [];
-  let stage = null;
   for (const line of lines.slice(start + 1, end)) {
     const h = line.match(/^###\s+(.+?)\s*$/);
     if (h) { stage = h[1].match(/\((S\d+)\)/)?.[1] ?? h[1].trim(); continue; }
-    const c = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((x) => x.trim().replace(/^\*\*|\*\*$/g, ""));
-    if (c.length >= 6 && /^\d+$/.test(c[0])) {
-      // doc 欄實測到的髒值:反引號包起來(`F001`)、`-` 殘留在前面(-F009)。兩種舊腳本都
-      // 靜默吃掉 —— 前者當成一個叫「`F001`」的 id 查不到,後者當成「還沒建檔」。
-      const raw = c[5];
-      const doc = raw.replace(/`/g, "").replace(/^-+\s*/, "").trim() || "-";
-      rows.push({ num: c[0], slug: c[1], desc: c[2], modules: c[3], deps: c[4], doc, rawDoc: raw, stage });
+    if (!/^\s*\|/.test(line)) continue;
+    const c = cells(line);
+    if (c.some((x) => /^feature$/i.test(x))) {           // 表頭:建欄名 → 索引的對照
+      map = {};
+      for (const [key, re] of Object.entries(COLS)) {
+        const i = c.findIndex((x) => re.test(x));
+        if (i >= 0) map[key] = i;
+      }
+      continue;
     }
+    if (!map || !/^\d+$/.test(c[0])) continue;
+    const at = (k) => (map[k] !== undefined ? c[map[k]] : "");
+    // doc 欄實測到的髒值:反引號(`F001`)、`-` 殘留(-F009)、寫成全名(auth/F001-login)。
+    // 三種舊腳本都靜默吃掉 —— 前兩種查不到 id,第三種被當成「還沒建檔」。
+    const rawDoc = at("doc");
+    const doc = (rawDoc.replace(/`/g, "").replace(/^-+\s*/, "").split("/").pop() ?? "").match(/^([FEB]\d{3})/)?.[1] ?? "-";
+    rows.push({ num: c[0], slug: at("feature"), desc: at("desc"), modules: at("modules"),
+                group: at("group"), deps: at("deps"), doc, rawDoc, stage });
   }
   return rows;
 }
@@ -177,7 +196,15 @@ for (const slug of slugs) {
   for (const row of rows) {
     let card = cards.get(row.slug);
     if (!card || isStub(card)) card = archived.get(row.slug) ?? card;
-    if (!card) { blockers.push(`${slug}/${row.slug}:找不到契約卡(design.md 與 archive/cards-done.md 都沒有)`); continue; }
+    // 契約卡是後來才加進流程的,舊專案的 design.md 可能整章都沒有。那不是錯誤,也不該擋住
+    // 遷移 —— 照樣建 `## 契約`,把表格上僅有的資訊寫進去並標成待補。之後 contract-readiness
+    // A2 會如實判它「六欄沒填實質內容 → 還不能委派」,那正是這個 feature 的真實狀態。
+    if (!card) {
+      warnings.push(`${slug}/${row.slug}:沒有契約卡,## 契約 只填得出階段與負責模組,其餘標待補`);
+      card = [`- **階段**:${row.stage ?? ""}`, `- **負責模組**:${row.modules ?? ""}`,
+              "- **實作的 Level 2 介面**:TODO(v1 沒有契約卡,遷移補不出來)",
+              "- **資料流管線段落**:TODO", "- **驗收標準**:TODO", "- **明確不做**:TODO"].join("\n");
+    }
     if (isStub(card)) blockers.push(`${slug}/${row.slug}:契約卡只有存根,archive/cards-done.md 撈不到原文`);
 
     // 契約區寫**原文**,frontmatter 寫清洗過的值。清洗只為了讓索引可讀,不可以拿它覆蓋卡片
@@ -191,33 +218,43 @@ for (const slug of slugs) {
 
     if (row.doc !== row.rawDoc && row.doc !== "-") cleanups.push(`${slug}/${row.slug}:doc 欄 \`${row.rawDoc}\` → ${row.doc}`);
     if (row.doc && row.doc !== "-") {
-      // ── 已建檔:改標題 + 補三欄 + frontmatter
+      // ── 已建檔:契約接進同一份檔
       const f = files.find((x) => x.startsWith(`${row.doc}-`));
       if (!f) { blockers.push(`${slug}:功能規劃指向 ${row.doc},features/ 找不到`); continue; }
       const path = join(featDir, f);
       let body = readFileSync(path, "utf8");
       const { meta } = readFrontmatter(path);
-      if (String(meta.status).trim() === "done") doneBefore++;
+      const wasDone = String(meta.status).trim() === "done";
+      if (wasDone) doneBefore++;
 
       const sec = section(body, "## 對應的 Level 2 契約");
-      if (!sec) { blockers.push(`${slug}/${row.doc}:沒有「## 對應的 Level 2 契約」,不知道契約要接到哪一節`); continue; }
-      const head = ["## 契約", "", `- **階段**:${rawStage}`, `- **負責模組**:${rawModules}`,
-                    accept ? `- **驗收標準**(契約卡原文):${accept}` : null].filter((x) => x !== null);
-      if (lines0(body)[sec.start + 1]?.trim() !== "") head.push("");
       const lines = body.split(/\r?\n/);
-      lines.splice(sec.start, 1, ...head);
-      body = lines.join("\n");
-      if (notDo && !/\*\*明確不做\*\*/.test(section(body, "## 契約")?.text ?? "")) {
-        const s2 = section(body, "## 契約");
-        const l2 = body.split(/\r?\n/);
-        l2.splice(s2.end, 0, `- **明確不做**(契約卡原文):${notDo}`, "");
-        body = l2.join("\n");
+      if (sec) {
+        // 這一節已經是「本 feature 涵蓋了 Level 2 的哪幾條」,而且實測連「明確不做」原文都抄了
+        // 進來 —— 換個標題就位,不必重排文件結構。契約卡多出來的三欄補在最前面。
+        const head = ["## 契約", "", `- **階段**:${rawStage}`, `- **負責模組**:${rawModules}`,
+                      accept ? `- **驗收標準**(契約卡原文):${accept}` : null].filter((x) => x !== null);
+        if (lines[sec.start + 1]?.trim() !== "") head.push("");
+        lines.splice(sec.start, 1, ...head);
+        body = lines.join("\n");
+        if (notDo && !/\*\*明確不做\*\*/.test(section(body, "## 契約")?.text ?? "")) {
+          const s2 = section(body, "## 契約");
+          const l2 = body.split(/\r?\n/);
+          l2.splice(s2.end, 0, `- **明確不做**(契約卡原文):${notDo}`, "");
+          body = l2.join("\n");
+        }
+      } else {
+        // 沒有那一節(不是每個專案的 spec 模板都有):契約整段是新的,插在標題之後、第一節之前
+        let at = lines.findIndex((l, i) => i > 0 && /^## /.test(l));
+        if (at < 0) at = lines.length;
+        lines.splice(at, 0, "## 契約", "", card, "");
+        body = lines.join("\n");
       }
       const st = newStatus(meta, body);
-      body = patchFrontmatter(body, { status: st, stage, modules: fmtList(modules) });
+      body = patchFrontmatter(body, { status: st, stage, modules: fmtList(modules), ...(row.group ? { group: row.group } : {}) });
       if (st === "done") doneAfter++;
-      plan.push({ kind: "patch", file: path, note: `## 對應的 Level 2 契約 → ## 契約(+階段/負責模組/驗收標準),status ${meta.status} → ${st}`, write: body });
-      index.push({ id: row.doc, slug: row.slug, stage, modules: modules.join("、"), status: st });
+      plan.push({ kind: "patch", file: path, note: `${sec ? "## 對應的 Level 2 契約 → ## 契約" : "插入 ## 契約"}(階段/負責模組/驗收標準),status ${meta.status} → ${st}`, write: body });
+      index.push({ id: row.doc, slug: row.slug, stage, modules: modules.join("、"), group: row.group, status: st });
     } else {
       // ── 待展開:鑄號建檔,只有 ## 契約
       const id = `F${String(++next).padStart(3, "0")}`;
@@ -228,12 +265,13 @@ for (const slug of slugs) {
       }).filter(Boolean) ?? [];
       const body = ["---", `id: ${id}`, "type: feature", `title: ${row.slug}`,
         `description: ${row.desc}`, "status: planned", `stage: ${stage}`, `modules: ${fmtList(modules)}`,
+        ...(row.group ? [`group: ${row.group}`] : []),
         `created: ${today}`, `updated: ${today}`, `depends-on: ${fmtList(deps)}`,
         "related-adr: []", "related-feature: []", "code-paths: []", "---", "",
         `# ${id}: ${row.slug}`, "", "## 契約", "", card, ""].join("\n");
       plan.push({ kind: "create", file: join(featDir, `${id}-${row.slug}.md`),
         note: `待展開的列 #${row.num} → planned 文檔(依賴 ${deps.join(", ") || "無"})`, write: body });
-      index.push({ id, slug: row.slug, stage, modules: modules.join("、"), status: "planned" });
+      index.push({ id, slug: row.slug, stage, modules: modules.join("、"), group: row.group, status: "planned" });
     }
   }
 
@@ -246,10 +284,13 @@ for (const slug of slugs) {
     let to = dl.length;
     for (let i = from + 1; i < dl.length; i++) if (/^## /.test(dl[i])) { to = i; break; }
     const prose = dl.slice(from + 1, to).filter((l) => !/^\s*\|/.test(l) && !/^###\s/.test(l)).join("\n").trim();
+    // 模組群欄只有那個子系統真的分了平行領域才印 —— 它是進度分母的一部分,不能在遷移裡蒸發
+    const hasGroup = index.some((r) => r.group);
     const idx = ["## 功能總覽", "",
       "<!-- BEGIN FEATURE INDEX:由 scan-status.mjs --write-index 產生,不要手改 -->",
-      "| id | feature | 階段 | 模組 | 狀態 |", "|---|---|---|---|---|",
-      ...index.map((r) => `| ${r.id} | ${r.slug} | ${r.stage} | ${r.modules} | ${r.status} |`),
+      `| id | feature | 階段 |${hasGroup ? " 模組群 |" : ""} 模組 | 狀態 |`,
+      `|---|---|---|${hasGroup ? "---|" : ""}---|---|`,
+      ...index.map((r) => `| ${r.id} | ${r.slug} | ${r.stage} |${hasGroup ? ` ${r.group} |` : ""} ${r.modules} | ${r.status} |`),
       "<!-- END FEATURE INDEX -->", "",
       ...(prose ? ["### 規劃註記(v1「功能規劃」小結原文搬移;文中的 #n 是已廢除的列號)", "", prose, ""] : [])];
     plan.push({ kind: "patch", file: designFile,
@@ -274,6 +315,21 @@ for (const slug of slugs) {
   }
 }
 
+// ── 全域 G-E / G-B:不在任何子系統底下,但一樣要換 status 值域
+for (const sub of ["enhancements", "bugfixes"]) {
+  const d = join(ROOT, sub);
+  if (!existsSync(d) || ONLY) continue;
+  for (const f of readdirSync(d).filter((x) => x.endsWith(".md"))) {
+    const path = join(d, f);
+    const body = readFileSync(path, "utf8");
+    const { meta } = readFrontmatter(path);
+    if (String(meta.status).trim() === "done") { doneBefore++; doneAfter++; }
+    const st = newStatus(meta, body);
+    if (st === String(meta.status).trim()) continue;
+    plan.push({ kind: "patch", file: path, note: `status ${meta.status} → ${st}`, write: patchFrontmatter(body, { status: st }) });
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const by = (k) => plan.filter((p) => p.kind === k);
@@ -287,6 +343,10 @@ for (const kind of ["create", "patch", "delete"]) {
 }
 console.log(`驗收:已實作(done)遷移前 ${doneBefore} / 遷移後 ${doneAfter}${doneBefore === doneAfter ? "  ✓" : "  ✗ 不相等,遷移改變了完成度"}`);
 if (doneBefore !== doneAfter) blockers.push("done 份數遷移前後不一致");
+if (warnings.length) {
+  console.log(`\n=== 遷移後要補的(${warnings.length})===`);
+  for (const w of warnings) console.log(`- ${w}`);
+}
 if (cleanups.length) {
   console.log(`\n=== 順手修掉的髒資料(${cleanups.length})===`);
   for (const c of cleanups) console.log(`- ${c}`);

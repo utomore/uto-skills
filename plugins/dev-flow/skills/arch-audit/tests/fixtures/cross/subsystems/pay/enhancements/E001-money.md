@@ -3,7 +3,7 @@ id: E001
 type: enhancement
 title: money
 description: 金額改用定點數
-status: open
+status: planned
 created: 2026-08-12
 updated: 2026-08-12
 depends-on: []

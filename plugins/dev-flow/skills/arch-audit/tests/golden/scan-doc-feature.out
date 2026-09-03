@@ -1,6 +1,6 @@
 === 文檔 auth/F001-login ===
 主軸  登入
-歸屬  子系統 auth  |  -  |  功能規劃「login」  |  type feature  |  status done
+歸屬  子系統 auth  |  type feature  |  status done
 上層  subsystems/auth/design.md
 檔案  subsystems/auth/features/F001-login.md
 
@@ -17,7 +17,7 @@
 (無)
 
 === 反向依賴(誰依賴我) ===
-- auth/F002-token-refresh  [in-progress]  引用 F001  subsystems/auth/features/F002-token-refresh.md
+- auth/F002-token-refresh  [specced]  引用 F001  subsystems/auth/features/F002-token-refresh.md
 
 本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。
 要寫進 spec 的每一條介面,仍須打開該文檔讀原文。各角色的使用界線見 _shared/design-query.md。

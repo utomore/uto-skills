@@ -1,6 +1,6 @@
 === 子系統 auth ===
 主軸  認證子系統
-狀態  status active  |  模組群 1/2  |  階段 1  |  features 3  |  契約卡 3/3  |  進度 1/3 (33%)
+狀態  status active  |  模組群 1/2  |  階段 1  |  features 3  |  契約就緒 0/1  |  進度 1/3 (33%)
 檔案  subsystems/auth/design.md
 
 === 模組群(2)===
@@ -8,13 +8,14 @@
 ------------  -------  ------  ----------
 auth/Session  active   1/3     工作階段
 auth/MFA      planned  未展開  二階段驗證
-planned 的模組群沒有契約、沒有功能規劃,**不在上面「進度 1/3 (33%)」那個分母裡**。
+planned 的模組群沒有契約、沒有 feature 檔,**不在上面「進度 1/3 (33%)」那個分母裡**。
 
-=== 本子系統的文檔(2)===
-主軸  文檔(全名)               type     status                     depends-on  file
-----  -----------------------  -------  -------------------------  ----------  ----------------------------------------------
-登入  auth/F001-login          feature  done                       []          subsystems/auth/features/F001-login.md
-登入  auth/F002-token-refresh  feature  in-progress ⚠卡auth/GAP-1  [F001]      subsystems/auth/features/F002-token-refresh.md
+=== 本子系統的文檔(3)===
+主軸  文檔(全名)               type     status                 depends-on  file
+----  -----------------------  -------  ---------------------  ----------  ----------------------------------------------
+登入  auth/F001-login          feature  done                   []          subsystems/auth/features/F001-login.md
+登入  auth/F002-token-refresh  feature  specced ⚠卡auth/GAP-1  [F001]      subsystems/auth/features/F002-token-refresh.md
+登出  auth/F003-logout         feature  planned                []          subsystems/auth/features/F003-logout.md
 
 === 對外依賴(本子系統依賴誰) ===
 (無)
@@ -26,8 +27,9 @@ planned 的模組群沒有契約、沒有功能規劃,**不在上面「進度 1/
 - G-C001-session  [active]  contracts/G-C001-session.md  共用 session 契約
   ⚠ 只引用了文檔 id,沒寫到條目(引用格式見 doc-lifecycle.md)
 
-=== 待展開的 feature(1) ===
-- auth 功能規劃「logout」—— 還沒建 feature 文檔,所以還沒有編號
+=== 只規劃了、還沒寫 spec 的 feature(1) ===
+- auth/F003-logout  subsystems/auth/features/F003-logout.md
+    ⚠ 契約還缺 實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做,委派不動
 
 === 未結的 spec-gaps(1) ===
 - auth/GAP-1  卡住 auth/F002-token-refresh(qa 提出)  過期判定用哪個時鐘  subsystems/auth/spec-gaps.md
@@ -35,8 +37,9 @@ planned 的模組群沒有契約、沒有功能規劃,**不在上面「進度 1/
 === 架構 / 子系統不一致(0) ===
 (無)
 
-=== 提示(2) ===
-- subsystems/auth/design.md:模組群 auth/MFA 還是 planned(契約章節與功能規劃未寫)——二階段驗證;auth/MFA 不在 auth 子系統的進度分母裡
+=== 提示(3) ===
+- subsystems/auth/features/F003-logout.md:「## 契約」還缺 實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做(該項無法委派展開)
+- subsystems/auth/design.md:模組群 auth/MFA 還是 planned(契約章節未寫、feature 檔未建)——二階段驗證;auth/MFA 不在 auth 子系統的進度分母裡
 - subsystems/auth/features/F002-token-refresh.md:depends-on 的 F001 寫成裸 id —— 改寫成 auth/F001(同一個子系統內部也要帶前綴)
 
 本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。

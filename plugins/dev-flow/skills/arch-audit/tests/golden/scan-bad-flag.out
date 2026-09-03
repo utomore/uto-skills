@@ -6,12 +6,14 @@
   node scan-status.mjs .design --doc <文檔>          聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
                                                     吃全名 auth/F003-token-cache,也吃 auth/F003 與 F003
   node scan-status.mjs .design --file <path>         反查程式碼路徑:哪個子系統、被哪些 F/E/B 動過
+  node scan-status.mjs .design --write-index         把各 design.md 的「功能總覽」重新生成一次(會寫檔)
   node scan-status.mjs --help
 
 Exit code(**兩種模式語意不同**,呼叫端不要混用):
   盤點 / --subsys : 0 = 範圍內全部完成(或無檔案) / 1 = 有未完成項目、metadata 缺失或架構不一致
   --doc           : 0 = 查到 / 2 = 查無此文檔(查到但未完成仍是 0——查詢不是驗收)
   --file          : 0 = 有文檔的 code-paths 涵蓋它 / 2 = 沒有任何文檔認領這條路徑
+  --write-index   : 0 = 全部寫成功 / 1 = 有 design.md 找不到 FEATURE INDEX 標記
   任一模式        : 2 = design 目錄或 --subsys 的 slug 不存在
 
 **`--file` 反查的資料來源是各文檔 frontmatter 的 `code-paths`**,現掃現算,不另存索引。

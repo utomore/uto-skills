@@ -20,6 +20,7 @@
  */
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { parseGapBlocks } from "./_gap-status.mjs";
 
 // ---------------------------------------------------------------- 慣例樹(與 doc-lifecycle.md 註冊表同步)
 
@@ -322,10 +323,13 @@ function buildProjectTree(designDir) {
     let gapCell = "-";
     const gapPath = join(dir, "spec-gaps.md");
     if (existsSync(gapPath)) {
-      const g = frontmatter(gapPath);
-      const open = (g.body.match(/^\s*[-*]\s*狀態\s*[::]\s*open/gim) ?? []).length;
-      const totalGaps = countIds(g.body, "GAP", "G");
-      gapCell = `${totalGaps - open}/${totalGaps}`; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
+      // 解析器與 scan-status.mjs 共用(`_gap-status.mjs`):這裡原本自己數 `狀態:open` 出現幾次,
+      // 認不出來的寫法會被算成 0 個 open,也就是「全部已結」——而 scan-status 對同一條的默認
+      // 恰好相反(當成未結)。同一份檔案兩支腳本給相反答案,兩支都不出聲。分子改用同一個 `resolved` 判定。
+      const blocks = parseGapBlocks(frontmatter(gapPath).body);
+      const totalGaps = blocks.length;
+      const done = blocks.filter((b) => b.resolved).length;
+      gapCell = totalGaps ? `${done}/${totalGaps}` : "-"; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
     }
 
     let waveCell = "-";
@@ -381,10 +385,13 @@ function buildProjectTree(designDir) {
     let gapCell = "-";
     const gapPath = join(designDir, "spec-gaps.md");
     if (existsSync(gapPath)) {
-      const g = frontmatter(gapPath);
-      const open = (g.body.match(/^\s*[-*]\s*狀態\s*[::]\s*open/gim) ?? []).length;
-      const totalGaps = countIds(g.body, "GAP", "G");
-      gapCell = `${totalGaps - open}/${totalGaps}`; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
+      // 解析器與 scan-status.mjs 共用(`_gap-status.mjs`):這裡原本自己數 `狀態:open` 出現幾次,
+      // 認不出來的寫法會被算成 0 個 open,也就是「全部已結」——而 scan-status 對同一條的默認
+      // 恰好相反(當成未結)。同一份檔案兩支腳本給相反答案,兩支都不出聲。分子改用同一個 `resolved` 判定。
+      const blocks = parseGapBlocks(frontmatter(gapPath).body);
+      const totalGaps = blocks.length;
+      const done = blocks.filter((b) => b.resolved).length;
+      gapCell = totalGaps ? `${done}/${totalGaps}` : "-"; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
     }
     if (genh.length || gbugs.length || gapCell !== "-") {
       rows.push({

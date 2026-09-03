@@ -43,6 +43,7 @@
  */
 import { readdirSync, readFileSync, openSync, readSync, closeSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { parseGapBlocks } from "./_gap-status.mjs";
 
 const USAGE = `用法:
   node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
@@ -402,24 +403,24 @@ for (const name of listMd(join(designDir, "adr"))) {
  * 底下有一行 `- 狀態:open|resolved`,resolved 的另有一行 `- 修訂:<文檔 id> §<章節>(<日期>);<改了什麼>`。
  * 未結(open)的條目代表有項目正卡著等 spec 修訂,列進輸出並影響 exit code;
  * resolved 的條目改查「結案有沒有證據」(修訂行、指得到的文檔、updated 有沒有跟上)。
+ *
+ * 格式本身由 `_gap-status.mjs` 認(**唯一**解析器,`id-map.mjs` 用的是同一支),
+ * 它認不出來的寫法一律進 `archIssues`:讀不到狀態就默默當 `open`,錯的只有
+ * 「已經結案卻一直被算成未結」那幾條會現形,真的還 open 的條目寫錯了看起來完全正常 ——
+ * 於是格式漂移的實際發生率永遠比看得到的高。不出聲的檢查等於沒有檢查。
  */
 function parseSpecGaps(path, scope) {
-  const out = [];
   let text;
   try {
     text = readFileSync(path, "utf8");
   } catch {
-    return out;
+    return [];
   }
-  const blocks = text.split(/^##\s+/m).slice(1);
-  for (const b of blocks) {
-    const head = b.split("\n", 1)[0].trim();
-    const id = head.match(/^(GAP-\d+|G\d+)/)?.[1];
-    if (!id) continue;
-    const state = b.match(/^\s*[-*]\s*狀態\s*[:：]\s*(\S+)/m)?.[1] ?? "open";
-    const topic = b.match(/^\s*[-*]\s*模糊點\s*[:：]\s*(.+)$/m)?.[1]?.trim() ?? "-";
-    const fix = b.match(/^\s*[-*]\s*修訂\s*[:：]\s*(.+)$/m)?.[1]?.trim() ?? null;
-    out.push({ scope, id, head, topic, fix, resolved: /^resolved/i.test(state), file: rel(path) });
+  const file = rel(path);
+  const out = [];
+  for (const g of parseGapBlocks(text)) {
+    for (const issue of g.issues) archIssues.push(`${file}:${issue}`);
+    out.push({ scope, file, id: g.id, head: g.head, topic: g.topic, fix: g.fix, resolved: g.resolved });
   }
   return out;
 }

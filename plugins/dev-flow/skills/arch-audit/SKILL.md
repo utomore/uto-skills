@@ -80,7 +80,12 @@ node "<本 SKILL.md 所在目錄>/scripts/lint-ids.mjs" .design        檢查編
 node "<本 SKILL.md 所在目錄>/scripts/lint-laws.mjs" .design       檢查 Laws 四格、觀察點可觀察性與骨架位置寫法
 node "<本 SKILL.md 所在目錄>/scripts/scan-ids.mjs" .design        跨分支 / worktree 盤點已佔用的編號
 node "<本 SKILL.md 所在目錄>/scripts/doc-section.mjs" --verify ../..   檢查各 skill 載入行點名的章節是否還存在
+node "<本 SKILL.md 所在目錄>/scripts/lint-commands.mjs" ../..     檢查文檔裡寫的指令與旗標,腳本本人還認不認得
 ```
+
+`lint-commands.mjs` 的判準是**腳本自己的 `--help`**,不另外維護旗標清單(另外維護的那份就是下一個會漂的東西)。它只查「認不認得」,不查「用得對不對」——後者是人的判斷。
+
+**改過 `scripts/` 底下任何東西之後跑 `bash "<本 SKILL.md 所在目錄>/tests/run.sh"`**:fixture 回歸(14 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 七支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
 
 `doc-section.mjs` 平常是**各 skill 自己用來只讀 `_shared/` 指定章節**的(載入行裡就寫著那一道指令);`--verify` 是給本 skill 的:分片的節被改名或刪掉時,載入行不會報錯,只會讓那個 skill 從此少讀一塊,這一關把它叫出來。
 

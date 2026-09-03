@@ -1,0 +1,14 @@
+=== 程式碼路徑 src/Auth/Login.hs ===
+
+=== 子系統歸屬 ===
+- auth  (subsystems/auth/design.md 的 code-paths src/Auth 路徑前綴涵蓋)
+
+=== 動過這條路徑的任務文檔(2) ===
+- auth/F001  [done]  建立  2026-08-10  subsystems/auth/features/F001-login.md
+    登入  (完全相符:src/Auth/Login.hs)
+- auth/F002  [in-progress]  建立  2026-08-10  subsystems/auth/features/F002-token-refresh.md
+    登入  (完全相符:src/Auth/Login.hs)
+
+本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。
+要寫進 spec 的每一條介面,仍須打開該文檔讀原文。各角色的使用界線見 _shared/design-query.md。
+__exit__ 0

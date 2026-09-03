@@ -1,0 +1,43 @@
+=== 子系統 auth ===
+主軸  認證子系統
+狀態  status active  |  模組群 1/2  |  階段 1  |  features 3  |  契約卡 3/3  |  進度 1/3 (33%)
+檔案  subsystems/auth/design.md
+
+=== 模組群(2)===
+模組群   狀態     進度    職責
+-------  -------  ------  ----------
+Session  active   1/3     工作階段
+MFA      planned  未展開  二階段驗證
+planned 的模組群沒有契約、沒有功能規劃,**不在上面那個進度分母裡**。
+
+=== 本子系統的文檔(2)===
+主軸  id    type     status                depends-on  file
+----  ----  -------  --------------------  ----------  ----------------------------------------------
+登入  F001  feature  done                  []          subsystems/auth/features/F001-login.md
+登入  F002  feature  in-progress ⚠卡GAP-1  []          subsystems/auth/features/F002-token-refresh.md
+
+=== 對外依賴(本子系統依賴誰) ===
+(無)
+
+=== 反向依賴(誰依賴本子系統)—— B1 的候選清單 ===
+(無)
+
+=== 相關的全域契約 ===
+- G-C001  [active]  contracts/G-C001-session.md  共用 session 契約
+  ⚠ 只引用了文檔 id,沒寫到條目(引用格式見 doc-lifecycle.md)
+
+=== 待展開的 feature(1) ===
+- -:logout
+
+=== 未結的 spec-gaps(1) ===
+- GAP-1(F002 / qa)  過期判定用哪個時鐘  subsystems/auth/spec-gaps.md
+
+=== 架構 / 子系統不一致(0) ===
+(無)
+
+=== 提示(1) ===
+- subsystems/auth/design.md:模組群「MFA」還是 planned(契約章節與功能規劃未寫)——二階段驗證;它不在本子系統的進度分母裡
+
+本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。
+要寫進 spec 的每一條介面,仍須打開該文檔讀原文。各角色的使用界線見 _shared/design-query.md。
+__exit__ 1

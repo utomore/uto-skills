@@ -225,6 +225,8 @@ token-refresh 功能  F002  feature  in-progress ⚠卡GAP-1,GAP-2  ← 卡死,�
 
 腳本共七支(`plugins/dev-flow/skills/arch-audit/scripts/`),**每一支都吃 `--help`**,而 `--help` 印的就是該檔檔頭那段「用法 + Exit code」——同一份文字,不可能分岔。所以 skill 文檔裡不抄旗標與 exit code 數值,只留「一行常用指令」與「誰能用、用到什麼程度」(後者腳本產不出來,它不知道是誰在呼叫它)。
 
+改過 `scripts/` 之後跑 `bash plugins/dev-flow/skills/arch-audit/tests/run.sh`:fixture 回歸(14 項輸出與 exit code 逐字比對)、對 plugin 自己文檔的四道檢查(`lint-ids` / `lint-laws` / 章節名 / 指令旗標)、七支腳本的 `--help`。**這套測試是修真實事故修出來的**——抽共用解析器時它抓到三處同名不同答案的解析器,以及一個「程式碼圍欄裡的假標題會把章節提前切斷」的靜默錯誤,四個都不會拋例外。
+
 格式解析集中在四支 `_` 開頭的模組(`_gap-status` / `_sections` / `_frontmatter` / `_tables`),CLI 只管自己的輸出與 exit code。**一種格式只准有一個解析器**——這條是修真實事故修出來的:`section()` 曾經有兩份(一份含標題行、一份不含)、`frontmatter()` 曾經有兩份(一份剝引號、一份不剝,而且對 YAML 區塊列表靜默讀成空值)、`tableCells()` 曾經同名不同約(一份回 `null`、一份回陣列)。三處都不會報錯,只會讓兩支腳本對同一份檔案給出不同答案。
 
 `description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(feature 寫「這功能做什麼」、bugfix 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」),讓 `/arch-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。

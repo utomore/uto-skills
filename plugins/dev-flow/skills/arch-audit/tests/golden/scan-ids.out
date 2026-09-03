@@ -1,0 +1,20 @@
+
+ADR  架構決策紀錄
+  ADR-001  jwt                          工作區
+  下一個可用:ADR-002
+
+G-C  全域共用契約
+  G-C001  session                      工作區
+  下一個可用:G-C002
+
+G-E  全域優化
+  G-E001  cache                        工作區
+  下一個可用:G-E002
+
+auth/F
+  F001  login                        工作區
+  F002  token-refresh                工作區
+  下一個可用:F003
+
+沒有撞號。
+__exit__ 0

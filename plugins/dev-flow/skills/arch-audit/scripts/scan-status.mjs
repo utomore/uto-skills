@@ -8,7 +8,7 @@
  * 掃描範圍:
  *   .design/system.md                                  主架構:frontmatter subsystems 是**完整名冊**
  *                                                      (含尚未建檔者)+ 內文「開發階段」表
- *   .design/subsystems/<slug>/design.md                子系統架構(「模組群」表、「功能規劃」路線圖、「Feature 契約卡」)
+ *   .design/subsystems/<slug>/design.md                子系統架構(「模組群」表;「功能總覽」是本腳本 --write-index 生成的)
  *   .design/subsystems/<slug>/spec-gaps.md             qa / impl 提出的 spec 模糊處(未結條目影響 exit code)
  *   .design/subsystems/<slug>/{features,enhancements,bugfixes}/*.md   子系統任務文檔
  *   .design/{enhancements,bugfixes}/*.md               全域任務文檔(G-E / G-B)
@@ -16,12 +16,12 @@
  *   .design/adr/*.md                                   ADR
  *
  * 盤點模式下任務文檔只讀每檔開頭 4KB;design.md 與 system.md 需讀全文才能解析
- * 「模組群」/「功能規劃」/「Feature 契約卡」與「開發階段」/「子系統劃分」。
+ * 「模組群」與「開發階段」/「子系統劃分」;feature 的分母來自 features/ 底下的檔案本身。
  * 查詢模式**只對被查的那一份與直接關聯的文檔**讀全文(要取「介面」/「數據」段與契約條目),
  * 盤點模式一個位元組都不多讀。
  *
  * **分母紀律(本腳本的存在理由)**:進度的分母來自 system.md(名冊 + 開發階段)與
- * design.md(模組群 + 功能規劃),**不是**來自「已經存在的資料夾」。名冊列了卻沒有資料夾
+ * design.md(模組群)與 features/ 的檔案,**不是**來自「已經存在的資料夾」。名冊列了卻沒有資料夾
  * = 已規劃、未建檔,那是**待辦**不是不一致。分母若由已完成的東西定義,報表只會愈做愈接近
  * 100%,而永遠看不見還沒開工的那一大半。
  * 清單欄位(depends-on / related-adr / related-feature / subsystems)一律**行內陣列** `[a, b]`;
@@ -33,12 +33,14 @@
  *   node scan-status.mjs .design --doc <文檔>          聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
  *                                                     吃全名 auth/F003-token-cache,也吃 auth/F003 與 F003
  *   node scan-status.mjs .design --file <path>         反查程式碼路徑:哪個子系統、被哪些 F/E/B 動過
+ *   node scan-status.mjs .design --write-index         把各 design.md 的「功能總覽」重新生成一次(會寫檔)
  *   node scan-status.mjs --help
  *
  * Exit code(**兩種模式語意不同**,呼叫端不要混用):
  *   盤點 / --subsys : 0 = 範圍內全部完成(或無檔案) / 1 = 有未完成項目、metadata 缺失或架構不一致
  *   --doc           : 0 = 查到 / 2 = 查無此文檔(查到但未完成仍是 0——查詢不是驗收)
  *   --file          : 0 = 有文檔的 code-paths 涵蓋它 / 2 = 沒有任何文檔認領這條路徑
+ *   --write-index   : 0 = 全部寫成功 / 1 = 有 design.md 找不到 FEATURE INDEX 標記
  *   任一模式        : 2 = design 目錄或 --subsys 的 slug 不存在
  *
  * **`--file` 反查的資料來源是各文檔 frontmatter 的 `code-paths`**,現掃現算,不另存索引。
@@ -53,7 +55,7 @@
  * 每個子系統各有一組 F001/E001/B001,而輸出的每一行都會被複製到別處(回報、閘門、issue),
  * 到了那裡就沒有「這是哪個子系統的表」這個上下文。規則見 _shared/conventions.md「指稱紀律」。
  */
-import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { parseGapBlocks } from "./_gap-status.mjs";
 import { parseFrontmatter, readFrontmatter, asList } from "./_frontmatter.mjs";
@@ -67,6 +69,7 @@ const USAGE = usageBlock(import.meta.url);
 const argv = process.argv.slice(2);
 printHelpIfAsked(argv, import.meta.url);
 const query = { subsys: null, doc: null, file: null };
+const writeIndex = argv.includes("--write-index");
 let designDirArg = null;
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
@@ -76,6 +79,7 @@ for (let i = 0; i < argv.length; i++) {
   } else if (a === "--subsys") query.subsys = argv[++i] ?? null;
   else if (a === "--doc") query.doc = argv[++i] ?? null;
   else if (a === "--file") query.file = argv[++i] ?? null;
+  else if (a === "--write-index") { /* 已在上面讀掉 */ }
   else if (a.startsWith("--")) {
     console.error(`未知選項: ${a}\n\n${USAGE}`);
     process.exit(2);
@@ -104,6 +108,22 @@ if (query.subsys && query.doc) {
 
 const designDir = designDirArg ?? "./.design";
 const DONE_STATUSES = new Set(["done", "closed"]);
+/** 決定不做:既不算完成,也不佔分母(v2 取代 v1 的 closed) */
+const DROPPED_STATUSES = new Set(["dropped"]);
+/** feature `## 契約` 的六欄。少一欄就是「還不能被無訪談委派」(contract-readiness.md A2) */
+const CONTRACT_FIELDS = ["階段", "負責模組", "實作的 Level 2 介面", "資料流管線段落", "驗收標準", "明確不做"];
+/** 佔位字樣:填了等於沒填 */
+const PLACEHOLDER = /^(TODO|TBD|待定|待補|-|\?+)\b/i;
+
+/** `## 契約` 裡哪幾欄還沒有實質內容 */
+function contractGaps(text) {
+  const sec = section(text, /^契約$/);
+  if (!sec) return CONTRACT_FIELDS.slice();
+  return CONTRACT_FIELDS.filter((f) => {
+    const m = sec.text.match(new RegExp(`^-\\s+\\*\\*${f}\\*\\*[::]\\s*(.*)$`, "m"));
+    return !m || !m[1].trim() || PLACEHOLDER.test(m[1].trim());
+  });
+}
 const DESC_WIDTH = 44; // 主軸(description)欄顯示寬度上限(全形字算 2)
 
 // 各資料夾的檔名規則與預期 type
@@ -177,7 +197,9 @@ const archNotes = []; // 提示(不計入 exit code)
 const rows = []; // { description, id, subsystem, type, status, created, dependsOn(raw list), codePaths, file }
 
 function scanTaskDoc(path, subsystem, kind) {
-  const { meta, blockListKeys } = readFrontmatter(path);
+  // v2 的狀態前兩格由**內文**決定(有沒有 `## Laws`),所以這裡要整份讀,不能只讀 frontmatter
+  const text = readFileSync(path, "utf8");
+  const { meta, blockListKeys } = parseFrontmatter(text);
   const relPath = rel(path);
   if (blockListKeys.length) badFormat.push({ file: relPath, keys: blockListKeys });
   const fileName = path.split(/[\\/]/).pop();
@@ -202,6 +224,12 @@ function scanTaskDoc(path, subsystem, kind) {
     dependsOn: asList(meta?.["depends-on"]),
     affects: asList(meta?.subsystems),
     codePaths: asList(meta?.["code-paths"]),
+    stage: fmtValue(meta?.stage),
+    modules: asList(meta?.modules),
+    group: meta?.group ? String(meta.group) : "",
+    hasLaws: /^##\s+Laws/m.test(text),
+    hasContract: /^##\s+契約\s*$/m.test(text),
+    contractGaps: contractGaps(text),
     file: relPath,
   };
   // 收尾漏回寫 code-paths:程式碼寫好了、狀態也回了,只有「這是誰做的」這一格沒填 ——
@@ -216,7 +244,7 @@ function scanTaskDoc(path, subsystem, kind) {
 // 子系統
 const subsysRoot = join(designDir, "subsystems");
 const subsysDirs = listDirs(subsysRoot);
-const subsysDocs = new Map(); // slug → { designMeta, designFile, roadmap, parts, ids: Map(id → row) }
+const subsysDocs = new Map(); // slug → { designMeta, designFile, groups, parts, ids: Map(id → row) }
 
 /** 子系統資料夾根層的固定檔案;其餘 .md 只能是 design.md 的分冊。 */
 const SUBSYS_CORE_FILES = new Set(["design.md", "build-log.md", "spec-gaps.md"]);
@@ -225,7 +253,7 @@ const PART_TYPES = new Set(["contract-part", "decisions"]);
 
 for (const slug of subsysDirs) {
   const dir = join(subsysRoot, slug);
-  const entry = { designMeta: null, designFile: null, roadmap: { phases: 0, features: [] }, cards: new Set(), groups: [], parts: [], ids: new Map() };
+  const entry = { designMeta: null, designFile: null, groups: [], parts: [], ids: new Map() };
   subsysDocs.set(slug, entry);
 
   const designPath = join(dir, "design.md");
@@ -243,14 +271,12 @@ for (const slug of subsysDirs) {
       if (meta.parent !== "system") archIssues.push(`${entry.designFile}:缺 parent(應為 system)`);
       if (meta.id && meta.id !== slug) archIssues.push(`${entry.designFile}:id(${meta.id})與資料夾名(${slug})不一致`);
     }
-    entry.roadmap = parseRoadmap(text);
-    entry.cards = parseCards(text);
     entry.groups = parseGroups(text);
   }
 
   // ---- design.md 的分冊:契約章節太大時拆出去的檔案(type: contract-part / decisions)
   // 它們沒有編號、由 `parent` 指回子系統。不認得它們的話,子系統契約有一半是隱形的 ——
-  // A3 的契約卡對帳、/subsys 的契約檢查都會在 design.md 裡找不到條目而誤判「契約缺漏」。
+  // A3 的契約對帳、/subsys 的契約檢查都會在 design.md 裡找不到條目而誤判「契約缺漏」。
   for (const f of listMd(dir)) {
     if (SUBSYS_CORE_FILES.has(f)) continue;
     const p = join(dir, f);
@@ -528,81 +554,12 @@ for (const st of stages) {
     );
 }
 
-// ---------------------------------------------------------------- 功能規劃(roadmap)
-
-/**
- * 從 design.md 內文抓「功能規劃」路線圖。
- * 結構:`## 功能規劃` 下數個 `### 階段…`,每階段一張表(欄位含 feature 與 doc,可選「模組群」)。
- * 回傳 { phases, features: [{ phase, feature, doc, group }] };doc 未建檔(`-`)時為空字串。
- * 沒有「模組群」欄時 group 為空字串 —— 單一模組群的子系統不必寫這欄。
- */
-function parseRoadmap(text) {
-  const phases = [];
-  const features = [];
-  let inSection = false;
-  let colIdx = null; // 目前表格的 { feature, doc } 欄位索引
-  for (const line of text.split(/\r?\n/)) {
-    const heading = line.match(/^(#{2,6})\s+(.+?)\s*$/);
-    if (heading) {
-      const level = heading[1].length;
-      if (level === 2) inSection = /功能規劃/.test(heading[2]);
-      else if (inSection && level === 3) phases.push(heading[2]);
-      colIdx = null;
-      continue;
-    }
-    if (!inSection || !line.trim().startsWith("|")) continue;
-    const cells = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
-    if (isSeparatorRow(cells)) continue;
-    const lower = cells.map((c) => c.toLowerCase());
-    const docCol = lower.indexOf("doc");
-    if (docCol >= 0) {
-      const featureCol = lower.findIndex((c) => c === "feature" || c.includes("功能"));
-      const groupCol = lower.findIndex((c) => c.replace(/\s/g, "") === "模組群");
-      colIdx = featureCol >= 0 ? { feature: featureCol, doc: docCol, group: groupCol } : null;
-      continue; // 表頭列
-    }
-    if (!colIdx) continue;
-    const feature = cells[colIdx.feature] ?? "";
-    if (!feature || feature === "-" || /^<.+>$/.test(feature)) continue; // 空列或模板列
-    features.push({
-      phase: phases.at(-1) ?? "-",
-      feature: normName(feature),
-      doc: (cells[colIdx.doc] ?? "").match(/F\d{3}/)?.[0] ?? "",
-      group: colIdx.group >= 0 ? normName(cells[colIdx.group] ?? "") : "",
-    });
-  }
-  return { phases: phases.length, features };
-}
-
-/** 標準化 feature 名稱:去掉 markdown 強調符號與前後空白,讓表格與卡片標題對得上 */
+/** 標準化名稱:去掉 markdown 強調符號與前後空白,讓表格與 frontmatter 的值對得上 */
 function normName(s) {
   return String(s).replace(/[`*_]/g, "").trim();
 }
 
-/**
- * 從 design.md 內文抓「Feature 契約卡」章節下的卡片標題(`### <feature-slug>`)。
- * 契約卡是 feature 可被 /subsys-build 無訪談委派的門檻。
- * 沒有這個章節時回傳空 Set —— 舊版 design.md 屬正常,只提示不算不一致。
- */
-function parseCards(text) {
-  const cards = new Set();
-  let inSection = false;
-  for (const line of text.split(/\r?\n/)) {
-    const heading = line.match(/^(#{2,6})\s+(.+?)\s*$/);
-    if (!heading) continue;
-    const level = heading[1].length;
-    if (level === 2) {
-      inSection = /契約卡/.test(heading[2]);
-      continue;
-    }
-    if (!inSection || level !== 3) continue;
-    const name = normName(heading[2]);
-    if (name && !/^<.+>$/.test(name)) cards.add(name); // 模板列不算
-  }
-  return cards;
-}
-
-/** 表頭列的欄位比對用:去空白、轉小寫 */
+/** 表頭一列正規化成比對用的鍵(去空白、轉小寫)——欄位靠名字認,不靠位置 */
 function headerKeys(cells) {
   return cells.map((c) => normName(c).replace(/\s/g, "").toLowerCase());
 }
@@ -736,120 +693,111 @@ function parseSubsysBriefs(text, roster) {
 }
 
 const subsysRows = [];
-const pendingFeatures = []; // 功能規劃有列、尚未建 feature 文檔的項目
+const featureIndex = new Map(); // slug → 生成「功能總覽」用的資料
+const pendingFeatures = []; // status: planned —— 有編號與契約、還沒寫 spec 的 feature
 const noGroupTable = []; // 沒有「模組群」表的子系統(只有一個領域時屬正常,合併成一條提示)
 
 for (const slug of subsysDirs) {
   const entry = subsysDocs.get(slug);
   const meta = entry.designMeta;
-  const roadmap = entry.roadmap;
 
-  let done = 0;
-  let specced = 0;
-  const claimed = new Set();
-  for (const f of roadmap.features) {
-    if (!f.doc) {
-      pendingFeatures.push({ subsystem: slug, ...f });
-      continue;
-    }
-    specced++;
-    if (claimed.has(f.doc)) archIssues.push(`${entry.designFile}:功能規劃有兩列都指向 ${slug}/${f.doc}`);
-    claimed.add(f.doc);
-    const row = entry.ids.get(f.doc);
-    if (!row) archIssues.push(`${entry.designFile}:功能規劃的 ${slug}/${f.doc}(${f.feature})在 ${slug}/features/ 找不到對應文檔`);
-    else if (DONE_STATUSES.has(row.status)) done++;
-  }
-  // features/ 有文檔、但功能規劃沒認領 → 提示回填路線圖
-  for (const [id, row] of entry.ids) {
-    if (/^F\d{3}$/.test(id) && !claimed.has(id))
-      archNotes.push(`${row.file}:${rowName(row)} 沒有出現在 ${slug}/design.md 的功能規劃裡(建議回填該表的 doc 欄)`);
+  // v2:分母就是 features/ 底下的檔案。沒有路線圖的一列、沒有 doc 欄,所以「表上有列卻沒建檔」
+  // 與「建了檔卻沒被認領」這兩種 v1 專屬的對不上狀態,在這裡不可能發生。
+  const feats = [...entry.ids.values()].filter((r) => r.type === "feature" && !DROPPED_STATUSES.has(r.status));
+  const done = feats.filter((r) => DONE_STATUSES.has(r.status)).length;
+  const plannedFeats = feats.filter((r) => r.status === "planned");
+  const specced = feats.length - plannedFeats.length;
+  for (const r of plannedFeats) pendingFeatures.push({ subsystem: slug, ...r });
+
+  // 狀態與內容對帳:planned / specced 兩格由內文決定,說謊抓得到;done 只能明寫,所以更要查
+  for (const r of feats) {
+    if (!r.hasContract)
+      archIssues.push(`${r.file}:沒有「## 契約」—— Level 2 的邊界沒有落地(/subsys-design 建檔當下就該寫)`);
+    if (r.status === "planned" && r.hasLaws)
+      archIssues.push(`${r.file}:status 是 planned,卻已經有「## Laws」(規格寫過了,狀態沒跟上)`);
+    if (r.status !== "planned" && !r.hasLaws)
+      archIssues.push(`${r.file}:status 是 ${r.status},卻沒有「## Laws」(規格還沒寫,或章節被改名)`);
   }
 
-  // Feature 契約卡覆蓋率(/subsys-build 委派展開的門檻;缺卡只提示,不列為不一致)
-  const cards = entry.cards;
-  const carded = roadmap.features.filter((f) => cards.has(f.feature)).length;
-  if (entry.designFile && roadmap.features.length > 0) {
-    if (cards.size === 0) {
-      archNotes.push(`${entry.designFile}:沒有「Feature 契約卡」章節,無法用 /subsys-build 委派展開(用 /subsys-design 更新模式補上)`);
-    } else {
-      for (const f of roadmap.features) {
-        if (!cards.has(f.feature)) archNotes.push(`${entry.designFile}:功能規劃的 ${f.feature} 缺 Feature 契約卡(該項無法委派)`);
-      }
-      for (const c of cards) {
-        if (!roadmap.features.some((f) => f.feature === c))
-          archNotes.push(`${entry.designFile}:Feature 契約卡「${c}」不在功能規劃清單內(孤兒卡片,建議刪除或補進清單)`);
-      }
-    }
+  // 契約就緒度:planned 的檔六欄填滿才委派得動。分母只算 planned ——
+  // specced / done 早就走完那道門了,再判一次只會製造雜訊(contract-readiness.md A2)。
+  const carded = plannedFeats.filter((r) => r.contractGaps.length === 0).length;
+  for (const r of plannedFeats) {
+    if (r.contractGaps.length)
+      archNotes.push(`${r.file}:「## 契約」還缺 ${r.contractGaps.join("、")}(該項無法委派展開)`);
   }
 
   const openE = [...entry.ids.values()].filter((r) => r.type === "enhance" && !DONE_STATUSES.has(r.status)).length;
   const openB = [...entry.ids.values()].filter((r) => r.type === "bugfix" && !DONE_STATUSES.has(r.status)).length;
 
-  const total = roadmap.features.length;
+  const total = feats.length;
   if (entry.designFile && total === 0)
-    archNotes.push(`${entry.designFile}:沒有「功能規劃」表格,無法估算子系統進度(建議用 /subsys-design 補上)`);
+    archNotes.push(`${entry.designFile}:features/ 底下一份文檔都沒有,無法估算子系統進度(用 /subsys-design 規劃並建檔)`);
 
   // ---- 模組群:子系統內部的領域劃分。planned 的那幾群沒有 feature,不能被算成「這個子系統做完了」
   const groups = entry.groups;
   const activeGroups = groups.filter((g) => g.status === "active");
   const plannedGroups = groups.filter((g) => g.status === "planned");
   const groupNames = new Set(groups.map((g) => g.name.toLowerCase()));
-  const featuresOf = (name) => roadmap.features.filter((f) => f.group.toLowerCase() === name.toLowerCase());
+  const featuresOf = (name) => feats.filter((r) => r.group.toLowerCase() === name.toLowerCase());
   for (const g of groups) {
     const fs = featuresOf(g.name);
     g.total = fs.length;
-    g.done = fs.filter((f) => f.doc && DONE_STATUSES.has(entry.ids.get(f.doc)?.status)).length;
+    g.done = fs.filter((r) => DONE_STATUSES.has(r.status)).length;
     g.subsystem = slug;
   }
   if (groups.length > 0) {
-    // 只有一個模組群時,功能規劃可以不寫「模組群」欄:整份路線圖就是那一群
+    // 只有一個模組群時,feature 檔可以不填 group:整個子系統就是那一群
     if (groups.length === 1 && groups[0].total === 0) {
       groups[0].total = total;
       groups[0].done = done;
     }
-    for (const f of roadmap.features) {
-      if (f.group && !groupNames.has(f.group.toLowerCase()))
-        archIssues.push(`${entry.designFile}:功能規劃的 ${f.feature} 標了模組群「${f.group}」,但「模組群」表沒有這一群`);
+    for (const r of feats) {
+      if (r.group && !groupNames.has(r.group.toLowerCase()))
+        archIssues.push(`${r.file}:frontmatter 的 group「${r.group}」不在 ${slug}/design.md 的「模組群」表裡`);
     }
     if (groups.length > 1) {
-      const ungrouped = roadmap.features.filter((f) => !f.group);
+      const ungrouped = feats.filter((r) => !r.group);
       if (ungrouped.length > 0)
         archIssues.push(
-          `${entry.designFile}:有 ${groups.length} 個模組群,但功能規劃有 ${ungrouped.length} 列沒填「模組群」欄` +
-            `(${ungrouped.map((f) => f.feature).join("、")})——分不清楚它們算哪一群的進度`,
+          `${entry.designFile}:有 ${groups.length} 個模組群,但 ${ungrouped.length} 份 feature 檔沒填 frontmatter 的 group` +
+            `(${ungrouped.map((r) => rowName(r)).join("、")})——分不清楚它們算哪一群的進度`,
         );
     }
     for (const g of plannedGroups)
       archNotes.push(
-        `${entry.designFile}:模組群 ${slug}/${g.name} 還是 planned(契約章節與功能規劃未寫)` +
+        `${entry.designFile}:模組群 ${slug}/${g.name} 還是 planned(契約章節未寫、feature 檔未建)` +
           `${g.brief ? `——${g.brief}` : ""};${slug}/${g.name} 不在 ${slug} 子系統的進度分母裡`,
       );
     for (const g of activeGroups) {
       if (g.total === 0)
-        archIssues.push(`${entry.designFile}:模組群「${g.name}」標 active,但功能規劃一列都沒有(標錯狀態,或路線圖漏寫)`);
+        archIssues.push(`${entry.designFile}:模組群「${g.name}」標 active,但沒有任何 feature 檔掛在它底下(標錯狀態,或漏建檔)`);
     }
   } else if (entry.designFile && total > 0) {
     noGroupTable.push(slug);
   }
+
+  featureIndex.set(slug, { designFile: entry.designFile, feats: [...entry.ids.values()].filter((r) => r.type === "feature") });
 
   subsysRows.push({
     description: meta?.description ? truncate(meta.description, DESC_WIDTH) : "-",
     id: slug,
     status: !meta || !meta.status ? "⚠ missing-metadata" : String(meta.status),
     groups: groups.length === 0 ? "-" : `${activeGroups.length}/${groups.length}`,
-    phases: total === 0 ? "-" : String(roadmap.phases || 1),
+    phases: total === 0 ? "-" : String(new Set(feats.map((r) => r.stage).filter((x) => x && x !== "-")).size || 1),
     features: total === 0 ? "-" : String(total),
-    cards: total === 0 || cards.size === 0 ? "-" : `${carded}/${total}`,
-    specced: total === 0 ? "-" : String(specced),
+    cards: plannedFeats.length === 0 ? "-" : `${carded}/${plannedFeats.length}`,
+    onlyPlanned: total === 0 ? "-" : String(plannedFeats.length),
+    specced: total === 0 ? "-" : String(feats.filter((r) => r.status === "specced").length),
     done: total === 0 ? "-" : String(done),
     openEB: `${openE}E/${openB}B`,
     progress: total === 0 ? "-" : `${done}/${total} (${Math.round((done / total) * 100)}%)`,
     parts: entry.parts,
-    hasRoadmap: total > 0,
+    hasFeatures: total > 0,
     built: true,
     groupRows: groups,
     plannedGroups: plannedGroups.length,
-    // 「做完」的門檻:路線圖跑完、沒有未結 E/B,而且**沒有還沒開工的模組群**
+    // 「做完」的門檻:每一份 feature 檔都 done、沒有未結 E/B,而且**沒有還沒開工的模組群**
     complete: total > 0 && done === total && openE === 0 && openB === 0 && plannedGroups.length === 0,
   });
 }
@@ -874,7 +822,8 @@ for (const slug of plannedSubsys) {
     done: "-",
     openEB: "-",
     progress: "未展開",
-    hasRoadmap: false,
+    onlyPlanned: "-",
+    hasFeatures: false,
     built: false,
     groupRows: [],
     plannedGroups: 0,
@@ -925,9 +874,12 @@ const docKey = (subsystem, id) => (subsystem && subsystem !== "global" ? `${subs
  * 單獨一個 `E001` 答不出「哪個子系統的哪一份、在改什麼」,而問這句話的成本由讀的人付。
  * 規則見 `_shared/conventions.md`「指稱紀律」與 `doc-lifecycle.md`「文檔引用格式」。
  */
-const fullName = (subsystem, id, slug) =>
-  `${subsystem && subsystem !== "global" ? `${subsystem}/` : ""}${id}${slug ? `-${slug}` : ""}`;
-const rowName = (r) => fullName(r.subsystem, r.id, r.slug);
+function fullName(subsystem, id, slug) {
+  return `${subsystem && subsystem !== "global" ? `${subsystem}/` : ""}${id}${slug ? `-${slug}` : ""}`;
+}
+function rowName(r) {
+  return fullName(r.subsystem, r.id, r.slug);
+}
 
 /** 一條引用(`auth/F002` / `F002` / `G-E001`)解析成全名;解析不到就原樣回傳 */
 function refFullName(ref, contextSubsys) {
@@ -1068,13 +1020,13 @@ if (query.doc) {
   const key = docKey(hit.subsystem, hit.id);
   const full = readFileSync(join(designDir, hit.file), "utf8");
   const entry = hit.subsystem !== "global" ? subsysDocs.get(hit.subsystem) : null;
-  const road = entry?.roadmap.features.find((f) => f.doc === hit.id) ?? null;
+  const road = null; // v2:feature 的一切都在它自己那份檔裡,沒有第二處可以對帳
 
   console.log(`=== 文檔 ${rowName(hit)} ===`);
   console.log(`主軸  ${hit.description}`);
   console.log(
     `歸屬  ${hit.subsystem === "global" ? "全域(跨子系統)" : `子系統 ${hit.subsystem}`}` +
-      (road ? `  |  ${road.phase}  |  功能規劃「${road.feature}」` : "") +
+
       `  |  type ${hit.type}  |  status ${hit.status}${gapFlag(hit)}`,
   );
   if (hit.subsystem === "global") console.log(`受影響  ${hit.affects.length ? hit.affects.join("、") : "⚠ 未列 subsystems"}`);
@@ -1219,7 +1171,7 @@ if (query.subsys) {
     console.log(`主軸  ${subsysBriefs.get(slug) ?? "-"}`);
     console.log(`狀態  已列入 system.md 的 subsystems 名冊,**尚未建 design.md**${st ? `(${stageName(st)} ${st.status})` : ""}`);
     console.log(`檔案  subsystems/${slug}/design.md 不存在`);
-    console.log(`\n${slug} 的職責與邊界只寫在 system.md 的「子系統劃分」;${slug} 沒有契約、沒有功能規劃、也沒有 feature 文檔。`);
+    console.log(`\n${slug} 的職責與邊界只寫在 system.md 的「子系統劃分」;${slug} 沒有契約、也沒有任何 feature 文檔。`);
     console.log(`下一步:/subsys-design ${slug}`);
     console.log(QUERY_TAIL);
     process.exit(1);
@@ -1237,7 +1189,7 @@ if (query.subsys) {
 
   console.log(`=== 子系統 ${slug} ===`);
   console.log(`主軸  ${srow?.description ?? "-"}`);
-  console.log(`狀態  status ${srow?.status ?? "-"}  |  模組群 ${srow?.groups ?? "-"}  |  階段 ${srow?.phases ?? "-"}  |  features ${srow?.features ?? "-"}  |  契約卡 ${srow?.cards ?? "-"}  |  進度 ${srow?.progress ?? "-"}`);
+  console.log(`狀態  status ${srow?.status ?? "-"}  |  模組群 ${srow?.groups ?? "-"}  |  階段 ${srow?.phases ?? "-"}  |  features ${srow?.features ?? "-"}  |  契約就緒 ${srow?.cards ?? "-"}  |  進度 ${srow?.progress ?? "-"}`);
   console.log(`檔案  ${entry.designFile ?? "⚠ 缺 design.md"}`);
   if (entry.parts.length)
     console.log(
@@ -1257,7 +1209,7 @@ if (query.subsys) {
       })),
     );
     if (entry.groups.some((g) => g.status === "planned"))
-      console.log(`planned 的模組群沒有契約、沒有功能規劃,**不在上面「進度 ${srow?.progress ?? "-"}」那個分母裡**。`);
+      console.log(`planned 的模組群沒有契約、沒有 feature 檔,**不在上面「進度 ${srow?.progress ?? "-"}」那個分母裡**。`);
   }
 
   console.log(`\n=== 本子系統的文檔(${mine.length})===`);
@@ -1306,8 +1258,9 @@ if (query.subsys) {
 
   const pend = pendingFeatures.filter((f) => f.subsystem === slug);
   printBlock(
-    `待展開的 feature(${pend.length})`,
-    pend.map((f) => `- ${slug} 功能規劃「${f.feature}」${f.phase && f.phase !== "-" ? `(${f.phase})` : ""}—— 還沒建 feature 文檔,所以還沒有編號`),
+    `只規劃了、還沒寫 spec 的 feature(${pend.length})`,
+    pend.map((f) => `- ${rowName(f)}${f.stage && f.stage !== "-" ? `(${f.stage})` : ""}  ${f.file}` +
+      (f.contractGaps.length ? `\n    ⚠ 契約還缺 ${f.contractGaps.join("、")},委派不動` : "")),
   );
 
   const gaps = openGaps.filter((g) => g.scope === slug);
@@ -1325,6 +1278,40 @@ if (query.subsys) {
   const unfinishedHere = mine.filter((r) => !DONE_STATUSES.has(r.status));
   const plannedHere = entry.groups.filter((g) => g.status === "planned").length;
   process.exit(unfinishedHere.length || issues.length || bad.length || gaps.length || pend.length || plannedHere ? 1 : 0);
+}
+
+// ---------------------------------------------------------------- --write-index
+
+if (writeIndex) {
+  // 「功能總覽」是**生成**的:手改無效。它存在的唯一理由是讓人一眼看完子系統,
+  // 每一格的權威都在各自的 F00x 檔 —— 所以這裡只覆寫兩個標記之間,不碰 design.md 的其他部分。
+  const BEGIN = "<!-- BEGIN FEATURE INDEX";
+  const END = "<!-- END FEATURE INDEX -->";
+  let failed = 0;
+  for (const [slug, { designFile, feats }] of featureIndex) {
+    if (!designFile) continue;
+    const path = join(designDir, designFile.replace(/^.*?subsystems\//, "subsystems/"));
+    const text = readFileSync(path, "utf8");
+    const lines = text.split(/\r?\n/);
+    const b = lines.findIndex((l) => l.includes(BEGIN));
+    const e = lines.findIndex((l) => l.includes(END));
+    if (b < 0 || e < 0 || e < b) {
+      console.log(`✗ ${designFile}:找不到 FEATURE INDEX 標記,請先補一節「## 功能總覽」並放入 ${BEGIN}…-->/${END}`);
+      failed++;
+      continue;
+    }
+    const sorted = [...feats].sort((x, y) => x.id.localeCompare(y.id));
+    const hasGroup = sorted.some((r) => r.group);
+    const block = [
+      `| id | feature | 階段 |${hasGroup ? " 模組群 |" : ""} 模組 | 狀態 |`,
+      `|---|---|---|${hasGroup ? "---|" : ""}---|---|`,
+      ...sorted.map((r) => `| ${r.id} | ${r.slug} | ${r.stage === "-" ? "" : r.stage} |${hasGroup ? ` ${r.group} |` : ""} ${r.modules.join("、")} | ${r.status} |`),
+    ];
+    lines.splice(b + 1, e - b - 1, ...block);
+    writeFileSync(path, lines.join("\n"));
+    console.log(`✓ ${designFile}:${sorted.length} 個 feature`);
+  }
+  process.exit(failed ? 1 : 0);
 }
 
 // ---------------------------------------------------------------- 輸出(盤點模式)
@@ -1365,21 +1352,21 @@ if (subsysRows.length === 0) {
   console.log("(subsystems/ 下沒有任何子系統;專案未拆子系統時屬正常,否則請用 /subsys-design 建立)");
 } else {
   printTable(
-    { description: "主軸", id: "子系統", status: "status", groups: "模組群", phases: "階段", features: "features", cards: "契約卡", specced: "已建文檔", done: "已完成", openEB: "未結E/B", progress: "進度" },
+    { description: "主軸", id: "子系統", status: "status", groups: "模組群", phases: "階段", features: "features", cards: "契約就緒", onlyPlanned: "僅規劃", specced: "已寫spec", done: "已實作", openEB: "未結E/B", progress: "進度" },
     subsysRows,
   );
   const built = subsysRows.filter((s) => s.built);
-  const tracked = built.filter((s) => s.hasRoadmap);
+  const tracked = built.filter((s) => s.hasFeatures);
   const unknown = built.length - tracked.length;
   console.log(
     `\n子系統建檔:${built.length}/${subsysRows.length}(名冊列了 ${subsysRows.length} 個,` +
       `${plannedSubsys.length} 個還沒有 design.md)`,
   );
   console.log(
-    `子系統完成度:${tracked.filter((s) => s.complete).length}/${subsysRows.length} 個子系統跑完路線圖、無未結 E/B 且無 planned 模組群` +
-      (unknown > 0 ? `(另有 ${unknown} 個已建檔但沒有功能規劃表格,進度未知)` : ""),
+    `子系統完成度:${tracked.filter((s) => s.complete).length}/${subsysRows.length} 個子系統的 feature 全部實作完、無未結 E/B 且無 planned 模組群` +
+      (unknown > 0 ? `(另有 ${unknown} 個已建 design.md 但 features/ 是空的,進度未知)` : ""),
   );
-  console.log("(「進度」欄的分母只是**該子系統自己的功能規劃**,不是產品完成度;產品完成度看下面的開發階段)");
+  console.log("(「進度」欄的分母只是**該子系統 features/ 底下的檔案數**,不是產品完成度;產品完成度看下面的開發階段)");
 }
 
 // ---- 開發階段:全專案唯一的產品級分母 ----
@@ -1415,9 +1402,9 @@ if (plannedSubsys.length > 0) {
 const plannedGroupRows = subsysRows.flatMap((s) => s.groupRows.filter((g) => g.status === "planned"));
 if (plannedGroupRows.length > 0) {
   console.log(`\n=== 已規劃、契約未寫的模組群(${plannedGroupRows.length})===`);
-  console.log("子系統的 design.md 認了下面這幾個模組群,但契約章節與功能規劃還沒寫 —— 這幾群不在各自子系統的進度分母裡。");
+  console.log("子系統的 design.md 認了下面這幾個模組群,但契約章節還沒寫、feature 檔也還沒建 —— 這幾群不在各自子系統的進度分母裡。");
   for (const g of plannedGroupRows) console.log(`- ${g.subsystem}/${g.name}${g.brief ? `  ${g.brief}` : ""}`);
-  console.log("下一步:對上面模組群所屬的子系統跑 /subsys-design <子系統> 更新模式,把該模組群的契約與功能規劃補上。");
+  console.log("下一步:對上面模組群所屬的子系統跑 /subsys-design <子系統> 更新模式,把該模組群的契約補上並建出該群的 feature 檔。");
 }
 
 if (Object.keys(adrCounts).length > 0) {
@@ -1434,11 +1421,11 @@ if (contractIds.size > 0) {
 }
 
 if (pendingFeatures.length > 0) {
-  console.log(`\n=== 待展開的 feature:功能規劃有列、尚未建文檔(${pendingFeatures.length})===`);
+  console.log(`\n=== 只規劃了、還沒寫 spec 的 feature(${pendingFeatures.length})===`);
+  console.log("這些檔已經有編號與 `## 契約`,缺的是 Laws / Examples / 骨架。下一步:/spec-design(契約滿格時可用 /subsys-build 批次委派)。");
   for (const f of pendingFeatures)
-    console.log(
-      `- ${f.subsystem} 功能規劃「${f.feature}」${f.phase && f.phase !== "-" ? `(${f.phase})` : ""}—— 還沒建 feature 文檔,所以還沒有編號`,
-    );
+    console.log(`- ${rowName(f)}${f.stage && f.stage !== "-" ? `(${f.stage})` : ""}  ${f.file}` +
+      (f.contractGaps.length ? `\n    ⚠ 契約還缺 ${f.contractGaps.join("、")},委派不動` : ""));
 }
 
 if (openGaps.length > 0) {

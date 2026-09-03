@@ -1,25 +1,26 @@
-主軸      文檔(全名)               type     status                     created     depends-on  file
---------  -----------------------  -------  -------------------------  ----------  ----------  ----------------------------------------------
-登入      auth/F001-login          feature  done                       2026-08-10  []          subsystems/auth/features/F001-login.md
-登入      auth/F002-token-refresh  feature  in-progress ⚠卡auth/GAP-1  2026-08-10  [F001]      subsystems/auth/features/F002-token-refresh.md
-全域快取  G-E001-cache             enhance  open                       2026-08-22  []          enhancements/G-E001-cache.md
+主軸      文檔(全名)               type     status                 created     depends-on  file
+--------  -----------------------  -------  ---------------------  ----------  ----------  ----------------------------------------------
+登入      auth/F001-login          feature  done                   2026-08-10  []          subsystems/auth/features/F001-login.md
+登入      auth/F002-token-refresh  feature  specced ⚠卡auth/GAP-1  2026-08-10  [F001]      subsystems/auth/features/F002-token-refresh.md
+登出      auth/F003-logout         feature  planned                2026-09-03  []          subsystems/auth/features/F003-logout.md
+全域快取  G-E001-cache             enhance  specced                2026-08-22  []          enhancements/G-E001-cache.md
 
 === 統計 ===
 done: 1
-in-progress: 1
-open: 1
+planned: 1
+specced: 2
 
 === 子系統狀態 ===
 主架構 system:示範專案:含冒號的描述  [active]  subsystems: [auth, billing]
 專案模式  mode: greenfield(全新建立:禁問 migration 與向後相容)
-主軸        子系統   status          模組群  階段  features  契約卡  已建文檔  已完成  未結E/B  進度
-----------  -------  --------------  ------  ----  --------  ------  --------  ------  -------  ---------
-認證子系統  auth     active          1/2     1     3         3/3     2         1       0E/0B    1/3 (33%)
--           billing  未建 design.md  -       -     -         -       -         -       -        未展開
+主軸        子系統   status          模組群  階段  features  契約就緒  僅規劃  已寫spec  已實作  未結E/B  進度
+----------  -------  --------------  ------  ----  --------  --------  ------  --------  ------  -------  ---------
+認證子系統  auth     active          1/2     1     3         0/1       1       1         1       0E/0B    1/3 (33%)
+-           billing  未建 design.md  -       -     -         -         -       -         -       -        未展開
 
 子系統建檔:1/2(名冊列了 2 個,1 個還沒有 design.md)
-子系統完成度:0/2 個子系統跑完路線圖、無未結 E/B 且無 planned 模組群
-(「進度」欄的分母只是**該子系統自己的功能規劃**,不是產品完成度;產品完成度看下面的開發階段)
+子系統完成度:0/2 個子系統的 feature 全部實作完、無未結 E/B 且無 planned 模組群
+(「進度」欄的分母只是**該子系統 features/ 底下的檔案數**,不是產品完成度;產品完成度看下面的開發階段)
 
 === 開發階段(2)===
 階段  名稱  涵蓋子系統  狀態
@@ -36,9 +37,9 @@ system.md 的名冊列了下面這幾個子系統,但每一個都還沒有 Level
 下一步:挑上面其中一個子系統,跑 /subsys-design <子系統>。
 
 === 已規劃、契約未寫的模組群(1)===
-子系統的 design.md 認了下面這幾個模組群,但契約章節與功能規劃還沒寫 —— 這幾群不在各自子系統的進度分母裡。
+子系統的 design.md 認了下面這幾個模組群,但契約章節還沒寫、feature 檔也還沒建 —— 這幾群不在各自子系統的進度分母裡。
 - auth/MFA  二階段驗證
-下一步:對上面模組群所屬的子系統跑 /subsys-design <子系統> 更新模式,把該模組群的契約與功能規劃補上。
+下一步:對上面模組群所屬的子系統跑 /subsys-design <子系統> 更新模式,把該模組群的契約補上並建出該群的 feature 檔。
 
 ADR:accepted 1(共 1 份)
 
@@ -48,17 +49,20 @@ ADR:accepted 1(共 1 份)
 共用 session 契約  G-C001-session  active  [auth, billing]  contracts/G-C001-session.md
 (契約不是任務文檔,不計入進度;查單一份用 --doc G-C001-<slug>)
 
-=== 待展開的 feature:功能規劃有列、尚未建文檔(1)===
-- auth 功能規劃「logout」—— 還沒建 feature 文檔,所以還沒有編號
+=== 只規劃了、還沒寫 spec 的 feature(1)===
+這些檔已經有編號與 `## 契約`,缺的是 Laws / Examples / 骨架。下一步:/spec-design(契約滿格時可用 /subsys-build 批次委派)。
+- auth/F003-logout  subsystems/auth/features/F003-logout.md
+    ⚠ 契約還缺 實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做,委派不動
 
 === 未結的 spec-gaps:qa / impl 提出、spec 尚未修訂(1)===
 上面被標了 ⚠卡 的文檔就是卡在下面這幾條 gap;那幾份文檔的下一步是**修 spec**,不是繼續做。
 每一條未結 gap 都代表有項目正卡著;修 spec 前不要繼續往下做,也不要委派展開。
 - auth/GAP-1  卡住 auth/F002-token-refresh(qa 提出)  過期判定用哪個時鐘  subsystems/auth/spec-gaps.md
 
-=== 未完成 / metadata 缺失(2)===
-- 登入  [in-progress ⚠卡auth/GAP-1] auth/F002-token-refresh  subsystems/auth/features/F002-token-refresh.md
-- 全域快取  [open] G-E001-cache  enhancements/G-E001-cache.md
+=== 未完成 / metadata 缺失(3)===
+- 登入  [specced ⚠卡auth/GAP-1] auth/F002-token-refresh  subsystems/auth/features/F002-token-refresh.md
+- 登出  [planned] auth/F003-logout  subsystems/auth/features/F003-logout.md
+- 全域快取  [specced] G-E001-cache  enhancements/G-E001-cache.md
 
 === 未完成的子系統(2)===
 - 認證子系統  [active] 子系統 auth  進度 1/3 (33%)  未結 0E/0B  ⚠ auth 還有 1 個模組群未開工
@@ -68,7 +72,8 @@ ADR:accepted 1(共 1 份)
 - enhancements/G-E001-cache.md:subsystems 列了 billing,但 subsystems/ 沒有這個子系統
 - contracts/G-C001-session.md:subsystems 列了 billing,但 subsystems/ 沒有這個子系統
 
-=== 提示(2)===
-- subsystems/auth/design.md:模組群 auth/MFA 還是 planned(契約章節與功能規劃未寫)——二階段驗證;auth/MFA 不在 auth 子系統的進度分母裡
+=== 提示(3)===
+- subsystems/auth/features/F003-logout.md:「## 契約」還缺 實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做(該項無法委派展開)
+- subsystems/auth/design.md:模組群 auth/MFA 還是 planned(契約章節未寫、feature 檔未建)——二階段驗證;auth/MFA 不在 auth 子系統的進度分母裡
 - subsystems/auth/features/F002-token-refresh.md:depends-on 的 F001 寫成裸 id —— 改寫成 auth/F001(同一個子系統內部也要帶前綴)
 __exit__ 1

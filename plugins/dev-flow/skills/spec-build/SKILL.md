@@ -74,7 +74,7 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
    ```
 5. `spec-gaps.md` 沒有指向本文檔的 `open` 條目——有的話代表上一輪還有 spec 沒修完,先處理
 
-不過關時:列出缺什麼,告知開發者走 `/spec-design` 的更新模式補齊,然後結束。
+不過關時:列出缺什麼,告知開發者走 `/spec-design`(還是 `planned`、規格沒寫)或 `/spec-redesign`(規格寫了但要改)補齊,然後結束。
 
 ## 3. spec 批准閘門(人放行)
 
@@ -101,7 +101,7 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
 
 裁決的順序固定:**不可逆決定(第 3 點)→ 不在宣告內的新增依賴邊(第 4 點)→ 契約層級的待確認假設(第 7 點,最難逆的先問)**。前兩類依定義就是最難逆的,排在注意力最新鮮的位置。
 
-用 AskUserQuestion 讓開發者選:**批准,繼續** / **要改 spec**(結束本次,請開發者走 design skill 的更新模式)/ **停下來**。
+用 AskUserQuestion 讓開發者選:**批准,繼續** / **要改 spec**(結束本次,請開發者走 `/spec-redesign`)/ **停下來**。
 
 兩種情況不問這一題,但第 1-6 點的呈報照發(**降級的是問不問,不是呈不呈報**):開發者看不到呈報,就不知道被放行的是什麼。
 
@@ -148,8 +148,8 @@ feature 目標(全新程式碼)沒有既有測試,這條基準線可跳過——
 
 ## 7. 收尾
 
-- **回寫 `status`(這一格的唯一寫者是你)**:骨架已無未實作標記、測試全綠、**且沒有指向本文檔的未結 spec-gaps** → 改 `done`、更新 `updated`;任一條不成立就留 `in-progress`。委派模式下的 impl 不碰目標文檔的 frontmatter(`spec-impl` 委派模式對照表),漏了這一步就沒有人補。**全綠不等於完成**——有 `open` 的 gap 代表那段行為沒被 spec 規範,兩種相反的實作都會全綠
-- **回寫 `code-paths`(同一次動作,不分兩趟)**:把 impl 回報裡的路徑清單填進目標文檔的 frontmatter(以檔案為主,不含測試檔)。`status` 留 `in-progress` 也照樣回寫——路徑是既成事實,跟做完沒做完無關
+- **回寫 `status`(這一格的唯一寫者是你)**:骨架已無未實作標記、測試全綠、**且沒有指向本文檔的未結 spec-gaps** → 改 `done`、更新 `updated`;任一條不成立就**留在 `specced`**(v2 的值域只有 planned / specced / done / dropped)。委派模式下的 impl 不碰目標文檔的 frontmatter(`spec-impl` 委派模式對照表),漏了這一步就沒有人補。**全綠不等於完成**——有 `open` 的 gap 代表那段行為沒被 spec 規範,兩種相反的實作都會全綠
+- **回寫 `code-paths`(同一次動作,不分兩趟)**:把 impl 回報裡的路徑清單填進目標文檔的 frontmatter(以檔案為主,不含測試檔)。`status` 留在 `specced` 也照樣回寫——路徑是既成事實,跟做完沒做完無關
 - **commit**:`git add -A` 前確認 qa 與 impl 都已回報完(半成品的測試檔會被一起吞進去);message 帶文檔全名(`auth/F002-token-refresh`)
 - 專案有程式碼知識圖時,把圖更新到最新(指令見 `../_shared/codegraph.md`);跑不動就略過並在摘要提一句
 - 回報固定五塊:

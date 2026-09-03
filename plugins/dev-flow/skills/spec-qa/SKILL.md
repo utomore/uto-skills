@@ -44,8 +44,8 @@ user-invocable: false
 ## 1. 確定目標 spec
 
 - 開發者有指定(全名 `auth/F001-login`、`G-E001-cache`,或只給 `auth/F001` / `F001` / 檔名 / 路徑)→ 找到對應文檔;只給裸編號而多個子系統都有時,列出候選讓開發者確認。**你之後每次提到這份文檔都用全名**(`<子系統>/<id>-<slug>`)
-- 沒指定 → 執行 `node "<S>/arch-audit/scripts/scan-status.mjs" .design` 列出 `status` 為 `in-progress` 的項目,用 AskUserQuestion 讓開發者選
-- 目標文檔沒有「Laws」與「Examples」段(舊版文檔)→ 停下來,告知開發者要先用對應的 design skill 更新模式補上。**沒有 law 就沒有東西可以翻譯**,不要自己發明
+- 沒指定 → 執行 `node "<S>/arch-audit/scripts/scan-status.mjs" .design` 列出 `status` 為 `specced` 的項目,用 AskUserQuestion 讓開發者選
+- 目標文檔沒有「Laws」與「Examples」段(舊版文檔)→ 停下來,告知開發者先走 `/spec-design`(`planned` 的檔)或 `/spec-redesign`(已 `specced`、Laws 卻缺的檔)補上。**沒有 law 就沒有東西可以翻譯**,不要自己發明
 
 ## 2. 載入 context(嚴格限縮)
 

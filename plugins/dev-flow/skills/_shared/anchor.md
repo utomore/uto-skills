@@ -20,7 +20,7 @@
 
 ```
 .design/system.md  <專案一句話>            階段 S0(核心)已達成 · S1(帳務)進行中 · S2–S4 未開始
-├─ subsystems/auth/design.md  ◀ 所在      模組群 1/2 · features 2/4 done · 契約卡 4/4
+├─ subsystems/auth/design.md  ◀ 所在      模組群 1/2 · features 2/4 done · 契約就緒 4/4
 │  ├─ 模組群 auth/Session(active)        features 2/4
 │  │  ├─ auth/F001-login                                  done
 │  │  ├─ auth/F002-token-refresh ◀ 目前   in-progress · 介面 3/5 · 測試 8/12 綠
@@ -29,8 +29,8 @@
 │  │  │  ├─ DTO  `RefreshReq { refreshToken, deviceId }`             完成(對外契約 §2)
 │  │  │  └─ DTO  `TokenPair { access, refresh, expiresAt, scope }`   偏離:`scope` 欄契約沒有
 │  │  ├─ auth/F003-logout                                 設計(文檔已建,未實作)
-│  │  └─ auth 功能規劃「session-list」                     待展開(還沒建 F 文檔,所以還沒有編號)
-│  └─ 模組群 auth/MFA(planned)           未開工:契約章節與功能規劃都還沒寫
+│  │  └─ auth/F003-session-list                          planned(有編號與 ## 契約,還沒寫 spec)
+│  └─ 模組群 auth/MFA(planned)           未開工:契約章節還沒寫、feature 檔也還沒建
 ├─ subsystems/billing/design.md                           features 1/3 done
 ├─ subsystems/notify/design.md                            未建(名冊有列,無 design.md)
 └─ subsystems/audit-log/design.md                         未建(名冊有列,無 design.md)
@@ -50,14 +50,14 @@
 
 每條介面後面括號註明它對應 `design.md` 的哪一章(對外契約 / 模組間公開介面);找不到對應條目就是「偏離」。狀態來源只有三個:`scan-status.mjs` 的數字、目前文檔的 TodoList 與測試對照表、本次實際讀到或寫過的程式碼——沒讀到的不准猜,標「未查」。
 
-畫到哪一層依 skill 而定:`/system-design` 畫 `system.md` 加**名冊上每個子系統**一行(已建 / 未建);`/subsys-design` 畫到模組群與功能規劃的每個 feature 一行(待展開 / 設計 / 實作中 / done,`planned` 群標未開工);Level 3 的 skill 畫到介面與資料結構。專案沒有 `.design/`(例如 `/study` 讀純程式碼)時,畫程式碼目錄樹的對應層級,並在樹頂標明「無 .design/,完成度無法量化」。
+畫到哪一層依 skill 而定:`/system-design` 畫 `system.md` 加**名冊上每個子系統**一行(已建 / 未建);`/subsys-design` 畫到模組群與每一份 feature 檔一行(planned / specced / done,`planned` 模組群標未開工);Level 3 的 skill 畫到介面與資料結構。專案沒有 `.design/`(例如 `/study` 讀純程式碼)時,畫程式碼目錄樹的對應層級,並在樹頂標明「無 .design/,完成度無法量化」。
 
 ### 2. 完成度
 
 **兩行**,由外到內。第一行是**產品**,第二行才是手上這件事:
 
 1. **產品**:開發階段 已達成 n / 進行中 n / 未開始 n · 子系統建檔 n/m(名冊 m 個)· 未開工模組群 n
-2. **本次**:所在子系統 done/總數(模組群 n/m · 契約卡 n/m)→ 目前文檔 **介面 n/m 已實作**(骨架裡還剩幾個未實作標記)、**測試 n/m 綠**(分母是 Laws + Examples 的總條數)
+2. **本次**:所在子系統 done/總數(模組群 n/m · 契約就緒 n/m,分母是 planned 的 feature 檔數)→ 目前文檔 **介面 n/m 已實作**(骨架裡還剩幾個未實作標記)、**測試 n/m 綠**(分母是 Laws + Examples 的總條數)
 
 第一行不能省、不能併進第二行。省掉它,定錨區塊就只剩「已經展開的那一小塊的百分比」,而那個數字愈做愈接近 100%,**專案做得愈少反而看起來愈完整**——這正是定錨區塊存在要防的事。
 
@@ -67,8 +67,8 @@
 
 ### 3. 主軸檢查
 
-- **對應到哪裡**:本次動作對應 `system.md` 的哪個**開發階段**、哪個子系統職責、`design.md` 的哪個模組群、功能規劃的哪一列、契約卡的哪一條驗收標準——一句話,指到章節。指不到階段 = 本次做的事不在任何規劃裡,那本身就是第一條偏離
-- **偏離清單**:本次做了、但上面任一層沒寫的事——新介面沒登記進契約、**新增了設計文檔沒有的依賴邊**、**為測試在核心層開的後門**、**改動了骨架的簽名**、**未結的 spec-gaps**(寫成 `auth/GAP-1`;有 gap 就代表有項目卡著沒做)、「順便改」到別的模組、碰到別的子系統的內部、做了契約卡「明確不做」的東西、**本次寫出了 `system.md` 職責沒提到的能力**(未申報的職責擴張)、**發現某條上層職責在下層文檔完全沒有落點**(它會從所有分母裡消失,見 `contract-readiness.md` A10)。每條附位置與建議(回填契約 / 修 spec / 補 planned 模組群 / 另開 E 或 B 文檔 / 撤回)。沒有就寫「無」——**這一行不能省**,省掉就分不出「沒偏離」和「沒檢查」
+- **對應到哪裡**:本次動作對應 `system.md` 的哪個**開發階段**、哪個子系統職責、`design.md` 的哪個模組群、哪一份 feature 檔的 `## 契約` 的哪一條驗收標準——一句話,指到章節。指不到階段 = 本次做的事不在任何規劃裡,那本身就是第一條偏離
+- **偏離清單**:本次做了、但上面任一層沒寫的事——新介面沒登記進契約、**新增了設計文檔沒有的依賴邊**、**為測試在核心層開的後門**、**改動了骨架的簽名**、**未結的 spec-gaps**(寫成 `auth/GAP-1`;有 gap 就代表有項目卡著沒做)、「順便改」到別的模組、碰到別的子系統的內部、做了該 feature `## 契約`「明確不做」的東西、**本次寫出了 `system.md` 職責沒提到的能力**(未申報的職責擴張)、**發現某條上層職責在下層文檔完全沒有落點**(它會從所有分母裡消失,見 `contract-readiness.md` A10)。每條附位置與建議(回填契約 / 修 spec / 補 planned 模組群 / 另開 E 或 B 文檔 / 撤回)。沒有就寫「無」——**這一行不能省**,省掉就分不出「沒偏離」和「沒檢查」
 
 ### 4. 下一步
 

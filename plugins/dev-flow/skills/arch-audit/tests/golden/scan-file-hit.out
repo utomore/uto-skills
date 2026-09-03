@@ -6,7 +6,7 @@
 === 動過這條路徑的任務文檔(2) ===
 - auth/F001-login  [done]  建立  2026-08-10  subsystems/auth/features/F001-login.md
     登入  (完全相符:src/Auth/Login.hs)
-- auth/F002-token-refresh  [in-progress]  建立  2026-08-10  subsystems/auth/features/F002-token-refresh.md
+- auth/F002-token-refresh  [specced]  建立  2026-08-10  subsystems/auth/features/F002-token-refresh.md
     登入  (完全相符:src/Auth/Login.hs)
 
 本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。

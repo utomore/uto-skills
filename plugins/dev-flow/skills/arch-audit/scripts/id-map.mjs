@@ -447,7 +447,8 @@ function renderProject(designDir) {
 
   console.log(
     dim(
-      "\n所有 n/m 一律「已達成/總數」——不滿就是有待辦(F 已建/規劃 · GAP 已結/總數)" +
+      "\n所有 n/m 一律「已達成/總數」——不滿就是有待辦(GAP 已結/總數)" +
+        "\nF 是 features/ 的份數 —— v2 起規劃與建檔是同一個動作,沒有兩個數字可以對不上;走到哪跑 scan-status" +
         "\nE 優化 · B 缺陷(份數) │ LAW+EX = 照 spec 應有的測試數(分母,非實跑數)" +
         "\nASM 契約級假設 已裁/總數(讀 spec 裡每條的「裁決:」欄);`50?` = 舊格式沒有那一欄,裁沒裁不可考" +
         "\nWAVE 委派分幾批送出(非 feature 數)",

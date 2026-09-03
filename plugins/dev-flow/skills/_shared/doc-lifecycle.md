@@ -13,7 +13,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 
 | 你要做什麼 | 節名(照抄進上面的指令) |
 |---|---|
-| 建 / 改 **feature、enhance、bugfix** 文檔 | `命名與編號規則 任務文檔 文檔引用格式 description`;`/spec-design` 再加 `契約卡的生命週期` |
+| 建 / 改 **feature、enhance、bugfix** 文檔 | `命名與編號規則 任務文檔 文檔引用格式 description`;`/spec-design` 再加 `狀態與生命週期` |
 | 建 / 改 **`system.md`、`design.md`** 或它的分冊 | `文檔角色與權威來源 資料夾結構 架構文檔 清單欄位格式 description` |
 | 建 / 改 **`G-C00x` 共用契約** | `全域契約文檔 命名與編號規則 文檔引用格式` |
 | 建 / 改 **`spec-gaps.md`** 或 **`build-log.md`** | `架構文檔`(兩者的 frontmatter 規格都在這一節) |
@@ -37,16 +37,27 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
   - 名冊列了、`subsystems/<slug>/` 不存在 = **已規劃未建檔**,是待辦(exit code 1),**不是**不一致;有資料夾、名冊沒列才是不一致
   - **分母必須來自規劃,不能來自產出**(本流程被修過最嚴重的一個洞):名冊若只收已建檔的,它就跟資料夾清單同義,雙向比對永遠成立,而還沒開工的那一大半在任何進度數字裡都不存在——報表於是做得愈少、看起來愈完整
 - `system.md` 的「開發階段」表 —— 全專案唯一的**產品級分母**,狀態欄只認「未開始 / 進行中 / 已達成」。任何一階不是「已達成」,盤點就不得宣告專案完成
-- `design.md` 的「模組群」表 —— 子系統內部的領域劃分,有多個平行領域(而非一條資料流管線上的幾個模組)時必填,狀態只有 `active` / `planned`。`planned` 那一群的契約與功能規劃都還沒寫,**不在該子系統的進度分母裡**,`/arch-audit status` 單獨列出。只有一個領域可整張表省略
-- `design.md` 的「功能規劃」表 —— 該子系統的 feature 路線圖。`doc` 欄在 `/spec-design` 建檔後**即時回填**(委派模式由 `/subsys-build` 統一回填),沒回填的會被列為「待展開的 feature」、子系統進度也會偏低
-- `design.md` 的「Feature 契約卡」 —— 功能規劃裡每個 feature 一張(`###` 一張,標題 = feature slug)。它是「這個 feature 可被無訪談委派」的門檻,缺卡的項目 `/arch-audit status` 會提示
+- `design.md` 的「模組群」表 —— 子系統內部的領域劃分,有多個平行領域(而非一條資料流管線上的幾個模組)時必填,狀態只有 `active` / `planned`。`planned` 那一群的契約與 feature 檔都還沒建,**不在該子系統的進度分母裡**,`/arch-audit status` 單獨列出。只有一個領域可整張表省略
+- `features/F00x-<slug>.md` —— **一個 feature 的唯一權威,從它被決定要做的那一刻就存在**。它不是「spec 寫完才建的檔」:`/subsys-design` 決定要做這件事的當下就鑄號建檔,只寫 `## 契約` 一節(`planned`);`/spec-design` 往同一份檔追加 `## Laws` 等節(`specced`);收尾把 status 改 `done` 並回寫 `code-paths`。**沒有第二個地方記這個 feature 的任何事**——沒有路線圖的一列、沒有 `doc` 欄、沒有分開存放的契約文件
+- `design.md` 的「功能總覽」表 —— **生成的**索引(`scan-status.mjs --write-index`,夾在 `<!-- BEGIN/END FEATURE INDEX -->` 之間)。手改無效,下次生成就蓋掉。它只答「這個子系統有哪些 feature、走到哪」,每一格的權威都在各自的 `F00x` 檔
 - 每份 `design.md` 都要有 `parent: system`,讓任何讀者能從子系統回溯主架構
 
-### 契約卡的生命週期
+### 狀態與生命週期
 
-卡片的用途是「讓沒訪談過的執行者能開始寫 feature 設計文檔」,**F 文檔一建立那個用途就結束**(`F00x` 更嚴格更豐富,權威隨即轉移過去)。所以 `/spec-design` 回填 `doc` 欄的同時,把該張卡**瘦成存根**(留 `###` 標題 + 一行指向 `F00x` 與存檔),完整原文搬進 `archive/cards-done.md`。
+一個 feature ＝ 一份檔,從搖籃到墳墓都在 `features/F00x-<slug>.md`。狀態不是一個「要記得改」的欄位,而是**這份檔寫到哪裡**:
 
-**是搬家,不是刪除**:卡片的「明確不做」在 `F00x` 沒有對應欄位,它是這個 feature 負向邊界的唯一紀錄;刪掉之後「當初為什麼沒把 X 收進來」就只能從 Laws 的沉默去猜,而**沉默不可區分於遺漏**。存根不算「卡片沒填」(`contract-readiness.md` A2 / A3 / A5 只對 `doc` 欄仍是 `-` 的 feature 跑;要對帳已完成 feature 的卡片時讀 `archive/cards-done.md`),`scan-status.mjs` 只解析 `###` 標題,覆蓋率不受影響。
+| status | 意思 | 判準 | 誰推到這一格 |
+|---|---|---|---|
+| `planned` | 決定要做、邊界已定,還沒有規格 | 有 `## 契約`,沒有 `## Laws` | `/subsys-design`(批次鑄號建檔) |
+| `specced` | 規格與骨架都在,還沒實作完 | 兩節都有 | `/spec-design` |
+| `done` | 實作完成、測試過關 | frontmatter 明寫,且 `code-paths` 非空 | `/spec-impl`(委派模式由編排者) |
+| `dropped` | 決定不做了 | frontmatter 明寫 | 人 |
+
+**前兩格由檔案內容決定,說不了謊**:`## Laws` 只有 `/spec-design` 寫得出來,所以 `planned` 的檔不可能有 Laws,也不需要有人記得去改欄位。`done` 只能明寫,所以 `scan-status.mjs` 交叉檢查三種矛盾——說 `done` 卻沒有 `## Laws`、說 `planned` 卻有 Laws、`done` 而 `code-paths` 是空的。
+
+`## 契約` 是 `/subsys-design` 的產出,**`/spec-design` 只能往下加節,不准改它**。裡面那條 `- **明確不做**` 是這個 feature 負向邊界的唯一紀錄:刪掉之後「當初為什麼沒把 X 收進來」就只能從 Laws 的沉默去猜,而**沉默不可區分於遺漏**。要改契約一律走 `/spec-redesign`,由它判定這次改動是否結構性(判準見那份 SKILL)。
+
+`E00x` / `B00x` **沒有 `planned` 這一格**:優化與缺陷是看著既有程式碼提出來的,沒有 Level 2 契約可抄,建檔當下就是 `specced`。
 
 ## 資料夾結構(專案內,樹狀)
 
@@ -57,15 +68,13 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 ├── system.md                        # /system-design 產出:Level 1 主架構
 ├── subsystems/
 │   └── <subsystem-slug>/            # 資料夾名 = 子系統 slug(英文 kebab-case)
-│       ├── design.md                # /subsys-design 產出:Level 2 子系統架構(含功能規劃與 Feature 契約卡)
+│       ├── design.md                # /subsys-design 產出:Level 2 子系統架構(「功能總覽」由腳本生成,不手寫)
 │       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只有跑過才有)
 │       ├── spec-gaps.md             # /spec-qa、實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
 │       ├── contract-<模組群>.md      # design.md「對外契約」的分冊(契約大到裝不下才拆;type: contract-part)
 │       ├── decisions.md             # 訪談定案與否決理由(拆了分冊才有;type: decisions)
-│       ├── archive/
-│       │   └── cards-done.md        # 已展開 feature 的完整契約卡原文(design.md 裡只留存根;有展開過才有)
 │       ├── features/
-│       │   └── F001-<slug>.md       # /spec-design 產出,如 F001-auth-login.md
+│       │   └── F001-<slug>.md       # /subsys-design 建檔(planned)→ /spec-design 補規格(specced)
 │       ├── enhancements/
 │       │   └── E001-<slug>.md       # /spec-design 產出,如 E001-optimize-token-cache.md
 │       └── bugfixes/
@@ -93,6 +102,8 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
   ```
 
   組寫 `G-C` / `G-E` / `G-B` / `ADR` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。腳本掃過所有分支與 worktree 之後配號,**並當場把檔案建在慣例位置**(照本片「Metadata 標準」把該類文檔的 frontmatter 欄位寫齊,內容留空),印出三樣:`<id>`、檔案路徑、**全名**(`auth/F003-token-cache`——之後每一次提到這份文檔都用全名,見「文檔引用格式」)。內容由你接著填,第一件事是補 `description`。查現況用不帶 `--claim` 的同一支腳本(`--next` 只印下一個可用號,`--fetch` 連遠端一起看)。
+
+  **feature 的號在 `/subsys-design` 一次配齊**(那個子系統決定要做哪幾件事的當下),不是等到寫 spec 才一個一個配。一次一批反而**更不會撞號**:整批落在同一個 commit,而分散在幾週內、幾條分支上一次配一個才是撞號的溫床。E/B 沒有規劃階段,提出當下才配。
 
   **配號與建檔必須是同一個動作**:掃描看得到的是檔案,你腦中記著的號碼別人看不到,「先算號、待會再建檔」中間那段空窗就是撞號發生的地方。**沒有任何 skill 可以用「掃資料夾取最大值 +1」自己配號**——那個做法看不到別的分支與 worktree,而兩份同號不同 slug 的檔案 merge 時不會衝突,會靜默地一起落地。其餘旗標跑 `--help`;理由與三個掃描來源寫在腳本檔頭。
 
@@ -129,7 +140,6 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 | `SELF-1` | 詞首碼 | 自裁記錄(實作層級的自答) | 單一回報 / 自裁清單內 | spec subagent |
 | `WAVE-1` | 詞首碼 | 委派展開的波次 | 單一子系統的展開內 | 編排者 |
 | `STEP-1` | 詞首碼 | bugfix 的 TodoList 步驟(`dep:` 欄互相引用) | 單一 bugfix 文檔內 | `/bugfix` |
-| `#1` | 井號+項次 | 功能規劃表內的依賴引用 | 同一份 `design.md` 內 | 表格項次 |
 | `Level 1 / 2 / 3` | **全名** | 設計三層階梯(主架構 / 子系統 / spec) | 全流程 | 固定 |
 
 - **`Level` 一律寫全名**,任何 skill 文檔與產出裡都不准縮寫成 `L1` / `L2` / `L3`——`L` 誰都不給,免得跟專案的 `Layer` 與舊寫法的 law 混在一起。專案自己的 `Layer 0–3` 之類是專案詞彙,不歸本表管,但**專案自訂縮寫不得與本表衝突**(`/system-design` 產出前檢查):想給階段取 `E0`–`E6` 就是撞了 `E001` 與 `EX-`,一律改用工具鏈保留的 `S0`–`Sn`
@@ -169,7 +179,9 @@ id: F001                 # 檔名編號前綴:F001 | E001 | B001 | G-E001 | G-B0
 type: feature            # feature | enhance | bugfix
 title: auth-login        # 檔名 slug
 description: 以 JWT 實作使用者註冊、登入與權限驗證   # 一句話主軸,見下方規則
-status: open             # open | in-progress | done | closed
+status: planned          # planned | specced | done | dropped(E/B 沒有 planned,建檔即 specced)
+stage: S1                # 僅 feature:對應 system.md「開發階段」的階段 id
+modules: []              # 僅 feature:負責模組(design.md「內部模組劃分」的模組名)
 created: 2026-08-19
 updated: 2026-08-19
 depends-on: []           # 依賴的其他任務文檔(引用格式見上);空陣列 = 可平行開發
@@ -179,6 +191,7 @@ code-paths: []           # 本文檔實際動到的程式碼路徑;建檔時留�
 ---
 ```
 
+- **`status` / `stage` / `modules` 只有 feature 三欄齊全**;`enhance` / `bugfix` 省略 `stage` 與 `modules`(它們不掛在階段路線圖上)。狀態的判準與轉換見上方「狀態與生命週期」
 - `id` 必須與檔名的編號前綴一致(`F001-auth-login.md` → `id: F001`);`type` 必須與所在資料夾一致(features/ → feature、enhancements/ → enhance、bugfixes/ → bugfix)
 - 文檔屬於哪個子系統由**檔案路徑**決定,不另設欄位;**全域 G- 文檔**須額外加 `subsystems: [subsys-a, subsys-b]` 列出受影響的子系統
 - **`code-paths`**(必填,值可以是空陣列):這份文檔實際動到的程式碼路徑,專案根目錄起算、**以檔案為主**(`[src/Auth/Token.hs, src/Auth/Cache.hs]`),整個資料夾都由它產生時才寫目錄。子系統 `design.md` 的同名欄位是路徑**前綴**(答歸屬),這一欄是動過的檔案(答來歷);`scan-status.mjs --file <path>` 靠它反查

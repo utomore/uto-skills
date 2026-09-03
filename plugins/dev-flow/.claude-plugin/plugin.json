@@ -1,7 +1,7 @@
 {
   "name": "dev-flow",
-  "description": "三層階梯式 + spec 驅動三角色的文檔驅動開發流程 skills:主架構(system-design,含子系統完整名冊與開發階段表)、子系統架構(subsys-design,含模組群、Feature 契約卡、契約就緒度十條、跨子系統契約對帳與共用契約 G-C00x)、spec 設計(spec-design:feature 與 enhance 兩種模式,產出 spec 文檔 + 骨架:型別與簽名完整、本體 undefined)、測試(spec-qa:只讀 spec 的數據與介面,把 Laws 翻成 property test)、實作(spec-impl:只填骨架、禁碰測試,enhance 追加基準線與 scope 紀律;bugfix 單角色)、編排(spec-build:單份 spec 的 spec 批准閘門 → qa ∥ impl → 跑測試 → 仲裁;subsys-build:整個子系統的批次澄清 → 波次委派 → 階段閘門)、架構檢測與設計文檔查詢(arch-audit: system|subsys|feature|status;status 盤點開發階段、名冊上未建檔的子系統與未開工的模組群,scan-status.mjs 另有 --subsys / --doc 查歸屬、介面、共用契約與反向依賴,--file 從程式碼路徑反查是哪些 F/E/B 做的)、整合發 PR(branch-pr)、專案導讀(study)",
-  "version": "1.2.3",
+  "description": "三層階梯式 + spec 驅動三角色的文檔驅動開發流程 skills。v2 起**一個 feature ＝ 一份檔**,從被決定要做的那一刻就存在,三個狀態 planned → specced → done 全部落在同一份 features/F00x-<slug>.md,沒有路線圖的一列、沒有 doc 欄、沒有分開存放的契約卡。主架構(system-design,含子系統完整名冊與開發階段表)、子系統架構(subsys-design,含模組群、規劃當下整批鑄號建出 planned feature 檔並填好各自的 `## 契約`、跨子系統契約對帳與共用契約 G-C00x)、spec 設計(spec-design:把 planned 寫成 specced,產出 Laws/Examples 與骨架;enhance 模式另建 E00x)、測試(spec-qa:只讀 spec 把 Laws 翻成 property test)、實作(spec-impl:只填骨架、禁碰測試;bugfix 單角色)、**契約與 spec 的修改(spec-redesign:先判 Level 3 就地改還是回 Level 2,再改並留下可查證的修訂痕跡)**、編排(spec-build 單份;subsys-build 整個子系統的波次委派與階段閘門)、架構檢測與設計文檔查詢(arch-audit: system|subsys|feature|status;status 的分母來自 features/ 的檔案,另有 --write-index 生成 design.md 的功能總覽、--subsys / --doc / --file 查歸屬與反向依賴)、整合發 PR(branch-pr)、專案導讀(study)。既有專案用 arch-audit/scripts/migrate-v2.mjs 從 v1 遷移(預設 dry-run)。",
+  "version": "2.0.0",
   "author": {
     "name": "utomore"
   },

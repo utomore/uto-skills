@@ -73,11 +73,12 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 - **Level 1** `/system-design`:系統邊界、跨系統通訊、全域契約與技術選型;**子系統完整名冊**與開發階段
 - **Level 2** `/subsys-design`:子系統內部模組化、資料流管線、模組邊界介面;子系統裡有多個平行領域時,用**模組群**表把它們(含還沒開工的)一起列出
 - **Level 3** `/spec-design` → `/spec-qa` ∥ `/spec-impl`:業務邏輯、演算法細節、測試。`/bugfix` 走單角色
-- **編排層** `/spec-build`(單份 spec)、`/subsys-build`(依 Level 2 功能規劃展開整個子系統):spec 批准閘門 → 委派 qa ∥ impl → 跑測試 → 仲裁
+- **編排層** `/spec-build`(單份 spec)、`/subsys-build`(把子系統裡 `planned` 的 feature 檔整批展開):spec 批准閘門 → 委派 qa ∥ impl → 跑測試 → 仲裁
+- **修改層** `/spec-redesign`:既有契約或 spec 要改時的唯一入口。它先判這次改動只落在這一份檔(Level 3 就地改)還是有第二份文檔要跟著改(回 Level 2),再改並留下可查證的修訂痕跡
 
 Level 3 採 **spec 驅動的三角色**:設計寫 spec 文檔與程式碼骨架(型別與簽名完整、函數本體未實作),qa 與 impl 各自只讀 spec、彼此不可見,測試與實作都只是 spec 的投影。角色契約見 `spec-roles.md`。
 
-預設順序 Level 1 → 2 → 3,每層待開發者確認邊界才往下。開發者要求直接實作特定功能時,先確認它落在 Level 2 介面契約內,再直接給乾淨可執行的 Level 3 程式碼,無需客套。Level 2 完成且每個 feature 都有**契約卡**時可用 `/subsys-build` 一次展開;手動逐一推進(`/spec-design` → `/spec-build`,或自己扮演編排者)永遠是合法的替代路徑。
+預設順序 Level 1 → 2 → 3,每層待開發者確認邊界才往下。開發者要求直接實作特定功能時,先確認它落在 Level 2 介面契約內,再直接給乾淨可執行的 Level 3 程式碼,無需客套。Level 2 完成、且每份 `planned` feature 檔的 **`## 契約`** 都填滿時,可用 `/subsys-build` 一次展開;手動逐一推進(`/spec-design` → `/spec-build`,或自己扮演編排者)永遠是合法的替代路徑。
 
 ## 資訊抽象邊界規範(嚴格遵守)
 

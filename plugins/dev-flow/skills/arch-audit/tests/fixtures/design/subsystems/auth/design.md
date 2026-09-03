@@ -16,13 +16,12 @@ code-paths: [src/Auth]
 |---|---|---|
 | Session | active | 工作階段 |
 | MFA | planned | 二階段驗證 |
-## 功能規劃
-| # | feature | 模組群 | 目標 | 依賴 | doc |
+## 功能總覽
+
+<!-- BEGIN FEATURE INDEX:由 scan-status.mjs --write-index 產生,不要手改 -->
+| id | feature | 階段 | 模組群 | 模組 | 狀態 |
 |---|---|---|---|---|---|
-| 1 | login | Session | 登入 | - | auth/F001-login |
-| 2 | token-refresh | Session | 換發 | #1 | auth/F002-token-refresh |
-| 3 | logout | Session | 登出 | - | - |
-## Feature 契約卡
-### login
-### token-refresh
-### logout
+| F001 | login |  | Session |  | done |
+| F002 | token-refresh |  | Session |  | specced |
+| F003 | logout |  | Session |  | planned |
+<!-- END FEATURE INDEX -->

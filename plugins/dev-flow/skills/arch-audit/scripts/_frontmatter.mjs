@@ -69,7 +69,9 @@ export function parseValue(raw) {
   const v = String(raw ?? "").trim();
   const q = v.match(/^(['"])([\s\S]*?)\1/);
   if (q) return q[2];
-  const arr = v.match(/^\[([\s\S]*)\]/);
+  // `[^\]]` 而非 `[\s\S]`:貪婪版會把 `depends-on: []  # …如 [auth/F001]` 的行尾註解
+  // 吃進陣列裡(--claim 產出的骨架正好長這樣),把註解文字報成三個解析不了的依賴。
+  const arr = v.match(/^\[([^\]]*)\]/);
   if (arr) return splitItems(arr[1]);
   return v.replace(/\s+#.*$/, "").trim();
 }

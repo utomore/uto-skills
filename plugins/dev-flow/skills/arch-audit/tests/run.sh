@@ -83,6 +83,20 @@ do
 done
 
 echo
+echo "=== scan-ids --claim:配號 + 建檔(在暫存副本上跑,不動 fixtures)==="
+CLAIM_TMP=$(mktemp -d)
+cp -R "$FX/design" "$CLAIM_TMP/.design"
+# 配一個號,然後用 scan-status 反查同一份文檔:查得到就代表 --claim 建出來的 frontmatter
+# 真的合規(id 與檔名一致、欄位讀得出來)。這兩支腳本對「一份文檔長什麼樣」必須是同一個約定。
+if node "$SCRIPTS/scan-ids.mjs" "$CLAIM_TMP/.design" --claim auth/B --slug claim-smoke >/dev/null 2>&1 &&
+   node "$SCRIPTS/scan-status.mjs" "$CLAIM_TMP/.design" --doc auth/B001-claim-smoke >/dev/null 2>&1; then
+  echo "✓ scan-ids --claim → scan-status --doc 查得到"
+else
+  echo "✗ scan-ids --claim(配出來的檔案 scan-status 查不到,兩支腳本的 frontmatter 約定分岔了)"; fail=1
+fi
+rm -rf "$CLAIM_TMP"
+
+echo
 echo "=== 每支腳本都要吃 --help ==="
 for f in "$SCRIPTS"/*.mjs; do
   b=$(basename "$f")

@@ -58,7 +58,7 @@ user-invocable: false
 
 | 步驟 | 委派模式下的作法 |
 |---|---|
-| 1. 確定目標文檔 | **跳過選檔**。文檔 id 由編排者在 prompt 指定,不跑 scan-status、不用 AskUserQuestion |
+| 1. 確定目標文檔 | **跳過選檔**。文檔全名由編排者在 prompt 指定,不跑 scan-status、不用 AskUserQuestion |
 | 2. 載入 context | 照原規則。`depends-on` 未完成時**不詢問是否繼續**:依編排者 prompt 給的前置狀態判斷——前置未 done 就不動工,記為阻塞項回報 |
 | 3. 實作 | 照原規則。**唯一差別**:發現「spec 講不清楚」「非改簽名不可」或「非越過 scope 不可」時,原本要問開發者——委派模式下改為**停下該項**,把 gap 的四個欄位寫進回報並列為阻塞項,不擅自改契約、也不硬做。**不寫 `spec-gaps.md`**:理由見 `delegation.md` 第 4 條;編號用局部序號(`本次-1`),`G` 編號由編排者發 |
 | 4. 跑測試 | **只跑本份 spec 的測試子集,絕不跑完整套件**——整套與仲裁都在編排者手上,你跑的那次會被重跑,而且你對別份 feature 的紅燈沒有裁決權。enhance 的基準線用 prompt 附的那一份,不自己重跑。**如實回報**,紅燈只做歸因、不做仲裁;絕不宣稱通過 |
@@ -70,7 +70,7 @@ user-invocable: false
 
 ## 1. 確定目標文檔
 
-- 開發者有指定(id 如 `F001` / `auth/F001` / `E001` / `G-E001`,或檔名、路徑、描述)→ 在 `.design/subsystems/*/features/`、`.design/subsystems/*/enhancements/` 或 `.design/enhancements/` 找到對應檔案;有歧義(例:只給 `F001` 而多個子系統都有)時列出候選讓開發者確認
+- 開發者有指定(全名 `auth/F001-login` / `G-E001-cache`,或只給 `auth/F001` / `F001` / 檔名 / 路徑 / 描述)→ 在 `.design/subsystems/*/features/`、`.design/subsystems/*/enhancements/` 或 `.design/enhancements/` 找到對應檔案;有歧義(例:只給裸 `F001` 而多個子系統都有)時列出候選讓開發者確認
 - 沒指定 → 執行 `node "<S>/arch-audit/scripts/scan-status.mjs" .design` 列出未完成項目,用 AskUserQuestion 讓開發者選
 
 ## 2. 載入 context(遵守載入紀律)

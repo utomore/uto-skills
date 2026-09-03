@@ -14,21 +14,23 @@
 
 從 `.design/system.md` 畫到目前工作的文檔,**只畫最近的**:所在子系統完整展開、其他子系統各一行;目前文檔之下列出它的介面與資料結構及各自狀態。目前所在的節點一律標 `◀ 目前`,所在子系統標 `◀ 所在`。
 
-**未建 design.md 的子系統、與 `planned` 的模組群,一樣要各佔一行。** 它們是名冊上有、還沒開工的東西;樹上沒有它們,開發者就會以為畫出來的這些就是全部。
+**樹上每個節點都寫全名**(`auth/F002-token-refresh`、模組群 `auth/MFA`,規則見 `conventions.md`「指稱紀律」)。這棵樹最常被單獨複製出去貼到別處,節點只寫 `F002` 的話,貼過去就指不到任何東西。
+
+**未建 design.md 的子系統、與 `planned` 的模組群,一樣要各佔一行。** 這兩種節點是名冊上有、還沒開工的東西;樹上少了這兩種節點,開發者就會以為畫出來的這幾個就是全部。
 
 ```
-.design/system.md  <專案一句話>            階段 S0 已達成 · S1 進行中 · S2–S4 未開始
+.design/system.md  <專案一句話>            階段 S0(核心)已達成 · S1(帳務)進行中 · S2–S4 未開始
 ├─ subsystems/auth/design.md  ◀ 所在      模組群 1/2 · features 2/4 done · 契約卡 4/4
-│  ├─ 模組群 Session(active)             features 2/4
-│  │  ├─ F001-login                                       done
-│  │  ├─ F002-token-refresh  ◀ 目前       in-progress · 介面 3/5 · 測試 8/12 綠
+│  ├─ 模組群 auth/Session(active)        features 2/4
+│  │  ├─ auth/F001-login                                  done
+│  │  ├─ auth/F002-token-refresh ◀ 目前   in-progress · 介面 3/5 · 測試 8/12 綠
 │  │  │  ├─ 介面 `refreshToken(req: RefreshReq): Promise<TokenPair>`  實作中(對外契約 §2)
 │  │  │  ├─ 介面 `TokenStore.rotate(id: string): Promise<void>`       完成(模組間公開介面 §1)
 │  │  │  ├─ DTO  `RefreshReq { refreshToken, deviceId }`             完成(對外契約 §2)
 │  │  │  └─ DTO  `TokenPair { access, refresh, expiresAt, scope }`   偏離:`scope` 欄契約沒有
-│  │  ├─ F003-logout                                      設計(文檔已建,未實作)
-│  │  └─ F004-session-list                                待展開
-│  └─ 模組群 MFA(planned)                未開工:契約章節與功能規劃都還沒寫
+│  │  ├─ auth/F003-logout                                 設計(文檔已建,未實作)
+│  │  └─ auth 功能規劃「session-list」                     待展開(還沒建 F 文檔,所以還沒有編號)
+│  └─ 模組群 auth/MFA(planned)           未開工:契約章節與功能規劃都還沒寫
 ├─ subsystems/billing/design.md                           features 1/3 done
 ├─ subsystems/notify/design.md                            未建(名冊有列,無 design.md)
 └─ subsystems/audit-log/design.md                         未建(名冊有列,無 design.md)
@@ -64,8 +66,8 @@
 ### 3. 主軸檢查
 
 - **對應到哪裡**:本次動作對應 `system.md` 的哪個**開發階段**、哪個子系統職責、`design.md` 的哪個模組群、功能規劃的哪一列、契約卡的哪一條驗收標準——一句話,指到章節。指不到階段 = 本次做的事不在任何規劃裡,那本身就是第一條偏離
-- **偏離清單**:本次做了、但上面任一層沒寫的事——新介面沒登記進契約、**新增了設計文檔沒有的依賴邊**、**為測試在核心層開的後門**、**改動了骨架的簽名**、**未結的 spec-gaps**(有 gap 就代表有項目卡著沒做)、「順便改」到別的模組、碰到別的子系統的內部、做了契約卡「明確不做」的東西、**本次寫出了 `system.md` 職責沒提到的能力**(未申報的職責擴張)、**發現某條上層職責在下層文檔完全沒有落點**(它會從所有分母裡消失,見 `contract-readiness.md` A10)。每條附位置與建議(回填契約 / 修 spec / 補 planned 模組群 / 另開 E 或 B 文檔 / 撤回)。沒有就寫「無」——**這一行不能省**,省掉就分不出「沒偏離」和「沒檢查」
+- **偏離清單**:本次做了、但上面任一層沒寫的事——新介面沒登記進契約、**新增了設計文檔沒有的依賴邊**、**為測試在核心層開的後門**、**改動了骨架的簽名**、**未結的 spec-gaps**(寫成 `auth/GAP-1`;有 gap 就代表有項目卡著沒做)、「順便改」到別的模組、碰到別的子系統的內部、做了契約卡「明確不做」的東西、**本次寫出了 `system.md` 職責沒提到的能力**(未申報的職責擴張)、**發現某條上層職責在下層文檔完全沒有落點**(它會從所有分母裡消失,見 `contract-readiness.md` A10)。每條附位置與建議(回填契約 / 修 spec / 補 planned 模組群 / 另開 E 或 B 文檔 / 撤回)。沒有就寫「無」——**這一行不能省**,省掉就分不出「沒偏離」和「沒檢查」
 
 ### 4. 下一步
 
-一條**具體命令**(含參數,如 `/spec-impl auth/F002`)加一句為什麼;最多再給兩條替代。下一步必須從位置樹的「目前」往下或往旁推得出來,不得建議樹上沒有的工作——想做樹上沒有的事,先走對應的 design skill 把它放上樹。
+一條**具體命令**(含參數,而且參數寫文檔全名,如 `/spec-impl auth/F002-token-refresh`)加一句為什麼;最多再給兩條替代。下一步必須從位置樹的「目前」往下或往旁推得出來,不得建議樹上沒有的工作——想做樹上沒有的事,先走對應的 design skill 把它放上樹。

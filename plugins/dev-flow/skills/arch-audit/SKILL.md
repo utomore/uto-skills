@@ -38,7 +38,7 @@ user-invocable: true
 - 引數含 `status` / 「狀態」 / 「進度」 → **status**:整體進度與健康度(只跑腳本,不產文檔)
 - 引數含 `system` / 「全域」 / 「主架構」 → **system**:全域架構檢測
 - 引數含 `subsys` / 子系統名稱 → **subsys**:子系統一致性檢測(需指定哪個子系統,沒指定就用 AskUserQuestion 問)
-- 引數含 `feature` / 文檔 id(如 `F001`、`auth/F001`)→ **feature**:功能實作審查(需指定哪個 feature)
+- 引數含 `feature` / 文檔全名(如 `auth/F001-login`;寫 `auth/F001` 或 `F001` 也認得)→ **feature**:功能實作審查(需指定哪個 feature)
 - 無法判斷 → 用 AskUserQuestion 讓開發者選 scope
 
 ---
@@ -64,20 +64,20 @@ node "<S>/arch-audit/scripts/scan-status.mjs" [design目錄,預設 ./.design]   
 >
 > 因此:**只要開發階段有任何一階不是「已達成」,或有任何「已規劃、未建 design.md 的子系統」/「已規劃、契約未寫的模組群」,回報就不得寫成「專案幾乎完成」**。要先講還沒開工的那一部分,再講已完成部分的百分比。反過來寫,等於用一個排除了未開工項目的分母去描述整個專案。
 
-- **任務文檔表**(`主軸 | id | 子系統 | type | status | created | depends-on | file`):轉成 markdown 表格時**維持欄位順序**,「主軸」是第一眼看到的欄位;`子系統` 欄為 `global` 代表全域 G- 文檔
-- **子系統狀態表**(`主軸 | id | status | 模組群 | 階段 | features | 契約卡 | 已建文檔 | 已完成 | 未結E/B | 進度`):`status` 欄 `未建 design.md`、進度欄 `未展開` 的列是**名冊上還沒動工的子系統**;其他欄位顯示 `-` 代表該 `design.md` 沒有對應表格,建議用 `/subsys-design` 更新模式補上
+- **任務文檔表**(`主軸 | 文檔(全名) | type | status | created | depends-on | file`):轉成 markdown 表格時**維持欄位順序**,「主軸」是第一眼看到的欄位;「文檔(全名)」欄一律是 `<子系統>/<id>-<slug>`(全域 G- 文檔沒有子系統那一段),**轉述時不准把它縮成裸 id**——那一行被複製到別處就指不到任何文檔
+- **子系統狀態表**(`主軸 | 子系統 | status | 模組群 | 階段 | features | 契約卡 | 已建文檔 | 已完成 | 未結E/B | 進度`):`status` 欄 `未建 design.md`、進度欄 `未展開` 的列是**名冊上還沒動工的子系統**;其他欄位顯示 `-` 代表該 `design.md` 沒有對應表格,建議用 `/subsys-design` 更新模式補上
 - **模組群欄**(`active/總數`):`1/5` 代表五個平行領域只有一個寫了契約——**那一列的「進度 100%」只涵蓋那一個領域**。`-` 表示沒有這張表(單一領域屬正常)
 - **開發階段表**(`階段 | 名稱 | 涵蓋子系統 | 狀態`):**全專案唯一的產品級分母**,狀態只有「未開始 / 進行中 / 已達成」。讀不到這張表時腳本會提示,那代表這個專案現在**答不出「還差什麼」**,要先請開發者用 `/system-design` 更新模式補上
 - **契約卡欄**(`n/總數`):委派展開的就緒度,滿格才跑得動 `/subsys-build`;`-` 表示沒有契約卡章節(舊版文檔屬正常,只是不能委派)。缺卡與孤兒卡片只進「提示」,**不影響 exit code**。腳本只讀 `###` 標題,已展開 feature 的**存根照樣算進這一欄**——就緒度衡量的是還沒展開的那幾張
-- **已規劃、未建 design.md 的子系統**:`system.md` 名冊列了、`subsystems/<slug>/` 還不存在的。它們的 feature 一個都還不存在,**也不在任何百分比裡**——每一個都要逐條轉達,下一步是 `/subsys-design <slug>`
+- **已規劃、未建 design.md 的子系統**:`system.md` 名冊列了、`subsystems/<slug>/` 還不存在的。這幾個子系統的 feature 一個都還不存在,**也不在任何百分比裡**——每一個都要逐條轉達,下一步是 `/subsys-design <slug>`
 - **已規劃、契約未寫的模組群**:某個 `design.md` 認了這個領域、但契約章節與功能規劃還沒寫。同樣不在該子系統的進度分母裡,下一步是 `/subsys-design <slug>` 更新模式
 - **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步的待辦清單(逐一走 `/spec-design`,或契約卡滿格時用 `/subsys-build` 委派展開)
 - **未結的 spec-gaps**:qa / impl 提出、尚未被 spec 修訂的問題。**每一條都代表有項目正卡著**,要逐條轉達並建議走對應的 design skill 修 spec(Level 3 走 `/spec-design` 修訂模式,追到 Level 2 契約的走 `/subsys-design` 更新模式);有未結條目時 `/subsys-build` 會擋著不啟動
 
-  文檔表的狀態欄會標 `⚠卡GAP-n`:**那一行的 `in-progress` 不是「正在做」,是「卡死等 spec」**,回報時要講成後者,下一步也要開成「修 spec」而不是「繼續實作」。標不到人的 gap(條目標題沒寫文檔 id)會落到「提示」段,那是條目寫法要修
-- **結案沒有證據的 spec-gaps**:條目標了 `狀態:resolved`,卻沒有 `修訂` 行、`修訂` 沒指出文檔 id、指到的文檔不存在,或那份文檔的 `updated` 早於結案日期。**這代表 spec 可能根本沒改**,只是有人把狀態改掉讓閘門放行——腳本會列為不一致,逐條轉達
+  文檔表的狀態欄會標 `⚠卡auth/GAP-n`:**那一行的 `in-progress` 不是「正在做」,是「卡死等 spec」**,回報時要講成後者,下一步也要開成「修 spec」而不是「繼續實作」;轉達時把 gap 寫成 `<子系統>/GAP-n` 並點名它卡住哪一份文檔的全名。標不到人的 gap(條目標題沒寫是哪份文檔的 gap)會落到「提示」段,那是條目寫法要修
+- **結案沒有證據的 spec-gaps**:條目標了 `狀態:resolved`,卻沒有 `修訂` 行、`修訂` 沒指出是哪一份文檔、指到的文檔不存在,或那份文檔的 `updated` 早於結案日期。**這代表 spec 可能根本沒改**,只是有人把狀態改掉讓閘門放行——腳本會列為不一致,逐條轉達
 - **架構 / 子系統不一致**必須逐條轉達:有資料夾卻不在 `subsystems` 名冊裡、**開發階段的涵蓋子系統寫了名冊沒有的 slug**(這一條的意思通常是「名冊只列了已建檔的,未開工的部分全部漏掉」)、功能規劃指向不存在的文檔、功能規劃的模組群欄對不上「模組群」表、多模組群卻有列沒填模組群欄、active 模組群沒有任何 feature、id 與檔名不一致、depends-on 無法解析、全域文檔缺 `subsystems` 欄、design.md 缺 `parent` 等
-- **全域契約表**(`主軸 | id | status | 使用的子系統 | file`,有 `contracts/` 才出現):跨子系統共用契約(`G-C00x`)。它**不是任務文檔**,不計入進度也不影響完成度;`subsystems` 少於兩個會被列為不一致(只有一個使用者的契約應該住那個子系統的 `design.md`)
+- **全域契約表**(`主軸 | 契約(全名) | status | 使用的子系統 | file`,有 `contracts/` 才出現):跨子系統共用契約(`G-C00x`)。它**不是任務文檔**,不計入進度也不影響完成度;`subsystems` 少於兩個會被列為不一致(只有一個使用者的契約應該住那個子系統的 `design.md`)
 - 有「frontmatter 格式不合規」時,把清單欄位改回行內陣列再重跑;寫成 YAML 區塊列表時腳本讀不到內容,相依關係與歸屬都不可信
 - 有 `missing-metadata` / 缺 description 警示時,提醒開發者補上
 
@@ -87,7 +87,7 @@ node "<S>/arch-audit/scripts/scan-status.mjs" [design目錄,預設 ./.design]   
 
 ```
 node "<S>/arch-audit/scripts/scan-status.mjs" .design --subsys <slug>   # 該子系統 + 進出依賴 + 反向依賴
-node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <id>        # 單一文檔:歸屬 / 介面 / 契約 / 正反向依賴
+node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <文檔全名>  # 單一文檔:歸屬 / 介面 / 契約 / 正反向依賴
 node "<S>/arch-audit/scripts/scan-status.mjs" .design --file <path>     # 反查程式碼路徑:歸哪個子系統、被哪些 F/E/B 動過
 ```
 
@@ -110,7 +110,7 @@ node "<S>/arch-audit/scripts/lint-commands.mjs" "<S>"     檢查文檔裡寫的�
 
 `lint-commands.mjs` 的判準是**腳本自己的 `--help`**,不另外維護旗標清單(另外維護的那份就是下一個會漂的東西)。它只查「認不認得」,不查「用得對不對」——後者是人的判斷。
 
-**改過 `scripts/` 底下任何東西之後跑 `bash "<S>/arch-audit/tests/run.sh"`**:fixture 回歸(14 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 七支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
+**改過 `scripts/` 底下任何東西之後跑 `bash "<S>/arch-audit/tests/run.sh"`**:fixture 回歸(20 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 九支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
 
 `doc-section.mjs` 平常是**各 skill 自己用來只讀 `_shared/` 指定章節**的(載入行裡就寫著那一道指令);`--verify` 是給本 skill 的:分片的節被改名或刪掉時,載入行不會報錯,只會讓那個 skill 從此少讀一塊,這一關把它叫出來。
 
@@ -147,7 +147,7 @@ node "<S>/arch-audit/scripts/lint-commands.mjs" "<S>"     檢查文檔裡寫的�
 2. **對外 I/O 契約完整性**:system.md 定義的最外層 Input/Output 規格,程式碼是否完整實作?有無程式碼暴露了契約沒寫的對外介面(未登記的 endpoint / CLI 參數 / 匯出符號)?
 3. **通訊協定一致性**:子系統間實際的通訊方式是否與「通訊拓撲」一致(該走 Event Bus 的有沒有偷偷直接 call)?全域錯誤處理策略是否被各子系統遵守?
 4. **抽象邊界檢查**:system.md 是否越界寫了 Level 2/3 的細節(私有函數、內部資料結構)?有就列出建議下放
-5. **共用契約對帳**(有 `.design/contracts/` 時):每份 `G-C00x` 的條目,在程式碼裡是不是只有**一份**定義?有沒有哪個子系統自己抄了一份平行定義(欄位一一對應、語意照抄 = 複製,不是投影)?——複製品**編譯器不會報錯**,只有這一步抓得到。反過來,`subsystems` 欄列的每個子系統,程式碼裡真的用到了嗎?用 `scan-status.mjs .design --doc G-C00x` 拿反向依賴當候選清單,再回原始碼確認。判準與「投影 vs 複製」的界線見 `../_shared/contract-readiness.md` B2
+5. **共用契約對帳**(有 `.design/contracts/` 時):每份 `G-C00x` 的條目,在程式碼裡是不是只有**一份**定義?有沒有哪個子系統自己抄了一份平行定義(欄位一一對應、語意照抄 = 複製,不是投影)?——複製品**編譯器不會報錯**,只有這一步抓得到。反過來,`subsystems` 欄列的每個子系統,程式碼裡真的用到了嗎?用 `scan-status.mjs .design --doc G-C00x-<slug>` 拿反向依賴當候選清單,再回原始碼確認。判準與「投影 vs 複製」的界線見 `../_shared/contract-readiness.md` B2
 
 ### Scope: subsys — 子系統一致性檢測
 
@@ -194,6 +194,8 @@ node "<S>/arch-audit/scripts/lint-commands.mjs" "<S>"     檢查文檔裡寫的�
 ## 收尾
 
 **所有 scope 的回報一律由大到小**:先講整個產品在哪裡,再逐層縮到這次真正動到的那一點,**最後才畫位置樹**。樹是那段敘述的收束——先讀完由大到小的文字,再看樹,樹上的每個節點都已經有解釋;倒過來先看樹,樹就只是一堆檔名。
+
+**五段裡提到的每一個編號都寫全名**(`auth/E001-token-cache`、`auth/GAP-1`、`S1(帳務上線)`、模組群 `auth/MFA`;規則見 `../_shared/conventions.md`「指稱紀律」)。這份回報是整套流程裡編號密度最高的輸出,而每個子系統各有一組 `F001`/`E001`/`B001`:寫「E001 還沒做」的那一行,開發者答不出是哪個子系統的哪一份文檔。
 
 ### 五段,順序固定不准對調
 

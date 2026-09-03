@@ -3,6 +3,8 @@
 路徑 `.design/subsystems/<slug>/build-log.md`,frontmatter 規格見 `_shared/doc-lifecycle.md`。
 建檔或更新時照這份抄;七個章節都要有,沒內容的先留標題與表頭。
 
+**表格裡每一格提到文檔的地方一律寫全名**(`auth/F001-login`),檔案內的條目掛在文檔全名底下(`auth/F001-login 的 ASM-1`)。這份紀錄會被逐格投影進波次收線呈報與階段閘門,到了那裡沒有「這是 auth 的 build-log」這個上下文(規則見 `_shared/conventions.md`「指稱紀律」)。
+
 ```markdown
 ---
 id: <subsystem-slug>-build
@@ -20,12 +22,12 @@ parent: <subsystem-slug>
 ## 排程
 (階段 → 波次 → features;跨子系統依賴的處理決定)
 
-| 階段 | 波次 | features | 骨架快照 | 白名單對帳 | 閘門 | 狀態 |
+| 階段 | 波次 | features(全名) | 骨架快照 | 白名單對帳 | 閘門 | 狀態 |
 |---|---|---|---|---|---|---|
-| 階段一 | WAVE-1 | a, b | `a1b2c3d` | OK | — | done |
-| 階段一 | WAVE-2 | c | `e4f5g6h` | 違規:`src/Shared.hs`(F005 加了 helper)→ 併入下一輪 | — | in-progress |
-| 階段一 | WAVE-3 | d, e | — | — | 期中 | 待跑 |
-| 階段一 | WAVE-4 | f | — | — | 階段 | 待跑 |
+| 階段一 | WAVE-1 | auth/F001-login, auth/F002-token-refresh | `a1b2c3d` | OK | — | done |
+| 階段一 | WAVE-2 | auth/F005-logout | `e4f5g6h` | 違規:`src/Shared.hs`(auth/F005-logout 加了 helper)→ 併入下一輪 | — | in-progress |
+| 階段一 | WAVE-3 | auth/F006-session-list, auth/F007-device-trust | — | — | 期中 | 待跑 |
+| 階段一 | WAVE-4 | auth/F008-mfa-enroll | — | — | 階段 | 待跑 |
 
 **狀態**欄只用五個值:`待跑` / `spec-done` / `in-progress` / `done` / `停下:<一句話原因>`。排波次的當下就要把每一波建列(包含還沒開跑的,填 `待跑`)——3e 的波次收線呈報直接投影這一欄畫進度條,少了那幾列,開發者看到的就只有跑過的波,看不出整個階段還剩多少。
 
@@ -45,9 +47,9 @@ parent: <subsystem-slug>
 ## 配號表
 (fan out 前預先分配,平行執行不得自行配號或自選骨架路徑)
 
-| feature | id | 檔名 | 骨架檔案 | spec 模型 | qa 模型 | impl 模型 | 狀態 |
+| feature | 文檔全名 | 檔名 | 骨架檔案 | spec 模型 | qa 模型 | impl 模型 | 狀態 |
 |---|---|---|---|---|---|---|---|
-| <feature-slug> | F001 | F001-<slug>.md | src/A.hs | opus | sonnet | sonnet | spec-done / qa-done / impl-done |
+| <feature-slug> | auth/F001-login | F001-login.md | src/A.hs | opus | sonnet | sonnet | spec-done / qa-done / impl-done |
 
 兩個欄位是防撞用的:**骨架檔案**同一波內不得重疊(平行的 spec subagent 會同時寫),**模型欄**固定 spec `opus`、qa 與 impl `sonnet`,所以品質有問題時歸因得回 spec 寫得夠不夠,不會混進模型差異。
 
@@ -58,11 +60,11 @@ parent: <subsystem-slug>
 
 | 來源 | 類型 | 契約錨點 | 波及 feature | 假設 / 決定 | 可逆性 | 閘門裁決 | 回寫位置 |
 |---|---|---|---|---|---|---|---|
-| F001 ASM-1 | 待確認假設 | design.md「對外契約」§2 | F001 | <...> | 難逆 | 選 b | design.md「對外契約」(diff 已確認) / 不回寫 |
-| F003 ASM-1 + F005 ASM-2 | 待確認假設(合併) | `TokenPair` | F003, F005 | <...> | 可逆 | 選 a | 兩份 spec 的暫採段都已對齊 |
-| F007 ASM-1 | 待確認假設 | `TokenPair` | F007 | <同上> | — | **沿用 WAVE-2 的裁決** | 未上閘門 |
-| F002 不可逆-1 | 不可逆決定 | 存檔格式 | F002 | <存檔格式改為 …> | 難逆 | 接受 | 不回寫(spec 原文已載明) |
-| F003 依賴邊-1 | 新增依賴邊 | `Render` → `Assets` | F003 | — | 可逆 | 納進 design.md | design.md「模組依賴」 |
+| auth/F001-login 的 ASM-1 | 待確認假設 | design.md「對外契約」§2 | auth/F001-login | <...> | 難逆 | 選 b | design.md「對外契約」(diff 已確認) / 不回寫 |
+| auth/F003-logout 的 ASM-1 + auth/F005-device 的 ASM-2 | 待確認假設(合併) | `TokenPair` | auth/F003-logout, auth/F005-device | <...> | 可逆 | 選 a | 兩份 spec 的暫採段都已對齊 |
+| auth/F007-device-trust 的 ASM-1 | 待確認假設 | `TokenPair` | auth/F007-device-trust | <同上> | — | **沿用 WAVE-2 的裁決** | 未上閘門 |
+| auth/F002-token-refresh 的 不可逆-1 | 不可逆決定 | 存檔格式 | auth/F002-token-refresh | <存檔格式改為 …> | 難逆 | 接受 | 不回寫(spec 原文已載明) |
+| auth/F003-logout 的 依賴邊-1 | 新增依賴邊 | `Render` → `Assets` | auth/F003-logout | — | 可逆 | 納進 design.md | design.md「模組依賴」 |
 
 **類型**欄有三種,閘門的裁決順序也是這個順序:**不可逆決定** → **不在 `design.md` 宣告內的新增依賴邊** → **契約層級的待確認假設**;假設那一類先按可逆性排(最難逆先問),可逆性相同時波及 feature 多的先問。前兩類依定義就是最難逆的,而且 subagent 是把它們寫成既定事實交出來的,不主動搬上議程就沒有人會問到。
 
@@ -76,17 +78,17 @@ parent: <subsystem-slug>
 
 | 來源 | 判斷點 | 採取 | 觸及符號 | 出處 | 抽查 |
 |---|---|---|---|---|---|
-| F003 SELF-1 | <...> | <...> | `TokenPair` / `rotate` | 自報 / 編排者降級 | (留白;抽查時填 OK / 裁錯層級 / 裁錯內容) |
+| auth/F003-logout 的 SELF-1 | <...> | <...> | `TokenPair` / `rotate` | 自報 / 編排者降級 | (留白;抽查時填 OK / 裁錯層級 / 裁錯內容) |
 
 **觸及符號**欄是編排者做**升級篩**的材料:每個名字要拿去對 spec 的介面表、`design.md` 的契約章節與 DTO 定義,命中就升級成契約層級上閘門(那一條改記進「待確認假設彙總」,出處標「編排者升級」)。欄位空白或寫「內部實作」這種概括詞的,退回該 subagent 補寫,不得當作沒碰到東西。
 
 ## 仲裁紀錄
 (每一輪紅燈的裁決;這張表是事後判斷「spec 哪裡寫不清楚」的唯一資料。同一 feature 上限 3 輪)
 
-| feature | 輪次 | 失敗的測試 | 對應的 spec 條文 | 歸因 | 處置 |
+| feature(全名) | 輪次 | 失敗的測試 | 對應的 spec 條文 | 歸因 | 處置 |
 |---|---|---|---|---|---|
-| F001 | 1 | prop_rotate_idempotent | LAW-1 | impl 錯 | 附 LAW-1 原文重派 impl |
-| F001 | 2 | test_refresh_expired | 對應不上 | **spec bug** | 停下,回報開發者 |
+| auth/F001-login | 1 | prop_rotate_idempotent | LAW-1 | impl 錯 | 附 LAW-1 原文重派 impl |
+| auth/F001-login | 2 | test_refresh_expired | 對應不上 | **spec bug** | 停下,回報開發者 |
 
 3e 第 (0) 步的 qa 紅綠基線也記進這張表(輪次填 `0`,歸因填「假綠」或「未驗證」)——假綠不產生紅燈,不記就沒有任何地方看得出這一波驗過沒有。
 

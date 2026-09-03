@@ -12,7 +12,7 @@ parent: auth
 ## 排程
 | 波次 | feature |
 |---|---|
-| WAVE-1 | F001 |
-| WAVE-2 | F002 |
+| WAVE-1 | auth/F001-login |
+| WAVE-2 | auth/F002-token-refresh |
 ## 決策
 - DEC-1: 用 JWT

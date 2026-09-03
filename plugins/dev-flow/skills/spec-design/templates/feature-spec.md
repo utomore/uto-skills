@@ -12,7 +12,7 @@ description: <一句話,40 字內:這個功能做什麼>
 status: open
 created: <today>
 updated: <today>
-depends-on: []          # 依賴的文檔 id(引用格式見 conventions);空陣列 = 可平行開發(最後填,由介面表反推)
+depends-on: []          # 依賴的文檔,一律帶子系統前綴 [auth/F001](格式見 doc-lifecycle「文檔引用格式」);空陣列 = 可平行開發(最後填,由介面表反推)
 related-adr: []
 related-feature: []
 code-paths: []          # 建檔時留空;impl 收尾時與 status: done 一起回寫實際動到的程式碼路徑
@@ -87,12 +87,12 @@ code-paths: []          # 建檔時留空;impl 收尾時與 status: done 一起�
 
 ## 依賴
 (frontmatter depends-on 的文字說明。介面表每一列的簽名必須是從來源檔案讀出的原文;
- 「來源文檔」填定義該介面的文檔 id,無則填 `-`)
+ 「來源文檔」填定義該介面的文檔全名 `auth/F001-login`,無則填 `-`)
 
 ### 使用到的既有介面
 | 介面(含完整簽名) | 來源檔案 | 來源文檔 | 用途 |
 |---|---|---|---|
-| <函式/API/模組與簽名> | <路徑> | <文檔 id 或 -> | <為什麼呼叫它> |
+| <函式/API/模組與簽名> | <路徑> | <文檔全名 或 -> | <為什麼呼叫它> |
 
 ### 依賴方向
 - 依賴誰:<...>

@@ -37,7 +37,7 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
     → 委派 qa ∥ impl(互相不可見)→ 你跑測試 → 仲裁(≤3 輪)→ 回報
 ```
 
-**適用一份 spec**:`F001`、`auth/F002`、`E001`、`G-E001` 都可以。要一次跑完整個子系統的多個 features(排波次、配號、階段閘門),走 `/subsys-build`;`/bugfix` 不適用(單角色流程)。
+**適用一份 spec**:全名 `auth/F002-token-refresh`、`G-E001-cache`,或只給 `auth/F002` / `F001` 都可以(回報時一律寫回全名)。要一次跑完整個子系統的多個 features(排波次、配號、階段閘門),走 `/subsys-build`;`/bugfix` 不適用(單角色流程)。
 
 `/spec-design` 的 **enhance 模式**需要人讀程式碼、討論 scope,不能無訪談委派——但 scope 談完、spec 寫好之後,後半段和 feature 完全一樣,這就是本 skill 存在的理由。
 
@@ -57,7 +57,7 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
 
 ## 1. 確定目標 spec
 
-- 開發者有指定(`F001` / `auth/F001` / `E001` / `G-E001`,或檔名、路徑)→ 找到對應檔案;只給編號而多個子系統都有時,列出候選讓開發者確認
+- 開發者有指定(全名 `auth/F001-login` / `G-E001-cache`,或只給 `auth/F001` / `F001` / 檔名 / 路徑)→ 找到對應檔案;只給裸編號而多個子系統都有時,列出候選讓開發者確認
 - 沒指定 → 執行 `node "<S>/arch-audit/scripts/scan-status.mjs" .design` 列出未完成項目,用 AskUserQuestion 讓開發者選
 
 讀:目標 spec 全文 + 骨架檔案 + `.design/system.md` + 所屬子系統的 `design.md` + `related-adr`。**不相關的子系統不讀。**
@@ -148,7 +148,7 @@ feature 目標(全新程式碼)沒有既有測試,這條基準線可跳過——
 
 - **回寫 `status`(這一格的唯一寫者是你)**:骨架已無未實作標記、測試全綠、**且沒有指向本文檔的未結 spec-gaps** → 改 `done`、更新 `updated`;任一條不成立就留 `in-progress`。委派模式下的 impl 不碰目標文檔的 frontmatter(`spec-impl` 委派模式對照表),漏了這一步就沒有人補。**全綠不等於完成**——有 `open` 的 gap 代表那段行為沒被 spec 規範,兩種相反的實作都會全綠
 - **回寫 `code-paths`(同一次動作,不分兩趟)**:把 impl 回報裡的路徑清單填進目標文檔的 frontmatter(以檔案為主,不含測試檔)。`status` 留 `in-progress` 也照樣回寫——路徑是既成事實,跟做完沒做完無關
-- **commit**:`git add -A` 前確認 qa 與 impl 都已回報完(半成品的測試檔會被一起吞進去);message 帶文檔 id
+- **commit**:`git add -A` 前確認 qa 與 impl 都已回報完(半成品的測試檔會被一起吞進去);message 帶文檔全名(`auth/F002-token-refresh`)
 - 專案有程式碼知識圖時,把圖更新到最新(指令見 `../_shared/codegraph.md`);跑不動就略過並在摘要提一句
 - 回報固定五塊:
   - **完成了什麼**:介面實作數(n/m)、測試結果(law 幾條、example 幾條、通過/失敗)、**qa 紅綠基線**(驗過 / 退回重寫 / 未驗證各幾條);enhance 另附**量化結果**與基準線對照

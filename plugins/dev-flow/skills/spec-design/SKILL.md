@@ -110,7 +110,15 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 1. 讀取 `.design/system.md`(燈塔)。**不存在時**:告知開發者建議先執行 `/system-design`,除非開發者明確要求直接寫設計文檔
 2. 確認落在哪個子系統,讀取該 `subsystems/<slug>/design.md`;不相關的子系統不讀。**feature 模式**:`design.md`「功能規劃」有此項時,以該列與對應的**「Feature 契約卡」**為討論起點(卡片已定下負責模組、Level 2 介面、資料流段落、驗收標準與明確不做,討論從這裡往下深化,不要重新發明邊界);沒有對應子系統時,先和開發者確認是否要新增子系統(走 `/subsys-design`)或放寬為不拆子系統的小專案做法(此時與開發者確認文檔位置)。**要展開的東西落在一個 `planned` 模組群裡**(`design.md` 的「模組群」表)時停下來:那一群的契約章節還沒寫,沒有 Level 2 介面可以承接,先走 `/subsys-design` 更新模式把契約補上再回來
 3. 讀取與目標相關的 `.design/adr/`(依主題挑選,不必全讀)
-4. 掃描對應資料夾現有檔名決定新編號(**feature**:該子系統 `features/` 的 `F` 前綴;**enhance**:該子系統 `enhancements/` 的 `E` 前綴,或 `.design/enhancements/` 的 `G-E` 前綴;各自最大值 +1,三位數)。**enhance 模式在 scope 未定前先不掃**,等步驟 2 定案
+4. **配號並建檔(同一道指令,不准自己數資料夾)**:
+
+   ```
+   node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
+   ```
+
+   組寫 `<子系統>/F`(feature)、`<子系統>/E`(子系統內的 enhance)或 `G-E`(跨子系統的全域 enhance)。腳本掃過**所有分支與 worktree**(含未 commit)之後配號,當場把檔案建在慣例位置並寫好 frontmatter 骨架,印出 `<id>`、路徑與**全名**(`auth/F003-token-cache`,之後每次提到這份文檔都用全名);內容由你接著填。
+
+   **只掃當前工作區一定會漏**:另一條分支或另一個 worktree 已經鑄走同一個號、而檔名 slug 不同時,merge 不會衝突,兩份同號文檔會一起落地(理由見 `../_shared/doc-lifecycle.md`「命名與編號規則」)。**enhance 模式在 scope 未定前先不配號**,等步驟 2 定案——配號即建檔,scope 一改就得回頭刪檔改號。**委派模式下號與檔名由編排者指定**,你不跑這道指令
 5. 讀取 `.design/subsystems/<slug>/spec-gaps.md`(存在時,全域文檔看 `.design/spec-gaps.md`)。有指向**目標文檔**的 `open` 條目 → **走修訂模式**,那幾條就是本次要回答的問題;有指向**別份**文檔的 `open` 條目 → 照常進行,但收尾要提醒開發者那幾項還卡著
 
 ## 流程
@@ -163,7 +171,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 - 討論階段對相依性的任何說法一律視為**待查證假設**,不是結論
 - 要把某個既有函式/模組列為相依,必須先**打開原始碼讀到它的實際定義**(完整簽名:參數與回傳型別、所在檔案路徑),並依定義判斷它實際涵蓋的職責範圍
 - **名稱不是依據**:函式/模組名稱只是線索,不能憑名稱語意推論它做什麼;查證前不得下任何相依結論
-- 讀不到定義(模組尚未實作、屬於進行中的文檔)時,不得假裝查證過:改為相依那份**文檔 id**(引用格式:同子系統 `F001`、跨子系統 `auth/F002`、全域 `G-E001`),並在「依賴」段註明此相依是依文檔的介面約定而非既有程式碼
+- 讀不到定義(模組尚未實作、屬於進行中的文檔)時,不得假裝查證過:改為相依那份**文檔**(內文寫全名 `auth/F002-token-refresh`,frontmatter 的 `depends-on` 寫 `auth/F002`;格式見 `../_shared/doc-lifecycle.md`「文檔引用格式」),並在「依賴」段註明此相依是依文檔的介面約定而非既有程式碼
 
 **程式碼知識圖是本步驟的必要工具,不是選配**(判定與指令見 `../_shared/codegraph.md`)。既有程式碼上的設計,一定要先用圖查清楚再落筆:
 
@@ -188,7 +196,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 四格裡最容易出事的是**觀察點**:它要寫明「用哪個公開介面、在什麼時序上、看到什麼」,而且引用的介面必須真的在介面表裡。引用不到 = 這條性質從公開介面觀察不到 = **介面設計缺陷**,回頭修介面(`../_shared/testing-policy.md`:不開後門就測不到 = 介面設計缺陷)。散文形式的 law 不需要交代觀察手段,所以這種缺陷會一路活到 qa 手上;四格會在你寫下去的當下就擋住。
 
-**feature 模式**產出後,回填 `design.md`「功能規劃」對應列的 doc 欄為本檔 id(同步 `design.md` 的 `updated`)。該列有「模組群」欄時一併確認填了值,且對得上「模組群」表裡的名字。
+**feature 模式**產出後,回填 `design.md`「功能規劃」對應列的 doc 欄為本檔**全名**(`auth/F001-login`;同步 `design.md` 的 `updated`)。該列有「模組群」欄時一併確認填了值,且對得上「模組群」表裡的名字。
 
 **同時把該 feature 的 Feature 契約卡瘦成存根**(規格與理由見 `../_shared/doc-lifecycle.md`「契約卡的生命週期」):卡片的用途是「讓沒訪談過的執行者能開始寫 feature 設計文檔」,本檔一建立就結束了。做法是把整張卡原文**搬到** `archive/cards-done.md`(沒有就建),`design.md` 裡留下:
 
@@ -278,6 +286,6 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 **修訂模式必做**:文檔與骨架改完的**同一輪**,把對應的 gap 條目回填 `狀態:resolved` 與 `修訂` 行(格式見 `../_shared/spec-roles.md`「spec-gaps 協議」);該檔條目全部 resolved 時,把 `spec-gaps.md` frontmatter 的 `status` 改成 `done` 並同步 `updated`。**委派模式下不做這一步**——寫進回報,由編排者單線寫檔。
 
-摘要:模式(feature / enhance)、spec 文檔路徑與編號、骨架檔案清單與編譯結果、laws 與 examples 各幾條(enhance 分回歸 law 與新 law)、相依性結論(`depends-on` 最終值與依據)、一致性檢查是否修正過結論、架構文件是否有更新;feature 模式另報「功能規劃」doc 欄是否已回填,enhance 模式另報 scope 定案結論(涵蓋 / 排除了什麼),修訂模式另報回填了哪幾條 gap、哪幾條介面因簽名變動要重跑 qa 與 impl。
+摘要:模式(feature / enhance)、spec 文檔路徑與**全名**(`auth/F001-login`)、骨架檔案清單與編譯結果、laws 與 examples 各幾條(enhance 分回歸 law 與新 law)、相依性結論(`depends-on` 最終值與依據)、一致性檢查是否修正過結論、架構文件是否有更新;feature 模式另報「功能規劃」doc 欄是否已回填,enhance 模式另報 scope 定案結論(涵蓋 / 排除了什麼),修訂模式另報回填了哪幾條 gap、哪幾條介面因簽名變動要重跑 qa 與 impl。
 
-最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下逐條列介面與型別(此時狀態皆為「設計」——骨架有、實作沒有;enhance 被排除的「順便改」不上樹);下一步是 `/spec-build <id>`(一次跑完 qa ∥ impl → 測試 → 仲裁),或自己扮演編排者分別跑 `/spec-qa <id>` 與 `/spec-impl <id>`(兩者互不可見,誰先跑都可以)。
+最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下逐條列介面與型別(此時狀態皆為「設計」——骨架有、實作沒有;enhance 被排除的「順便改」不上樹);下一步是 `/spec-build <文檔全名>`(一次跑完 qa ∥ impl → 測試 → 仲裁),或自己扮演編排者分別跑 `/spec-qa <文檔全名>` 與 `/spec-impl <文檔全名>`(例 `/spec-qa auth/F001-login`;兩者互不可見,誰先跑都可以)。

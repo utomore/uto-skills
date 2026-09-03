@@ -43,7 +43,7 @@ user-invocable: false
 
 ## 1. 確定目標 spec
 
-- 開發者有指定(`F001`、`auth/F001`、`E002`、`G-E001`,或檔名/路徑)→ 找到對應文檔;只給編號而多個子系統都有時,列出候選讓開發者確認
+- 開發者有指定(全名 `auth/F001-login`、`G-E001-cache`,或只給 `auth/F001` / `F001` / 檔名 / 路徑)→ 找到對應文檔;只給裸編號而多個子系統都有時,列出候選讓開發者確認。**你之後每次提到這份文檔都用全名**(`<子系統>/<id>-<slug>`)
 - 沒指定 → 執行 `node "<S>/arch-audit/scripts/scan-status.mjs" .design` 列出 `status` 為 `in-progress` 的項目,用 AskUserQuestion 讓開發者選
 - 目標文檔沒有「Laws」與「Examples」段(舊版文檔)→ 停下來,告知開發者要先用對應的 design skill 更新模式補上。**沒有 law 就沒有東西可以翻譯**,不要自己發明
 
@@ -104,10 +104,10 @@ example 與某條 law 互相矛盾時:**不要自己選一邊**,兩條都照寫,
 
 ## 5. 產出對照表(交付的一部分)
 
-在測試檔頂端(或該 feature 的測試模組開頭)留一張對照表,讓仲裁時查得到「這條測試對應 spec 的哪一條」:
+在測試檔頂端(或該 feature 的測試模組開頭)留一張對照表,讓仲裁時查得到「這條測試對應 spec 的哪一條」。**表頭寫 spec 的文檔全名**(`auth/F002-token-refresh`):測試檔會被跟 spec 分開讀,只寫 `F002` 的話,讀測試的人查不出是哪個子系統的哪一份 spec:
 
 ```
--- F002 · spec 對照(預期依 spec-roles.md「qa 的交付判準」逐條標)
+-- auth/F002-token-refresh · spec 對照(預期依 spec-roles.md「qa 的交付判準」逐條標)
 -- LAW-1 rotate 具冪等性             → prop_rotate_idempotent        [紅]
 -- LAW-2 refresh 後舊 token 必失效   → prop_refresh_invalidates_old  [紅]
 -- EX-1  正常換發                    → test_refresh_happy_path       [紅]
@@ -142,4 +142,4 @@ example 與某條 law 互相矛盾時:**不要自己選一邊**,兩條都照寫,
 
 - 摘要:對應的 spec id、產出的測試檔路徑、law 與 example 各翻了幾條、對照表、測試執行結果(編譯過 + 紅綠分佈)、新增的 spec-gaps
 - 委派模式下改輸出 `delegation.md` 定義的**結構化回報**,不輸出定錨區塊
-- 互動模式最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把目標 spec 標為「目前」,其下每條介面的狀態此時是「設計」(骨架有、實作沒有);下一步通常是 `/spec-impl <id>`(編排者在跑 `/spec-build` 時由它接手)
+- 互動模式最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把目標 spec 標為「目前」,其下每條介面的狀態此時是「設計」(骨架有、實作沒有);下一步通常是 `/spec-impl <文檔全名>`(例 `/spec-impl auth/F002-token-refresh`)(編排者在跑 `/spec-build` 時由它接手)

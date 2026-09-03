@@ -19,8 +19,8 @@ code-paths: [src/Auth]
 ## 功能規劃
 | # | feature | 模組群 | 目標 | 依賴 | doc |
 |---|---|---|---|---|---|
-| 1 | login | Session | 登入 | - | F001 |
-| 2 | token-refresh | Session | 換發 | #1 | F002 |
+| 1 | login | Session | 登入 | - | auth/F001-login |
+| 2 | token-refresh | Session | 換發 | #1 | auth/F002-token-refresh |
 | 3 | logout | Session | 登出 | - | - |
 ## Feature 契約卡
 ### login

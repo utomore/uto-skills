@@ -6,7 +6,7 @@ description: 登入
 status: in-progress
 created: 2026-08-10
 updated: 2026-08-20
-depends-on: []
+depends-on: [F001]
 related-adr: [ADR-001]
 related-feature: []
 code-paths: [src/Auth/Login.hs]

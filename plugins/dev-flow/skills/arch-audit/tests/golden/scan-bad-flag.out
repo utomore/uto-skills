@@ -3,14 +3,14 @@
 用法:
   node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
   node scan-status.mjs .design --subsys <slug>       聚焦子系統:它的文檔 + 進出依賴 + 反向依賴
-  node scan-status.mjs .design --doc <id>            聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
-                                                    <id> 吃 F003、auth/F003、G-E001、G-C001
+  node scan-status.mjs .design --doc <文檔>          聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
+                                                    吃全名 auth/F003-token-cache,也吃 auth/F003 與 F003
   node scan-status.mjs .design --file <path>         反查程式碼路徑:哪個子系統、被哪些 F/E/B 動過
   node scan-status.mjs --help
 
 Exit code(**兩種模式語意不同**,呼叫端不要混用):
   盤點 / --subsys : 0 = 範圍內全部完成(或無檔案) / 1 = 有未完成項目、metadata 缺失或架構不一致
-  --doc           : 0 = 查到 / 2 = 查無此 id(查到但未完成仍是 0——查詢不是驗收)
+  --doc           : 0 = 查到 / 2 = 查無此文檔(查到但未完成仍是 0——查詢不是驗收)
   --file          : 0 = 有文檔的 code-paths 涵蓋它 / 2 = 沒有任何文檔認領這條路徑
   任一模式        : 2 = design 目錄或 --subsys 的 slug 不存在
 
@@ -21,4 +21,8 @@ Exit code(**兩種模式語意不同**,呼叫端不要混用):
 
 **本腳本只產生索引,不下判斷**:它答得出「哪份文檔、什麼狀態、誰依賴誰」,
 答不出「那份文檔寫的對不對」。紀律與各角色的使用界線見 _shared/design-query.md。
+
+**印出去的每一個編號都是全名**(`auth/F002-token-refresh`、`auth/GAP-1`、`G-C001-session`):
+每個子系統各有一組 F001/E001/B001,而輸出的每一行都會被複製到別處(回報、閘門、issue),
+到了那裡就沒有「這是哪個子系統的表」這個上下文。規則見 _shared/conventions.md「指稱紀律」。
 __exit__ 2

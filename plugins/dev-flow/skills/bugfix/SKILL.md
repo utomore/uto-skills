@@ -37,7 +37,13 @@ user-invocable: true
 
 ## 2. 建立缺陷文檔
 
-掃描對應資料夾決定編號(子系統掃 `B` 前綴、全域掃 `G-B` 前綴,各自最大值 +1)。檔名英文 kebab-case、內文繁體中文:
+**配號並建檔是同一道指令**(不准自己數資料夾——只掃當前工作區看不到別的分支與 worktree 已經鑄走的號):
+
+```
+node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
+```
+
+組寫 `<子系統>/B`(缺陷落在單一子系統)或 `G-B`(跨子系統)。腳本配號、把檔案建在慣例位置、寫好下面這段 frontmatter 骨架,印出 `<id>`、路徑與**全名**(`auth/B001-login-timeout`,之後每次提到這份文檔都用全名)。你接著把 `description` 與內文填上——slug 英文 kebab-case、內文繁體中文:
 
 ```markdown
 ---
@@ -50,7 +56,7 @@ created: <today>
 updated: <today>
 depends-on: []
 related-adr: []
-related-feature: []     # 回鏈到出問題的 feature id(跨子系統引用帶路徑)
+related-feature: []     # 回鏈到出問題的 feature(一律帶子系統前綴,如 [auth/F002])
 code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫實際修到的程式碼路徑
 # 全域 G-B 文檔才有下一行:
 # subsystems: [subsys-a, subsys-b]
@@ -98,5 +104,5 @@ code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫
 ## 5. 收尾
 
 - 修復完成且測試全綠 → 填寫「修復紀錄」、`status` 改 `done`、更新 `updated`、**回寫 `code-paths`**(本次修到的產品程式碼路徑,以檔案為主,不含重現測試;欄位規格見 `../_shared/doc-lifecycle.md`)
-- 摘要給開發者:文檔路徑與編號(B 或 G-B)、根因一句話、修法一句話、測試結果、有無另建議的 enhance 項目
+- 摘要給開發者:文檔路徑與**全名**(`auth/B002-login-timeout`,全域寫 `G-B001-<slug>`)、根因一句話、修法一句話、測試結果、有無另建議的 enhance 項目
 - 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列被修到的介面/資料結構與狀態;修法若動到契約沒寫的東西,上偏離清單;下一步從樹上推(常見:`/branch-pr`,或另建議的 `/spec-design`)

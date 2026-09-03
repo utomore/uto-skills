@@ -50,7 +50,7 @@ created: <today>
 updated: <today>
 depends-on: []
 related-adr: []
-related-feature: []     # 回鏈到出問題的 feature id(跨子系統引用帶路徑)
+related-feature: []     # 回鏈到出問題的 feature(一律帶子系統前綴,如 [auth/F002])
 code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫實際修到的程式碼路徑
 # 全域 G-B 文檔才有下一行:
 # subsystems: [subsys-a, subsys-b]
@@ -98,5 +98,5 @@ code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫
 ## 5. 收尾
 
 - 修復完成且測試全綠 → 填寫「修復紀錄」、`status` 改 `done`、更新 `updated`、**回寫 `code-paths`**(本次修到的產品程式碼路徑,以檔案為主,不含重現測試;欄位規格見 `../_shared/doc-lifecycle.md`)
-- 摘要給開發者:文檔路徑與編號(B 或 G-B)、根因一句話、修法一句話、測試結果、有無另建議的 enhance 項目
+- 摘要給開發者:文檔路徑與**全名**(`auth/B002-login-timeout`,全域寫 `G-B001-<slug>`)、根因一句話、修法一句話、測試結果、有無另建議的 enhance 項目
 - 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列被修到的介面/資料結構與狀態;修法若動到契約沒寫的東西,上偏離清單;下一步從樹上推(常見:`/branch-pr`,或另建議的 `/spec-design`)

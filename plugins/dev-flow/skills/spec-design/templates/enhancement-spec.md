@@ -12,7 +12,7 @@ description: <一句話,40 字內:要改善什麼>
 status: open
 created: <today>
 updated: <today>
-depends-on: []          # 依賴的文檔 id;空陣列 = 可平行開發(最後填,由介面表反推)
+depends-on: []          # 依賴的文檔,一律帶子系統前綴 [auth/F001];空陣列 = 可平行開發(最後填,由介面表反推)
 related-adr: []
 related-feature: []     # 回鏈到被優化的 feature id(跨子系統引用帶路徑,如 auth/F002)
 code-paths: []          # 建檔時留空;impl 收尾時與 status: done 一起回寫實際動到的程式碼路徑

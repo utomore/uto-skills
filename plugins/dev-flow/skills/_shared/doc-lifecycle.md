@@ -27,7 +27,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 **不是任務文檔的三種**(不參與 F/E/B 編號、不列入進度統計):
 
 - `build-log.md` —— 編排過程(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)。`/arch-audit status` 不掃它;它的價值在「中斷後能接續」與「事後查得到當初為什麼這樣決定」
-- `spec-gaps.md` —— **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`)。有 `open` 條目就代表有項目正卡著等 spec 修訂:`/arch-audit status` 會列出來,並在它卡住的那份文檔那一列標 `⚠卡GAP-n`(靠條目標題 `## GAP-1(F002 / qa)` 裡的文檔 id 認親,標題不寫 id 就標不到任何人),`/subsys-build` 開跑前會擋。**委派模式下只由編排者單線寫入與配號**,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
+- `spec-gaps.md` —— **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`)。有 `open` 條目就代表有項目正卡著等 spec 修訂:`/arch-audit status` 會列出這些條目,並在**被那條 gap 卡住的那份文檔**那一列標 `⚠卡auth/GAP-n`(靠條目標題 `## GAP-1(auth/F002-token-refresh / qa)` 裡的文檔全名認親,標題不寫文檔全名的 gap 標不到任何人),`/subsys-build` 開跑前會擋。**委派模式下只由編排者單線寫入與配號**,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
 - `design.md` 的**分冊**(`subsystems/<slug>/` 根層、`design.md` 以外的 `.md`)—— 契約章節大到一份裝不下時拆出去,但**拆出去的仍然是 `design.md` 的一部分**。兩種 `type`:`contract-part`(某個模組群的對外契約與 DTO)、`decisions`(訪談定案與否決理由)。不編號,用 `parent: <子系統 slug>` 認親;`design.md` 要指明哪一群的契約在哪一份。**凡是讀「該子系統 `design.md` 全文」的地方,一律連分冊一起讀**——契約條目可能整段住在分冊裡,只開 `design.md` 會誤判「契約缺漏」(`contract-readiness.md` A3 已放寬為跨檔比對)。拆分冊有成本(對帳從開一份檔變成開好幾份),沒大到讀不動就不要拆
 
 **權威來源**(這一格是誰的事實,就只能由誰改):
@@ -108,7 +108,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 整套流程裡**所有**會被編號、被縮寫的東西都登記在這張表。三條鐵律:
 
 1. **「單字母+數字」只保留給兩種東西**:任務 / 契約文檔 id(三位數)與開發階段 id(`S0`、`S1`…)。檔案**內**的條目(law、example、假設、gap、決策、波次…)一律用**詞首碼-數字**(`LAW-1`、`GAP-2`)——詞首碼自帶語意,不必靠上下文猜,也不會跟文檔 id 或專案自訂的名字撞號
-2. **文檔 id 永不簡寫、位數永遠固定**:`E001` 就是 `E001`,任何場合都不准寫成 `E1`;`G-C001` 不准寫成 `GC1` 或 `C1`。一旦簡寫,三位數與單位數條目的區隔就消失,`E1` 到底是 Enhancement 001、Example 1 還是專案的階段 `E1` 沒有人分得出來
+2. **文檔 id 永不簡寫、位數永遠固定,而且永遠帶限定詞**:`E001` 就是 `E001`,任何場合都不准寫成 `E1`;`G-C001` 不准寫成 `GC1` 或 `C1`。一旦簡寫,三位數與單位數條目的區隔就消失,`E1` 到底是 Enhancement 001、Example 1 還是專案的階段 `E1` 沒有人分得出來。而**光有正確的號還是指不到東西**:每個子系統各有一組 `E001`,講給人聽時一律寫 `<子系統>/<id>-<slug>`(`pay/E001-money`),格式見下方「文檔引用格式」
 3. **新增任何編號系統之前先查這張表**;首碼撞了就換詞首碼,不准共用。skill 自己的修訂也一樣——本表是修一次真實撞號修出來的:`L1` 曾同時是 Law 1 / Level 1 / 專案的 Layer 1,`E1` 曾同時是 Example 1 / `E001` 的簡寫 / 專案的階段 `E1`,`A1` 曾同時是待確認假設 1 / 檢查表 A1
 
 | 首碼 / 寫法 | 格式 | 意思 | 作用域(在哪裡唯一) | 誰配號 |
@@ -136,19 +136,26 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 - **三支腳本在守這張表**(都在 `arch-audit/scripts/`):`lint-ids.mjs` 掃 markdown,揪出裸寫的「單字母+數字」——被禁的形式只准出現在反引號裡(那是「在講這個寫法」),裸寫就是真的拿它當識別碼在用;`id-map.mjs` 把本表畫成樹狀圖,不帶參數看慣例、給 `.design` 路徑看某個專案實際鑄過哪些號;`scan-ids.mjs` 跨分支與 worktree 盤點**已經被佔走的號**(見上方「命名與編號規則」),配號前跑它
 - 舊專案文檔裡的 `L1`(law)、`E1`(example)、`G1`(gap)、`A1`(假設)照舊可讀,不強制回頭改;**新寫的一律用本表**。盤點腳本對 gap 條目同時認 `GAP-n` 與舊制 `G<n>`
 
-### 文檔引用格式(depends-on、related-* 等欄位與內文引用)
+### 文檔引用格式(frontmatter 欄位、內文、回報與腳本輸出)
 
-id 只在子系統內唯一,跨界引用必須帶路徑:
+`F001` / `E001` / `B001` 只在**自己的子系統內**唯一,所以裸寫的 `E001` 指不到任何東西:讀的人答不出「哪個子系統的哪一份文檔、在改什麼」。**任何場合都不准只寫裸 id**,差別只在要不要帶 slug:
 
-| 情境 | 寫法 | 例 |
+| 場合 | 寫法 | 例 |
 |---|---|---|
-| 同一子系統內互相引用 | 直接寫 id | `F001` |
-| 跨子系統引用 | `<subsystem-slug>/<id>` | `auth/F002` |
-| 引用全域文檔 | 直接寫全域 id | `G-E001`、`G-C001` |
-| 引用全域契約的**單一條目** | `<全域契約 id>#<條目名稱>` | `G-C001#SessionToken` |
-| 引用 ADR | 直接寫 ADR id | `ADR-003` |
+| frontmatter 的清單欄位(`depends-on`、`related-feature`…) | `<子系統>/<id>`,**同一個子系統內部也要帶** | `depends-on: [auth/F001, billing/F003]` |
+| 內文、回報、定錨區塊、命令參數、腳本輸出 | `<子系統>/<id>-<slug>`(帶 slug,一眼看得出在做什麼) | `auth/F002-token-refresh` |
+| 全域任務文檔 | `G-E001-<slug>` / `G-B001-<slug>`(frontmatter 欄位可只寫 `G-E001`) | `G-E001-cache` |
+| 全域契約 | **一律寫到條目**,不只寫文檔 id | `G-C001-session#SessionToken` |
+| ADR | `ADR-00x-<slug>`(frontmatter 欄位可只寫 `ADR-003`) | `ADR-003-jwt` |
+| 檔案**內部**的條目(LAW / REG / EX / ASM / STEP / DEC / WAVE) | `<擁有它的文檔全名> 的 <條目>` | `auth/F002-token-refresh 的 LAW-3` |
+| `spec-gaps.md` 的條目(每個子系統只有一份,不必寫檔名) | `<子系統>/<條目>`;全域的 gap 寫 `global/<條目>` | `auth/GAP-1` |
+| 開發階段 | `<階段 id>(<階段名稱>)` | `S1(帳務上線)` |
 
-引用全域契約時**優先寫到條目**(`G-C001#SessionToken`)而不只是文檔 id:一份全域契約通常裝好幾個條目,只寫 `G-C001` 的話,`--doc` 查詢與 `/arch-audit` 的對帳都只知道「這裡用了那份文檔」,答不出「用了哪一條」——而契約改動幾乎都是**條目級**的。
+**只有兩個地方寫裸 id**:文檔自己的 frontmatter `id:` 欄、以及檔名(`F002-token-refresh.md`)——那兩處的上下文就是那份檔案本身。
+
+- **frontmatter 也要帶子系統前綴**,即使引用的是同一個子系統裡的文檔:那一欄會被 `scan-status.mjs` 讀出來、印進別的子系統的反向依賴清單裡,印出去之後就沒有「所在檔案」這個上下文了。腳本兩種寫法都解析得到(舊文檔不必回頭改),但同子系統寫成裸 id 會被列進「提示」
+- **全域契約優先寫到條目**(`G-C001-session#SessionToken`):一份全域契約通常裝好幾個條目,只寫 `G-C001` 的話,`--doc` 查詢與 `/arch-audit` 的對帳都只知道「這裡用了那份文檔」,答不出「用了哪一條」——而契約改動幾乎都是**條目級**的
+- **查詢腳本吃全名**:`scan-status.mjs --doc auth/F002-token-refresh`、`--doc auth/F002`、`--doc F002` 三種都查得到同一份文檔,所以回報裡寫全名不會讓下一個人複製貼上時出錯
 
 ## Metadata 標準(YAML frontmatter)
 
@@ -296,7 +303,7 @@ related-adr: []
 2. **不准塞進某一個子系統的 `design.md` 再讓別人引用**——那份 `design.md` 從此擁有一個不屬於它的事實,違反 `boundary-rules.md`「知識歸屬」(對帳條目見 `contract-readiness.md` B4)
 3. 條目是**不可逆決定**:每次改動要在「變更紀律」段記下改了哪個條目、為什麼、影響哪些子系統;重大者開 ADR 並填進 `related-adr`
 
-引用時**寫到條目**(`G-C001#SessionToken`),理由見上方引用格式表。
+引用時**寫到條目**(`G-C001-session#SessionToken`),理由見上方引用格式表。
 
 ### ADR
 
@@ -317,14 +324,14 @@ updated: 2026-08-19
 `depends-on`、`related-adr`、`related-feature`、`subsystems` 等清單欄位**一律寫成行內陣列**,空值寫 `[]`:
 
 ```yaml
-depends-on: [F001, auth/F002]        # ✅ 唯一合規寫法
-related-adr: []                      # ✅ 空清單
-subsystems: [auth]                   # ✅ 單一元素也用陣列
+depends-on: [auth/F001, billing/F003] # ✅ 唯一合規寫法(同子系統也帶前綴)
+related-adr: []                       # ✅ 空清單
+subsystems: [auth]                    # ✅ 單一元素也用陣列
 ```
 
 ```yaml
-depends-on:                          # ❌ 不使用 YAML 區塊列表
-  - F001
+depends-on:                           # ❌ 不使用 YAML 區塊列表
+  - auth/F001
 ```
 
 - 理由:狀態掃描腳本只讀檔頭、只認行內陣列;兩種格式並存會讓清單被讀成空值,相依關係與權威清單就對不上

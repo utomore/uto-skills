@@ -24,7 +24,8 @@
  * 用法:
  *   node lint-cross-spec.mjs [design目錄]        預設 ./.design
  *   node lint-cross-spec.mjs .design --subsys auth   只比對一個子系統內的 spec
- *   node lint-cross-spec.mjs .design --docs F003,F005,F007   只比對指定的幾份(一波)
+ *   node lint-cross-spec.mjs .design --docs auth/F003-token-cache,auth/F005-logout   只比對指定的幾份(一波)
+ *                                                 (吃全名,也吃 auth/F003 與 F003)
  *   node lint-cross-spec.mjs --quiet             只印違規與清單,不印摘要
  *
  * Exit code:0 = 沒有同名衝突 / 1 = 有同名衝突 / 2 = 路徑不存在或旗標不認得
@@ -56,7 +57,10 @@ const flag = (name) => {
 
 const quiet = argv.includes("--quiet");
 const onlySubsys = flag("--subsys");
-const onlyDocs = (flag("--docs") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+// 全名 `auth/F003-token-cache` 是回報與委派清單裡的寫法,直接貼進 --docs 就要吃得下:
+// 比對時一律剝成裸 id(`F003`),`auth/F003` 與 `F003` 照樣吃。
+const bareId = (x) => String(x).trim().split("/").pop().match(/^(G-[CEB]\d{3}|[FEB]\d{3})/)?.[1] ?? String(x).trim();
+const onlyDocs = (flag("--docs") ?? "").split(",").map(bareId).filter(Boolean);
 const root = argv.find((a) => !a.startsWith("--") && a !== onlySubsys && a !== flag("--docs")) ?? ".design";
 
 if (!existsSync(root)) {
@@ -155,7 +159,11 @@ for (const f of files) {
   const id = String(fm.id ?? basename(f).split("-")[0]);
   if (onlyDocs.length && !onlyDocs.includes(id)) continue;
   const sub = (f.replace(/\\/g, "/").match(/\/subsystems\/([^/]+)\//) ?? [])[1] ?? "global";
-  docs.push({ id, file: relative(process.cwd(), f), subsys: sub, decls: declarations(text), edges: newEdges(text) });
+  // 印給人看的一律是全名 `<子系統>/<id>-<slug>`:每個子系統各有一組 F001/E001,
+  // 單獨一個 `F001` 答不出是哪個子系統的哪一份(_shared/conventions.md「指稱紀律」)。
+  const slug = basename(f).replace(/\.md$/, "").replace(/^(?:G-[CEB]\d{3}|[FEB]\d{3})-?/, "");
+  const name = `${sub !== "global" ? `${sub}/` : ""}${id}${slug ? `-${slug}` : ""}`;
+  docs.push({ id, name, file: relative(process.cwd(), f), subsys: sub, decls: declarations(text), edges: newEdges(text) });
 }
 
 // ---------------------------------------------------------------- 1. 同名不同定義
@@ -164,7 +172,7 @@ const byName = new Map();
 for (const d of docs) {
   for (const x of d.decls) {
     if (!byName.has(x.name)) byName.set(x.name, []);
-    byName.get(x.name).push({ ...x, id: d.id, file: d.file });
+    byName.get(x.name).push({ ...x, id: d.id, doc: d.name, file: d.file });
   }
 }
 
@@ -172,8 +180,8 @@ const EVOLVING = /^(修改|變更|移除|刪除)/;
 const conflicts = [];
 const notes = [];
 for (const [name, rows] of byName) {
-  const across = new Map();          // 文檔 id → 這份文檔對這個名字的定義
-  for (const r of rows) across.set(r.id, r);
+  const across = new Map();          // 文檔全名 → 這份文檔對這個名字的定義
+  for (const r of rows) across.set(r.doc, r);
   if (across.size < 2) continue;     // 同一份文檔內部的重複不是本腳本的題目
   const list = [...across.values()];
 
@@ -203,7 +211,7 @@ for (const d of docs) {
     const ends = e.split(EDGE_SPLIT).map((s) => s.trim()).filter(Boolean);
     const dm = designText(d.subsys);
     const seen = ends.length >= 2 && dm ? ends.every((x) => dm.includes(x)) : false;
-    edgeRows.push({ id: d.id, subsys: d.subsys, edge: e, ends: ends.length, seen, hasDesign: !!dm });
+    edgeRows.push({ doc: d.name, subsys: d.subsys, edge: e, ends: ends.length, seen, hasDesign: !!dm });
   }
 }
 
@@ -215,7 +223,7 @@ if (conflicts.length > 0) {
   console.log("兩邊各自內部自洽、各自的測試也各自全綠,要到兩個 feature 接起來才爆。\n");
   for (const c of conflicts) {
     console.log(`- \`${c.name}\``);
-    for (const r of c.rows) console.log(`    ${r.id}(${r.kind}/${r.action})  ${r.def}`);
+    for (const r of c.rows) console.log(`    ${r.doc}(${r.kind}/${r.action})  ${r.def}`);
   }
   console.log("");
 }
@@ -225,7 +233,7 @@ if (notes.length > 0) {
   console.log("這通常是正常演進(enhance 改了 feature 定義的東西),但仍要確認改的是同一個東西。\n");
   for (const c of notes) {
     console.log(`- \`${c.name}\``);
-    for (const r of c.rows) console.log(`    ${r.id}(${r.kind}/${r.action})  ${r.def}`);
+    for (const r of c.rows) console.log(`    ${r.doc}(${r.kind}/${r.action})  ${r.def}`);
   }
   console.log("");
 }
@@ -235,8 +243,12 @@ if (edgeRows.length > 0) {
   console.log("「design.md 找不到」不等於違規 —— 那份文檔可能用別的寫法表達同一條邊。");
   console.log("要不要納進宣告是閘門上的裁決,腳本只負責一條都不漏掉。\n");
   for (const r of edgeRows) {
-    const mark = !r.hasDesign ? "?  該子系統沒有 design.md" : r.seen ? "✓  兩端都在 design.md 裡" : "✗  design.md 找不到兩端";
-    console.log(`- ${r.id}  ${r.edge}    ${mark}`);
+    const mark = !r.hasDesign
+      ? `?  ${r.subsys} 子系統沒有 design.md`
+      : r.seen
+        ? `✓  兩端都在 ${r.subsys}/design.md 裡`
+        : `✗  ${r.subsys}/design.md 找不到兩端`;
+    console.log(`- ${r.doc}  ${r.edge}    ${mark}`);
   }
   console.log("");
 }

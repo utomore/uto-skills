@@ -30,14 +30,14 @@
  * 用法:
  *   node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
  *   node scan-status.mjs .design --subsys <slug>       聚焦子系統:它的文檔 + 進出依賴 + 反向依賴
- *   node scan-status.mjs .design --doc <id>            聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
- *                                                     <id> 吃 F003、auth/F003、G-E001、G-C001
+ *   node scan-status.mjs .design --doc <文檔>          聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
+ *                                                     吃全名 auth/F003-token-cache,也吃 auth/F003 與 F003
  *   node scan-status.mjs .design --file <path>         反查程式碼路徑:哪個子系統、被哪些 F/E/B 動過
  *   node scan-status.mjs --help
  *
  * Exit code(**兩種模式語意不同**,呼叫端不要混用):
  *   盤點 / --subsys : 0 = 範圍內全部完成(或無檔案) / 1 = 有未完成項目、metadata 缺失或架構不一致
- *   --doc           : 0 = 查到 / 2 = 查無此 id(查到但未完成仍是 0——查詢不是驗收)
+ *   --doc           : 0 = 查到 / 2 = 查無此文檔(查到但未完成仍是 0——查詢不是驗收)
  *   --file          : 0 = 有文檔的 code-paths 涵蓋它 / 2 = 沒有任何文檔認領這條路徑
  *   任一模式        : 2 = design 目錄或 --subsys 的 slug 不存在
  *
@@ -48,6 +48,10 @@
  *
  * **本腳本只產生索引,不下判斷**:它答得出「哪份文檔、什麼狀態、誰依賴誰」,
  * 答不出「那份文檔寫的對不對」。紀律與各角色的使用界線見 _shared/design-query.md。
+ *
+ * **印出去的每一個編號都是全名**(`auth/F002-token-refresh`、`auth/GAP-1`、`G-C001-session`):
+ * 每個子系統各有一組 F001/E001/B001,而輸出的每一行都會被複製到別處(回報、閘門、issue),
+ * 到了那裡就沒有「這是哪個子系統的表」這個上下文。規則見 _shared/conventions.md「指稱紀律」。
  */
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -94,7 +98,7 @@ if ([query.subsys, query.doc, query.file].filter((x) => x !== null).length > 1) 
   process.exit(2);
 }
 if (query.subsys && query.doc) {
-  console.error(`--subsys 與 --doc 不能同時使用(--doc 已經帶出它所屬的子系統)\n\n${USAGE}`);
+  console.error(`--subsys 與 --doc 不能同時使用(--doc 的輸出已經帶出該文檔所屬的子系統)\n\n${USAGE}`);
   process.exit(2);
 }
 
@@ -176,7 +180,11 @@ function scanTaskDoc(path, subsystem, kind) {
   const { meta, blockListKeys } = readFrontmatter(path);
   const relPath = rel(path);
   if (blockListKeys.length) badFormat.push({ file: relPath, keys: blockListKeys });
-  const fileId = path.split(/[\\/]/).pop().match(/^(G-[CEB]\d{3}|[FEB]\d{3})/)?.[1] ?? null;
+  const fileName = path.split(/[\\/]/).pop();
+  const fileId = fileName.match(/^(G-[CEB]\d{3}|[FEB]\d{3})/)?.[1] ?? null;
+  // 檔名 slug:全名 `auth/F002-token-refresh` 的最後一段。裸 id 指不到東西(每個子系統各有一組 F001),
+  // 所以印給人看的每一行都用全名,不用 id(conventions.md「指稱紀律」)。
+  const fileSlug = fileName.replace(/\.md$/, "").replace(/^(?:G-[CEB]\d{3}|[FEB]\d{3})-?/, "");
   const metaId = fmtValue(meta?.id);
   if (meta && fileId && metaId !== "-" && metaId !== fileId)
     archIssues.push(`${relPath}:frontmatter id(${metaId})與檔名編號(${fileId})不一致`);
@@ -185,6 +193,7 @@ function scanTaskDoc(path, subsystem, kind) {
   const row = {
     description: meta?.description ? truncate(meta.description, DESC_WIDTH) : "-",
     id: metaId !== "-" ? metaId : fileId ?? "-",
+    slug: fileSlug,
     subsystem: subsystem ?? "global",
     type: meta?.type || kind.type,
     status: !meta || !meta.status ? "⚠ missing-metadata" : String(meta.status),
@@ -315,6 +324,7 @@ const contractIds = new Map(); // id → { id, description, status, affects, fil
     const id = metaId !== "-" ? metaId : fileId ?? name.replace(/\.md$/, "");
     contractIds.set(id, {
       id,
+      slug: name.replace(/\.md$/, "").replace(/^G-C\d{3}-?/, ""),
       description: meta?.description ? truncate(meta.description, DESC_WIDTH) : "-",
       status: meta?.status ? String(meta.status) : "⚠ missing-metadata",
       affects,
@@ -326,6 +336,7 @@ const contractIds = new Map(); // id → { id, description, status, affects, fil
 
 // ADR
 const adrIds = new Set();
+const adrNames = new Map(); // id → `ADR-001-<slug>`
 const adrCounts = {};
 for (const name of listMd(join(designDir, "adr"))) {
   const path = join(designDir, "adr", name);
@@ -335,6 +346,7 @@ for (const name of listMd(join(designDir, "adr"))) {
   if (blockListKeys.length) badFormat.push({ file: rel(path), keys: blockListKeys });
   const id = fmtValue(meta?.id) !== "-" ? String(meta.id) : m?.[1] ?? name.replace(/\.md$/, "");
   adrIds.add(id);
+  adrNames.set(id, name.replace(/\.md$/, "")); // 全名 `ADR-001-jwt`:印給人看時帶 slug
   if (!meta?.description) archIssues.push(`${rel(path)}:缺 description / 主軸`);
   const st = meta?.status ? String(meta.status) : "missing-status";
   adrCounts[st] = (adrCounts[st] ?? 0) + 1;
@@ -382,15 +394,20 @@ const openGaps = allGaps.filter((g) => !g.resolved);
  * 把它印在獨立區塊,讀的人要自己把兩張表交叉比對才知道某一行的 `in-progress`
  * 究竟是「正在做」還是「卡死等 spec 修訂」,而那兩件事的下一步完全相反。
  *
- * 這裡不新增任何 frontmatter 欄位:gap 的歸屬本來就寫在條目標題 `## GAP-1(F002 / qa)` 裡,
+ * 這裡不新增任何 frontmatter 欄位:gap 的歸屬本來就寫在條目標題 `## GAP-1(auth/F002-token-refresh / qa)` 裡,
  * 腳本也早就在解析 `spec-gaps.md`,只是沒把兩邊接起來。
  */
 const gapDocRef = (head) => head.match(/\b(G-[CEB]\d{3}|[FEB]\d{3})\b/)?.[1] ?? null;
+/** 標題括號裡的角色:`## GAP-1(auth/F002-token-refresh / qa)` → `qa` */
+const gapRole = (head) => head.match(/[((]([^)）]*)[)）]/)?.[1]?.split(/[/／]/).pop()?.trim() ?? "";
 const blockedBy = new Map(); // docKey → [gap id]
 for (const g of openGaps) {
   const docId = gapDocRef(g.head);
   if (!docId) {
-    archNotes.push(`${g.file}:${g.id} 的標題沒寫是哪份文檔的 gap(格式:\`## ${g.id}(F002 / qa)\`)—— 它不會被標到任何 feature 上`);
+    archNotes.push(
+      `${g.file}:${g.id} 的標題沒寫這條 gap 卡住哪份文檔` +
+        `(格式:\`## ${g.id}(auth/F002-token-refresh / qa)\`)—— ${g.scope}/${g.id} 不會被標到任何 feature 上`,
+    );
     continue;
   }
   const k = g.scope === "global" ? docId : `${g.scope}/${docId}`;
@@ -403,11 +420,15 @@ for (const r of rows) {
 }
 for (const [k, ids] of blockedBy) {
   if (!rows.some((r) => (r.subsystem === "global" ? r.id : `${r.subsystem}/${r.id}`) === k))
-    archNotes.push(`spec-gaps:${ids.join("、")} 指向 ${k},但找不到這份文檔(標題裡的 id 打錯,或文檔被搬走了)`);
+    archNotes.push(`spec-gaps:${ids.join("、")} 的標題指向 ${k},但 .design/ 裡找不到這份文檔(標題裡的 id 打錯,或文檔被搬走了)`);
 }
 
-/** 阻塞旗標:接在 status 後面印。沒有未結 gap 就是空字串,不佔版面 */
-const gapFlag = (r) => (r.blockedBy?.length ? ` ⚠卡${r.blockedBy.join(",")}` : "");
+/**
+ * 阻塞旗標:接在 status 後面印。沒有未結 gap 就是空字串,不佔版面。
+ * 條目一律帶擁有它的 `spec-gaps.md` 是哪一個子系統的(`auth/GAP-1`)—— 每個子系統各有一份
+ * `spec-gaps.md`,各自從 GAP-1 起算,裸寫 `GAP-1` 指不到任何一條。
+ */
+const gapFlag = (r) => (r.blockedBy?.length ? ` ⚠卡${r.blockedBy.map((g) => `${r.subsystem}/${g}`).join(",")}` : "");
 
 // 結案證據:標了 resolved 就要指得出「改的是哪份文檔、什麼時候改的」。
 // 沒有證據的結案 = spec 可能根本沒改,只是把狀態改掉讓閘門放行(spec-roles.md「spec-gaps 協議」)。
@@ -472,6 +493,8 @@ if (systemMeta) {
 
 const subsysBriefs = systemText ? parseSubsysBriefs(systemText, roster) : new Map();
 const stages = systemText ? parseStages(systemText, roster) : [];
+/** 開發階段講給人聽時帶名稱:`S1(帳務上線)`;名稱與 id 相同(表格沒填名稱)時只印 id */
+const stageName = (st) => (st.title && st.title !== st.id ? `${st.id}(${st.title})` : st.id);
 if (systemMeta && stages.length === 0)
   archNotes.push(`system.md:沒有「開發階段」表格(或欄位不含「階段」與「狀態」),無法回答「這一階段還差什麼」`);
 for (const st of stages) {
@@ -717,16 +740,16 @@ for (const slug of subsysDirs) {
       continue;
     }
     specced++;
-    if (claimed.has(f.doc)) archIssues.push(`${entry.designFile}:功能規劃有兩列都指向 ${f.doc}`);
+    if (claimed.has(f.doc)) archIssues.push(`${entry.designFile}:功能規劃有兩列都指向 ${slug}/${f.doc}`);
     claimed.add(f.doc);
     const row = entry.ids.get(f.doc);
-    if (!row) archIssues.push(`${entry.designFile}:功能規劃的 ${f.doc}(${f.feature})在 ${slug}/features/ 找不到對應文檔`);
+    if (!row) archIssues.push(`${entry.designFile}:功能規劃的 ${slug}/${f.doc}(${f.feature})在 ${slug}/features/ 找不到對應文檔`);
     else if (DONE_STATUSES.has(row.status)) done++;
   }
   // features/ 有文檔、但功能規劃沒認領 → 提示回填路線圖
   for (const [id, row] of entry.ids) {
     if (/^F\d{3}$/.test(id) && !claimed.has(id))
-      archNotes.push(`${row.file}:未出現在 ${slug}/design.md 的功能規劃(建議回填 doc 欄)`);
+      archNotes.push(`${row.file}:${rowName(row)} 沒有出現在 ${slug}/design.md 的功能規劃裡(建議回填該表的 doc 欄)`);
   }
 
   // Feature 契約卡覆蓋率(/subsys-build 委派展開的門檻;缺卡只提示,不列為不一致)
@@ -785,8 +808,8 @@ for (const slug of subsysDirs) {
     }
     for (const g of plannedGroups)
       archNotes.push(
-        `${entry.designFile}:模組群「${g.name}」還是 planned(契約章節與功能規劃未寫)` +
-          `${g.brief ? `——${g.brief}` : ""};它不在本子系統的進度分母裡`,
+        `${entry.designFile}:模組群 ${slug}/${g.name} 還是 planned(契約章節與功能規劃未寫)` +
+          `${g.brief ? `——${g.brief}` : ""};${slug}/${g.name} 不在 ${slug} 子系統的進度分母裡`,
       );
     for (const g of activeGroups) {
       if (g.total === 0)
@@ -863,6 +886,10 @@ function resolveRef(ref, contextSubsys) {
 
 for (const r of rows) {
   for (const ref of r.dependsOn) {
+    // 同子系統寫成裸 id:解析得到,但這一欄會被印進別的子系統的反向依賴清單,
+    // 到了那裡就沒有「所在檔案」這個上下文,`F001` 指不到任何東西(doc-lifecycle.md「文檔引用格式」)。
+    if (r.subsystem !== "global" && !ref.includes("/") && !/^(G-|ADR-)/.test(ref) && resolveRef(ref, r.subsystem))
+      archNotes.push(`${r.file}:depends-on 的 ${ref} 寫成裸 id —— 改寫成 ${r.subsystem}/${ref}(同一個子系統內部也要帶前綴)`);
     if (!resolveRef(ref, r.subsystem === "global" ? null : r.subsystem)) {
       archIssues.push(
         `${r.file}:depends-on 的 ${ref} 無法解析` +
@@ -876,8 +903,40 @@ for (const r of rows) {
 
 // ---------------------------------------------------------------- 查詢模式(--subsys / --doc)
 
-/** 文檔的正規化鍵:子系統文檔 `<slug>/<id>`,全域文檔 `<id>` */
+/** 文檔的正規化鍵:子系統文檔 `<slug>/<id>`,全域文檔 `<id>`。只當索引用,不印給人看 */
 const docKey = (subsystem, id) => (subsystem && subsystem !== "global" ? `${subsystem}/${id}` : id);
+
+/**
+ * 文檔的**全名**:`<子系統>/<id>-<檔名 slug>`(全域文檔沒有子系統那一段)。
+ * 印給人看的一律用這個,不用裸 id —— 每個子系統各有一組 F001/E001/B001,
+ * 單獨一個 `E001` 答不出「哪個子系統的哪一份、在改什麼」,而問這句話的成本由讀的人付。
+ * 規則見 `_shared/conventions.md`「指稱紀律」與 `doc-lifecycle.md`「文檔引用格式」。
+ */
+const fullName = (subsystem, id, slug) =>
+  `${subsystem && subsystem !== "global" ? `${subsystem}/` : ""}${id}${slug ? `-${slug}` : ""}`;
+const rowName = (r) => fullName(r.subsystem, r.id, r.slug);
+
+/** 一條引用(`auth/F002` / `F002` / `G-E001`)解析成全名;解析不到就原樣回傳 */
+function refFullName(ref, contextSubsys) {
+  const bare = ref.split("#")[0];
+  const [slug, id] = bare.includes("/") ? bare.split("/") : [contextSubsys, bare];
+  if (/^G-C/.test(bare)) {
+    const c = contractIds.get(bare);
+    return c ? `${c.id}-${c.slug}` : bare;
+  }
+  const g = globalIds.get(bare);
+  if (g) return rowName(g);
+  const r = slug && slug !== "global" ? subsysDocs.get(slug)?.ids.get(id) : null;
+  return r ? rowName(r) : bare;
+}
+
+/** 一條未結 gap 印成一行:條目全名 → 卡住哪份文檔 → 誰提的 → 模糊點 → 檔案 */
+function gapLine(g) {
+  const docId = gapDocRef(g.head);
+  const target = docId ? refFullName(docId, g.scope) : "(標題沒寫卡住哪份文檔)";
+  const role = gapRole(g.head);
+  return `- ${g.scope}/${g.id}  卡住 ${target}${role ? `(${role} 提出)` : ""}  ${g.topic}  ${g.file}`;
+}
 
 /** 把一條引用在它的 context 下正規化成 docKey(契約去掉 `#條目`) */
 function refKey(ref, contextSubsys) {
@@ -905,8 +964,13 @@ function contractRefsIn(text) {
 
 /** 一條引用印成一行:目標的狀態與檔案,解析不到就標明 */
 function fmtRef(key, viaRef) {
-  const shown = viaRef && viaRef !== key ? `${viaRef}` : key;
   const bare = key.split("#")[0];
+  const item = (viaRef ?? "").includes("#") ? `#${viaRef.split("#")[1]}` : "";
+  const full = `${refFullName(bare, null)}${item}`;
+  // 一律印全名。原文寫成**裸 id**(沒有子系統前綴)時把原文一起帶出來:那種寫法印到別的
+  // 子系統的清單裡就指不到東西,讀的人要知道該回哪一行補前綴(doc-lifecycle.md「文檔引用格式」)。
+  const bareRef = viaRef && !/^(G-|ADR-)/.test(viaRef) && !viaRef.includes("/");
+  const shown = bareRef ? `${full}(引用方的 depends-on 只寫了裸 id ${viaRef},建議補成 ${bare})` : full;
   if (contractIds.has(bare)) {
     const c = contractIds.get(bare);
     return `- ${shown}  [${c.status}]  ${c.file}  ${c.description}`;
@@ -937,13 +1001,17 @@ const QUERY_TAIL =
 
 if (query.doc) {
   const want = query.doc.trim();
-  const bare = want.split("#")[0];
+  // 全名 `auth/F002-token-refresh` 是回報與定錨區塊裡的寫法,直接貼進 --doc 就要查得到:
+  // 剝掉 id 後面的 slug,`auth/F002` 與 `F002` 也照樣吃。
+  const bare = want
+    .split("#")[0]
+    .replace(/^((?:[a-z0-9-]+\/)?(?:G-[CEB]\d{3}|ADR-\d{3}|[FEB]\d{3}))-[a-z0-9-]+$/, "$1");
 
   // 1) 全域契約
   if (contractIds.has(bare)) {
     const c = contractIds.get(bare);
     const text = readFileSync(c.path, "utf8");
-    console.log(`=== 全域契約 ${c.id} ===`);
+    console.log(`=== 全域契約 ${c.id}-${c.slug} ===`);
     console.log(`主軸  ${c.description}`);
     console.log(`歸屬  全域共用契約(不屬於任何單一子系統)  |  status ${c.status}`);
     console.log(`使用  ${c.affects.length ? c.affects.join("、") : "⚠ 未列 subsystems"}`);
@@ -955,7 +1023,7 @@ if (query.doc) {
     const users = [];
     for (const [k, list] of reverseDeps) {
       if (k.split("#")[0] !== bare) continue;
-      for (const { row, ref } of list) users.push(`- ${docKey(row.subsystem, row.id)}  [${row.status}]  引用 ${ref}  ${row.file}`);
+      for (const { row, ref } of list) users.push(`- ${rowName(row)}  [${row.status}]  引用 ${ref}  ${row.file}`);
     }
     printBlock("誰引用這份契約(反向依賴)", users.sort());
     console.log(QUERY_TAIL);
@@ -979,8 +1047,8 @@ if (query.doc) {
     }
   }
   if (!hit) {
-    console.error(`查無此文檔 id: ${want}`);
-    console.error(`(子系統文檔寫 F003 或 auth/F003;全域寫 G-E001 / G-B001;共用契約寫 G-C001)`);
+    console.error(`查無此文檔: ${want}`);
+    console.error(`(子系統文檔寫全名 auth/F003-token-cache,寫 auth/F003 或 F003 也吃;全域寫 G-E001-cache;共用契約寫 G-C001-session)`);
     process.exit(2);
   }
 
@@ -989,7 +1057,7 @@ if (query.doc) {
   const entry = hit.subsystem !== "global" ? subsysDocs.get(hit.subsystem) : null;
   const road = entry?.roadmap.features.find((f) => f.doc === hit.id) ?? null;
 
-  console.log(`=== 文檔 ${key} ===`);
+  console.log(`=== 文檔 ${rowName(hit)} ===`);
   console.log(`主軸  ${hit.description}`);
   console.log(
     `歸屬  ${hit.subsystem === "global" ? "全域(跨子系統)" : `子系統 ${hit.subsystem}`}` +
@@ -1016,8 +1084,8 @@ if (query.doc) {
       `卡住這份文檔的未結 gap(${hit.blockedBy.length})`,
       openGaps
         .filter((g) => hit.blockedBy.includes(g.id) && gapDocRef(g.head) === hit.id)
-        .map((g) => `- ${g.head}  ${g.topic}  ${g.file}`)
-        .concat(["", "下一步是**修 spec**,不是繼續做:兩種相反的實作都會全綠,測試證明不了什麼。"]),
+        .map(gapLine)
+        .concat(["", `下一步是**修 ${rowName(hit)} 這份 spec**,不是繼續做:兩種相反的實作都會全綠,測試證明不了什麼。`]),
     );
 
   const usedContracts = contractRefsIn(full);
@@ -1029,7 +1097,7 @@ if (query.doc) {
   );
 
   const back = (reverseDeps.get(key) ?? []).map(
-    ({ row, ref }) => `- ${docKey(row.subsystem, row.id)}  [${row.status}]  引用 ${ref}  ${row.file}`,
+    ({ row, ref }) => `- ${rowName(row)}  [${row.status}]  引用 ${ref}  ${row.file}`,
   );
   printBlock("反向依賴(誰依賴我)", back.sort());
 
@@ -1104,13 +1172,13 @@ if (query.file) {
     }
     if (best) hits.push({ row: r, ...best });
   }
-  hits.sort((a, b) => (a.row.created || "").localeCompare(b.row.created || "") || docKey(a.row.subsystem, a.row.id).localeCompare(docKey(b.row.subsystem, b.row.id)));
+  hits.sort((a, b) => (a.row.created || "").localeCompare(b.row.created || "") || rowName(a.row).localeCompare(rowName(b.row)));
 
   printBlock(
     `動過這條路徑的任務文檔(${hits.length})`,
     hits.map(({ row, rel: r2, cp }) => {
       const kind = row.type === "feature" ? "建立" : row.type === "enhance" ? "優化" : "修復";
-      return `- ${docKey(row.subsystem, row.id)}  [${row.status}]  ${kind}  ${row.created}  ${row.file}\n    ${row.description}  (${REL_LABEL[r2]}:${cp})`;
+      return `- ${rowName(row)}  [${row.status}]  ${kind}  ${row.created}  ${row.file}\n    ${row.description}  (${REL_LABEL[r2]}:${cp})`;
     }),
   );
 
@@ -1136,9 +1204,9 @@ if (query.subsys) {
     const st = stages.find((x) => x.subsys.includes(slug));
     console.log(`=== 子系統 ${slug} ===`);
     console.log(`主軸  ${subsysBriefs.get(slug) ?? "-"}`);
-    console.log(`狀態  已列入 system.md 的 subsystems 名冊,**尚未建 design.md**${st ? `(${st.id} ${st.status})` : ""}`);
+    console.log(`狀態  已列入 system.md 的 subsystems 名冊,**尚未建 design.md**${st ? `(${stageName(st)} ${st.status})` : ""}`);
     console.log(`檔案  subsystems/${slug}/design.md 不存在`);
-    console.log("\n它的職責與邊界只寫在 system.md 的「子系統劃分」;沒有契約、沒有功能規劃、沒有 feature 文檔。");
+    console.log(`\n${slug} 的職責與邊界只寫在 system.md 的「子系統劃分」;${slug} 沒有契約、沒有功能規劃、也沒有 feature 文檔。`);
     console.log(`下一步:/subsys-design ${slug}`);
     console.log(QUERY_TAIL);
     process.exit(1);
@@ -1169,22 +1237,22 @@ if (query.subsys) {
     printTable(
       { name: "模組群", status: "狀態", prog: "進度", brief: "職責" },
       entry.groups.map((g) => ({
-        name: g.name,
+        name: `${slug}/${g.name}`,
         status: g.status,
         prog: g.status === "planned" ? "未展開" : `${g.done}/${g.total}`,
         brief: truncate(g.brief || "-", DESC_WIDTH),
       })),
     );
     if (entry.groups.some((g) => g.status === "planned"))
-      console.log("planned 的模組群沒有契約、沒有功能規劃,**不在上面那個進度分母裡**。");
+      console.log(`planned 的模組群沒有契約、沒有功能規劃,**不在上面「進度 ${srow?.progress ?? "-"}」那個分母裡**。`);
   }
 
   console.log(`\n=== 本子系統的文檔(${mine.length})===`);
   if (mine.length === 0) console.log("(還沒有任何 feature / enhance / bugfix 文檔)");
   else
     printTable(
-      { description: "主軸", id: "id", type: "type", status: "status", dependsOn: "depends-on", file: "file" },
-      mine.map((r) => ({ ...r, status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
+      { description: "主軸", name: "文檔(全名)", type: "type", status: "status", dependsOn: "depends-on", file: "file" },
+      mine.map((r) => ({ ...r, name: rowName(r), status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
     );
 
   const out = [];
@@ -1192,7 +1260,7 @@ if (query.subsys) {
     for (const ref of r.dependsOn) {
       const k = refKey(ref, slug);
       if (k.startsWith(`${slug}/`)) continue; // 子系統內部依賴,上表已經看得到
-      out.push(`- ${docKey(r.subsystem, r.id)} → ${ref}\n  ${fmtRef(k, ref).slice(2)}`);
+      out.push(`- ${rowName(r)} → ${fmtRef(k, ref).slice(2)}`);
     }
   printBlock("對外依賴(本子系統依賴誰)", out);
 
@@ -1201,7 +1269,7 @@ if (query.subsys) {
     if (!k.startsWith(`${slug}/`)) continue;
     for (const { row, ref } of list) {
       if (row.subsystem === slug) continue; // 內部依賴不算反向跨界
-      back.push(`- ${docKey(row.subsystem, row.id)} → ${k}(寫成 ${ref})  [${row.status}]  ${row.file}`);
+      back.push(`- ${rowName(row)} 依賴 ${refFullName(k, null)}(該文檔的 depends-on 寫成 ${ref})  [${row.status}]  ${row.file}`);
     }
   }
   printBlock("反向依賴(誰依賴本子系統)—— B1 的候選清單", back.sort());
@@ -1226,14 +1294,11 @@ if (query.subsys) {
   const pend = pendingFeatures.filter((f) => f.subsystem === slug);
   printBlock(
     `待展開的 feature(${pend.length})`,
-    pend.map((f) => `- ${f.phase}:${f.feature}`),
+    pend.map((f) => `- ${slug} 功能規劃「${f.feature}」${f.phase && f.phase !== "-" ? `(${f.phase})` : ""}—— 還沒建 feature 文檔,所以還沒有編號`),
   );
 
   const gaps = openGaps.filter((g) => g.scope === slug);
-  printBlock(
-    `未結的 spec-gaps(${gaps.length})`,
-    gaps.map((g) => `- ${g.head}  ${g.topic}  ${g.file}`),
-  );
+  printBlock(`未結的 spec-gaps(${gaps.length})`, gaps.map(gapLine));
 
   const issues = archIssues.filter(inScope);
   const notes = archNotes.filter(inScope);
@@ -1259,10 +1324,10 @@ if (rows.length === 0 && subsysRows.length === 0 && !systemMeta) {
 if (rows.length === 0) {
   console.log(`design 目錄(${designDir})下沒有任何任務文檔(features / enhancements / bugfixes)。`);
 } else {
-  // 欄位順序:主軸(description)優先,id 次之,再來是子系統歸屬
+  // 欄位順序:主軸(description)優先,文檔全名次之。全名自帶子系統,所以不另立子系統欄
   printTable(
-    { description: "主軸", id: "id", subsystem: "子系統", type: "type", status: "status", created: "created", dependsOn: "depends-on", file: "file" },
-    rows.map((r) => ({ ...r, status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
+    { description: "主軸", name: "文檔(全名)", type: "type", status: "status", created: "created", dependsOn: "depends-on", file: "file" },
+    rows.map((r) => ({ ...r, name: rowName(r), status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
   );
 }
 
@@ -1283,7 +1348,7 @@ if (subsysRows.length === 0) {
   console.log("(subsystems/ 下沒有任何子系統;專案未拆子系統時屬正常,否則請用 /subsys-design 建立)");
 } else {
   printTable(
-    { description: "主軸", id: "id", status: "status", groups: "模組群", phases: "階段", features: "features", cards: "契約卡", specced: "已建文檔", done: "已完成", openEB: "未結E/B", progress: "進度" },
+    { description: "主軸", id: "子系統", status: "status", groups: "模組群", phases: "階段", features: "features", cards: "契約卡", specced: "已建文檔", done: "已完成", openEB: "未結E/B", progress: "進度" },
     subsysRows,
   );
   const built = subsysRows.filter((s) => s.built);
@@ -1321,21 +1386,21 @@ if (stages.length > 0) {
 // ---- 名冊上還沒建檔的子系統 ----
 if (plannedSubsys.length > 0) {
   console.log(`\n=== 已規劃、未建 design.md 的子系統(${plannedSubsys.length})===`);
-  console.log("system.md 的名冊列了它們,但還沒有 Level 2 設計 —— 它們的 feature 一個都還不存在,也不在任何進度分母裡。");
+  console.log("system.md 的名冊列了下面這幾個子系統,但每一個都還沒有 Level 2 設計 —— 這幾個子系統的 feature 一個都還不存在,也不在任何進度分母裡。");
   for (const s of plannedSubsys) {
     const st = stages.find((x) => x.subsys.includes(s));
-    console.log(`- ${s}  ${subsysBriefs.get(s) ?? "(system.md 子系統劃分沒撈到職責)"}${st ? `  [${st.id} ${st.status}]` : ""}`);
+    console.log(`- ${s}  ${subsysBriefs.get(s) ?? "(system.md 子系統劃分沒撈到職責)"}${st ? `  [${stageName(st)} ${st.status}]` : ""}`);
   }
-  console.log("下一步:對其中一個跑 /subsys-design。");
+  console.log("下一步:挑上面其中一個子系統,跑 /subsys-design <子系統>。");
 }
 
 // ---- 已建檔子系統裡、還沒開工的模組群 ----
 const plannedGroupRows = subsysRows.flatMap((s) => s.groupRows.filter((g) => g.status === "planned"));
 if (plannedGroupRows.length > 0) {
   console.log(`\n=== 已規劃、契約未寫的模組群(${plannedGroupRows.length})===`);
-  console.log("子系統的 design.md 認了這些領域,但契約章節與功能規劃還沒寫 —— 它們不在該子系統的進度分母裡。");
-  for (const g of plannedGroupRows) console.log(`- ${g.subsystem} / ${g.name}${g.brief ? `  ${g.brief}` : ""}`);
-  console.log("下一步:對該子系統跑 /subsys-design 更新模式,把那一群的契約與功能規劃補上。");
+  console.log("子系統的 design.md 認了下面這幾個模組群,但契約章節與功能規劃還沒寫 —— 這幾群不在各自子系統的進度分母裡。");
+  for (const g of plannedGroupRows) console.log(`- ${g.subsystem}/${g.name}${g.brief ? `  ${g.brief}` : ""}`);
+  console.log("下一步:對上面模組群所屬的子系統跑 /subsys-design <子系統> 更新模式,把該模組群的契約與功能規劃補上。");
 }
 
 if (Object.keys(adrCounts).length > 0) {
@@ -1345,28 +1410,31 @@ if (Object.keys(adrCounts).length > 0) {
 if (contractIds.size > 0) {
   console.log(`\n=== 全域契約(${contractIds.size})===`);
   printTable(
-    { description: "主軸", id: "id", status: "status", affects: "使用的子系統", file: "file" },
-    [...contractIds.values()].map((c) => ({ ...c, affects: fmtValue(c.affects) })),
+    { description: "主軸", name: "契約(全名)", status: "status", affects: "使用的子系統", file: "file" },
+    [...contractIds.values()].map((c) => ({ ...c, name: `${c.id}-${c.slug}`, affects: fmtValue(c.affects) })),
   );
-  console.log("(契約不是任務文檔,不計入進度;查單一份用 --doc G-C00x)");
+  console.log("(契約不是任務文檔,不計入進度;查單一份用 --doc G-C001-<slug>)");
 }
 
 if (pendingFeatures.length > 0) {
   console.log(`\n=== 待展開的 feature:功能規劃有列、尚未建文檔(${pendingFeatures.length})===`);
-  for (const f of pendingFeatures) console.log(`- ${f.subsystem} ${f.phase}:${f.feature}`);
+  for (const f of pendingFeatures)
+    console.log(
+      `- ${f.subsystem} 功能規劃「${f.feature}」${f.phase && f.phase !== "-" ? `(${f.phase})` : ""}—— 還沒建 feature 文檔,所以還沒有編號`,
+    );
 }
 
 if (openGaps.length > 0) {
   console.log(`\n=== 未結的 spec-gaps:qa / impl 提出、spec 尚未修訂(${openGaps.length})===`);
-  console.log("上面被標了 ⚠卡 的文檔就是卡在這幾條;它們的下一步是**修 spec**,不是繼續做。");
-  console.log("每一條都代表有項目正卡著;修 spec 前不要繼續往下做,也不要委派展開。");
-  for (const g of openGaps) console.log(`- [${g.scope}] ${g.head}  ${g.topic}  ${g.file}`);
+  console.log("上面被標了 ⚠卡 的文檔就是卡在下面這幾條 gap;那幾份文檔的下一步是**修 spec**,不是繼續做。");
+  console.log("每一條未結 gap 都代表有項目正卡著;修 spec 前不要繼續往下做,也不要委派展開。");
+  for (const g of openGaps) console.log(gapLine(g));
 }
 
 const unfinished = rows.filter((r) => !DONE_STATUSES.has(r.status));
 if (unfinished.length > 0) {
   console.log(`\n=== 未完成 / metadata 缺失(${unfinished.length})===`);
-  for (const r of unfinished) console.log(`- ${r.description}  [${r.status}${gapFlag(r)}] ${r.subsystem}/${r.id}  ${r.file}`);
+  for (const r of unfinished) console.log(`- ${r.description}  [${r.status}${gapFlag(r)}] ${rowName(r)}  ${r.file}`);
 }
 
 const openSubsysRows = subsysRows.filter((s) => !s.complete);
@@ -1374,15 +1442,15 @@ if (openSubsysRows.length > 0) {
   console.log(`\n=== 未完成的子系統(${openSubsysRows.length})===`);
   for (const s of openSubsysRows)
     console.log(
-      `- ${s.description}  [${s.status}] ${s.id}  進度 ${s.progress}  未結 ${s.openEB}` +
-        (s.plannedGroups > 0 ? `  ⚠ 還有 ${s.plannedGroups} 個模組群未開工` : ""),
+      `- ${s.description}  [${s.status}] 子系統 ${s.id}  進度 ${s.progress}  未結 ${s.openEB}` +
+        (s.plannedGroups > 0 ? `  ⚠ ${s.id} 還有 ${s.plannedGroups} 個模組群未開工` : ""),
     );
 }
 
 const noDesc = rows.filter((r) => r.description === "-");
 if (noDesc.length > 0) {
   console.log(`\n=== 缺少 description / 主軸(${noDesc.length})===`);
-  for (const r of noDesc) console.log(`- ${r.id} ${r.file}`);
+  for (const r of noDesc) console.log(`- ${rowName(r)}  ${r.file}`);
 }
 
 if (archIssues.length > 0) {

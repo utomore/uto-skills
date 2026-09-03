@@ -25,13 +25,13 @@
 
 | 什麼時候 | 指令 | 接著一定要做什麼 |
 |---|---|---|
-| 要展開某個 feature,先看它在整體的哪裡、依賴誰 | `node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <id>` | **打開它列出的檔案讀原文**再落筆;輸出的介面段是索引不是授權 |
+| 要展開某個 feature,先看它在整體的哪裡、依賴誰 | `node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <文檔全名>` | **打開它列出的檔案讀原文**再落筆;輸出的介面段是索引不是授權 |
 | 要對某個子系統做決定(委派、對帳、驗收) | `… scan-status.mjs .design --subsys <slug>` | 先看「模組群」段有沒有 `planned` 的:有的話該子系統的進度數字只涵蓋 active 那幾群。「反向依賴」段是 `contract-readiness.md` **B1 的候選清單**,逐條對照兩邊的 `design.md` 自己判 |
 | 要知道**產品**做到哪、還差什麼 | `… scan-status.mjs .design`(不帶 flag),看「開發階段」表與「已規劃、未建 design.md 的子系統」/「已規劃、契約未寫的模組群」三段 | 這三段才是產品級分母;子系統狀態表的百分比只涵蓋已展開的部分 |
-| 要改一份共用契約,先看誰在用 | `… scan-status.mjs .design --doc G-C00x` | 「誰引用這份契約」的每一個子系統都要通知到;契約條目是不可逆決定 |
+| 要改一份共用契約,先看誰在用 | `… scan-status.mjs .design --doc G-C00x-<slug>` | 「誰引用這份契約」的每一個子系統都要通知到;契約條目是不可逆決定 |
 | 手上有一個程式碼檔案,要知道它是哪份 spec 做的、被哪些 E/B 改過 | `… scan-status.mjs .design --file <path>` | **打開它列出的文檔讀原文**再落筆。查無不代表這段程式碼沒來歷——也可能是那份文檔收尾時漏回寫 `code-paths`,輸出會提示你分辨 |
 | 要全專案進度、就緒度、不一致清單 | `… scan-status.mjs .design`(不帶 flag) | 照 `/arch-audit status` 的既有流程 |
-| 要分辨某份文檔的 `in-progress` 是「正在做」還是「卡死」 | 同上,或 `--subsys` / `--doc` | 看狀態欄有沒有 `⚠卡GAP-n`:有的話下一步是**修 spec**(`/spec-design` 更新模式),不是繼續做 |
+| 要分辨某份文檔的 `in-progress` 是「正在做」還是「卡死」 | 同上,或 `--subsys` / `--doc` | 看狀態欄有沒有 `⚠卡<子系統>/GAP-n`:有的話下一步是**修 spec**(`/spec-design` 更新模式),不是繼續做 |
 
 **旗標、參數與 exit code 的數值一律跑 `node "<S>/arch-audit/scripts/scan-status.mjs" --help`**,本片不抄一份——抄過來的那份會在改旗標時被忘記。本片只講腳本自己講不出來的三件事(它不知道是誰在呼叫它):
 
@@ -55,7 +55,7 @@ qa 的禁區針對的是**實作程式碼**,設計文檔不在字面內。但開
 | | 用法 |
 |---|---|
 | **允許** | 查**本 feature 所屬子系統**的 `design.md` 契約條目、查 `G-C00x` 共用契約的欄位語意(單位 / 值域 / 正負號)——這些是**契約**,是斷言的合法依據 |
-| **禁止** | 查**別份 feature spec** 的內容(`--doc <別的 id>`);任何「因為 F00X 是這樣寫的,所以這裡預期輸出應該是 Y」的推論 |
+| **禁止** | 查**別份 feature spec** 的內容(`--doc <別份文檔的全名>`);任何「因為 auth/F00X-… 是這樣寫的,所以這裡預期輸出應該是 Y」的推論 |
 
 > **鐵律:契約可以查,別人的 spec 不行。** 每一條斷言的唯一依據都是**本份** spec 的 law 或 example 原文,加上它引用的契約條目。本份 spec 沒寫到的行為,照樣記 `spec-gaps` 停下該項——**不准拿查詢結果去把 gap 填掉**。
 

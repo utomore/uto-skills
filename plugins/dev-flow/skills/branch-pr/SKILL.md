@@ -21,15 +21,15 @@ user-invocable: true
 1. `git fetch --all --prune`;用 `gh repo view --json defaultBranchRef` 確認主 branch,`git branch --show-current` 取得當前分支
 2. **當前分支 = 主 branch 時,禁止直接在主 branch 上發 PR**,先開新分支把變更帶走:
    - 用 `git status --porcelain` 與 `git log origin/<主branch>..HEAD --oneline` 盤點主 branch 上的未提交變更與領先 origin 的本地 commit
-   - 從變更內容推斷文檔 id 與 type,開分支 `<type>/<slug>`(如 `feat/auth-F001`、`fix/auth-B002`、`enhance/G-E001`);推斷不出來才用 AskUserQuestion 問分支名
+   - 從變更內容推斷是哪一份文檔與哪個 type,開分支 `<type>/<slug>`(如 `feat/auth-F001-login`、`fix/auth-B002-login-timeout`、`enhance/G-E001-cache`);推斷不出來才用 AskUserQuestion 問分支名
    - `git switch -c <新分支>`:未提交變更會跟著過去,領先的本地 commit 也保留在新分支;接著把本地主 branch 還原到 `origin/<主branch>`(`git branch -f <主branch> origin/<主branch>`),避免主 branch 留著未發 PR 的 commit
-   - 未提交變更在新分支上 commit(conventional commit 風格,訊息附文檔 id)後,以這條新分支當唯一候選,直接進入 §3 發 PR(不需整合分支)
+   - 未提交變更在新分支上 commit(conventional commit 風格,訊息附**文檔全名** `auth/F001-login`)後,以這條新分支當唯一候選,直接進入 §3 發 PR(不需整合分支)
    - 主 branch 上既無未提交變更也無領先 commit → 沒有東西可發,回報後停止
 3. 當前分支不是主 branch → 照常進入 §1 盤點
 
 ## 1. 盤點
 
-1. 列出候選 branch(`git branch -a --no-merged <主branch>`;當前分支有未 push 的變更也算候選)與各自對應的文檔 id(從 branch 名或 commit 訊息推斷;引用格式如 `auth/F001`、`G-E001`)
+1. 列出候選 branch(`git branch -a --no-merged <主branch>`;當前分支有未 push 的變更也算候選)與各自對應的**文檔全名**(從 branch 名或 commit 訊息推斷;寫成 `auth/F001-login`、`G-E001-cache`,不要只寫 `F001`——PR 描述會被子系統以外的人讀到)
 2. 若使用者已指明要整合的 branch,或候選只有一條、順序無疑義,直接進行;僅在多條候選且無法從文檔或 branch 名推斷取捨時,才用 AskUserQuestion 詢問要整合哪些 branch 與順序
 
 ## 2. 整合
@@ -45,8 +45,8 @@ user-invocable: true
 
 1. 再次確認 `git branch --show-current` 不是主 branch,Push 要發 PR 的分支(整合分支,或 §0 新開的分支)
 2. 測試 / build 全綠後,組好 PR 內容**直接 `gh pr create` 送出,不需先向開發者確認**(發完後在收尾階段回報大綱與說明):
-   - **標題**:英文 conventional commit 風格 + 對應文檔 id
-     例:`feat: add user authentication (auth/F001)`、`fix: login timeout (auth/B002)`、`perf: incremental file scan (G-E001)`
+   - **標題**:英文 conventional commit 風格 + 對應文檔全名
+     例:`feat: add user authentication (auth/F001-login)`、`fix: login timeout (auth/B002-login-timeout)`、`perf: incremental file scan (G-E001-cache)`
    - **內文**:繁體中文,固定章節:
 
      ```markdown

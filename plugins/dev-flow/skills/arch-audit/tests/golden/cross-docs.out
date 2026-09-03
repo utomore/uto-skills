@@ -3,15 +3,15 @@
 兩邊各自內部自洽、各自的測試也各自全綠,要到兩個 feature 接起來才爆。
 
 - `Money`
-    F001(數據/新增)  { amount: Int, currency: Text }
-    F002(數據/新增)  { amount: Decimal, currency: Text }
+    pay/F001-charge(數據/新增)  { amount: Int, currency: Text }
+    pay/F002-refund(數據/新增)  { amount: Decimal, currency: Text }
 
 === 新增的依賴邊(2,待判清單,不影響 exit code)===
 「design.md 找不到」不等於違規 —— 那份文檔可能用別的寫法表達同一條邊。
 要不要納進宣告是閘門上的裁決,腳本只負責一條都不漏掉。
 
-- F001  Charge → Ledger    ✓  兩端都在 design.md 裡
-- F001  Charge → Notify    ✗  design.md 找不到兩端
+- pay/F001-charge  Charge → Ledger    ✓  兩端都在 pay/design.md 裡
+- pay/F001-charge  Charge → Notify    ✗  pay/design.md 找不到兩端
 
 掃了 2 份 spec(1 個子系統)、4 個宣告過的名字、2 條新增依賴邊。
 __exit__ 1

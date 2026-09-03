@@ -1,3 +1,3 @@
-查無此文檔 id: F999
-(子系統文檔寫 F003 或 auth/F003;全域寫 G-E001 / G-B001;共用契約寫 G-C001)
+查無此文檔: F999
+(子系統文檔寫全名 auth/F003-token-cache,寫 auth/F003 或 F003 也吃;全域寫 G-E001-cache;共用契約寫 G-C001-session)
 __exit__ 2

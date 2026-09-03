@@ -4,9 +4,10 @@
 │  產出 .design/system.md + ADR
 │  ├─ S0、S1…
 │  │  開發階段 · 全專案唯一 · /system-design 配 · 永久
-│  │  ↳ 產品級分母:「還差什麼」只有它答得出來
+│  │  ↳ 產品級分母:「還差什麼」只有開發階段表答得出來;講到某一階帶名稱 S1(帳務上線)
 │  ├─ ADR-001
 │  │  架構決策 · 全局一組 · 建檔時掃描 · 永久
+│  │  ↳ 引用時帶 slug:ADR-003-jwt
 │  └─ <subsystem-slug>
 │     子系統名冊 · 全專案唯一 · /system-design 定 · 永久
 │     ↳ 含還沒建 design.md 的
@@ -14,13 +15,13 @@
 │  產出 subsystems/<slug>/design.md、contracts/G-C00x
 │  ├─ G-C001
 │  │  全域共用契約 · 全域一組 · 建檔時掃描 · 永久
-│  │  ↳ 引用時寫到條目:G-C001#SessionToken
+│  │  ↳ 引用時一律寫全名並寫到條目:G-C001-session#SessionToken
 │  ├─ 模組群名(WorldSim…)
 │  │  子系統內的平行領域 · 該 design.md 內唯一 · 永久
-│  │  ↳ planned 的那幾群不進進度分母
+│  │  ↳ planned 的模組群不進該子系統的進度分母;講到某一群寫 auth/MFA
 │  ├─ #1、#2…
 │  │  功能規劃表的項次 · 該表內唯一 · 永久
-│  │  ↳ 「依賴」欄用它互相引用
+│  │  ↳ 功能規劃表的「依賴」欄用項次互相引用
 │  └─ A1–A10 / B1–B4
 │     契約就緒度檢查條 · contract-readiness.md 內 · 固定不配號
 │     ↳ 引用一定帶檔名:contract-readiness.md A5
@@ -28,12 +29,12 @@
 │  產出 features/ enhancements/ bugfixes/ 的任務文檔 + 骨架
 │  ├─ F001 / E001 / B001
 │  │  任務文檔 id · 子系統內各一組 · 建檔時掃描 · 永久
-│  │  ↳ 一份 = 一個 feature / 優化 / 缺陷的 spec;份數是「已建檔」,分母是 design.md 功能規劃的項數
+│  │  ↳ 講給人聽時一律寫全名 <子系統>/<id>-<slug>(auth/E001-token-cache):每個子系統各有一組,裸寫 E001 指不到任何一份
 │  ├─ G-E001 / G-B001
 │  │  跨子系統的全域優化 / 修復 · 全域各一組 · 永久
 │  ├─ LAW-1
 │  │  行為性質 · 單一 spec 檔內 · spec 角色配 · 永久
-│  │  ↳ qa 一條翻一個 property test —— 條數 = 測試的分母,不是跑出來的測試數
+│  │  ↳ qa 一條翻一個 property test —— 條數 = 測試的分母,不是跑出來的測試數;講到某一條 law 掛在文檔全名底下:auth/F002-token-refresh 的 LAW-3
 │  ├─ REG-1
 │  │  回歸 law(enhance 專用)· 單一 spec 檔內 · 永久
 │  │  ↳ 保護改完必須一模一樣的現有行為
@@ -42,10 +43,10 @@
 │  │  ↳ qa 一個翻一個 example test;LAW + EX 就是「這份 spec 應該有幾個測試」
 │  ├─ STEP-1
 │  │  bugfix TodoList 步驟 · 單一 bugfix 檔內 · 永久
-│  │  ↳ dep: 欄互相引用
+│  │  ↳ 同一份 bugfix 文檔裡的 dep: 欄用步驟號互相引用
 │  └─ GAP-1
 │     spec 疑問 · 單一 spec-gaps.md 內 · 編排者單線配 · 永久
-│     ↳ 專案表的 GAP 欄印「已結/總數」,不滿就代表有項目卡著
+│     ↳ 講到某一條 gap 寫 auth/GAP-1;條目標題要寫出這條 gap 卡住哪份文檔:## GAP-1(auth/F002-token-refresh / qa)
 ├─ 編排層  /spec-build · /subsys-build
 │  產出 build-log.md;以下全部是**過程**的編號,不是產品的一部分
 │  ├─ WAVE-1

@@ -317,6 +317,10 @@ if (OPT_CLAIM) {
     "utf8",
   );
   console.log(`${id}\t${toPosix(relative(process.cwd(), file))}`);
+  // 全名是「講給人聽」時的唯一寫法:frontmatter 的 id 欄寫裸 id,回報、閘門、別份文檔的
+  // 引用一律寫全名(_shared/conventions.md「指稱紀律」)。配號當下就把兩種寫法一起交出去,
+  // 免得下一步只記得裸 id。
+  console.log(`全名\t${g.includes("/") ? `${g.split("/")[0]}/` : ""}${id}-${OPT_SLUG}\t← 寫進回報與別份文檔時用這個(frontmatter 的 id 欄仍寫 ${id})`);
   if (collisions.length) {
     console.error(`\n注意:掃描過程中發現 ${collisions.length} 組既有撞號(與本次配號無關,但要處理)。`);
     process.exit(1);
@@ -335,7 +339,8 @@ if (!OPT_QUIET) {
       const dup = bySlug.size > 1;
       for (const [slug, places] of bySlug) {
         const mark = dup ? "  ← 撞號" : "";
-        console.log(`  ${id}  ${slug.padEnd(28)} ${placeLabel(places)}${mark}`);
+        const full = `${g.includes("/") ? `${g.split("/")[0]}/` : ""}${id}-${slug}`;
+        console.log(`  ${full.padEnd(38)} ${placeLabel(places)}${mark}`);
       }
     }
     console.log(`  下一個可用:${nextIdOf(g)}`);
@@ -349,8 +354,9 @@ if (archivedSeen.size && !OPT_QUIET) {
 if (collisions.length) {
   console.log(`\n撞號 ${collisions.length} 組:`);
   for (const c of collisions) {
-    console.log(`  ${c.id} 同時是:`);
-    for (const [slug, places] of c.bySlug) console.log(`    ${slug}  (${placeLabel(places)})`);
+    const prefix = c.group.includes("/") ? `${c.group.split("/")[0]}/` : "";
+    console.log(`  ${prefix}${c.id} 這個號同時被下面幾份文檔佔走:`);
+    for (const [slug, places] of c.bySlug) console.log(`    ${prefix}${c.id}-${slug}  (${placeLabel(places)})`);
   }
   console.log("\n兩份同號文檔的檔名不同,merge 時不會衝突 —— 必須手動改號並回頭修所有引用。");
   process.exit(1);

@@ -53,6 +53,12 @@ for f in skills/*/SKILL.md skills/_shared/*.md; do printf "%4d %s\n" "$(wc -l < 
 
 配套的一件事:規則要求全名之後,**吃編號的入口都要吃得下全名**。`scan-status.mjs --doc`、`lint-cross-spec.mjs --docs` 因此同時接受 `auth/F002-token-refresh`、`auth/F002` 與 `F002`;不然回報裡的寫法貼回命令列就查不到,而人會退回去寫裸 id。
 
+## 專案級的常數要有欄位,不要靠每次對話重問
+
+`system.md` 的 `mode`(`greenfield` / `brownfield`)是第一個這種欄位:它決定**整類問題該不該問**,而那類問題(migration、向後相容、既有使用者)在全新專案裡連指涉對象都沒有。這種事實有三個特徵——**整個專案一個值、幾乎不變、決定一整類行為**——符合這三點就該是 frontmatter 的一欄,不是每場對話重問一次的口頭約定:口頭約定活不過一次 `/clear`,而猜錯的人不會知道自己猜錯。
+
+配套是固定的三件事,缺一條這個欄位就會爛掉:**誰寫**(`/system-design` 訪談第 0 題)、**誰讀**(`boundary-rules.md` 定規則,設計與實作 skill 都讀得到)、**沒填怎麼辦**(`scan-status.mjs` 每次盤點都印那一行,缺了印 `⚠ 未宣告`)。第三件最容易漏:一個沒有人會抱怨它沒填的欄位,就是一個遲早全空的欄位。
+
 ## 三條追加閘門
 
 每次要往 skill 裡加東西之前,依序過這三關:

@@ -478,6 +478,19 @@ if (existsSync(systemPath)) {
 
 // subsystems 是**完整名冊**:列了但沒資料夾 = 已規劃未建檔(待辦,不是不一致);
 // 有資料夾卻沒列 = 名冊漏回填(這一向才是不一致)。
+/**
+ * 專案模式(`boundary-rules.md`「專案模式」):`greenfield` = 全新建立,`brownfield` = 維護型。
+ * 這一欄決定**整類問題該不該問**(migration / 向後相容),所以缺了不能默默跳過:
+ * 沒有它,每一場對話都得重新猜一次,而猜錯的人不會知道自己猜錯。
+ * 列為提示不列為不一致:舊專案的 system.md 本來就沒有這一欄,不該讓它們的 exit code 變成 1。
+ */
+const MODES = new Set(["greenfield", "brownfield"]);
+const projectMode = systemMeta ? String(systemMeta.mode ?? "").trim() : "";
+if (systemMeta && !projectMode)
+  archNotes.push("system.md:缺 mode 欄(greenfield 全新建立 / brownfield 維護型)——問開發者一次再回寫,不要自己假設(boundary-rules.md「專案模式」)");
+else if (systemMeta && projectMode && !MODES.has(projectMode))
+  archIssues.push(`system.md:mode 的值「${projectMode}」不合法,只能是 greenfield(全新建立)或 brownfield(維護型)`);
+
 const roster = systemMeta ? asList(systemMeta.subsystems) : [];
 const plannedSubsys = roster.filter((s) => !subsysDirs.includes(s));
 if (systemMeta) {
@@ -1340,7 +1353,11 @@ if (rows.length > 0) {
 
 console.log("\n=== 子系統狀態 ===");
 if (systemMeta) {
+  const modeLabel = projectMode
+    ? `${projectMode}(${projectMode === "greenfield" ? "全新建立:禁問 migration 與向後相容" : "維護型:migration 與既有呼叫端必問"})`
+    : "⚠ 未宣告(問開發者一次再回寫 system.md)";
   console.log(`主架構 system:${fmtValue(systemMeta.description)}  [${fmtValue(systemMeta.status)}]  subsystems: ${fmtValue(systemMeta.subsystems)}`);
+  console.log(`專案模式  mode: ${modeLabel}`);
 } else {
   console.log("主架構:找不到 system.md(尚未執行 /system-design)");
 }

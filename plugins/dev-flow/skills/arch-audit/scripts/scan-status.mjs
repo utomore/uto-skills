@@ -925,9 +925,12 @@ const docKey = (subsystem, id) => (subsystem && subsystem !== "global" ? `${subs
  * 單獨一個 `E001` 答不出「哪個子系統的哪一份、在改什麼」,而問這句話的成本由讀的人付。
  * 規則見 `_shared/conventions.md`「指稱紀律」與 `doc-lifecycle.md`「文檔引用格式」。
  */
-const fullName = (subsystem, id, slug) =>
-  `${subsystem && subsystem !== "global" ? `${subsystem}/` : ""}${id}${slug ? `-${slug}` : ""}`;
-const rowName = (r) => fullName(r.subsystem, r.id, r.slug);
+function fullName(subsystem, id, slug) {
+  return `${subsystem && subsystem !== "global" ? `${subsystem}/` : ""}${id}${slug ? `-${slug}` : ""}`;
+}
+function rowName(r) {
+  return fullName(r.subsystem, r.id, r.slug);
+}
 
 /** 一條引用(`auth/F002` / `F002` / `G-E001`)解析成全名;解析不到就原樣回傳 */
 function refFullName(ref, contextSubsys) {

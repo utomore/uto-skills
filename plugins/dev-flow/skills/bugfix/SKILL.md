@@ -17,7 +17,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例、腳本目錄、**重跑紀律** |
+| `../_shared/conventions.md` | 核心慣例、腳本目錄、**跑東西的紀律** |
 | `../_shared/boundary-rules.md` | **邊界判斷規則** + 實作階段規則 |
 | `../_shared/testing-policy.md` | 本 skill 自己寫重現測試 |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description` | 本 skill 要新建 bugfix 文檔。**不要整份讀**——腳本末尾會附上你沒讀到的章節目錄 |

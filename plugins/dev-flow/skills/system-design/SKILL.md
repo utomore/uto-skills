@@ -17,7 +17,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例:**資訊抽象邊界規範**、腳本目錄、**重跑紀律** |
+| `../_shared/conventions.md` | 核心慣例:**資訊抽象邊界規範**、腳本目錄、**跑東西的紀律** |
 | `../_shared/boundary-rules.md` | **邊界判斷規則** + 設計階段規則 |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 文檔角色與權威來源 資料夾結構 架構文檔 ADR 清單欄位格式 description` | 本 skill 要新建 `system.md` 與 ADR。**不要整份讀** |
 

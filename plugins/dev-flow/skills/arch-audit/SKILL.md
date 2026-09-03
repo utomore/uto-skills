@@ -17,7 +17,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例:資訊抽象邊界規範、腳本目錄、**重跑紀律** |
+| `../_shared/conventions.md` | 核心慣例:資訊抽象邊界規範、腳本目錄、**跑東西的紀律** |
 | `../_shared/doc-lifecycle.md` | **對帳要全份**:資料夾樹、引用格式、權威來源與 frontmatter 規格 |
 | `../_shared/boundary-rules.md` | 檢查知識歸屬與依賴邊的判準 |
 | `../_shared/testing-policy.md` | 檢查測試後門的判準 |
@@ -135,6 +135,7 @@ node "<S>/arch-audit/scripts/lint-commands.mjs" "<S>"     檢查文檔裡寫的�
 
    它給的是**線索**:子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單、架構 hub。腳本印出的「⚠ 影響結論可信度」整段要**原樣轉達給開發者**——圖是無向建置、過期、或對映覆蓋率過低時,任何基於它的結論都不能採信,先修再談。沒有圖(或判定沒過)就照下面各 scope 的原方法做,不提也不擋
 3. **Context 載入紀律**:只讀 scope 對應層級的文檔(見各 scope);已 closed 的 bugfix 除非必要否則不載入
+3b. **文檔與程式碼對不上時,證據不是測試**:哪一邊是舊的,看該文檔的 `status` 與 frontmatter 的 `updated` 日期、再打開原始碼看本體在不在——**測試全綠不會讓過期的文檔變準**(`../_shared/conventions.md`「跑東西的紀律」第 1 關)。這種不一致最常見的來源是文檔寫在前、合併在後:註記停在寫的那一天,程式碼卻已經被後來的 merge 超車
 4. 發現一律**依嚴重度排序**在對話中回報:每條附具體檔案與程式碼位置、違反了哪條契約/原則、建議動作
 5. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/spec-design`(enhance 模式,需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號規則與 `doc-lifecycle.md` 的規格,`status: open`,內文附本次發現的分析依據)
 6. 本 skill **不修改程式碼**,也不改架構文檔(發現文檔該改時,列出差異建議開發者走對應 design skill)

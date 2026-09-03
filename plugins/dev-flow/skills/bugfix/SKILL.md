@@ -51,7 +51,7 @@ id: B00x                # 全域時為 G-B00x
 type: bugfix
 title: <slug>
 description: <一句話,40 字內:什麼壞了>
-status: open
+status: specced          # bugfix 沒有 planned 這一格:缺陷是看著既有程式碼提出來的
 created: <today>
 updated: <today>
 depends-on: []
@@ -90,7 +90,7 @@ code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫
 
 ## 3. 修復(測試先行)
 
-1. 開工前:`status` 改 `in-progress`、更新 `updated`
+1. 開工前:`updated` 換今天(`status` 維持 `specced`——v2 的值域沒有 `in-progress`,「正在做」看的是骨架裡還有沒有未實作標記,見 `../_shared/doc-lifecycle.md`「狀態與生命週期」)
 2. **先寫一條能重現缺陷的測試**,執行確認**修復前失敗**——這條測試就是缺陷的存在證明,之後保留為回歸測試。測試從公開介面寫,非看內部不可時走 `*.Internal`;**不得為測試在核心層開後門**(`testing-policy.md`)
 3. 依 TodoList 逐項修復並勾選;修法以「修復方向」為準,發現行不通時先與開發者確認,把偏差寫進「修復紀錄」
 4. **最小修復原則**:只修根因,不順手重構;修復過程發現的優化機會記下來,建議開發者另走 `/spec-design`(enhance 模式)。修法若動到 Level 2 公開契約,先與開發者確認並回頭更新對應 `design.md`

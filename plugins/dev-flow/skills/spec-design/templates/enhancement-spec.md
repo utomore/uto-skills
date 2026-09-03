@@ -9,7 +9,7 @@ id: E00x                # 全域時為 G-E00x
 type: enhance
 title: <slug>
 description: <一句話,40 字內:要改善什麼>
-status: open
+status: specced         # enhance 沒有 planned 這一格:優化是看著既有程式碼提出來的
 created: <today>
 updated: <today>
 depends-on: []          # 依賴的文檔,一律帶子系統前綴 [auth/F001];空陣列 = 可平行開發(最後填,由介面表反推)

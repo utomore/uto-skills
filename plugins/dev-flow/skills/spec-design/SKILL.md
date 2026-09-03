@@ -1,6 +1,6 @@
 ---
 name: spec-design
-description: Level 3 spec 設計(spec 角色)— 深度討論後產出 spec 文檔與**程式碼骨架**(檔案框架、型別定義、函數簽名,本體一律未實作標記)。兩種模式:**feature**(新需求 → features/F00x-<slug>.md,介面必須落在 Level 2 契約內)與 **enhance**(既有程式碼的優化 → enhancements/E00x-<slug>.md,跨子系統為 G-E00x,先讀程式碼再與開發者確認 scope,Laws 含保護現有行為的回歸 law)。相依性必用程式碼知識圖定位再開原始碼查證。觸發詞:功能設計、feature design、新功能、功能規格、feature spec、規格書、寫 spec、優化設計、enhance design、改善規格、重構規劃、效能優化。Use when specifying a new feature or a code-based improvement (spec + skeleton) before tests and implementation.
+description: Level 3 spec 設計(spec 角色)— 深度討論後產出 spec 文檔與**程式碼骨架**(檔案框架、型別定義、函數簽名,本體一律未實作標記)。兩種模式:**feature**(把一份 status: planned 的 features/F00x-<slug>.md 往下寫成 specced,介面必須落在該檔 `## 契約` 與 Level 2 契約內)與 **enhance**(既有程式碼的優化 → enhancements/E00x-<slug>.md,跨子系統為 G-E00x,先讀程式碼再與開發者確認 scope,Laws 含保護現有行為的回歸 law)。相依性必用程式碼知識圖定位再開原始碼查證。不改既有契約(那是 /spec-redesign)。觸發詞:功能設計、feature design、寫規格、功能規格、feature spec、規格書、寫 spec、優化設計、enhance design、改善規格、重構規劃、效能優化。Use when specifying a new feature or a code-based improvement (spec + skeleton) before tests and implementation.
 user-invocable: true
 ---
 
@@ -24,7 +24,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 | `../_shared/spec-roles.md` | **三角色契約**:你的產出是 qa 與 impl 的唯一輸入 |
 | `../_shared/boundary-rules.md` | **邊界判斷規則** + 設計階段規則 |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description 狀態與生命週期` | doc-lifecycle 的五節。**不要整份讀**——腳本末尾會附上你沒讀到的章節目錄 |
-| `../_shared/codegraph.md` + `../_shared/codegraph-tools.md` | 本 skill **必用**程式碼知識圖並要下查詢(修訂模式的豁免見下) |
+| `../_shared/codegraph.md` + `../_shared/codegraph-tools.md` | 本 skill **必用**程式碼知識圖並要下查詢 |
 
 **條件式**(先判斷條件,成立的**併進上面同一批**)
 
@@ -32,15 +32,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 - prompt 標明 `【委派模式】` → `../_shared/delegation.md` + `../_shared/delegation-design.md`(你要產出的兩份清單格式)
 - **收尾時** → `../_shared/anchor.md`(定錨區塊格式;**委派模式下不讀**——你不輸出定錨區塊)
 
-**修訂模式減載**(走步驟 0 的第三種入口時,對上表做以下扣除):
-
-| 不讀 | 為什麼 |
-|---|---|
-| `boundary-rules.md` | 邊界早在原文檔定案,修訂不重談 scope |
-| doc-lifecycle 的五節 | 不配號、不建檔、不動 description |
-| `codegraph.md` + `codegraph-tools.md` | **除非**這次的 gap 指到既有符號(要改簽名、要查誰在用)。gap 只是問「spec 這一段講不清楚」時,圖答不出來也不該問它 |
-
-減載後的必讀只剩 `conventions.md` + `spec-roles.md`,加上目標 spec、它的骨架與 `spec-gaps.md` 上那幾條 `open` 條目。**前置 1-4 一併跳過**(`system.md`、`design.md`、ADR、掃描配號都只服務新建檔);前置 5 保留——那正是你這次的輸入。
+**要改的是既有契約或既有 spec 時,這個 skill 不是入口**——走 `/spec-redesign`,它會先判這次改動是 Level 3 就地改還是要回 Level 2。本 skill 只往下寫,不改 `## 契約`。
 
 文檔模板在 `templates/`,**只讀模式對應的那一份**(步驟 5 才打開):`feature-spec.md` / `enhancement-spec.md`。
 
@@ -58,8 +50,8 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 | | feature 模式 | enhance 模式 |
 |---|---|---|
-| 出發點 | 新需求;`design.md`「功能規劃」上的一項 | **目前的程式架構**:哪裡慢、難維護、耦合過深、重複;或 `/arch-audit` 的發現 |
-| 產出位置 | `.design/subsystems/<slug>/features/F00x-<slug>.md` | 單一子系統 → `.design/subsystems/<slug>/enhancements/E00x-<slug>.md`;跨子系統 → `.design/enhancements/G-E00x-<slug>.md`(frontmatter 加 `subsystems: []`) |
+| 出發點 | 一份 `status: planned` 的 feature 檔(`## 契約` 已由 `/subsys-design` 寫好)| **目前的程式架構**:哪裡慢、難維護、耦合過深、重複;或 `/arch-audit` 的發現 |
+| 產出位置 | **同一份** `.design/subsystems/<slug>/features/F00x-<slug>.md`,往下追加節,不新建檔 | 單一子系統 → `.design/subsystems/<slug>/enhancements/E00x-<slug>.md`;跨子系統 → `.design/enhancements/G-E00x-<slug>.md`(frontmatter 加 `subsystems: []`) |
 | 追加步驟 | — | 步驟 1(檢視現況)、步驟 2(Scope 討論),兩者都不可跳過 |
 | 核心紀律追加 | — | **先讀程式碼、再談優化**:沒有打開原始碼讀過現況,就沒有資格提出或評估任何優化方向。**現有行為也是契約**——哪些行為改完必須一模一樣,要寫成回歸 law 交給 qa,不能靠實作者自己記得 |
 
@@ -67,20 +59,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 **委派模式一律是 feature 模式**:`/subsys-build` 不委派 enhance(見該 skill「邊界」),enhance 的 scope 必須與人談。
 
-**第三種入口:修訂模式(不是新寫,是回答 spec-gaps)**
-
-`spec-gaps.md` 有指向某份**既有** spec 的 `open` 條目時走這條,**不要重新判 feature / enhance**:
-
-| | 修訂模式 |
-|---|---|
-| 出發點 | 那幾條 `open` 的 gap,不是新需求 |
-| 產出位置 | **原文檔**,不配新編號 |
-| 改動範圍 | 只改被 gap 指到的段落與骨架對應處。**不順手擴張 scope**——真要擴張就另開 `E00x` 走 enhance 模式 |
-| 載入 | 走「先讀什麼」的**修訂模式減載**表:`boundary-rules.md`、doc-lifecycle 五節、`codegraph*.md` 都不讀,**前置 1-4 也一併跳過** |
-| 流程 | 跳過步驟 1-3(現況、scope、深度討論都已經在原文檔裡),直接改「數據 / 介面 / Laws / Examples」→ 步驟 6 同步骨架 → 步驟 7 **只重跑被動到的那幾條**(見該步「修訂模式的範圍」) |
-| 追加步驟 | 收尾回填 gap 的 `狀態:resolved` 與 `修訂` 行(格式見 `../_shared/spec-roles.md`「spec-gaps 協議」) |
-
-**改完的東西 qa 與 impl 都要重跑**:簽名動過的,骨架與既有測試一起失效——收尾要講明哪幾條介面需要重新委派,不要讓人以為只改了文檔。
+**`spec-gaps.md` 有指向目標文檔的 `open` 條目時停下來**:那代表這份 spec 有人提出過問題還沒回答,先走 `/spec-redesign` 結掉,再回來往下寫。
 
 ## 委派模式(prompt 標明【委派模式】時)
 
@@ -89,26 +68,24 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 | 步驟 | 委派模式下的作法 |
 |---|---|
 | 0. 判定模式 | **跳過**。一律 feature 模式 |
-| 前置 2(讀 `design.md`) | **只讀契約章節**(對外契約 / 模組間公開介面)與 prompt 附的契約卡,**不讀 `design.md` 全文**——卡片原文已經在 prompt 裡,整份讀進來是重複的 context |
+| 前置 2(讀 `design.md`) | **只讀契約章節**(對外契約 / 模組間公開介面),**不讀 `design.md` 全文**——目標檔的 `## 契約` 已經是你要的那一段 |
 | 前置 4(掃描配號) | **跳過**。id、檔名與**骨架檔案路徑**由編排者在 prompt 指定,不得自行決定(平行寫同一個骨架檔會互蓋) |
-| 3. 深度討論 | **跳過**。輸入改為 prompt 給的**契約卡**(涵蓋負責模組、Level 2 介面、資料流段落、驗收標準、明確不做)+ 委派決策記錄 + 所屬 `design.md` 的契約章節 |
+| 3. 深度討論 | **跳過**。輸入改為目標檔的 **`## 契約`**(涵蓋階段、負責模組、Level 2 介面、資料流段落、驗收標準、明確不做)+ 委派決策記錄 + 所屬 `design.md` 的契約章節 |
 | 4. 相依性查證 | **完整執行,一字不改**。這是機械性工作,也是委派模式下唯一的品質防線 |
 | 5 / 6. 產出 spec 與骨架 | 照原格式;有不確定的判斷時,先過 `delegation.md` 的層級自答——實作層級自己裁(記進回報的「自裁記錄」),契約層級才在「實作備註」前加「待確認假設」段落(**現況原文**/選項/代價/傾向/可逆性備齊,`現況原文` 是把被決定的型別或契約條文逐字貼上,閘門補不回來) |
 | 7. 一致性檢查 | **完整執行**。發現不一致就改文件重跑,不得帶著矛盾交出去 |
 | 8. 回頭檢查架構文件 | **只檢查、不修改**。要改 `design.md` / `system.md` 的,寫進回報給編排者裁決 |
-| 回填 `design.md` 的 `doc` 欄 | **不做**。由編排者單線回填(平行寫同一檔會互蓋) |
+| 改 `status` 與跑 `--write-index` | **不做**。由編排者單線寫(平行寫同一檔會互蓋) |
 | 9. 收尾 | 改為輸出 `delegation.md` 定義的**結構化回報**,不是給人看的摘要。**不輸出定錨區塊,因此不讀 `anchor.md`** |
 
-契約卡不足以支撐某個決定時,照 `delegation.md` 第 2 條:繼續推進 + 記「待確認假設」,不停擺、不提問。契約卡本身與 `design.md` 契約章節矛盾時,以 `design.md` 為準並回報這個矛盾。
+`## 契約` 不足以支撐某個決定時,照 `delegation.md` 第 2 條:繼續推進 + 記「待確認假設」,不停擺、不提問。`## 契約` 本身與 `design.md` 契約章節矛盾時,以 `design.md` 為準並回報這個矛盾。
 
 **「不可逆決定」段與「新增的依賴邊」在委派模式下會被編排者搬上閘門逐條裁決**,不是寫下來就算數。所以這兩處要當成要給人審的東西寫:每條不可逆決定的**否決理由**必須寫得出替代方案的代價(只寫得出好處 = 分析不完整,會被退回重寫);每條新增的依賴邊都要寫成「哪個模組 → 哪個模組」,漏一條就等於偷渡一次架構變更。
 
-## 前置(不可跳過;**修訂模式只做第 5 點**)
-
-**修訂模式**的輸入是一份已經存在的 spec 與它身上的 gap,不是一個新需求——第 1-4 點全部服務「新建檔」(定位子系統、挑 ADR、配號),對修訂一條都用不到。跳過它們,直接做第 5 點。
+## 前置(不可跳過)
 
 1. 讀取 `.design/system.md`(燈塔)。**不存在時**:告知開發者建議先執行 `/system-design`,除非開發者明確要求直接寫設計文檔
-2. 確認落在哪個子系統,讀取該 `subsystems/<slug>/design.md`;不相關的子系統不讀。**feature 模式**:`design.md`「功能規劃」有此項時,以該列與對應的**「Feature 契約卡」**為討論起點(卡片已定下負責模組、Level 2 介面、資料流段落、驗收標準與明確不做,討論從這裡往下深化,不要重新發明邊界);沒有對應子系統時,先和開發者確認是否要新增子系統(走 `/subsys-design`)或放寬為不拆子系統的小專案做法(此時與開發者確認文檔位置)。**要展開的東西落在一個 `planned` 模組群裡**(`design.md` 的「模組群」表)時停下來:那一群的契約章節還沒寫,沒有 Level 2 介面可以承接,先走 `/subsys-design` 更新模式把契約補上再回來
+2. 確認落在哪個子系統,讀取該 `subsystems/<slug>/design.md`;不相關的子系統不讀。**feature 模式**:目標檔的 **`## 契約`** 就是討論起點(它已定下階段、負責模組、Level 2 介面、資料流段落、驗收標準與明確不做,討論從這裡往下深化,**不要重新發明邊界,也不要改寫那一節**——要改走 `/spec-redesign`)。找不到 `status: planned` 的目標檔時,代表這個 feature 還沒被規劃進來,先走 `/subsys-design` 把它建出來;沒有對應子系統時,先和開發者確認是否要新增子系統(走 `/subsys-design`)或放寬為不拆子系統的小專案做法(此時與開發者確認文檔位置)。**要展開的東西落在一個 `planned` 模組群裡**(`design.md` 的「模組群」表)時停下來:那一群的契約章節還沒寫,沒有 Level 2 介面可以承接,先走 `/subsys-design` 把契約補上再回來
 3. 讀取與目標相關的 `.design/adr/`(依主題挑選,不必全讀)
 4. **配號並建檔(同一道指令,不准自己數資料夾)**:
 
@@ -116,10 +93,10 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
    node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
    ```
 
-   組寫 `<子系統>/F`(feature)、`<子系統>/E`(子系統內的 enhance)或 `G-E`(跨子系統的全域 enhance)。腳本掃過**所有分支與 worktree**(含未 commit)之後配號,當場把檔案建在慣例位置並寫好 frontmatter 骨架,印出 `<id>`、路徑與**全名**(`auth/F003-token-cache`,之後每次提到這份文檔都用全名);內容由你接著填。
+   **feature 模式跳過這一步**:那份檔在 `/subsys-design` 規劃當下就鑄好號建好檔了,你要做的是把它從 `planned` 寫到 `specced`。這一步只服務 **enhance 模式**,組寫 `<子系統>/E`(子系統內)或 `G-E`(跨子系統)。腳本掃過**所有分支與 worktree**(含未 commit)之後配號,當場把檔案建在慣例位置並寫好 frontmatter 骨架,印出 `<id>`、路徑與**全名**(`auth/F003-token-cache`,之後每次提到這份文檔都用全名);內容由你接著填。
 
    **只掃當前工作區一定會漏**:另一條分支或另一個 worktree 已經鑄走同一個號、而檔名 slug 不同時,merge 不會衝突,兩份同號文檔會一起落地(理由見 `../_shared/doc-lifecycle.md`「命名與編號規則」)。**enhance 模式在 scope 未定前先不配號**,等步驟 2 定案——配號即建檔,scope 一改就得回頭刪檔改號。**委派模式下號與檔名由編排者指定**,你不跑這道指令
-5. 讀取 `.design/subsystems/<slug>/spec-gaps.md`(存在時,全域文檔看 `.design/spec-gaps.md`)。有指向**目標文檔**的 `open` 條目 → **走修訂模式**,那幾條就是本次要回答的問題;有指向**別份**文檔的 `open` 條目 → 照常進行,但收尾要提醒開發者那幾項還卡著
+5. 讀取 `.design/subsystems/<slug>/spec-gaps.md`(存在時,全域文檔看 `.design/spec-gaps.md`)。有指向**目標文檔**的 `open` 條目 → **停下來走 `/spec-redesign`**,先把那幾條結掉再回來;有指向**別份**文檔的 `open` 條目 → 照常進行,但收尾要提醒開發者那幾項還卡著
 
 ## 流程
 
@@ -154,8 +131,8 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 **feature 模式追加**:
 
-- 功能邊界:做什麼、不做什麼(有契約卡時以卡上的「明確不做」為底線)
-- 對應 `design.md`「功能規劃」中哪一項(或確認是清單外的新項目);落在哪個開發階段
+- 功能邊界:做什麼、不做什麼(**以 `## 契約` 的「明確不做」為底線**;要突破它就是 `/spec-redesign` 的事,不是這裡)
+- 落在哪個開發階段(frontmatter 的 `stage`,對應 `system.md`「開發階段」)
 - 資料流:輸入、處理、輸出、儲存變化;走 Level 2 資料流管線的哪一段
 
 **enhance 模式追加**(基於步驟 1 讀到的現況與步驟 2 定案的 scope):
@@ -180,7 +157,6 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 2. 用「反向可達」查出**誰依賴它們**——這決定了新增介面會不會踩到別人,是「新增依賴邊」那一欄的來源(enhance 模式在步驟 1 已經查過一輪影響面,這裡對帳補齊即可)
 3. 圖過期就先更新(見該片「目前的產生器」表);更新不了就比對 `built_at_commit` 與 `git rev-parse HEAD`,並把「圖描述的是舊程式碼」講給開發者聽
 
-**修訂模式的豁免**:這次的 gap **沒有指到任何既有符號**(純粹是「spec 這一段有兩種讀法」「這條 law 的定義域寫得不清楚」)時,整段跳過——圖答得出「誰依賴 `foo`」,答不出「這句話是什麼意思」,為一個文字歧義去建圖、下三道查詢是純耗時。跳過時在收尾寫一句「gap 不涉及既有符號,未查圖」。gap 一旦碰到簽名、型別或呼叫端(要改介面、要知道改了會壞誰),豁免立刻失效,照上面三步走完。
 
 **圖只解決「該打開哪個檔案」,查證本身完全不變**:還是要打開那個檔案、讀到完整簽名原文,才能寫進介面表(圖的禁止事項與「圖查不到 ≠ 不存在」見 `codegraph.md`「鐵律」)。工具選用與跑不了時的退路照 `codegraph.md`「選用規則」——退回一般搜尋要在收尾寫**具體原因**。
 
@@ -197,17 +173,15 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 四格裡最容易出事的是**觀察點**:它要寫明「用哪個公開介面、在什麼時序上、看到什麼」,而且引用的介面必須真的在介面表裡。引用不到 = 這條性質從公開介面觀察不到 = **介面設計缺陷**,回頭修介面(`../_shared/testing-policy.md`:不開後門就測不到 = 介面設計缺陷)。散文形式的 law 不需要交代觀察手段,所以這種缺陷會一路活到 qa 手上;四格會在你寫下去的當下就擋住。
 
-**feature 模式**產出後,回填 `design.md`「功能規劃」對應列的 doc 欄為本檔**全名**(`auth/F001-login`;同步 `design.md` 的 `updated`)。該列有「模組群」欄時一併確認填了值,且對得上「模組群」表裡的名字。
+**feature 模式產出後,把 frontmatter 的 `status` 從 `planned` 改成 `specced`** 並同步 `updated`。狀態不需要另外記在別的地方——`## Laws` 這一節出現就是 `specced` 的判準,腳本查的是內容,不是欄位(`../_shared/doc-lifecycle.md`「狀態與生命週期」)。
 
-**同時把該 feature 的 Feature 契約卡瘦成存根**(規格與理由見 `../_shared/doc-lifecycle.md`「契約卡的生命週期」):卡片的用途是「讓沒訪談過的執行者能開始寫 feature 設計文檔」,本檔一建立就結束了。做法是把整張卡原文**搬到** `archive/cards-done.md`(沒有就建),`design.md` 裡留下:
+**`## 契約` 一個字都不准改。** 那一節是 `/subsys-design` 的 Level 2 產出,你只往它下面加節。寫到一半發現契約錯了、或非得收回「明確不做」不可時,**停下來走 `/spec-redesign`**——它會判這次改動是就地改還是要回 Level 2,並留下可查證的修訂痕跡。自己順手改掉等於讓 Level 2 的決定被 Level 3 靜默改寫。
 
-```markdown
-### <feature-slug>
-- **已建檔,本卡為存根**:權威在 `features/F00x-<slug>.md`;完整原文見 `archive/cards-done.md`
-  (負向邊界「明確不做」在 F 文檔沒有對應欄位,仍以存檔為準)
+事後跑一次索引更新(它是生成的,手改無效):
+
 ```
-
-`###` 標題**不能動**——`scan-status.mjs` 靠它算契約卡覆蓋率。**是搬家不是刪除**:刪掉「明確不做」等於銷毀這個 feature 負向邊界的唯一紀錄。
+node "<S>/arch-audit/scripts/scan-status.mjs" .design --write-index
+```
 
 ### 6. 產出骨架(不可跳過)
 
@@ -272,7 +246,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 **上限三輪**。同一份 spec 對帳三輪還對不齊,問題不在措辭而在結構(介面切錯、law 之間互相矛盾),停下來把結構性原因講給開發者聽,不要繼續繞。
 
-**修訂模式的範圍**:只跑被 gap 動到的那幾條。gap 只改了 law 的措辭 → 跑第 2、7 條;改了簽名 → 七條全跑(簽名是所有對帳的共同輸入)。修訂模式**沒有動過的介面不必重新複驗**——那些在原文檔建立時已經對過帳,重跑一次不會發現新東西。
+(`/spec-redesign` 改既有 spec 時只跑被動到的那幾條,規則寫在那份 SKILL。)
 
 ### 8. 回頭檢查架構文件(必做)
 
@@ -285,8 +259,6 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 ### 9. 收尾
 
-**修訂模式必做**:文檔與骨架改完的**同一輪**,把對應的 gap 條目回填 `狀態:resolved` 與 `修訂` 行(格式見 `../_shared/spec-roles.md`「spec-gaps 協議」);該檔條目全部 resolved 時,把 `spec-gaps.md` frontmatter 的 `status` 改成 `done` 並同步 `updated`。**委派模式下不做這一步**——寫進回報,由編排者單線寫檔。
-
-摘要:模式(feature / enhance)、spec 文檔路徑與**全名**(`auth/F001-login`)、骨架檔案清單與編譯結果、laws 與 examples 各幾條(enhance 分回歸 law 與新 law)、相依性結論(`depends-on` 最終值與依據)、一致性檢查是否修正過結論、架構文件是否有更新;feature 模式另報「功能規劃」doc 欄是否已回填,enhance 模式另報 scope 定案結論(涵蓋 / 排除了什麼),修訂模式另報回填了哪幾條 gap、哪幾條介面因簽名變動要重跑 qa 與 impl。
+摘要:模式(feature / enhance)、spec 文檔路徑與**全名**(`auth/F001-login`)、骨架檔案清單與編譯結果、laws 與 examples 各幾條(enhance 分回歸 law 與新 law)、相依性結論(`depends-on` 最終值與依據)、一致性檢查是否修正過結論、架構文件是否有更新;feature 模式另報 `status` 是否已從 `planned` 改成 `specced`、索引是否重生成,enhance 模式另報 scope 定案結論(涵蓋 / 排除了什麼)。
 
 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下逐條列介面與型別(此時狀態皆為「設計」——骨架有、實作沒有;enhance 被排除的「順便改」不上樹);下一步是 `/spec-build <文檔全名>`(一次跑完 qa ∥ impl → 測試 → 仲裁),或自己扮演編排者分別跑 `/spec-qa <文檔全名>` 與 `/spec-impl <文檔全名>`(例 `/spec-qa auth/F001-login`;兩者互不可見,誰先跑都可以)。

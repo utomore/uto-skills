@@ -29,8 +29,8 @@
 │  │  │  ├─ DTO  `RefreshReq { refreshToken, deviceId }`             完成(對外契約 §2)
 │  │  │  └─ DTO  `TokenPair { access, refresh, expiresAt, scope }`   偏離:`scope` 欄契約沒有
 │  │  ├─ auth/F003-logout                                 設計(文檔已建,未實作)
-│  │  └─ auth 功能規劃「session-list」                     待展開(還沒建 F 文檔,所以還沒有編號)
-│  └─ 模組群 auth/MFA(planned)           未開工:契約章節與功能規劃都還沒寫
+│  │  └─ auth/F003-session-list                          planned(有編號與 ## 契約,還沒寫 spec)
+│  └─ 模組群 auth/MFA(planned)           未開工:契約章節還沒寫、feature 檔也還沒建
 ├─ subsystems/billing/design.md                           features 1/3 done
 ├─ subsystems/notify/design.md                            未建(名冊有列,無 design.md)
 └─ subsystems/audit-log/design.md                         未建(名冊有列,無 design.md)
@@ -50,7 +50,7 @@
 
 每條介面後面括號註明它對應 `design.md` 的哪一章(對外契約 / 模組間公開介面);找不到對應條目就是「偏離」。狀態來源只有三個:`scan-status.mjs` 的數字、目前文檔的 TodoList 與測試對照表、本次實際讀到或寫過的程式碼——沒讀到的不准猜,標「未查」。
 
-畫到哪一層依 skill 而定:`/system-design` 畫 `system.md` 加**名冊上每個子系統**一行(已建 / 未建);`/subsys-design` 畫到模組群與功能規劃的每個 feature 一行(待展開 / 設計 / 實作中 / done,`planned` 群標未開工);Level 3 的 skill 畫到介面與資料結構。專案沒有 `.design/`(例如 `/study` 讀純程式碼)時,畫程式碼目錄樹的對應層級,並在樹頂標明「無 .design/,完成度無法量化」。
+畫到哪一層依 skill 而定:`/system-design` 畫 `system.md` 加**名冊上每個子系統**一行(已建 / 未建);`/subsys-design` 畫到模組群與每一份 feature 檔一行(planned / specced / done,`planned` 模組群標未開工);Level 3 的 skill 畫到介面與資料結構。專案沒有 `.design/`(例如 `/study` 讀純程式碼)時,畫程式碼目錄樹的對應層級,並在樹頂標明「無 .design/,完成度無法量化」。
 
 ### 2. 完成度
 

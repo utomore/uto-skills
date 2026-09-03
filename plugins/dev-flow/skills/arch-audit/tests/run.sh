@@ -58,17 +58,18 @@ run scan-file-miss   "$SCRIPTS/scan-status.mjs" design --file src/Web/Api.hs
 run scan-bad-flag    "$SCRIPTS/scan-status.mjs" design --bogus
 run lint-ids         "$SCRIPTS/lint-ids.mjs" design
 run lint-laws        "$SCRIPTS/lint-laws.mjs" design
-run scan-ids         "$SCRIPTS/scan-ids.mjs" design
 run doc-section-list "$SCRIPTS/doc-section.mjs" ../../_shared/doc-lifecycle.md --list
 
 echo
-echo "=== 對 plugin 自己的文檔:只驗 exit code,不比對輸出 ==="
-echo "(那些輸出會隨文檔改動而變,釘死 golden 只會每次都紅)"
+echo "=== 只驗 exit code,不比對輸出 ==="
+echo "(前四項的輸出隨文檔改動而變;scan-ids 會把**當前分支名**印進輸出 ——"
+echo " 釘死 golden 的話,任何人在別的分支上跑都會紅,那是雜訊不是回歸)"
 for check in \
   "lint-ids       $SCRIPTS/lint-ids.mjs ../.." \
   "lint-laws      $SCRIPTS/lint-laws.mjs ../.." \
   "節名檢查        $SCRIPTS/doc-section.mjs --verify ../.." \
-  "指令檢查        $SCRIPTS/lint-commands.mjs ../.."
+  "指令檢查        $SCRIPTS/lint-commands.mjs ../.." \
+  "scan-ids       $SCRIPTS/scan-ids.mjs fixtures/design"
 do
   set -- $check; name=$1; shift
   if node "$@" >/dev/null 2>&1; then echo "✓ $name"; else echo "✗ $name(exit $?)"; fail=1; fi

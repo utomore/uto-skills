@@ -37,7 +37,13 @@ user-invocable: true
 
 ## 2. 建立缺陷文檔
 
-掃描對應資料夾決定編號(子系統掃 `B` 前綴、全域掃 `G-B` 前綴,各自最大值 +1)。檔名英文 kebab-case、內文繁體中文:
+**配號並建檔是同一道指令**(不准自己數資料夾——只掃當前工作區看不到別的分支與 worktree 已經鑄走的號):
+
+```
+node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
+```
+
+組寫 `<子系統>/B`(缺陷落在單一子系統)或 `G-B`(跨子系統)。腳本配號、把檔案建在慣例位置、寫好下面這段 frontmatter 骨架,印出 `<id>`、路徑與**全名**(`auth/B001-login-timeout`,之後每次提到這份文檔都用全名)。你接著把 `description` 與內文填上——slug 英文 kebab-case、內文繁體中文:
 
 ```markdown
 ---

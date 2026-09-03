@@ -110,7 +110,15 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 1. 讀取 `.design/system.md`(燈塔)。**不存在時**:告知開發者建議先執行 `/system-design`,除非開發者明確要求直接寫設計文檔
 2. 確認落在哪個子系統,讀取該 `subsystems/<slug>/design.md`;不相關的子系統不讀。**feature 模式**:`design.md`「功能規劃」有此項時,以該列與對應的**「Feature 契約卡」**為討論起點(卡片已定下負責模組、Level 2 介面、資料流段落、驗收標準與明確不做,討論從這裡往下深化,不要重新發明邊界);沒有對應子系統時,先和開發者確認是否要新增子系統(走 `/subsys-design`)或放寬為不拆子系統的小專案做法(此時與開發者確認文檔位置)。**要展開的東西落在一個 `planned` 模組群裡**(`design.md` 的「模組群」表)時停下來:那一群的契約章節還沒寫,沒有 Level 2 介面可以承接,先走 `/subsys-design` 更新模式把契約補上再回來
 3. 讀取與目標相關的 `.design/adr/`(依主題挑選,不必全讀)
-4. 掃描對應資料夾現有檔名決定新編號(**feature**:該子系統 `features/` 的 `F` 前綴;**enhance**:該子系統 `enhancements/` 的 `E` 前綴,或 `.design/enhancements/` 的 `G-E` 前綴;各自最大值 +1,三位數)。**enhance 模式在 scope 未定前先不掃**,等步驟 2 定案
+4. **配號並建檔(同一道指令,不准自己數資料夾)**:
+
+   ```
+   node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
+   ```
+
+   組寫 `<子系統>/F`(feature)、`<子系統>/E`(子系統內的 enhance)或 `G-E`(跨子系統的全域 enhance)。腳本掃過**所有分支與 worktree**(含未 commit)之後配號,當場把檔案建在慣例位置並寫好 frontmatter 骨架,印出 `<id>`、路徑與**全名**(`auth/F003-token-cache`,之後每次提到這份文檔都用全名);內容由你接著填。
+
+   **只掃當前工作區一定會漏**:另一條分支或另一個 worktree 已經鑄走同一個號、而檔名 slug 不同時,merge 不會衝突,兩份同號文檔會一起落地(理由見 `../_shared/doc-lifecycle.md`「命名與編號規則」)。**enhance 模式在 scope 未定前先不配號**,等步驟 2 定案——配號即建檔,scope 一改就得回頭刪檔改號。**委派模式下號與檔名由編排者指定**,你不跑這道指令
 5. 讀取 `.design/subsystems/<slug>/spec-gaps.md`(存在時,全域文檔看 `.design/spec-gaps.md`)。有指向**目標文檔**的 `open` 條目 → **走修訂模式**,那幾條就是本次要回答的問題;有指向**別份**文檔的 `open` 條目 → 照常進行,但收尾要提醒開發者那幾項還卡著
 
 ## 流程

@@ -265,22 +265,43 @@ if (OPT_CLAIM) {
   if (!nextFree.has(g)) nextFree.set(g, 1);
   const id = nextIdOf(g);
 
-  // 慣例位置(doc-lifecycle.md「.design/ 資料夾樹」是權威,改這裡之前先改那份)
+  // 慣例位置與 frontmatter 欄位(doc-lifecycle.md「.design/ 資料夾樹」與「Metadata 標準」是權威,
+  // 改這裡之前先改那份)。**建出來的骨架必須照那份規格逐欄寫齊**:少一欄,填內容的人就得自己
+  // 想起來補,而漏補不會報錯 —— `code-paths` 就是這樣一路漏到收尾才被發現沒人回寫。
   const GLOBAL_DIR = { "G-C": "contracts", "G-E": "enhancements", "G-B": "bugfixes", ADR: "adr" };
   const SUBSYS_DIR = { F: "features", E: "enhancements", B: "bugfixes" };
   const DOC_TYPE = { "G-C": "contract", "G-E": "enhance", "G-B": "bugfix", ADR: "adr", F: "feature", E: "enhance", B: "bugfix" };
+  /** 任務文檔(F/E/B 與全域 G-E/G-B)的固定欄位;順序與 doc-lifecycle.md「任務文檔」一致 */
+  const TASK_TAIL = [
+    "depends-on: []            # 依賴的其他任務文檔,一律帶子系統前綴,如 [auth/F001]",
+    "related-adr: []",
+    "related-feature: []       # enhance / bugfix 回鏈到被優化 / 出問題的 feature",
+    "code-paths: []            # 收尾時與 status 同一個動作回寫實際動到的程式碼路徑",
+  ];
   let dir;
   let docType;
-  let parentLine;
+  let status;
+  let tail;   // frontmatter 的其餘欄位
   if (GLOBAL_DIR[g]) {
     dir = join(DESIGN_DIR, GLOBAL_DIR[g]);
     docType = DOC_TYPE[g];
-    parentLine = g === "ADR" ? "parent: system" : "subsystems: []            # 受影響的子系統,至少兩個";
+    if (g === "ADR") {
+      status = "proposed";
+      tail = [];
+    } else if (g === "G-C") {
+      status = "active";
+      tail = ["subsystems: []            # 使用這份契約的子系統,至少兩個", "related-adr: []"];
+    } else {
+      status = "open";
+      tail = ["subsystems: []            # 受影響的子系統,至少兩個", ...TASK_TAIL];
+    }
   } else if (/^[^/]+\/[FEB]$/.test(g)) {
-    const [subsys, kind] = g.split("/");
-    dir = join(DESIGN_DIR, "subsystems", subsys, SUBSYS_DIR[kind]);
+    const [, kind] = g.split("/");
+    dir = join(DESIGN_DIR, "subsystems", g.split("/")[0], SUBSYS_DIR[kind]);
     docType = DOC_TYPE[kind];
-    parentLine = `parent: ${subsys}`;
+    status = "open";
+    // 任務文檔**不寫 `parent`**:它屬於哪個子系統由檔案路徑決定(doc-lifecycle.md「任務文檔」)
+    tail = TASK_TAIL;
   } else {
     console.error(`認不得的組:${g}。用 G-C / G-E / G-B / ADR / <子系統>/F / <子系統>/E / <子系統>/B`);
     process.exit(2);
@@ -293,6 +314,7 @@ if (OPT_CLAIM) {
   }
   const d = new Date();
   const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; // 本地日期,不用 UTC(檔案日期跟開發者的日曆一致)
+  const full = `${g.includes("/") ? `${g.split("/")[0]}/` : ""}${id}-${OPT_SLUG}`;
   mkdirSync(dir, { recursive: true });
   writeFileSync(
     file,
@@ -301,14 +323,14 @@ if (OPT_CLAIM) {
       `id: ${id}`,
       `type: ${docType}`,
       `title: ${OPT_SLUG}`,
-      "description:              # 一句話:這份文檔在做什麼",
-      "status: draft",
+      "description:              # 一句話,40 字內:這份文檔在做什麼(**建檔者現在就要填**)",
+      `status: ${status}`,
       `created: ${today}`,
       `updated: ${today}`,
-      parentLine,
+      ...tail,
       "---",
       "",
-      `# ${id} ${OPT_SLUG}`,
+      `# ${full}`,
       "",
       "> 本檔由 scan-ids.mjs --claim 建立,只鑄了號與 frontmatter 骨架。",
       "> 內容由對應的 design skill 填寫;frontmatter 的完整規格見 doc-lifecycle.md。",
@@ -316,11 +338,13 @@ if (OPT_CLAIM) {
     ].join("\n"),
     "utf8",
   );
-  console.log(`${id}\t${toPosix(relative(process.cwd(), file))}`);
+  // 路徑印相對的;.design 不在當前目錄底下時(`../../..` 那種)改印絕對路徑,免得印出一串沒人讀得懂的 `..`
+  const relPath = toPosix(relative(process.cwd(), file));
+  console.log(`${id}\t${relPath.startsWith("..") ? toPosix(file) : relPath}`);
   // 全名是「講給人聽」時的唯一寫法:frontmatter 的 id 欄寫裸 id,回報、閘門、別份文檔的
   // 引用一律寫全名(_shared/conventions.md「指稱紀律」)。配號當下就把兩種寫法一起交出去,
   // 免得下一步只記得裸 id。
-  console.log(`全名\t${g.includes("/") ? `${g.split("/")[0]}/` : ""}${id}-${OPT_SLUG}\t← 寫進回報與別份文檔時用這個(frontmatter 的 id 欄仍寫 ${id})`);
+  console.log(`全名\t${full}\t← 寫進回報與別份文檔時用這個(frontmatter 的 id 欄仍寫 ${id})`);
   if (collisions.length) {
     console.error(`\n注意:掃描過程中發現 ${collisions.length} 組既有撞號(與本次配號無關,但要處理)。`);
     process.exit(1);

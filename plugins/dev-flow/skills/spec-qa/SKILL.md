@@ -6,7 +6,30 @@ user-invocable: false
 
 # /spec-qa — 從 spec 寫測試(qa 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md` 的四節(你的輸入、禁區、交付判準、gap 協議),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/spec-roles.md 鐵律 三個角色的輸入與禁區 "qa 的交付判準" "spec-gaps 協議"` 取與 `../_shared/testing-policy.md`(只測公開介面、禁止測試後門);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**)與 `../_shared/codegraph-tools.md`(查詢指令);要查本 feature 所屬子系統的契約條目或 `G-C00x` 共用契約的欄位語意時,另讀 `../_shared/design-query.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**:契約可以查,別份 feature 的 spec 不行);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 的〈架構文檔〉一節(`spec-gaps.md` 的 frontmatter 規格在裡面),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔` 取(**不要整份讀**);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不設計也不實作,`boundary-rules.md` 整片不讀。
+## 先讀什麼(**一批送出,不要一個一個開**)
+
+`<S>` = 本 plugin 的 `skills/` 目錄,**整場對話只解析一次**(規則見 `../_shared/conventions.md`「腳本目錄」):
+`dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-flow*/skills/arch-audit/scripts' 2>/dev/null | head -1)")"`
+
+拿到 `<S>` 後,把下面**必讀**與成立的**條件式**項目放進**同一則訊息**一次讀完(多個 Read / Bash 併發)。**禁止讀一個、想一下、再讀下一個**——這一段是純載入,拆成幾趟只是把幾次 prefill 疊起來。
+
+**必讀**
+
+| 讀什麼 | 為什麼 |
+|---|---|
+| `../_shared/conventions.md` | 核心慣例、腳本目錄、**重跑紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/spec-roles.md 鐵律 三個角色的輸入與禁區 "qa 的交付判準" "spec-gaps 協議"` | 你的輸入、禁區、交付判準、gap 協議。**不要整份讀** |
+| `../_shared/testing-policy.md` | 只測公開介面、禁止測試後門 |
+
+**條件式**(先判斷條件,成立的**併進上面同一批**)
+
+- 專案有程式碼知識圖**且**你真的要下查詢 → `../_shared/codegraph.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**)+ `../_shared/codegraph-tools.md`(查詢指令)。只是要知道測試檔放哪,`ls` 就答得出來的,兩片都不必讀
+- 要查本 feature 所屬子系統的契約條目或 `G-C00x` 共用契約的欄位語意 → `../_shared/design-query.md`(**本 skill 屬「限用」**:契約可以查,別份 feature 的 spec 不行)
+- prompt 標明 `【委派模式】` → `../_shared/delegation.md`
+- **互動模式下**要新建 `spec-gaps.md` → `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔`(**不要整份讀**)
+- **收尾時** → `../_shared/anchor.md`(定錨區塊格式)
+
+**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不設計也不實作,`boundary-rules.md` 整片不讀。
 
 ## 你的角色邊界(本 skill 的核心原則)
 
@@ -21,7 +44,7 @@ user-invocable: false
 ## 1. 確定目標 spec
 
 - 開發者有指定(`F001`、`auth/F001`、`E002`、`G-E001`,或檔名/路徑)→ 找到對應文檔;只給編號而多個子系統都有時,列出候選讓開發者確認
-- 沒指定 → 執行 `node "<arch-audit skill 目錄>/scripts/scan-status.mjs" .design` 列出 `status` 為 `in-progress` 的項目,用 AskUserQuestion 讓開發者選
+- 沒指定 → 執行 `node "<S>/arch-audit/scripts/scan-status.mjs" .design` 列出 `status` 為 `in-progress` 的項目,用 AskUserQuestion 讓開發者選
 - 目標文檔沒有「Laws」與「Examples」段(舊版文檔)→ 停下來,告知開發者要先用對應的 design skill 更新模式補上。**沒有 law 就沒有東西可以翻譯**,不要自己發明
 
 ## 2. 載入 context(嚴格限縮)

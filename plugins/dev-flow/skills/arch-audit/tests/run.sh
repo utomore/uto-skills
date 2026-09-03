@@ -59,6 +59,13 @@ run scan-bad-flag    "$SCRIPTS/scan-status.mjs" design --bogus
 run lint-ids         "$SCRIPTS/lint-ids.mjs" design
 run lint-laws        "$SCRIPTS/lint-laws.mjs" design
 run doc-section-list "$SCRIPTS/doc-section.mjs" ../../_shared/doc-lifecycle.md --list
+run cross-clean      "$SCRIPTS/lint-cross-spec.mjs" design
+run cross-conflict   "$SCRIPTS/lint-cross-spec.mjs" cross
+run cross-subsys     "$SCRIPTS/lint-cross-spec.mjs" cross --subsys pay
+run cross-docs       "$SCRIPTS/lint-cross-spec.mjs" cross --docs F001,F002
+run cross-bad-flag   "$SCRIPTS/lint-cross-spec.mjs" cross --bogus
+run laws-skeleton-ok "$SCRIPTS/lint-laws.mjs" cross --skeleton cross
+run laws-skeleton-drift "$SCRIPTS/lint-laws.mjs" drift --skeleton drift
 
 echo
 echo "=== 只驗 exit code,不比對輸出 ==="
@@ -67,8 +74,8 @@ echo " 釘死 golden 的話,任何人在別的分支上跑都會紅,那是雜訊
 for check in \
   "lint-ids       $SCRIPTS/lint-ids.mjs ../.." \
   "lint-laws      $SCRIPTS/lint-laws.mjs ../.." \
-  "節名檢查        $SCRIPTS/doc-section.mjs --verify ../.." \
-  "指令檢查        $SCRIPTS/lint-commands.mjs ../.." \
+  "節名檢查        $SCRIPTS/doc-section.mjs --verify ../../.." \
+  "指令檢查        $SCRIPTS/lint-commands.mjs ../../.." \
   "scan-ids       $SCRIPTS/scan-ids.mjs fixtures/design"
 do
   set -- $check; name=$1; shift

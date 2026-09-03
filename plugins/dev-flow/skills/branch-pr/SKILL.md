@@ -6,7 +6,15 @@ user-invocable: true
 
 # /branch-pr — 整合 branch 發 PR
 
-先讀取 `../_shared/conventions.md`(核心慣例);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。本 skill 不動 `.design/` 文檔,不需要其他分片。
+## 先讀什麼(**一批送出,不要一個一個開**)
+
+`<S>` = 本 plugin 的 `skills/` 目錄,**整場對話只解析一次**(規則見 `../_shared/conventions.md`「腳本目錄」):
+`dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-flow*/skills/arch-audit/scripts' 2>/dev/null | head -1)")"`
+
+拿到 `<S>` 後,把下面**必讀**與成立的**條件式**項目放進**同一則訊息**一次讀完(多個 Read / Bash 併發)。**禁止讀一個、想一下、再讀下一個**——這一段是純載入,拆成幾趟只是把幾次 prefill 疊起來。
+
+**必讀**:`../_shared/conventions.md`(核心慣例、腳本目錄、**重跑紀律**)
+**條件式**:**收尾時** → `../_shared/anchor.md`(定錨區塊格式)
 
 ## 0. 確認當前分支(必做,不得跳過)
 

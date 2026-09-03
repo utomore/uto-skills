@@ -6,7 +6,29 @@ user-invocable: false
 
 # /spec-impl — Level 3 實作(impl 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md` 的四節(你的禁區、骨架規格、gap 協議、仲裁),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/spec-roles.md 鐵律 三個角色的輸入與禁區 "spec-gaps 協議" 仲裁協議` 取與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);要查 spec 依賴的別份文檔或共用契約時,另讀 `../_shared/design-query.md`(查詢指令與界線——**可用,但查到的東西不得拿來當 spec 沒寫到的部分的答案**,那走 spec-gaps);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 的〈架構文檔〉一節(`spec-gaps.md` 的 frontmatter 規格在裡面),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔` 取(**不要整份讀**);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 不讀。
+## 先讀什麼(**一批送出,不要一個一個開**)
+
+`<S>` = 本 plugin 的 `skills/` 目錄,**整場對話只解析一次**(規則見 `../_shared/conventions.md`「腳本目錄」):
+`dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-flow*/skills/arch-audit/scripts' 2>/dev/null | head -1)")"`
+
+拿到 `<S>` 後,把下面**必讀**與成立的**條件式**項目放進**同一則訊息**一次讀完(多個 Read / Bash 併發)。**禁止讀一個、想一下、再讀下一個**——這一段是純載入,拆成幾趟只是把幾次 prefill 疊起來。
+
+**必讀**
+
+| 讀什麼 | 為什麼 |
+|---|---|
+| `../_shared/conventions.md` | 核心慣例、腳本目錄、**重跑紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/spec-roles.md 鐵律 三個角色的輸入與禁區 "spec-gaps 協議" 仲裁協議` | 你的禁區、骨架規格、gap 協議、仲裁。**不要整份讀** |
+| `../_shared/boundary-rules.md` | **邊界判斷規則** + 實作階段規則 |
+
+**條件式**(先判斷條件,成立的**併進上面同一批**)
+
+- 要查 spec 依賴的別份文檔或共用契約 → `../_shared/design-query.md`(**可用,但查到的東西不得拿來當 spec 沒寫到的部分的答案**,那走 spec-gaps)
+- prompt 標明 `【委派模式】` → `../_shared/delegation.md`
+- **互動模式下**要新建 `spec-gaps.md` → `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔`(**不要整份讀**)
+- **收尾時** → `../_shared/anchor.md`(定錨區塊格式)
+
+**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 整片不讀。
 
 ## 模式(由目標文檔的 id 前綴判定)
 
@@ -39,7 +61,7 @@ user-invocable: false
 | 1. 確定目標文檔 | **跳過選檔**。文檔 id 由編排者在 prompt 指定,不跑 scan-status、不用 AskUserQuestion |
 | 2. 載入 context | 照原規則。`depends-on` 未完成時**不詢問是否繼續**:依編排者 prompt 給的前置狀態判斷——前置未 done 就不動工,記為阻塞項回報 |
 | 3. 實作 | 照原規則。**唯一差別**:發現「spec 講不清楚」「非改簽名不可」或「非越過 scope 不可」時,原本要問開發者——委派模式下改為**停下該項**,把 gap 的四個欄位寫進回報並列為阻塞項,不擅自改契約、也不硬做。**不寫 `spec-gaps.md`**:理由見 `delegation.md` 第 4 條;編號用局部序號(`本次-1`),`G` 編號由編排者發 |
-| 4. 跑測試 | 照原規則,**如實回報**。紅燈只做歸因,**不做仲裁**(仲裁是編排者的職責);絕不宣稱通過 |
+| 4. 跑測試 | **只跑本份 spec 的測試子集,絕不跑完整套件**——整套與仲裁都在編排者手上,你跑的那次會被重跑,而且你對別份 feature 的紅燈沒有裁決權。enhance 的基準線用 prompt 附的那一份,不自己重跑。**如實回報**,紅燈只做歸因、不做仲裁;絕不宣稱通過 |
 | 回寫架構文檔 | **不做**。要改 `design.md` / `system.md` 的,寫進回報給編排者裁決 |
 | 回寫目標文檔的 `status` 與 `code-paths` | **不做** —— 步驟 3 第 1 點的 `in-progress` 與收尾的 `done` **都不做**,由編排者回寫。兩個理由:(1) 目標文檔不在編排者給的**寫入白名單**裡,動它會被白名單對帳判成越界;(2)「全綠」這個前提你判斷不了 —— `/subsys-build` 把完整測試套件與仲裁都收在編排者手上,你只看得到自己那一份。`code-paths` 同樣不由你寫,但**本次動到的程式碼路徑清單要列進回報**:那份清單只有你手上有,編排者是照著它填的 |
 | 5. 收尾 | 輸出改為 `delegation.md` 定義的**結構化回報**;實作結果與阻塞項照實交出去,`status` 不由你寫(見上一列) |
@@ -49,7 +71,7 @@ user-invocable: false
 ## 1. 確定目標文檔
 
 - 開發者有指定(id 如 `F001` / `auth/F001` / `E001` / `G-E001`,或檔名、路徑、描述)→ 在 `.design/subsystems/*/features/`、`.design/subsystems/*/enhancements/` 或 `.design/enhancements/` 找到對應檔案;有歧義(例:只給 `F001` 而多個子系統都有)時列出候選讓開發者確認
-- 沒指定 → 執行 `node "<arch-audit skill 目錄>/scripts/scan-status.mjs" .design` 列出未完成項目,用 AskUserQuestion 讓開發者選
+- 沒指定 → 執行 `node "<S>/arch-audit/scripts/scan-status.mjs" .design` 列出未完成項目,用 AskUserQuestion 讓開發者選
 
 ## 2. 載入 context(遵守載入紀律)
 
@@ -63,7 +85,9 @@ user-invocable: false
 ## 3. 實作
 
 1. 開工前:目標文檔 `status` 改 `in-progress`、更新 `updated`(**委派模式下不做**,見上方對照表)
-2. **enhance:先跑一次完整測試留基準**。回歸測試(對應回歸 law)此時應該是綠的——它們捕捉的是現況。**這條基準線就是你的護欄**:動工之後任何一條由綠轉紅,都代表你改壞了現有行為
+2. **enhance:動工前要有一條基準線。** 回歸測試(對應回歸 law)此時應該是綠的——它們捕捉的是現況。**這條基準線就是你的護欄**:動工之後任何一條由綠轉紅,都代表你改壞了現有行為。**基準線從哪裡來,分兩種**:
+   - **委派模式**:編排者在 fan out 之前已經跑過完整套件並記下結果(`spec-build` 步驟 4 / `subsys-build` 3d),那份結果會寫在 prompt 裡。**直接用它,不要自己再跑一次**——你跑的會是同一個 commit 上的同一套測試,答案必然相同(`../_shared/conventions.md`「重跑紀律」)。prompt 裡沒附基準線就當成阻塞項回報,不要自己補跑整庫
+   - **互動模式**:自己跑一次,範圍是**本次 scope 涵蓋得到的那些測試**(照 spec「Scope」段列的模組挑路徑),不是整庫
 3. **以骨架為工作清單**:逐一把未實作標記換成真實實作。完成的判準是「骨架裡不再有未實作標記,且 spec 的每條 Law 與 Example 都成立」——沒有另一套進度帳
 4. 簽名與型別定義**一個字都不准動**。需要私有 helper、內部型別就自己加(那是自主權範圍),但公開匯出的清單以骨架為準
 5. 程式碼風格遵循專案既有慣例;不得越過子系統邊界直接存取其他子系統的內部模組(只能走對方的對外契約)
@@ -72,7 +96,10 @@ user-invocable: false
 
 ## 4. 跑測試(不寫測試)
 
-- 執行完整測試套件。測試由 `/spec-qa` 產出,**你只跑不改**
+- **跑的範圍:只跑涵蓋得到本份 spec 的那個子集**(依 spec「介面」表指到的模組挑測試**路徑**——挑路徑不是閱讀,你的禁區照樣成立:不准打開測試檔看內容)。測試由 `/spec-qa` 產出,**你只跑不改**
+
+  **完整測試套件不歸你跑。** 委派模式下編排者會在收齊回報後跑一次整套並仲裁(`../_shared/orchestration.md`),你跑的那一次會被完整重跑一遍;而整庫的紅綠你也用不上——你看不到別的 feature 的 spec,對它們的紅燈沒有裁決權(`spec-roles.md`「仲裁協議」:qa 與 impl 只做歸因,裁決在編排者)。一波三個 impl 各跑一次整套,就是三次沒有人會採用的結論。互動模式下開發者本人是編排者,整套在**收尾那一次**跑,不是每改一次就跑一次
+- **同一個子集連續兩輪結果相同**(你中間沒有改過任何檔案)→ 不要跑第三次,照 `../_shared/conventions.md`「重跑紀律」沿用上一次的輸出
 - **enhance:回歸測試由綠轉紅 = 你改壞了現有行為**,立刻修;修不好就回退這一步,不得以「新行為比較合理」為由放著
 - **紅燈時只做歸因,不改測試**:逐條回答「這條失敗對應 spec 的哪一條 law 或 example」,照 `spec-roles.md`「仲裁協議」分流——對應得上且測試與原文一致 = 你的實作要修;對應不上或 spec 沒涵蓋 = **spec bug**,停下來回報(委派模式下列為阻塞項,不自行處理)
 - **同一份 spec 修正上限 3 輪**:三輪仍有紅燈就停止並升級,附失敗摘要與你判斷的結構性原因,禁止繼續嘗試

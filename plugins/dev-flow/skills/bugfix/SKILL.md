@@ -6,7 +6,26 @@ user-invocable: true
 
 # /bugfix — 缺陷修復
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則)、`../_shared/testing-policy.md`(本 skill 自己寫重現測試)、`../_shared/doc-lifecycle.md` 的四節,用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description` 取(本 skill 要新建 bugfix 文檔;**不要整份讀**,腳本末尾會附上你沒讀到的章節目錄);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md` 與 `../_shared/codegraph-tools.md`(用來定位,不取代重現與根因驗證);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+## 先讀什麼(**一批送出,不要一個一個開**)
+
+`<S>` = 本 plugin 的 `skills/` 目錄,**整場對話只解析一次**(規則見 `../_shared/conventions.md`「腳本目錄」):
+`dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-flow*/skills/arch-audit/scripts' 2>/dev/null | head -1)")"`
+
+拿到 `<S>` 後,把下面**必讀**與成立的**條件式**項目放進**同一則訊息**一次讀完(多個 Read / Bash 併發)。**禁止讀一個、想一下、再讀下一個**——這一段是純載入,拆成幾趟只是把幾次 prefill 疊起來。
+
+**必讀**
+
+| 讀什麼 | 為什麼 |
+|---|---|
+| `../_shared/conventions.md` | 核心慣例、腳本目錄、**重跑紀律** |
+| `../_shared/boundary-rules.md` | **邊界判斷規則** + 實作階段規則 |
+| `../_shared/testing-policy.md` | 本 skill 自己寫重現測試 |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description` | 本 skill 要新建 bugfix 文檔。**不要整份讀**——腳本末尾會附上你沒讀到的章節目錄 |
+
+**條件式**(先判斷條件,成立的**併進上面同一批**)
+
+- 專案有程式碼知識圖 → `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(用來定位,不取代重現與根因驗證)
+- **收尾時** → `../_shared/anchor.md`(定錨區塊格式)
 
 本 skill 一條龍完成:**記錄缺陷 → 重現 → 根因分析 → 修復 → 回歸測試 → 回寫狀態**。缺陷文檔是修復的過程紀錄與回歸依據,不是待辦——建檔與修復在同一次執行內完成(開發者明確只要「先記錄、之後修」時例外,建檔後停在 `open`)。
 

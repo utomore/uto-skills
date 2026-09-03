@@ -149,10 +149,22 @@ function verify(skillsDir) {
   const call = /doc-section\.mjs"? (\S+\.md)((?: +(?:"[^"]+"|[^\s`"]+))*)`/g;
   const rows = [];
   let bad = 0;
-  for (const d of readdirSync(skillsDir, { withFileTypes: true })) {
-    if (!d.isDirectory()) continue;
-    const sk = join(skillsDir, d.name, "SKILL.md");
-    if (!existsSync(sk)) continue;
+  // 遞迴找:呼叫端傳進來的可能是 skills/,也可能是它的上一層。找不到就往下找,
+  // 別讓「路徑傳錯」與「全部合格」在輸出上長得一樣(那正是本關要防的失效)。
+  const skills = [];
+  (function walk(dir, depth) {
+    if (depth > 4) return;
+    let ents;
+    try { ents = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const d of ents) {
+      if (!d.isDirectory() || d.name === "node_modules" || d.name === ".git") continue;
+      const sk = join(dir, d.name, "SKILL.md");
+      if (existsSync(sk)) skills.push(sk);
+      walk(join(dir, d.name), depth + 1);
+    }
+  })(skillsDir, 0);
+  for (const sk of skills) {
+    const d = { name: sk.split("/").slice(-2)[0] };
     const t = readFileSync(sk, "utf8");
     for (const m of t.matchAll(call)) {
       const docPath = resolve(dirname(sk), m[1]);
@@ -172,8 +184,12 @@ function verify(skillsDir) {
       }
     }
   }
-  console.log(`=== 載入行的節名檢查(${rows.length} 處呼叫)===`);
+  console.log(`=== 載入行的節名檢查(${skills.length} 份 SKILL.md、${rows.length} 處呼叫)===`);
   for (const r of rows) console.log(r);
+  if (rows.length === 0) {
+    console.log(`\n在 ${skillsDir} 底下找不到任何對本腳本的呼叫。**這不是通過**——路徑傳錯與全部合格在輸出上長得一樣,所以這裡當失敗處理。把 skills 目錄傳進來。`);
+    process.exit(1);
+  }
   if (bad) console.log(`\n${bad} 處對不上。節被改名或刪掉時,載入行要跟著改 —— 不改不會報錯,只會少讀一塊。`);
   process.exit(bad ? 1 : 0);
 }

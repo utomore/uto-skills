@@ -6,7 +6,20 @@ user-invocable: true
 
 # /study — 專案導讀
 
-先讀取 `../_shared/conventions.md`(核心慣例:三層階梯的分層語意、Context 載入紀律);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md` 與 `../_shared/codegraph-tools.md`(knot / graphify:找入口與 hub、型別的反向可達當資料流候選、最短路徑當呼叫鏈候選、tests-of 當使用範例——各層的接點寫在課程裡,一律只當導航,不取代讀程式碼)。不建檔;`.design/` 的資料夾樹在 `../_shared/doc-lifecycle.md`,需要時只讀那一節,其餘章節(編號、frontmatter 規格)不讀;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+## 先讀什麼(**一批送出,不要一個一個開**)
+
+`<S>` = 本 plugin 的 `skills/` 目錄,**整場對話只解析一次**(規則見 `../_shared/conventions.md`「腳本目錄」):
+`dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-flow*/skills/arch-audit/scripts' 2>/dev/null | head -1)")"`
+
+拿到 `<S>` 後,把下面**必讀**與成立的**條件式**項目放進**同一則訊息**一次讀完(多個 Read / Bash 併發)。**禁止讀一個、想一下、再讀下一個**——這一段是純載入,拆成幾趟只是把幾次 prefill 疊起來。
+
+**必讀**:`../_shared/conventions.md`(核心慣例:三層階梯的分層語意、Context 載入紀律、腳本目錄、**重跑紀律**)
+
+**條件式**(先判斷條件,成立的**併進上面同一批**)
+
+- 專案有程式碼知識圖 → `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(knot / graphify:找入口與 hub、型別的反向可達當資料流候選、最短路徑當呼叫鏈候選、`tests-of` 當使用範例——各層的接點寫在課程裡,一律只當導航,不取代讀程式碼)
+- 要講 `.design/` 的資料夾樹 → `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 資料夾結構`(**只讀那一節**;編號與 frontmatter 規格不讀,本 skill 不建檔)
+- **收尾時** → `../_shared/anchor.md`(定錨區塊格式)
 
 ## 目標
 

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-design — Level 2 子系統架構設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `design.md`、回填 `system.md` 的 `subsystems`,另讀 `../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式、權威來源、frontmatter 規格);**產出文件前必讀** `../_shared/contract-readiness.md`(契約就緒度檢查清單,A 段與 B 段都是本 skill 的產出前關卡);要查相鄰子系統的契約或反向依賴時另讀 `../_shared/design-query.md`(查詢指令與界線);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `design.md`、回填 `system.md` 的 `subsystems`,另讀 `../_shared/doc-lifecycle.md` 的五節,用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 文檔角色與權威來源 資料夾結構 架構文檔 清單欄位格式 description` 取;要建 `G-C00x` 時同一道指令末尾加 `全域契約文檔`(**不要整份讀**);**產出文件前必讀** `../_shared/contract-readiness.md`(契約就緒度檢查清單,A 段與 B 段都是本 skill 的產出前關卡);要查相鄰子系統的契約或反向依賴時另讀 `../_shared/design-query.md`(查詢指令與界線);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /arch-audit — 架構檢測與分析
 
-先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/doc-lifecycle.md`(資料夾樹、引用格式、權威來源與 frontmatter 規格,對帳用)、`../_shared/boundary-rules.md`(檢查知識歸屬與依賴邊的判準)與 `../_shared/testing-policy.md`(檢查測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;要查文檔關係、反向依賴或共用契約時,另讀 `../_shared/design-query.md`(`scan-status.mjs` 的 `--subsys` / `--doc` 查詢能力與界線);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/doc-lifecycle.md`(**對帳要全份**:資料夾樹、引用格式、權威來源與 frontmatter 規格)、`../_shared/boundary-rules.md`(檢查知識歸屬與依賴邊的判準)與 `../_shared/testing-policy.md`(檢查測試後門的判準);scope 是 subsys 或 feature 時,另讀 `../_shared/spec-roles.md`(檢查骨架、Laws/Examples 覆蓋與 spec-gaps 的判準);scope 是 system 或 subsys **且**專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`;要查文檔關係、反向依賴、共用契約,或要從程式碼路徑反查文檔時,另讀 `../_shared/design-query.md`(`scan-status.mjs` 的 `--subsys` / `--doc` / `--file` 查詢能力與界線);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## Scope 判斷
 
@@ -29,16 +29,9 @@ node "<本 SKILL.md 所在目錄>/scripts/id-map.mjs"      [design目錄,預設 
 node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 ./.design]   ← 再跑,細節
 ```
 
-**`id-map.mjs` 的輸出整張表原樣貼在回報最前面**,一個字不改、不摘要、不轉述。它是一張 system → 子系統 → 模組群的階層表,三行抬頭(專案 / 階段 / 子系統已建幾個)加一張對齊的數字表加兩行圖例——**開發者掃一眼就知道整個專案長什麼樣、走到哪**,那正是他打開 status 想要的第一個東西。改寫成散文只會把它變回一段要讀的字。
+**`id-map.mjs` 的輸出整張表原樣貼在回報最前面**,一個字不改、不摘要、不轉述——它是 system → 子系統 → 模組群的階層表,開發者掃一眼就知道專案長什麼樣、走到哪;改寫成散文只會把它變回一段要讀的字。貼完之後才接 `scan-status.mjs`。
 
-貼完之後才接 `scan-status.mjs` 的細節。兩支的分工:
-
-| | 回答什麼 |
-|---|---|
-| `id-map.mjs` | **形狀**:有幾個子系統(含未建的)、每個裡面有幾個模組群、各自鑄了多少 F/E/B、spec 有多少 LAW/EX、跑過幾批委派;抬頭另報 ADR 與**全域三種各幾份**(`G-C` / `G-E` / `G-B`),表尾多一列 `(全域 G-)` —— 全域文檔不屬於任何子系統,沒有這一列的話,一個有九份跨子系統優化的專案在表上看起來會像「全域什麼都沒有」 |
-| `scan-status.mjs` | **細節與不一致**:每份文檔的狀態與依賴、待展開的 feature、未結的 spec-gaps、架構不一致清單、exit code |
-
-`id-map.mjs` 只讀不寫、一律 exit 0(它是定位工具,不做驗收);**exit code 一律以 `scan-status.mjs` 為準**。
+兩支的分工:`id-map.mjs` 答**形狀**(幾個子系統、幾個模組群、各鑄了多少 F/E/B、多少 LAW/EX、跑過幾批委派,加 ADR 與全域 `G-C`/`G-E`/`G-B` 份數);`scan-status.mjs` 答**細節與不一致**(每份文檔的狀態與依賴、待展開的 feature、未結 gap、不一致清單、exit code)。`id-map.mjs` 一律 exit 0(定位工具,不做驗收),**exit code 一律以 `scan-status.mjs` 為準**。
 
 腳本輸出三張表加數個清單,**全部**整理後呈現給開發者:
 
@@ -49,14 +42,16 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 > 因此:**只要開發階段有任何一階不是「已達成」,或有任何「已規劃、未建 design.md 的子系統」/「已規劃、契約未寫的模組群」,回報就不得寫成「專案幾乎完成」**。要先講還沒開工的那一部分,再講已完成部分的百分比。反過來寫,等於用一個排除了未開工項目的分母去描述整個專案。
 
 - **任務文檔表**(`主軸 | id | 子系統 | type | status | created | depends-on | file`):轉成 markdown 表格時**維持欄位順序**,「主軸」是第一眼看到的欄位;`子系統` 欄為 `global` 代表全域 G- 文檔
-- **子系統狀態表**(`主軸 | id | status | 模組群 | 階段 | features | 契約卡 | 已建文檔 | 已完成 | 未結E/B | 進度`):回答「哪些 feature 已完成、哪些還在規劃/設計階段、哪些模組有未結的優化與缺陷」;`status` 欄為 `未建 design.md`、進度欄為 `未展開` 的列是**名冊上還沒動工的子系統**;其他欄位顯示 `-` 代表該 `design.md` 沒有對應表格,建議用 `/subsys-design` 更新模式補上
-- **模組群欄**(`active/總數`):子系統內部的領域劃分。`1/5` 代表五個平行領域只有一個寫了契約——**那一列的「進度 100%」只涵蓋那一個領域**。顯示 `-` 表示沒有「模組群」表(單一領域的子系統屬正常)
-- **開發階段表**(`階段 | 名稱 | 涵蓋子系統 | 狀態`):**全專案唯一的產品級分母**,來自 `system.md`。狀態只有「未開始 / 進行中 / 已達成」;讀不到這張表(或欄位不合)時腳本會提示,那代表這個專案現在**答不出「還差什麼」**,要先請開發者用 `/system-design` 更新模式補上
-- **契約卡欄**(`n/總數`):功能規劃有幾項備妥「Feature 契約卡」= 委派展開的就緒度。滿格才跑得動 `/subsys-build`;顯示 `-` 表示整份 `design.md` 沒有契約卡章節(舊版文檔屬正常,只是不能委派)。缺卡與孤兒卡片會出現在「提示」清單,**不列為不一致**(不影響 exit code)。腳本只讀卡片的 `###` 標題,所以**已展開 feature 的存根照樣算進這一欄**——就緒度衡量的是「還沒展開的那幾張寫好了沒」,已展開的權威早就轉移到 `F00x` 了
+- **子系統狀態表**(`主軸 | id | status | 模組群 | 階段 | features | 契約卡 | 已建文檔 | 已完成 | 未結E/B | 進度`):`status` 欄 `未建 design.md`、進度欄 `未展開` 的列是**名冊上還沒動工的子系統**;其他欄位顯示 `-` 代表該 `design.md` 沒有對應表格,建議用 `/subsys-design` 更新模式補上
+- **模組群欄**(`active/總數`):`1/5` 代表五個平行領域只有一個寫了契約——**那一列的「進度 100%」只涵蓋那一個領域**。`-` 表示沒有這張表(單一領域屬正常)
+- **開發階段表**(`階段 | 名稱 | 涵蓋子系統 | 狀態`):**全專案唯一的產品級分母**,狀態只有「未開始 / 進行中 / 已達成」。讀不到這張表時腳本會提示,那代表這個專案現在**答不出「還差什麼」**,要先請開發者用 `/system-design` 更新模式補上
+- **契約卡欄**(`n/總數`):委派展開的就緒度,滿格才跑得動 `/subsys-build`;`-` 表示沒有契約卡章節(舊版文檔屬正常,只是不能委派)。缺卡與孤兒卡片只進「提示」,**不影響 exit code**。腳本只讀 `###` 標題,已展開 feature 的**存根照樣算進這一欄**——就緒度衡量的是還沒展開的那幾張
 - **已規劃、未建 design.md 的子系統**:`system.md` 名冊列了、`subsystems/<slug>/` 還不存在的。它們的 feature 一個都還不存在,**也不在任何百分比裡**——每一個都要逐條轉達,下一步是 `/subsys-design <slug>`
 - **已規劃、契約未寫的模組群**:某個 `design.md` 認了這個領域、但契約章節與功能規劃還沒寫。同樣不在該子系統的進度分母裡,下一步是 `/subsys-design <slug>` 更新模式
 - **待展開的 feature**:功能規劃有列、doc 欄仍是 `-` 的項目 = 下一步的待辦清單(逐一走 `/spec-design`,或契約卡滿格時用 `/subsys-build` 委派展開)
 - **未結的 spec-gaps**:qa / impl 提出、尚未被 spec 修訂的問題。**每一條都代表有項目正卡著**,要逐條轉達並建議走對應的 design skill 修 spec(Level 3 走 `/spec-design` 修訂模式,追到 Level 2 契約的走 `/subsys-design` 更新模式);有未結條目時 `/subsys-build` 會擋著不啟動
+
+  文檔表的狀態欄會標 `⚠卡GAP-n`:**那一行的 `in-progress` 不是「正在做」,是「卡死等 spec」**,回報時要講成後者,下一步也要開成「修 spec」而不是「繼續實作」。標不到人的 gap(條目標題沒寫文檔 id)會落到「提示」段,那是條目寫法要修
 - **結案沒有證據的 spec-gaps**:條目標了 `狀態:resolved`,卻沒有 `修訂` 行、`修訂` 沒指出文檔 id、指到的文檔不存在,或那份文檔的 `updated` 早於結案日期。**這代表 spec 可能根本沒改**,只是有人把狀態改掉讓閘門放行——腳本會列為不一致,逐條轉達
 - **架構 / 子系統不一致**必須逐條轉達:有資料夾卻不在 `subsystems` 名冊裡、**開發階段的涵蓋子系統寫了名冊沒有的 slug**(這一條的意思通常是「名冊只列了已建檔的,未開工的部分全部漏掉」)、功能規劃指向不存在的文檔、功能規劃的模組群欄對不上「模組群」表、多模組群卻有列沒填模組群欄、active 模組群沒有任何 feature、id 與檔名不一致、depends-on 無法解析、全域文檔缺 `subsystems` 欄、design.md 缺 `parent` 等
 - **全域契約表**(`主軸 | id | status | 使用的子系統 | file`,有 `contracts/` 才出現):跨子系統共用契約(`G-C00x`)。它**不是任務文檔**,不計入進度也不影響完成度;`subsystems` 少於兩個會被列為不一致(只有一個使用者的契約應該住那個子系統的 `design.md`)
@@ -70,23 +65,34 @@ node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" [design目錄,預設 
 ```
 node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --subsys <slug>   # 該子系統 + 進出依賴 + 反向依賴
 node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --doc <id>        # 單一文檔:歸屬 / 介面 / 契約 / 正反向依賴
+node "<本 SKILL.md 所在目錄>/scripts/scan-status.mjs" .design --file <path>     # 反查程式碼路徑:歸哪個子系統、被哪些 F/E/B 動過
 ```
 
-`--doc` 的 exit code 與盤點模式**語意不同**(0 = 查到、2 = 查無),不要拿它當驗收判準。
+`--doc` / `--file` 的 exit code 是「有沒有查到」,**不是驗收判準**——盤點模式那個才是。旗標與 exit code 的數值跑 `--help`。
 
-**另外三種用法**(都只讀不寫、不影響 exit code):
+**`--file` 在 feature scope 的審查用得上**:先反查手上的檔案,才知道除了目標 spec 之外還有哪些 E/B 動過同一段程式碼——那些是「現況與 spec 對不上」最常見的來源。查無時分辨是「不走本流程的程式碼」還是「有人漏回寫 `code-paths`」,後者列進發現,不要當雜訊。
+
+**另外三種用法**(都只讀不寫、不影響本 scope 的 exit code)。**每一支都吃 `--help`,旗標與 exit code 問它,不要問這份文檔**:
 
 ```
 node "<本 SKILL.md 所在目錄>/scripts/id-map.mjs"                  不帶路徑:編號體系本身的樹(哪一層鑄哪些號、誰配、活多久)
-node "<本 SKILL.md 所在目錄>/scripts/lint-ids.mjs" .design        檢查編號有沒有違反註冊表(exit 1 = 有違規)
-node "<本 SKILL.md 所在目錄>/scripts/lint-laws.mjs" .design       檢查 Laws 四格與觀察點可觀察性(exit 1 = 有違規)
-node "<本 SKILL.md 所在目錄>/scripts/scan-ids.mjs" .design        跨分支 / worktree 盤點已佔用的編號(exit 1 = 有撞號)
+node "<本 SKILL.md 所在目錄>/scripts/lint-ids.mjs" .design        檢查編號有沒有違反註冊表
+node "<本 SKILL.md 所在目錄>/scripts/lint-laws.mjs" .design       檢查 Laws 四格、觀察點可觀察性與骨架位置寫法
+node "<本 SKILL.md 所在目錄>/scripts/scan-ids.mjs" .design        跨分支 / worktree 盤點已佔用的編號
+node "<本 SKILL.md 所在目錄>/scripts/doc-section.mjs" --verify ../..   檢查各 skill 載入行點名的章節是否還存在
+node "<本 SKILL.md 所在目錄>/scripts/lint-commands.mjs" ../..     檢查文檔裡寫的指令與旗標,腳本本人還認不認得
 ```
+
+`lint-commands.mjs` 的判準是**腳本自己的 `--help`**,不另外維護旗標清單(另外維護的那份就是下一個會漂的東西)。它只查「認不認得」,不查「用得對不對」——後者是人的判斷。
+
+**改過 `scripts/` 底下任何東西之後跑 `bash "<本 SKILL.md 所在目錄>/tests/run.sh"`**:fixture 回歸(14 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 七支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
+
+`doc-section.mjs` 平常是**各 skill 自己用來只讀 `_shared/` 指定章節**的(載入行裡就寫著那一道指令);`--verify` 是給本 skill 的:分片的節被改名或刪掉時,載入行不會報錯,只會讓那個 skill 從此少讀一塊,這一關把它叫出來。
 
 - **開發者問「這些 `S1` / `LAW-3` / `WAVE-2` 到底是什麼」** → `id-map.mjs` 不帶參數,把 `doc-lifecycle.md`「編號與縮寫註冊表」畫成流程形狀的樹;或在專案模式加 `--legend` 兩張一起出
 - **接手舊專案、或改過慣例之後** → `lint-ids.mjs`:揪出裸寫的「單字母+數字」。被禁的形式只准出現在反引號裡(那代表在「講這個寫法」),裸寫就是真的拿它當識別碼。專案有自己的文檔前綴時用 `--allow '^N\d{3}$'` 帶進來
 - **要給新文檔配號、或懷疑平行開發撞了號** → `scan-ids.mjs`:取「當前工作區 + 每個 worktree 的 `.design/`(含未 commit)+ 每條分支的樹」三者聯集,列出每個號被誰佔走,並給出每組的下一個可用號(`--next` 只印這個,`--fetch` 連遠端一起看)。已進主 branch 的號只印「已在 main」——那些是定案的號,出處沒有資訊量,真正要看的是還沒進主 branch 的那幾個(要完整清單加 `--verbose`);`archive/` 底下的存檔文檔不算數(號已由現役文檔接手),略過幾份會明說,`--include-archive` 可以一起算。**只掃資料夾一定會漏**:另一條分支已鑄出 `G-C003` 未 merge、或另一個 worktree 正在寫 `G-C003` 未 commit,工作區都看不到,而兩份 `G-C003-<不同 slug>.md` 檔名不同、merge 不衝突,會靜默地兩個都落地。全域 `G-` 與 `ADR` 是全專案共用一組計數器,只要有兩條線在跑就會撞,配號前必跑
-- **spec 交付前、或接手舊專案的 spec** → `lint-laws.mjs`:每條 `LAW-` / `REG-` 要有「量詞 / 定義域 / 前提 / 觀察點」四格,且觀察點必須引用得到同一份文檔介面表裡的識別碼。第二條抓的是**觀察點指向不存在的觀察手段**(引用了內部符號、或整句沒引用任何介面)。它是**下限不是上限**:law 只要提到一個真的存在的介面就過得了,「那個介面真的看得見這件事嗎」機器判不了,那一關靠填格的人——腳本的價值是讓「懶得填」與「填不出來」再也混不過去
+- **spec 交付前、或接手舊專案的 spec** → `lint-laws.mjs`:三條規則。(1) 每條 `LAW-` / `REG-` 要有「量詞 / 定義域 / 前提 / 觀察點」四格;(2) 觀察點必須引用得到同一份文檔介面表裡的識別碼——抓的是**觀察點指向不存在的觀察手段**(引用了內部符號、或整句沒引用任何介面);(3) 介面表的「骨架位置」欄一律 `檔案#符號`,**寫成 `檔案:行號` 會被擋**(行號在 impl 填完本體就往下移,而沒有任何角色負責回頭修它;`-` 保留給 enhance 的「移除」列)。第二條是**下限不是上限**:law 只要提到一個真的存在的介面就過得了,「那個介面真的看得見這件事嗎」機器判不了,那一關靠填格的人——腳本的價值是讓「懶得填」與「填不出來」再也混不過去
 
 ---
 

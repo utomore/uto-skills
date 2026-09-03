@@ -1,0 +1,72 @@
+主軸      id      子系統  type     status                created     depends-on  file
+--------  ------  ------  -------  --------------------  ----------  ----------  ----------------------------------------------
+登入      F001    auth    feature  done                  2026-08-10  []          subsystems/auth/features/F001-login.md
+登入      F002    auth    feature  in-progress ⚠卡GAP-1  2026-08-10  []          subsystems/auth/features/F002-token-refresh.md
+全域快取  G-E001  global  enhance  open                  2026-08-22  []          enhancements/G-E001-cache.md
+
+=== 統計 ===
+done: 1
+in-progress: 1
+open: 1
+
+=== 子系統狀態 ===
+主架構 system:示範專案:含冒號的描述  [active]  subsystems: [auth, billing]
+主軸        id       status          模組群  階段  features  契約卡  已建文檔  已完成  未結E/B  進度
+----------  -------  --------------  ------  ----  --------  ------  --------  ------  -------  ---------
+認證子系統  auth     active          1/2     1     3         3/3     2         1       0E/0B    1/3 (33%)
+-           billing  未建 design.md  -       -     -         -       -         -       -        未展開
+
+子系統建檔:1/2(名冊列了 2 個,1 個還沒有 design.md)
+子系統完成度:0/2 個子系統跑完路線圖、無未結 E/B 且無 planned 模組群
+(「進度」欄的分母只是**該子系統自己的功能規劃**,不是產品完成度;產品完成度看下面的開發階段)
+
+=== 開發階段(2)===
+階段  名稱  涵蓋子系統  狀態
+----  ----  ----------  ------
+S0    S0    auth        進行中
+S1    S1    billing     未開始
+
+階段進度:已達成 0 / 進行中 1 / 未開始 1(共 2 階段)
+**專案還沒做完**:上面任務文檔的百分比只涵蓋已展開的部分,未開始的階段完全不在那些分母裡。
+
+=== 已規劃、未建 design.md 的子系統(1)===
+system.md 的名冊列了它們,但還沒有 Level 2 設計 —— 它們的 feature 一個都還不存在,也不在任何進度分母裡。
+- billing  (system.md 子系統劃分沒撈到職責)  [S1 未開始]
+下一步:對其中一個跑 /subsys-design。
+
+=== 已規劃、契約未寫的模組群(1)===
+子系統的 design.md 認了這些領域,但契約章節與功能規劃還沒寫 —— 它們不在該子系統的進度分母裡。
+- auth / MFA  二階段驗證
+下一步:對該子系統跑 /subsys-design 更新模式,把那一群的契約與功能規劃補上。
+
+ADR:accepted 1(共 1 份)
+
+=== 全域契約(1)===
+主軸               id      status  使用的子系統     file
+-----------------  ------  ------  ---------------  ---------------------------
+共用 session 契約  G-C001  active  [auth, billing]  contracts/G-C001-session.md
+(契約不是任務文檔,不計入進度;查單一份用 --doc G-C00x)
+
+=== 待展開的 feature:功能規劃有列、尚未建文檔(1)===
+- auth -:logout
+
+=== 未結的 spec-gaps:qa / impl 提出、spec 尚未修訂(1)===
+上面被標了 ⚠卡 的文檔就是卡在這幾條;它們的下一步是**修 spec**,不是繼續做。
+每一條都代表有項目正卡著;修 spec 前不要繼續往下做,也不要委派展開。
+- [auth] GAP-1(F002 / qa)  過期判定用哪個時鐘  subsystems/auth/spec-gaps.md
+
+=== 未完成 / metadata 缺失(2)===
+- 登入  [in-progress ⚠卡GAP-1] auth/F002  subsystems/auth/features/F002-token-refresh.md
+- 全域快取  [open] global/G-E001  enhancements/G-E001-cache.md
+
+=== 未完成的子系統(2)===
+- 認證子系統  [active] auth  進度 1/3 (33%)  未結 0E/0B  ⚠ 還有 1 個模組群未開工
+- -  [未建 design.md] billing  進度 未展開  未結 -
+
+=== 架構 / 子系統不一致(2)===
+- enhancements/G-E001-cache.md:subsystems 列了 billing,但 subsystems/ 沒有這個子系統
+- contracts/G-C001-session.md:subsystems 列了 billing,但 subsystems/ 沒有這個子系統
+
+=== 提示(1)===
+- subsystems/auth/design.md:模組群「MFA」還是 planned(契約章節與功能規劃未寫)——二階段驗證;它不在本子系統的進度分母裡
+__exit__ 1

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /spec-build — 單份 spec 的委派執行迴圈(orchestrator 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審要用)與 `../_shared/delegation.md`(**委派模式共通契約**);要建或改 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(`G` 編號規則與 frontmatter 規格);目標 spec 帶「待確認假設」段落時,另讀 `../_shared/boundary-rules.md`(層級複審用);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審要用)與 `../_shared/delegation.md`(**委派模式共通契約**);要建或改 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 的〈架構文檔〉一節,用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔` 取(**不要整份讀**);目標 spec 帶「待確認假設」段落時,另讀 `../_shared/boundary-rules.md`(層級複審用);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -27,7 +27,7 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
 |---|---|
 | 問開發者(spec 批准閘門、仲裁升級) | 寫測試(qa) |
 | **跑測試、做仲裁**(`orchestration.md`「仲裁協議」) | 寫實作(impl) |
-| 回寫目標文檔的 `status` | — |
+| 回寫目標文檔的 `status` 與 `code-paths` | — |
 | 寫入 `spec-gaps.md`(建檔、配號、追加條目) | — |
 | git commit(checkpoint) | **不碰 git** |
 
@@ -117,6 +117,7 @@ feature 目標(全新程式碼)沒有既有測試,這條基準線可跳過——
 ## 7. 收尾
 
 - **回寫 `status`(這一格的唯一寫者是你)**:骨架已無未實作標記、測試全綠、**且沒有指向本文檔的未結 spec-gaps** → 改 `done`、更新 `updated`;任一條不成立就留 `in-progress`。委派模式下的 impl 不碰目標文檔的 frontmatter(`spec-impl` 委派模式對照表),漏了這一步就沒有人補。**全綠不等於完成**——有 `open` 的 gap 代表那段行為沒被 spec 規範,兩種相反的實作都會全綠
+- **回寫 `code-paths`(同一次動作,不分兩趟)**:把 impl 回報裡的路徑清單填進目標文檔的 frontmatter(以檔案為主,不含測試檔)。`status` 留 `in-progress` 也照樣回寫——路徑是既成事實,跟做完沒做完無關
 - **commit**:`git add -A` 前確認 qa 與 impl 都已回報完(半成品的測試檔會被一起吞進去);message 帶文檔 id
 - 專案有程式碼知識圖時,把圖更新到最新(指令見 `../_shared/codegraph.md`);跑不動就略過並在摘要提一句
 - 回報固定五塊:

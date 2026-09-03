@@ -1,0 +1,24 @@
+未知選項: --bogus
+
+用法:
+  node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
+  node scan-status.mjs .design --subsys <slug>       聚焦子系統:它的文檔 + 進出依賴 + 反向依賴
+  node scan-status.mjs .design --doc <id>            聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
+                                                    <id> 吃 F003、auth/F003、G-E001、G-C001
+  node scan-status.mjs .design --file <path>         反查程式碼路徑:哪個子系統、被哪些 F/E/B 動過
+  node scan-status.mjs --help
+
+Exit code(**兩種模式語意不同**,呼叫端不要混用):
+  盤點 / --subsys : 0 = 範圍內全部完成(或無檔案) / 1 = 有未完成項目、metadata 缺失或架構不一致
+  --doc           : 0 = 查到 / 2 = 查無此 id(查到但未完成仍是 0——查詢不是驗收)
+  --file          : 0 = 有文檔的 code-paths 涵蓋它 / 2 = 沒有任何文檔認領這條路徑
+  任一模式        : 2 = design 目錄或 --subsys 的 slug 不存在
+
+**`--file` 反查的資料來源是各文檔 frontmatter 的 `code-paths`**,現掃現算,不另存索引。
+任務文檔(F/E/B)的這一欄由 impl / bugfix 在收尾**與 `status: done` 同一個動作**回寫,
+所以它跟狀態一樣新;沒回寫的文檔在反查裡看不見(那是回寫漏了,不是查詢壞了)。
+子系統 `design.md` 的 `code-paths` 是路徑**前綴**,答的是「這條路徑歸哪個子系統」。
+
+**本腳本只產生索引,不下判斷**:它答得出「哪份文檔、什麼狀態、誰依賴誰」,
+答不出「那份文檔寫的對不對」。紀律與各角色的使用界線見 _shared/design-query.md。
+__exit__ 2

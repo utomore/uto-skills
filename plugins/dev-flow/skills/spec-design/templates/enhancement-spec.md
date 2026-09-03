@@ -15,6 +15,7 @@ updated: <today>
 depends-on: []          # 依賴的文檔 id;空陣列 = 可平行開發(最後填,由介面表反推)
 related-adr: []
 related-feature: []     # 回鏈到被優化的 feature id(跨子系統引用帶路徑,如 auth/F002)
+code-paths: []          # 建檔時留空;impl 收尾時與 status: done 一起回寫實際動到的程式碼路徑
 # 全域 G-E 文檔才有下一行:
 # subsystems: [subsys-a, subsys-b]   # 受影響的子系統
 ---
@@ -35,11 +36,12 @@ related-feature: []     # 回鏈到被優化的 feature id(跨子系統引用帶
 ## 數據與介面變動
 (新增 / 修改 / 移除的型別與函數。「語意」只寫做什麼,禁止出現實作細節;
  修改與移除要列出受影響的呼叫端;動到 Level 2 契約的逐條標明;
- 「骨架位置」填該簽名在原始碼的 檔案:行號)
+ 「骨架位置」填 `檔案#符號`,**不准寫行號**(理由見 `feature-spec.md`;`lint-laws.mjs` 會擋)。
+ 動作是「移除」的列沒有骨架位置,填 `-`)
 | 項目 | 動作 | 簽名 / 定義 | 語意(做什麼) | 受影響呼叫端 | 骨架位置 |
 |---|---|---|---|---|---|
-| `parse` | 修改 | `parse :: Source -> IO (Either ParseError Doc)` | 解析一個來源 | `Loader.load` | `src/Doc/Parse.hs:31` |
-| `readSource` | 新增 | `readSource :: Source -> IO ByteString` | 讀出來源的原始位元組 | — | `src/Doc/Parse.hs:20` |
+| `parse` | 修改 | `parse :: Source -> IO (Either ParseError Doc)` | 解析一個來源 | `Loader.load` | `src/Doc/Parse.hs#parse` |
+| `readSource` | 新增 | `readSource :: Source -> IO ByteString` | 讀出來源的原始位元組 | — | `src/Doc/Parse.hs#readSource` |
 
 ## Laws(行為性質)
 分兩類,兩類都要寫;**每條都要填滿四格**(量詞 / 定義域 / 前提 / 觀察點)。四格的意義與填法見

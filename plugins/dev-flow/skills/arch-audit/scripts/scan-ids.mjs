@@ -61,10 +61,12 @@
 import { readdirSync, existsSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { execFileSync } from "node:child_process";
+import { printHelpIfAsked } from "./_help.mjs";
 
 // ---------------------------------------------------------------- 參數
 
 const argv = process.argv.slice(2);
+printHelpIfAsked(argv, import.meta.url);
 const flag = (name) => argv.includes(name);
 const opt = (name) => {
   const i = argv.indexOf(name);

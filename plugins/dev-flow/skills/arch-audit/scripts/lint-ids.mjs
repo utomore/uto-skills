@@ -24,6 +24,7 @@
  */
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, relative, extname } from "node:path";
+import { printHelpIfAsked } from "./_help.mjs";
 
 // ---------------------------------------------------------------- 註冊表(與 doc-lifecycle.md 同步)
 
@@ -59,6 +60,7 @@ const skipReason = (p) => SKIP_PATHS.find((s) => p.replace(/\\/g, "/").includes(
 // ---------------------------------------------------------------- 掃描
 
 const argv = process.argv.slice(2);
+printHelpIfAsked(argv, import.meta.url);
 const quiet = argv.includes("--quiet");
 const roots = [];
 const extraAllow = []; // --allow <regex>:讓別的 plugin / 專案帶自己的合法形式進來

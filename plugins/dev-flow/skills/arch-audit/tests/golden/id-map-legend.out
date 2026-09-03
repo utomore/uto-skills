@@ -1,0 +1,72 @@
+編號與縮寫體系
+  唯一鑄號機關:_shared/doc-lifecycle.md「編號與縮寫註冊表」
+├─ Level 1  /system-design
+│  產出 .design/system.md + ADR
+│  ├─ S0、S1…
+│  │  開發階段 · 全專案唯一 · /system-design 配 · 永久
+│  │  ↳ 產品級分母:「還差什麼」只有它答得出來
+│  ├─ ADR-001
+│  │  架構決策 · 全局一組 · 建檔時掃描 · 永久
+│  └─ <subsystem-slug>
+│     子系統名冊 · 全專案唯一 · /system-design 定 · 永久
+│     ↳ 含還沒建 design.md 的
+├─ Level 2  /subsys-design
+│  產出 subsystems/<slug>/design.md、contracts/G-C00x
+│  ├─ G-C001
+│  │  全域共用契約 · 全域一組 · 建檔時掃描 · 永久
+│  │  ↳ 引用時寫到條目:G-C001#SessionToken
+│  ├─ 模組群名(WorldSim…)
+│  │  子系統內的平行領域 · 該 design.md 內唯一 · 永久
+│  │  ↳ planned 的那幾群不進進度分母
+│  ├─ #1、#2…
+│  │  功能規劃表的項次 · 該表內唯一 · 永久
+│  │  ↳ 「依賴」欄用它互相引用
+│  └─ A1–A10 / B1–B4
+│     契約就緒度檢查條 · contract-readiness.md 內 · 固定不配號
+│     ↳ 引用一定帶檔名:contract-readiness.md A5
+├─ Level 3  /spec-design → /spec-qa ∥ /spec-impl · /bugfix
+│  產出 features/ enhancements/ bugfixes/ 的任務文檔 + 骨架
+│  ├─ F001 / E001 / B001
+│  │  任務文檔 id · 子系統內各一組 · 建檔時掃描 · 永久
+│  │  ↳ 一份 = 一個 feature / 優化 / 缺陷的 spec;份數是「已建檔」,分母是 design.md 功能規劃的項數
+│  ├─ G-E001 / G-B001
+│  │  跨子系統的全域優化 / 修復 · 全域各一組 · 永久
+│  ├─ LAW-1
+│  │  行為性質 · 單一 spec 檔內 · spec 角色配 · 永久
+│  │  ↳ qa 一條翻一個 property test —— 條數 = 測試的分母,不是跑出來的測試數
+│  ├─ REG-1
+│  │  回歸 law(enhance 專用)· 單一 spec 檔內 · 永久
+│  │  ↳ 保護改完必須一模一樣的現有行為
+│  ├─ EX-1
+│  │  具體範例 · 單一 spec 檔內 · spec 角色配 · 永久
+│  │  ↳ qa 一個翻一個 example test;LAW + EX 就是「這份 spec 應該有幾個測試」
+│  ├─ STEP-1
+│  │  bugfix TodoList 步驟 · 單一 bugfix 檔內 · 永久
+│  │  ↳ dep: 欄互相引用
+│  └─ GAP-1
+│     spec 疑問 · 單一 spec-gaps.md 內 · 編排者單線配 · 永久
+│     ↳ 專案表的 GAP 欄印「已結/總數」,不滿就代表有項目卡著
+├─ 編排層  /spec-build · /subsys-build
+│  產出 build-log.md;以下全部是**過程**的編號,不是產品的一部分
+│  ├─ WAVE-1
+│  │  波次 · 單一次展開內 · 編排者算出來 · 用完即棄
+│  │  ↳ 把 feature 分幾批送出(同批平行、批間有依賴)—— 不是 feature 數,波次數 <= feature 數
+│  ├─ DEC-1
+│  │  批次澄清的裁決 · 單一 build-log 內 · 編排者配 · 永久(供事後查)
+│  ├─ ASM-1
+│  │  待確認假設 · 單一 spec 檔內 · spec subagent 配 · 永久
+│  │  ↳ 契約層級:設計者自己判斷後繼續推進,閘門再裁。裁決不會讓條目消失,結果寫回該條自己的「裁決:」欄(比照 GAP 的 狀態/修訂 行)—— build-log 的彙總表是索引與合併關係,不是權威
+│  └─ SELF-1
+│     自裁記錄 · 單一回報 / 自裁清單內 · spec subagent 配 · 供抽查
+│     ↳ 實作層級:不進文檔、不上閘門
+└─ 永遠不給的
+   留白比佔用重要
+   ├─ L1 / L2 / L3
+   │  禁用
+   │  ↳ Level 一律寫全名;L 會撞專案的 Layer 與舊寫法的 law
+   └─ 單字母+數字(表外)
+      禁用
+      ↳ 只留給文檔 id(三位數)與開發階段(S<n>);其餘一律詞首碼
+
+實際專案跑過什麼:node id-map.mjs <專案的 .design 目錄>
+__exit__ 0

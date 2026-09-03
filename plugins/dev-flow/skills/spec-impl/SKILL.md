@@ -6,7 +6,7 @@ user-invocable: false
 
 # /spec-impl — Level 3 實作(impl 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的禁區與仲裁協議)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);要查 spec 依賴的別份文檔或共用契約時,另讀 `../_shared/design-query.md`(查詢指令與界線——**可用,但查到的東西不得拿來當 spec 沒寫到的部分的答案**,那走 spec-gaps);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 不讀。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md` 的四節(你的禁區、骨架規格、gap 協議、仲裁),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/spec-roles.md 鐵律 三個角色的輸入與禁區 "spec-gaps 協議" 仲裁協議` 取與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則);要查 spec 依賴的別份文檔或共用契約時,另讀 `../_shared/design-query.md`(查詢指令與界線——**可用,但查到的東西不得拿來當 spec 沒寫到的部分的答案**,那走 spec-gaps);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 的〈架構文檔〉一節(`spec-gaps.md` 的 frontmatter 規格在裡面),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔` 取(**不要整份讀**);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不寫測試,`testing-policy.md` 不讀。
 
 ## 模式(由目標文檔的 id 前綴判定)
 
@@ -41,7 +41,7 @@ user-invocable: false
 | 3. 實作 | 照原規則。**唯一差別**:發現「spec 講不清楚」「非改簽名不可」或「非越過 scope 不可」時,原本要問開發者——委派模式下改為**停下該項**,把 gap 的四個欄位寫進回報並列為阻塞項,不擅自改契約、也不硬做。**不寫 `spec-gaps.md`**:理由見 `delegation.md` 第 4 條;編號用局部序號(`本次-1`),`G` 編號由編排者發 |
 | 4. 跑測試 | 照原規則,**如實回報**。紅燈只做歸因,**不做仲裁**(仲裁是編排者的職責);絕不宣稱通過 |
 | 回寫架構文檔 | **不做**。要改 `design.md` / `system.md` 的,寫進回報給編排者裁決 |
-| 回寫目標文檔的 `status` | **不做** —— 步驟 3 第 1 點的 `in-progress` 與收尾的 `done` **都不做**,由編排者回寫。兩個理由:(1) 目標文檔不在編排者給的**寫入白名單**裡,動它會被白名單對帳判成越界;(2)「全綠」這個前提你判斷不了 —— `/subsys-build` 把完整測試套件與仲裁都收在編排者手上,你只看得到自己那一份 |
+| 回寫目標文檔的 `status` 與 `code-paths` | **不做** —— 步驟 3 第 1 點的 `in-progress` 與收尾的 `done` **都不做**,由編排者回寫。兩個理由:(1) 目標文檔不在編排者給的**寫入白名單**裡,動它會被白名單對帳判成越界;(2)「全綠」這個前提你判斷不了 —— `/subsys-build` 把完整測試套件與仲裁都收在編排者手上,你只看得到自己那一份。`code-paths` 同樣不由你寫,但**本次動到的程式碼路徑清單要列進回報**:那份清單只有你手上有,編排者是照著它填的 |
 | 5. 收尾 | 輸出改為 `delegation.md` 定義的**結構化回報**;實作結果與阻塞項照實交出去,`status` 不由你寫(見上一列) |
 
 實作自主權在委派模式下**完全不變**——內部演算法、私有函數、變數命名照樣由你決定,不需要為這些記假設或回報。只有「碰到契約邊界」才需要停下來。
@@ -82,10 +82,10 @@ user-invocable: false
 
 ## 5. 收尾
 
-- 骨架已無未實作標記、測試全綠(enhance 含回歸測試)、**且本份 spec 沒有未結的 spec-gaps** → `status` 改 `done`、更新 `updated`(**委派模式下不做**,由編排者回寫——見上方對照表)
+- 骨架已無未實作標記、測試全綠(enhance 含回歸測試)、**且本份 spec 沒有未結的 spec-gaps** → `status` 改 `done`、更新 `updated`、**回寫 `code-paths`**(本次實際動到的程式碼路徑,以檔案為主,不含測試檔——那是 qa 的產出)(**委派模式下三件都不做**,由編排者回寫;路徑清單列進回報——見上方對照表)。`status` 留 `in-progress` 也照樣回寫 `code-paths`——路徑是既成事實,跟做完沒做完無關(欄位規格見 `doc-lifecycle.md`)
 
   **全綠不等於完成。** 有 `open` 的 gap,代表那段行為根本沒被 spec 規範——兩種相反的實作都會全綠,你只是碰巧選了其中一種。這種情況一律留 `in-progress`,把 gap 列進回報等 spec 修訂
 - **enhance 追加**:在「實作備註」記錄改善目標的**量化結果**(改善前後的數字或狀態,對照「改善目標」的驗收標準);量化目標沒達成就如實寫,不得四捨五入成達成
 - 專案有程式碼知識圖時,依 `../_shared/codegraph.md`「目前的產生器」表的更新指令讓圖跟上這次的改動(重構會大幅改變依賴關係,圖不更新會誤導下一次架構檢測);沒有圖或跑不動就略過並在摘要提一句,不要卡住收尾
-- 摘要給開發者:實作了哪幾條介面(n/m)、測試結果(enhance 含回歸測試與量化結果)、文檔狀態變更、新增的 spec-gaps;另外列出**新增/移除的依賴邊**、做過的**實作層級決定**、**發現但沒做的事**(這三項直接進 PR 描述)
+- 摘要給開發者:實作了哪幾條介面(n/m)、測試結果(enhance 含回歸測試與量化結果)、文檔狀態變更、回寫進 `code-paths` 的路徑清單、新增的 spec-gaps;另外列出**新增/移除的依賴邊**、做過的**實作層級決定**、**發現但沒做的事**(這三項直接進 PR 描述)
 - 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下每條介面與型別的狀態依實際程式碼與測試結果填(完成 / 實作中 / 偏離);「實作備註」裡的偏差、未結的 spec-gaps、enhance 被碰到的「不動」範圍都要出現在偏離清單;下一步從樹上推:同子系統還有待做 feature → `/spec-design <下一個>` 或 `/subsys-build <slug>`,重構完成 → `/arch-audit subsys <slug>` 確認邊界,都做完 → `/branch-pr`

@@ -6,7 +6,7 @@ user-invocable: true
 
 # /spec-design — Level 3 spec 設計(spec 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md`(本 skill 要新建文檔:資料夾樹、編號、引用格式、frontmatter 規格)與 `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(本 skill **必用**程式碼知識圖並要下查詢);要查別份文檔的介面、共用契約或反向依賴時,另讀 `../_shared/design-query.md`(查詢指令與界線——本 skill **全開**,但查到的東西仍要打開原文查證);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md` 與 `../_shared/delegation-design.md`(你要產出的兩份清單格式);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式,**委派模式下不讀**——你不輸出定錨區塊)。
+先讀取 `../_shared/conventions.md`(核心慣例:資訊抽象邊界規範)、`../_shared/spec-roles.md`(**三角色契約**:你的產出是 qa 與 impl 的唯一輸入)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則)、`../_shared/doc-lifecycle.md` 的五節,用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description 契約卡的生命週期` 取(**不要整份讀**,腳本末尾會附上你沒讀到的章節目錄)與 `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`(本 skill **必用**程式碼知識圖並要下查詢);要查別份文檔的介面、共用契約或反向依賴時,另讀 `../_shared/design-query.md`(查詢指令與界線——本 skill **全開**,但查到的東西仍要打開原文查證);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md` 與 `../_shared/delegation-design.md`(你要產出的兩份清單格式);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式,**委派模式下不讀**——你不輸出定錨區塊)。
 
 文檔模板在 `templates/`,**只讀模式對應的那一份**(步驟 5 才打開):`feature-spec.md` / `enhancement-spec.md`。
 
@@ -167,7 +167,7 @@ user-invocable: true
 
 1. **必須通過編譯 / 型別檢查**——編不過的骨架不算交付,qa 拿不到能 import 的東西
 2. **未實作處必須在執行期明確失敗**(各語言的未實作標記見該片的表),**不得回傳假值**:回傳 `0`、`[]`、`null` 會讓測試假綠,比沒寫還糟
-3. 介面表每一條都要指得出骨架的 `檔案:行號`
+3. 介面表每一條都要指得出骨架的 `檔案#符號`(**不寫行號**,理由見模板)
 
 **只寫框架,不寫邏輯**:型別定義完整寫、函數簽名完整寫、模組匯出清單完整寫;函數本體、私有 helper、演算法一律不寫——那是 impl 的自主權範圍。
 

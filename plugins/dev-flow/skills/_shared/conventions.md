@@ -77,7 +77,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 Level 3 採 **spec 驅動的三角色**:設計寫 spec 文檔與程式碼骨架(型別與簽名完整、函數本體未實作),qa 與 impl 各自只讀 spec、彼此不可見,測試與實作都只是 spec 的投影。角色契約見 `spec-roles.md`。
 
-預設順序 Level 1 → 2 → 3,每層待開發者確認邊界才往下。開發者要求直接實作特定功能時,先確認它落在 Level 2 介面契約內,再直接給乾淨可執行的 Level 3 程式碼,無需客套。Level 2 完成且每個 feature 都有**契約卡**時可用 `/subsys-build` 一次展開;手動逐一推進(`/spec-design` → `/spec-build`,或自己扮演編排者)永遠是合法的替代路徑。
+預設順序 Level 1 → 2 → 3,每層待開發者確認邊界才往下。開發者要求直接實作特定功能時,先確認它落在 Level 2 介面契約內,再直接給乾淨可執行的 Level 3 程式碼,無需客套。Level 2 完成、且每份 `planned` feature 檔的 **`## 契約`** 都填滿時,可用 `/subsys-build` 一次展開;手動逐一推進(`/spec-design` → `/spec-build`,或自己扮演編排者)永遠是合法的替代路徑。
 
 ## 資訊抽象邊界規範(嚴格遵守)
 

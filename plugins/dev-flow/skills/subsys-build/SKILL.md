@@ -6,7 +6,7 @@ user-invocable: true
 
 # /subsys-build — 子系統委派展開(orchestrator 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審與對帳要用)與 `../_shared/delegation.md`(**委派模式共通契約**);批次澄清與 3b 的層級複審要分類問題層級時,另讀 `../_shared/boundary-rules.md`;**跑前置的委派門檻檢查時必讀** `../_shared/contract-readiness.md`(A 段十條就是門檻本身);要查文檔關係、反向依賴或共用契約時另讀 `../_shared/design-query.md`(查詢指令與界線);要配 `F00x` / `G` 編號,或建改 `build-log.md` / `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`(編號、引用格式與 frontmatter 規格);要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**——你是那一片裡的「編排者」)、`../_shared/orchestration.md`(**骨架快照與仲裁的裁決處置,你的職責**)、`../_shared/delegation-design.md`(待確認假設與自裁記錄的欄位格式,層級複審與對帳要用)與 `../_shared/delegation.md`(**委派模式共通契約**);批次澄清與 3b 的層級複審要分類問題層級時,另讀 `../_shared/boundary-rules.md`;**跑前置的委派門檻檢查時必讀** `../_shared/contract-readiness.md` 的判定紀律與 A 段(十條就是門檻本身),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/contract-readiness.md 判定紀律 "A 段"` 取——B 段是 `/subsys-design` 產出前的關卡,不是委派門檻;要查文檔關係、反向依賴或共用契約時另讀 `../_shared/design-query.md`(查詢指令與界線);要配 `F00x` / `G` 編號,或建改 `build-log.md` / `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 的三節,用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 文檔引用格式 架構文檔` 取(**不要整份讀**);要在既有程式碼上展開、且專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(排波次的依賴對帳用);階段閘門與收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 
@@ -299,7 +299,7 @@ checkpoint 的用途不是「這段程式碼已驗收」——驗收在閘門。
 
 每一輪的裁決都記進 `build-log.md` 的「仲裁紀錄」:第幾輪、哪條測試、歸因結論、依據的 spec 條文。這張表是事後判斷「spec 哪裡寫不清楚」的唯一資料。
 
-**(2) 回寫本波 feature 文檔的 `status`**:每一份本波的文檔,判準與 `/spec-build` 收尾同一條 —— 骨架已無未實作標記、測試全綠、**且沒有指向該文檔的未結 spec-gaps** → 改 `done` 並更新 `updated`;任一條不成立就寫 `in-progress`,不留白。
+**(2) 回寫本波 feature 文檔的 `status` 與 `code-paths`**:每一份本波的文檔,判準與 `/spec-build` 收尾同一條 —— 骨架已無未實作標記、測試全綠、**且沒有指向該文檔的未結 spec-gaps** → 改 `done` 並更新 `updated`;任一條不成立就寫 `in-progress`,不留白。**同一次把 `code-paths` 也填了**:值來自該份 impl 回報裡的程式碼路徑清單(以檔案為主,不含測試檔),`in-progress` 的照樣填 —— 路徑是既成事實,跟做完沒做完無關。
 
 **這一步只有你做得到,所以只能由你做。** 委派模式下的 impl 不寫這一格(`spec-impl` 委派模式對照表):文檔不在它的寫入白名單裡,而且「全綠」的前提在 (1) 才成立,它只看得到自己那一份。沒有這一步,`status` 會停在文檔建立時的值 —— 而**沒有任何機制會抱怨**:測試全綠、白名單對帳 OK、程式碼真的寫好了,只有帳沒回寫。等到 3f 跑 `scan-status.mjs` 才看得出來,而閘門最密也只到「每 3 波 / 每 4 個 feature」一次(步驟 1 第 7 點)—— 中間那幾波沒有任何東西會替你記得。
 
@@ -321,7 +321,7 @@ WAVE-2(F005, F006, F007)
 
 - 第一行是**本階段的全部波次**(含還沒開跑的),直接投影 `build-log.md` 排程表的「狀態」欄——所以那些列在步驟 1 排完波次時就要先建好;排程表「閘門」欄非 `—` 的那幾波後面加 `⛬閘門`,讓開發者看得到下一次停下來看是在哪一波
 - 其餘各格一律從 `build-log.md`(配號表、待確認假設彙總、仲裁紀錄、白名單對帳欄)與 `spec-gaps.md` **投影**,不另外記帳;數字只能來自實際跑過的測試輸出與骨架裡剩餘的未實作標記,**不得估**
-- **`status` 欄逐一列出本波每一份文檔的回寫結果**,一份都不能省。這一欄是 (2) 那一步唯一的憑據——回寫沒做、或做了一半,只有把每一份攤在同一行上才看得出來;寫「都完成了」等於沒寫
+- **`status` 欄逐一列出本波每一份文檔的回寫結果**,一份都不能省;**同一行帶上 `code-paths` 填了幾條**。這一欄是 (2) 那一步唯一的憑據——回寫沒做、或做了一半,只有把每一份攤在同一行上才看得出來;寫「都完成了」等於沒寫
 - 「未完成」與「gap」沒有條目時寫「無」;該波若是空議程自動放行,「閘門」欄要寫明——空白分不出「沒有」與「沒查」
 
 呈報完,照**排程表「閘門」欄**走:本波標 `—` 且本階段還有下一波 → 回 3a 開下一波;本波標 `期中` 或 `階段`,或本波提前停下 → 進 3f。

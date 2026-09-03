@@ -174,7 +174,29 @@ repo 有新版本後:
 
 編號**三位數**遞增、不放日期(日期在 frontmatter 的 `created` / `updated`);**每個子系統自己一組編號**(F/E/B 各自計數)、全域 G- 自己一組、ADR 全局一組。跨子系統引用寫 `<subsystem>/<id>`(如 `auth/F002`),同子系統直寫 id,全域直寫 `G-E001` / `ADR-003`。
 
-任務文檔開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-feature`;全域文檔另加 `subsystems`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/arch-audit/scripts/scan-status.mjs`)只解析這一段,清單欄位一律行內陣列 `[a, b]`。子系統 `design.md` 另有選填的 `code-paths`(程式碼路徑前綴),供 `scan-graph.mjs` 把檔案級的圖捲回子系統級。
+任務文檔開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-feature` / `code-paths`;全域文檔另加 `subsystems`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/arch-audit/scripts/scan-status.mjs`)只解析這一段,清單欄位一律行內陣列 `[a, b]`。子系統 `design.md` 另有選填的 `code-paths`(程式碼路徑**前綴**),供 `scan-graph.mjs` 把檔案級的圖捲回子系統級。
+
+### spec 文檔 ↔ 實作:兩條線都要指得回去
+
+「這份 spec 做成什麼了」與「這個檔案是哪份 spec 做的」是**兩個方向**,各由一個機制答:
+
+| 方向 | 機制 | 誰維護 |
+|---|---|---|
+| spec → 程式碼(逐條介面) | spec「介面」表的**骨架位置**欄,寫 `檔案#符號`。**不准寫行號**——行號在 impl 把未實作標記換成本體的那一刻就往下移,而沒有任何角色負責回頭修它;`lint-laws.mjs` 會擋 | `/spec-design`,一致性檢查時對帳 |
+| 程式碼 → spec(逐個檔案) | 任務文檔 frontmatter 的 **`code-paths`**,`scan-status.mjs --file <path>` 現掃現算(不另存索引),答「這條路徑歸哪個子系統、被哪些 F/E/B 動過、各是什麼狀態」 | `/spec-impl`、`/bugfix` 在收尾**與 `status: done` 同一個動作**回寫;委派模式下 impl 回報路徑、編排者填 |
+
+`code-paths` 綁在 `status` 上是刻意的:單獨拉出來的「記得更新索引」這種步驟,漏了不會有任何東西抱怨(程式碼真的寫好了,只有帳沒回),一定會爛掉。`status` 是 `done` 卻留著空 `code-paths` 時,`/arch-audit status` 會列進提示。
+
+### 進度與阻塞是兩個維度
+
+`status` 是**累加**的(`open → in-progress → done`),spec-gap 則是從**任何一格**都會發射的**中斷**——qa 寫不出斷言時撞到、impl 發現非改簽名不可時撞到。所以 gap 不佔 `status` 的任何一個值,而是標回那份文檔的狀態欄:
+
+```
+login 功能          F001  feature  in-progress                 ← 正在做
+token-refresh 功能  F002  feature  in-progress ⚠卡GAP-1,GAP-2  ← 卡死,等 spec 修訂
+```
+
+兩者的下一步完全相反(繼續做 vs 回頭修 spec),而在這之前它們在報表上長得一模一樣。歸屬靠 gap 條目標題裡的文檔 id(`## GAP-1(F002 / qa)`)認,零新欄位。
 
 ### 分母紀律:名冊、開發階段、模組群
 
@@ -200,6 +222,10 @@ repo 有新版本後:
 |---|---|
 | `id-map.mjs` | 給 `.design` 路徑 → 一張 **system → 子系統 → 模組群**的階層表(F/E/B 份數、LAW/EX 測試分母、ASM/GAP、委派批次、哪些子系統還沒建檔、哪些 spec 還是舊版模板)。`/arch-audit status` 會**先跑它並原樣貼在回報最前面**當定位;不帶參數 → 把註冊表畫成流程形狀的樹 |
 | `lint-ids.mjs` | 揪出**裸寫**的「單字母+數字」。被禁的形式只准出現在反引號裡(那是在講這個寫法),裸寫就是真的拿它當識別碼在用。`--allow` 讓專案帶自己的前綴進來,exit 1 = 有違規 |
+
+腳本共七支(`plugins/dev-flow/skills/arch-audit/scripts/`),**每一支都吃 `--help`**,而 `--help` 印的就是該檔檔頭那段「用法 + Exit code」——同一份文字,不可能分岔。所以 skill 文檔裡不抄旗標與 exit code 數值,只留「一行常用指令」與「誰能用、用到什麼程度」(後者腳本產不出來,它不知道是誰在呼叫它)。
+
+格式解析集中在四支 `_` 開頭的模組(`_gap-status` / `_sections` / `_frontmatter` / `_tables`),CLI 只管自己的輸出與 exit code。**一種格式只准有一個解析器**——這條是修真實事故修出來的:`section()` 曾經有兩份(一份含標題行、一份不含)、`frontmatter()` 曾經有兩份(一份剝引號、一份不剝,而且對 YAML 區塊列表靜默讀成空值)、`tableCells()` 曾經同名不同約(一份回 `null`、一份回陣列)。三處都不會報錯,只會讓兩支腳本對同一份檔案給出不同答案。
 
 `description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(feature 寫「這功能做什麼」、bugfix 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」),讓 `/arch-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。
 

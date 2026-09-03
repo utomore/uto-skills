@@ -19,8 +19,11 @@
  * Exit code:0 一律成功(這是說明工具,不做驗收)/ 2 = 路徑不存在
  */
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
+import { readDoc, asList } from "./_frontmatter.mjs";
+import { section as mdSection } from "./_sections.mjs";
 import { join } from "node:path";
 import { parseGapBlocks } from "./_gap-status.mjs";
+import { printHelpIfAsked } from "./_help.mjs";
 
 // ---------------------------------------------------------------- 慣例樹(與 doc-lifecycle.md 註冊表同步)
 
@@ -109,22 +112,6 @@ function draw(node, prefix = "", isLast = true, isRoot = false) {
 
 // ---------------------------------------------------------------- 專案模式:掃出實際存在的號
 
-function frontmatter(path) {
-  try {
-    const t = readFileSync(path, "utf8");
-    const m = t.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-    if (!m) return { meta: {}, body: t };
-    const meta = {};
-    for (const line of m[1].split(/\r?\n/)) {
-      const kv = line.match(/^([A-Za-z-]+)\s*:\s*(.*)$/);
-      if (kv) meta[kv[1]] = kv[2].trim();
-    }
-    return { meta, body: t };
-  } catch {
-    return { meta: {}, body: "" };
-  }
-}
-
 const listMd = (d) => {
   try {
     return readdirSync(d).filter((n) => n.endsWith(".md")).sort();
@@ -138,20 +125,9 @@ const listMd = (d) => {
  * 編號只在它該住的章節裡數 —— 全檔亂數會把表格裡的數值、程式碼片段一起算進來,
  * 而報一個你證明不了的數字,比不報還糟。
  */
+/** id-map 只數編號,要的是**節內文**(不含標題行);唯一解析器在 `_sections.mjs` */
 function section(body, titleRe) {
-  const lines = body.split(/\r?\n/);
-  const out = [];
-  let inside = false;
-  for (const line of lines) {
-    const h = line.match(/^(#{2,6})\s+(.+?)\s*$/);
-    if (h) {
-      if (h[1].length === 2) inside = titleRe.test(h[2]);
-      else if (!inside) continue;
-      if (h[1].length === 2) continue;
-    }
-    if (inside) out.push(line);
-  }
-  return out.join("\n");
+  return mdSection(body, titleRe)?.body ?? "";
 }
 
 /**
@@ -230,8 +206,8 @@ function countRoadmapRows(body) {
 
 function buildProjectTree(designDir) {
   const sysPath = join(designDir, "system.md");
-  const sys = frontmatter(sysPath);
-  const roster = (sys.meta.subsystems ?? "[]").replace(/^\[|\]$/g, "").split(",").map((s) => s.trim()).filter(Boolean);
+  const sys = readDoc(sysPath);
+  const roster = asList(sys.meta.subsystems);
 
   // 開發階段:與 scan-status.mjs 的 parseStages 同一套判準 —— 必須先看到同時含
   // 「階段」與「狀態」兩欄的表頭才開始收列,否則同一個 H2 底下的別張表(例如搬遷對照)會被誤收
@@ -277,7 +253,7 @@ function buildProjectTree(designDir) {
       continue;
     }
     built++;
-    const d = frontmatter(join(dir, "design.md"));
+    const d = readDoc(join(dir, "design.md"));
     const feats = listMd(join(dir, "features"));
     const enh = listMd(join(dir, "enhancements"));
     const bugs = listMd(join(dir, "bugfixes"));
@@ -308,7 +284,7 @@ function buildProjectTree(designDir) {
     // spec 檔內的條目。序號在**單一檔案內**去重,跨檔相加;只在該住的章節裡數
     let law = 0, ex = 0, asm = 0, asmRuled = 0, asmMarked = 0, legacy = 0;
     for (const f of [...feats, ...enh]) {
-      const b = frontmatter(join(dir, f.startsWith("F") ? "features" : "enhancements", f)).body;
+      const b = readDoc(join(dir, f.startsWith("F") ? "features" : "enhancements", f)).body;
       const laws = section(b, /^Laws/);
       const exs = section(b, /^Examples/);
       if (!laws && !exs) legacy++; // 舊版模板(TodoList 制),沒有可被 qa 一比一投影的條文
@@ -326,7 +302,7 @@ function buildProjectTree(designDir) {
       // 解析器與 scan-status.mjs 共用(`_gap-status.mjs`):這裡原本自己數 `狀態:open` 出現幾次,
       // 認不出來的寫法會被算成 0 個 open,也就是「全部已結」——而 scan-status 對同一條的默認
       // 恰好相反(當成未結)。同一份檔案兩支腳本給相反答案,兩支都不出聲。分子改用同一個 `resolved` 判定。
-      const blocks = parseGapBlocks(frontmatter(gapPath).body);
+      const blocks = parseGapBlocks(readDoc(gapPath).body);
       const totalGaps = blocks.length;
       const done = blocks.filter((b) => b.resolved).length;
       gapCell = totalGaps ? `${done}/${totalGaps}` : "-"; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
@@ -334,7 +310,7 @@ function buildProjectTree(designDir) {
 
     let waveCell = "-";
     if (existsSync(join(dir, "build-log.md"))) {
-      const b = frontmatter(join(dir, "build-log.md")).body;
+      const b = readDoc(join(dir, "build-log.md")).body;
       const sched = section(b, /排程/);
       waveCell = String(new Set([...sched.matchAll(/\|[^|]*?\b(?:WAVE-|W)(\d+)\b/g)].map((m) => m[1])).size || "-");
     }
@@ -371,7 +347,7 @@ function buildProjectTree(designDir) {
     const gbugs = listMd(join(designDir, "bugfixes"));
     let law = 0, ex = 0, asm = 0, asmRuled = 0, asmMarked = 0, legacy = 0;
     for (const f of genh) {
-      const b = frontmatter(join(designDir, "enhancements", f)).body;
+      const b = readDoc(join(designDir, "enhancements", f)).body;
       const laws = section(b, /^Laws/);
       const exs = section(b, /^Examples/);
       if (!laws && !exs) legacy++;
@@ -388,7 +364,7 @@ function buildProjectTree(designDir) {
       // 解析器與 scan-status.mjs 共用(`_gap-status.mjs`):這裡原本自己數 `狀態:open` 出現幾次,
       // 認不出來的寫法會被算成 0 個 open,也就是「全部已結」——而 scan-status 對同一條的默認
       // 恰好相反(當成未結)。同一份檔案兩支腳本給相反答案,兩支都不出聲。分子改用同一個 `resolved` 判定。
-      const blocks = parseGapBlocks(frontmatter(gapPath).body);
+      const blocks = parseGapBlocks(readDoc(gapPath).body);
       const totalGaps = blocks.length;
       const done = blocks.filter((b) => b.resolved).length;
       gapCell = totalGaps ? `${done}/${totalGaps}` : "-"; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
@@ -482,6 +458,7 @@ function renderProject(designDir) {
 // ---------------------------------------------------------------- main
 
 const argv = process.argv.slice(2);
+printHelpIfAsked(argv, import.meta.url);
 const withLegend = argv.includes("--legend");
 const target = argv.find((a) => !a.startsWith("--"));
 

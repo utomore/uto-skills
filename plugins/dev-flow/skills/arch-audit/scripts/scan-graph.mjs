@@ -31,6 +31,7 @@
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
+import { printHelpIfAsked } from "./_help.mjs";
 
 // ---------------------------------------------------------------- 參數
 
@@ -38,6 +39,7 @@ import { execFileSync } from "node:child_process";
 const GRAPH_CANDIDATES = ["./codegraph.json", "./.codegraph/graph.json", "./graphify-out/graph.json"];
 
 const argv = process.argv.slice(2);
+printHelpIfAsked(argv, import.meta.url);
 const opts = { graph: null, subsys: null, top: 15, examples: 3, include: [] };
 let designDir = null;
 for (let i = 0; i < argv.length; i++) {

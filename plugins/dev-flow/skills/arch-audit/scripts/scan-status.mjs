@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * scan-status.mjs — 掃描 .design/ 樹狀設計文檔。兩種模式:
- *   盤點模式(不給 --subsys / --doc):任務狀態與各子系統進度,全樹視角
+ *   盤點模式(不給 --subsys / --doc / --file):任務狀態與各子系統進度,全樹視角
  *   查詢模式(--subsys / --doc):聚焦單一子系統或單一文檔,額外給出**反向依賴**
+ *   反查模式(--file):給一條程式碼路徑,回頭問「它是哪些文檔做出來的」
  *
  * 掃描範圍:
  *   .design/system.md                                  主架構:frontmatter subsystems 是**完整名冊**
@@ -31,29 +32,37 @@
  *   node scan-status.mjs .design --subsys <slug>       聚焦子系統:它的文檔 + 進出依賴 + 反向依賴
  *   node scan-status.mjs .design --doc <id>            聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
  *                                                     <id> 吃 F003、auth/F003、G-E001、G-C001
+ *   node scan-status.mjs .design --file <path>         反查程式碼路徑:哪個子系統、被哪些 F/E/B 動過
  *   node scan-status.mjs --help
  *
  * Exit code(**兩種模式語意不同**,呼叫端不要混用):
  *   盤點 / --subsys : 0 = 範圍內全部完成(或無檔案) / 1 = 有未完成項目、metadata 缺失或架構不一致
  *   --doc           : 0 = 查到 / 2 = 查無此 id(查到但未完成仍是 0——查詢不是驗收)
+ *   --file          : 0 = 有文檔的 code-paths 涵蓋它 / 2 = 沒有任何文檔認領這條路徑
  *   任一模式        : 2 = design 目錄或 --subsys 的 slug 不存在
+ *
+ * **`--file` 反查的資料來源是各文檔 frontmatter 的 `code-paths`**,現掃現算,不另存索引。
+ * 任務文檔(F/E/B)的這一欄由 impl / bugfix 在收尾**與 `status: done` 同一個動作**回寫,
+ * 所以它跟狀態一樣新;沒回寫的文檔在反查裡看不見(那是回寫漏了,不是查詢壞了)。
+ * 子系統 `design.md` 的 `code-paths` 是路徑**前綴**,答的是「這條路徑歸哪個子系統」。
  *
  * **本腳本只產生索引,不下判斷**:它答得出「哪份文檔、什麼狀態、誰依賴誰」,
  * 答不出「那份文檔寫的對不對」。紀律與各角色的使用界線見 _shared/design-query.md。
  */
-import { readdirSync, readFileSync, openSync, readSync, closeSync, existsSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { parseGapBlocks } from "./_gap-status.mjs";
+import { parseFrontmatter, readFrontmatter, asList } from "./_frontmatter.mjs";
+import { section } from "./_sections.mjs";
+import { dataCells, isSeparatorRow } from "./_tables.mjs";
+import { printHelpIfAsked, usageBlock } from "./_help.mjs";
 
-const USAGE = `用法:
-  node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
-  node scan-status.mjs .design --subsys <slug>       聚焦子系統:文檔 + 進出依賴 + 反向依賴
-  node scan-status.mjs .design --doc <id>            聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
-                                                     <id> 吃 F003、auth/F003、G-E001、G-C001
-Exit code:盤點 / --subsys → 0 全完成 / 1 有未完成;--doc → 0 查到 / 2 查無;2 目錄或 slug 不存在`;
+/** 用法字串取自本檔檔頭(唯一產地),不另寫一份 —— 兩份只會在改旗標時分岔 */
+const USAGE = usageBlock(import.meta.url);
 
 const argv = process.argv.slice(2);
-const query = { subsys: null, doc: null };
+printHelpIfAsked(argv, import.meta.url);
+const query = { subsys: null, doc: null, file: null };
 let designDirArg = null;
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
@@ -62,6 +71,7 @@ for (let i = 0; i < argv.length; i++) {
     process.exit(0);
   } else if (a === "--subsys") query.subsys = argv[++i] ?? null;
   else if (a === "--doc") query.doc = argv[++i] ?? null;
+  else if (a === "--file") query.file = argv[++i] ?? null;
   else if (a.startsWith("--")) {
     console.error(`未知選項: ${a}\n\n${USAGE}`);
     process.exit(2);
@@ -75,13 +85,20 @@ if (query.doc === null && argv.includes("--doc")) {
   console.error(`--doc 需要一個文檔 id\n\n${USAGE}`);
   process.exit(2);
 }
+if (query.file === null && argv.includes("--file")) {
+  console.error(`--file 需要一條程式碼路徑\n\n${USAGE}`);
+  process.exit(2);
+}
+if ([query.subsys, query.doc, query.file].filter((x) => x !== null).length > 1) {
+  console.error(`--subsys / --doc / --file 一次只能用一個\n\n${USAGE}`);
+  process.exit(2);
+}
 if (query.subsys && query.doc) {
   console.error(`--subsys 與 --doc 不能同時使用(--doc 已經帶出它所屬的子系統)\n\n${USAGE}`);
   process.exit(2);
 }
 
 const designDir = designDirArg ?? "./.design";
-const HEAD_BYTES = 4096;
 const DONE_STATUSES = new Set(["done", "closed"]);
 const DESC_WIDTH = 44; // 主軸(description)欄顯示寬度上限(全形字算 2)
 
@@ -102,85 +119,6 @@ const ADR_PATTERN = /^(ADR-\d{3})-[a-z0-9-]+\.md$/;
 if (!existsSync(designDir)) {
   console.error(`找不到 design 目錄: ${designDir}`);
   process.exit(2);
-}
-
-/** 只讀檔案開頭 bytes(預設 HEAD_BYTES) */
-function readHead(path, bytes = HEAD_BYTES) {
-  const fd = openSync(path, "r");
-  try {
-    const buf = Buffer.alloc(bytes);
-    const n = readSync(fd, buf, 0, bytes, 0);
-    return { text: buf.toString("utf8", 0, n), full: n < bytes };
-  } finally {
-    closeSync(fd);
-  }
-}
-
-/**
- * 讀 frontmatter,回傳 { meta, blockListKeys };無 frontmatter 時 meta 為 null。
- * 開頭 HEAD_BYTES 內找不到結尾 --- 時放大一次再試,避免長 metadata 被誤判為缺失。
- */
-function readFrontmatter(path) {
-  let last = { meta: null, blockListKeys: [] };
-  for (const bytes of [HEAD_BYTES, HEAD_BYTES * 4]) {
-    const head = readHead(path, bytes);
-    last = parseFrontmatter(head.text);
-    if (last.meta || head.full) break;
-  }
-  return last;
-}
-
-/**
- * 解析第一組 --- ... --- 之間的 metadata(淺層,夠用即可)。
- * 只認 `key: value` 與行內陣列 `key: [a, b]`;縮排的 key 視為巢狀結構,不當成頂層欄位。
- * 遇到 YAML 區塊列表(`key:` 後接縮排 `- item`)不解析,而是把該 key 記進 blockListKeys 讓呼叫端報錯。
- */
-function parseFrontmatter(text) {
-  const lines = text.split(/\r?\n/);
-  if (lines[0]?.trim() !== "---") return { meta: null, blockListKeys: [] };
-  const meta = {};
-  const blockListKeys = [];
-  let pending = null; // 上一個「值為空」的頂層 key
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.trim() === "---") return { meta, blockListKeys };
-    if (/^\s+-\s/.test(line)) {
-      if (pending && !blockListKeys.includes(pending)) blockListKeys.push(pending);
-      continue;
-    }
-    const m = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
-    if (!m) continue;
-    const raw = m[2].trim();
-    const isEmpty = raw === "" || raw.startsWith("#");
-    meta[m[1]] = isEmpty ? "" : parseValue(m[2]);
-    pending = isEmpty ? m[1] : null;
-  }
-  return { meta: null, blockListKeys: [] }; // 沒有結尾 --- 視為無 frontmatter
-}
-
-/** 取值:引號字串取引號內容;行內陣列轉陣列;否則去掉行尾 # 註解 */
-function parseValue(raw) {
-  const v = raw.trim();
-  const q = v.match(/^(['"])([\s\S]*?)\1/);
-  if (q) return q[2];
-  const arr = v.match(/^\[([\s\S]*)\]/);
-  if (arr) return splitItems(arr[1]);
-  return v.replace(/\s+#.*$/, "").trim();
-}
-
-/** 切開行內陣列內容 "a, b" → ["a", "b"] */
-function splitItems(inner) {
-  return inner
-    .split(",")
-    .map((s) => s.trim().replace(/^(['"])([\s\S]*)\1$/, "$2").trim())
-    .filter(Boolean);
-}
-
-/** 一律轉成陣列(單值 → [值],空值 → []) */
-function asList(v) {
-  if (Array.isArray(v)) return v;
-  const s = String(v ?? "").trim();
-  return s === "" ? [] : [s];
 }
 
 /** 表格顯示值:陣列印成 [a, b],空值印 - */
@@ -232,7 +170,7 @@ const archNotes = []; // 提示(不計入 exit code)
 
 // ---------------------------------------------------------------- 任務文檔掃描
 
-const rows = []; // { description, id, subsystem, type, status, created, dependsOn(raw list), file, meta }
+const rows = []; // { description, id, subsystem, type, status, created, dependsOn(raw list), codePaths, file }
 
 function scanTaskDoc(path, subsystem, kind) {
   const { meta, blockListKeys } = readFrontmatter(path);
@@ -254,8 +192,14 @@ function scanTaskDoc(path, subsystem, kind) {
     updated: fmtValue(meta?.updated),
     dependsOn: asList(meta?.["depends-on"]),
     affects: asList(meta?.subsystems),
+    codePaths: asList(meta?.["code-paths"]),
     file: relPath,
   };
+  // 收尾漏回寫 code-paths:程式碼寫好了、狀態也回了,只有「這是誰做的」這一格沒填 ——
+  // 沒有這一條提示,--file 反查會安靜地少掉這份文檔,而少掉的那一份看起來就像「不存在」。
+  // 列為提示不列為不一致:舊專案的既有文檔本來就沒有這一欄,不該讓它們把 exit code 變成 1。
+  if (DONE_STATUSES.has(row.status) && row.codePaths.length === 0)
+    archNotes.push(`${relPath}:status 是 ${row.status},但 code-paths 是空的(收尾漏回寫 —— --file 反查看不到這份文檔)`);
   rows.push(row);
   return row;
 }
@@ -430,6 +374,41 @@ for (const slug of subsysDirs) allGaps.push(...parseSpecGaps(join(subsysRoot, sl
 allGaps.push(...parseSpecGaps(join(designDir, "spec-gaps.md"), "global"));
 const openGaps = allGaps.filter((g) => !g.resolved);
 
+/**
+ * 未結 gap 標回它卡住的那一份文檔。
+ *
+ * 進度與阻塞是**兩個正交的維度**:`status` 累加式地往前走(open → in-progress → done),
+ * gap 則是從**任何一格**都會發射的中斷 —— qa 寫不出斷言時撞到、impl 發現非改簽名不可時撞到。
+ * 把它印在獨立區塊,讀的人要自己把兩張表交叉比對才知道某一行的 `in-progress`
+ * 究竟是「正在做」還是「卡死等 spec 修訂」,而那兩件事的下一步完全相反。
+ *
+ * 這裡不新增任何 frontmatter 欄位:gap 的歸屬本來就寫在條目標題 `## GAP-1(F002 / qa)` 裡,
+ * 腳本也早就在解析 `spec-gaps.md`,只是沒把兩邊接起來。
+ */
+const gapDocRef = (head) => head.match(/\b(G-[CEB]\d{3}|[FEB]\d{3})\b/)?.[1] ?? null;
+const blockedBy = new Map(); // docKey → [gap id]
+for (const g of openGaps) {
+  const docId = gapDocRef(g.head);
+  if (!docId) {
+    archNotes.push(`${g.file}:${g.id} 的標題沒寫是哪份文檔的 gap(格式:\`## ${g.id}(F002 / qa)\`)—— 它不會被標到任何 feature 上`);
+    continue;
+  }
+  const k = g.scope === "global" ? docId : `${g.scope}/${docId}`;
+  if (!blockedBy.has(k)) blockedBy.set(k, []);
+  blockedBy.get(k).push(g.id);
+}
+for (const r of rows) {
+  const k = r.subsystem === "global" ? r.id : `${r.subsystem}/${r.id}`;
+  r.blockedBy = blockedBy.get(k) ?? [];
+}
+for (const [k, ids] of blockedBy) {
+  if (!rows.some((r) => (r.subsystem === "global" ? r.id : `${r.subsystem}/${r.id}`) === k))
+    archNotes.push(`spec-gaps:${ids.join("、")} 指向 ${k},但找不到這份文檔(標題裡的 id 打錯,或文檔被搬走了)`);
+}
+
+/** 阻塞旗標:接在 status 後面印。沒有未結 gap 就是空字串,不佔版面 */
+const gapFlag = (r) => (r.blockedBy?.length ? ` ⚠卡${r.blockedBy.join(",")}` : "");
+
 // 結案證據:標了 resolved 就要指得出「改的是哪份文檔、什麼時候改的」。
 // 沒有證據的結案 = spec 可能根本沒改,只是把狀態改掉讓閘門放行(spec-roles.md「spec-gaps 協議」)。
 const docUpdated = new Map(); // "<subsys>/<id>" 與裸 "<id>" 都放,寬鬆比對
@@ -537,7 +516,7 @@ function parseRoadmap(text) {
     }
     if (!inSection || !line.trim().startsWith("|")) continue;
     const cells = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
-    if (cells.every((c) => c === "" || /^:?-{2,}:?$/.test(c))) continue; // 分隔列
+    if (isSeparatorRow(cells)) continue;
     const lower = cells.map((c) => c.toLowerCase());
     const docCol = lower.indexOf("doc");
     if (docCol >= 0) {
@@ -587,14 +566,6 @@ function parseCards(text) {
   return cards;
 }
 
-/** 把一行 markdown 切成表格 cells;不是表格列、或是分隔列時回傳 null */
-function tableCells(line) {
-  if (!line.trim().startsWith("|")) return null;
-  const cells = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
-  if (cells.every((c) => c === "" || /^:?-{2,}:?$/.test(c))) return null; // 分隔列
-  return cells;
-}
-
 /** 表頭列的欄位比對用:去空白、轉小寫 */
 function headerKeys(cells) {
   return cells.map((c) => normName(c).replace(/\s/g, "").toLowerCase());
@@ -619,7 +590,7 @@ function parseGroups(text) {
       continue;
     }
     if (!inSection) continue;
-    const cells = tableCells(line);
+    const cells = dataCells(line);
     if (!cells) continue;
     const keys = headerKeys(cells);
     const nameCol = keys.indexOf("模組群");
@@ -668,7 +639,7 @@ function parseStages(text, roster) {
       continue;
     }
     if (!inSection) continue;
-    const cells = tableCells(line);
+    const cells = dataCells(line);
     if (!cells) continue;
     const keys = headerKeys(cells);
     const stageCol = keys.indexOf("階段");
@@ -925,26 +896,6 @@ for (const r of rows) {
   }
 }
 
-/** 取出 markdown 某個標題段落的全文(到下一個同級或更高級標題為止);找不到回傳 null */
-function section(text, titleRe) {
-  const lines = text.split(/\r?\n/);
-  let start = -1;
-  let level = 0;
-  for (let i = 0; i < lines.length; i++) {
-    const h = lines[i].match(/^(#{2,6})\s+(.+?)\s*$/);
-    if (!h) continue;
-    if (start < 0) {
-      if (titleRe.test(h[2])) {
-        start = i;
-        level = h[1].length;
-      }
-    } else if (h[1].length <= level) {
-      return lines.slice(start, i).join("\n").trimEnd();
-    }
-  }
-  return start < 0 ? null : lines.slice(start).join("\n").trimEnd();
-}
-
 /** 掃全文裡出現的全域契約引用(frontmatter 之外的內文也算),回傳去重後的 ref 清單 */
 function contractRefsIn(text) {
   const out = new Set();
@@ -999,7 +950,7 @@ if (query.doc) {
     console.log(`檔案  ${c.file}`);
 
     const entries = section(text, /契約條目/);
-    printBlock("契約條目", entries ? entries.split("\n") : ["(這份契約沒有「契約條目」章節——格式見 doc-lifecycle.md「全域契約文檔」)"]);
+    printBlock("契約條目", entries ? entries.text.split("\n") : ["(這份契約沒有「契約條目」章節——格式見 doc-lifecycle.md「全域契約文檔」)"]);
 
     const users = [];
     for (const [k, list] of reverseDeps) {
@@ -1043,7 +994,7 @@ if (query.doc) {
   console.log(
     `歸屬  ${hit.subsystem === "global" ? "全域(跨子系統)" : `子系統 ${hit.subsystem}`}` +
       (road ? `  |  ${road.phase}  |  功能規劃「${road.feature}」` : "") +
-      `  |  type ${hit.type}  |  status ${hit.status}`,
+      `  |  type ${hit.type}  |  status ${hit.status}${gapFlag(hit)}`,
   );
   if (hit.subsystem === "global") console.log(`受影響  ${hit.affects.length ? hit.affects.join("、") : "⚠ 未列 subsystems"}`);
   else if (entry?.designFile) console.log(`上層  ${entry.designFile}`);
@@ -1054,10 +1005,20 @@ if (query.doc) {
     ["介面", /^介面$/],
   ]) {
     const sec = section(full, re);
-    if (sec) printBlock(`${title}(原文)`, sec.split("\n"));
+    if (sec) printBlock(`${title}(原文)`, sec.text.split("\n"));
   }
   if (!section(full, /^數據$|數據與介面變動/) && !section(full, /^介面$/))
     printBlock("介面 / 數據", ["(這份文檔沒有「數據」或「介面」段——模板見 spec-design/templates/)"]);
+
+  // 阻塞維度:有未結 gap 的文檔,下一步是修 spec,不是繼續做 —— 這件事不能只印在盤點模式
+  if (hit.blockedBy?.length)
+    printBlock(
+      `卡住這份文檔的未結 gap(${hit.blockedBy.length})`,
+      openGaps
+        .filter((g) => hit.blockedBy.includes(g.id) && gapDocRef(g.head) === hit.id)
+        .map((g) => `- ${g.head}  ${g.topic}  ${g.file}`)
+        .concat(["", "下一步是**修 spec**,不是繼續做:兩種相反的實作都會全綠,測試證明不了什麼。"]),
+    );
 
   const usedContracts = contractRefsIn(full);
   printBlock("引用的全域契約", usedContracts.map((r) => fmtRef(r, r)));
@@ -1074,6 +1035,98 @@ if (query.doc) {
 
   console.log(QUERY_TAIL);
   process.exit(0);
+}
+
+// ---------------------------------------------------------------- 反查模式(--file)
+
+/**
+ * 路徑正規化:去掉前導 `./`、統一分隔符、去掉結尾 `/`。
+ * 專案根目錄相對路徑是 `code-paths` 的唯一寫法(doc-lifecycle.md),兩邊都照這個攤平再比。
+ */
+function normPath(p) {
+  return String(p ?? "")
+    .trim()
+    .replace(/\\/g, "/")
+    .replace(/^\.\//, "")
+    .replace(/\/+$/, "");
+}
+
+/**
+ * 一條 code-paths 條目與被查路徑的關係:
+ *   exact  完全相同
+ *   prefix 條目是目錄,涵蓋被查的檔案(子系統 design.md 的寫法就是這種)
+ *   under  被查的是目錄,條目落在它底下(查一整個資料夾時用)
+ */
+function pathRel(entry, want) {
+  const e = normPath(entry);
+  const w = normPath(want);
+  if (!e || !w) return null;
+  if (e === w) return "exact";
+  if (w.startsWith(`${e}/`)) return "prefix";
+  if (e.startsWith(`${w}/`)) return "under";
+  return null;
+}
+
+const REL_LABEL = { exact: "完全相符", prefix: "路徑前綴涵蓋", under: "在查詢目錄底下" };
+
+if (query.file) {
+  const want = normPath(query.file);
+  console.log(`=== 程式碼路徑 ${want} ===`);
+
+  // 1) 歸屬:子系統 design.md 的 code-paths 是路徑前綴
+  const owners = [];
+  for (const [slug, entry] of subsysDocs) {
+    for (const cp of asList(entry.designMeta?.["code-paths"])) {
+      const r = pathRel(cp, want);
+      if (r) owners.push(`- ${slug}  (${entry.designFile} 的 code-paths ${cp} ${REL_LABEL[r]})`);
+    }
+  }
+  const anySubsysCodePaths = [...subsysDocs.values()].some((e) => asList(e.designMeta?.["code-paths"]).length > 0);
+  printBlock(
+    "子系統歸屬",
+    owners.length
+      ? owners
+      : [
+          anySubsysCodePaths
+            ? "(無)沒有子系統的 code-paths 涵蓋這條路徑"
+            : "(無)全樹沒有任何 design.md 填了 code-paths —— 這一欄是選填的,補上才問得出歸屬",
+        ],
+  );
+
+  // 2) 認領:任務文檔的 code-paths 由 impl / bugfix 在收尾與 status 一起回寫
+  const hits = [];
+  for (const r of rows) {
+    let best = null;
+    for (const cp of r.codePaths) {
+      const rel2 = pathRel(cp, want);
+      if (!rel2) continue;
+      if (!best || rel2 === "exact") best = { rel: rel2, cp };
+    }
+    if (best) hits.push({ row: r, ...best });
+  }
+  hits.sort((a, b) => (a.row.created || "").localeCompare(b.row.created || "") || docKey(a.row.subsystem, a.row.id).localeCompare(docKey(b.row.subsystem, b.row.id)));
+
+  printBlock(
+    `動過這條路徑的任務文檔(${hits.length})`,
+    hits.map(({ row, rel: r2, cp }) => {
+      const kind = row.type === "feature" ? "建立" : row.type === "enhance" ? "優化" : "修復";
+      return `- ${docKey(row.subsystem, row.id)}  [${row.status}]  ${kind}  ${row.created}  ${row.file}\n    ${row.description}  (${REL_LABEL[r2]}:${cp})`;
+    }),
+  );
+
+  const anyTaskCodePaths = rows.some((r) => r.codePaths.length > 0);
+  if (hits.length === 0) {
+    console.log(
+      anyTaskCodePaths
+        ? "\n沒有任何 F/E/B 的 code-paths 涵蓋這條路徑。兩種可能:這段程式碼不是走本流程產生的,\n" +
+            "或動過它的文檔收尾時沒回寫 code-paths(那一欄應該與 status: done 同一個動作寫進去)。"
+        : "\n全樹沒有任何任務文檔填了 code-paths —— 反查在這個專案還沒有資料可用。\n" +
+            "這一欄由 /spec-impl 與 /bugfix 在收尾回寫;既有文檔要補的話,打開該文檔的實作範圍逐份補上。",
+    );
+  }
+
+  console.log(QUERY_TAIL);
+  process.exit(hits.length ? 0 : 2);
 }
 
 if (query.subsys) {
@@ -1131,7 +1184,7 @@ if (query.subsys) {
   else
     printTable(
       { description: "主軸", id: "id", type: "type", status: "status", dependsOn: "depends-on", file: "file" },
-      mine.map((r) => ({ ...r, dependsOn: fmtValue(r.dependsOn) })),
+      mine.map((r) => ({ ...r, status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
     );
 
   const out = [];
@@ -1209,7 +1262,7 @@ if (rows.length === 0) {
   // 欄位順序:主軸(description)優先,id 次之,再來是子系統歸屬
   printTable(
     { description: "主軸", id: "id", subsystem: "子系統", type: "type", status: "status", created: "created", dependsOn: "depends-on", file: "file" },
-    rows.map((r) => ({ ...r, dependsOn: fmtValue(r.dependsOn) })),
+    rows.map((r) => ({ ...r, status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
   );
 }
 
@@ -1305,6 +1358,7 @@ if (pendingFeatures.length > 0) {
 
 if (openGaps.length > 0) {
   console.log(`\n=== 未結的 spec-gaps:qa / impl 提出、spec 尚未修訂(${openGaps.length})===`);
+  console.log("上面被標了 ⚠卡 的文檔就是卡在這幾條;它們的下一步是**修 spec**,不是繼續做。");
   console.log("每一條都代表有項目正卡著;修 spec 前不要繼續往下做,也不要委派展開。");
   for (const g of openGaps) console.log(`- [${g.scope}] ${g.head}  ${g.topic}  ${g.file}`);
 }
@@ -1312,7 +1366,7 @@ if (openGaps.length > 0) {
 const unfinished = rows.filter((r) => !DONE_STATUSES.has(r.status));
 if (unfinished.length > 0) {
   console.log(`\n=== 未完成 / metadata 缺失(${unfinished.length})===`);
-  for (const r of unfinished) console.log(`- ${r.description}  [${r.status}] ${r.subsystem}/${r.id}  ${r.file}`);
+  for (const r of unfinished) console.log(`- ${r.description}  [${r.status}${gapFlag(r)}] ${r.subsystem}/${r.id}  ${r.file}`);
 }
 
 const openSubsysRows = subsysRows.filter((s) => !s.complete);

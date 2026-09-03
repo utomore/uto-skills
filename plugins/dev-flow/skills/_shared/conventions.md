@@ -9,9 +9,9 @@
 | `spec-roles.md` | **spec 三角色契約**:設計 / qa / impl 各自的輸入與禁區、骨架規格、qa 的交付判準、spec-gaps 協議、仲裁的歸因分流 | **走 spec 驅動流程時**:spec-design、spec-qa、spec-impl、spec-build、subsys-build(bugfix 不適用) |
 | `boundary-rules.md` | 知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、spec-design、spec-impl、bugfix;`/subsys-build`、`/spec-build` 做層級複審時 |
 | `testing-policy.md` | 只測公開介面、property-based 測 law、`*.Internal`、禁止測試後門 | **要寫或改測試時**:spec-qa、bugfix、arch-audit(查後門)。spec 驅動的 impl 不寫測試,不讀 |
-| `doc-lifecycle.md` | **`.design/` 資料夾樹**、文檔角色與權威來源、命名與編號規則、**編號與縮寫註冊表**(所有首碼的唯一鑄號機關:文檔 id、階段 S、LAW-/EX-/GAP-/ASM- 等詞首碼)、跨文檔引用格式、舊版路徑遷移、各類文檔的 YAML frontmatter 規格 | 要**新建 / 改名 / 編號 `.design/` 文檔**、要給任何東西編號或取縮寫、要寫跨文檔引用,或要確認某個 frontmatter 欄位怎麼寫時;只改 `status` / `updated` 不用 |
+| `doc-lifecycle.md` | **`.design/` 資料夾樹**、文檔角色與權威來源、命名與編號規則、**編號與縮寫註冊表**(所有首碼的唯一鑄號機關:文檔 id、階段 S、LAW-/EX-/GAP-/ASM- 等詞首碼)、跨文檔引用格式、舊版路徑遷移、各類文檔的 YAML frontmatter 規格 | 要**新建 / 改名 / 編號 `.design/` 文檔**、要給任何東西編號或取縮寫、要寫跨文檔引用,或要確認某個 frontmatter 欄位怎麼寫時;只改 `status` / `updated` 不用。**這片長,開頭有「你要做什麼 → 讀哪幾節」對照表,照它只讀對應的節** |
 | `contract-readiness.md` | **契約就緒度檢查清單**:A 段子系統內 10 條、B 段子系統之間 4 條,幾乎全是純文檔的機械比對(A10 要開 system.md 對帳職責) | `/subsys-design` 產出 `design.md` 之前(自評)、`/subsys-build` 的委派門檻檢查(他評) |
-| `design-query.md` | **設計文檔查詢**:`scan-status.mjs` 的 `--subsys` / `--doc` 能力對照、exit code 語意、各角色的使用界線、與程式碼知識圖的分工 | 要查「某份文檔跟誰有關係、介面怎麼寫、誰依賴我」時 |
+| `design-query.md` | **設計文檔查詢**:`scan-status.mjs` 的 `--subsys` / `--doc` / `--file` 能力對照、exit code 語意、各角色的使用界線、與程式碼知識圖的分工 | 要查「某份文檔跟誰有關係、介面怎麼寫、誰依賴我」或「這個程式碼檔案是哪份文檔做出來的」時 |
 | `delegation.md` | 委派模式共通契約、回報格式 | prompt 標明 `【委派模式】`,或你是 `/spec-build` / `/subsys-build` 的編排者 |
 | `delegation-design.md` | 「待確認假設」與「自裁記錄」的欄位格式 | 委派模式下的 **spec 角色**,與要做層級複審 / 對帳的編排者;qa 與 impl 不讀 |
 | `orchestration.md` | 骨架快照的建立與驗證程序、仲裁的裁決與處置 | **你是編排者**(`/spec-build`、`/subsys-build`,或互動模式下的開發者本人);qa 與 impl 不讀 |

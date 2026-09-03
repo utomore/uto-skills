@@ -6,7 +6,7 @@ user-invocable: true
 
 # /bugfix — 缺陷修復
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則)、`../_shared/testing-policy.md`(本 skill 自己寫重現測試)、`../_shared/doc-lifecycle.md`(本 skill 要新建 bugfix 文檔:資料夾樹、編號、引用格式、frontmatter 規格);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md` 與 `../_shared/codegraph-tools.md`(用來定位,不取代重現與根因驗證);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/boundary-rules.md`(**邊界判斷規則** + 實作階段規則)、`../_shared/testing-policy.md`(本 skill 自己寫重現測試)、`../_shared/doc-lifecycle.md` 的四節,用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description` 取(本 skill 要新建 bugfix 文檔;**不要整份讀**,腳本末尾會附上你沒讀到的章節目錄);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md` 與 `../_shared/codegraph-tools.md`(用來定位,不取代重現與根因驗證);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 本 skill 一條龍完成:**記錄缺陷 → 重現 → 根因分析 → 修復 → 回歸測試 → 回寫狀態**。缺陷文檔是修復的過程紀錄與回歸依據,不是待辦——建檔與修復在同一次執行內完成(開發者明確只要「先記錄、之後修」時例外,建檔後停在 `open`)。
 
@@ -32,6 +32,7 @@ updated: <today>
 depends-on: []
 related-adr: []
 related-feature: []     # 回鏈到出問題的 feature id(跨子系統引用帶路徑)
+code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫實際修到的程式碼路徑
 # 全域 G-B 文檔才有下一行:
 # subsystems: [subsys-a, subsys-b]
 ---
@@ -77,6 +78,6 @@ related-feature: []     # 回鏈到出問題的 feature id(跨子系統引用帶
 
 ## 5. 收尾
 
-- 修復完成且測試全綠 → 填寫「修復紀錄」、`status` 改 `done`、更新 `updated`
+- 修復完成且測試全綠 → 填寫「修復紀錄」、`status` 改 `done`、更新 `updated`、**回寫 `code-paths`**(本次修到的產品程式碼路徑,以檔案為主,不含重現測試;欄位規格見 `../_shared/doc-lifecycle.md`)
 - 摘要給開發者:文檔路徑與編號(B 或 G-B)、根因一句話、修法一句話、測試結果、有無另建議的 enhance 項目
 - 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列被修到的介面/資料結構與狀態;修法若動到契約沒寫的東西,上偏離清單;下一步從樹上推(常見:`/branch-pr`,或另建議的 `/spec-design`)

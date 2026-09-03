@@ -15,6 +15,7 @@ updated: <today>
 depends-on: []          # 依賴的文檔 id(引用格式見 conventions);空陣列 = 可平行開發(最後填,由介面表反推)
 related-adr: []
 related-feature: []
+code-paths: []          # 建檔時留空;impl 收尾時與 status: done 一起回寫實際動到的程式碼路徑
 ---
 
 # F00x: <功能名稱>
@@ -35,11 +36,13 @@ related-feature: []
 
 ## 介面
 (每個函數的完整型別簽名 + 語意描述。語意只寫「做什麼」,**禁止出現實作細節**:
- 不寫演算法、不寫資料結構選擇、不寫呼叫順序。「骨架位置」填該簽名在原始碼的 檔案:行號)
+ 不寫演算法、不寫資料結構選擇、不寫呼叫順序。
+ 「骨架位置」填 `檔案#符號`,**不准寫行號**——行號在 impl 把未實作標記換成本體的那一刻就過期,
+ 而流程裡沒有任何人負責回頭修它;符號名跟簽名一起被一致性檢查盯著,不會爛掉。`lint-laws.mjs` 會擋)
 | 簽名 | 語意(做什麼) | 骨架位置 |
 |---|---|---|
-| `rotate :: TokenId -> IO (Either TokenError TokenPair)` | 換發一組新憑證並使舊的失效 | `src/Auth/Token.hs:42` |
-| `verify :: TokenId -> IO TokenStatus` | 回報一個 TokenId 當下可不可用 | `src/Auth/Token.hs:58` |
+| `rotate :: TokenId -> IO (Either TokenError TokenPair)` | 換發一組新憑證並使舊的失效 | `src/Auth/Token.hs#rotate` |
+| `verify :: TokenId -> IO TokenStatus` | 回報一個 TokenId 當下可不可用 | `src/Auth/Token.hs#verify` |
 
 ## Laws(行為性質)
 (可被 property-based 測試驗證的代數性質。**每條都要填滿四格**——這四格就是測試的四個組成部件

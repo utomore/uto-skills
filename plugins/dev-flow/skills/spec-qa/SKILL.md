@@ -6,7 +6,7 @@ user-invocable: false
 
 # /spec-qa — 從 spec 寫測試(qa 角色)
 
-先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md`(**三角色契約**:你的輸入、禁區、交付判準、spec-gaps 協議)與 `../_shared/testing-policy.md`(只測公開介面、禁止測試後門);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**)與 `../_shared/codegraph-tools.md`(查詢指令);要查本 feature 所屬子系統的契約條目或 `G-C00x` 共用契約的欄位語意時,另讀 `../_shared/design-query.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**:契約可以查,別份 feature 的 spec 不行);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md`;收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不設計也不實作,`boundary-rules.md` 整片不讀。
+先讀取 `../_shared/conventions.md`(核心慣例)、`../_shared/spec-roles.md` 的四節(你的輸入、禁區、交付判準、gap 協議),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/spec-roles.md 鐵律 三個角色的輸入與禁區 "qa 的交付判準" "spec-gaps 協議"` 取與 `../_shared/testing-policy.md`(只測公開介面、禁止測試後門);專案有程式碼知識圖時,另讀 `../_shared/codegraph.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**)與 `../_shared/codegraph-tools.md`(查詢指令);要查本 feature 所屬子系統的契約條目或 `G-C00x` 共用契約的欄位語意時,另讀 `../_shared/design-query.md`(**本 skill 屬「限用」,那一節的界線要先看過再查**:契約可以查,別份 feature 的 spec 不行);prompt 標明 `【委派模式】` 時,另讀 `../_shared/delegation.md`;**互動模式下**要新建 `spec-gaps.md` 時,另讀 `../_shared/doc-lifecycle.md` 的〈架構文檔〉一節(`spec-gaps.md` 的 frontmatter 規格在裡面),用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔` 取(**不要整份讀**);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。**委派模式下最後兩片都不讀**——gap 只回報不寫檔、也不輸出定錨區塊。你不設計也不實作,`boundary-rules.md` 整片不讀。
 
 ## 你的角色邊界(本 skill 的核心原則)
 
@@ -29,7 +29,7 @@ user-invocable: false
 只讀這些,多一個字都不要讀:
 
 - 目標 spec 的**數據、介面、Laws、Examples** 四段(其他段落可讀但不得作為測試依據)
-- 骨架檔案(spec「介面」段指到的 `檔案:行號`;行號會因為別人動過檔案而漂移,以簽名原文為準)
+- 骨架檔案(spec「介面」段指到的 `檔案#符號`;檔案裡找不到那個符號就是 spec 與骨架漂移,回報,不要自己猜對應的是哪一個)
 - 專案既有的**測試**檔:只為了對齊測試框架、命名慣例與目錄位置,不是為了抄行為
 - 該子系統既有的 `spec-gaps.md`(有的話):已經 `open` 的 gap 不要重複記
 

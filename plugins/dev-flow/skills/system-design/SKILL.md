@@ -6,7 +6,7 @@ user-invocable: true
 
 # /system-design — Level 1 系統主架構設計
 
-先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/doc-lifecycle.md`(資料夾樹、編號、引用格式、權威來源、frontmatter 規格);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
+先讀取 `../_shared/conventions.md`(核心慣例:**資訊抽象邊界規範**)與 `../_shared/boundary-rules.md`(**邊界判斷規則** + 設計階段規則);本 skill 要新建 `system.md` 與 ADR,另讀 `../_shared/doc-lifecycle.md` 的六節,用 `node "<arch-audit skill 目錄>/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 文檔角色與權威來源 資料夾結構 架構文檔 ADR 清單欄位格式 description` 取(**不要整份讀**);收尾時另讀 `../_shared/anchor.md`(定錨區塊格式)。
 
 ## 目標
 

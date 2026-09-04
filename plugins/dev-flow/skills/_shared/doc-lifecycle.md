@@ -64,8 +64,8 @@ F 的那一行必須**指到 `system.md` 職責的哪一句**;指不到職責的
 
 **不是任務文檔的四種**(不參與 F/E/B 編號、不列入進度統計):
 
-- `build-log.md` —— 編排過程(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)。`/arch-audit status` 不掃它;它的價值在「中斷後能接續」與「事後查得到當初為什麼這樣決定」
-- `spec-gaps.md` —— **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`)。有 `open` 條目就代表有項目正卡著等 spec 修訂:`/arch-audit status` 會列出這些條目,並在**被那條 gap 卡住的那份文檔**那一列標 `⚠卡auth/GAP-n`(靠條目標題 `## GAP-1(auth/F002-token-refresh / qa)` 裡的文檔全名認親,標題不寫文檔全名的 gap 標不到任何人),`/subsys-build` 開跑前會擋。**委派模式下只由編排者單線寫入與配號**,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
+- `build-log.md` —— 編排過程(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)。`/arch-audit status` 不掃它;它的價值只在「中斷後能接續」與閘門對帳,**只活在委派期間**:子系統委派收線時整份刪掉(判準見「`done` 的收束」)。它裝的全是過程——契約類決定 fan out 前就進了 `design.md`,裁決在各 spec 的 REV,結果在 `status` 與測試;定案後的過程不需要被找回
+- `spec-gaps.md` —— **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`)。**只裝 open 的條目**——結案 = 寫 REV 並刪條目,檔案空了就刪檔;標 `resolved` 留著的是墓碑,腳本列提示。有條目就代表有項目正卡著等 spec 修訂:`/arch-audit status` 會列出這些條目,並在**被那條 gap 卡住的那份文檔**那一列標 `⚠卡auth/GAP-n`(靠條目標題 `## GAP-1(auth/F002-token-refresh / qa)` 裡的文檔全名認親,標題不寫文檔全名的 gap 標不到任何人),`/subsys-build` 開跑前會擋。**委派模式下只由編排者單線寫入與配號**,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
 - `design.md` 的**分冊**(`subsystems/<slug>/` 根層、`design.md` 以外的 `.md`)—— 契約章節大到一份裝不下時拆出去,但**拆出去的仍然是 `design.md` 的一部分**。兩種 `type`:`contract-part`(某個模組群的對外契約與 DTO)、`decisions`(訪談定案與否決理由)。不編號,用 `parent: <子系統 slug>` 認親;`design.md` 要指明哪一群的契約在哪一份。**凡是讀「該子系統 `design.md` 全文」的地方,一律連分冊一起讀**——契約條目可能整段住在分冊裡,只開 `design.md` 會誤判「契約缺漏」(`contract-readiness.md` A3 已放寬為跨檔比對)。拆分冊有成本(對帳從開一份檔變成開好幾份),沒大到讀不動就不要拆
 - `spikes/SPK-00x-<slug>.md` —— **可行性驗證的紀錄**(`/spike` 產出)。替某個決定生產證據,自己不是任務:問題、判準、幾輪 `RND-n`、verdict、以及結論餵給哪幾份文檔(`feeds`)。程式碼只在 `open` 期間活在 sandbox `spike/SPK-00x-<slug>/`,結案刪、每輪 sha 留在文檔。`open` 的算待辦(計入 exit code、不進百分比);`concluded` 而 `feeds` 空的或指不到文檔是不一致。規格與規則見下方「spike 文檔」。**委派模式下只由編排者寫**,subagent 只寫自己的程式碼子資料夾(理由同 `delegation.md` 第 4 條)
 
@@ -108,19 +108,20 @@ F 的那一行必須**指到 `system.md` 職責的哪一句**;指不到職責的
 
   ```markdown
   ## 修訂記錄
-  - REV-1(2026-09-10,依 auth/GAP-3):過期判定改用伺服器時鐘,不再讀客戶端時間
+  - REV-1(2026-09-10,依 qa 提問「過期判定用哪個時鐘」):過期判定改用伺服器時鐘,不再讀客戶端時間
     - 動到:LAW-2 改寫、LAW-5 新增(時鐘偏移上限)、介面 `refresh(req)` 多一個 `now` 參數
     - 保護:REG-1(既有 session 在修訂前後都還能 refresh)
     - 重委派:qa(LAW-2、LAW-5、REG-1)、impl(`refresh`)
     - 連動:billing/F004-invoice-session 的 `## 契約` 同步(Level 2,design.md「模組間公開介面」§3)
   ```
 
-  「依」欄寫觸發來源:`auth/GAP-3`、`SPK-003-storage-engine`、或 `開發者:效能`。效能修訂把基準線寫進新的 law(「p95 ≤ 100ms,基準線 2026-09-18 量測 400ms」)
+  「依」欄寫**來源與那一句話**,不寫已經刪掉的條目編號:`qa 提問「…」`、`閘門 WAVE-2「…」`、`SPK-003-storage-engine`、或 `開發者:效能`。效能修訂把基準線寫進新的 law(「p95 ≤ 100ms,基準線 2026-09-18 量測 400ms」)
 - **狀態機**:`done` 被修訂 → 退回 `specced`(文檔已是新版本、實作落後於它),`rev` +1;`planned` / `specced` 被修訂 → 狀態不變,`rev` +1。做完再推 `done`。沒被 REV 點名的 law 測試照樣綠,只重做被點名的
 - **升版不是決定**:追加 REV 與 `rev` +1 是同一個動作,人不另外判斷。`rev` 只是 REV 條數的快取,腳本查兩者對不上就報不一致,所以它不會變成第二個真理
 - **law 編號單調遞增,刪掉的號永久空缺**:REV 刪掉 LAW-3,之後新增的是 LAW-7 不是 LAW-3。`lint-laws-traceability.mjs` 的「幽靈引用」靠這條才抓得到「測試還在守一條已經不存在的 law」
 - **`REG-n` 住在原檔**:修訂時「必須不變的既有行為」寫成回歸 law,和被修訂的 law 同一份檔
-- **「知道要修、還沒修」用 GAP 記**:開發者自己發現設計有問題也寫一條(`## GAP-4(auth/F001-login / 開發者)`),那份檔就會被標 `⚠卡`、派工狀態變「卡住」、`/subsys-build` 會擋;修完 GAP 結案、REV 的「依」欄指到它
+- **「知道要修、還沒修」用 GAP 記**:開發者自己發現設計有問題也寫一條(`## GAP-4(auth/F001-login / 開發者)`),那份檔就會被標 `⚠卡`、派工狀態變「卡住」、`/subsys-build` 會擋
+- **GAP 結案與 ASM 裁決都是修訂,結案即刪**:寫 REV 的同一個動作刪掉條目,「依」欄把原句帶過去(`依 qa 提問「過期判定用哪個時鐘」`、`依 閘門 WAVE-2「session 存哪」`)。定案後的問題不需要被找回;留著只是干擾。`spec-gaps.md` 只裝 open 的,`## 待確認假設` 只裝還沒裁的,兩者空了就刪(節 / 檔)
 - **下游不靠自己發現上游改過**,責任在改的人:簽名改了編譯器會告訴下游;語意改了(型別沒變、意思變了)由 `/spec-redesign` 用 `scan-status --doc` 拿反向依賴、逐份同步下游契約、寫進 REV 的「連動」欄。腳本補一條對帳當漏網之魚的提示(不進 exit code):X 依賴 Y,Y 最後一條 REV 晚於 X 的 `updated`,**而且那條 REV 的「連動」沒點名 X** → 「Y 修訂到 rev n 時沒有點名 X,X 也沒對過帳」。改的人有列到 X 就不報——提示消失的方式是上游盡到責任,不是下游 bump `updated`
 - **腳本對帳**(進不一致):`rev` 與 REV 條數對不上;`done` 但最後一條 REV 晚於 `updated`;REV「動到」點名的 law 在檔裡不存在
 
@@ -134,11 +135,11 @@ F 的那一行必須**指到 `system.md` 職責的哪一句**;指不到職責的
 
 | 章節 | 處置 |
 |---|---|
-| `## 待確認假設` | **逐條三選一**。已裁決 → 結論寫進 `## 不可逆決定`(結論本身是架構級的就開 ADR),**刪掉原條目**;已變成契約 → 走 `/spec-redesign` 摺進 `## 契約` 的修訂行;**還沒裁決 → 那就還不能 `done`** |
+| `## 待確認假設` | 推到 `done` 時**必須已經是空的**:每條 ASM 在閘門裁決當下就處置完(結論寫進 `## 不可逆決定` / 契約修訂行 / ADR,記一條 REV,刪掉條目)。還有條目 = 還沒裁,不能 `done` |
 | `## 修訂記錄` | **常駐,不搬**。它是這份檔的版本史,一條 REV 只留結論(動到 / 保護 / 重委派 / 連動);修訂的討論過程才搬 `archive/<F00x-slug>-rev<n>-process.md` |
 | `## 閘門裁決紀錄`、`## 已定案的委派判斷`、各種查證紀錄 | 整節搬進 `archive/<F00x-slug>-process.md` |
 | `## 實作備註` | 只留**讀碼看不出來**的那幾條(為什麼繞路、踩過什麼坑、哪個外部行為不如文件所寫),其餘刪——讀碼看得出來的,碼是權威 |
-| `build-log.md` 已驗收的階段 | 摺成一行結果(階段、波次數、feature 清單、閘門結論),細節搬 `archive/` |
+| `build-log.md` | 子系統委派**收線時整份刪掉**,不搬 archive。四道確認:該子系統的 F 與 E 全部 `done`、`spec-gaps.md` 不存在、每份 spec 的 `## 待確認假設` 已空、自裁清單抽查過或開發者接受不抽。中途停下的才留著——`status: in-progress` 就是保留的唯一理由 |
 
 **不留墓碑**。「已於 X 日裁決,不再是待確認假設」這種**留在原位**的註記是最糟的形式:它同時佔著版面又宣告自己無效,而讀者要讀完整條才知道可以跳過。裁決的結論有它該去的地方,搬過去,原地刪乾淨。
 
@@ -160,7 +161,7 @@ F 的那一行必須**指到 `system.md` 職責的哪一句**;指不到職責的
 ├── subsystems/
 │   └── <subsystem-slug>/            # 資料夾名 = 子系統 slug(英文 kebab-case)
 │       ├── design.md                # /subsys-design 產出:Level 2 子系統架構(「功能總覽」由腳本生成,不手寫)
-│       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只有跑過才有)
+│       ├── build-log.md             # /subsys-build 產出:委派決策記錄與各波次執行結果(只活在委派期間,收線即刪)
 │       ├── spec-gaps.md             # /spec-qa、實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
 │       ├── contract-<模組群>.md      # design.md「對外契約」的分冊(契約大到裝不下才拆;type: contract-part)
 │       ├── decisions.md             # 訪談定案與否決理由(拆了分冊才有;type: decisions)
@@ -361,7 +362,7 @@ id: <subsystem-slug>-build
 type: build-log
 title: <subsystem-slug>-build
 description: <一句話,40 字內:這次委派展開了什麼>
-status: in-progress     # in-progress | done
+status: in-progress     # 固定 in-progress:全部做完就刪檔,沒有 done 這一格
 created: 2026-08-19
 updated: 2026-08-19
 parent: <subsystem-slug> # 回鏈所屬子系統的 design.md
@@ -376,7 +377,7 @@ id: <subsystem-slug>-gaps
 type: spec-gaps
 title: <subsystem-slug>-gaps
 description: <一句話,40 字內:這個子系統有哪些 spec 待釐清>
-status: open            # open(還有未結條目)| done(全部 resolved)
+status: open            # 固定 open:這個檔只裝未結條目,空了就刪檔
 created: 2026-08-19
 updated: 2026-08-19
 parent: <subsystem-slug> # 回鏈所屬子系統的 design.md

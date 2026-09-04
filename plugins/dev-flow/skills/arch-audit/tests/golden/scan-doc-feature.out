@@ -20,7 +20,7 @@
 契約             缺 4 欄(實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做) ⚠ 與 status 對不上:規格寫了、契約沒補
 介面 / 數據      1 條
 Laws / Examples  2 / 2(照 spec 應有 4 個測試)
-契約級假設 ASM   1 條,舊格式沒有裁決欄(去 build-log 查)
+契約級假設 ASM   無(裁完即刪,沒有條目才是正常)
 code-paths       1 個(src/Auth/Login.hs)
 修訂             rev 1(REV 1 條,最後 REV-1 2026-08-20,動到 LAW-1)
 

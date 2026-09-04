@@ -39,8 +39,10 @@ B   auth/F003-logout + auth/MFA 模組群  半步可開工  /subsys-design auth 
 -----------------------  -----------------------------------------  ----  --------------------------------------  ----------  ----------
 auth/F002-token-refresh  auth/GAP-1「過期判定用哪個時鐘」(qa 提出)  7 天  /spec-redesign auth/F002-token-refresh  無下游      無
 
-=== §5 等決定的(0)===
-(無)
+=== §5 等決定的(1)===
+- auth/F002-token-refresh 還有 1 條契約級假設(ASM)沒裁
+    影響:auth/F002-token-refresh 的實作照「暫採」蓋上去,沒有人簽過
+    建議:與 gap 一起在 /spec-redesign auth/F002-token-refresh 裁
 
 === §6 動一個牽動誰 ===
 - G-C001-session(共用契約)被 auth(未完成 3 份)、billing(未建檔) 使用。billing 還沒建檔,現在改條目代價最低;建檔後每改一次要通知 2 邊。

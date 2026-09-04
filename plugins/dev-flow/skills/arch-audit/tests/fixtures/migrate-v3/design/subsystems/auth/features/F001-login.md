@@ -36,3 +36,8 @@ code-paths: [src/Auth/Login.hs]
 | # | 輸入 | 預期輸出 | 覆蓋的邊界 |
 |---|---|---|---|
 | EX-1 | a | b | 正常 |
+## 待確認假設
+- ASM-1: session 存哪
+  - 現況原文:`login :: A -> B`
+  - 暫採:記憶體
+  - 裁決:接受 a(WAVE-1 閘門 2026-07-18);已回寫 design.md

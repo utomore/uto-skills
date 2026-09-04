@@ -640,34 +640,15 @@ for (const [k, ids] of blockedBy) {
  */
 const gapFlag = (r) => (r.blockedBy?.length ? ` ⚠卡${r.blockedBy.map((g) => `${r.subsystem}/${g}`).join(",")}` : "");
 
-// 結案證據:標了 resolved 就要指得出「改的是哪份文檔、什麼時候改的」。
-// 沒有證據的結案 = spec 可能根本沒改,只是把狀態改掉讓閘門放行(spec-roles.md「spec-gaps 協議」)。
-const docUpdated = new Map(); // "<subsys>/<id>" 與裸 "<id>" 都放,寬鬆比對
-for (const r of rows) {
-  const u = r.updated && r.updated !== "-" ? r.updated : null;
-  docUpdated.set(`${r.subsystem}/${r.id}`, u);
-  if (!docUpdated.has(r.id)) docUpdated.set(r.id, u);
-}
-for (const g of allGaps.filter((x) => x.resolved)) {
-  if (!g.fix) {
-    archIssues.push(`${g.file}:${g.id} 標了 resolved 但沒有「修訂」行(結案沒有證據,無法確認 spec 真的改過)`);
-    continue;
-  }
-  const docId = g.fix.match(/\b(G-[CFEB]\d{3}|[FEB]\d{3})\b/)?.[1];
-  if (!docId) {
-    archIssues.push(`${g.file}:${g.id} 的「修訂」沒指出文檔 id(格式:<文檔 id> §<章節>(<日期>);<改了什麼>)`);
-    continue;
-  }
-  const key = `${g.scope}/${docId}`;
-  const known = docUpdated.has(key) ? key : docUpdated.has(docId) ? docId : null;
-  if (!known) {
-    archIssues.push(`${g.file}:${g.id} 的「修訂」指向 ${docId},但找不到這份文檔`);
-    continue;
-  }
-  const fixedAt = g.fix.match(/(\d{4}-\d{2}-\d{2})/)?.[1];
-  const updated = docUpdated.get(known);
-  if (fixedAt && updated && updated < fixedAt)
-    archIssues.push(`${g.file}:${g.id} 結案於 ${fixedAt},但 ${docId} 的 updated 是 ${updated}(spec 沒在結案當天或之後改過)`);
+// 結案就刪(spec-roles.md「spec-gaps 協議」):spec-gaps.md 只裝 open 的條目,結案 = 寫 REV 並刪條目。
+// 還留著 resolved 的是墓碑 —— 證據已由那份 spec 的 REV 承接,留著只是干擾。列提示不列不一致:
+// 舊專案清一次(migrate-v3.mjs --apply)就好,不該讓它們的 exit code 變成 1。
+for (const g of allGaps.filter((x) => x.resolved))
+  archNotes.push(`${g.file}:${g.id} 標了 resolved 還留在檔上 —— 結案就刪(證據在被修訂那份 spec 的 REV「依」欄),migrate-v3.mjs --apply 可一次清掉`);
+{
+  const files = new Map();
+  for (const g of allGaps) files.set(g.file, (files.get(g.file) ?? 0) + (g.resolved ? 0 : 1));
+  for (const [file, open] of files) if (open === 0) archNotes.push(`${file}:沒有任何 open 的條目 —— 這個檔只裝未結的 gap,空了就刪檔`);
 }
 
 // ---------------------------------------------------------------- 主架構
@@ -1016,6 +997,13 @@ if (noGroupTable.length > 0)
       `子系統內有多個平行領域、而其中幾個還沒開工時,不寫這張表會讓進度只算得到已落地的那一群`,
   );
 
+// build-log 只活在委派期間:F / E 全 done、沒有 gap、沒有待裁 ASM 而它還在 = 收線漏刪(doc-lifecycle.md「done 的收束」)
+for (const s of subsysRows.filter((x) => x.built && x.complete)) {
+  if (!existsSync(join(subsysRoot, s.id, "build-log.md"))) continue;
+  const asmLeft = [...(subsysDocs.get(s.id)?.ids.values() ?? [])].some((r) => r.asm.total > 0);
+  const gapsLeft = existsSync(join(subsysRoot, s.id, "spec-gaps.md"));
+  if (!asmLeft && !gapsLeft) archNotes.push(`subsystems/${s.id}/build-log.md:委派已收線(F / E 全 done、沒有 gap、沒有待裁 ASM)但檔還在 —— 它只活在委派期間,收線就刪(migrate-v3.mjs --apply 可代刪)`);
+}
 // 名冊上有、還沒建 design.md 的子系統:它們是待辦,要進表、進分母,但不算「不一致」
 for (const slug of plannedSubsys) {
   subsysRows.push({
@@ -1138,6 +1126,14 @@ for (const r of rows) {
     archIssues.push(`${r.file}:status 是 ${r.status},但最後一條 REV-${last.n}(${last.date})晚於 updated(${r.updated})—— 修訂後要退回 specced 並同步 updated`);
   if (last && r.lawIds.size)
     for (const id of last.touches) if (!r.lawIds.has(id)) archIssues.push(`${r.file}:REV-${last.n}「動到」點名 ${id},但 Laws 裡沒有這一條`);
+}
+// ASM:done 不准還有沒裁的(裁完就刪,所以「還有條目」就是「還沒裁」);帶已填「裁決」欄的是舊格式墓碑
+for (const r of rows) {
+  const open = r.asm.total - r.asm.ruled;
+  if (DONE_STATUSES.has(r.status) && open > 0)
+    archIssues.push(`${r.file}:status 是 ${r.status},但「## 待確認假設」還有 ${open} 條沒裁 —— 裁完(結論寫進契約 / 不可逆決定,記 REV)刪掉條目才能 done`);
+  if (r.asm.ruled > 0)
+    archNotes.push(`${r.file}:${r.asm.ruled} 條 ASM 帶著已填的「裁決」欄還留在檔上 —— 裁完就刪(結論搬進契約修訂行 / 不可逆決定,記 REV),migrate-v3.mjs --apply 可一次清掉`);
 }
 // 下游對帳(提示,不進 exit code):上游修訂晚於下游 updated、而那條 REV 的「連動」沒點名下游
 for (const x of rows) {
@@ -1289,7 +1285,7 @@ for (const r of rows)
 //
 // `status` 講的是**文檔寫到哪**(planned / specced / done),派工要的是**這件事今天能不能動**:
 // 一份 specced 可能卡在 gap,一份 planned 可能契約齊全能直接委派。兩者正交,所以另算一格。
-// 全部從既有欄位推:depends-on、blockedBy(gap)、契約六欄、spike 的 feeds、ASM 的裁決欄。
+// 全部從既有欄位推:depends-on、blockedBy(gap)、契約欄、spike 的 feeds、ASM 條目(存在即未裁)。
 // 腳本只算「能不能動」,「該不該先動它」是人的判斷 —— 這裡給的是候選與理由,不是決定。
 
 const today = (() => {
@@ -1358,7 +1354,7 @@ for (const r of rows) {
   const unknown = targets.filter((t) => t.kind === "unknown");
   const gaps = r.blockedBy ?? [];
   const feeds = openSpikes.filter((sp) => spikeFeeds(sp, r.subsystem, r.id));
-  const asmOpen = r.asm.marked ? r.asm.total - r.asm.ruled : 0;
+  const asmOpen = r.asm.total - r.asm.ruled; // 條目存在即未裁;帶已填「裁決」欄的是舊格式墓碑,另列提示、不算未裁
   const half = r.type === "feature" && r.status === "planned" && r.contractGaps.length > 0;
   const why = [];
   let state;
@@ -1375,7 +1371,7 @@ for (const r of rows) {
   } else if (feeds.length || asmOpen) {
     state = "deciding";
     for (const sp of feeds) why.push({ what: `${spikeName(sp)} 還沒有結論${sp.question ? `:${sp.question}` : ""}`, since: sp.updated, fix: `/spike ${spikeName(sp)}` });
-    if (asmOpen) why.push({ what: `${asmOpen} 條契約級假設未裁(ASM ${r.asm.ruled}/${r.asm.total})`, since: r.updated, fix: `/spec-redesign ${name}(裁 ASM)` });
+    if (asmOpen) why.push({ what: `${asmOpen} 條契約級假設(ASM)還沒裁`, since: r.updated, fix: `/spec-redesign ${name}(裁 ASM:結論寫進契約 / 不可逆決定,記 REV,刪條目)` });
   } else if (half) {
     state = "half";
     why.push({ what: `契約缺 ${r.contractGaps.join("、")}`, since: r.updated, fix: `/subsys-design ${r.subsystem}` });
@@ -1514,7 +1510,7 @@ function decisionLines(inScope = () => true, spikeScope = () => true) {
   }
   for (const d of [...dispatch.values()].filter((d) => d.asmOpen > 0 && inScope(d.row))) {
     lines.push(
-      `- ${rowName(d.row)} 的契約級假設 ASM 已裁 ${d.row.asm.ruled}/${d.row.asm.total}(${d.asmOpen} 條未裁)` +
+      `- ${rowName(d.row)} 還有 ${d.asmOpen} 條契約級假設(ASM)沒裁` +
         `\n    影響:${rowName(d.row)} 的實作照「暫採」蓋上去,沒有人簽過` +
         `\n    建議:${d.state === "blocked" ? `與 gap 一起在 /spec-redesign ${rowName(d.row)} 裁` : `/spec-redesign ${rowName(d.row)}(裁 ASM)`}`,
     );
@@ -1601,7 +1597,7 @@ function impactLines(inScope = () => true) {
  */
 const DISPATCH_WARN = [
   /depends-on 的 .* 無法解析/, /feeds 的 .* 指不到/, /status 是 .*(卻|但)/, /沒有「## 契約」/,
-  /但 subsystems\/ 沒有這個子系統/, /結案於 |沒有「修訂」行|「修訂」沒指出|「修訂」指向/, /缺 design\.md/,
+  /但 subsystems\/ 沒有這個子系統/, /缺 design\.md/,
   /找不到 \.design\/system\.md/, /涵蓋子系統寫了/, /標 active,但沒有任何 feature/, /group「.*」不在/, /沒填 frontmatter 的 group/,
   /引用了 SPK-\d+,但/, /缺「狀態」行|狀態值「/, /標題沒寫這條 gap|標題指向/, /concluded 但 feeds 是空的/, /未被 system\.md 的 subsystems 名冊列入/,
   /沒有「開發階段」表格/, /缺 mode 欄/,
@@ -1786,7 +1782,7 @@ if (query.doc) {
     });
   specRows.push({ k: "介面 / 數據", v: hit.ifaces ? `${hit.ifaces} 條` : "沒有表格" });
   specRows.push({ k: "Laws / Examples", v: `${hit.laws} / ${hit.examples}${hit.laws + hit.examples ? `(照 spec 應有 ${hit.laws + hit.examples} 個測試)` : ""}` });
-  specRows.push({ k: "契約級假設 ASM", v: hit.asm.total ? (hit.asm.marked ? `已裁 ${hit.asm.ruled}/${hit.asm.total}` : `${hit.asm.total} 條,舊格式沒有裁決欄(去 build-log 查)`) : "無" });
+  specRows.push({ k: "契約級假設 ASM", v: hit.asm.total ? `${hit.asm.total - hit.asm.ruled} 條沒裁${hit.asm.ruled ? `,另 ${hit.asm.ruled} 條裁完沒刪 ⚠(結論搬進契約 / 不可逆決定,記 REV,刪條目)` : ""}` : "無(裁完即刪,沒有條目才是正常)" });
   specRows.push({ k: "code-paths", v: hit.codePaths.length ? `${hit.codePaths.length} 個(${hit.codePaths.join("、")})` : DONE_STATUSES.has(hit.status) ? "空 ⚠ 收尾漏回寫" : "空(實作收尾時回寫)" });
   {
     const { count, last } = hit.revisions;

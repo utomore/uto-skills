@@ -30,10 +30,8 @@ export function countIds(body, ...prefixes) {
 /**
  * 數「待確認假設」一節的條目與裁決:`{ total, ruled, marked }`(傳入**節內文**,不含標題)。
  *
- * `裁決:` 欄是後來才補的(`delegation-design.md`)。**舊文檔一條 `裁決:` 都沒有,
- * 那代表「不知道」,不是「全部未裁」** —— 裁決結果當時寫在 build-log 的彙總表裡。
- * 分不出這兩者就會把一個早就裁完的子系統報成滿江紅,而報一個你證明不了的數字比不報還糟。
- * 所以 `marked` 為 0 時呼叫端要退回只印總數。
+ * 2.2.1 起 ASM **裁完即刪**:條目存在就是還沒裁,`total - ruled` 是未裁數。`ruled`(帶已填「裁決」欄的)
+ * 是舊格式墓碑——裁完沒刪,不算未裁,呼叫端另外提示;`marked` 只是給遷移工具分辨舊格式用。
  */
 export function countRulings(sectionBody) {
   const sec = String(sectionBody ?? "");

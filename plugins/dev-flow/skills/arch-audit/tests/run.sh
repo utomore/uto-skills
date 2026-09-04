@@ -149,8 +149,10 @@ if [[ -f "$MIG_TMP/.design/subsystems/auth/archive/E001-token-cache-migrated.md"
    grep -q '核心判準' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
    grep -q '非核心判準' "$MIG_TMP/.design/subsystems/auth/enhancements/E002-remember-device.md" &&
    grep -q '^rev: 0' "$MIG_TMP/.design/subsystems/auth/enhancements/E002-remember-device.md" &&
-   grep -q '摺回讓 F 退回 specced' <<<"$mig_out"; then
-  echo "✓ --apply:摺回 → F rev 1 + REV-1 + 退回 specced、E 進 archive;留 E → 契約骨架;對帳講得出少的那一份"
+   grep -q '摺回讓 F 退回 specced' <<<"$mig_out" &&
+   [[ ! -f "$MIG_TMP/.design/subsystems/auth/spec-gaps.md" ]] &&
+   ! grep -q 'ASM-1' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md"; then
+  echo "✓ --apply:摺回 → F rev 1 + REV-1 + 退回 specced、E 進 archive;留 E → 契約骨架;墓碑(resolved GAP、裁完的 ASM)清掉;對帳講得出少的那一份"
 else
   echo "✗ migrate-v3 --apply 的結果不對"; echo "$mig_out" | tail -8; fail=1
 fi

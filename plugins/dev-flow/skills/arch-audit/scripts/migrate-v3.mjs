@@ -6,6 +6,8 @@
  *   1. **E 不再是「優化既有功能」,是「拿掉它子系統照樣運作」的擴充功能。** 舊的 E 大多是改既有 F 的
  *      行為 / 介面 / 效能 —— 那在新模型裡是那份 F 的一次**修訂**(REV),不該是第二份檔。
  *   2. **F 多了 `rev` 欄與「核心判準」行**,分類的證據要寫在檔上。
+ *   3. **GAP 結案即刪、ASM 裁完即刪**:`spec-gaps.md` 只裝 open 的,`## 待確認假設` 只裝還沒裁的。
+ *      舊專案裡標 resolved 的 GAP 與帶「裁決」欄的 ASM 是墓碑,--apply 一次清掉(證據在 REV / 契約)。
  *
  * 判斷不在腳本裡。每一份既有 E 要人決定三選一(摺回 F / 留 E / 拆),腳本只做兩件事:
  *   - **列清單、給提示**(介面表幾列「修改 / 移除」、related-feature 指誰、幾條 REG-),印下一份未決的原文
@@ -34,7 +36,8 @@ import { join, relative, basename } from "node:path";
 import { parseFrontmatter, asList } from "./_frontmatter.mjs";
 import { section } from "./_sections.mjs";
 import { dataCells } from "./_tables.mjs";
-import { countIds } from "./_counts.mjs";
+import { countIds, countRulings } from "./_counts.mjs";
+import { parseGapBlocks } from "./_gap-status.mjs";
 import { printHelpIfAsked, usageBlock } from "./_help.mjs";
 
 const USAGE = usageBlock(import.meta.url);
@@ -235,6 +238,19 @@ const fNeeds = allF.filter((f) => !f.hasRev || (f.hasContract && !f.hasCriterion
 
 // ---------------------------------------------------------------- --apply
 
+// ---------------------------------------------------------------- 墓碑:resolved 的 GAP、裁完沒刪的 ASM
+
+const tombstones = { gaps: [], asms: [] };
+for (const p of [...subsystems.map((s) => join(subsysRoot, s, "spec-gaps.md")), join(designDir, "spec-gaps.md")]) {
+  if (!existsSync(p)) continue;
+  const resolved = parseGapBlocks(readFileSync(p, "utf8")).filter((g) => g.resolved).length;
+  if (resolved) tombstones.gaps.push({ path: p, resolved });
+}
+for (const d of [...allF, ...allE]) {
+  const r = countRulings(section(d.text, /待確認假設/)?.body);
+  if (r.ruled) tombstones.asms.push({ path: d.path, full: d.full, ruled: r.ruled });
+}
+
 const doneBefore = allF.filter((f) => /^(done|closed)$/.test(f.status)).length;
 const applied = [];
 const manual = [];
@@ -339,6 +355,43 @@ if (apply) {
       manual.push(`${e.full}:決定是「升 G-F」—— 用 scan-ids.mjs --claim G-F 重新配號建檔、把契約與分工表搬過去、原 G-E 搬 archive/,做完把狀態改「完成」`);
     }
   }
+  // 墓碑:resolved 的 GAP 與裁完沒刪的 ASM(結案 / 裁決即刪,證據在 REV;spec-roles.md、delegation-design.md)
+  for (const t of tombstones.gaps) {
+    let text = readFileSync(t.path, "utf8");
+    const nl = nlOf(text);
+    const parts = text.split(/^(?=##\s+)/m);
+    const kept = parts.filter((b, i) => i === 0 || !/^##\s+(?:GAP-\d+|G\d+)/.test(b) || !/^[ \t]*[-*][ \t]+[*`_]{0,2}狀態[*`_]{0,2}[ \t]*[::][ \t]*`?resolved/mi.test(b));
+    const remaining = kept.filter((b, i) => i > 0 && /^##\s+(?:GAP-\d+|G\d+)/.test(b)).length;
+    if (remaining === 0) {
+      unlinkSync(t.path);
+      applied.push(`${rel(t.path)}:${t.resolved} 條 resolved 的 GAP 刪掉後沒有 open 的,整個檔刪掉`);
+    } else {
+      writeFileSync(t.path, kept.join("").replace(/\s*$/, "") + nl);
+      applied.push(`${rel(t.path)}:刪掉 ${t.resolved} 條 resolved 的 GAP,留下 ${remaining} 條 open`);
+    }
+  }
+  for (const t of tombstones.asms) {
+    let text = readFileSync(t.path, "utf8");
+    const nl = nlOf(text);
+    const lines = text.split(/\r?\n/);
+    const h = lines.findIndex((l) => /^##\s+待確認假設/.test(l));
+    if (h < 0) continue;
+    let end = lines.findIndex((l, i) => i > h && /^##\s+/.test(l));
+    if (end < 0) end = lines.length;
+    const body = lines.slice(h + 1, end);
+    const entries = [];
+    for (const line of body) {
+      if (/^[ \t]*[-*][ \t]*[*`_]{0,2}ASM-\d+/.test(line)) entries.push([line]);
+      else if (entries.length) entries[entries.length - 1].push(line);
+      else entries.push([line]); // 節首的說明文字
+    }
+    const keep = entries.filter((e) => !(/^[ \t]*[-*][ \t]*[*`_]{0,2}ASM-\d+/.test(e[0]) && e.some((l) => /^[ \t]+[-*][ \t]*[*`_]{0,2}裁決[*`_]{0,2}[ \t]*[::][ \t]*(?!未裁)\S/.test(l))));
+    const remainingAsm = keep.filter((e) => /^[ \t]*[-*][ \t]*[*`_]{0,2}ASM-\d+/.test(e[0])).length;
+    const newBody = remainingAsm ? keep.flat() : [];
+    const rebuilt = remainingAsm ? [...lines.slice(0, h + 1), ...newBody, ...lines.slice(end)] : [...lines.slice(0, h), ...lines.slice(end)];
+    writeFileSync(t.path, rebuilt.join(nl).replace(/\s*$/, "") + nl);
+    applied.push(`${t.full}:刪掉 ${t.ruled} 條裁完沒刪的 ASM${remainingAsm ? `,留下 ${remainingAsm} 條還沒裁的` : ",整節拿掉"}`);
+  }
   // F 補欄:**重讀現況**再判 —— 上面的摺回可能剛把同一份 F 的 rev 推到 1,拿掃描時的旗標會把它蓋回 0
   for (const f of fNeeds) {
     const now = readTask(f.path, f.subsystem);
@@ -359,6 +412,10 @@ if (rows.length || existsSync(LEDGER)) writeLedger(rows, ledger.nl);
 console.log(`=== migrate-v3:核心功能模型遷移(${apply ? "--apply" : "dry-run,不動 F / E 文檔"})===`);
 console.log(`帳本  ${rel(LEDGER)}${rows.length ? `(${rows.length} 列:未決 ${undecided.length}、已決未完成 ${pending.length - undecided.length}、完成 ${rows.length - pending.length}${added ? `;本次新增 ${added} 列` : ""})` : "(沒有要分流的 E,不建帳本)"}`);
 console.log(`F 要補欄  ${fNeeds.length} 份${fNeeds.length ? `(缺 rev 或核心判準):${fNeeds.map((f) => f.full).join("、")}` : ""}${apply && fNeeds.length ? " —— 已補 rev: 0 / 核心判準「待補」,判準的內容要人填" : ""}`);
+console.log(
+  `墓碑  resolved 的 GAP ${tombstones.gaps.reduce((n, t) => n + t.resolved, 0)} 條(${tombstones.gaps.length} 個檔)、裁完沒刪的 ASM ${tombstones.asms.reduce((n, t) => n + t.ruled, 0)} 條(${tombstones.asms.length} 份)` +
+    (tombstones.gaps.length || tombstones.asms.length ? (apply ? " —— 已刪(結案 / 裁決即刪,證據在 REV)" : " —— --apply 會刪:結案 / 裁決的結論早已在契約與 REV 裡,條目留著只是干擾") : ""),
+);
 
 if (applied.length) {
   console.log("\n=== 本次 --apply 做了 ===");

@@ -27,7 +27,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 | 讀什麼 | 為什麼 |
 |---|---|
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、資訊抽象邊界規範、通用規則。**不讀「跑東西的紀律」**——本 skill 只跑盤點腳本,不跑測試 |
-| `../_shared/spec-roles.md` | 三角色契約與 **spec-gaps 協議**(回填格式) |
+| `../_shared/spec-roles.md` | 三角色契約與 **spec-gaps 協議**(結案 = 寫 REV 並刪條目) |
 | `../_shared/boundary-rules.md` | **層級判斷**——本 skill 的第一個動作就靠它 |
 | 目標 feature / enhance 檔全文 + 它的骨架 | 你要改的東西 |
 | `.design/subsystems/<slug>/spec-gaps.md` 的 `open` 條目 | 觸發本次修改的問題 |
@@ -125,13 +125,13 @@ node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 六種
 1. 改完的 `## 契約` 底下追加一行修訂行:
 
    ```markdown
-   - 修訂 2026-09-03 依 auth/GAP-3:<改了什麼,一句話>(層級:Level 3 就地 / Level 2 連動 design.md「模組間公開介面」)
+   - 修訂 2026-09-03 依 qa 提問「<模糊點原句>」:<改了什麼,一句話>(層級:Level 3 就地 / Level 2 連動 design.md「模組間公開介面」)
    ```
 
 2. `## 修訂記錄` 追加一條 `REV-n`(沒有這一節就建;格式與規則見 `doc-lifecycle.md`「修訂(rev 與 REV)」),frontmatter `rev` +1——**兩者是同一個動作**,`rev` 只是 REV 條數的快取,腳本會查對不對得上:
 
    ```markdown
-   - REV-2(2026-09-03,依 auth/GAP-3):<一句話:改了什麼、為什麼>
+   - REV-2(2026-09-03,依 qa 提問「<模糊點原句>」):<一句話:改了什麼、為什麼>
      - 動到:LAW-2 改寫、LAW-5 新增、介面 `refresh(req)` 多一個 `now` 參數
      - 保護:REG-1(既有 session 在修訂前後都還能 refresh)
      - 重委派:qa(LAW-2、LAW-5、REG-1)、impl(`refresh`)
@@ -143,7 +143,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 六種
 
 觸發來源是 spike 時「依」後面寫 spike 全名(`依 SPK-003-storage-engine`),並把這份文檔的全名補進那份 spike 的 `feeds` 欄——那是 spike 唯一被允許的跨文檔回寫,由你做,不由 spike 做。開發者直接提出、沒有 gap 的修訂,「依」寫 `開發者:<一句話>`。
 
-回填 gap 條目的 `狀態:resolved` 與 `修訂` 行(格式見 `../_shared/spec-roles.md`「spec-gaps 協議」)。**`修訂` 行必須指出是哪一份文檔的全名**——`/arch-audit status` 會查「gap 標了 resolved,但修訂行指到的文檔 `updated` 比結案日期早」,指不出來的結案會被列為不一致。
+觸發本次修訂的 GAP,**在同一個動作裡整條刪掉**(格式與理由見 `../_shared/spec-roles.md`「spec-gaps 協議」):它的模糊點原句已經抄進 REV 的「依」欄,定案後的問題不需要被找回;`spec-gaps.md` 只裝 open 的,空了就刪檔。閘門裁決的 ASM 同理:結論寫進契約修訂行 / 不可逆決定,REV 依欄寫 `閘門 WAVE-n「<一句話>」`,刪掉條目。
 
 同步該檔的 `updated`;Level 2 的話 `design.md` 也要同步。修訂的討論過程(否決了什麼、為什麼)不留在原檔,搬 `archive/<F00x-slug>-rev<n>-process.md`。
 

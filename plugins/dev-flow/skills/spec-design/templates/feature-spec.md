@@ -1,6 +1,6 @@
 # 模板:feature spec(`features/F00x-<slug>.md`)
 
-`/spec-design` **feature 模式**步驟 5 打開這一份逐欄填。enhance 模式不讀本檔。
+`/spec-design` **feature 模式**步驟 5 打開這一份逐欄填(目標是 E 時再看 `enhancement-spec.md` 列的三處差異;global 模式讀 `global-feature-spec.md`)。
 
 **這份檔已經存在**:`/subsys-design` 在規劃當下就鑄號建好了,frontmatter 齊、`## 契約` 也寫好了。
 你要做的是**往下加節**(數據 / 介面 / Laws / Examples / 依賴 / 骨架…)並把 `status` 從 `planned` 改成 `specced`。
@@ -13,8 +13,10 @@ type: feature
 title: <slug>
 description: <一句話,40 字內:這個功能做什麼>
 status: specced         # ⬛ 建檔時是 planned,本步驟改成 specced(值域見 doc-lifecycle「狀態與生命週期」)
+rev: 0                  # ⬛ 初版 0;之後每次 /spec-redesign 修訂 +1,= ## 修訂記錄 的 REV 條數(本步驟不動)
 stage: S1               # ⬛ /subsys-design 寫的,不動
 modules: []             # ⬛ /subsys-design 寫的,不動
+part-of: []             # ⬛ 承接哪份 G-F 的一段(如 [G-F001]);沒有就是 []。G-F 的分工表是權威,這一欄是索引
 created: <today>
 updated: <today>
 depends-on: []          # 依賴的文檔,一律帶子系統前綴 [auth/F001](格式見 doc-lifecycle「文檔引用格式」);空陣列 = 可平行開發(最後填,由介面表反推)
@@ -29,9 +31,11 @@ code-paths: []          # 建檔時留空;impl 收尾時與 status: done 一起�
 (這個 feature 為什麼存在,2-3 句;要解決的問題)
 
 ## 契約
-⬛ **`/subsys-design` 的產出,一個字都不准改。** 六欄:階段 / 負責模組 / 實作的 Level 2 介面 /
+⬛ **`/subsys-design` 的產出,一個字都不准改。** 核心判準一行 + 六欄:
+`- **核心判準**:少了它,<子系統> 就無法「<system.md 職責原句>」` / 階段 / 負責模組 / 實作的 Level 2 介面 /
 資料流管線段落 / 驗收標準 / 明確不做。要改走 `/spec-redesign`(它會判這是 Level 3 就地改
-還是要回 Level 2),改完會在這一節底下追加一行 `- 修訂 <日期> 依 <gap>:…`。
+還是要回 Level 2),改完會在這一節底下追加一行 `- 修訂 <日期> 依 <gap>:…`,並在檔尾的
+`## 修訂記錄` 加一條 REV。核心判準指不到 system.md 的職責 = 分類錯了,回 `/subsys-design` 重分類。
 
 ## 未超出範圍
 (逐條對照上面「實作的 Level 2 介面」,確認本 feature 沒有新增 design.md 沒有的對外條目;
@@ -141,4 +145,9 @@ code-paths: []          # 建檔時留空;impl 收尾時與 status: done 一起�
 
 ## 實作備註
 (開發過程中與設計的偏差記錄於此,撰寫時留空)
+
+## 修訂記錄
+(**撰寫時不建這一節**——初版沒有修訂。第一次 `/spec-redesign` 時由它建,之後常駐、`done` 收束時不搬走:
+ 一輪一條 `REV-n`,只寫結論(動到 / 保護 / 重委派 / 連動),格式見 doc-lifecycle「修訂(rev 與 REV)」。
+ law 編號單調遞增,被刪的號永久空缺)
 ```

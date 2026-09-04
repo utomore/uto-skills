@@ -56,7 +56,7 @@ created: <today>
 updated: <today>
 depends-on: []
 related-adr: []
-related-feature: []     # 回鏈到出問題的 feature(一律帶子系統前綴,如 [auth/F002])
+related-feature: []     # 回鏈到出問題的 feature(一律帶子系統前綴,如 [auth/F002];E 也可以是 [auth/E001];G-B 指 G-F,如 [G-F001])
 code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫實際修到的程式碼路徑
 # 全域 G-B 文檔才有下一行:
 # subsystems: [subsys-a, subsys-b]
@@ -93,7 +93,7 @@ code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫
 1. 開工前:`updated` 換今天(`status` 維持 `specced`——v2 的值域沒有 `in-progress`,「正在做」看的是骨架裡還有沒有未實作標記,見 `../_shared/doc-lifecycle.md`「狀態與生命週期」)
 2. **先寫一條能重現缺陷的測試**,執行確認**修復前失敗**——這條測試就是缺陷的存在證明,之後保留為回歸測試。測試從公開介面寫,非看內部不可時走 `*.Internal`;**不得為測試在核心層開後門**(`testing-policy.md`)
 3. 依 TodoList 逐項修復並勾選;修法以「修復方向」為準,發現行不通時先與開發者確認,把偏差寫進「修復紀錄」
-4. **最小修復原則**:只修根因,不順手重構;修復過程發現的優化機會記下來,建議開發者另走 `/spec-design`(enhance 模式)。修法若動到 Level 2 公開契約,先與開發者確認並回頭更新對應 `design.md`
+4. **最小修復原則**:只修根因,不順手重構;修復過程發現既有功能該改的記下來,建議開發者另走 `/spec-redesign`(修訂原檔,不另開檔);發現缺一個新能力的走 `/subsys-design`(分類建檔)。修法若動到 Level 2 公開契約,先與開發者確認並回頭更新對應 `design.md`
 5. **依賴檢查(提交前自查)**:修法有沒有新增 import 方向?設計文檔裡沒有這條邊 = 架構變更,按 `boundary-rules.md`「發問協議」停下來問;核心層冒出表現層 / 前端 / 測試的概念 → 移除
 
 ## 4. 驗證
@@ -104,5 +104,5 @@ code-paths: []          # 建檔時留空;步驟 5 與 status: done 一起回寫
 ## 5. 收尾
 
 - 修復完成且測試全綠 → 填寫「修復紀錄」、`status` 改 `done`、更新 `updated`、**回寫 `code-paths`**(本次修到的產品程式碼路徑,以檔案為主,不含重現測試;欄位規格見 `../_shared/doc-lifecycle.md`)
-- 摘要給開發者:文檔路徑與**全名**(`auth/B002-login-timeout`,全域寫 `G-B001-<slug>`)、根因一句話、修法一句話、測試結果、有無另建議的 enhance 項目
+- 摘要給開發者:文檔路徑與**全名**(`auth/B002-login-timeout`,全域寫 `G-B001-<slug>`)、根因一句話、修法一句話、測試結果、有無另建議的修訂或新功能項目
 - 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本文檔標為「目前」,其下列被修到的介面/資料結構與狀態;修法若動到契約沒寫的東西,上偏離清單;下一步從樹上推(常見:`/branch-pr`,或另建議的 `/spec-design`)

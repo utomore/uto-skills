@@ -82,7 +82,7 @@ const CONVENTION = {
       kids: [
         { label: "WAVE-1", meta: "波次 · 單一次展開內 · 編排者算出來 · 用完即棄", note: "把 feature 分幾批送出(同批平行、批間有依賴)—— 不是 feature 數,波次數 <= feature 數" },
         { label: "DEC-1", meta: "批次澄清的裁決 · 單一 build-log 內 · 編排者配 · 永久(供事後查)" },
-        { label: "ASM-1", meta: "待確認假設 · 單一 spec 檔內 · spec subagent 配 · 永久", note: "契約層級:設計者自己判斷後繼續推進,閘門再裁。裁決不會讓條目消失,結果寫回該條自己的「裁決:」欄(比照 GAP 的 狀態/修訂 行)—— build-log 的彙總表是索引與合併關係,不是權威" },
+        { label: "ASM-1", meta: "待確認假設 · 單一 spec 檔內 · spec subagent 配 · 永久", note: "契約層級:設計者自己判斷後繼續推進,閘門再裁。裁完當場寫 REV 並刪條目 —— 條目存在就是還沒裁;build-log 的彙總表是索引,不是權威" },
         { label: "SELF-1", meta: "自裁記錄 · 單一回報 / 自裁清單內 · spec subagent 配 · 供抽查", note: "實作層級:不進文檔、不上閘門" },
       ],
     },
@@ -147,11 +147,11 @@ function countAssumptions(body) {
   return countRulings(section(body, /待確認假設/));
 }
 
-/** ASM 欄:有人標過 `裁決:` 才印「已裁/總數」;一條都沒標的是舊格式,只印總數並加 `?`。 */
-function asmCell(total, ruled, marked) {
+/** ASM 欄:還沒裁的條數(條目存在就是還沒裁);帶已填「裁決」欄的是舊格式墓碑,另標出來。 */
+function asmCell(total, ruled) {
   if (!total) return "-";
-  if (!marked) return `${total}?`;
-  return `${ruled}/${total}`;
+  const open = total - ruled;
+  return ruled ? `${open}(墓碑 ${ruled})` : String(open);
 }
 
 function countRoadmapRows(body) {
@@ -284,8 +284,8 @@ function buildProjectTree(designDir) {
       // 恰好相反(當成未結)。同一份檔案兩支腳本給相反答案,兩支都不出聲。分子改用同一個 `resolved` 判定。
       const blocks = parseGapBlocks(readDoc(gapPath).body);
       const totalGaps = blocks.length;
-      const done = blocks.filter((b) => b.resolved).length;
-      gapCell = totalGaps ? `${done}/${totalGaps}` : "-"; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
+      const open = blocks.filter((b) => !b.resolved).length;
+      gapCell = open ? String(open) : totalGaps ? `0(墓碑 ${totalGaps})` : "-"; // 只裝 open 的:結案即刪,留著的 resolved 是墓碑
     }
 
     let waveCell = "-";
@@ -304,7 +304,7 @@ function buildProjectTree(designDir) {
       b: String(bugs.length || "-"),
       law: legacy && !law ? "舊模板" : String(law || "-"),
       ex: legacy && !ex ? "舊模板" : String(ex || "-"),
-      asm: asmCell(asm, asmRuled, asmMarked),
+      asm: asmCell(asm, asmRuled),
       gap: gapCell,
       wave: waveCell,
     });
@@ -347,8 +347,8 @@ function buildProjectTree(designDir) {
       // 恰好相反(當成未結)。同一份檔案兩支腳本給相反答案,兩支都不出聲。分子改用同一個 `resolved` 判定。
       const blocks = parseGapBlocks(readDoc(gapPath).body);
       const totalGaps = blocks.length;
-      const done = blocks.filter((b) => b.resolved).length;
-      gapCell = totalGaps ? `${done}/${totalGaps}` : "-"; // 已結/總數:與 F、契約卡、進度同極性(不滿 = 有待辦)
+      const open = blocks.filter((b) => !b.resolved).length;
+      gapCell = open ? String(open) : totalGaps ? `0(墓碑 ${totalGaps})` : "-"; // 只裝 open 的:結案即刪,留著的 resolved 是墓碑
     }
     if (gfeat.length || genh.length || gbugs.length || gapCell !== "-") {
       rows.push({
@@ -359,7 +359,7 @@ function buildProjectTree(designDir) {
         b: String(gbugs.length || "-"),
         law: legacy && !law ? "舊模板" : String(law || "-"),
         ex: legacy && !ex ? "舊模板" : String(ex || "-"),
-        asm: asmCell(asm, asmRuled, asmMarked),
+        asm: asmCell(asm, asmRuled),
         gap: gapCell,
         wave: "-",
       });
@@ -430,10 +430,10 @@ function renderProject(designDir) {
 
   console.log(
     dim(
-      "\n所有 n/m 一律「已達成/總數」——不滿就是有待辦(GAP 已結/總數)" +
+      "\n所有 n/m 一律「已達成/總數」——不滿就是有待辦;GAP / ASM 只印還沒結的條數(結案即刪,留著的 resolved / 已裁是墓碑)" +
         "\nF 是 features/ 的份數 —— v2 起規劃與建檔是同一個動作,沒有兩個數字可以對不上;走到哪跑 scan-status" +
         "\nE 優化 · B 缺陷(份數) │ LAW+EX = 照 spec 應有的測試數(分母,非實跑數)" +
-        "\nASM 契約級假設 已裁/總數(讀 spec 裡每條的「裁決:」欄);`50?` = 舊格式沒有那一欄,裁沒裁不可考" +
+        "\nASM 契約級假設 還沒裁的條數(條目存在就是還沒裁;帶已填「裁決」欄的舊格式算墓碑)" +
         "\nWAVE 委派分幾批送出(非 feature 數)",
     ),
   );

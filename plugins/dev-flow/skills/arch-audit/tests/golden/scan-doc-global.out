@@ -23,7 +23,7 @@
 契約             齊(含核心判準)
 介面 / 數據      1 條
 Laws / Examples  1 / 1(照 spec 應有 2 個測試)
-契約級假設 ASM   無
+契約級假設 ASM   無(裁完即刪,沒有條目才是正常)
 code-paths       空(實作收尾時回寫)
 修訂             初版(rev 0),沒有修訂過
 分工             auth → auth/F001-login(已實作);billing → billing/F001-verify ⚠ 指不到

@@ -47,9 +47,6 @@ code-paths: [src/Auth/Login.hs]
 |---|---|---|---|
 | EX-1 | a | b | 正常 |
 | EX-2 | c | d | 例外 |
-## 待確認假設
-- ASM-1: 要決定 session 存哪
-
 ## 修訂記錄
 - REV-1(2026-08-20,依 auth/GAP-2):密碼雜湊參數寫進介面
   - 動到:LAW-1 措辭、介面 `login` 語意

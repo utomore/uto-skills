@@ -343,6 +343,7 @@ B 與 C 就是 G-C 的存在理由,而且正好是「設計檔即真理」最需
 | 5 | 既有 E 的遷移全部人判,腳本只列清單 | **同意** | 6.1 |
 | 6 | G-C 保留但縮窄,加升格 / 降格規則 | **同意** | 4.4 |
 | 7 | 版本用 `rev` 欄,不用 `F001v2` 進 id | **同意**。升版不是決定,是 REV 紀錄的副作用;下游靠「推 + 連動欄對帳」,不靠讀的人自己查 | 3.3、3.5、7 |
-| 8 | 遷移用帳本檔逐份判,不做臨時 skill | 建議見 6.2,**待裁** | 6.2 |
+| 8 | 遷移用帳本檔逐份判,不做臨時 skill | **同意** | 6.2 |
+| 9 | GAP 結案即刪、ASM 裁完即刪,不留 resolved / 裁決欄,不搬 archive;REV 的「依」欄只寫來源與那一句話,不寫已刪條目的編號 | **同意**(2026-09-05):定案後的問題不需要被找回,留著只是干擾。證據由 REV 與契約承接;`spec-gaps.md` 只裝 open、空了刪檔;`## 待確認假設` 只裝還沒裁的;舊專案的墓碑由 `migrate-v3.mjs --apply` 清 | spec-roles、delegation-design、doc-lifecycle、subsys-build、spec-build、arch-audit、scan-status、id-map、migrate-v3 |
 
 實作順序:`doc-lifecycle.md` 與 `spec-redesign` 先動,再 `subsys-design` / `spec-design` / templates,腳本(scan-status、id-map、scan-ids、lint-laws-traceability)次之,`migrate-v3.mjs` 最後。版本維持 2.2.1。

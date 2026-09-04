@@ -88,7 +88,7 @@ qa 交付判準(`spec-roles.md`)第一列的「紅」,只在**骨架本體還是
 | 在哪裡撞到 | 怎麼派 | 結論回到哪 |
 |---|---|---|
 | 批次澄清(`/subsys-build` 第 2 步)有一題讀了也答不出來 | fan out 之前先派,結論當「已查過」再問人,或根本不必問 | `design.md` 契約或 `build-log.md` 委派決策記錄 |
-| spec 閘門上一條契約假設的兩個選項要靠證據才分得出高下 | 閘門暫停那一條,派 spike,拿 verdict 回來再裁 | 該條 ASM 的 `裁決:` 欄,引用 `SPK-00x-<slug>` |
+| spec 閘門上一條契約假設的兩個選項要靠證據才分得出高下 | 閘門暫停那一條,派 spike,拿 verdict 回來再裁 | 該條 ASM 的裁決(寫成 REV、刪條目),REV 的依欄引用 `SPK-00x-<slug>` |
 | 仲裁歸因為 **spec bug**,而 bug 的根源是「當初沒試」 | 停下該 feature,派 spike,verdict 交給開發者走 `/spec-redesign` | spec 修訂行寫「依 SPK-00x-<slug>」 |
 
 **什麼不派**:「impl 有沒有做到 spec」——那是你跑測試就能答的;「這條 law 該怎麼寫」——那是設計的事。spike 只驗環境、外部系統與做法的可行性。

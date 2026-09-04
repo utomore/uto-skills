@@ -1,27 +1,29 @@
 #!/usr/bin/env node
 /**
- * lint-spikes.mjs — spike 的三道機械對帳:文檔與資料夾成對、frontmatter 合規、產品程式碼沒有 import。
+ * lint-spikes.mjs — spike 的三道機械對帳:資料夾只活在 open 期間、frontmatter 合規、產品程式碼沒有 import。
  *
- * spike(`/spike`)的鐵律是「產出是結論,不是程式碼」:程式碼保留在 `spikes/SPK-00x-<slug>/`
- * 供日後參考,但**產品程式碼與測試禁止 import 它**,任務文檔的 `code-paths` 也不得指進去 ——
+ * spike(`/spike`)的鐵律是「產出是結論,不是程式碼」:程式碼只在 open 期間活在
+ * `spike/SPK-00x-<slug>/`(`spike/` 是常駐的共用 sandbox),結案時 `git rm`、每輪的 sha 留在文檔裡。
+ * open 期間**產品程式碼與測試禁止 import 它**,任務文檔的 `code-paths` 也不得指進去 ——
  * 那段程式碼沒有經過契約與測試,任何一條 law 都不保護它。這條規則違反時**編譯器不會報錯**,
  * 測試也照樣綠(spike 程式碼通常真的能跑),所以只有文字比對抓得到。本腳本就是那道比對。
  *
  * 三件事:
- *   1. **成對**:`.design/spikes/SPK-00x-<slug>.md` ↔ `spikes/SPK-00x-<slug>/`。有資料夾沒文檔 =
- *      沒有紀錄的實驗(不一致);有文檔沒資料夾 = 程式碼被清掉了,只提示(結論還在,那才是產出)
+ *   1. **生命週期**:`spike/SPK-00x-<slug>/` 只活在 open 期間。open 沒資料夾(建了沒程式碼,或被人
+ *      提早清了)、concluded / dropped 還有資料夾(**沒清** —— 留著的程式碼一定會被人 import)、
+ *      有資料夾沒文檔(沒有紀錄的實驗)三種都是不一致。`spike/` 根層其他東西是共用環境,不管
  *   2. **frontmatter**:`concluded` 要有 `verdict`(feasible / infeasible / partial)與非空 `feeds`;
- *      spike 的 `code-paths` 只准指到 `spikes/` 底下;F/E/B 的 `code-paths` **不准**指進 `spikes/`
- *   3. **import**:掃 `spikes/` 以外的原始碼,任何一行 import / require / from / include / use
- *      指到 `spikes/`(或 python 的 `spikes.`)都列出來,附 `檔案:行號`
+ *      spike 的 `code-paths` 只准指到 `spike/` 底下;F/E/B 的 `code-paths` **不准**指進 `spike/`
+ *   3. **import**:掃 `spike/` 以外的原始碼,任何一行 import / require / from / include / use
+ *      指到 `spike/`(或 python 的 `spikes.`)都列出來,附 `檔案:行號`
  *
- * 第 3 條是**下限不是上限**:它只認得常見語言的 import 寫法,不知道建置設定有沒有把 `spikes/`
+ * 第 3 條是**下限不是上限**:它只認得常見語言的 import 寫法,不知道建置設定有沒有把 `spike/`
  * 排除在編譯圖之外(tsconfig 的 exclude、cabal 的 hs-source-dirs、go.work …)—— 那一項機器判不了,
  * 輸出會明說。摘要一律印出掃了幾個檔:「掃到 0 處」與「全部合格」在輸出上長得一樣。
  *
  * 用法:
- *   node lint-spikes.mjs [專案根目錄]     預設 .(底下要有 .design/;spikes/ 與 .design/ 同層)
- *   --design <路徑>    .design 不在專案根底下時指定;spikes/ 一律取 .design 的上一層
+ *   node lint-spikes.mjs [專案根目錄]     預設 .(底下要有 .design/;sandbox spike/ 與 .design/ 同層)
+ *   --design <路徑>    .design 不在專案根底下時指定;spike/ 一律取 .design 的上一層
  *   --quiet            只印違規,不印摘要
  *
  * Exit code:0 = 三道都乾淨 / 1 = 有不一致或 import 違規 / 2 = 路徑不存在
@@ -54,7 +56,7 @@ if (!existsSync(designDir)) {
   console.error(`找不到 .design 目錄: ${designDir}(用 --design 指定)`);
   process.exit(2);
 }
-const spikesDir = join(dirname(designDir), "spikes");
+const spikesDir = join(dirname(designDir), "spike");
 const rel = (p) => relative(projectRoot, p).replaceAll("\\", "/");
 
 const issues = []; // 計入 exit code
@@ -93,26 +95,29 @@ for (const name of listMd(docDir)) {
     if (asList(meta.feeds).length === 0) issues.push(`${r}:concluded 但 feeds 是空的 —— 結論沒有下游,沒有任何決定會讀到這份驗證`);
   }
   for (const cp of asList(meta["code-paths"]))
-    if (!/^spikes\//.test(cp)) issues.push(`${r}:code-paths 的 ${cp} 不在 spikes/ 底下 —— spike 程式碼只准住在那裡`);
+    if (!/^spike\//.test(cp)) issues.push(`${r}:code-paths 的 ${cp} 不在 spike/ 底下 —— spike 程式碼只准住在那裡`);
   const codeDir = join(spikesDir, full);
-  if (!existsSync(codeDir)) notes.push(`${r}:沒有對應的程式碼資料夾 ${rel(codeDir)}/(程式碼被清掉了?結論還在就不算錯)`);
+  const hasDir = existsSync(codeDir);
+  if (status === "open" && !hasDir)
+    issues.push(`${r}:status 是 open 但沒有 ${rel(codeDir)}/ —— 還沒開工就建了檔,或資料夾被提早清掉;open 的 spike 要有程式碼資料夾`);
+  if ((status === "concluded" || status === "dropped") && hasDir)
+    issues.push(`${r}:status 是 ${status} 但 ${rel(codeDir)}/ 還在 —— 結案沒清;先確認 RND 的 sha 已記、再 git rm -r 這個資料夾(留著一定會被人 import)`);
 }
+// 只認 SPK-00x-<slug> 形狀的資料夾;spike/ 根層的其他東西(依賴檔、harness、假資料、.venv)是共用環境
 for (const d of listDirs(spikesDir)) {
-  if (docNames.has(d)) continue;
-  const looksLikeSpike = /^SPK-\d{3}-[a-z0-9-]+$/.test(d);
-  issues.push(
-    `${rel(join(spikesDir, d))}/:${looksLikeSpike ? `沒有對應的 .design/spikes/${d}.md` : "資料夾名不是 SPK-00x-<slug>,也沒有文檔"} —— 沒有紀錄的實驗;用 scan-ids.mjs --claim SPK 補建文檔,或把資料夾移走`,
-  );
+  if (docNames.has(d) || !/^SPK-\d{3}-[a-z0-9-]+$/.test(d)) continue;
+  issues.push(`${rel(join(spikesDir, d))}/:沒有對應的 .design/spikes/${d}.md —— 沒有紀錄的實驗;用 scan-ids.mjs --claim SPK 補建文檔,或把資料夾移走`);
 }
+const spikeDirs = listDirs(spikesDir).filter((d) => /^SPK-\d{3}-[a-z0-9-]+$/.test(d));
 
-// ---------------------------------------------------------------- 2b. 任務文檔的 code-paths 不准指進 spikes/
+// ---------------------------------------------------------------- 2b. 任務文檔的 code-paths 不准指進 spike/
 
 const TASK_DIRS = ["enhancements", "bugfixes"];
 function checkTaskDoc(path) {
   const { meta } = readFrontmatter(path);
   if (!meta) return;
   for (const cp of asList(meta["code-paths"]))
-    if (/^spikes\//.test(cp)) issues.push(`${rel(path)}:code-paths 指進 ${cp} —— 任務文檔的實作不得落在 spikes/ 底下,正式實作一律從 spec 寫進原始碼樹`);
+    if (/^spike\//.test(cp)) issues.push(`${rel(path)}:code-paths 指進 ${cp} —— 任務文檔的實作不得落在 spike/ 底下,正式實作一律從 spec 寫進原始碼樹`);
 }
 for (const sub of TASK_DIRS) for (const f of listMd(join(designDir, sub))) checkTaskDoc(join(designDir, sub, f));
 const subsysRoot = join(designDir, "subsystems");
@@ -123,7 +128,7 @@ for (const slug of listDirs(subsysRoot))
 // ---------------------------------------------------------------- 3. 產品程式碼的 import
 
 const SKIP_DIRS = new Set([
-  "spikes", ".design", "node_modules", ".git", "dist", "build", "target", "out", "vendor",
+  "spike", ".design", "node_modules", ".git", "dist", "build", "target", "out", "vendor",
   "dist-newstyle", ".stack-work", "__pycache__", ".venv", "venv", ".mypy_cache", ".pytest_cache", ".next", ".cache", "coverage",
 ]);
 const CODE_EXT = new Set([
@@ -131,9 +136,9 @@ const CODE_EXT = new Set([
   ".scala", ".cs", ".fs", ".swift", ".c", ".cc", ".cpp", ".h", ".hpp", ".m", ".mm", ".php", ".ex", ".exs", ".erl", ".clj",
   ".cljs", ".ml", ".mli", ".dart", ".lua", ".zig", ".nim", ".vue", ".svelte",
 ]);
-// 一行同時滿足兩件事才算:長得像 import,而且指到 spikes/(或 python 的 spikes.)
+// 一行同時滿足兩件事才算:長得像 import,而且指到 spike/(或 python 的 spikes.)
 const IMPORT_LINE = /^\s*(?:import\b|from\b|export\b.*\bfrom\b|#include\b|require\b|use\b|open\b|mod\b|using\b|@import\b|load\b|require_relative\b|const\b.*=\s*require\(|let\b.*=\s*require\(|var\b.*=\s*require\()/;
-const SPIKE_REF = /(?:^|[\s"'`(<./\\])spikes(?:[\/\\]|\.[A-Za-z_])/;
+const SPIKE_REF = /(?:^|[\s"'`(<./\\])spike(?:[\/\\]|\.[A-Za-z_])/;
 
 const hits = [];
 let scanned = 0;
@@ -163,7 +168,7 @@ let scanned = 0;
     });
   }
 })(projectRoot);
-for (const h of hits) issues.push(`${h.file}:${h.line}:import 了 spikes/ —— ${h.text.slice(0, 120)}`);
+for (const h of hits) issues.push(`${h.file}:${h.line}:import 了 spike/ —— ${h.text.slice(0, 120)}`);
 
 // ---------------------------------------------------------------- 輸出
 
@@ -178,9 +183,9 @@ if (notes.length) {
 }
 if (!quiet) {
   console.log(
-    `\n掃了 ${docNames.size} 份 spike 文檔、${listDirs(spikesDir).length} 個 spikes/ 資料夾、${scanned} 個原始碼檔(${rel(projectRoot) || "."})` +
-      (hits.length ? `,${hits.length} 處 import 指到 spikes/。` : ",沒有 import 指到 spikes/。"),
+    `\n掃了 ${docNames.size} 份 spike 文檔、${spikeDirs.length} 個 spike/SPK-* 資料夾、${scanned} 個原始碼檔(${rel(projectRoot) || "."})` +
+      (hits.length ? `,${hits.length} 處 import 指到 spike/。` : ",沒有 import 指到 spike/。"),
   );
-  console.log("(只查 import 寫法;建置設定有沒有把 spikes/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)");
+  console.log("(只查 import 寫法;建置設定有沒有把 spike/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)");
 }
 process.exit(issues.length ? 1 : 0);

@@ -11,7 +11,7 @@ updated: 2026-08-12
 depends-on: []
 related-adr: []
 related-feature: []
-code-paths: [spikes/SPK-001-store/main.py, src/app.py]
+code-paths: [spike/SPK-001-store/main.py, src/app.py]
 ---
 # auth/F001-login
 ## 契約

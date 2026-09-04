@@ -105,7 +105,7 @@ node "<S>/arch-audit/scripts/lint-ids.mjs" .design        檢查編號有沒有�
 node "<S>/arch-audit/scripts/lint-laws.mjs" .design       檢查 Laws 四格、觀察點可觀察性與骨架位置寫法
 node "<S>/arch-audit/scripts/lint-laws.mjs" .design --skeleton .   追加:骨架位置在專案樹裡真的指得到
 node "<S>/arch-audit/scripts/lint-cross-spec.mjs" .design 跨 spec 對帳:同名不同定義、新增依賴邊清單
-node "<S>/arch-audit/scripts/lint-spikes.mjs" .              spike 對帳:文檔與 spikes/ 資料夾成對、frontmatter 合規、產品程式碼有沒有 import spikes/
+node "<S>/arch-audit/scripts/lint-spikes.mjs" .              spike 對帳:資料夾只活在 open 期間、frontmatter 合規、產品程式碼有沒有 import spike/
 node "<S>/arch-audit/scripts/scan-ids.mjs" .design        跨分支 / worktree 盤點已佔用的編號
 node "<S>/arch-audit/scripts/doc-section.mjs" --verify "<S>"   檢查各 skill 載入行點名的章節是否還存在
 node "<S>/arch-audit/scripts/lint-commands.mjs" "<S>"     檢查文檔裡寫的指令與旗標,腳本本人還認不認得
@@ -123,7 +123,7 @@ node "<S>/arch-audit/scripts/migrate-v2.mjs" .design       v1 → v2 遷移(**�
 - **開發者問「這些 `S1` / `LAW-3` / `WAVE-2` 到底是什麼」** → `id-map.mjs` 不帶參數,把 `doc-lifecycle.md`「編號與縮寫註冊表」畫成流程形狀的樹;或在專案模式加 `--legend` 兩張一起出
 - **接手舊專案、或改過慣例之後** → `lint-ids.mjs`:揪出裸寫的「單字母+數字」。被禁的形式只准出現在反引號裡(那代表在「講這個寫法」),裸寫就是真的拿它當識別碼。專案有自己的文檔前綴時用 `--allow '^N\d{3}$'` 帶進來
 - **要給新文檔配號、或懷疑平行開發撞了號** → `scan-ids.mjs`:取「當前工作區 + 每個 worktree 的 `.design/`(含未 commit)+ 每條分支的樹」三者聯集,列出每個號被誰佔走,並給出每組的下一個可用號(`--next` 只印這個,`--fetch` 連遠端一起看)。已進主 branch 的號只印「已在 main」——那些是定案的號,出處沒有資訊量,真正要看的是還沒進主 branch 的那幾個(要完整清單加 `--verbose`);`archive/` 底下的存檔文檔不算數(號已由現役文檔接手),略過幾份會明說,`--include-archive` 可以一起算。**只掃資料夾一定會漏**:另一條分支已鑄出 `G-C003` 未 merge、或另一個 worktree 正在寫 `G-C003` 未 commit,工作區都看不到,而兩份 `G-C003-<不同 slug>.md` 檔名不同、merge 不衝突,會靜默地兩個都落地。全域 `G-` 與 `ADR` 是全專案共用一組計數器,只要有兩條線在跑就會撞,配號前必跑
-- **專案有 `spikes/`、或某份 spec 引用了 `SPK-00x`** → `lint-spikes.mjs`:三件事,每一件都是純文字比對。(1) **成對**——`.design/spikes/SPK-00x-<slug>.md` 與 `spikes/SPK-00x-<slug>/` 一一對應,有資料夾沒文檔就是沒有紀錄的實驗(不一致),有文檔沒資料夾只提示;(2) **frontmatter**——`concluded` 要有 `verdict` 與非空 `feeds`(結論沒有下游等於白做),spike 的 `code-paths` 只准指到 `spikes/` 底下,而 F/E/B 的 `code-paths` **不准**指進去;(3) **import**——掃 `spikes/` 以外的原始碼,任何一行 import / require / from / include 指到 `spikes/` 都列出來(附 `檔案:行號`)。第 3 條是**下限不是上限**:它只認得常見語言的 import 寫法,建置設定有沒有把 `spikes/` 排除在編譯圖之外它判不了,輸出會明說
+- **專案有 `spike/`、或某份 spec 引用了 `SPK-00x`** → `lint-spikes.mjs`:三件事,每一件都是純文字比對。(1) **生命週期**——`spike/SPK-00x-<slug>/` 只活在 open 期間:open 的沒資料夾、concluded / dropped 的還有資料夾(沒清,一定會被人 import)、有資料夾沒文檔(沒有紀錄的實驗)三種都是不一致;`spike/` 根層的共用環境不管;(2) **frontmatter**——`concluded` 要有 `verdict` 與非空 `feeds`(結論沒有下游等於白做),spike 的 `code-paths` 只准指到 `spike/` 底下,而 F/E/B 的 `code-paths` **不准**指進去;(3) **import**——掃 `spike/` 以外的原始碼,任何一行 import / require / from / include 指到 `spike/` 都列出來(附 `檔案:行號`)。第 3 條是**下限不是上限**:它只認得常見語言的 import 寫法,建置設定有沒有把 `spike/` 排除在編譯圖之外它判不了,輸出會明說
 - **一波多份 spec 一起交付前、或閘門要做跨 feature 對帳** → `lint-cross-spec.mjs`:兩件事。(1) **同名不同定義**——兩份 spec 都以「新增」宣告同一個型別 / 欄位 / 簽名,而定義文字不同(影響 exit code);一邊是「修改 / 移除」的成對出現屬正常演進,只列進提示。(2) **新增的依賴邊清單**——把各份 spec「依賴方向」段宣告的邊蒐集起來,標出兩端名字有沒有出現在所屬 `design.md` 裡(**候選清單,不影響 exit code**:`design.md` 可能用別的寫法表達同一條邊,納不納進宣告是閘門上的裁決)。`--subsys` / `--docs` 可以把範圍縮到一個子系統或一波。**只有編排者站得到這個位置**:spec subagent 互相不可見,qa 與 impl 各自只讀分到的那一份,跨 feature 的矛盾在別的角色眼裡完全不存在
 - **spec 交付前、或接手舊專案的 spec** → `lint-laws.mjs`:三條規則,加 `--skeleton <專案根>` 開第四條。(1) 每條 `LAW-` / `REG-` 要有「量詞 / 定義域 / 前提 / 觀察點」四格;(2) 觀察點必須引用得到同一份文檔介面表裡的識別碼——抓的是**觀察點指向不存在的觀察手段**(引用了內部符號、或整句沒引用任何介面);(3) 介面表的「骨架位置」欄一律 `檔案#符號`,**寫成 `檔案:行號` 會被擋**(行號在 impl 填完本體就往下移,而沒有任何角色負責回頭修它;`-` 保留給 enhance 的「移除」列)。第二條是**下限不是上限**:law 只要提到一個真的存在的介面就過得了,「那個介面真的看得見這件事嗎」機器判不了,那一關靠填格的人——腳本的價值是讓「懶得填」與「填不出來」再也混不過去。
 
@@ -174,7 +174,7 @@ node "<S>/arch-audit/scripts/migrate-v2.mjs" .design       v1 → v2 遷移(**�
    **每一份 feature 檔的 `## 契約` 都是完整原文**,沒有存根、沒有存檔要另外開(v2 起契約住在 feature 檔自己身上)。委派門檻只看 `status: planned` 的那幾份,但對帳「契約與現實符不符」時 `specced` / `done` 的照樣要看——脫節最常發生在做完之後
 6b. **模組群對帳**:先跑 `contract-readiness.md` 的 **A10**——`system.md` 給這個子系統的職責逐句在 `design.md` 指得到落點嗎?指不到的,是不是被寫成 `planned` 模組群?**沒寫成 planned、也沒寫進契約的職責,是本 scope 最該抓的東西**:它不會產生任何錯誤訊息,只會讓這個子系統在只做了一部分時顯示 100%。反過來,程式碼裡是不是已經長出了某個 `planned` 模組群的東西(有實作卻沒契約)?兩個方向都要查
 7. **知識歸屬**:同一個事實(設定值、狀態、換算規則、格式定義)有沒有兩個模組各存一份?有 → 指出應該由誰唯一持有,其他人怎麼改走介面拿(`boundary-rules.md`「知識歸屬」)
-8b. **spike 對帳**(專案有 `spikes/` 或 `.design/spikes/` 時):先跑 `node "<S>/arch-audit/scripts/lint-spikes.mjs" .`,它列的每一條 import 都是產品程式碼直接依賴了沒經過契約與測試的實驗碼,列為發現(嚴重度同「偷改骨架簽名」——那段行為沒有任何 law 保護)。再看本子系統 feature 檔的「不可逆決定」段引用的每一份 spike:那份 spike 的 `feeds` 有沒有回鏈這份文檔、verdict 與文檔採取的方向一不一致(spike 說 `infeasible` 而文檔照做了,就是無視證據的決定)
+8b. **spike 對帳**(專案有 `spike/` 或 `.design/spikes/` 時):先跑 `node "<S>/arch-audit/scripts/lint-spikes.mjs" .`,它列的每一條 import 都是產品程式碼直接依賴了沒經過契約與測試的實驗碼,列為發現(嚴重度同「偷改骨架簽名」——那段行為沒有任何 law 保護)。再看本子系統 feature 檔的「不可逆決定」段引用的每一份 spike:那份 spike 的 `feeds` 有沒有回鏈這份文檔、verdict 與文檔採取的方向一不一致(spike 說 `infeasible` 而文檔照做了,就是無視證據的決定)
 8. **未結的 spec-gaps**(存在 `spec-gaps.md` 時):每一條 `open` 的條目都代表有項目卡著沒做、或有人在等 spec 修訂。逐條檢查:那個項目在程式碼裡是真的空著,還是有人繞過協議自己補了實作或測試?後者一律列為發現(spec 沒改就先做,等於用實作定義了契約)
 。另查 `resolved` 的條目:`修訂` 行指到的段落,在那份文檔裡真的變過嗎(`updated` 有動、條文有改)?沒有就是**結案沒有證據**,與下面「spec bug 沒修就往下跑」屬同一類違規
 

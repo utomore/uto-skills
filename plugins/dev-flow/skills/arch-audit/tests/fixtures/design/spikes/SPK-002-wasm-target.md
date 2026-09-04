@@ -10,7 +10,7 @@ updated: 2026-08-20
 subsystems: []
 feeds: []
 related-adr: []
-code-paths: [spikes/SPK-002-wasm-target]
+code-paths: [spike/SPK-002-wasm-target]
 ---
 
 # SPK-002-wasm-target

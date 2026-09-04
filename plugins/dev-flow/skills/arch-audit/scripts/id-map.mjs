@@ -69,7 +69,7 @@ const CONVENTION = {
     },
     {
       label: "驗證  /spike(任何一層都可以派)",
-      meta: "產出 .design/spikes/SPK-00x-<slug>.md + 同名程式碼資料夾 spikes/SPK-00x-<slug>/;不是任務文檔,不進進度分母",
+      meta: "產出 .design/spikes/SPK-00x-<slug>.md + 同名程式碼資料夾 spike/SPK-00x-<slug>/;不是任務文檔,不進進度分母",
       kids: [
         { label: "SPK-001", meta: "可行性驗證文檔 · 全局一組 · scan-ids --claim SPK · 永久", note: "讀原始碼答不出來、要跑了才知道的問題;結論餵給哪份文檔寫在 feeds 欄,concluded 而 feeds 空的是不一致。引用時帶 slug:SPK-003-storage-engine" },
         { label: "RND-1", meta: "spike 的輪次 · 單一 spike 檔內 · /spike 配(委派模式由編排者)· 永久", note: "每一輪各有自己的問題、判準、timebox 與結果;模型屋式的 demo 靠這個一輪一輪長,不會變成無限期的原型開發" },

@@ -44,8 +44,9 @@
  *                      **配號並當場鎖住**:算出該組下一個可用號,把檔案建在慣例位置
  *                      (只寫 frontmatter 骨架),印出路徑。組寫 `G-C` / `G-E` / `G-B` /
  *                      `ADR` / `SPK` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。
- *                      `SPK` 另建同名的程式碼資料夾 `<.design 上一層>/spikes/SPK-00x-<slug>/`
- *                      (附一份指回文檔的 README.md)—— 文檔與資料夾成對,同一個動作建。
+ *                      `SPK` 另建同名的程式碼資料夾 `<.design 同層>/spike/SPK-00x-<slug>/`(附一份指回
+ *                      文檔的 README.md;`spike/` 根層的 sandbox README 第一次一起建)—— 文檔與資料夾
+ *                      同一個動作建。資料夾只活到結案,結案由 /spike 用 git rm 刪、sha 留在文檔。
  *
  * **`--claim` 是這套流程唯一的鑄號動作**,所有角色、所有分支、所有 worktree 都走它。
  * 「先算號、待會再建檔」中間那段空窗就是撞號發生的地方 —— 掃描看得到的是**檔案**,
@@ -293,7 +294,7 @@ if (OPT_CLAIM) {
       tail = [];
     } else if (g === "SPK") {
       // spike 不是任務文檔:狀態由結論決定(open → concluded / dropped),不進進度分母。
-      // code-paths 固定指到同名資料夾 —— 文檔與程式碼成對,而且只准住在 spikes/ 底下
+      // code-paths 固定指到同名資料夾 —— 文檔與程式碼成對,而且只准住在 spike/ 底下
       // (產品程式碼禁止 import 它,lint-spikes.mjs 查)。規格見 doc-lifecycle.md「spike 文檔」。
       status = "open";
       tail = [
@@ -301,7 +302,7 @@ if (OPT_CLAIM) {
         "subsystems: []            # 相關子系統;還沒定子系統時留空",
         "feeds: []                 # 結論餵給哪些文檔(全名);concluded 時必填非空",
         "related-adr: []",
-        `code-paths: [spikes/${id}-${OPT_SLUG}]   # 固定同名資料夾;只准指到 spikes/ 底下`,
+        `code-paths: [spike/${id}-${OPT_SLUG}]   # 固定同名資料夾;只准指到 spike/ 底下`,
       ];
     } else if (g === "G-C") {
       status = "active";
@@ -390,7 +391,7 @@ if (OPT_CLAIM) {
   // 跟「先算號、待會再建檔」是同一種洞 —— 資料夾沒建,別人就看不到這個號已經有程式碼要來。
   let codeDir = null;
   if (docType === "spike") {
-    codeDir = join(dirname(DESIGN_DIR), "spikes", `${id}-${OPT_SLUG}`);
+    codeDir = join(dirname(DESIGN_DIR), "spike", `${id}-${OPT_SLUG}`);
     mkdirSync(codeDir, { recursive: true });
     writeFileSync(
       join(codeDir, "README.md"),
@@ -399,11 +400,31 @@ if (OPT_CLAIM) {
         "",
         `可行性驗證的程式碼。問題、判準、每一輪的結果與結論在 \`.design/spikes/${id}-${OPT_SLUG}.md\`。`,
         "",
-        "這裡的東西**只供參考**:產品程式碼與測試禁止 import 本資料夾,正式實作一律從 spec 寫。",
+        "這個資料夾**只活到結案**:結案時會被 `git rm`,程式碼靠文檔裡每一輪記的 sha 撈回。",
+        "open 期間產品程式碼與測試禁止 import 這裡;正式實作一律從 spec 寫。",
         "",
       ].join("\n"),
       "utf8",
     );
+    // spike/ 根層是常駐的共用 sandbox(依賴檔、假資料、harness),第一次建 spike 時立起來,之後不動。
+    // 沒有這份 README 的話,第二個人看到 spike/ 底下一堆東西,分不出哪些是環境、哪些是某次的實驗。
+    const rootReadme = join(dirname(codeDir), "README.md");
+    if (!existsSync(rootReadme)) {
+      writeFileSync(
+        rootReadme,
+        [
+          "# spike/ —— 可行性驗證的 sandbox",
+          "",
+          "根層放所有 spike 共用的環境:依賴檔(與專案自己的分開)、假資料產生器、量測 harness。這些**不刪**。",
+          "",
+          "每個 spike 一個 `SPK-00x-<slug>/` 資料夾,只活在 open 期間,結案時 `git rm`;程式碼靠 `.design/spikes/SPK-00x-<slug>.md` 裡每一輪記的 sha 撈回。",
+          "",
+          "產品程式碼與測試**禁止 import** 這裡的任何東西(`lint-spikes.mjs` 查);正式實作一律從 spec 寫。",
+          "",
+        ].join("\n"),
+        "utf8",
+      );
+    }
   }
   // 路徑印相對的;.design 不在當前目錄底下時(`../../..` 那種)改印絕對路徑,免得印出一串沒人讀得懂的 `..`
   const relPath = toPosix(relative(process.cwd(), file));

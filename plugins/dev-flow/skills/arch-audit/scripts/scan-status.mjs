@@ -385,7 +385,7 @@ for (const name of listMd(join(designDir, "adr"))) {
  * spike 不是任務文檔:它替某個決定生產證據,不進任何百分比。但 `open` 的 spike 是一個
  * 還沒答完的問題,它的下游決定(ADR、契約、feature 的不可逆決定)正在等 —— 所以列出來、計入
  * exit code。`concluded` 而 `feeds` 空的是**結論沒有下游**,列為不一致:沒有人會去讀一份
- * 沒有指向任何決定的驗證紀錄,它跟沒寫一樣。文檔與 spikes/ 資料夾成不成對、產品程式碼有沒有
+ * 沒有指向任何決定的驗證紀錄,它跟沒寫一樣。文檔與 spike/ 資料夾成不成對、產品程式碼有沒有
  * import 它,是 lint-spikes.mjs 的事(要掃專案樹,本腳本只看 .design/)。
  */
 const SPIKE_PATTERN = /^(SPK-\d{3})-([a-z0-9-]+)\.md$/;
@@ -418,7 +418,7 @@ for (const name of listMd(join(designDir, "spikes"))) {
       archIssues.push(`${relPath}:status 是 concluded 但 feeds 是空的 —— 結論沒有下游,沒有任何決定會讀到這份驗證`);
   }
   for (const cp of asList(meta?.["code-paths"]))
-    if (!/^spikes\//.test(cp)) archIssues.push(`${relPath}:code-paths 的 ${cp} 不在 spikes/ 底下 —— spike 程式碼只准住在那裡`);
+    if (!/^spike\//.test(cp)) archIssues.push(`${relPath}:code-paths 的 ${cp} 不在 spike/ 底下 —— spike 程式碼只准住在那裡`);
   const id = metaId !== "-" ? metaId : fileId ?? name.replace(/\.md$/, "");
   const question = (text.match(/^-\s*\*\*要回答什麼\*\*\s*[::]\s*(.+)$/m)?.[1] ?? "").trim();
   spikes.push({

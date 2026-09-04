@@ -75,7 +75,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 - **Level 3** `/spec-design` → `/spec-qa` ∥ `/spec-impl`:業務邏輯、演算法細節、測試。`/bugfix` 走單角色
 - **編排層** `/spec-build`(單份 spec)、`/subsys-build`(把子系統裡 `planned` 的 feature 檔整批展開):spec 批准閘門 → 委派 qa ∥ impl → 跑測試 → 仲裁
 - **修改層** `/spec-redesign`:既有契約或 spec 要改時的唯一入口。它先判這次改動只落在這一份檔(Level 3 就地改)還是有第二份文檔要跟著改(回 Level 2),再改並留下可查證的修訂痕跡
-- **驗證層** `/spike`:讀原始碼答不出來、要跑了才知道的問題,先寫問題、判準、timebox,再在 `spikes/` 寫拋棄式程式碼驗證,結論記進 `.design/spikes/SPK-00x`,並指明餵給哪一層的哪份文檔。它替決定生產證據,自己不做決定:結論落地一律走上面各層對應的 skill。任何一層、任何編排者都可以派它,規則見 `orchestration.md`「派 spike 驗證」
+- **驗證層** `/spike`:讀原始碼答不出來、要跑了才知道的問題,先寫問題、判準、timebox,再在 `spike/` 寫拋棄式程式碼驗證,結論記進 `.design/spikes/SPK-00x`,並指明餵給哪一層的哪份文檔。它替決定生產證據,自己不做決定:結論落地一律走上面各層對應的 skill。任何一層、任何編排者都可以派它,規則見 `orchestration.md`「派 spike 驗證」
 
 Level 3 採 **spec 驅動的三角色**:設計寫 spec 文檔與程式碼骨架(型別與簽名完整、函數本體未實作),qa 與 impl 各自只讀 spec、彼此不可見,測試與實作都只是 spec 的投影。角色契約見 `spec-roles.md`。
 

@@ -424,7 +424,7 @@ WAVE-2(auth/F005-logout, auth/F006-session-list, auth/F007-device-trust)
 
 - **不跑跨子系統**:一次只展開一個子系統。多個子系統要一個一個來(先跑被依賴的那個)
 - **不改 Level 1**:過程中發現主架構要改,回報給開發者走 `/system-design` 更新模式,不自己動
-- **spike 可以派,但 spike 文檔由你寫**:批次澄清、閘門或仲裁撞到要跑了才知道的問題,照 `../_shared/orchestration.md`「派 spike 驗證」派出去;subagent 只寫 `spikes/` 底下被指定的資料夾,`.design/spikes/SPK-00x` 的輪次與結論由你單線寫
+- **spike 可以派,但 spike 文檔由你寫**:批次澄清、閘門或仲裁撞到要跑了才知道的問題,照 `../_shared/orchestration.md`「派 spike 驗證」派出去;subagent 只寫 `spike/` 底下被指定的資料夾,`.design/spikes/SPK-00x` 的輪次與結論由你單線寫
 - **不做 enhancement / bugfix 的委派**:`/spec-design` 的 **enhance 模式**需要先讀程式碼再與人討論 scope、`/bugfix` 需要人確認重現條件,兩者都不適合無訪談委派。過程中發現的問題,在閘門建議開發者走 `/spec-design`、`/bugfix`;enhance 的 scope 談完、spec 寫好之後,**後半段(qa ∥ impl → 測試 → 仲裁)走 `/spec-build <文檔全名>`**——那條迴圈與 feature 完全相同
 - **單份 spec 不必動用本 skill**:只要跑一份已寫好的 spec(F00x 或 E00x),用 `/spec-build <文檔全名>`(例 `/spec-build auth/F005-logout`)就夠了;本 skill 多出來的是排波次、配號、階段閘門與 `design.md` 回填
 - **契約不完整時不啟動**:前置第 4 條的門檻是硬性的(`契約就緒 n/m` 不滿格就停)

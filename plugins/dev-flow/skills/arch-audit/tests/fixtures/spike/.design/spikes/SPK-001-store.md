@@ -10,6 +10,6 @@ updated: 2026-08-06
 subsystems: [auth]
 feeds: [auth/F001-login]
 related-adr: []
-code-paths: [spikes/SPK-001-store]
+code-paths: [spike/SPK-001-store]
 ---
 # SPK-001-store

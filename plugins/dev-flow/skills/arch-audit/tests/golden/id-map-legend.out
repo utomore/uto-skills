@@ -48,7 +48,7 @@
 │     spec 疑問 · 單一 spec-gaps.md 內 · 編排者單線配 · 永久
 │     ↳ 講到某一條 gap 寫 auth/GAP-1;條目標題要寫出這條 gap 卡住哪份文檔:## GAP-1(auth/F002-token-refresh / qa)
 ├─ 驗證  /spike(任何一層都可以派)
-│  產出 .design/spikes/SPK-00x-<slug>.md + 同名程式碼資料夾 spikes/SPK-00x-<slug>/;不是任務文檔,不進進度分母
+│  產出 .design/spikes/SPK-00x-<slug>.md + 同名程式碼資料夾 spike/SPK-00x-<slug>/;不是任務文檔,不進進度分母
 │  ├─ SPK-001
 │  │  可行性驗證文檔 · 全局一組 · scan-ids --claim SPK · 永久
 │  │  ↳ 讀原始碼答不出來、要跑了才知道的問題;結論餵給哪份文檔寫在 feeds 欄,concluded 而 feeds 空的是不一致。引用時帶 slug:SPK-003-storage-engine

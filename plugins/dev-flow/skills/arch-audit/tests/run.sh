@@ -107,11 +107,13 @@ else
   echo "✗ --claim 建出來的 feature 盤點模式讀不對(planned 的骨架應該有 ## 契約)"; fail=1
 fi
 # SPK 的配號要**同一個動作**建出兩樣東西:.design/spikes/ 的文檔與同名的程式碼資料夾(附 README)。
-# 少建一樣,lint-spikes 就會把它報成「沒有紀錄的實驗」或「沒有程式碼的紀錄」—— 那正是成對規則要防的。
+# 少建一樣,lint-spikes 就會把它報成「沒有紀錄的實驗」或「open 卻沒有程式碼」—— 那正是生命週期規則要防的。
 node "$SCRIPTS/scan-ids.mjs" "$CLAIM_TMP/.design" --claim SPK --slug claim-spike >/dev/null 2>&1
-if [[ -f "$CLAIM_TMP/.design/spikes/SPK-003-claim-spike.md" && -f "$CLAIM_TMP/spikes/SPK-003-claim-spike/README.md" ]] &&
-   node "$SCRIPTS/lint-spikes.mjs" "$CLAIM_TMP" >/dev/null 2>&1; then
-  echo "✓ scan-ids --claim SPK → 文檔與 spikes/ 資料夾成對,lint-spikes 乾淨"
+# fixtures/design 本身就帶一份 open 的 spike(SPK-002,沒有資料夾,盤點 golden 要它),所以 lint-spikes 在這個
+# 副本上不會全綠 —— 判準改成「它的輸出一個字都沒提到剛配的那份」,而不是 exit 0。
+if [[ -f "$CLAIM_TMP/.design/spikes/SPK-003-claim-spike.md" && -f "$CLAIM_TMP/spike/SPK-003-claim-spike/README.md" && -f "$CLAIM_TMP/spike/README.md" ]] &&
+   ! node "$SCRIPTS/lint-spikes.mjs" "$CLAIM_TMP" 2>&1 | grep -q "claim-spike"; then
+  echo "✓ scan-ids --claim SPK → 文檔與 spike/ 資料夾同時建出,lint-spikes 乾淨"
 else
   echo "✗ scan-ids --claim SPK(文檔或程式碼資料夾少建了一樣,或 lint-spikes 不認得它建出來的東西)"; fail=1
 fi

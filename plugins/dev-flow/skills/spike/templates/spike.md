@@ -1,6 +1,6 @@
 # `SPK-00x-<slug>.md` 版面模板
 
-路徑 `.design/spikes/SPK-00x-<slug>.md`,程式碼在同名資料夾 `spikes/SPK-00x-<slug>/`(`.design/` 的上一層)。frontmatter 規格見 `_shared/doc-lifecycle.md`「spike 文檔」。`scan-ids.mjs --claim SPK` 建檔時只鑄號與骨架,內容照這份填。
+路徑 `.design/spikes/SPK-00x-<slug>.md`,程式碼在同名資料夾 `spike/SPK-00x-<slug>/`(`spike/` 是常駐的共用 sandbox;這個資料夾只活在 open 期間,結案時刪掉,每輪的 sha 是撈回程式碼的唯一鑰匙)。frontmatter 規格見 `_shared/doc-lifecycle.md`「spike 文檔」。`scan-ids.mjs --claim SPK` 建檔時只鑄號與骨架,內容照這份填。
 
 **提到文檔一律寫全名**(`auth/F003-session-list`、`G-C001-session#SessionToken`、`ADR-004-storage`);這份紀錄會被單獨貼進閘門呈報、ADR 與 PR,到了那裡沒有「這是哪個 spike」的上下文。
 
@@ -17,7 +17,7 @@ updated: <today>
 subsystems: []               # 相關子系統;還沒定子系統時留空
 feeds: []                    # 結論餵給哪些文檔(全名),concluded 時必填非空
 related-adr: []
-code-paths: [spikes/SPK-001-<slug>]   # 固定同名資料夾;lint-spikes.mjs 查它只指到 spikes/ 底下
+code-paths: [spike/SPK-001-<slug>]   # 固定同名資料夾(結案後已刪,配 RND 的 sha 撈);只准指到 spike/ 底下
 ---
 
 # SPK-001-<slug>
@@ -35,7 +35,7 @@ code-paths: [spikes/SPK-001-<slug>]   # 固定同名資料夾;lint-spikes.mjs �
 - timebox:<時間或嘗試次數>
 - 做法:<試了什麼,兩三句>
 - 結果:<對每條判準的觀察:數字或現象;timebox 用完沒答案就寫「未達判準,原因:…」>
-- sha:<這一輪程式碼的 commit>
+- sha:<這一輪的 commit;結案後資料夾會刪,這是唯一能撈回程式碼的鑰匙,不得留白>
 - 環境:<資料量、外部服務、機器;額外裝了什麼>
 
 ## 候選比較
@@ -43,7 +43,7 @@ code-paths: [spikes/SPK-001-<slug>]   # 固定同名資料夾;lint-spikes.mjs �
 
 | 候選 | 子資料夾 | 判準達成 | 觀察結果 | 代價 |
 |---|---|---|---|---|
-| <做法 a> | `spikes/SPK-001-<slug>/<a>/` | 2/3 | <…> | <三個月後誰會踩到什麼> |
+| <做法 a> | `spike/SPK-001-<slug>/<a>/` | 2/3 | <…> | <三個月後誰會踩到什麼> |
 
 ## 結論
 - **verdict**:<feasible | infeasible | partial>

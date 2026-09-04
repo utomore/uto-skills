@@ -10,7 +10,7 @@ updated: 2026-08-06
 subsystems: [auth]
 feeds: [ADR-001-jwt, auth/F002-token-refresh]
 related-adr: [ADR-001]
-code-paths: [spikes/SPK-001-fts-latency]
+code-paths: [spike/SPK-001-fts-latency]
 ---
 
 # SPK-001-fts-latency

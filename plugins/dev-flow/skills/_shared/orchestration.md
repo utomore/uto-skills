@@ -96,9 +96,9 @@ qa 交付判準(`spec-roles.md`)第一列的「紅」,只在**骨架本體還是
 **由你做的部分**(subagent 問不了人、也不准配號):
 
 1. 定問題、判準、timebox(`/spike` 步驟 0),**判準寫成可觀察的數字或現象**
-2. 配號建檔:`node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim SPK --slug <kebab-slug>`,它同時建出 `spikes/SPK-00x-<slug>/`;候選比較時你自己在底下開子資料夾,一個候選一個
+2. 配號建檔:`node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim SPK --slug <kebab-slug>`,它同時建出 `spike/SPK-00x-<slug>/`;候選比較時你自己在底下開子資料夾,一個候選一個
 3. 委派,`model: "sonnet"`,prompt 用下面的模板;候選比較就同一則訊息送出多個,各給不同子資料夾
-4. 收齊回報後**由你**寫 spike 文檔的 `RND-n`、候選比較表與結論,回寫 `status` / `verdict` / `feeds`,commit——同一份文檔只有一個寫者
+4. 收齊回報後**由你**照 `/spike` 的結案步驟做完:commit 資料夾與文檔、把 sha 填進 `RND-n`、寫候選比較表與結論、回寫 `status` / `verdict` / `feeds`、`git rm -r` 該 spike 的資料夾再 commit——同一份文檔只有一個寫者,刪資料夾也只有你做
 
 ```
 【委派模式】遵守 <delegation.md 路徑> 的委派模式共通契約:不得提問、
@@ -107,7 +107,7 @@ qa 交付判準(`spec-roles.md`)第一列的「紅」,只在**骨架本體還是
 問題:<一句話,可判定的形式>
 判準:feasible = <…>;infeasible = <…>;partial = <…>
 timebox:<時間或嘗試次數>
-程式碼只寫在:<spikes/SPK-00x-<slug>/ 或它的某個子資料夾>
+程式碼只寫在:<spike/SPK-00x-<slug>/ 或它的某個子資料夾>
 輪次:RND-<n>
 回報固定五項:verdict、對每條判準的觀察結果(數字或現象)、程式碼路徑與 sha、
 環境(資料量 / 外部服務 / 額外裝了什麼)、沒驗到的。

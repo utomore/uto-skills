@@ -78,7 +78,7 @@ user-invocable: false
 - 目標 spec 全文 + 骨架檔案 + `.design/system.md` + 所屬子系統的 `design.md` + frontmatter `related-adr` 列出的 ADR;不相關的子系統不讀
 - **enhance 追加**:全域 `G-E` 文檔讀 frontmatter `subsystems` 列出的每一個子系統的 `design.md`;`related-feature` 指向的 feature 文檔也讀
 - **不要打開測試目錄**。需要知道「什麼算做對」時,答案在 spec 的 Laws 與 Examples,不在測試檔裡
-- spec 的「依賴」或「不可逆決定」段引用了 spike(`SPK-00x-<slug>`)時,**可以**打開 `spikes/SPK-00x-<slug>/` 當參考實作——它證明過這條做法在這個環境跑得動。但它沒經過契約與測試:**禁止 import 它、禁止整段搬過來不對照 spec**;抄的是做法,簽名與行為以骨架和 Laws 為準。`lint-spikes.mjs` 會抓 import
+- spec 的「依賴」或「不可逆決定」段引用了 spike(`SPK-00x-<slug>`)時,**可以**用那份 spike 文檔 `RND-n` 記的 sha 撈程式碼當參考實作(`git show <sha>:spike/SPK-00x-<slug>/<檔>`;結案後資料夾已刪)——它證明過這條做法在這個環境跑得動。但它沒經過契約與測試:**禁止 import 它、禁止整段搬過來不對照 spec**;抄的是做法,簽名與行為以骨架和 Laws 為準。`lint-spikes.mjs` 會抓 import
 - 目標的 `depends-on` 非空 → 先確認被依賴的文檔是否已 done;未完成時警告開發者並詢問是否繼續
 - feature:「對應的 Level 2 契約」引用的介面,動工前先確認 `design.md` 的定義仍如文檔所述。**enhance**:文檔「現況分析」指到的原始碼位置,動工前先打開確認現況仍如文檔所述。兩者已漂移就先回報開發者再議
 - 該子系統既有的 `spec-gaps.md`(有的話):已經 `open` 的 gap 涵蓋到的項目**不要動工**

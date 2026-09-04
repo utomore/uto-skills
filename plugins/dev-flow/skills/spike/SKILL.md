@@ -85,7 +85,7 @@ node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim SPK --slug <kebab-slu
 
 - **不追求品質,追求可判定。** 沒有錯誤處理、沒有抽象、沒有測試都可以;但輸出必須能對到判準——判準寫「2 秒內」,程式碼就要印出秒數
 - **依賴不得寫進專案的套件管理檔。** spike 要裝的東西裝進 `spike/` 根層的 sandbox 依賴檔(那是共用環境,可以留、可以累積);非得動專案自己的 `package.json` / `pyproject` 不可時,先停下來確認(那已經是架構層級的選型,不是 spike 該偷偷做的事)
-- **每一輪結束時 commit 一次、記一次**:先 `git add` 這個 spike 的資料夾與文檔 commit(訊息帶全名與輪次:`spike: SPK-003-storage-engine RND-2`),再把 sha 填進 `RND-n` 的「sha」欄,連同「結果」與環境(資料量、外部服務、機器)。**sha 是結案後唯一能撈回程式碼的鑰匙**,漏記等於程式碼真的沒了。timebox 到了沒答案照樣記,寫「未達判準,原因:…」
+- **每一輪結束時 commit 一次、記一次**:先 `git add -- spike/SPK-00x-<slug> .design/spikes/SPK-00x-<slug>.md` 這兩條路徑 commit(**寫路徑,不用 `-A`**;訊息帶全名與輪次:`spike: SPK-003-storage-engine RND-2`),再把 sha 填進 `RND-n` 的「sha」欄,連同「結果」與環境(資料量、外部服務、機器)。**sha 是結案後唯一能撈回程式碼的鑰匙**,漏記等於程式碼真的沒了。timebox 到了沒答案照樣記,寫「未達判準,原因:…」
 
 **跑東西的紀律照 `conventions.md`**:同一個判準、輸入沒變,跑一次就夠;輸出留檔再看,不要為了看另一段重跑。
 
@@ -107,9 +107,16 @@ node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim SPK --slug <kebab-slu
 
 1. 確認最後一輪的 sha 已經填進 `RND-n`,而且那個 commit 真的含這個資料夾(`git show <sha> --stat -- spike/SPK-00x-<slug>` 有東西)。沒有就先 commit 再記
 2. frontmatter:`status: concluded`、`verdict` 填上、`feeds` 列出每一份下游文檔的**全名**(`ADR-004-storage`、`auth/F003-session-list`、`G-C001-session#SessionToken`、`auth/design.md`)、`updated` 換今天
-3. **刪掉程式碼資料夾**:`git rm -r spike/SPK-00x-<slug>`,與第 2 步的文檔一起 commit(訊息帶全名:`spike: SPK-003-storage-engine concluded`)。`spike/` 根層的共用環境**不動**。這一步不是可選的——`lint-spikes.mjs` 把「concluded 卻還有資料夾」列為不一致,理由是留著的程式碼一定會被人 import,而沒有任何 law 保護它
+3. **刪掉程式碼資料夾——只准用腳本,不准手打 `git rm`,更不准 `rm -rf`**:
+
+   ```
+   node "<S>/arch-audit/scripts/spike-close.mjs" SPK-00x-<slug>            # dry-run:印五道關與會刪的檔案清單
+   node "<S>/arch-audit/scripts/spike-close.mjs" SPK-00x-<slug> --apply    # 五道關都過才真的 git rm -r
+   ```
+
+   刪除的路徑由腳本從文檔全名算出來,人只給全名;它先過五道關(文檔已結案、路徑真的是 `spike/SPK-00x-<slug>/` 而且在工作樹內不是 symlink、資料夾裡沒有未 commit 的東西、最後一輪的 sha 真的撈得回這個資料夾、只用 `git rm -r --`),任一關沒過就一個檔都不動。先跑 dry-run 看清單,再 `--apply`;刪完它不 commit,由你連第 2 步的文檔一起 commit(訊息帶全名:`spike: SPK-003-storage-engine concluded`)。`spike/` 根層的共用環境腳本永遠碰不到。這一步不是可選的——`lint-spikes.mjs` 把「concluded 卻還有資料夾」列為不一致,理由是留著的程式碼一定會被人 import,而沒有任何 law 保護它
 4. **下游那幾份文檔由誰改,講清楚**:spec 或契約走 `/spec-redesign`;新 ADR 走 `/system-design` 更新模式;feature 檔的「不可逆決定」段走 `/spec-design`。**你不改它們**——只在回報裡寫「哪一份、哪一格、寫什麼」。要把模型屋變成正式功能也走這條:`feeds` 指向那份 feature 檔,程式碼由 impl 從 spec 重寫,不搬
-5. 決定不做了的 spike 標 `dropped`,一句話寫為什麼,資料夾照樣刪(第 1、3 步照做——dropped 的程式碼也可能有人三個月後想撈)
+5. 決定不做了的 spike 標 `dropped`,一句話寫為什麼,資料夾照樣用同一支腳本刪(第 1、3 步照做——dropped 的程式碼也可能有人三個月後想撈)
 
 跑一次驗收並貼結果:
 
@@ -153,3 +160,4 @@ node "<S>/arch-audit/scripts/lint-spikes.mjs" .
 - **不驗「impl 有沒有做到 spec」**。那是編排者跑測試就能答的,不派 spike;spike 只驗「這個做法在我們的環境下行不行」這類讀與跑測試都答不出來的問題
 - **不當第二條開發路徑**。模型屋做得再大,升格只有一條路:寫進 spec,再走 qa ∥ impl。程式碼不搬、不留、不 import
 - **不保留程式碼**。結案即刪,sha 是唯一入口;想長期留的東西不是 spike
+- **不手打刪除指令**。刪資料夾只有 `spike-close.mjs` 一條路;`rm -rf` 在本 skill 任何步驟都不出現,`git add -A` 也不用(寫路徑)

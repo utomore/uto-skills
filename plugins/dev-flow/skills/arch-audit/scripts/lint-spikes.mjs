@@ -101,7 +101,7 @@ for (const name of listMd(docDir)) {
   if (status === "open" && !hasDir)
     issues.push(`${r}:status 是 open 但沒有 ${rel(codeDir)}/ —— 還沒開工就建了檔,或資料夾被提早清掉;open 的 spike 要有程式碼資料夾`);
   if ((status === "concluded" || status === "dropped") && hasDir)
-    issues.push(`${r}:status 是 ${status} 但 ${rel(codeDir)}/ 還在 —— 結案沒清;先確認 RND 的 sha 已記、再 git rm -r 這個資料夾(留著一定會被人 import)`);
+    issues.push(`${r}:status 是 ${status} 但 ${rel(codeDir)}/ 還在 —— 結案沒清;跑 spike-close.mjs <全名> --apply(它會先驗 sha 撈不撈得回來);留著一定會被人 import`);
 }
 // 只認 SPK-00x-<slug> 形狀的資料夾;spike/ 根層的其他東西(依賴檔、harness、假資料、.venv)是共用環境
 for (const d of listDirs(spikesDir)) {

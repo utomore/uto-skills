@@ -372,7 +372,7 @@ code-paths: [spike/SPK-001-<slug>]   # 固定同名資料夾(結案後已刪,配
 
 1. **`status` 由結論決定**:`open` = 還有輪次沒判定;`concluded` = `## 結論` 填齊、`verdict` 與 `feeds` 都非空;`dropped` = 決定不做了(一句話寫為什麼)。`concluded` 而 `feeds` 空的,`scan-status.mjs` 列為不一致——沒有下游的 spike 等於白做
 2. **`code-paths` 只准指到 `spike/` 底下**,任務文檔(F/E/B)的 `code-paths` 則**不准**指進 `spike/`。兩個方向 `lint-spikes.mjs` 都查;它另外掃產品原始碼有沒有 import `spike/`
-2b. **程式碼資料夾只活在 `open` 期間**:`concluded` / `dropped` 的 spike 不准還有 `spike/SPK-00x-<slug>/`(結案步驟是 commit → 記 sha → `git rm`),`open` 的則必須有。`spike/` 根層的共用環境(依賴檔、harness、假資料)是 sandbox 的一部分,不編號、不刪、不歸任何一份 spike。刪掉的程式碼靠每輪 `RND-n` 記的 sha 撈:`git show <sha>:spike/SPK-00x-<slug>/<檔>`
+2b. **程式碼資料夾只活在 `open` 期間**:`concluded` / `dropped` 的 spike 不准還有 `spike/SPK-00x-<slug>/`(結案步驟是 commit → 記 sha → `spike-close.mjs --apply`;那支腳本從文檔全名算路徑、過五道關才 `git rm -r --`,不准手打),`open` 的則必須有。`spike/` 根層的共用環境(依賴檔、harness、假資料)是 sandbox 的一部分,不編號、不刪、不歸任何一份 spike。刪掉的程式碼靠每輪 `RND-n` 記的 sha 撈:`git show <sha>:spike/SPK-00x-<slug>/<檔>`
 3. **不進進度分母**。它不是要做的事,是替要做的事找證據;`open` 的 spike 在 `/arch-audit status` 單獨列出(一個還沒答完的問題),計入 exit code 但不進任何百分比
 
 ### 清單欄位格式(唯一寫法:行內陣列)

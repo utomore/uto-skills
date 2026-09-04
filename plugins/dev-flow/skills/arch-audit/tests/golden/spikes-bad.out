@@ -1,7 +1,7 @@
 === spike 不一致(9)===
 spike 程式碼只供參考:沒有契約、沒有測試,任何一條 law 都不保護它。產品程式碼依賴它的每一處都是一段沒人保護的行為。
 
-- .design/spikes/SPK-001-store.md:status 是 concluded 但 spike/SPK-001-store/ 還在 —— 結案沒清;先確認 RND 的 sha 已記、再 git rm -r 這個資料夾(留著一定會被人 import)
+- .design/spikes/SPK-001-store.md:status 是 concluded 但 spike/SPK-001-store/ 還在 —— 結案沒清;跑 spike-close.mjs <全名> --apply(它會先驗 sha 撈不撈得回來);留著一定會被人 import
 - .design/spikes/SPK-002-nodir.md:concluded 但 verdict(done)不在 feasible / infeasible / partial 之內
 - .design/spikes/SPK-002-nodir.md:concluded 但 feeds 是空的 —— 結論沒有下游,沒有任何決定會讀到這份驗證
 - .design/spikes/SPK-002-nodir.md:code-paths 的 src/nope.py 不在 spike/ 底下 —— spike 程式碼只准住在那裡

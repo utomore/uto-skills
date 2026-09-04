@@ -106,6 +106,7 @@ node "<S>/arch-audit/scripts/lint-laws.mjs" .design       檢查 Laws 四格、�
 node "<S>/arch-audit/scripts/lint-laws.mjs" .design --skeleton .   追加:骨架位置在專案樹裡真的指得到
 node "<S>/arch-audit/scripts/lint-cross-spec.mjs" .design 跨 spec 對帳:同名不同定義、新增依賴邊清單
 node "<S>/arch-audit/scripts/lint-spikes.mjs" .              spike 對帳:資料夾只活在 open 期間、frontmatter 合規、產品程式碼有沒有 import spike/
+node "<S>/arch-audit/scripts/spike-close.mjs" SPK-00x-<slug>   結案刪 spike 資料夾的唯一做法(**預設 dry-run**,五道關都過才 `--apply`)
 node "<S>/arch-audit/scripts/scan-ids.mjs" .design        跨分支 / worktree 盤點已佔用的編號
 node "<S>/arch-audit/scripts/doc-section.mjs" --verify "<S>"   檢查各 skill 載入行點名的章節是否還存在
 node "<S>/arch-audit/scripts/lint-commands.mjs" "<S>"     檢查文檔裡寫的指令與旗標,腳本本人還認不認得
@@ -116,7 +117,7 @@ node "<S>/arch-audit/scripts/migrate-v2.mjs" .design       v1 → v2 遷移(**�
 
 `lint-commands.mjs` 的判準是**腳本自己的 `--help`**,不另外維護旗標清單(另外維護的那份就是下一個會漂的東西)。它只查「認不認得」,不查「用得對不對」——後者是人的判斷。
 
-**改過 `scripts/` 底下任何東西之後跑 `bash "<S>/arch-audit/tests/run.sh"`**:fixture 回歸(22 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 十一支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
+**改過 `scripts/` 底下任何東西之後跑 `bash "<S>/arch-audit/tests/run.sh"`**:fixture 回歸(22 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 十二支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
 
 `doc-section.mjs` 平常是**各 skill 自己用來只讀 `_shared/` 指定章節**的(載入行裡就寫著那一道指令);`--verify` 是給本 skill 的:分片的節被改名或刪掉時,載入行不會報錯,只會讓那個 skill 從此少讀一塊,這一關把它叫出來。
 

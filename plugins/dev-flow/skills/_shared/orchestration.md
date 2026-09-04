@@ -98,7 +98,7 @@ qa 交付判準(`spec-roles.md`)第一列的「紅」,只在**骨架本體還是
 1. 定問題、判準、timebox(`/spike` 步驟 0),**判準寫成可觀察的數字或現象**
 2. 配號建檔:`node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim SPK --slug <kebab-slug>`,它同時建出 `spike/SPK-00x-<slug>/`;候選比較時你自己在底下開子資料夾,一個候選一個
 3. 委派,`model: "sonnet"`,prompt 用下面的模板;候選比較就同一則訊息送出多個,各給不同子資料夾
-4. 收齊回報後**由你**照 `/spike` 的結案步驟做完:commit 資料夾與文檔、把 sha 填進 `RND-n`、寫候選比較表與結論、回寫 `status` / `verdict` / `feeds`、`git rm -r` 該 spike 的資料夾再 commit——同一份文檔只有一個寫者,刪資料夾也只有你做
+4. 收齊回報後**由你**照 `/spike` 的結案步驟做完:commit 資料夾與文檔、把 sha 填進 `RND-n`、寫候選比較表與結論、回寫 `status` / `verdict` / `feeds`、用 `spike-close.mjs`(先 dry-run 再 `--apply`,不手打 `git rm`)刪該 spike 的資料夾再 commit——同一份文檔只有一個寫者,刪資料夾也只有你做
 
 ```
 【委派模式】遵守 <delegation.md 路徑> 的委派模式共通契約:不得提問、

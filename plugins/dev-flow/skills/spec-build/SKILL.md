@@ -26,6 +26,7 @@ user-invocable: true
 
 - 目標 spec 帶「待確認假設」段落 → `../_shared/delegation-design.md`(欄位格式)+ `../_shared/boundary-rules.md`(層級複審)。**沒有這一段就兩片都不讀**——單獨跑的 `/spec-build` 目標多半是互動模式寫出來的 spec,不會有這一段
 - 要建或改 `spec-gaps.md` → `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔`(**不要整份讀**)
+- 閘門或仲裁撞到「要跑了才知道」的問題 → `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/orchestration.md "派 spike 驗證"`(已整份讀 `orchestration.md` 的不必再讀)
 - **收尾時** → `../_shared/anchor.md`(定錨區塊格式)
 
 ## 目標
@@ -101,7 +102,7 @@ spec 已經寫好了(`/spec-design` 產出的文檔 + 骨架,feature 或 enhance
 
 裁決的順序固定:**不可逆決定(第 3 點)→ 不在宣告內的新增依賴邊(第 4 點)→ 契約層級的待確認假設(第 7 點,最難逆的先問)**。前兩類依定義就是最難逆的,排在注意力最新鮮的位置。
 
-用 AskUserQuestion 讓開發者選:**批准,繼續** / **要改 spec**(結束本次,請開發者走 `/spec-redesign`)/ **停下來**。
+用 AskUserQuestion 讓開發者選:**批准,繼續** / **要改 spec**(結束本次,請開發者走 `/spec-redesign`)/ **先派 spike 驗證**(議程上某一條靠讀答不出來、要跑了才知道:照 `../_shared/orchestration.md`「派 spike 驗證」派出去,拿 verdict 回來再重開這個閘門)/ **停下來**。
 
 兩種情況不問這一題,但第 1-6 點的呈報照發(**降級的是問不問,不是呈不呈報**):開發者看不到呈報,就不知道被放行的是什麼。
 
@@ -143,6 +144,7 @@ feature 目標(全新程式碼)沒有既有測試,這條基準線可跳過——
 有紅 → 歸因走 `spec-roles.md`「仲裁協議」的四分流,裁決後的處置(誰重派、prompt 給什麼、什麼時候停)照 `../_shared/orchestration.md`「仲裁的裁決與處置」,**禁止直接叫 impl 重寫**。那一片沒寫的一條:
 
 - **enhance 專屬**:基準線上綠、現在轉紅的測試是**回歸**,不論它對應哪條 law,一律要求 impl 修好或回退,不得以「新行為比較合理」放過
+- **spec bug 的根源是「當初沒試」時**(law 假設了某個環境行為、而那個假設要跑了才知道對不對):停下該 feature,照 `../_shared/orchestration.md`「派 spike 驗證」派一份 spike,verdict 連同 spec bug 一起交給開發者走 `/spec-redesign`。你仍然不補 law
 
 每一輪的裁決都要記下來(第幾輪、哪條測試、歸因結論、依據的 spec 條文);目標子系統有 `build-log.md` 時寫進它的「仲裁紀錄」,沒有的話寫進回報。
 

@@ -13,6 +13,7 @@
  *   .design/subsystems/<slug>/{features,enhancements,bugfixes}/*.md   子系統任務文檔
  *   .design/{enhancements,bugfixes}/*.md               全域任務文檔(G-E / G-B)
  *   .design/contracts/*.md                             跨子系統共用契約(G-C;非任務文檔,不計入進度)
+ *   .design/spikes/*.md                                可行性驗證紀錄(SPK;非任務文檔,open 的算待辦、不進百分比)
  *   .design/adr/*.md                                   ADR
  *
  * 盤點模式下任務文檔只讀每檔開頭 4KB;design.md 與 system.md 需讀全文才能解析
@@ -377,6 +378,77 @@ for (const name of listMd(join(designDir, "adr"))) {
   const st = meta?.status ? String(meta.status) : "missing-status";
   adrCounts[st] = (adrCounts[st] ?? 0) + 1;
 }
+
+// ---------------------------------------------------------------- spike
+
+/**
+ * spike 不是任務文檔:它替某個決定生產證據,不進任何百分比。但 `open` 的 spike 是一個
+ * 還沒答完的問題,它的下游決定(ADR、契約、feature 的不可逆決定)正在等 —— 所以列出來、計入
+ * exit code。`concluded` 而 `feeds` 空的是**結論沒有下游**,列為不一致:沒有人會去讀一份
+ * 沒有指向任何決定的驗證紀錄,它跟沒寫一樣。文檔與 spikes/ 資料夾成不成對、產品程式碼有沒有
+ * import 它,是 lint-spikes.mjs 的事(要掃專案樹,本腳本只看 .design/)。
+ */
+const SPIKE_PATTERN = /^(SPK-\d{3})-([a-z0-9-]+)\.md$/;
+const SPIKE_STATUSES = new Set(["open", "concluded", "dropped"]);
+const SPIKE_VERDICTS = new Set(["feasible", "infeasible", "partial"]);
+const spikes = []; // { id, slug, description, status, verdict, feeds, affects, question, file }
+for (const name of listMd(join(designDir, "spikes"))) {
+  const path = join(designDir, "spikes", name);
+  const relPath = rel(path);
+  const m = name.match(SPIKE_PATTERN);
+  if (!m) archNotes.push(`${relPath}:檔名不符 spike 命名規則(如 SPK-001-slug.md)`);
+  const text = readFileSync(path, "utf8");
+  const { meta, blockListKeys } = parseFrontmatter(text);
+  if (blockListKeys.length) badFormat.push({ file: relPath, keys: blockListKeys });
+  const fileId = m?.[1] ?? null;
+  const metaId = fmtValue(meta?.id);
+  if (meta && fileId && metaId !== "-" && metaId !== fileId)
+    archIssues.push(`${relPath}:frontmatter id(${metaId})與檔名編號(${fileId})不一致`);
+  if (meta && meta.type && meta.type !== "spike") archIssues.push(`${relPath}:type(${meta.type})應為 spike`);
+  if (!meta?.description) archIssues.push(`${relPath}:缺 description / 主軸`);
+  const status = meta?.status ? String(meta.status) : "⚠ missing-metadata";
+  if (meta?.status && !SPIKE_STATUSES.has(status))
+    archIssues.push(`${relPath}:status(${status})不在 open / concluded / dropped 之內`);
+  const verdict = fmtValue(meta?.verdict);
+  const feeds = asList(meta?.feeds);
+  if (status === "concluded") {
+    if (verdict === "-" || !SPIKE_VERDICTS.has(verdict))
+      archIssues.push(`${relPath}:status 是 concluded 但 verdict(${verdict})不在 feasible / infeasible / partial 之內`);
+    if (feeds.length === 0)
+      archIssues.push(`${relPath}:status 是 concluded 但 feeds 是空的 —— 結論沒有下游,沒有任何決定會讀到這份驗證`);
+  }
+  for (const cp of asList(meta?.["code-paths"]))
+    if (!/^spikes\//.test(cp)) archIssues.push(`${relPath}:code-paths 的 ${cp} 不在 spikes/ 底下 —— spike 程式碼只准住在那裡`);
+  const id = metaId !== "-" ? metaId : fileId ?? name.replace(/\.md$/, "");
+  const question = (text.match(/^-\s*\*\*要回答什麼\*\*\s*[::]\s*(.+)$/m)?.[1] ?? "").trim();
+  spikes.push({
+    id,
+    slug: m?.[2] ?? name.replace(/\.md$/, ""),
+    description: meta?.description ? truncate(meta.description, DESC_WIDTH) : "-",
+    status,
+    verdict,
+    feeds,
+    affects: asList(meta?.subsystems),
+    question: question && !/^<.+>$/.test(question) ? question : "",
+    file: relPath,
+  });
+}
+const spikeName = (sp) => `${sp.id}-${sp.slug}`;
+/** 一份 spike 的 feeds 有沒有指到某份文檔:吃 `auth/F002`、`auth/F002-token-refresh`、`G-E001-cache`、`G-C001-session#Token` */
+const feedKey = (f) => {
+  const m = f.split("#")[0].match(/^((?:[a-z0-9-]+\/)?)(G-[CEB]\d{3}|ADR-\d{3}|SPK-\d{3}|[FEB]\d{3})(?:-[a-z0-9-]+)?$/);
+  return m ? `${m[1]}${m[2]}` : f.split("#")[0];
+};
+const spikeFeeds = (sp, subsystem, id) =>
+  sp.feeds.some((f) => {
+    const k = feedKey(f);
+    return k === `${subsystem}/${id}` || k === id;
+  });
+const spikeLine = (sp) =>
+  `- ${spikeName(sp)}  [${sp.status}${sp.verdict !== "-" ? ` · ${sp.verdict}` : ""}]  ${sp.description}  ${sp.file}` +
+  (sp.question ? `\n    要回答:${sp.question}` : "") +
+  (sp.feeds.length ? `\n    餵給:${sp.feeds.join("、")}` : "");
+const openSpikes = spikes.filter((sp) => sp.status === "open" || sp.status === "⚠ missing-metadata");
 
 // ---------------------------------------------------------------- spec-gaps
 
@@ -1053,6 +1125,12 @@ if (query.doc) {
         .concat(["", `下一步是**修 ${rowName(hit)} 這份 spec**,不是繼續做:兩種相反的實作都會全綠,測試證明不了什麼。`]),
     );
 
+  // 這份文檔的哪些決定有證據:spike 的 feeds 指到這裡的、或內文引用了 SPK-00x 的。
+  // spec-design 寫不可逆決定前要讀這一段;讀不到證據的決定會在閘門被退回。
+  const cited = new Set([...full.matchAll(/\bSPK-(\d{3})\b/g)].map((x) => `SPK-${x[1]}`));
+  const relSpikes = spikes.filter((sp) => spikeFeeds(sp, hit.subsystem, hit.id) || cited.has(sp.id));
+  printBlock("相關 spike(這份文檔的決定有哪些證據)", relSpikes.map(spikeLine));
+
   const usedContracts = contractRefsIn(full);
   printBlock("引用的全域契約", usedContracts.map((r) => fmtRef(r, r)));
 
@@ -1256,6 +1334,9 @@ if (query.subsys) {
     }),
   );
 
+  const relSpikes = spikes.filter((sp) => sp.affects.includes(slug) || mine.some((r) => spikeFeeds(sp, r.subsystem, r.id)));
+  if (relSpikes.length) printBlock(`相關 spike(${relSpikes.length})—— 這個子系統的決定有哪些證據`, relSpikes.map(spikeLine));
+
   const pend = pendingFeatures.filter((f) => f.subsystem === slug);
   printBlock(
     `只規劃了、還沒寫 spec 的 feature(${pend.length})`,
@@ -1420,6 +1501,13 @@ if (contractIds.size > 0) {
   console.log("(契約不是任務文檔,不計入進度;查單一份用 --doc G-C001-<slug>)");
 }
 
+if (spikes.length > 0) {
+  console.log(`\n=== spike:可行性驗證(${spikes.length},open ${openSpikes.length})===`);
+  console.log("spike 不是任務文檔,不進任何百分比;open 的每一份都是一個還沒答完的問題,它的下游決定正在等證據。");
+  for (const sp of spikes) console.log(spikeLine(sp));
+  if (openSpikes.length) console.log("下一步:把 open 的 spike 做完(/spike),或標 dropped 並寫一句為什麼。");
+}
+
 if (pendingFeatures.length > 0) {
   console.log(`\n=== 只規劃了、還沒寫 spec 的 feature(${pendingFeatures.length})===`);
   console.log("這些檔已經有編號與 `## 契約`,缺的是 Laws / Examples / 骨架。下一步:/spec-design(契約滿格時可用 /subsys-build 批次委派)。");
@@ -1486,12 +1574,13 @@ if (
   noDesc.length > 0 ||
   archIssues.length > 0 ||
   badFormat.length > 0 ||
-  openGaps.length > 0
+  openGaps.length > 0 ||
+  openSpikes.length > 0
 ) {
   process.exit(1);
 }
 console.log(
   "\n全部項目皆已完成(done/closed)、名冊上每個子系統都已建檔且跑完路線圖、" +
-    "沒有 planned 模組群、開發階段全數已達成,且 metadata 完整。",
+    "沒有 planned 模組群、開發階段全數已達成、沒有 open 的 spike,且 metadata 完整。",
 );
 process.exit(0);

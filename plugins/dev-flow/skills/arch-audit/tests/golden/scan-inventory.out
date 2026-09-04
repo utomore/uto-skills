@@ -49,6 +49,15 @@ ADR:accepted 1(共 1 份)
 共用 session 契約  G-C001-session  active  [auth, billing]  contracts/G-C001-session.md
 (契約不是任務文檔,不計入進度;查單一份用 --doc G-C001-<slug>)
 
+=== spike:可行性驗證(2,open 1)===
+spike 不是任務文檔,不進任何百分比;open 的每一份都是一個還沒答完的問題,它的下游決定正在等證據。
+- SPK-001-fts-latency  [concluded · feasible]  SQLite FTS5 在 50 萬筆下的查詢延遲  spikes/SPK-001-fts-latency.md
+    要回答:FTS5 在 50 萬筆筆記下,單字查詢能不能在 200ms 內回來
+    餵給:ADR-001-jwt、auth/F002-token-refresh
+- SPK-002-wasm-target  [open]  核心模組能不能編到 wasm 目標  spikes/SPK-002-wasm-target.md
+    要回答:核心模組在不改依賴的前提下能不能編到 wasm32
+下一步:把 open 的 spike 做完(/spike),或標 dropped 並寫一句為什麼。
+
 === 只規劃了、還沒寫 spec 的 feature(1)===
 這些檔已經有編號與 `## 契約`,缺的是 Laws / Examples / 骨架。下一步:/spec-design(契約滿格時可用 /subsys-build 批次委派)。
 - auth/F003-logout  subsystems/auth/features/F003-logout.md

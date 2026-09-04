@@ -66,6 +66,8 @@ run cross-docs       "$SCRIPTS/lint-cross-spec.mjs" cross --docs F001,F002
 run cross-bad-flag   "$SCRIPTS/lint-cross-spec.mjs" cross --bogus
 run laws-skeleton-ok "$SCRIPTS/lint-laws.mjs" cross --skeleton cross
 run laws-skeleton-drift "$SCRIPTS/lint-laws.mjs" drift --skeleton drift
+run spikes-clean     "$SCRIPTS/lint-spikes.mjs" cross --design cross
+run spikes-bad       "$SCRIPTS/lint-spikes.mjs" spike
 
 echo
 echo "=== 只驗 exit code,不比對輸出 ==="
@@ -103,6 +105,15 @@ if grep -q "claim-planned.*「## 契約」還缺" <<<"$claim_out" && ! grep -q "
   echo "✓ --claim 建出來的 feature 是合規的 planned(契約待補只算提示)"
 else
   echo "✗ --claim 建出來的 feature 盤點模式讀不對(planned 的骨架應該有 ## 契約)"; fail=1
+fi
+# SPK 的配號要**同一個動作**建出兩樣東西:.design/spikes/ 的文檔與同名的程式碼資料夾(附 README)。
+# 少建一樣,lint-spikes 就會把它報成「沒有紀錄的實驗」或「沒有程式碼的紀錄」—— 那正是成對規則要防的。
+node "$SCRIPTS/scan-ids.mjs" "$CLAIM_TMP/.design" --claim SPK --slug claim-spike >/dev/null 2>&1
+if [[ -f "$CLAIM_TMP/.design/spikes/SPK-003-claim-spike.md" && -f "$CLAIM_TMP/spikes/SPK-003-claim-spike/README.md" ]] &&
+   node "$SCRIPTS/lint-spikes.mjs" "$CLAIM_TMP" >/dev/null 2>&1; then
+  echo "✓ scan-ids --claim SPK → 文檔與 spikes/ 資料夾成對,lint-spikes 乾淨"
+else
+  echo "✗ scan-ids --claim SPK(文檔或程式碼資料夾少建了一樣,或 lint-spikes 不認得它建出來的東西)"; fail=1
 fi
 rm -rf "$CLAIM_TMP"
 

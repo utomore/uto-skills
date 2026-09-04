@@ -18,17 +18,19 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 | 建 / 改 **`G-C00x` 共用契約** | `全域契約文檔 命名與編號規則 文檔引用格式` |
 | 建 / 改 **`spec-gaps.md`** 或 **`build-log.md`** | `架構文檔`(兩者的 frontmatter 規格都在這一節) |
 | 建 **ADR** | `ADR 命名與編號規則` |
+| 建 / 改 **spike** 文檔 | `命名與編號規則 文檔引用格式 description "spike 文檔"` |
 | **給任何東西編號或取縮寫** | `編號與縮寫註冊表` |
 | 只寫**跨文檔引用** | `文檔引用格式` |
 | **對帳 / 審查**(`/arch-audit`) | 全份讀,不用切 |
 
 ## 文檔角色與權威來源
 
-**不是任務文檔的三種**(不參與 F/E/B 編號、不列入進度統計):
+**不是任務文檔的四種**(不參與 F/E/B 編號、不列入進度統計):
 
 - `build-log.md` —— 編排過程(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)。`/arch-audit status` 不掃它;它的價值在「中斷後能接續」與「事後查得到當初為什麼這樣決定」
 - `spec-gaps.md` —— **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`)。有 `open` 條目就代表有項目正卡著等 spec 修訂:`/arch-audit status` 會列出這些條目,並在**被那條 gap 卡住的那份文檔**那一列標 `⚠卡auth/GAP-n`(靠條目標題 `## GAP-1(auth/F002-token-refresh / qa)` 裡的文檔全名認親,標題不寫文檔全名的 gap 標不到任何人),`/subsys-build` 開跑前會擋。**委派模式下只由編排者單線寫入與配號**,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
 - `design.md` 的**分冊**(`subsystems/<slug>/` 根層、`design.md` 以外的 `.md`)—— 契約章節大到一份裝不下時拆出去,但**拆出去的仍然是 `design.md` 的一部分**。兩種 `type`:`contract-part`(某個模組群的對外契約與 DTO)、`decisions`(訪談定案與否決理由)。不編號,用 `parent: <子系統 slug>` 認親;`design.md` 要指明哪一群的契約在哪一份。**凡是讀「該子系統 `design.md` 全文」的地方,一律連分冊一起讀**——契約條目可能整段住在分冊裡,只開 `design.md` 會誤判「契約缺漏」(`contract-readiness.md` A3 已放寬為跨檔比對)。拆分冊有成本(對帳從開一份檔變成開好幾份),沒大到讀不動就不要拆
+- `spikes/SPK-00x-<slug>.md` —— **可行性驗證的紀錄**(`/spike` 產出)。它替某個決定生產證據,自己不是任務:一個問題、判準、幾輪 `RND-n` 的結果、verdict、以及結論**餵給了哪幾份文檔**(`feeds` 欄)。程式碼保留在 `.design/` 上一層的同名資料夾 `spikes/SPK-00x-<slug>/`,**產品程式碼與測試禁止 import 它**,任務文檔的 `code-paths` 也不得指進去(`lint-spikes.mjs` 機械查)。`status: open` 的 spike 是一個還沒答完的問題,`/arch-audit status` 列出並計入 exit code;`concluded` 而 `feeds` 是空的 = 結論沒有下游,列為不一致。**委派模式下只由編排者寫**,subagent 只寫自己的程式碼子資料夾並回報(候選比較時多個 subagent 對同一份 spike 檔,理由同 `delegation.md` 第 4 條)
 
 **權威來源**(這一格是誰的事實,就只能由誰改):
 
@@ -86,8 +88,13 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 ├── bugfixes/
 │   └── G-B001-<slug>.md             # 跨子系統的全域修復(/bugfix 產出)
 ├── spec-gaps.md                     # 全域文檔的 spec 模糊處(有 gap 才有)
+├── spikes/
+│   └── SPK-001-<slug>.md            # 可行性驗證紀錄(/spike 產出;非任務文檔,程式碼在下面那個資料夾)
 └── adr/
     └── ADR-001-<slug>.md            # 架構決策紀錄,全局共用
+
+spikes/                              # 與 .design/ 同層:spike 的程式碼,資料夾名 = 文檔全名
+└── SPK-001-<slug>/                  # 候選比較時再分子資料夾;產品程式碼禁止 import 這裡
 ```
 
 **舊版路徑相容**:0.6.0 起設計文檔才改放 `.design/`;專案只有舊版 `docs/arch/architecture.md` 體系時,提醒開發者用 `/system-design` 遷移,遷移前可照舊以舊檔為燈塔運作,但**不得在舊結構下新建文檔**。
@@ -101,17 +108,17 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
   node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
   ```
 
-  組寫 `G-C` / `G-E` / `G-B` / `ADR` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。腳本掃過所有分支與 worktree 之後配號,**並當場把檔案建在慣例位置**(照本片「Metadata 標準」把該類文檔的 frontmatter 欄位寫齊,內容留空),印出三樣:`<id>`、檔案路徑、**全名**(`auth/F003-token-cache`——之後每一次提到這份文檔都用全名,見「文檔引用格式」)。內容由你接著填,第一件事是補 `description`。查現況用不帶 `--claim` 的同一支腳本(`--next` 只印下一個可用號,`--fetch` 連遠端一起看)。
+  組寫 `G-C` / `G-E` / `G-B` / `ADR` / `SPK` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。腳本掃過所有分支與 worktree 之後配號,**並當場把檔案建在慣例位置**(`SPK` 另建同名的程式碼資料夾 `spikes/SPK-00x-<slug>/`)(照本片「Metadata 標準」把該類文檔的 frontmatter 欄位寫齊,內容留空),印出三樣:`<id>`、檔案路徑、**全名**(`auth/F003-token-cache`——之後每一次提到這份文檔都用全名,見「文檔引用格式」)。內容由你接著填,第一件事是補 `description`。查現況用不帶 `--claim` 的同一支腳本(`--next` 只印下一個可用號,`--fetch` 連遠端一起看)。
 
   **feature 的號在 `/subsys-design` 一次配齊**(那個子系統決定要做哪幾件事的當下),不是等到寫 spec 才一個一個配。一次一批反而**更不會撞號**:整批落在同一個 commit,而分散在幾週內、幾條分支上一次配一個才是撞號的溫床。E/B 沒有規劃階段,提出當下才配。
 
   **配號與建檔必須是同一個動作**:掃描看得到的是檔案,你腦中記著的號碼別人看不到,「先算號、待會再建檔」中間那段空窗就是撞號發生的地方。**沒有任何 skill 可以用「掃資料夾取最大值 +1」自己配號**——那個做法看不到別的分支與 worktree,而兩份同號不同 slug 的檔案 merge 時不會衝突,會靜默地一起落地。其餘旗標跑 `--help`;理由與三個掃描來源寫在腳本檔頭。
 
-  這只管**文檔 id**。檔案**內部**的條目(`LAW-` / `EX-` / `ASM-` / `GAP-` / `DEC-` / `SELF-` / `WAVE-` / `STEP-` / `REG-`)不走腳本——它們只在單一檔案內唯一,寫的人手上就有那個檔案。`S0`–`Sn` 也不走:它們在 `system.md` 同一張表裡,平行修改會產生真的 merge 衝突。
+  這只管**文檔 id**。檔案**內部**的條目(`LAW-` / `EX-` / `ASM-` / `GAP-` / `DEC-` / `SELF-` / `WAVE-` / `STEP-` / `REG-` / `RND-`)不走腳本——它們只在單一檔案內唯一,寫的人手上就有那個檔案。`S0`–`Sn` 也不走:它們在 `system.md` 同一張表裡,平行修改會產生真的 merge 衝突。
 - **每個子系統自己一組編號**(F/E/B 各自獨立計數);**全域(G-)自己一組編號**;ADR 全局一組編號:
   - 子系統內:`F001`、`E001`、`B001`(features / enhancements / bugfixes 各自從 001 起算)
   - 全域:`G-C001`、`G-E001`、`G-B001`(契約 / 優化 / 修復各自從 001 起算)
-  - ADR:`ADR-001`
+  - ADR:`ADR-001`;spike:`SPK-001`(全局一組,spike 常在還沒定子系統時就開)
 - 檔名不放日期(日期在 frontmatter 的 `created` / `updated`)
 
 ## 編號與縮寫註冊表(唯一鑄號機關)
@@ -129,6 +136,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 | `B001` | 三位數 | bugfix 文檔 | 子系統內一組 | `scan-ids.mjs --claim` |
 | `G-C001` / `G-E001` / `G-B001` | 三位數 | 全域契約 / 優化 / 修復 | 全域各一組 | `scan-ids.mjs --claim` |
 | `ADR-001` | 三位數 | 架構決策紀錄 | 全局一組 | `scan-ids.mjs --claim` |
+| `SPK-001` | 三位數 | spike(可行性驗證)文檔,程式碼資料夾同名 | 全局一組 | `scan-ids.mjs --claim` |
 | `S0`、`S1`… | 一~二位數 | **開發階段**(`system.md`「開發階段」表的階段 id) | 全專案固定 | `/system-design` |
 | `A1`–`A10`、`B1`–`B4` | 固定清單 | `contract-readiness.md` 的檢查條(A 段 / B 段) | 那一份檢查表 | 固定,不配號 |
 | `LAW-1` | 詞首碼 | spec 的 law(行為性質) | 單一 spec 檔內 | spec 角色 |
@@ -140,6 +148,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 | `SELF-1` | 詞首碼 | 自裁記錄(實作層級的自答) | 單一回報 / 自裁清單內 | spec subagent |
 | `WAVE-1` | 詞首碼 | 委派展開的波次 | 單一子系統的展開內 | 編排者 |
 | `STEP-1` | 詞首碼 | bugfix 的 TodoList 步驟(`dep:` 欄互相引用) | 單一 bugfix 文檔內 | `/bugfix` |
+| `RND-1` | 詞首碼 | spike 的輪次(每輪自帶問題、判準、timebox、結果) | 單一 spike 文檔內 | `/spike`(委派模式由編排者) |
 | `Level 1 / 2 / 3` | **全名** | 設計三層階梯(主架構 / 子系統 / spec) | 全流程 | 固定 |
 
 - **`Level` 一律寫全名**,任何 skill 文檔與產出裡都不准縮寫成 `L1` / `L2` / `L3`——`L` 誰都不給,免得跟專案的 `Layer` 與舊寫法的 law 混在一起。專案自己的 `Layer 0–3` 之類是專案詞彙,不歸本表管,但**專案自訂縮寫不得與本表衝突**(`/system-design` 產出前檢查):想給階段取 `E0`–`E6` 就是撞了 `E001` 與 `EX-`,一律改用工具鏈保留的 `S0`–`Sn`
@@ -157,6 +166,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 | 全域任務文檔 | `G-E001-<slug>` / `G-B001-<slug>`(frontmatter 欄位可只寫 `G-E001`) | `G-E001-cache` |
 | 全域契約 | **一律寫到條目**,不只寫文檔 id | `G-C001-session#SessionToken` |
 | ADR | `ADR-00x-<slug>`(frontmatter 欄位可只寫 `ADR-003`) | `ADR-003-jwt` |
+| spike | `SPK-00x-<slug>`(frontmatter 欄位可只寫 `SPK-003`);它的某一輪寫 `SPK-00x-<slug> 的 RND-2` | `SPK-003-storage-engine` |
 | 檔案**內部**的條目(LAW / REG / EX / ASM / STEP / DEC / WAVE) | `<擁有它的文檔全名> 的 <條目>` | `auth/F002-token-refresh 的 LAW-3` |
 | `spec-gaps.md` 的條目(每個子系統只有一份,不必寫檔名) | `<子系統>/<條目>`;全域的 gap 寫 `global/<條目>` | `auth/GAP-1` |
 | 開發階段 | `<階段 id>(<階段名稱>)` | `S1(帳務上線)` |
@@ -335,6 +345,35 @@ updated: 2026-08-19
 ---
 ```
 
+### spike 文檔(SPK)
+
+`spikes/SPK-001-<slug>.md`(`/spike` 產出;程式碼在 `.design/` 上一層的 `spikes/SPK-001-<slug>/`):
+
+```yaml
+---
+id: SPK-001
+type: spike
+title: <slug>
+description: <一句話,40 字內:要驗證什麼>
+status: open                 # open | concluded | dropped
+verdict:                     # concluded 才填:feasible | infeasible | partial
+created: 2026-09-04
+updated: 2026-09-04
+subsystems: []               # 相關子系統;還沒定子系統時留空(spike 常先於子系統)
+feeds: []                    # 結論餵給哪些文檔(全名);concluded 時必填非空
+related-adr: []
+code-paths: [spikes/SPK-001-<slug>]   # 固定同名資料夾;只准指到 spikes/ 底下
+---
+```
+
+固定章節:**問題**(要回答什麼 / 為什麼讀原始碼答不出來 / 判準 / 下游)→ **輪次**(每輪一個 `### RND-n`,各自有要驗什麼、判準、timebox、做法、結果、sha、環境)→ **候選比較**(只有比較形態才有)→ **結論**(verdict / 一句話 / 學到什麼 / 餵給哪裡 / 沒驗到的)。版面在 `spike/templates/spike.md`。
+
+三條規則:
+
+1. **`status` 由結論決定**:`open` = 還有輪次沒判定;`concluded` = `## 結論` 填齊、`verdict` 與 `feeds` 都非空;`dropped` = 決定不做了(一句話寫為什麼)。`concluded` 而 `feeds` 空的,`scan-status.mjs` 列為不一致——沒有下游的 spike 等於白做
+2. **`code-paths` 只准指到 `spikes/` 底下**,任務文檔(F/E/B)的 `code-paths` 則**不准**指進 `spikes/`。兩個方向 `lint-spikes.mjs` 都查;它另外掃產品原始碼有沒有 import `spikes/`
+3. **不進進度分母**。它不是要做的事,是替要做的事找證據;`open` 的 spike 在 `/arch-audit status` 單獨列出(一個還沒答完的問題),計入 exit code 但不進任何百分比
+
 ### 清單欄位格式(唯一寫法:行內陣列)
 
 `depends-on`、`related-adr`、`related-feature`、`subsystems` 等清單欄位**一律寫成行內陣列**,空值寫 `[]`:
@@ -356,7 +395,7 @@ depends-on:                           # ❌ 不使用 YAML 區塊列表
 
 ### `description` 欄位規則(必填)
 
-- **所有類型都要寫**:system / subsystem / adr / feature / enhance / bugfix,一個都不能少
+- **所有類型都要寫**:system / subsystem / adr / feature / enhance / bugfix / spike,一個都不能少
 - **一句話**描述本文檔的**主軸**:繁體中文、40 字以內,不加句號;超過就是寫太細,砍掉細節只留主軸
 - 只寫主題,不寫實作細節、不列步驟、不寫理由(那些屬於內文)
 - 值含冒號 `:` 或 `#` 時整句用雙引號括起來(YAML 規則)
@@ -370,3 +409,4 @@ depends-on:                           # ❌ 不使用 YAML 區塊列表
 | feature | 這個功能做什麼 | `以 JWT 實作使用者註冊、登入與權限驗證` |
 | enhance | 要改善什麼 | `將檔案掃描改為增量更新以縮短啟動時間` |
 | bugfix | 什麼壞了 | `並發寫入時索引損毀導致搜尋結果缺漏` |
+| spike | 要驗證什麼 | `SQLite FTS5 在 50 萬筆筆記下的查詢延遲` |

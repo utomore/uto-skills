@@ -1,0 +1,17 @@
+=== spike 不一致(7)===
+spike 程式碼只供參考:沒有契約、沒有測試,任何一條 law 都不保護它。產品程式碼依賴它的每一處都是一段沒人保護的行為。
+
+- .design/spikes/SPK-002-nodir.md:concluded 但 verdict(done)不在 feasible / infeasible / partial 之內
+- .design/spikes/SPK-002-nodir.md:concluded 但 feeds 是空的 —— 結論沒有下游,沒有任何決定會讀到這份驗證
+- .design/spikes/SPK-002-nodir.md:code-paths 的 src/nope.py 不在 spikes/ 底下 —— spike 程式碼只准住在那裡
+- spikes/SPK-003-orphan/:沒有對應的 .design/spikes/SPK-003-orphan.md —— 沒有紀錄的實驗;用 scan-ids.mjs --claim SPK 補建文檔,或把資料夾移走
+- .design/subsystems/auth/features/F001-login.md:code-paths 指進 spikes/SPK-001-store/main.py —— 任務文檔的實作不得落在 spikes/ 底下,正式實作一律從 spec 寫進原始碼樹
+- src/app.py:2:import 了 spikes/ —— from spikes.SPK_001_store.main import store   # 違規
+- src/ok.ts:2:import 了 spikes/ —— import spikeLike from "../spikes/SPK-001-store/main"; // 違規
+
+=== 提示(1)===
+- .design/spikes/SPK-002-nodir.md:沒有對應的程式碼資料夾 spikes/SPK-002-nodir/(程式碼被清掉了?結論還在就不算錯)
+
+掃了 2 份 spike 文檔、2 個 spikes/ 資料夾、2 個原始碼檔(.),2 處 import 指到 spikes/。
+(只查 import 寫法;建置設定有沒有把 spikes/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)
+__exit__ 1

@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "dev-flow",
-      "description": "文檔驅動開發流程 skills:架構設計、子系統架構(含 Feature 契約卡、契約就緒度檢查與跨子系統共用契約)、子系統委派展開、spec 驅動的三角色(設計寫 spec 與骨架、qa 只讀 spec 寫測試、impl 只填骨架;設計與實作各一條命令,feature / enhance 為模式)、專案分析(含 status 掃描與設計文檔查詢)、整合發 PR",
+      "description": "文檔驅動開發流程 skills:架構設計、子系統架構(含 Feature 契約卡、契約就緒度檢查與跨子系統共用契約)、子系統委派展開、spec 驅動的三角色(設計寫 spec 與骨架、qa 只讀 spec 寫測試、impl 只填骨架;設計與實作各一條命令,feature / enhance 為模式)、可行性驗證(spike:拋棄式程式碼 + 有下游的結論紀錄)、專案分析(含 status 掃描與設計文檔查詢)、整合發 PR",
       "author": {
         "name": "utomore"
       },

@@ -68,6 +68,14 @@ const CONVENTION = {
       ],
     },
     {
+      label: "驗證  /spike(任何一層都可以派)",
+      meta: "產出 .design/spikes/SPK-00x-<slug>.md + 同名程式碼資料夾 spikes/SPK-00x-<slug>/;不是任務文檔,不進進度分母",
+      kids: [
+        { label: "SPK-001", meta: "可行性驗證文檔 · 全局一組 · scan-ids --claim SPK · 永久", note: "讀原始碼答不出來、要跑了才知道的問題;結論餵給哪份文檔寫在 feeds 欄,concluded 而 feeds 空的是不一致。引用時帶 slug:SPK-003-storage-engine" },
+        { label: "RND-1", meta: "spike 的輪次 · 單一 spike 檔內 · /spike 配(委派模式由編排者)· 永久", note: "每一輪各有自己的問題、判準、timebox 與結果;模型屋式的 demo 靠這個一輪一輪長,不會變成無限期的原型開發" },
+      ],
+    },
+    {
       label: "編排層  /spec-build · /subsys-build",
       meta: "產出 build-log.md;以下全部是**過程**的編號,不是產品的一部分",
       kids: [
@@ -241,6 +249,10 @@ function buildProjectTree(designDir) {
 
   const adrs = listMd(join(designDir, "adr"));
   const contracts = listMd(join(designDir, "contracts"));
+  // spike:不是任務文檔,但「有幾個問題還沒答完」是形狀的一部分 —— 一個開著三份 spike 的專案,
+  // 表示有三個決定正在等證據,那跟「全域什麼都沒有」是兩種完全不同的專案。
+  const spikes = listMd(join(designDir, "spikes")).map((f) => readDoc(join(designDir, "spikes", f)).meta);
+  const spikeOpen = spikes.filter((m) => String(m.status ?? "open") === "open").length;
 
   // ---- 收集成表格列。階層靠第一欄縮排表達:子系統 → 模組群 ----
   const rows = [];
@@ -386,7 +398,7 @@ function buildProjectTree(designDir) {
     var globalCounts = { enh: genh.length, bugs: gbugs.length };
   }
 
-  return { sys, roster, stages, adrs, contracts, rows, built, globalCounts };
+  return { sys, roster, stages, adrs, contracts, rows, built, globalCounts, spikes: { total: spikes.length, open: spikeOpen } };
 }
 
 /** 顯示寬度(CJK 全形字算 2)—— 與 scan-status.mjs 同一份實作 */
@@ -402,7 +414,7 @@ function padTo(s, n, right = false) {
 }
 
 function renderProject(designDir) {
-  const { sys, roster, stages, adrs, contracts, rows, built, globalCounts } = buildProjectTree(designDir);
+  const { sys, roster, stages, adrs, contracts, rows, built, globalCounts, spikes } = buildProjectTree(designDir);
 
   // 抬頭:專案 → 階段 → 總計。三行講完「這是什麼、走到哪、有多大」
   console.log(bold(`${sys.meta.title ?? designDir}  ${sys.meta.description ?? ""}`));
@@ -423,7 +435,9 @@ function renderProject(designDir) {
   console.log(
     dim(
       `子系統 ${built}/${roster.length} 已建  ·  ADR ${adrs.length}  ·  全域契約 G-C ${contracts.length}` +
-        `  ·  全域優化 G-E ${globalCounts?.enh ?? 0}  ·  全域修復 G-B ${globalCounts?.bugs ?? 0}\n`,
+        `  ·  全域優化 G-E ${globalCounts?.enh ?? 0}  ·  全域修復 G-B ${globalCounts?.bugs ?? 0}` +
+        (spikes.total ? `  ·  spike SPK ${spikes.total}(open ${spikes.open})` : "") +
+        "\n",
     ),
   );
 

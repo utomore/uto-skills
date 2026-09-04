@@ -4,7 +4,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 
 ## dev-flow
 
-三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。Level 3 再切成 **spec 驅動的三角色**(設計 / qa / impl,見下方專節)。包含十一個 skills:
+三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。Level 3 再切成 **spec 驅動的三角色**(設計 / qa / impl,見下方專節)。包含十三個 skills:
 
 | 指令 | 層級 | 職責 |
 |---|---|---|
@@ -17,11 +17,12 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | `dev-flow:spec-impl` | Level 3 · impl | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。spec 實作 — 以骨架為工作清單,把 `undefined` 換成實作;**禁止讀寫任何測試檔、禁止改動骨架簽名**;紅燈只做歸因走仲裁協議,不自行猜 spec。模式由 id 前綴判定,`E00x` / `G-E00x` 追加三條:動工前先跑回歸測試留基準線、scope 標明不動的範圍絕對不碰、收尾記錄量化結果 |
 | `/spec-redesign` | 修改 | 契約與 spec 的修改 — 既有 `## 契約` 或既有 spec 要改時的**唯一入口**。先用機械判準定層級:**改動只落在這一份 feature 檔裡就 Level 3 就地改,有第二份文檔要跟著改就回 Level 2**(收回「明確不做」一律算 Level 2)。改完在 `## 契約` 底下追加可查證的修訂行、回填 gap,並講明哪幾條介面要重跑 qa / impl |
 | `/bugfix` | Level 3 | 缺陷修復(單角色)— 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
-| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、**模組群與職責對帳**、各 feature `## 契約` 對帳、未結 spec-gaps、仲裁紀錄)/ `feature`(Level 2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點**開發階段**、名冊上未建檔的子系統、未開工的模組群、完成度漏斗(僅規劃 / 已寫spec / 已實作)、契約就緒度與未結 spec-gaps) |
+| `/spike` | 驗證 | 可行性驗證 — 讀原始碼答不出來、**要跑了才知道**的問題:先寫問題、判準、timebox,再在專案根目錄 `spikes/SPK-00x-<slug>/` 寫拋棄式程式碼驗證,結論記進 `.design/spikes/SPK-00x-<slug>.md`,`feeds` 欄指明餵給哪份 ADR / 契約 / feature 檔。可多輪疊代(`RND-n`,模型屋式的 demo 範本)、可候選比較(各候選一個子資料夾)、可由任何編排者委派(`orchestration.md`「派 spike 驗證」)。程式碼保留給 spec-design / spec-impl 參考,**產品程式碼禁止 import**(`lint-spikes.mjs` 查);結論落地一律走 `/spec-redesign` 或對應的 design skill,spike 只是證據 |
+| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、**模組群與職責對帳**、各 feature `## 契約` 對帳、未結 spec-gaps、仲裁紀錄、spike 對帳)/ `feature`(Level 2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點**開發階段**、名冊上未建檔的子系統、未開工的模組群、完成度漏斗(僅規劃 / 已寫spec / 已實作)、契約就緒度與未結 spec-gaps) |
 | `/branch-pr` | — | 整合多條 branch 發 PR(先確認當前分支,在 main 上就先開新分支;標題英文 conventional commit、內文繁中、labels 英文) |
 | `/study` | — | 專案導讀(唯讀)— **六層縮放**由上而下帶開發者理解既有專案,範圍逐層收窄、深度逐層加深:全景(入口、技術棧、目錄職責;課末選定**主線情境**貫穿全程)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量;主線攜帶的型別優先)→ **逐跳 trace code**(沿主線從入口到輸出,附呼叫鏈摘要表,課末圈出要拆開看的跳)→ **細讀**(鑽進一兩個關鍵函式逐行講,含桌上執行表與逐分支邊界);每課固定「銜接 → 結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點(難度遞進:複述→預測→修改)→ 課程地圖」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
 
-共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分十一片,核心 `conventions.md` 每個 skill 都讀,其餘按需:`spec-roles.md`(spec 三角色契約)、`boundary-rules.md`(邊界判斷與發問協議)、`doc-lifecycle.md`(建檔、編號、引用與 frontmatter 規格)、`delegation.md` / `delegation-design.md`(委派模式)、`orchestration.md`(編排者專用:模型分派、委派 prompt、骨架快照、仲裁處置)、`codegraph.md` / `codegraph-tools.md`(程式碼知識圖)、`testing-policy.md`、`anchor.md`(收尾定錨)。**分片對照表的唯一權威是 `conventions.md` 開頭那張表**;每個 skill 開頭明列自己要讀哪幾片。
+共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分十二片,核心 `conventions.md` 每個 skill 都讀,其餘按需:`spec-roles.md`(spec 三角色契約)、`boundary-rules.md`(邊界判斷與發問協議)、`doc-lifecycle.md`(建檔、編號、引用與 frontmatter 規格)、`delegation.md` / `delegation-design.md`(委派模式)、`orchestration.md`(編排者專用:模型分派、委派 prompt、骨架快照、仲裁處置、派 spike 驗證)、`codegraph.md` / `codegraph-tools.md`(程式碼知識圖)、`testing-policy.md`、`anchor.md`(收尾定錨)。**分片對照表的唯一權威是 `conventions.md` 開頭那張表**;每個 skill 開頭明列自己要讀哪幾片。
 
 改 skill 前請先看 [docs/skill-authoring.md](docs/skill-authoring.md)——撰寫與維護準則(追加閘門、分片規則、成本量測)。
 
@@ -170,6 +171,7 @@ repo 有新版本後:
 │       └── bugfixes/B001-<slug>.md          # /bugfix
 ├── enhancements/G-E001-<slug>.md    # 跨子系統的全域優化
 ├── bugfixes/G-B001-<slug>.md        # 跨子系統的全域修復
+├── spikes/SPK-001-<slug>.md         # /spike:可行性驗證紀錄(非任務文檔;程式碼在專案根目錄的同名資料夾 spikes/SPK-001-<slug>/)
 └── adr/ADR-001-<slug>.md            # 架構決策紀錄,全局共用
 ```
 

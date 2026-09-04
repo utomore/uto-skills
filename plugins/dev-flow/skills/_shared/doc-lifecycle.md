@@ -14,6 +14,8 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 | 你要做什麼 | 節名(照抄進上面的指令) |
 |---|---|
 | 建 / 改 **feature、enhance、bugfix** 文檔 | `命名與編號規則 任務文檔 文檔引用格式 description`;`/spec-design` 再加 `狀態與生命週期` |
+| **判斷一件事該是 F 還是 E、該開新檔還是修訂舊檔** | `六種分類與分流判準` |
+| **修訂既有 F / E**(`/spec-redesign`) | `狀態與生命週期 "修訂(rev 與 REV)"` |
 | 建 / 改 **`system.md`、`design.md`** 或它的分冊 | `文檔角色與權威來源 資料夾結構 架構文檔 清單欄位格式 description` |
 | 建 / 改 **`G-C00x` 共用契約** | `全域契約文檔 命名與編號規則 文檔引用格式` |
 | 建 / 改 **`spec-gaps.md`** 或 **`build-log.md`** | `架構文檔`(兩者的 frontmatter 規格都在這一節) |
@@ -24,6 +26,41 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 | **對帳 / 審查**(`/arch-audit`) | 全份讀,不用切 |
 
 ## 文檔角色與權威來源
+
+### 六種分類與分流判準
+
+**feature 與 enhancement 都是「功能」,差別只在重要度;兩者都不是「動作」。** 判準各一句話,答得出來才建檔:
+
+| type | 意思 | 判準(可查的一句話) | 位置 | 生命週期 |
+|---|---|---|---|---|
+| **F** | 子系統的核心功能 | 拿掉它,這個子系統就**無法履行 `system.md` 給它的職責** | `subsystems/<slug>/features/F00x` | planned → specced → done |
+| **E** | 子系統的擴充功能 | 拿掉它,子系統**照樣履行職責**,只是少了某個好處 | `subsystems/<slug>/enhancements/E00x` | planned → specced → done |
+| **B** | 子系統的缺陷 | 某條 law 或 example 在現況下不成立 | `subsystems/<slug>/bugfixes/B00x` | open → closed |
+| **G-F** | 跨子系統核心功能 | 要兩個以上子系統各做一段才成立,而且**任一段缺,某個開發階段就達不成** | `.design/features/G-F00x` | planned → specced → done |
+| **G-E** | 跨子系統擴充功能 | 要兩個以上子系統配合,但拿掉它階段照樣達成 | `.design/enhancements/G-E00x` | planned → specced → done |
+| **G-B** | 跨子系統核心功能的障礙 | 某份 G-F 的 law 在現況下不成立 | `.design/bugfixes/G-B00x` | open → closed |
+
+**判準要寫進檔**:F 與 E 的 `## 契約` 各多一行,腳本查有沒有填(缺了進「提示」,和契約六欄同級):
+
+```markdown
+- **核心判準**:少了它,auth 就無法「讓使用者以憑證換取工作階段」(system.md 子系統劃分 §auth 職責第 1 句)   ← F
+- **非核心判準**:少了它,auth 照樣完成登入;它加的是「記住裝置,30 天內免二次驗證」            ← E
+```
+
+F 的那一行必須**指到 `system.md` 職責的哪一句**;指不到職責的 F 就是分類錯了。這是 `contract-readiness.md` A10 的反向:A10 查「職責有沒有落點」,這一行查「落點有沒有職責」。G-F 的核心判準指到**開發階段**(「少了它,S2 無法達成」)。
+
+**分類在 `/subsys-design` 規劃當下做**,和鑄號建檔同一個動作;E 也在那時鑄號建檔(它和 F 一樣是規劃出來的功能)。**分類錯了(F 其實是 E,或反過來)是唯一允許「刪檔重建」的情況**:type 改、資料夾搬、重新 `--claim` 配號,舊號永久空缺,在 `design.md` 的決策段留一行「F003 重分類為 E002,理由:___」。
+
+**重要度絕對 = 分母**:子系統「可運作」只看 F(F 全 done 且無 planned 模組群);E 另計「擴充度」,**不進可運作、不擋開發階段達成**。開發階段達成 = 涵蓋子系統全部可運作,且該階段的 G-F 全 done。
+
+**要動既有功能時,只問一句:這個改動能不能被描述成「拿掉它,原功能還在、行為不變」?**
+
+| 答案 | 意思 | 去處 |
+|---|---|---|
+| 能 | 這是一個**新的、可獨立拿掉的能力** | 新檔。核心判準答「不能運作」→ F;答「照樣運作」→ E |
+| 不能 | 它**改變了既有功能**的行為、介面、邊界或效能承諾 | **修訂原檔**(`/spec-redesign`,規則見「修訂(rev 與 REV)」),不開新檔 |
+
+效能優化、重構、換演算法、改簽名、收回「明確不做」、放寬定義域——全部是「不能」,全部修訂原檔。**不准為了「改既有功能」開 E**:那會讓 F 檔停在初版,三個月後沒有人知道它現在長什麼樣。
 
 **不是任務文檔的四種**(不參與 F/E/B 編號、不列入進度統計):
 
@@ -40,7 +77,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
   - **分母必須來自規劃,不能來自產出**(本流程被修過最嚴重的一個洞):名冊若只收已建檔的,它就跟資料夾清單同義,雙向比對永遠成立,而還沒開工的那一大半在任何進度數字裡都不存在——報表於是做得愈少、看起來愈完整
 - `system.md` 的「開發階段」表 —— 全專案唯一的**產品級分母**,狀態欄只認「未開始 / 進行中 / 已達成」。任何一階不是「已達成」,盤點就不得宣告專案完成
 - `design.md` 的「模組群」表 —— 子系統內部的領域劃分,有多個平行領域(而非一條資料流管線上的幾個模組)時必填,狀態只有 `active` / `planned`。`planned` 那一群的契約與 feature 檔都還沒建,**不在該子系統的進度分母裡**,`/arch-audit status` 單獨列出。只有一個領域可整張表省略
-- `features/F00x-<slug>.md` —— **一個 feature 的唯一權威,從它被決定要做的那一刻就存在**。它不是「spec 寫完才建的檔」:`/subsys-design` 決定要做這件事的當下就鑄號建檔,只寫 `## 契約` 一節(`planned`);`/spec-design` 往同一份檔追加 `## Laws` 等節(`specced`);收尾把 status 改 `done` 並回寫 `code-paths`。**沒有第二個地方記這個 feature 的任何事**——沒有路線圖的一列、沒有 `doc` 欄、沒有分開存放的契約文件
+- `features/F00x-<slug>.md`、`enhancements/E00x-<slug>.md`、`.design/features/G-F00x-<slug>.md` —— **一個功能的唯一權威,從它被決定要做的那一刻到它被廢棄,都在這一份檔**。它不是「spec 寫完才建的檔」:`/subsys-design` 決定要做這件事的當下就鑄號建檔,只寫 `## 契約` 一節(`planned`);`/spec-design` 往同一份檔追加 `## Laws` 等節(`specced`);收尾把 status 改 `done` 並回寫 `code-paths`;**之後任何改動都修訂這一份**(`rev` +1、`## 修訂記錄` 加一條),不開第二份檔。**沒有第二個地方記這個功能的任何事**——沒有路線圖的一列、沒有 `doc` 欄、沒有分開存放的契約文件、沒有「補做它的 E」
 - `design.md` 的「功能總覽」表 —— **生成的**索引(`scan-status.mjs --write-index`,夾在 `<!-- BEGIN/END FEATURE INDEX -->` 之間)。手改無效,下次生成就蓋掉。它只答「這個子系統有哪些 feature、走到哪」,每一格的權威都在各自的 `F00x` 檔
 - 每份 `design.md` 都要有 `parent: system`,讓任何讀者能從子系統回溯主架構
 
@@ -59,7 +96,35 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 
 `## 契約` 是 `/subsys-design` 的產出,**`/spec-design` 只能往下加節,不准改它**。裡面那條 `- **明確不做**` 是這個 feature 負向邊界的唯一紀錄:刪掉之後「當初為什麼沒把 X 收進來」就只能從 Laws 的沉默去猜,而**沉默不可區分於遺漏**。要改契約一律走 `/spec-redesign`,由它判定這次改動是否結構性(判準見那份 SKILL)。
 
-`E00x` / `B00x` **沒有 `planned` 這一格**:優化與缺陷是看著既有程式碼提出來的,沒有 Level 2 契約可抄,建檔當下就是 `specced`。
+`E00x` / `G-E00x` 走**同一條漏斗**:它們是規劃出來的功能(只是非核心),在 `/subsys-design` 鑄號建檔時就有 `## 契約`(含非核心判準),`planned` 起算。只有 `B00x` / `G-B00x` 沒有 `planned`:缺陷是看著既有程式碼提出來的,建檔當下就是 `open`。
+
+`G-F00x` 多一格判準:`done` 要求分工表列的每一份 F 都 `done` **且**端到端測試綠;分工 F 有未 done 而 G-F 標 done,`scan-status.mjs` 列為不一致。
+
+### 修訂(rev 與 REV)
+
+**任何對既有功能的改動都修訂原檔**(分流判準見上方「六種分類與分流判準」)。修訂是 `/spec-redesign` 一次做完的事——定層級、改條文、留 REV、講明重委派誰——所以**沒有「修訂中」這個狀態**;改到一半的檔只存在於 git 工作區。
+
+- frontmatter `rev: 0`(初版 0),每修訂一次 +1;原檔常駐一節 `## 修訂記錄`,一輪一條 `REV-n`,**只寫結論不寫過程**:
+
+  ```markdown
+  ## 修訂記錄
+  - REV-1(2026-09-10,依 auth/GAP-3):過期判定改用伺服器時鐘,不再讀客戶端時間
+    - 動到:LAW-2 改寫、LAW-5 新增(時鐘偏移上限)、介面 `refresh(req)` 多一個 `now` 參數
+    - 保護:REG-1(既有 session 在修訂前後都還能 refresh)
+    - 重委派:qa(LAW-2、LAW-5、REG-1)、impl(`refresh`)
+    - 連動:billing/F004-invoice-session 的 `## 契約` 同步(Level 2,design.md「模組間公開介面」§3)
+  ```
+
+  「依」欄寫觸發來源:`auth/GAP-3`、`SPK-003-storage-engine`、或 `開發者:效能`。效能修訂把基準線寫進新的 law(「p95 ≤ 100ms,基準線 2026-09-18 量測 400ms」)
+- **狀態機**:`done` 被修訂 → 退回 `specced`(文檔已是新版本、實作落後於它),`rev` +1;`planned` / `specced` 被修訂 → 狀態不變,`rev` +1。做完再推 `done`。沒被 REV 點名的 law 測試照樣綠,只重做被點名的
+- **升版不是決定**:追加 REV 與 `rev` +1 是同一個動作,人不另外判斷。`rev` 只是 REV 條數的快取,腳本查兩者對不上就報不一致,所以它不會變成第二個真理
+- **law 編號單調遞增,刪掉的號永久空缺**:REV 刪掉 LAW-3,之後新增的是 LAW-7 不是 LAW-3。`lint-laws-traceability.mjs` 的「幽靈引用」靠這條才抓得到「測試還在守一條已經不存在的 law」
+- **`REG-n` 住在原檔**:修訂時「必須不變的既有行為」寫成回歸 law,和被修訂的 law 同一份檔
+- **「知道要修、還沒修」用 GAP 記**:開發者自己發現設計有問題也寫一條(`## GAP-4(auth/F001-login / 開發者)`),那份檔就會被標 `⚠卡`、派工狀態變「卡住」、`/subsys-build` 會擋;修完 GAP 結案、REV 的「依」欄指到它
+- **下游不靠自己發現上游改過**,責任在改的人:簽名改了編譯器會告訴下游;語意改了(型別沒變、意思變了)由 `/spec-redesign` 用 `scan-status --doc` 拿反向依賴、逐份同步下游契約、寫進 REV 的「連動」欄。腳本補一條對帳當漏網之魚的提示(不進 exit code):X 依賴 Y,Y 最後一條 REV 晚於 X 的 `updated`,**而且那條 REV 的「連動」沒點名 X** → 「Y 修訂到 rev n 時沒有點名 X,X 也沒對過帳」。改的人有列到 X 就不報——提示消失的方式是上游盡到責任,不是下游 bump `updated`
+- **腳本對帳**(進不一致):`rev` 與 REV 條數對不上;`done` 但最後一條 REV 晚於 `updated`;REV「動到」點名的 law 在檔裡不存在
+
+過程(為什麼吵成這樣、否決了什麼)才進 `archive/<F00x-slug>-rev<n>-process.md`,規則見下一節。
 
 ### `done` 的收束(過程章節的退場)
 
@@ -70,7 +135,8 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 | 章節 | 處置 |
 |---|---|
 | `## 待確認假設` | **逐條三選一**。已裁決 → 結論寫進 `## 不可逆決定`(結論本身是架構級的就開 ADR),**刪掉原條目**;已變成契約 → 走 `/spec-redesign` 摺進 `## 契約` 的修訂行;**還沒裁決 → 那就還不能 `done`** |
-| `## 閘門裁決紀錄`、`## 修訂記錄`、`## 已定案的委派判斷`、各種查證紀錄 | 整節搬進 `archive/<F00x-slug>-process.md` |
+| `## 修訂記錄` | **常駐,不搬**。它是這份檔的版本史,一條 REV 只留結論(動到 / 保護 / 重委派 / 連動);修訂的討論過程才搬 `archive/<F00x-slug>-rev<n>-process.md` |
+| `## 閘門裁決紀錄`、`## 已定案的委派判斷`、各種查證紀錄 | 整節搬進 `archive/<F00x-slug>-process.md` |
 | `## 實作備註` | 只留**讀碼看不出來**的那幾條(為什麼繞路、踩過什麼坑、哪個外部行為不如文件所寫),其餘刪——讀碼看得出來的,碼是權威 |
 | `build-log.md` 已驗收的階段 | 摺成一行結果(階段、波次數、feature 清單、閘門結論),細節搬 `archive/` |
 
@@ -99,19 +165,23 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 │       ├── contract-<模組群>.md      # design.md「對外契約」的分冊(契約大到裝不下才拆;type: contract-part)
 │       ├── decisions.md             # 訪談定案與否決理由(拆了分冊才有;type: decisions)
 │       ├── archive/                 # done 收束時搬進來的過程章節(type: archive,不編號、不進分母)
-│       │   └── F001-<slug>-process.md
+│       │   ├── F001-<slug>-process.md
+│       │   └── F001-<slug>-rev2-process.md   # 某一輪修訂的討論過程(結論留在 F001 的 ## 修訂記錄)
 │       ├── features/
-│       │   └── F001-<slug>.md       # /subsys-design 建檔(planned)→ /spec-design 補規格(specced)
+│       │   └── F001-<slug>.md       # 核心功能:/subsys-design 建檔(planned)→ /spec-design 補規格(specced);改動一律修訂本檔
 │       ├── enhancements/
-│       │   └── E001-<slug>.md       # /spec-design 產出,如 E001-optimize-token-cache.md
+│       │   └── E001-<slug>.md       # 擴充功能(非核心):同一條漏斗,如 E001-remember-device.md
 │       └── bugfixes/
 │           └── B001-<slug>.md       # /bugfix 產出,如 B001-null-pointer-auth.md
 ├── contracts/
-│   └── G-C001-<slug>.md             # 跨子系統共用契約(/subsys-design 產出;不屬於任何單一子系統)
+│   └── G-C001-<slug>.md             # 多方共用契約(兩份以上 G-F/G-E 共用,或兩個以上子系統共用且沒有 G-F 擁有那段互動)
+├── features/
+│   └── G-F001-<slug>.md             # 跨子系統核心功能:契約含分工表,各段是各子系統的 F(part-of 回鏈)
 ├── enhancements/
-│   └── G-E001-<slug>.md             # 跨子系統的全域優化(/spec-design 產出)
+│   └── G-E001-<slug>.md             # 跨子系統擴充功能(同 G-F 形狀,非核心、不擋階段)
 ├── bugfixes/
-│   └── G-B001-<slug>.md             # 跨子系統的全域修復(/bugfix 產出)
+│   └── G-B001-<slug>.md             # 跨子系統核心功能的障礙(/bugfix 產出,related-feature 指 G-F)
+├── migration-v3.md                  # 只在遷移期間存在:既有 E 的分流帳本(type: migration,不編號、不進分母)
 ├── spec-gaps.md                     # 全域文檔的 spec 模糊處(有 gap 才有)
 ├── spikes/
 │   └── SPK-001-<slug>.md            # 可行性驗證紀錄(/spike 產出;非任務文檔,程式碼在下面那個 sandbox)
@@ -133,16 +203,16 @@ spike/                               # 與 .design/ 同層:常駐的共用 sandb
   node "<S>/arch-audit/scripts/scan-ids.mjs" .design --claim <組> --slug <kebab-slug>
   ```
 
-  組寫 `G-C` / `G-E` / `G-B` / `ADR` / `SPK` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。腳本掃過所有分支與 worktree 之後配號,**並當場把檔案建在慣例位置**(`SPK` 另建同名的程式碼資料夾 `spike/SPK-00x-<slug>/`)(照本片「Metadata 標準」把該類文檔的 frontmatter 欄位寫齊,內容留空),印出三樣:`<id>`、檔案路徑、**全名**(`auth/F003-token-cache`——之後每一次提到這份文檔都用全名,見「文檔引用格式」)。內容由你接著填,第一件事是補 `description`。查現況用不帶 `--claim` 的同一支腳本(`--next` 只印下一個可用號,`--fetch` 連遠端一起看)。
+  組寫 `G-C` / `G-F` / `G-E` / `G-B` / `ADR` / `SPK` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。腳本掃過所有分支與 worktree 之後配號,**並當場把檔案建在慣例位置**(`SPK` 另建同名的程式碼資料夾 `spike/SPK-00x-<slug>/`)(照本片「Metadata 標準」把該類文檔的 frontmatter 欄位寫齊,內容留空),印出三樣:`<id>`、檔案路徑、**全名**(`auth/F003-token-cache`——之後每一次提到這份文檔都用全名,見「文檔引用格式」)。內容由你接著填,第一件事是補 `description`。查現況用不帶 `--claim` 的同一支腳本(`--next` 只印下一個可用號,`--fetch` 連遠端一起看)。
 
-  **feature 的號在 `/subsys-design` 一次配齊**(那個子系統決定要做哪幾件事的當下),不是等到寫 spec 才一個一個配。一次一批反而**更不會撞號**:整批落在同一個 commit,而分散在幾週內、幾條分支上一次配一個才是撞號的溫床。E/B 沒有規劃階段,提出當下才配。
+  **F 與 E 的號在 `/subsys-design` 一次配齊**(那個子系統決定要做哪幾件事的當下),不是等到寫 spec 才一個一個配。一次一批反而**更不會撞號**:整批落在同一個 commit,而分散在幾週內、幾條分支上一次配一個才是撞號的溫床。只有 B 沒有規劃階段,提出當下才配。
 
   **配號與建檔必須是同一個動作**:掃描看得到的是檔案,你腦中記著的號碼別人看不到,「先算號、待會再建檔」中間那段空窗就是撞號發生的地方。**沒有任何 skill 可以用「掃資料夾取最大值 +1」自己配號**——那個做法看不到別的分支與 worktree,而兩份同號不同 slug 的檔案 merge 時不會衝突,會靜默地一起落地。其餘旗標跑 `--help`;理由與三個掃描來源寫在腳本檔頭。
 
-  這只管**文檔 id**。檔案**內部**的條目(`LAW-` / `EX-` / `ASM-` / `GAP-` / `DEC-` / `SELF-` / `WAVE-` / `STEP-` / `REG-` / `RND-`)不走腳本——它們只在單一檔案內唯一,寫的人手上就有那個檔案。`S0`–`Sn` 也不走:它們在 `system.md` 同一張表裡,平行修改會產生真的 merge 衝突。
+  這只管**文檔 id**。檔案**內部**的條目(`LAW-` / `EX-` / `ASM-` / `GAP-` / `DEC-` / `SELF-` / `WAVE-` / `STEP-` / `REG-` / `RND-` / `REV-`)不走腳本——它們只在單一檔案內唯一,寫的人手上就有那個檔案。`S0`–`Sn` 也不走:它們在 `system.md` 同一張表裡,平行修改會產生真的 merge 衝突。
 - **每個子系統自己一組編號**(F/E/B 各自獨立計數);**全域(G-)自己一組編號**;ADR 全局一組編號:
   - 子系統內:`F001`、`E001`、`B001`(features / enhancements / bugfixes 各自從 001 起算)
-  - 全域:`G-C001`、`G-E001`、`G-B001`(契約 / 優化 / 修復各自從 001 起算)
+  - 全域:`G-C001`、`G-F001`、`G-E001`、`G-B001`(契約 / 核心功能 / 擴充功能 / 修復各自從 001 起算)
   - ADR:`ADR-001`;spike:`SPK-001`(全局一組,spike 常在還沒定子系統時就開)
 - 檔名不放日期(日期在 frontmatter 的 `created` / `updated`)
 
@@ -156,16 +226,17 @@ spike/                               # 與 .design/ 同層:常駐的共用 sandb
 
 | 首碼 / 寫法 | 格式 | 意思 | 作用域(在哪裡唯一) | 誰配號 |
 |---|---|---|---|---|
-| `F001` | 三位數 | feature 文檔 | 子系統內一組 | `scan-ids.mjs --claim` |
-| `E001` | 三位數 | enhancement 文檔 | 子系統內一組 | `scan-ids.mjs --claim` |
+| `F001` | 三位數 | feature 文檔(子系統核心功能) | 子系統內一組 | `scan-ids.mjs --claim` |
+| `E001` | 三位數 | enhancement 文檔(子系統擴充功能) | 子系統內一組 | `scan-ids.mjs --claim` |
 | `B001` | 三位數 | bugfix 文檔 | 子系統內一組 | `scan-ids.mjs --claim` |
-| `G-C001` / `G-E001` / `G-B001` | 三位數 | 全域契約 / 優化 / 修復 | 全域各一組 | `scan-ids.mjs --claim` |
+| `G-C001` / `G-F001` / `G-E001` / `G-B001` | 三位數 | 全域契約 / 跨子系統核心功能 / 擴充功能 / 修復 | 全域各一組 | `scan-ids.mjs --claim` |
 | `ADR-001` | 三位數 | 架構決策紀錄 | 全局一組 | `scan-ids.mjs --claim` |
 | `SPK-001` | 三位數 | spike(可行性驗證)文檔,程式碼資料夾同名 | 全局一組 | `scan-ids.mjs --claim` |
 | `S0`、`S1`… | 一~二位數 | **開發階段**(`system.md`「開發階段」表的階段 id) | 全專案固定 | `/system-design` |
 | `A1`–`A10`、`B1`–`B4` | 固定清單 | `contract-readiness.md` 的檢查條(A 段 / B 段) | 那一份檢查表 | 固定,不配號 |
 | `LAW-1` | 詞首碼 | spec 的 law(行為性質) | 單一 spec 檔內 | spec 角色 |
-| `REG-1` | 詞首碼 | enhance spec 的**回歸** law | 單一 spec 檔內 | spec 角色 |
+| `REG-1` | 詞首碼 | 修訂時保護既有行為的**回歸** law | 單一 spec 檔內 | spec 角色 / `/spec-redesign` |
+| `REV-1` | 詞首碼 | 修訂輪次(`## 修訂記錄` 的一條;`rev` 欄 = 條數) | 單一 spec 檔內 | `/spec-redesign` |
 | `EX-1` | 詞首碼 | spec 的 example | 單一 spec 檔內 | spec 角色 |
 | `ASM-1` | 詞首碼 | 待確認假設 | 單一 spec 檔內 | spec 角色(委派模式) |
 | `GAP-1` | 詞首碼 | spec-gaps 條目 | 單一 `spec-gaps.md` 內 | 編排者(委派)/ 本人(互動) |
@@ -188,11 +259,12 @@ spike/                               # 與 .design/ 同層:常駐的共用 sandb
 |---|---|---|
 | frontmatter 的清單欄位(`depends-on`、`related-feature`…) | `<子系統>/<id>`,**同一個子系統內部也要帶** | `depends-on: [auth/F001, billing/F003]` |
 | 內文、回報、定錨區塊、命令參數、腳本輸出 | `<子系統>/<id>-<slug>`(帶 slug,一眼看得出在做什麼) | `auth/F002-token-refresh` |
-| 全域任務文檔 | `G-E001-<slug>` / `G-B001-<slug>`(frontmatter 欄位可只寫 `G-E001`) | `G-E001-cache` |
+| 全域任務文檔 | `G-F001-<slug>` / `G-E001-<slug>` / `G-B001-<slug>`(frontmatter 欄位可只寫 `G-E001`) | `G-F001-checkout` |
 | 全域契約 | **一律寫到條目**,不只寫文檔 id | `G-C001-session#SessionToken` |
 | ADR | `ADR-00x-<slug>`(frontmatter 欄位可只寫 `ADR-003`) | `ADR-003-jwt` |
 | spike | `SPK-00x-<slug>`(frontmatter 欄位可只寫 `SPK-003`);它的某一輪寫 `SPK-00x-<slug> 的 RND-2` | `SPK-003-storage-engine` |
-| 檔案**內部**的條目(LAW / REG / EX / ASM / STEP / DEC / WAVE) | `<擁有它的文檔全名> 的 <條目>` | `auth/F002-token-refresh 的 LAW-3` |
+| 檔案**內部**的條目(LAW / REG / EX / ASM / STEP / DEC / WAVE / REV) | `<擁有它的文檔全名> 的 <條目>` | `auth/F002-token-refresh 的 LAW-3` |
+| 修訂後的文檔(講給人聽時帶版本) | `<全名>(rev n)`;引用欄位**不帶**版本,永遠指現況 | `auth/F001-login(rev 2)` |
 | `spec-gaps.md` 的條目(每個子系統只有一份,不必寫檔名) | `<子系統>/<條目>`;全域的 gap 寫 `global/<條目>` | `auth/GAP-1` |
 | 開發階段 | `<階段 id>(<階段名稱>)` | `S1(帳務上線)` |
 
@@ -210,25 +282,27 @@ spike/                               # 與 .design/ 同層:常駐的共用 sandb
 
 ```yaml
 ---
-id: F001                 # 檔名編號前綴:F001 | E001 | B001 | G-E001 | G-B001
+id: F001                 # 檔名編號前綴:F001 | E001 | B001 | G-F001 | G-E001 | G-B001
 type: feature            # feature | enhance | bugfix
 title: auth-login        # 檔名 slug
 description: 以 JWT 實作使用者註冊、登入與權限驗證   # 一句話主軸,見下方規則
-status: planned          # planned | specced | done | dropped(E/B 沒有 planned,建檔即 specced)
-stage: S1                # 僅 feature:對應 system.md「開發階段」的階段 id
+status: planned          # planned | specced | done | dropped(B 沒有 planned,建檔即 open)
+rev: 0                   # 修訂輪次:初版 0,每次 /spec-redesign +1,= ## 修訂記錄 的 REV 條數
+stage: S1                # feature 與 G-F:對應 system.md「開發階段」的階段 id(G-F 必填,它是階段的達成條件)
 modules: []              # 僅 feature:負責模組(design.md「內部模組劃分」的模組名)
+part-of: []              # 僅子系統 feature:承接哪份 G-F 的一段(如 [G-F001]);G-F 的分工表是權威,這一欄是索引
 created: 2026-08-19
 updated: 2026-08-19
 depends-on: []           # 依賴的其他任務文檔(引用格式見上);空陣列 = 可平行開發
 related-adr: []          # 相關 ADR id
-related-feature: []      # enhance / bugfix 回鏈到被優化 / 出問題的 feature id
+related-feature: []      # bugfix 回鏈到出問題的 feature id(G-B 指 G-F)
 code-paths: []           # 本文檔實際動到的程式碼路徑;建檔時留空,收尾與 status 一起回寫(見下)
 ---
 ```
 
-- **`status` / `stage` / `modules` 只有 feature 三欄齊全**;`enhance` / `bugfix` 省略 `stage` 與 `modules`(它們不掛在階段路線圖上)。狀態的判準與轉換見上方「狀態與生命週期」
+- **`stage` 只有 feature 與 G-F 有**;`enhance` / `bugfix` 省略 `stage`(它們不擋階段,不掛在階段路線圖上)。`modules` / `part-of` 只有子系統 feature 有。狀態的判準與轉換見上方「狀態與生命週期」;`rev` 與 `## 修訂記錄` 的規則見「修訂(rev 與 REV)」
 - `id` 必須與檔名的編號前綴一致(`F001-auth-login.md` → `id: F001`);`type` 必須與所在資料夾一致(features/ → feature、enhancements/ → enhance、bugfixes/ → bugfix)
-- 文檔屬於哪個子系統由**檔案路徑**決定,不另設欄位;**全域 G- 文檔**須額外加 `subsystems: [subsys-a, subsys-b]` 列出受影響的子系統
+- 文檔屬於哪個子系統由**檔案路徑**決定,不另設欄位;**全域 G- 文檔**須額外加 `subsystems: [subsys-a, subsys-b]` 列出參與 / 受影響的子系統。G-F 與 G-E 的 `## 契約` 另有**分工表**(子系統 / 負責的段 / 承接的 feature 全名),每一列指到的 F 要用 `part-of` 回鏈,腳本雙向對帳
 - **`code-paths`**(必填,值可以是空陣列):這份文檔實際動到的程式碼路徑,專案根目錄起算、**以檔案為主**(`[src/Auth/Token.hs, src/Auth/Cache.hs]`),整個資料夾都由它產生時才寫目錄。子系統 `design.md` 的同名欄位是路徑**前綴**(答歸屬),這一欄是動過的檔案(答來歷);`scan-status.mjs --file <path>` 靠它反查
   - 建檔寫 `[]`,**收尾與 `status` 同一個動作**回寫:`/spec-impl`(feature / enhance)、`/bugfix`(bugfix)。委派模式下 impl 只在回報裡交出路徑清單,由編排者連同 `status` 填
   - 綁在 `status` 上是刻意的:單獨一條「記得更新索引」沒有任何東西會抱怨它沒做,一定會爛掉。`status` 是 `done` / `closed` 卻留著 `[]` 時,`/arch-audit status` 列進「提示」(不影響 exit code)
@@ -348,11 +422,12 @@ related-adr: []
 
 固定章節:**定位與範圍** → **契約條目**(每個條目一個 `###`,標題 = 條目名稱,內含欄位表:名稱 / 型別 / **單位或值域** / 語意,規格同 `contract-readiness.md` A4)→ **使用者與方向**(哪個子系統產生、哪些消費)→ **變更紀律**。
 
-三條規則:
+四條規則:
 
-1. **`subsystems` 少於兩個就不該建這份檔**。只有一個使用者的契約屬於那個子系統,住它的 `design.md`;建成全域等於憑空多一層間接
-2. **不准塞進某一個子系統的 `design.md` 再讓別人引用**——那份 `design.md` 從此擁有一個不屬於它的事實,違反 `boundary-rules.md`「知識歸屬」(對帳條目見 `contract-readiness.md` B4)
-3. 條目是**不可逆決定**:每次改動要在「變更紀律」段記下改了哪個條目、為什麼、影響哪些子系統;重大者開 ADR 並填進 `related-adr`
+1. **只在沒有任何一份 G-F / G-E 擁有那段互動時才建**。門檻是:**兩份以上 G-F / G-E 共用**,或**兩個以上子系統共用、而那段互動不屬於任何一份 G-F**(錯誤碼表、事件信封、id 格式這類慣例)。只被一份 G-F(含它的分工 F)用的型別**住那份 G-F 的 `## 介面`**,分工 F 引用 `G-F001-checkout#OrderId`;另建 G-C 是憑空多一層。只有一個子系統用的契約住那個子系統的 `design.md`
+2. **升格 / 降格搬家留痕**:第二個消費者出現時,型別從 G-F 搬進 G-C,原 G-F 記一條 REV「`OrderId` 升格為 `G-C002-order#OrderId`,本檔改為引用」;只剩一個消費者時反向搬回,G-C 條目標 `superseded`。**同一時刻每個型別只有一個家**。`scan-status.mjs` 兩條提示(不進 exit code):G-C 的條目只被一份 G-F 或一個子系統引用 → 「該搬回」;某份 G-F `## 介面` 定義的型別被別份 G-F 引用 → 「該升格」
+3. **不准塞進某一個子系統的 `design.md` 再讓別人引用**——那份 `design.md` 從此擁有一個不屬於它的事實,違反 `boundary-rules.md`「知識歸屬」(對帳條目見 `contract-readiness.md` B4)
+4. 條目是**不可逆決定**:每次改動要在「變更紀律」段記下改了哪個條目、為什麼、影響哪些子系統;重大者開 ADR 並填進 `related-adr`
 
 引用時**寫到條目**(`G-C001-session#SessionToken`),理由見上方引用格式表。
 
@@ -432,7 +507,7 @@ depends-on:                           # ❌ 不使用 YAML 區塊列表
 | system | 專案在做什麼 | `本地端 Markdown 筆記管理與全文檢索工具` |
 | subsystem | 這個子系統負責什麼 | `全文檢索子系統:索引建立、查詢解析與排名` |
 | adr | 決定了什麼 | `選用 SQLite FTS5 作為全文檢索引擎` |
-| feature | 這個功能做什麼 | `以 JWT 實作使用者註冊、登入與權限驗證` |
-| enhance | 要改善什麼 | `將檔案掃描改為增量更新以縮短啟動時間` |
+| feature | 這個核心功能做什麼 | `以 JWT 實作使用者註冊、登入與權限驗證` |
+| enhance | 這個擴充功能加了什麼(不是「改善什麼」——改善既有功能是修訂,不建檔) | `記住裝置,30 天內免二次驗證` |
 | bugfix | 什麼壞了 | `並發寫入時索引損毀導致搜尋結果缺漏` |
 | spike | 要驗證什麼 | `SQLite FTS5 在 50 萬筆筆記下的查詢延遲` |

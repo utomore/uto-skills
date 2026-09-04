@@ -59,16 +59,18 @@ code-paths: []          # 端到端組裝層的路徑;impl 收尾回寫。分工
  分工 F 自己的介面不列這裡)
 | 簽名 | 語意(做什麼) | 骨架位置 |
 |---|---|---|
+| `checkout :: Cart -> IO (Either CheckoutError OrderId)` | 端到端:鎖車 → 收款 → 通知 | `src/Checkout/Flow.hs#checkout` |
+| `notify.pending :: OrderId -> IO Bool` | 通知端看不看得到這張訂單 | `src/Notify/Api.hs#pending` |
 
 ## Laws(行為性質)
 (四格照 `feature-spec.md`。**追加一條硬規則:每條 law 的觀察點必須跨過至少一條子系統邊界**——
  寫成「在子系統 A 的介面 X 做了什麼之後,子系統 B 的介面 Y 看到什麼」。只在單一子系統內就觀察得到的
  law 不屬於本檔,搬去那個子系統的分工 F。**部分失敗**那一條不准漏:某一段失敗時,已完成的段怎麼收)
-- LAW-1: <端到端性質>
-  - 量詞:
-  - 定義域:
-  - 前提:
-  - 觀察點:`cart.lock` 成功後,`billing.charge` 回傳 `Right _` 之前,`notify.pending` 看得到同一個 OrderId
+- LAW-1: 付款成功的訂單,通知端一定看得到同一個 OrderId
+  - 量詞:對所有 c
+  - 定義域:c ∈ 已鎖定的購物車(含空車、單品、多品)
+  - 前提:`checkout c` 回傳 `Right orderId`
+  - 觀察點:`checkout c` 回傳後,`notify.pending orderId` 回傳 True(跨 cart → billing → notify 三條邊界)
 
 ## Examples
 | # | 輸入 | 預期輸出 | 覆蓋的邊界 |

@@ -34,7 +34,7 @@
  * 用法:
  *   node scan-ids.mjs [.design 路徑]     預設 ./.design
  *   --fetch            掃描前先 git fetch --quiet(預設不做:離線可用,也不擅自連網)
- *   --group <前綴>     只看某一組(G-C、G-E、G-B、ADR、<subsys>/F …)
+ *   --group <前綴>     只看某一組(G-C、G-F、G-E、G-B、ADR、<subsys>/F …)
  *   --next             只印每組的下一個可用號,一行一組(建檔時用這個)
  *   --quiet            只印撞號與下一個可用號,不印全表
  *   --verbose          出處印完整清單(預設:已進主 branch 的只印「已在 main」,
@@ -42,7 +42,7 @@
  *   --include-archive  連 archive/ 底下的存檔文檔一起算
  *   --claim <組> --slug <kebab-slug>
  *                      **配號並當場鎖住**:算出該組下一個可用號,把檔案建在慣例位置
- *                      (只寫 frontmatter 骨架),印出路徑。組寫 `G-C` / `G-E` / `G-B` /
+ *                      (只寫 frontmatter 骨架),印出路徑。組寫 `G-C` / `G-F` / `G-E` / `G-B` /
  *                      `ADR` / `SPK` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。
  *                      `SPK` 另建同名的程式碼資料夾 `<.design 同層>/spike/SPK-00x-<slug>/`(附一份指回
  *                      文檔的 README.md;`spike/` 根層的 sandbox README 第一次一起建)—— 文檔與資料夾
@@ -52,7 +52,7 @@
  * 「先算號、待會再建檔」中間那段空窗就是撞號發生的地方 —— 掃描看得到的是**檔案**,
  * 你腦中記著的號碼別人看不到。所以配號與建檔必須是同一個動作,不留空窗。
  *
- * 它只管**文檔 id**(F / E / B / G-C / G-E / G-B / ADR / SPK)。檔案**內部**的條目編號
+ * 它只管**文檔 id**(F / E / B / G-C / G-F / G-E / G-B / ADR / SPK)。檔案**內部**的條目編號
  * (LAW- / REG- / EX- / ASM- / GAP- / DEC- / SELF- / WAVE- / STEP- / RND-)不歸它管,
  * 那不是限制而是正確:那些號只在單一檔案內唯一,兩條分支各自在自己的 spec 裡寫 LAW-3
  * 本來就不是撞號,寫的人手上就有那個檔案,繞一趟腳本只是多一次 I/O。
@@ -103,13 +103,13 @@ const toPosix = (p) => p.split(sep).join("/");
 
 /**
  * 把一條 repo 相對路徑解析成 { group, id, num, slug }。認不得的回 null。
- * group 是**編號的作用域**:全域各一組(G-C / G-E / G-B / ADR),子系統的 F/E/B 各自一組,
+ * group 是**編號的作用域**:全域各一組(G-C / G-F / G-E / G-B / ADR),子系統的 F/E/B 各自一組,
  * 所以子系統的 group 要帶上子系統 slug —— auth/F 與 billing/F 撞號是正常的,不是問題。
  */
 function parseDocPath(relPath) {
   const parts = toPosix(relPath).split("/");
   const name = parts[parts.length - 1];
-  const m = name.match(/^(G-[CEB]\d{3}|ADR-\d{3}|SPK-\d{3}|[FEB]\d{3})-([a-z0-9-]+)\.md$/);
+  const m = name.match(/^(G-[CFEB]\d{3}|ADR-\d{3}|SPK-\d{3}|[FEB]\d{3})-([a-z0-9-]+)\.md$/);
   if (!m) return null;
   const [, id, slug] = m;
   const num = Number(id.slice(-3));
@@ -205,8 +205,9 @@ if (!root) {
 
 const GROUP_LABEL = {
   "G-C": "全域共用契約",
-  "G-E": "全域優化",
-  "G-B": "全域修復",
+  "G-F": "跨子系統核心功能",
+  "G-E": "跨子系統擴充功能",
+  "G-B": "跨子系統核心功能的障礙",
   ADR: "架構決策紀錄",
   SPK: "可行性驗證(spike)",
 };
@@ -272,14 +273,14 @@ if (OPT_CLAIM) {
   // 慣例位置與 frontmatter 欄位(doc-lifecycle.md「.design/ 資料夾樹」與「Metadata 標準」是權威,
   // 改這裡之前先改那份)。**建出來的骨架必須照那份規格逐欄寫齊**:少一欄,填內容的人就得自己
   // 想起來補,而漏補不會報錯 —— `code-paths` 就是這樣一路漏到收尾才被發現沒人回寫。
-  const GLOBAL_DIR = { "G-C": "contracts", "G-E": "enhancements", "G-B": "bugfixes", ADR: "adr", SPK: "spikes" };
+  const GLOBAL_DIR = { "G-C": "contracts", "G-F": "features", "G-E": "enhancements", "G-B": "bugfixes", ADR: "adr", SPK: "spikes" };
   const SUBSYS_DIR = { F: "features", E: "enhancements", B: "bugfixes" };
-  const DOC_TYPE = { "G-C": "contract", "G-E": "enhance", "G-B": "bugfix", ADR: "adr", SPK: "spike", F: "feature", E: "enhance", B: "bugfix" };
+  const DOC_TYPE = { "G-C": "contract", "G-F": "feature", "G-E": "enhance", "G-B": "bugfix", ADR: "adr", SPK: "spike", F: "feature", E: "enhance", B: "bugfix" };
   /** 任務文檔(F/E/B 與全域 G-E/G-B)的固定欄位;順序與 doc-lifecycle.md「任務文檔」一致 */
   const TASK_TAIL = [
     "depends-on: []            # 依賴的其他任務文檔,一律帶子系統前綴,如 [auth/F001]",
     "related-adr: []",
-    "related-feature: []       # enhance / bugfix 回鏈到被優化 / 出問題的 feature",
+    "related-feature: []       # bugfix 回鏈到出問題的 feature(G-B 指 G-F)",
     "code-paths: []            # 收尾時與 status 同一個動作回寫實際動到的程式碼路徑",
   ];
   let dir;
@@ -307,25 +308,43 @@ if (OPT_CLAIM) {
     } else if (g === "G-C") {
       status = "active";
       tail = ["subsystems: []            # 使用這份契約的子系統,至少兩個", "related-adr: []"];
-    } else {
-      // 全域 G-E / G-B 沒有 planned 這一格:優化與缺陷是看著既有程式碼提出來的,
-      // 沒有 Level 2 契約可抄,建檔當下就進 specced(doc-lifecycle.md「狀態與生命週期」)
-      status = "specced";
+    } else if (g === "G-B") {
+      // 缺陷是看著既有程式碼提出來的,沒有規劃階段,建檔當下就是 open
+      status = "open";
       tail = ["subsystems: []            # 受影響的子系統,至少兩個", ...TASK_TAIL];
+    } else {
+      // G-F / G-E 是規劃出來的跨子系統功能:從 planned 起跳,契約含分工表
+      // (doc-lifecycle.md「六種分類與分流判準」「狀態與生命週期」)
+      status = "planned";
+      tail = [
+        "rev: 0                    # 修訂輪次;每次 /spec-redesign +1,= ## 修訂記錄 的 REV 條數",
+        ...(g === "G-F" ? ["stage:                    # G-F 必填:它是哪個開發階段的達成條件,如 S2"] : []),
+        "subsystems: []            # 參與的子系統 = 分工表的每一列,至少兩個",
+        ...TASK_TAIL,
+      ];
     }
   } else if (/^[^/]+\/[FEB]$/.test(g)) {
     const [, kind] = g.split("/");
     dir = join(DESIGN_DIR, "subsystems", g.split("/")[0], SUBSYS_DIR[kind]);
     docType = DOC_TYPE[kind];
-    // feature 從 planned 起跳(這一步是 /subsys-design 在規劃當下建檔,還沒有規格);
-    // E/B 沒有規劃階段,建檔即 specced。判準見 doc-lifecycle.md「狀態與生命週期」。
-    status = kind === "F" ? "planned" : "specced";
+    // F 與 E 都從 planned 起跳(/subsys-design 在規劃當下建檔,還沒有規格);
+    // 只有 B 沒有規劃階段,建檔即 open。判準見 doc-lifecycle.md「狀態與生命週期」。
+    status = kind === "B" ? "open" : "planned";
     // 任務文檔**不寫 `parent`**:它屬於哪個子系統由檔案路徑決定(doc-lifecycle.md「任務文檔」)
-    tail = kind === "F"
-      ? ["stage:                    # 對應 system.md「開發階段」的階段 id,如 S1", "modules: []               # 負責模組(design.md「內部模組劃分」的模組名)", ...TASK_TAIL]
-      : TASK_TAIL;
+    tail =
+      kind === "F"
+        ? [
+            "rev: 0                    # 修訂輪次;每次 /spec-redesign +1,= ## 修訂記錄 的 REV 條數",
+            "stage:                    # 對應 system.md「開發階段」的階段 id,如 S1",
+            "modules: []               # 負責模組(design.md「內部模組劃分」的模組名)",
+            "part-of: []               # 承接哪份 G-F 的一段,如 [G-F001];G-F 的分工表是權威,這一欄是索引",
+            ...TASK_TAIL,
+          ]
+        : kind === "E"
+          ? ["rev: 0                    # 修訂輪次;每次 /spec-redesign +1,= ## 修訂記錄 的 REV 條數", "modules: []               # 負責模組(design.md「內部模組劃分」的模組名)", ...TASK_TAIL]
+          : TASK_TAIL;
   } else {
-    console.error(`認不得的組:${g}。用 G-C / G-E / G-B / ADR / SPK / <子系統>/F / <子系統>/E / <子系統>/B`);
+    console.error(`認不得的組:${g}。用 G-C / G-F / G-E / G-B / ADR / SPK / <子系統>/F / <子系統>/E / <子系統>/B`);
     process.exit(2);
   }
 
@@ -357,15 +376,18 @@ if (OPT_CLAIM) {
       "> 本檔由 scan-ids.mjs --claim 建立,只鑄了號與骨架。",
       "> 內容由對應的 design skill 填寫;frontmatter 的完整規格見 doc-lifecycle.md。",
       "",
-      // feature 的 `## 契約` 節不是「之後補」的:planned 的定義就是「有契約、沒有 Laws」。
+      // F / E / G-F / G-E 的 `## 契約` 節不是「之後補」的:planned 的定義就是「有契約、沒有 Laws」。
       // 骨架不帶這一節的話,剛建好的檔會立刻被 scan-status 判成結構不合規 —— 而那個狀態
-      // 是本流程的正常起點,不該是紅燈。六欄的判準見 contract-readiness.md A2。
-      ...(docType === "feature"
+      // 是本流程的正常起點,不該是紅燈。六欄的判準見 contract-readiness.md A2;
+      // 第一行是核心 / 非核心判準(doc-lifecycle.md「六種分類與分流判準」),分類的證據要寫在檔上。
+      ...(status === "planned"
         ? ["## 契約", "",
-           "- **階段**:",
-           "- **負責模組**:",
-           "- **實作的 Level 2 介面**:",
-           "- **資料流管線段落**:",
+           docType === "feature"
+             ? `- **核心判準**:少了它,${g.startsWith("G-") ? "S?(<階段名稱>)無法達成" : `${g.split("/")[0]} 就無法「<system.md 職責原句>」`}`
+             : `- **非核心判準**:少了它,${g.startsWith("G-") ? "階段照樣達成" : `${g.split("/")[0]} 照樣 <做什麼>`};它加的是 <什麼>`,
+           ...(g.startsWith("G-")
+             ? ["- **分工**:", "  | 子系統 | 負責的段 | 承接的 feature |", "  |---|---|---|", "  | <slug> | <這一段做什麼> | <slug>/F00x-<slug> |", "- **端到端介面**:"]
+             : ["- **階段**:" + (docType === "enhance" ? "不掛階段" : ""), "- **負責模組**:", "- **實作的 Level 2 介面**:", "- **資料流管線段落**:"]),
            "- **驗收標準**:",
            "- **明確不做**:",
            ""]

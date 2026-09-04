@@ -282,7 +282,8 @@ if (total > 0) {
       const got = cited.get(r.doc.key);
       console.log(
         `  【幽靈引用】${r.ghosts.length} 個編號測試引用得到、spec 裡卻沒有這一條:` +
-          r.ghosts.map((id) => `${id}(${got.get(id)})`).join("、"),
+          r.ghosts.map((id) => `${id}(${got.get(id)})`).join("、") +
+          "\n    這通常是某次 /spec-redesign 刪掉的 law 還有測試在守。刪掉那些測試;**不要把號重用給新的 law**——號永久空缺,否則下次就分不出幽靈與現況(doc-lifecycle.md「修訂(rev 與 REV)」)",
       );
     }
   }

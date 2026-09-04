@@ -1,5 +1,5 @@
 === 文檔 auth/F001-login(登入)===
-歸屬  子系統 auth  |  模組群 auth/Session  |  階段 S0 進行中  |  type feature  |  已實作
+歸屬  子系統 auth  |  模組群 auth/Session  |  承接 G-F001-session-check  |  階段 S0 進行中  |  type feature  |  已實作(rev 1)
 更新  2026-08-20(15 天前)
 上層  subsystems/auth/design.md
 檔案  subsystems/auth/features/F001-login.md
@@ -11,24 +11,26 @@
 (無)不依賴任何文檔,也沒有人擋它。
 
 === §3 下游:誰在等它 ===
+- auth/E001-remember-device(可開工)引用 auth/F001
 - auth/F002-token-refresh(卡住)引用 F001
 
 === §4 規格寫到幾成 ===
 項目             狀況
 ---------------  ------------------------------------------------------------------------------------------------------
-契約六欄         缺 4 欄(實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做) ⚠ 與 status 對不上:規格寫了、契約沒補
+契約             缺 4 欄(實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做) ⚠ 與 status 對不上:規格寫了、契約沒補
 介面 / 數據      1 條
 Laws / Examples  2 / 2(照 spec 應有 4 個測試)
 契約級假設 ASM   1 條,舊格式沒有裁決欄(去 build-log 查)
 code-paths       1 個(src/Auth/Login.hs)
+修訂             rev 1(REV 1 條,最後 REV-1 2026-08-20,動到 LAW-1)
 
 === §5 改它會牽動誰 ===
-- 1 份文檔依賴它(auth/F002-token-refresh):改介面要逐份通知。
+- 2 份文檔依賴它(auth/E001-remember-device、auth/F002-token-refresh):改介面要逐份通知。
 - 相關 ADR:ADR-001-jwt。
 - code-paths 與 auth/F002-token-refresh(規格已寫;src/Auth/Login.hs) 重疊:改實作要一起回歸。
 
 === §6 下一步 ===
-已實作,沒有下一步。要改它走 /spec-design(enhance 模式)另開 E 文檔。
+已實作,沒有下一步。要改它走 /spec-redesign 修訂原檔(rev +1,done 退回 specced),不另開檔。
 
 === 附錄:介面(原文) ===
 ## 介面

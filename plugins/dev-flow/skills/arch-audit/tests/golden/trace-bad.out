@@ -9,6 +9,7 @@
 - subsystems/auth/features/F001-login.md(auth/F001)
   【未翻譯】3 條沒有任何測試引用:LAW-2(:14)、LAW-4(:16)、EX-1(:22)
   【幽靈引用】1 個編號測試引用得到、spec 裡卻沒有這一條:LAW-9(tests/test_login.py)
+    這通常是某次 /spec-redesign 刪掉的 law 還有測試在守。刪掉那些測試;**不要把號重用給新的 law**——號永久空缺,否則下次就分不出幽靈與現況(doc-lifecycle.md「修訂(rev 與 REV)」)
 - subsystems/billing/features/F001-charge.md(billing/F001)
   【無人認領】1 條 law/example,測試樹裡沒有任何檔案引用這份 spec
 __exit__ 1

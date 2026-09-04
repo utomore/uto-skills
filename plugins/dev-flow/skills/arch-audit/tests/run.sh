@@ -54,6 +54,9 @@ run scan-inventory-all "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --al
 run scan-subsys      "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --subsys auth
 run scan-doc-feature "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc F001
 run scan-doc-contract "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc G-C001
+# G-F(跨子系統核心功能:分工表、等分工 F)與 planned 的 E(擴充功能:非核心判準、不擋階段)各釘一份
+run scan-doc-global  "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc G-F001
+run scan-doc-enhance "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc auth/E001
 run scan-doc-missing "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc F999
 run scan-file-hit    "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --file src/Auth/Login.hs
 run scan-file-miss   "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --file src/Web/Api.hs

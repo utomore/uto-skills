@@ -1,6 +1,6 @@
 ---
 name: arch-audit
-description: 架構檢測與分析 — 四種 scope:「system」檢查子系統循環依賴與對外 I/O 契約一致性;「subsys」檢查子系統資料流管線、SRP、邊界外洩、模組群與各 feature `## 契約` 的對帳;「feature」審查實作是否符合 Level 2 介面、edge cases、型別安全與委派留下的待確認假設;「status」用腳本盤點開發階段(產品級分母)、名冊上未建檔的子系統、未開工的模組群、各 feature 完成度、契約就緒度與待優化模組。觸發詞:架構檢測、arch audit、架構分析、循環依賴、邊界檢查、status、進度確認、還差什麼、專案健檢。Use for architecture auditing at system/subsystem/feature scope, or scanning overall progress and health.
+description: 架構檢測與分析 — 四種 scope:「system」檢查子系統循環依賴與對外 I/O 契約一致性;「subsys」檢查子系統資料流管線、SRP、邊界外洩、模組群與各 feature `## 契約` 的對帳;「feature」審查實作是否符合 Level 2 介面、edge cases、型別安全與委派留下的待確認假設;「status」用腳本盤點開發階段(產品級分母)、名冊上未建檔的子系統、未開工的模組群、各 feature 完成度、契約就緒度、核心 / 擴充分母(可運作只看核心 F)與修訂狀態。觸發詞:架構檢測、arch audit、架構分析、循環依賴、邊界檢查、status、進度確認、還差什麼、專案健檢。Use for architecture auditing at system/subsystem/feature scope, or scanning overall progress and health.
 user-invocable: true
 ---
 
@@ -86,7 +86,7 @@ node "<S>/arch-audit/scripts/scan-status.mjs" [design目錄,預設 ./.design]   
 
 - **附錄 A 任務文檔表(預設只列未完成)**(`主軸 | 文檔(全名) | type | status | 派工 | updated | depends-on | file`):`done` / `closed` 的不在表上,表頭的「未完成(n/總數)」與下一行的「狀態統計」才是全樹分母。「派工」欄就是 §2–§4 的分類;這張表**不貼進回報**,§2–§4 已經把它按動作重排過。「文檔(全名)」欄一律是 `<子系統>/<id>-<slug>`(全域 G- 文檔沒有子系統那一段),**轉述時不准把它縮成裸 id**——那一行被複製到別處就指不到任何文檔
 - **專案模式**(標題下面的 `專案模式` 那一行):`greenfield` 代表這是全新建立的專案——**回報裡不得出現 migration、向後相容、舊格式的建議**,那些在這個模式下沒有指涉對象(規則見 `../_shared/boundary-rules.md`「專案模式」);`brownfield` 則相反。印成 `⚠ 未宣告` 時,把「問開發者一次再回寫 `system.md`」列進下一步——沒有這一欄,之後每一場對話都要重新猜一次
-- **附錄 B 子系統狀態表**(`主軸 | 子系統 | status | 模組群 | 階段 | features | 契約就緒 | 僅規劃 | 已寫spec | 已實作 | 未結E/B | 進度`):`僅規劃 + 已寫spec + 已實作 = features`,是一條單調收斂的漏斗。`status` 欄 `未建 design.md`、進度欄 `未展開` 的列是**名冊上還沒動工的子系統**;其他欄位顯示 `-` 代表該子系統沒有 feature 檔或沒有對應表格,建議用 `/subsys-design` 補上
+- **附錄 B 子系統狀態表**(`主軸 | 子系統 | status | 模組群 | 階段 | F | E | 契約就緒 | 僅規劃 | 已寫spec | 已實作 | 未結B | 核心 | 擴充`):`僅規劃 + 已寫spec + 已實作 = F`,是一條單調收斂的漏斗。**「核心」是 F 的 done/總數,「擴充」是 E 的 done/總數,兩者分開**——「可運作」只看核心(F 全 done 且無 planned 模組群),E 不進可運作、不擋開發階段(`doc-lifecycle.md`「六種分類與分流判準」);報告裡不得把 E 未完成寫成「子系統還不能用」。契約就緒的分母是 planned 的 F 加 E(兩者都要契約才委派得動)。`status` 欄 `未建 design.md`、進度欄 `未展開` 的列是**名冊上還沒動工的子系統**;其他欄位顯示 `-` 代表該子系統沒有 feature 檔或沒有對應表格,建議用 `/subsys-design` 補上
 - **模組群欄**(`active/總數`):`1/5` 代表五個平行領域只有一個寫了契約——**那一列的「進度 100%」只涵蓋那一個領域**。`-` 表示沒有這張表(單一領域屬正常)
 - **§1 開發階段表**(`階段 | 名稱 | 狀態 | 涵蓋子系統 | 已展開的部分 | 還沒展開的部分`,底下每一階一行「要達成還差 n 件」):**全專案唯一的產品級分母**,狀態只有「未開始 / 進行中 / 已達成」。「還沒展開的部分」就是未建檔的子系統與 planned 模組群——它們不在任何百分比裡。讀不到這張表時腳本會提示,那代表這個專案現在**答不出「還差什麼」**,要先請開發者用 `/system-design` 補上
 - **契約就緒欄**(`n/總數`):委派展開的就緒度,**分母只算 `status: planned` 的檔**——`specced` / `done` 早就走完那道門了,再判一次只是雜訊。滿格才跑得動 `/subsys-build`;`-` 表示這個子系統現在沒有 planned 的檔。缺欄只進「提示」,**不影響 exit code**
@@ -97,6 +97,9 @@ node "<S>/arch-audit/scripts/scan-status.mjs" [design目錄,預設 ./.design]   
   附錄 A 的狀態欄會標 `⚠卡auth/GAP-n`:**那一行的 `in-progress` 不是「正在做」,是「卡死等 spec」**,回報時要講成後者,下一步也要開成「修 spec」而不是「繼續實作」;轉達時把 gap 寫成 `<子系統>/GAP-n` 並點名它卡住哪一份文檔的全名。標不到人的 gap(條目標題沒寫是哪份文檔的 gap)會落到 §6「影響派工的」,那是條目寫法要修
 - **結案沒有證據的 spec-gaps**:條目標了 `狀態:resolved`,卻沒有 `修訂` 行、`修訂` 沒指出是哪一份文檔、指到的文檔不存在,或那份文檔的 `updated` 早於結案日期。**這代表 spec 可能根本沒改**,只是有人把狀態改掉讓閘門放行——腳本會列為不一致,逐條轉達
 - **§6 警訊「影響派工的」**必須逐條轉達(腳本已把不一致與提示依訊息分成兩類,格式類只報數量):有資料夾卻不在 `subsystems` 名冊裡、**開發階段的涵蓋子系統寫了名冊沒有的 slug**(這一條的意思通常是「名冊只列了已建檔的,未開工的部分全部漏掉」)、feature 檔的 `group` 對不上「模組群」表、多模組群卻有檔沒填 `group`、active 模組群沒有任何 feature、**狀態與內容對不上**(說 `planned` 卻已有 `## Laws`、說 `specced`/`done` 卻沒有、完全沒有 `## 契約`)、id 與檔名不一致、depends-on 無法解析、全域文檔缺 `subsystems` 欄、design.md 缺 `parent` 等
+- **G-F / G-E(`.design/features/`、`.design/enhancements/`)**:跨子系統功能,契約含分工表。它的派工狀態多一種「卡住」原因——**等分工 F**(specced 的 G-F 被還沒 done 的承接 F 擋著,解法是去做那份 F);分工表指到未建檔子系統時只進提示。`status: done` 但分工 F 有未 done、分工表與 `part-of` 對不上,都是不一致。G-F 的核心判準指到開發階段,它是那一階「還差 n 件」的一員;G-E 不擋階段
+- **修訂(`rev` / `REV-n`)**:附錄 A 的 `rev` 欄與 `--doc` 的「修訂」列。`rev` 與 `## 修訂記錄` 條數對不上、`done` 但最後一條 REV 晚於 `updated`、REV「動到」點名的 law 不存在,三種都是不一致;「上游修訂到 rev n 時連動沒點名 X、X 也沒對過帳」只進提示——那是改的人漏了一份下游,轉達給開發者,不擋派工(規則見 `doc-lifecycle.md`「修訂(rev 與 REV)」)
+- **舊格式 E**(沒有 `## 契約` 的 `specced` / `done` E,2.2.1 之前「優化既有功能」的產物):提示裡會點名走 `migrate-v3.mjs` 分流,轉達即可,不要在報告裡把它讀成「契約缺漏」
 - **§4 等決定的**:open 的 spike(每一份都是一個還沒答完的「要跑了才知道」的問題,它的下游決定正在等證據)與未裁的 ASM(契約級假設,程式碼已照「暫採」蓋上去、沒有人簽過)。逐條轉達全名與「影響誰」;`feeds` 是空的 spike 腳本會明說「不擋任何線」,排最低或建議標 `dropped`。舊格式文檔一條 `裁決:` 都沒有的 ASM 不算未裁(裁沒裁不可考,去 build-log 查)。`concluded` 而 `feeds` 是空的會落到 §6——結論沒有下游
 - **§5 動一個牽動誰**:共用契約(`G-C00x`)的每個使用者附建檔狀態,**有使用者還沒建檔時腳本會標「現在改條目代價最低」**——那是排程訊號,要轉達;跨子系統的 G-E / G-B、有證據的決定(concluded spike 的 feeds)、最長依賴鏈與被兩份以上文檔依賴的 hub。契約**不是任務文檔**,不計入進度;`subsystems` 少於兩個會被列為不一致(只有一個使用者的契約應該住那個子系統的 `design.md`)
 - 有「frontmatter 格式不合規」時,把清單欄位改回行內陣列再重跑;寫成 YAML 區塊列表時腳本讀不到內容,相依關係與歸屬都不可信
@@ -171,7 +174,7 @@ node "<S>/arch-audit/scripts/migrate-v2.mjs" .design       v1 → v2 遷移(**�
 3. **Context 載入紀律**:只讀 scope 對應層級的文檔(見各 scope);已 closed 的 bugfix 除非必要否則不載入
 3b. **文檔與程式碼對不上時,證據不是測試**:哪一邊是舊的,看該文檔的 `status` 與 frontmatter 的 `updated` 日期、再打開原始碼看本體在不在——**測試全綠不會讓過期的文檔變準**(`../_shared/conventions.md`「跑東西的紀律」第 1 關)。這種不一致最常見的來源是文檔寫在前、合併在後:註記停在寫的那一天,程式碼卻已經被後來的 merge 超車
 4. 發現一律**依嚴重度排序**在對話中回報:每條附具體檔案與程式碼位置、違反了哪條契約/原則、建議動作
-5. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;改善機會 → 建議走 `/spec-design`(enhance 模式,需要完整 scope 討論與介面表,不在本 skill 內草率建檔)。開發者只要「先記下來」時,才由本 skill 直接建立對應的 B/E 文檔(遵守 conventions 的編號規則與 `doc-lifecycle.md` 的規格,`status: open`,內文附本次發現的分析依據)
+5. **視情況產生後續文檔(先詢問開發者)**:確定的缺陷 → 建議走 `/bugfix`;既有功能該改(行為、介面、效能)→ 建議走 `/spec-redesign` **修訂原檔**,不另開檔;缺一個可獨立拿掉的新能力 → 建議走 `/subsys-design` 分類建檔(核心 F / 擴充 E)。開發者只要「先記下來」時,才由本 skill 直接記:缺陷開 B 文檔(遵守 conventions 的編號規則與 `doc-lifecycle.md` 的規格,`status: open`,內文附本次發現的分析依據),既有功能的問題在該子系統 `spec-gaps.md` 開一條 GAP(`## GAP-n(<文檔全名> / arch-audit)`),**不開 E**——E 是新功能,不是「要改的事」的記事本
 6. 本 skill **不修改程式碼**,也不改架構文檔(發現文檔該改時,列出差異建議開發者走對應 design skill)
 
 ### Scope: system — 全域架構檢測

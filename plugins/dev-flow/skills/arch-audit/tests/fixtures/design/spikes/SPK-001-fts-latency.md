@@ -8,7 +8,7 @@ verdict: feasible
 created: 2026-08-05
 updated: 2026-08-06
 subsystems: [auth]
-feeds: [ADR-001-jwt, auth/F002-token-refresh]
+feeds: [ADR-001-jwt, auth/F002-token-refresh, auth/F999]
 related-adr: [ADR-001]
 code-paths: [spike/SPK-001-fts-latency]
 ---

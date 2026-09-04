@@ -12,8 +12,10 @@
  *   2. 算出來的資料夾 = `<.design 同層>/spike/<文檔全名>/`,realpath 落在 git 工作樹內、
  *      在 `spike/` 底下、basename 符合 `SPK-00x-<slug>`、不是 symlink。**永遠不會是 `spike/` 本身**
  *   3. 資料夾裡沒有未 commit 的改動(`git status --porcelain` 對它是空的)—— 刪掉的東西要撈得回來
- *   4. 文檔裡最後一輪 `RND-n` 記的 `sha` 存在於本 repo,而且那個 commit 真的含這個資料夾
- *      (`git ls-tree` 非空)—— sha 是結案後撈回程式碼的唯一鑰匙,漏記或記錯就不准刪
+ *   4. 文檔裡最後一輪 `RND-n` 記的 `sha` 存在於本 repo、那個 commit 真的含這個資料夾,**而且那個
+ *      commit 裡這個資料夾的 tree 跟 HEAD 一模一樣**(`git rev-parse <sha>:<dir>` = `HEAD:<dir>`)——
+ *      sha 是結案後撈回程式碼的唯一鑰匙;記了 sha 之後又改過程式碼、commit 了卻沒開新一輪,
+ *      撈回來的會是舊版,所以 tree 不同就不准刪,叫人補一輪把新 sha 記進去
  *   5. 只用 `git rm -r --`(絕不 `rm -rf`),路徑一律相對於 git 工作樹根、帶 `--`
  *
  * 預設 **dry-run**:印出會刪哪些檔、五道關各自的結果。`--apply` 才真的 `git rm`;刪完**不 commit**,
@@ -121,10 +123,21 @@ let shaDetail = "文檔裡沒有任何一輪記了 sha(`- sha:<commit>`)—— �
 if (lastSha && pathOk) {
   const exists = git(["cat-file", "-e", `${lastSha}^{commit}`], root) !== null;
   const tree = exists ? git(["ls-tree", "-r", "--name-only", lastSha, "--", relCode], root) ?? "" : "";
-  shaOk = exists && tree.trim() !== "";
-  shaDetail = !exists ? `sha ${lastSha} 不在本 repo` : shaOk ? `sha ${lastSha} 含 ${tree.trim().split("\n").length} 個檔` : `sha ${lastSha} 存在,但那個 commit 裡沒有 ${relCode}/(記錯輪次?)`;
+  const hasDir = exists && tree.trim() !== "";
+  // tree hash 相等 = 那個 commit 裡這個資料夾的每一個檔都跟 HEAD 一樣;第 3 關已保證 HEAD = 工作樹
+  const shaTree = hasDir ? git(["rev-parse", `${lastSha}:${relCode}`], root)?.trim() : null;
+  const headTree = hasDir ? git(["rev-parse", `HEAD:${relCode}`], root)?.trim() : null;
+  const same = hasDir && shaTree && headTree && shaTree === headTree;
+  shaOk = same;
+  shaDetail = !exists
+    ? `sha ${lastSha} 不在本 repo`
+    : !hasDir
+      ? `sha ${lastSha} 存在,但那個 commit 裡沒有 ${relCode}/(記錯輪次?)`
+      : same
+        ? `sha ${lastSha} 含 ${tree.trim().split("\n").length} 個檔,內容與 HEAD 相同`
+        : `sha ${lastSha} 裡的 ${relCode}/ 跟現在的不一樣 —— 記了 sha 之後又改過程式碼;開新一輪 RND 把 ${git(["rev-parse", "--short", "HEAD"], root)?.trim() ?? "HEAD"} 記進去再來`;
 } else if (lastSha) shaDetail = "略過(路徑那一關沒過)";
-check("最後一輪的 sha 撈得回這個資料夾", shaOk, shaDetail);
+check("最後一輪的 sha 撈得回一模一樣的資料夾", shaOk, shaDetail);
 
 // ---------------------------------------------------------------- 呈現與執行
 const allOk = checks.every((c) => c.ok);

@@ -1,4 +1,4 @@
 
 掃了 0 份 spike 文檔、0 個 spike/SPK-* 資料夾、3 個原始碼檔(.),沒有 import 指到 spike/。
-(只查 import 寫法;建置設定有沒有把 spike/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)
+(只查路徑式 import;模組命名空間的語言(Haskell / Java / Rust …)靠建置設定擋,而建置設定有沒有把 spike/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)
 __exit__ 0

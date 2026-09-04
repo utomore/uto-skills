@@ -143,6 +143,15 @@ else
   echo "✗ spike-close 在文檔沒記 sha 時刪了東西"; fail=1
 fi
 sed -i.bak "s/^- sha:.*/- sha:$sha/" "$CLOSE_TMP/.design/spikes/SPK-001-store.md"
+# 記了 sha 之後又改了程式碼並 commit(沒開新一輪):sha 撈回來的是舊版,不准刪
+( cd "$CLOSE_TMP" && echo 'x = 2' > spike/SPK-001-store/main.py && git add -- spike && git commit -qm "後來又改了" ) >/dev/null 2>&1
+if ! node "$SC" SPK-001 --design "$CLOSE_TMP/.design" --apply >/dev/null 2>&1 && [[ -f "$CLOSE_TMP/spike/SPK-001-store/main.py" ]]; then
+  echo "✓ sha 裡的資料夾跟現在不一樣(記了 sha 之後又改過)不准刪"
+else
+  echo "✗ spike-close 在 sha 過期時刪了東西 —— 撈回來的會是舊版"; fail=1
+fi
+sha=$(git -C "$CLOSE_TMP" rev-parse --short HEAD)
+sed -i.bak "s/^- sha:.*/- sha:$sha/" "$CLOSE_TMP/.design/spikes/SPK-001-store.md"
 if node "$SC" SPK-001 --design "$CLOSE_TMP/.design" >/dev/null 2>&1 && [[ -f "$CLOSE_TMP/spike/SPK-001-store/main.py" ]] &&
    node "$SC" SPK-001-store --design "$CLOSE_TMP/.design" --apply >/dev/null 2>&1 &&
    [[ ! -e "$CLOSE_TMP/spike/SPK-001-store" && -f "$CLOSE_TMP/spike/README.md" ]]; then

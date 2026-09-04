@@ -45,3 +45,6 @@ code-paths: [src/Auth/Login.hs]
 | EX-2 | c | d | 例外 |
 ## 待確認假設
 - ASM-1: 要決定 session 存哪
+
+## 不可逆決定
+- 用 FTS5 當查詢引擎,證據見 SPK-001-fts-latency 的 RND-1;被否決:自建倒排索引

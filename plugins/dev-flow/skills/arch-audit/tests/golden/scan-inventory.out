@@ -53,7 +53,7 @@ ADR:accepted 1(共 1 份)
 spike 不是任務文檔,不進任何百分比;open 的每一份都是一個還沒答完的問題,它的下游決定正在等證據。
 - SPK-001-fts-latency  [concluded · feasible]  SQLite FTS5 在 50 萬筆下的查詢延遲  spikes/SPK-001-fts-latency.md
     要回答:FTS5 在 50 萬筆筆記下,單字查詢能不能在 200ms 內回來
-    餵給:ADR-001-jwt、auth/F002-token-refresh
+    餵給:ADR-001-jwt、auth/F002-token-refresh、auth/F999
 - SPK-002-wasm-target  [open]  核心模組能不能編到 wasm 目標  spikes/SPK-002-wasm-target.md
     要回答:核心模組在不改依賴的前提下能不能編到 wasm32
 下一步:把 open 的 spike 做完(/spike),或標 dropped 並寫一句為什麼。
@@ -77,9 +77,10 @@ spike 不是任務文檔,不進任何百分比;open 的每一份都是一個還�
 - 認證子系統  [active] 子系統 auth  進度 1/3 (33%)  未結 0E/0B  ⚠ auth 還有 1 個模組群未開工
 - -  [未建 design.md] 子系統 billing  進度 未展開  未結 -
 
-=== 架構 / 子系統不一致(2)===
+=== 架構 / 子系統不一致(3)===
 - enhancements/G-E001-cache.md:subsystems 列了 billing,但 subsystems/ 沒有這個子系統
 - contracts/G-C001-session.md:subsystems 列了 billing,但 subsystems/ 沒有這個子系統
+- spikes/SPK-001-fts-latency.md:feeds 的 auth/F999 指不到任何文檔(寫全名:auth/F002、ADR-001、G-C001、auth/design.md、system.md)
 
 === 提示(3)===
 - subsystems/auth/features/F003-logout.md:「## 契約」還缺 實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做(該項無法委派展開)

@@ -17,9 +17,14 @@
  *   3. **import**:掃 `spike/` 以外的原始碼,任何一行 import / require / from / include / use
  *      指到 `spike/`(或 python 的 `spikes.`)都列出來,附 `檔案:行號`
  *
- * 第 3 條是**下限不是上限**:它只認得常見語言的 import 寫法,不知道建置設定有沒有把 `spike/`
- * 排除在編譯圖之外(tsconfig 的 exclude、cabal 的 hs-source-dirs、go.work …)—— 那一項機器判不了,
- * 輸出會明說。摘要一律印出掃了幾個檔:「掃到 0 處」與「全部合格」在輸出上長得一樣。
+ * 第 3 條是**下限不是上限**,兩個明講的縫:
+ *   - 它只認**路徑式** import(`from spike.x import`、`require("../spike/…")`、`#include "spike/…"`)。
+ *     Haskell / Java / Kotlin / Scala / Rust 這類用**模組命名空間**的語言,import 寫的是 `Spike.Store`
+ *     這種模組名,行裡沒有 `spike/`,本腳本看不到。這些語言的防線是建置設定:`spike/` 不在
+ *     hs-source-dirs / source set / crate 裡,`import Spike.Store` 根本編不過 —— 所以下面那一條更重要
+ *   - 它不知道建置設定有沒有把 `spike/` 排除在編譯圖之外(tsconfig 的 exclude、cabal 的 hs-source-dirs、
+ *     go.work …)—— 那一項機器判不了,輸出會明說
+ * 摘要一律印出掃了幾個檔:「掃到 0 處」與「全部合格」在輸出上長得一樣。
  *
  * 用法:
  *   node lint-spikes.mjs [專案根目錄]     預設 .(底下要有 .design/;sandbox spike/ 與 .design/ 同層)
@@ -186,6 +191,6 @@ if (!quiet) {
     `\n掃了 ${docNames.size} 份 spike 文檔、${spikeDirs.length} 個 spike/SPK-* 資料夾、${scanned} 個原始碼檔(${rel(projectRoot) || "."})` +
       (hits.length ? `,${hits.length} 處 import 指到 spike/。` : ",沒有 import 指到 spike/。"),
   );
-  console.log("(只查 import 寫法;建置設定有沒有把 spike/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)");
+  console.log("(只查路徑式 import;模組命名空間的語言(Haskell / Java / Rust …)靠建置設定擋,而建置設定有沒有把 spike/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)");
 }
 process.exit(issues.length ? 1 : 0);

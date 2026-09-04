@@ -229,6 +229,7 @@ function scanTaskDoc(path, subsystem, kind) {
     modules: asList(meta?.modules),
     group: meta?.group ? String(meta.group) : "",
     hasLaws: /^##\s+Laws/m.test(text),
+    citedSpikes: [...new Set([...text.matchAll(/\bSPK-(\d{3})\b/g)].map((x) => `SPK-${x[1]}`))],
     hasContract: /^##\s+契約\s*$/m.test(text),
     contractGaps: contractGaps(text),
     file: relPath,
@@ -1031,6 +1032,36 @@ function printBlock(title, lines) {
   if (!lines || lines.length === 0) console.log("(無)");
   else for (const l of lines) console.log(l);
 }
+
+// ---------------------------------------------------------------- spike 的 feeds 對帳(兩個方向)
+//
+// `feeds` 是 spike 唯一的下游紀錄,跟 depends-on 一樣要指得到東西:寫錯全名就靜默指到空氣,
+// 而「結論沒有下游」跟「結論寫錯下游」對讀的人是同一件事。反向:任務文檔引用了 SPK-00x
+// (不可逆決定的證據)而那份 spike 的 feeds 沒回鏈它,是回寫漏了一邊 —— 列為提示,因為引用
+// 不一定等於下游(可能只是「另見」);引用了不存在的 spike 才是不一致。
+const feedResolves = (f) => {
+  const raw = f.split("#")[0];
+  if (raw === "system.md" || raw === "system") return existsSync(join(designDir, "system.md"));
+  const dm = raw.match(/^([a-z0-9-]+)\/design\.md$/);
+  if (dm) return Boolean(subsysDocs.get(dm[1])?.designFile);
+  const k = feedKey(f);
+  if (/^ADR-\d{3}$/.test(k)) return adrIds.has(k);
+  if (/^G-C\d{3}$/.test(k)) return contractIds.has(k);
+  if (/^G-[EB]\d{3}$/.test(k)) return globalIds.has(k);
+  const sm = k.match(/^([a-z0-9-]+)\/([FEB]\d{3})$/);
+  if (sm) return Boolean(subsysDocs.get(sm[1])?.ids.has(sm[2]));
+  return false;
+};
+for (const sp of spikes)
+  for (const f of sp.feeds)
+    if (!feedResolves(f)) archIssues.push(`${sp.file}:feeds 的 ${f} 指不到任何文檔(寫全名:auth/F002、ADR-001、G-C001、auth/design.md、system.md)`);
+for (const r of rows)
+  for (const id of r.citedSpikes) {
+    const sp = spikes.find((x) => x.id === id);
+    if (!sp) archIssues.push(`${r.file}:引用了 ${id},但 .design/spikes/ 沒有這份 spike`);
+    else if (!spikeFeeds(sp, r.subsystem, r.id))
+      archNotes.push(`${r.file}:引用了 ${spikeName(sp)} 當證據,但那份 spike 的 feeds 沒回鏈 ${rowName(r)}(回寫漏了一邊?)`);
+  }
 
 const QUERY_TAIL =
   "\n本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。\n" +

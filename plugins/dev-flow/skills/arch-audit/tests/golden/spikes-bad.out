@@ -12,5 +12,5 @@ spike 程式碼只供參考:沒有契約、沒有測試,任何一條 law 都不�
 - src/ok.ts:2:import 了 spike/ —— import spikeLike from "../spike/SPK-001-store/main"; // 違規
 
 掃了 3 份 spike 文檔、2 個 spike/SPK-* 資料夾、2 個原始碼檔(.),2 處 import 指到 spike/。
-(只查 import 寫法;建置設定有沒有把 spike/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)
+(只查路徑式 import;模組命名空間的語言(Haskell / Java / Rust …)靠建置設定擋,而建置設定有沒有把 spike/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)
 __exit__ 1

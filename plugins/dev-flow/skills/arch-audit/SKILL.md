@@ -175,7 +175,7 @@ node "<S>/arch-audit/scripts/migrate-v2.mjs" .design       v1 → v2 遷移(**�
    **每一份 feature 檔的 `## 契約` 都是完整原文**,沒有存根、沒有存檔要另外開(v2 起契約住在 feature 檔自己身上)。委派門檻只看 `status: planned` 的那幾份,但對帳「契約與現實符不符」時 `specced` / `done` 的照樣要看——脫節最常發生在做完之後
 6b. **模組群對帳**:先跑 `contract-readiness.md` 的 **A10**——`system.md` 給這個子系統的職責逐句在 `design.md` 指得到落點嗎?指不到的,是不是被寫成 `planned` 模組群?**沒寫成 planned、也沒寫進契約的職責,是本 scope 最該抓的東西**:它不會產生任何錯誤訊息,只會讓這個子系統在只做了一部分時顯示 100%。反過來,程式碼裡是不是已經長出了某個 `planned` 模組群的東西(有實作卻沒契約)?兩個方向都要查
 7. **知識歸屬**:同一個事實(設定值、狀態、換算規則、格式定義)有沒有兩個模組各存一份?有 → 指出應該由誰唯一持有,其他人怎麼改走介面拿(`boundary-rules.md`「知識歸屬」)
-8b. **spike 對帳**(專案有 `spike/` 或 `.design/spikes/` 時):先跑 `node "<S>/arch-audit/scripts/lint-spikes.mjs" .`,它列的每一條 import 都是產品程式碼直接依賴了沒經過契約與測試的實驗碼,列為發現(嚴重度同「偷改骨架簽名」——那段行為沒有任何 law 保護)。再看本子系統 feature 檔的「不可逆決定」段引用的每一份 spike:那份 spike 的 `feeds` 有沒有回鏈這份文檔、verdict 與文檔採取的方向一不一致(spike 說 `infeasible` 而文檔照做了,就是無視證據的決定)
+8b. **spike 對帳**(專案有 `spike/` 或 `.design/spikes/` 時):先跑 `node "<S>/arch-audit/scripts/lint-spikes.mjs" .`,它列的每一條 import 都是產品程式碼直接依賴了沒經過契約與測試的實驗碼,列為發現(嚴重度同「偷改骨架簽名」——那段行為沒有任何 law 保護)。再看本子系統 feature 檔引用的每一份 spike:`feeds` 指不指得到文檔、引用的 spike 存不存在、feeds 有沒有回鏈這份文檔,這三項 `scan-status.mjs` 已經機械查過(前兩項是不一致、第三項是提示),你只判機器判不了的那一件——verdict 與文檔採取的方向一不一致(spike 說 `infeasible` 而文檔照做了,就是無視證據的決定)
 8. **未結的 spec-gaps**(存在 `spec-gaps.md` 時):每一條 `open` 的條目都代表有項目卡著沒做、或有人在等 spec 修訂。逐條檢查:那個項目在程式碼裡是真的空著,還是有人繞過協議自己補了實作或測試?後者一律列為發現(spec 沒改就先做,等於用實作定義了契約)
 。另查 `resolved` 的條目:`修訂` 行指到的段落,在那份文檔裡真的變過嗎(`updated` 有動、條文有改)?沒有就是**結案沒有證據**,與下面「spec bug 沒修就往下跑」屬同一類違規
 

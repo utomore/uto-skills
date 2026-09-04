@@ -104,10 +104,10 @@ example 與某條 law 互相矛盾時:**不要自己選一邊**,兩條都照寫,
 
 ## 5. 產出對照表(交付的一部分)
 
-在測試檔頂端(或該 feature 的測試模組開頭)留一張對照表,讓仲裁時查得到「這條測試對應 spec 的哪一條」。**表頭寫 spec 的文檔全名**(`auth/F002-token-refresh`):測試檔會被跟 spec 分開讀,只寫 `F002` 的話,讀測試的人查不出是哪個子系統的哪一份 spec:
+在測試檔頂端(或該 feature 的測試模組開頭)留一張對照表,讓仲裁時查得到「這條測試對應 spec 的哪一條」。**表頭一律寫成 `spec: <子系統>/<文檔全名>`**——這一行同時是給人看的出處與給機器讀的歸屬宣告(`lint-laws-traceability.mjs` 認的就是它)。只寫 `F002` 有兩個後果:讀測試的人查不出是哪個子系統的哪一份 spec,而**law id 的命名空間是每份文檔一組**,對帳腳本撞號時只能報歧義:
 
 ```
--- auth/F002-token-refresh · spec 對照(預期依 spec-roles.md「qa 的交付判準」逐條標)
+-- spec: auth/F002-token-refresh · 對照(預期依 spec-roles.md「qa 的交付判準」逐條標)
 -- LAW-1 rotate 具冪等性             → prop_rotate_idempotent        [紅]
 -- LAW-2 refresh 後舊 token 必失效   → prop_refresh_invalidates_old  [紅]
 -- EX-1  正常換發                    → test_refresh_happy_path       [紅]
@@ -117,6 +117,8 @@ example 與某條 law 互相矛盾時:**不要自己選一邊**,兩條都照寫,
 對照表**照抄 spec 的編號原文**:spec 寫 `LAW-1` 就寫 `LAW-1`,舊 spec 寫 `L1` 就照抄 `L1`——這張表的功能是仲裁時對得回 spec,自行改號會讓對照斷掉。
 
 每條 law 與 example 都必須出現在表上;spec 有、表上沒有 = 交付不完整。**預期欄不可省略**——編排者驗紅綠時逐條對的就是這一欄,沒有它就只能數紅燈比例。
+
+**測試分散在多個檔案時,每一個檔案各自都要有 `spec:` 那一行**(對照表可以只放在主檔)。輔助檔——fakes、strategies、共用 fixture——只要裡面出現 `LAW-n` / `EX-n`,就同樣要宣告,否則那些引用機械上無法歸屬。宣告一份以上的 spec 也可以,一行一個。不想在檔頭宣告的,把引用寫成限定式(`auth/F002#LAW-2`),兩種擇一即可。
 
 ## 6. 交付判準(不可跳過)
 

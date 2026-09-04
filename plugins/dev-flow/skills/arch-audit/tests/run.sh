@@ -66,6 +66,9 @@ run cross-docs       "$SCRIPTS/lint-cross-spec.mjs" cross --docs F001,F002
 run cross-bad-flag   "$SCRIPTS/lint-cross-spec.mjs" cross --bogus
 run laws-skeleton-ok "$SCRIPTS/lint-laws.mjs" cross --skeleton cross
 run laws-skeleton-drift "$SCRIPTS/lint-laws.mjs" drift --skeleton drift
+run trace-ok         "$SCRIPTS/lint-laws-traceability.mjs" trace/ok --tests trace/ok/tests
+run trace-bad        "$SCRIPTS/lint-laws-traceability.mjs" trace/bad --tests trace/bad/tests
+run trace-no-tests   "$SCRIPTS/lint-laws-traceability.mjs" trace/ok --tests trace/ok/nope
 
 echo
 echo "=== 只驗 exit code,不比對輸出 ==="

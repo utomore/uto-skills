@@ -1,8 +1,8 @@
 # 開發流程文檔慣例(共用核心)
 
-所有開發流程 skills(system-design、subsys-design、subsys-build、spec-build、spec-design、spec-qa、spec-impl、bugfix、arch-audit、branch-pr、study)共用本慣例。
+所有開發流程 skills(system-design、subsys-design、subsys-build、spec-build、spec-design、spec-qa、spec-impl、spec-redesign、bugfix、spike、arch-audit、branch-pr、study)共用本慣例。
 
-本檔是**每個 skill 都要讀**的核心。另外十二片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
+本檔是**每個 skill 都要讀**的核心——但**用 `doc-section.mjs` 只讀自己那幾節**(各 SKILL.md 的載入行寫死了節名;不跑測試 / 建置的 skill 不讀「跑東西的紀律」)。下面這張分片對照表是**給維護者**的,執行時不必讀:各 skill 開頭已明列自己要讀哪幾片。另外十二片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
 
 | 分片 | 內容 | 什麼時候讀 |
 |---|---|---|
@@ -75,6 +75,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 - **Level 3** `/spec-design` → `/spec-qa` ∥ `/spec-impl`:業務邏輯、演算法細節、測試。`/bugfix` 走單角色
 - **編排層** `/spec-build`(單份 spec)、`/subsys-build`(把子系統裡 `planned` 的 feature 檔整批展開):spec 批准閘門 → 委派 qa ∥ impl → 跑測試 → 仲裁
 - **修改層** `/spec-redesign`:既有契約或 spec 要改時的唯一入口。它先判這次改動只落在這一份檔(Level 3 就地改)還是有第二份文檔要跟著改(回 Level 2),再改並留下可查證的修訂痕跡
+- **驗證層** `/spike`:讀原始碼答不出來、要跑了才知道的問題,先寫問題、判準、timebox,再在 `spike/` 寫拋棄式程式碼驗證,結論記進 `.design/spikes/SPK-00x`,並指明餵給哪一層的哪份文檔。它替決定生產證據,自己不做決定:結論落地一律走上面各層對應的 skill。任何一層、任何編排者都可以派它,規則見 `orchestration.md`「派 spike 驗證」
 
 Level 3 採 **spec 驅動的三角色**:設計寫 spec 文檔與程式碼骨架(型別與簽名完整、函數本體未實作),qa 與 impl 各自只讀 spec、彼此不可見,測試與實作都只是 spec 的投影。角色契約見 `spec-roles.md`。
 

@@ -20,7 +20,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例:資訊抽象邊界規範、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 跑東西的紀律 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、角色與設計哲學、資訊抽象邊界規範、通用規則、**跑東西的紀律**(驗骨架那一次編譯)。**不要整份讀** |
 | `../_shared/spec-roles.md` | **三角色契約**:你的產出是 qa 與 impl 的唯一輸入 |
 | `../_shared/boundary-rules.md` | **邊界判斷規則** + 設計階段規則 |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description 狀態與生命週期` | doc-lifecycle 的五節。**不要整份讀**——腳本末尾會附上你沒讀到的章節目錄 |
@@ -87,6 +87,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 1. 讀取 `.design/system.md`(燈塔)。**不存在時**:告知開發者建議先執行 `/system-design`,除非開發者明確要求直接寫設計文檔
 2. 確認落在哪個子系統,讀取該 `subsystems/<slug>/design.md`;不相關的子系統不讀。**feature 模式**:目標檔的 **`## 契約`** 就是討論起點(它已定下階段、負責模組、Level 2 介面、資料流段落、驗收標準與明確不做,討論從這裡往下深化,**不要重新發明邊界,也不要改寫那一節**——要改走 `/spec-redesign`)。找不到 `status: planned` 的目標檔時,代表這個 feature 還沒被規劃進來,先走 `/subsys-design` 把它建出來;沒有對應子系統時,先和開發者確認是否要新增子系統(走 `/subsys-design`)或放寬為不拆子系統的小專案做法(此時與開發者確認文檔位置)。**要展開的東西落在一個 `planned` 模組群裡**(`design.md` 的「模組群」表)時停下來:那一群的契約章節還沒寫,沒有 Level 2 介面可以承接,先走 `/subsys-design` 把契約補上再回來
 3. 讀取與目標相關的 `.design/adr/`(依主題挑選,不必全讀)
+3b. **相關 spike**:跑 `node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <目標全名>`,「相關 spike」段列出的每一份都要讀它的 `## 結論`,需要時用它 `RND-n` 記的 sha 撈程式碼看做法:`git show <sha> --stat -- spike/SPK-00x-<slug>` 列檔案、`git show <sha>:spike/SPK-00x-<slug>/<檔>` 看內容(結案後資料夾已刪,sha 是唯一入口)。spike 是**不可逆決定的否決理由**與 **Laws 的定義域**(什麼量級下成立)的證據來源,引用時寫全名(`SPK-003-storage-engine`),不重述結果。**spike 程式碼不是骨架**:不得複製進骨架,骨架與產品程式碼不得 import `spike/`。討論中冒出「要跑了才知道」的問題時,停下來走 `/spike`,拿 verdict 回來再寫——沒有證據的不可逆決定會在閘門被退回
 4. **配號並建檔(同一道指令,不准自己數資料夾)**:
 
    ```

@@ -43,14 +43,17 @@
  *   --claim <組> --slug <kebab-slug>
  *                      **配號並當場鎖住**:算出該組下一個可用號,把檔案建在慣例位置
  *                      (只寫 frontmatter 骨架),印出路徑。組寫 `G-C` / `G-E` / `G-B` /
- *                      `ADR` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。
+ *                      `ADR` / `SPK` / `<子系統>/F` / `<子系統>/E` / `<子系統>/B`。
+ *                      `SPK` 另建同名的程式碼資料夾 `<.design 同層>/spike/SPK-00x-<slug>/`(附一份指回
+ *                      文檔的 README.md;`spike/` 根層的 sandbox README 第一次一起建)—— 文檔與資料夾
+ *                      同一個動作建。資料夾只活到結案,結案由 /spike 用 git rm 刪、sha 留在文檔。
  *
  * **`--claim` 是這套流程唯一的鑄號動作**,所有角色、所有分支、所有 worktree 都走它。
  * 「先算號、待會再建檔」中間那段空窗就是撞號發生的地方 —— 掃描看得到的是**檔案**,
  * 你腦中記著的號碼別人看不到。所以配號與建檔必須是同一個動作,不留空窗。
  *
- * 它只管**文檔 id**(F / E / B / G-C / G-E / G-B / ADR)。檔案**內部**的條目編號
- * (LAW- / REG- / EX- / ASM- / GAP- / DEC- / SELF- / WAVE- / STEP-)不歸它管,
+ * 它只管**文檔 id**(F / E / B / G-C / G-E / G-B / ADR / SPK)。檔案**內部**的條目編號
+ * (LAW- / REG- / EX- / ASM- / GAP- / DEC- / SELF- / WAVE- / STEP- / RND-)不歸它管,
  * 那不是限制而是正確:那些號只在單一檔案內唯一,兩條分支各自在自己的 spec 裡寫 LAW-3
  * 本來就不是撞號,寫的人手上就有那個檔案,繞一趟腳本只是多一次 I/O。
  * 開發階段 `S0`–`Sn` 同理:它們住在 `system.md` 同一張表裡,兩條分支各加一個 S4 會產生
@@ -59,7 +62,7 @@
  * Exit code:0 = 沒有撞號 / 1 = 有撞號 / 2 = 路徑不存在或不是 git repo
  */
 import { readdirSync, existsSync, statSync, mkdirSync, writeFileSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { join, relative, resolve, sep, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
 import { printHelpIfAsked } from "./_help.mjs";
 
@@ -106,12 +109,12 @@ const toPosix = (p) => p.split(sep).join("/");
 function parseDocPath(relPath) {
   const parts = toPosix(relPath).split("/");
   const name = parts[parts.length - 1];
-  const m = name.match(/^(G-[CEB]\d{3}|ADR-\d{3}|[FEB]\d{3})-([a-z0-9-]+)\.md$/);
+  const m = name.match(/^(G-[CEB]\d{3}|ADR-\d{3}|SPK-\d{3}|[FEB]\d{3})-([a-z0-9-]+)\.md$/);
   if (!m) return null;
   const [, id, slug] = m;
   const num = Number(id.slice(-3));
   const archived = parts.includes("archive");
-  if (id.startsWith("G-") || id.startsWith("ADR-")) {
+  if (id.startsWith("G-") || id.startsWith("ADR-") || id.startsWith("SPK-")) {
     return { group: id.slice(0, -3).replace(/-$/, ""), id, num, slug, archived };
   }
   const i = parts.lastIndexOf("subsystems");
@@ -205,6 +208,7 @@ const GROUP_LABEL = {
   "G-E": "全域優化",
   "G-B": "全域修復",
   ADR: "架構決策紀錄",
+  SPK: "可行性驗證(spike)",
 };
 
 /** 主 branch:已經進去的號就是定案的號,不必列出它散佈在哪五十條分支上。 */
@@ -246,7 +250,7 @@ for (const g of groups) {
 }
 
 const pad3 = (n) => String(n).padStart(3, "0");
-const nextIdOf = (g) => (g.includes("/") ? `${g.split("/")[1]}${pad3(nextFree.get(g))}` : `${g}${g === "ADR" ? "-" : ""}${pad3(nextFree.get(g))}`);
+const nextIdOf = (g) => (g.includes("/") ? `${g.split("/")[1]}${pad3(nextFree.get(g))}` : `${g}${g === "ADR" || g === "SPK" ? "-" : ""}${pad3(nextFree.get(g))}`);
 
 if (OPT_NEXT) {
   for (const g of groups) console.log(`${g}\t${nextIdOf(g)}`);
@@ -268,9 +272,9 @@ if (OPT_CLAIM) {
   // 慣例位置與 frontmatter 欄位(doc-lifecycle.md「.design/ 資料夾樹」與「Metadata 標準」是權威,
   // 改這裡之前先改那份)。**建出來的骨架必須照那份規格逐欄寫齊**:少一欄,填內容的人就得自己
   // 想起來補,而漏補不會報錯 —— `code-paths` 就是這樣一路漏到收尾才被發現沒人回寫。
-  const GLOBAL_DIR = { "G-C": "contracts", "G-E": "enhancements", "G-B": "bugfixes", ADR: "adr" };
+  const GLOBAL_DIR = { "G-C": "contracts", "G-E": "enhancements", "G-B": "bugfixes", ADR: "adr", SPK: "spikes" };
   const SUBSYS_DIR = { F: "features", E: "enhancements", B: "bugfixes" };
-  const DOC_TYPE = { "G-C": "contract", "G-E": "enhance", "G-B": "bugfix", ADR: "adr", F: "feature", E: "enhance", B: "bugfix" };
+  const DOC_TYPE = { "G-C": "contract", "G-E": "enhance", "G-B": "bugfix", ADR: "adr", SPK: "spike", F: "feature", E: "enhance", B: "bugfix" };
   /** 任務文檔(F/E/B 與全域 G-E/G-B)的固定欄位;順序與 doc-lifecycle.md「任務文檔」一致 */
   const TASK_TAIL = [
     "depends-on: []            # 依賴的其他任務文檔,一律帶子系統前綴,如 [auth/F001]",
@@ -288,6 +292,18 @@ if (OPT_CLAIM) {
     if (g === "ADR") {
       status = "proposed";
       tail = [];
+    } else if (g === "SPK") {
+      // spike 不是任務文檔:狀態由結論決定(open → concluded / dropped),不進進度分母。
+      // code-paths 固定指到同名資料夾 —— 文檔與程式碼成對,而且只准住在 spike/ 底下
+      // (產品程式碼禁止 import 它,lint-spikes.mjs 查)。規格見 doc-lifecycle.md「spike 文檔」。
+      status = "open";
+      tail = [
+        "verdict:                  # concluded 才填:feasible | infeasible | partial",
+        "subsystems: []            # 相關子系統;還沒定子系統時留空",
+        "feeds: []                 # 結論餵給哪些文檔(全名);concluded 時必填非空",
+        "related-adr: []",
+        `code-paths: [spike/${id}-${OPT_SLUG}]   # 固定同名資料夾;只准指到 spike/ 底下`,
+      ];
     } else if (g === "G-C") {
       status = "active";
       tail = ["subsystems: []            # 使用這份契約的子系統,至少兩個", "related-adr: []"];
@@ -309,7 +325,7 @@ if (OPT_CLAIM) {
       ? ["stage:                    # 對應 system.md「開發階段」的階段 id,如 S1", "modules: []               # 負責模組(design.md「內部模組劃分」的模組名)", ...TASK_TAIL]
       : TASK_TAIL;
   } else {
-    console.error(`認不得的組:${g}。用 G-C / G-E / G-B / ADR / <子系統>/F / <子系統>/E / <子系統>/B`);
+    console.error(`認不得的組:${g}。用 G-C / G-E / G-B / ADR / SPK / <子系統>/F / <子系統>/E / <子系統>/B`);
     process.exit(2);
   }
 
@@ -354,12 +370,69 @@ if (OPT_CLAIM) {
            "- **明確不做**:",
            ""]
         : []),
+      // spike 的四個固定章節先立好標題:寫程式碼之前要先寫「問題」(要回答什麼 / 判準 / timebox),
+      // 沒有這一節的 spike 只是隨手試。版面在 spike/templates/spike.md。
+      ...(docType === "spike"
+        ? ["## 問題", "",
+           "- **要回答什麼**:",
+           "- **為什麼讀原始碼答不出來**:",
+           "- **判準**:feasible = ;infeasible = ;partial = ",
+           "- **下游**:",
+           "", "## 輪次", "", `### RND-1(${today})`, "",
+           "- 這輪要驗:", "- 判準:", "- timebox:", "- 做法:", "- 結果:", "- sha:", "- 環境:",
+           "", "## 結論", "",
+           "- **verdict**:", "- **一句話結論**:", "- **學到什麼**:", "- **餵給哪裡**:", "- **沒驗到的**:",
+           ""]
+        : []),
     ].join("\n"),
     "utf8",
   );
+  // spike 的程式碼資料夾與文檔同一個動作建:「先建檔、程式碼待會再放」中間那段空窗,
+  // 跟「先算號、待會再建檔」是同一種洞 —— 資料夾沒建,別人就看不到這個號已經有程式碼要來。
+  let codeDir = null;
+  if (docType === "spike") {
+    codeDir = join(dirname(DESIGN_DIR), "spike", `${id}-${OPT_SLUG}`);
+    mkdirSync(codeDir, { recursive: true });
+    writeFileSync(
+      join(codeDir, "README.md"),
+      [
+        `# ${full}`,
+        "",
+        `可行性驗證的程式碼。問題、判準、每一輪的結果與結論在 \`.design/spikes/${id}-${OPT_SLUG}.md\`。`,
+        "",
+        "這個資料夾**只活到結案**:結案時會被 `git rm`,程式碼靠文檔裡每一輪記的 sha 撈回。",
+        "open 期間產品程式碼與測試禁止 import 這裡;正式實作一律從 spec 寫。",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    // spike/ 根層是常駐的共用 sandbox(依賴檔、假資料、harness),第一次建 spike 時立起來,之後不動。
+    // 沒有這份 README 的話,第二個人看到 spike/ 底下一堆東西,分不出哪些是環境、哪些是某次的實驗。
+    const rootReadme = join(dirname(codeDir), "README.md");
+    if (!existsSync(rootReadme)) {
+      writeFileSync(
+        rootReadme,
+        [
+          "# spike/ —— 可行性驗證的 sandbox",
+          "",
+          "根層放所有 spike 共用的環境:依賴檔(與專案自己的分開)、假資料產生器、量測 harness。這些**不刪**。",
+          "",
+          "每個 spike 一個 `SPK-00x-<slug>/` 資料夾,只活在 open 期間,結案時 `git rm`;程式碼靠 `.design/spikes/SPK-00x-<slug>.md` 裡每一輪記的 sha 撈回。",
+          "",
+          "產品程式碼與測試**禁止 import** 這裡的任何東西(`lint-spikes.mjs` 查);正式實作一律從 spec 寫。",
+          "",
+        ].join("\n"),
+        "utf8",
+      );
+    }
+  }
   // 路徑印相對的;.design 不在當前目錄底下時(`../../..` 那種)改印絕對路徑,免得印出一串沒人讀得懂的 `..`
   const relPath = toPosix(relative(process.cwd(), file));
   console.log(`${id}\t${relPath.startsWith("..") ? toPosix(file) : relPath}`);
+  if (codeDir) {
+    const relCode = toPosix(relative(process.cwd(), codeDir));
+    console.log(`程式碼\t${relCode.startsWith("..") ? toPosix(codeDir) : relCode}/  ← spike 的程式碼只寫在這裡`);
+  }
   // 全名是「講給人聽」時的唯一寫法:frontmatter 的 id 欄寫裸 id,回報、閘門、別份文檔的
   // 引用一律寫全名(_shared/conventions.md「指稱紀律」)。配號當下就把兩種寫法一起交出去,
   // 免得下一步只記得裸 id。

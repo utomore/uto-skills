@@ -27,6 +27,11 @@ planned 的模組群沒有契約、沒有 feature 檔,**不在上面「進度 1/
 - G-C001-session  [active]  contracts/G-C001-session.md  共用 session 契約
   ⚠ 只引用了文檔 id,沒寫到條目(引用格式見 doc-lifecycle.md)
 
+=== 相關 spike(1)—— 這個子系統的決定有哪些證據 ===
+- SPK-001-fts-latency  [concluded · feasible]  SQLite FTS5 在 50 萬筆下的查詢延遲  spikes/SPK-001-fts-latency.md
+    要回答:FTS5 在 50 萬筆筆記下,單字查詢能不能在 200ms 內回來
+    餵給:ADR-001-jwt、auth/F002-token-refresh、auth/F999
+
 === 只規劃了、還沒寫 spec 的 feature(1) ===
 - auth/F003-logout  subsystems/auth/features/F003-logout.md
     ⚠ 契約還缺 實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做,委派不動

@@ -66,6 +66,8 @@ run cross-docs       "$SCRIPTS/lint-cross-spec.mjs" cross --docs F001,F002
 run cross-bad-flag   "$SCRIPTS/lint-cross-spec.mjs" cross --bogus
 run laws-skeleton-ok "$SCRIPTS/lint-laws.mjs" cross --skeleton cross
 run laws-skeleton-drift "$SCRIPTS/lint-laws.mjs" drift --skeleton drift
+run spikes-clean     "$SCRIPTS/lint-spikes.mjs" cross --design cross
+run spikes-bad       "$SCRIPTS/lint-spikes.mjs" spike
 run trace-ok         "$SCRIPTS/lint-laws-traceability.mjs" trace/ok --tests trace/ok/tests
 run trace-bad        "$SCRIPTS/lint-laws-traceability.mjs" trace/bad --tests trace/bad/tests
 run trace-no-tests   "$SCRIPTS/lint-laws-traceability.mjs" trace/ok --tests trace/ok/nope
@@ -107,7 +109,60 @@ if grep -q "claim-planned.*「## 契約」還缺" <<<"$claim_out" && ! grep -q "
 else
   echo "✗ --claim 建出來的 feature 盤點模式讀不對(planned 的骨架應該有 ## 契約)"; fail=1
 fi
+# SPK 的配號要**同一個動作**建出兩樣東西:.design/spikes/ 的文檔與同名的程式碼資料夾(附 README)。
+# 少建一樣,lint-spikes 就會把它報成「沒有紀錄的實驗」或「open 卻沒有程式碼」—— 那正是生命週期規則要防的。
+node "$SCRIPTS/scan-ids.mjs" "$CLAIM_TMP/.design" --claim SPK --slug claim-spike >/dev/null 2>&1
+# fixtures/design 本身就帶一份 open 的 spike(SPK-002,沒有資料夾,盤點 golden 要它),所以 lint-spikes 在這個
+# 副本上不會全綠 —— 判準改成「它的輸出一個字都沒提到剛配的那份」,而不是 exit 0。
+if [[ -f "$CLAIM_TMP/.design/spikes/SPK-003-claim-spike.md" && -f "$CLAIM_TMP/spike/SPK-003-claim-spike/README.md" && -f "$CLAIM_TMP/spike/README.md" ]] &&
+   ! node "$SCRIPTS/lint-spikes.mjs" "$CLAIM_TMP" 2>&1 | grep -q "claim-spike"; then
+  echo "✓ scan-ids --claim SPK → 文檔與 spike/ 資料夾同時建出,lint-spikes 乾淨"
+else
+  echo "✗ scan-ids --claim SPK(文檔或程式碼資料夾少建了一樣,或 lint-spikes 不認得它建出來的東西)"; fail=1
+fi
 rm -rf "$CLAIM_TMP"
+
+echo
+echo "=== spike-close:結案刪資料夾的五道關(在暫存 git repo 上跑)==="
+# 刪東西的腳本要在真的 git repo 裡驗:未結案不准刪、sha 沒記不准刪、都過了才刪、刪完 spike/ 根層還在。
+CLOSE_TMP=$(mktemp -d)
+(
+  cd "$CLOSE_TMP" && git init -q && git config user.email t@t && git config user.name t && mkdir .design &&
+  printf -- '---\nid: system\ntype: system\ntitle: t\ndescription: x\nstatus: active\nmode: greenfield\ncreated: 2026-09-04\nupdated: 2026-09-04\nsubsystems: []\n---\n# t\n' > .design/system.md &&
+  node "$OLDPWD/$SCRIPTS/scan-ids.mjs" .design --claim SPK --slug store >/dev/null 2>&1 &&
+  echo 'x = 1' > spike/SPK-001-store/main.py && git add -A && git commit -qm "spike: SPK-001-store RND-1"
+) >/dev/null 2>&1
+SC="$SCRIPTS/spike-close.mjs"
+if ! node "$SC" SPK-001 --design "$CLOSE_TMP/.design" --apply >/dev/null 2>&1 && [[ -f "$CLOSE_TMP/spike/SPK-001-store/main.py" ]]; then
+  echo "✓ 未結案(status: open)不准刪,一個檔都沒動"
+else
+  echo "✗ spike-close 在文檔還是 open 時刪了東西,或沒有以 1 收場"; fail=1
+fi
+sha=$(git -C "$CLOSE_TMP" rev-parse --short HEAD)
+sed -i.bak "s/^status: open/status: concluded/; s/^verdict:.*/verdict: feasible/; s/^feeds: \[\].*/feeds: [ADR-001-x]/" "$CLOSE_TMP/.design/spikes/SPK-001-store.md"
+if ! node "$SC" SPK-001 --design "$CLOSE_TMP/.design" --apply >/dev/null 2>&1 && [[ -f "$CLOSE_TMP/spike/SPK-001-store/main.py" ]]; then
+  echo "✓ 沒記 sha 不准刪(撈不回來的東西不能刪)"
+else
+  echo "✗ spike-close 在文檔沒記 sha 時刪了東西"; fail=1
+fi
+sed -i.bak "s/^- sha:.*/- sha:$sha/" "$CLOSE_TMP/.design/spikes/SPK-001-store.md"
+# 記了 sha 之後又改了程式碼並 commit(沒開新一輪):sha 撈回來的是舊版,不准刪
+( cd "$CLOSE_TMP" && echo 'x = 2' > spike/SPK-001-store/main.py && git add -- spike && git commit -qm "後來又改了" ) >/dev/null 2>&1
+if ! node "$SC" SPK-001 --design "$CLOSE_TMP/.design" --apply >/dev/null 2>&1 && [[ -f "$CLOSE_TMP/spike/SPK-001-store/main.py" ]]; then
+  echo "✓ sha 裡的資料夾跟現在不一樣(記了 sha 之後又改過)不准刪"
+else
+  echo "✗ spike-close 在 sha 過期時刪了東西 —— 撈回來的會是舊版"; fail=1
+fi
+sha=$(git -C "$CLOSE_TMP" rev-parse --short HEAD)
+sed -i.bak "s/^- sha:.*/- sha:$sha/" "$CLOSE_TMP/.design/spikes/SPK-001-store.md"
+if node "$SC" SPK-001 --design "$CLOSE_TMP/.design" >/dev/null 2>&1 && [[ -f "$CLOSE_TMP/spike/SPK-001-store/main.py" ]] &&
+   node "$SC" SPK-001-store --design "$CLOSE_TMP/.design" --apply >/dev/null 2>&1 &&
+   [[ ! -e "$CLOSE_TMP/spike/SPK-001-store" && -f "$CLOSE_TMP/spike/README.md" ]]; then
+  echo "✓ 五道關都過:dry-run 不動、--apply 只刪那一個資料夾,spike/ 根層還在"
+else
+  echo "✗ spike-close 的 dry-run 動了東西、--apply 沒刪掉,或連 spike/ 根層一起刪了"; fail=1
+fi
+rm -rf "$CLOSE_TMP"
 
 echo
 echo "=== 每支腳本都要吃 --help ==="

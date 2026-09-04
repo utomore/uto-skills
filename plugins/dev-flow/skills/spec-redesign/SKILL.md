@@ -26,7 +26,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例:資訊抽象邊界規範、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、資訊抽象邊界規範、通用規則。**不讀「跑東西的紀律」**——本 skill 只跑盤點腳本,不跑測試 |
 | `../_shared/spec-roles.md` | 三角色契約與 **spec-gaps 協議**(回填格式) |
 | `../_shared/boundary-rules.md` | **層級判斷**——本 skill 的第一個動作就靠它 |
 | 目標 feature / enhance 檔全文 + 它的骨架 | 你要改的東西 |
@@ -37,6 +37,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 - 判定是 **Level 2** → 該子系統 `design.md` 全文(含分冊)+ `../_shared/contract-readiness.md`
 - 改動涉及既有符號(要改簽名、要查誰在用)→ `../_shared/codegraph.md` + `../_shared/codegraph-tools.md`
 - 要查反向依賴、誰引用了這條契約 → `../_shared/design-query.md`
+- 觸發本次修改的是一份 spike 的結論 → 那份 `.design/spikes/SPK-00x-<slug>.md` 全文(結論與「沒驗到的」都要看:後者是這次修訂的邊界)
 - **收尾時** → `../_shared/anchor.md`
 
 不讀 `doc-lifecycle.md`:本 skill **不配號、不建檔**。
@@ -93,6 +94,8 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 ```markdown
 - 修訂 2026-09-03 依 auth/GAP-3:<改了什麼,一句話>(層級:Level 3 就地 / Level 2 連動 design.md「模組間公開介面」)
 ```
+
+觸發來源是 spike 時「依」後面寫 spike 全名(`依 SPK-003-storage-engine`),並把這份文檔的全名補進那份 spike 的 `feeds` 欄——那是 spike 唯一被允許的跨文檔回寫,由你做,不由 spike 做。
 
 回填 gap 條目的 `狀態:resolved` 與 `修訂` 行(格式見 `../_shared/spec-roles.md`「spec-gaps 協議」)。**`修訂` 行必須指出是哪一份文檔的全名**——`/arch-audit status` 會查「gap 標了 resolved,但修訂行指到的文檔 `updated` 比結案日期早」,指不出來的結案會被列為不一致。
 

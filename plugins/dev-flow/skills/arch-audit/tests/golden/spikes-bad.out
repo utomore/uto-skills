@@ -1,0 +1,16 @@
+=== spike 不一致(9)===
+spike 程式碼只供參考:沒有契約、沒有測試,任何一條 law 都不保護它。產品程式碼依賴它的每一處都是一段沒人保護的行為。
+
+- .design/spikes/SPK-001-store.md:status 是 concluded 但 spike/SPK-001-store/ 還在 —— 結案沒清;跑 spike-close.mjs <全名> --apply(它會先驗 sha 撈不撈得回來);留著一定會被人 import
+- .design/spikes/SPK-002-nodir.md:concluded 但 verdict(done)不在 feasible / infeasible / partial 之內
+- .design/spikes/SPK-002-nodir.md:concluded 但 feeds 是空的 —— 結論沒有下游,沒有任何決定會讀到這份驗證
+- .design/spikes/SPK-002-nodir.md:code-paths 的 src/nope.py 不在 spike/ 底下 —— spike 程式碼只准住在那裡
+- .design/spikes/SPK-004-open-nodir.md:status 是 open 但沒有 spike/SPK-004-open-nodir/ —— 還沒開工就建了檔,或資料夾被提早清掉;open 的 spike 要有程式碼資料夾
+- spike/SPK-003-orphan/:沒有對應的 .design/spikes/SPK-003-orphan.md —— 沒有紀錄的實驗;用 scan-ids.mjs --claim SPK 補建文檔,或把資料夾移走
+- .design/subsystems/auth/features/F001-login.md:code-paths 指進 spike/SPK-001-store/main.py —— 任務文檔的實作不得落在 spike/ 底下,正式實作一律從 spec 寫進原始碼樹
+- src/app.py:2:import 了 spike/ —— from spike.SPK_001_store.main import store   # 違規
+- src/ok.ts:2:import 了 spike/ —— import spikeLike from "../spike/SPK-001-store/main"; // 違規
+
+掃了 3 份 spike 文檔、2 個 spike/SPK-* 資料夾、2 個原始碼檔(.),2 處 import 指到 spike/。
+(只查路徑式 import;模組命名空間的語言(Haskell / Java / Rust …)靠建置設定擋,而建置設定有沒有把 spike/ 排除在編譯圖之外,機器判不了 —— 那一項要人看)
+__exit__ 1

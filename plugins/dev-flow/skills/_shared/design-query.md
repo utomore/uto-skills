@@ -25,7 +25,7 @@
 
 | 什麼時候 | 指令 | 接著一定要做什麼 |
 |---|---|---|
-| 要展開某個 feature,先看它在整體的哪裡、依賴誰 | `node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <文檔全名>` | **打開它列出的檔案讀原文**再落筆;輸出的介面段是索引不是授權 |
+| 要展開某個 feature,先看它在整體的哪裡、依賴誰 | `node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <文檔全名>` | **打開它列出的檔案讀原文**再落筆;輸出的介面段是索引不是授權。「相關 spike」段列的每一份都要讀結論——那是這份文檔不可逆決定的證據 |
 | 要對某個子系統做決定(委派、對帳、驗收) | `… scan-status.mjs .design --subsys <slug>` | 先看「模組群」段有沒有 `planned` 的:有的話該子系統的進度數字只涵蓋 active 那幾群。「反向依賴」段是 `contract-readiness.md` **B1 的候選清單**,逐條對照兩邊的 `design.md` 自己判 |
 | 要知道**產品**做到哪、還差什麼 | `… scan-status.mjs .design`(不帶 flag),看「開發階段」表與「已規劃、未建 design.md 的子系統」/「已規劃、契約未寫的模組群」三段 | 這三段才是產品級分母;子系統狀態表的百分比只涵蓋已展開的部分 |
 | 要改一份共用契約,先看誰在用 | `… scan-status.mjs .design --doc G-C00x-<slug>` | 「誰引用這份契約」的每一個子系統都要通知到;契約條目是不可逆決定 |

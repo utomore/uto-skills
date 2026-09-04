@@ -17,7 +17,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 跑東西的紀律 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、角色與設計哲學、通用規則、**跑東西的紀律**。**不要整份讀** |
 | `../_shared/spec-roles.md` | **三角色契約**——你是那一片裡的「編排者」 |
 | `../_shared/orchestration.md` | **骨架快照與仲裁的裁決處置,你的職責** |
 | `../_shared/delegation.md` | **委派模式共通契約** |
@@ -131,6 +131,8 @@ subagent 問不了人,所以要在 fan out 之前把**它們自己判斷不了�
 快速檔的代價要對開發者講明白:**契約假設變成事後審查**,裁決不同時 impl 已經蓋在上面了,回頭改的成本比在閘門裁貴一級。所以快速檔只在「契約很紮實、上一階段抽查沒裁錯」時建議;不可逆決定、依賴邊與跨 feature 對帳不進這個折扣——前兩者依定義最難逆,第三者依定義波及兩個以上的 feature,任何檔位都停。
 
 **送出之前先過一次專案模式過濾**(`system.md` 的 `mode`,規則見 `../_shared/boundary-rules.md`「專案模式」):`greenfield` 專案裡,凡是問 migration、舊格式、既有使用者、要不要保留舊版 API 的題目**一律從清單上刪掉**,不是留著讓開發者回答「不用」——那種題目在全新專案裡沒有指涉對象,而開發者最新鮮的那段注意力應該花在真正有指涉對象的題目上。`brownfield` 相反:這幾類是必問,漏了就是把 migration 的決定留給 subagent 猜。
+
+**要跑了才知道的題目不問人,派 spike。** 四類裡任何一題,答案靠讀原始碼與文件給不出來、要實際跑一段才知道(這個套件在這個量級撐不撐得住、目標平台編不編得過)時,不要拿去問開發者——他答的也只是猜。照 `../_shared/orchestration.md`「派 spike 驗證」先派出去,verdict 回來當「已查過」再問,或根本不必問了;結論記進 `build-log.md` 的委派決策記錄,引用 spike 全名(`SPK-00x-<slug>`)。
 
 用 AskUserQuestion 分組問(每題附你的建議選項與理由)。**問完後把「還剩哪些不確定」明確講出來**——這些會變成 subagent 的「待確認假設」,在 3c 閘門逐條裁決;開發者要知道現在放行的是什麼風險,以及那些問題會在哪一步回來。
 
@@ -402,7 +404,7 @@ WAVE-2(auth/F005-logout, auth/F006-session-list, auth/F007-device-trust)
    - **仲裁紀錄摘要**:幾輪、歸因分佈(impl 錯 / qa 誤讀 / spec bug),spec bug 的每一條都要點名
    - **arch-audit 發現** 與 **建議的上層變更**:依嚴重度排序
    - **定錨區塊**(`../_shared/anchor.md`):位置樹以本階段的 features 為「目前」、逐條列介面與型別的狀態;未結的 spec-gaps 與與契約牴觸的假設一律進偏離清單;下一步 = 下一點的三個選項
-6. 用 AskUserQuestion 讓開發者選:**進下一階段** / **先修這些問題**(修 spec 後重跑該波的 qa+impl,或走 `/bugfix`、`/spec-design`,或回 `/subsys-design` 改契約後重跑本階段) / **就此停下**
+6. 用 AskUserQuestion 讓開發者選:**進下一階段** / **先修這些問題**(修 spec 後重跑該波的 qa+impl,或走 `/bugfix`、`/spec-design`,或回 `/subsys-design` 改契約後重跑本階段;仲裁紀錄裡歸因為 spec bug、而根源是「當初沒試」的,先照 `../_shared/orchestration.md`「派 spike 驗證」派 spike,verdict 交給 `/spec-redesign`) / **就此停下**
 7. 開發者要修契約 → 由**你**更新 `design.md`(不是 subagent),更新後受影響的 feature 要重跑,不能靠既有產出將就
 8. 詢問是否為本階段收尾(squash 成一個 commit 或打 tag 皆可;checkpoint 已在過程中留下,這裡只處理歷史整理)。**不主動 push**;整合發 PR 走 `/branch-pr`
 
@@ -426,6 +428,7 @@ WAVE-2(auth/F005-logout, auth/F006-session-list, auth/F007-device-trust)
 
 - **不跑跨子系統**:一次只展開一個子系統。多個子系統要一個一個來(先跑被依賴的那個)
 - **不改 Level 1**:過程中發現主架構要改,回報給開發者走 `/system-design` 更新模式,不自己動
+- **spike 可以派,但 spike 文檔由你寫**:批次澄清、閘門或仲裁撞到要跑了才知道的問題,照 `../_shared/orchestration.md`「派 spike 驗證」派出去;subagent 只寫 `spike/` 底下被指定的資料夾,`.design/spikes/SPK-00x` 的輪次與結論由你單線寫
 - **不做 enhancement / bugfix 的委派**:`/spec-design` 的 **enhance 模式**需要先讀程式碼再與人討論 scope、`/bugfix` 需要人確認重現條件,兩者都不適合無訪談委派。過程中發現的問題,在閘門建議開發者走 `/spec-design`、`/bugfix`;enhance 的 scope 談完、spec 寫好之後,**後半段(qa ∥ impl → 測試 → 仲裁)走 `/spec-build <文檔全名>`**——那條迴圈與 feature 完全相同
 - **單份 spec 不必動用本 skill**:只要跑一份已寫好的 spec(F00x 或 E00x),用 `/spec-build <文檔全名>`(例 `/spec-build auth/F005-logout`)就夠了;本 skill 多出來的是排波次、配號、階段閘門與 `design.md` 回填
 - **契約不完整時不啟動**:前置第 4 條的門檻是硬性的(`契約就緒 n/m` 不滿格就停)

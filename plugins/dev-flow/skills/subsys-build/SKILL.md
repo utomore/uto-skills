@@ -412,13 +412,14 @@ WAVE-2(auth/F005-logout, auth/F006-session-list, auth/F007-device-trust)
 
 路徑 `.design/subsystems/<slug>/build-log.md`。版面照本 skill 目錄下的 `templates/build-log.md`——建檔或更新時打開它照抄,七個章節:排程、委派決策記錄、配號表(含骨架路徑與模型欄)、待確認假設彙總、自裁清單、仲裁紀錄、階段結果。
 
-全部階段完成後 `status` 改 `done`。
+**全部階段完成、收線時刪掉這份檔**(四道確認見收尾);中途停下才留著,`status` 永遠是 `in-progress`——它只活在委派期間,定案後的過程不需要被找回。
 
 ## 5. 收尾
 
 - 摘要:跑了幾個階段、產出幾份 spec、幾條介面、測試總結、仲裁輪數與歸因分佈、`## 契約` 是否在過程中被修訂(修訂一律經 `/spec-redesign`)
 - **未結的 spec-gaps 與未裁決的待確認假設**:如果開發者選擇提前停下,明確列出還懸著的每一條
 - **自裁清單**:總條數、編排者降級與升級各幾條,提醒開發者定期抽查(抽 2-3 條;裁錯率高就收緊層級門檻)
+- **收線刪 `build-log.md`**:四道確認——本子系統的 F 與 E 全部 `done`、`spec-gaps.md` 不存在、每份 spec 的 `## 待確認假設` 已空、自裁清單抽查過或開發者說不抽——都過就 `git rm` 它(`migrate-v3.mjs` 會列每個子系統的四道結果);沒過的列出哪一道,檔留著、`status: in-progress`。契約類決定早在 fan out 前就進了 `design.md`,裁決在各 spec 的 REV,結果在 `status` 與測試——這份檔不再持有任何事實
 - **git 狀態**:已 checkpoint 到哪一個 feature、有沒有未 commit 的殘留
 - 剩下的階段與繼續方式(再跑一次 `/subsys-build <slug>` 會走接續模式)
 - **本次涵蓋的範圍**:有「模組群」表時,重申「涵蓋 active 的 K 群,planned 的 J 群(X、Y)這一輪不做」。所有 active 群跑完 ≠ 子系統交付;**摘要裡不准出現讓開發者以為子系統做完的說法**

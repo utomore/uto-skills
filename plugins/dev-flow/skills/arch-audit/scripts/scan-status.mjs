@@ -997,6 +997,13 @@ if (noGroupTable.length > 0)
       `子系統內有多個平行領域、而其中幾個還沒開工時,不寫這張表會讓進度只算得到已落地的那一群`,
   );
 
+// build-log 只活在委派期間:F / E 全 done、沒有 gap、沒有待裁 ASM 而它還在 = 收線漏刪(doc-lifecycle.md「done 的收束」)
+for (const s of subsysRows.filter((x) => x.built && x.complete)) {
+  if (!existsSync(join(subsysRoot, s.id, "build-log.md"))) continue;
+  const asmLeft = [...(subsysDocs.get(s.id)?.ids.values() ?? [])].some((r) => r.asm.total > 0);
+  const gapsLeft = existsSync(join(subsysRoot, s.id, "spec-gaps.md"));
+  if (!asmLeft && !gapsLeft) archNotes.push(`subsystems/${s.id}/build-log.md:委派已收線(F / E 全 done、沒有 gap、沒有待裁 ASM)但檔還在 —— 它只活在委派期間,收線就刪(migrate-v3.mjs --apply 可代刪)`);
+}
 // 名冊上有、還沒建 design.md 的子系統:它們是待辦,要進表、進分母,但不算「不一致」
 for (const slug of plannedSubsys) {
   subsysRows.push({

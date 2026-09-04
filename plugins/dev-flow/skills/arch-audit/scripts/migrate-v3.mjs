@@ -8,6 +8,8 @@
  *   2. **F 多了 `rev` 欄與「核心判準」行**,分類的證據要寫在檔上。
  *   3. **GAP 結案即刪、ASM 裁完即刪**:`spec-gaps.md` 只裝 open 的,`## 待確認假設` 只裝還沒裁的。
  *      舊專案裡標 resolved 的 GAP 與帶「裁決」欄的 ASM 是墓碑,--apply 一次清掉(證據在 REV / 契約)。
+ *   4. **build-log 只活在委派期間**:子系統的 F / E 全 done、spec-gaps.md 不在、待確認假設全空 = 收線,
+ *      --apply 刪掉它(第四道「自裁清單抽查過或接受」是人的事,跑 --apply 視為接受)。
  *
  * 判斷不在腳本裡。每一份既有 E 要人決定三選一(摺回 F / 留 E / 拆),腳本只做兩件事:
  *   - **列清單、給提示**(介面表幾列「修改 / 移除」、related-feature 指誰、幾條 REG-),印下一份未決的原文
@@ -251,6 +253,23 @@ for (const d of [...allF, ...allE]) {
   if (r.ruled) tombstones.asms.push({ path: d.path, full: d.full, ruled: r.ruled });
 }
 
+// ---------------------------------------------------------------- build-log:收線即刪(四道確認)
+
+const buildLogs = [];
+for (const slug of subsystems) {
+  const p = join(subsysRoot, slug, "build-log.md");
+  if (!existsSync(p)) continue;
+  const docs = [...feats, ...ehs].filter((d) => d.subsystem === slug);
+  const notDone = docs.filter((d) => !/^(done|closed)$/.test(d.status)).map((d) => d.full);
+  const gapsLeft = existsSync(join(subsysRoot, slug, "spec-gaps.md"));
+  const asmLeft = docs.filter((d) => countRulings(section(d.text, /待確認假設/)?.body).total > 0).map((d) => d.full);
+  const blockers = [];
+  if (notDone.length) blockers.push(`還沒 done:${notDone.join("、")}`);
+  if (gapsLeft) blockers.push("spec-gaps.md 還在");
+  if (asmLeft.length) blockers.push(`待確認假設還有條目:${asmLeft.join("、")}`);
+  buildLogs.push({ slug, path: p, blockers });
+}
+
 const doneBefore = allF.filter((f) => /^(done|closed)$/.test(f.status)).length;
 const applied = [];
 const manual = [];
@@ -392,6 +411,15 @@ if (apply) {
     writeFileSync(t.path, rebuilt.join(nl).replace(/\s*$/, "") + nl);
     applied.push(`${t.full}:刪掉 ${t.ruled} 條裁完沒刪的 ASM${remainingAsm ? `,留下 ${remainingAsm} 條還沒裁的` : ",整節拿掉"}`);
   }
+  // build-log:四道確認都過的刪(第四道「自裁清單抽查過或接受」是人的事,跑 --apply 視為接受)
+  for (const b of buildLogs) {
+    const nowDocs = [...listMd(join(subsysRoot, b.slug, "features")).map((f) => readTask(join(subsysRoot, b.slug, "features", f), b.slug)), ...listMd(join(subsysRoot, b.slug, "enhancements")).map((f) => readTask(join(subsysRoot, b.slug, "enhancements", f), b.slug))];
+    const stillOpen = nowDocs.some((d) => !/^(done|closed)$/.test(d.status)) || existsSync(join(subsysRoot, b.slug, "spec-gaps.md")) || nowDocs.some((d) => countRulings(section(d.text, /待確認假設/)?.body).total > 0);
+    if (stillOpen) continue;
+    unlinkSync(b.path);
+    applied.push(`subsystems/${b.slug}/build-log.md:委派已收線(F / E 全 done、沒有 gap、沒有待裁 ASM),刪掉`);
+    b.deleted = true;
+  }
   // F 補欄:**重讀現況**再判 —— 上面的摺回可能剛把同一份 F 的 rev 推到 1,拿掃描時的旗標會把它蓋回 0
   for (const f of fNeeds) {
     const now = readTask(f.path, f.subsystem);
@@ -416,6 +444,11 @@ console.log(
   `墓碑  resolved 的 GAP ${tombstones.gaps.reduce((n, t) => n + t.resolved, 0)} 條(${tombstones.gaps.length} 個檔)、裁完沒刪的 ASM ${tombstones.asms.reduce((n, t) => n + t.ruled, 0)} 條(${tombstones.asms.length} 份)` +
     (tombstones.gaps.length || tombstones.asms.length ? (apply ? " —— 已刪(結案 / 裁決即刪,證據在 REV)" : " —— --apply 會刪:結案 / 裁決的結論早已在契約與 REV 裡,條目留著只是干擾") : ""),
 );
+if (buildLogs.length) {
+  console.log(`build-log  ${buildLogs.length} 份(只活在委派期間,收線即刪):`);
+  for (const b of buildLogs)
+    console.log(`- subsystems/${b.slug}/build-log.md:${b.deleted ? "已刪" : b.blockers.length ? `留著 —— ${b.blockers.join(";")}` : "四道確認都過,可刪(自裁清單要不要抽查由開發者說;--apply 視為接受)"}`);
+}
 
 if (applied.length) {
   console.log("\n=== 本次 --apply 做了 ===");

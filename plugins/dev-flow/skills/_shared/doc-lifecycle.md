@@ -30,7 +30,7 @@ node "<S>/arch-audit/scripts/doc-section.mjs" <本檔> --list     # 只看目錄
 - `build-log.md` —— 編排過程(配號表、批次澄清的決策、各波次結果、待確認假設與自裁清單、閘門結論)。`/arch-audit status` 不掃它;它的價值在「中斷後能接續」與「事後查得到當初為什麼這樣決定」
 - `spec-gaps.md` —— **qa 與 impl 對 spec 提出的問題清單**(協議見 `spec-roles.md`)。有 `open` 條目就代表有項目正卡著等 spec 修訂:`/arch-audit status` 會列出這些條目,並在**被那條 gap 卡住的那份文檔**那一列標 `⚠卡auth/GAP-n`(靠條目標題 `## GAP-1(auth/F002-token-refresh / qa)` 裡的文檔全名認親,標題不寫文檔全名的 gap 標不到任何人),`/subsys-build` 開跑前會擋。**委派模式下只由編排者單線寫入與配號**,subagent 一律只回報(理由見 `delegation.md` 第 4 條)
 - `design.md` 的**分冊**(`subsystems/<slug>/` 根層、`design.md` 以外的 `.md`)—— 契約章節大到一份裝不下時拆出去,但**拆出去的仍然是 `design.md` 的一部分**。兩種 `type`:`contract-part`(某個模組群的對外契約與 DTO)、`decisions`(訪談定案與否決理由)。不編號,用 `parent: <子系統 slug>` 認親;`design.md` 要指明哪一群的契約在哪一份。**凡是讀「該子系統 `design.md` 全文」的地方,一律連分冊一起讀**——契約條目可能整段住在分冊裡,只開 `design.md` 會誤判「契約缺漏」(`contract-readiness.md` A3 已放寬為跨檔比對)。拆分冊有成本(對帳從開一份檔變成開好幾份),沒大到讀不動就不要拆
-- `spikes/SPK-00x-<slug>.md` —— **可行性驗證的紀錄**(`/spike` 產出)。它替某個決定生產證據,自己不是任務:一個問題、判準、幾輪 `RND-n` 的結果、verdict、以及結論**餵給了哪幾份文檔**(`feeds` 欄)。程式碼只在 `open` 期間活在 `spike/SPK-00x-<slug>/`(`spike/` 是與 `.design/` 同層、常駐的共用 sandbox 環境),**結案時刪掉**,每一輪的 commit sha 記在文檔裡當唯一入口;open 期間**產品程式碼與測試禁止 import 它**,任務文檔的 `code-paths` 也不得指進去(`lint-spikes.mjs` 機械查:open 的要有資料夾、concluded 的不准有、沒人 import)。`status: open` 的 spike 是一個還沒答完的問題,`/arch-audit status` 列出並計入 exit code;`concluded` 而 `feeds` 是空的 = 結論沒有下游,列為不一致。**委派模式下只由編排者寫**,subagent 只寫自己的程式碼子資料夾並回報(候選比較時多個 subagent 對同一份 spike 檔,理由同 `delegation.md` 第 4 條)
+- `spikes/SPK-00x-<slug>.md` —— **可行性驗證的紀錄**(`/spike` 產出)。替某個決定生產證據,自己不是任務:問題、判準、幾輪 `RND-n`、verdict、以及結論餵給哪幾份文檔(`feeds`)。程式碼只在 `open` 期間活在 sandbox `spike/SPK-00x-<slug>/`,結案刪、每輪 sha 留在文檔。`open` 的算待辦(計入 exit code、不進百分比);`concluded` 而 `feeds` 空的或指不到文檔是不一致。規格與規則見下方「spike 文檔」。**委派模式下只由編排者寫**,subagent 只寫自己的程式碼子資料夾(理由同 `delegation.md` 第 4 條)
 
 **權威來源**(這一格是誰的事實,就只能由誰改):
 
@@ -370,10 +370,10 @@ code-paths: [spike/SPK-001-<slug>]   # 固定同名資料夾(結案後已刪,配
 
 三條規則:
 
-1. **`status` 由結論決定**:`open` = 還有輪次沒判定;`concluded` = `## 結論` 填齊、`verdict` 與 `feeds` 都非空;`dropped` = 決定不做了(一句話寫為什麼)。`concluded` 而 `feeds` 空的,`scan-status.mjs` 列為不一致——沒有下游的 spike 等於白做
-2. **`code-paths` 只准指到 `spike/` 底下**,任務文檔(F/E/B)的 `code-paths` 則**不准**指進 `spike/`。兩個方向 `lint-spikes.mjs` 都查;它另外掃產品原始碼有沒有 import `spike/`
-2b. **程式碼資料夾只活在 `open` 期間**:`concluded` / `dropped` 的 spike 不准還有 `spike/SPK-00x-<slug>/`(結案步驟是 commit → 記 sha → `spike-close.mjs --apply`;那支腳本從文檔全名算路徑、過五道關才 `git rm -r --`,不准手打),`open` 的則必須有。`spike/` 根層的共用環境(依賴檔、harness、假資料)是 sandbox 的一部分,不編號、不刪、不歸任何一份 spike。刪掉的程式碼靠每輪 `RND-n` 記的 sha 撈:`git show <sha>:spike/SPK-00x-<slug>/<檔>`
-3. **不進進度分母**。它不是要做的事,是替要做的事找證據;`open` 的 spike 在 `/arch-audit status` 單獨列出(一個還沒答完的問題),計入 exit code 但不進任何百分比
+1. **`status` 由結論決定**:`open` = 還有輪次沒判定;`concluded` = `## 結論` 填齊、`verdict` 與 `feeds` 都非空(`feeds` 寫全名,`scan-status.mjs` 查指不指得到文檔);`dropped` = 決定不做了(一句話寫為什麼)
+2. **`code-paths` 只准指到 `spike/` 底下**,任務文檔(F/E/B)的 `code-paths` **不准**指進 `spike/`;產品原始碼不准 import `spike/`。三項 `lint-spikes.mjs` 查
+3. **程式碼資料夾只活在 `open` 期間**:`concluded` / `dropped` 不准還有 `spike/SPK-00x-<slug>/`,`open` 必須有;結案刪除只走 `spike-close.mjs`(從全名算路徑、五道關才 `git rm -r --`)。`spike/` 根層的共用環境不編號、不刪、不歸任何一份 spike。刪掉的程式碼靠 `RND-n` 的 sha 撈:`git show <sha>:spike/SPK-00x-<slug>/<檔>`
+4. **不進進度分母**:`open` 的在 `/arch-audit status` 單獨列出並計入 exit code,不進任何百分比
 
 ### 清單欄位格式(唯一寫法:行內陣列)
 

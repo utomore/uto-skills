@@ -1,0 +1,3 @@
+# golden 是逐字節比對的回歸基準:必須永遠是 LF。
+# Windows 上 checkout 成 CRLF 的話,run.sh 產出的 LF 輸出會整批對不上 —— 那是平台雜訊不是回歸。
+*.out text eol=lf

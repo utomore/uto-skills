@@ -27,6 +27,7 @@ user-invocable: true
 - 目標 spec 帶「待確認假設」段落 → `../_shared/delegation-design.md`(欄位格式)+ `../_shared/boundary-rules.md`(層級複審)。**沒有這一段就兩片都不讀**——單獨跑的 `/spec-build` 目標多半是互動模式寫出來的 spec,不會有這一段
 - 要建或改 `spec-gaps.md` → `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 架構文檔`(**不要整份讀**)
 - 閘門或仲裁撞到「要跑了才知道」的問題 → `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/orchestration.md "派 spike 驗證"`(已整份讀 `orchestration.md` 的不必再讀)
+- 目標 spec 帶「待確認假設」/「閘門裁決紀錄」/「修訂記錄」段落,而這一輪可能推到 `done` → 上面那道 `doc-section.mjs` 指令末尾加 `收束`(同一次取,不要為它多跑一趟)
 - **收尾時** → `../_shared/anchor.md`(定錨區塊格式)
 
 ## 目標
@@ -152,6 +153,8 @@ feature 目標(全新程式碼)沒有既有測試,這條基準線可跳過——
 
 - **回寫 `status`(這一格的唯一寫者是你)**:骨架已無未實作標記、測試全綠、**且沒有指向本文檔的未結 spec-gaps** → 改 `done`、更新 `updated`;任一條不成立就**留在 `specced`**(v2 的值域只有 planned / specced / done / dropped)。委派模式下的 impl 不碰目標文檔的 frontmatter(`spec-impl` 委派模式對照表),漏了這一步就沒有人補。**全綠不等於完成**——有 `open` 的 gap 代表那段行為沒被 spec 規範,兩種相反的實作都會全綠
 - **回寫 `code-paths`(同一次動作,不分兩趟)**:把 impl 回報裡的路徑清單填進目標文檔的 frontmatter(以檔案為主,不含測試檔)。`status` 留在 `specced` 也照樣回寫——路徑是既成事實,跟做完沒做完無關
+- **收束過程章節(只有真的推到 `done` 才做,規則見 `../_shared/doc-lifecycle.md`「`done` 的收束」)**:待確認假設逐條處置(已裁決的把結論搬進 `## 不可逆決定` 或 ADR 後**刪掉原條目**,未裁決的表示還不能 `done`)、閘門裁決與修訂記錄整節搬 `archive/<id>-<slug>-process.md`、實作備註只留讀碼看不出來的那幾條。**不留墓碑**——「已裁決,不再是待確認假設」留在原位是最糟的形式。這一步跟回寫 `status` 是同一次動作:分兩次做,第二次永遠不會發生,而下一個只讀得到這一份檔的讀者(包括 subagent)會把工地筆記讀成現況
+- **Laws ↔ 測試對帳**:`node "<S>/arch-audit/scripts/lint-laws-traceability.mjs" .design --tests <測試根>`。它驗的是每條 law/example 都有測試引用得到、每個引用都指得到還存在的條目——**只驗編號不驗語意**,但「qa 漏翻一條」與「redesign 刪掉的 law 還有測試在守」這兩種漂移不會有任何別的東西出聲。有違規就在回報裡列出來
 - **commit**:`git add -A` 前確認 qa 與 impl 都已回報完(半成品的測試檔會被一起吞進去);message 帶文檔全名(`auth/F002-token-refresh`)
 - 專案有程式碼知識圖時,把圖更新到最新(指令見 `../_shared/codegraph.md`);跑不動就略過並在摘要提一句
 - 回報固定五塊:

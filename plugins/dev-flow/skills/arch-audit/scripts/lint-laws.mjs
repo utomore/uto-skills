@@ -227,7 +227,9 @@ for (const f of files) {
   const { ifaceIdents, skeletonCells, laws } = parseDoc(lines);
   if (laws.length === 0) continue;
   checkedDocs++;
-  const rel = relative(process.cwd(), f);
+  // 分隔號一律正規化成 `/`:Windows 上 `relative` 回 `a\b\c`,同一份輸出在不同平台長得不一樣,
+  // 釘 golden 的回歸測試會因為平台而紅,而那是雜訊不是回歸。
+  const rel = relative(process.cwd(), f).split(/[\\/]/).join("/");
 
   // 規則 3:骨架位置寫符號、不寫行號(沒有這一欄的舊文檔跳過,不回頭強制改)
   for (const cell of skeletonCells) {

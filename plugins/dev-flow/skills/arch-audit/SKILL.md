@@ -136,13 +136,21 @@ node "<S>/arch-audit/scripts/scan-ids.mjs" .design        跨分支 / worktree �
 node "<S>/arch-audit/scripts/doc-section.mjs" --verify "<S>"   檢查各 skill 載入行點名的章節是否還存在
 node "<S>/arch-audit/scripts/lint-commands.mjs" "<S>"     檢查文檔裡寫的指令與旗標,腳本本人還認不認得
 node "<S>/arch-audit/scripts/migrate-v2.mjs" .design       v1 → v2 遷移(**預設 dry-run**,`--apply` 才寫檔)
+node "<S>/arch-audit/scripts/migrate-v3.mjs" .design       v2 → 2.2.1 核心功能模型遷移:既有 E 逐份分流(帳本制,`--apply` 才動文檔)
 ```
 
-**`migrate-v2.mjs` 只在接手 v1 專案時跑一次**:`.design/` 還有 `design.md` 的「功能規劃」表與「Feature 契約卡」章節時,就是 v1。它把每個 feature 的知識收斂進 `features/F00x-*.md` 自己身上(契約接成 `## 契約`、待展開的列鑄號建成 `planned` 檔、`status` 換值域、砍掉功能規劃與契約卡兩節換成生成的功能總覽、刪掉 `archive/cards-done.md`),並在最後對一次帳:**已實作(done)份數遷移前後必須相等**,不等就是遷移改變了完成度,一個字都不寫。先不帶 `--apply` 看計畫、看「順手修掉的髒資料」與「遷移後要補的」兩張清單,確認了再落地。
+**`migrate-v3.mjs` 接手 2.2.1 之前的專案時跑,可以跨好幾個 session 慢慢做**:那時的 E 是「優化既有功能」的文檔,新模型裡那是原 F 的一次修訂(REV),不該是第二份檔;F 也多了 `rev` 欄與「核心判準」行。判斷不在腳本裡——每一份既有 E 要人決定三選一,腳本只列清單、給提示、做機械的那半:
+
+1. 不帶旗標跑:掃 E / G-E,帳本 `.design/migration-v3.md` 沒有的補一列(提示欄由腳本填:介面表幾列「修改 / 移除 / 新增」、`related-feature` 指誰、幾條 `REG-`),印**下一份未決的**附契約與介面表原文,並列出缺 `rev` 或核心判準的 F。**不動任何 F / E 文檔**(帳本是它自己的狀態檔,會建 / 補)
+2. 你和開發者看那一份,只問一句(`doc-lifecycle.md`「六種分類與分流判準」):**這份 E 能不能被描述成「拿掉它,原功能還在、行為不變」?** 能 → 留 E;不能(它改了既有功能)→ 摺回那份 F;兩者混 → 拆;G-E 其實是跨子系統核心功能 → 升 G-F。把決定寫進帳本的「決定」欄(摺回要填「目標」= F 全名)。**一次一份**,決定不了就留「未決」往下一份——帳本讓決定落地、可續、可查,狀態不活在對話裡
+3. `--apply`:只處理「決定已下、狀態未完成」的列。摺回 → 目標 F `rev` +1、追加一條 REV(依欄寫「遷移自 …」,動到 / 保護欄寫清楚要人合併哪些 Laws)、E 未 done 則 F 退回 `specced`、E 搬進 `archive/` 號永久空缺;留 E → 補 `rev: 0` 與契約骨架(非核心判準「待補」);拆 / 升 G-F → 只記狀態,人工做。F 缺欄的一併補 `rev: 0` 與「核心判準:待補」。**Laws 合併與判準內容永遠是人填**,腳本填的「待補」會被 `scan-status.mjs` 列進提示
+4. 對帳:`done` 的 F 份數遷移前後相等(摺回讓 F 退回 specced 的例外會列出來);帳本每一列都「完成」才准刪帳本
+
+**`migrate-v2.mjs` 只在接手 v1 專案時跑一次**(`migrate-v3.mjs` 遇到 v1 會擋下來要你先跑它):`.design/` 還有 `design.md` 的「功能規劃」表與「Feature 契約卡」章節時,就是 v1。它把每個 feature 的知識收斂進 `features/F00x-*.md` 自己身上(契約接成 `## 契約`、待展開的列鑄號建成 `planned` 檔、`status` 換值域、砍掉功能規劃與契約卡兩節換成生成的功能總覽、刪掉 `archive/cards-done.md`),並在最後對一次帳:**已實作(done)份數遷移前後必須相等**,不等就是遷移改變了完成度,一個字都不寫。先不帶 `--apply` 看計畫、看「順手修掉的髒資料」與「遷移後要補的」兩張清單,確認了再落地。
 
 `lint-commands.mjs` 的判準是**腳本自己的 `--help`**,不另外維護旗標清單(另外維護的那份就是下一個會漂的東西)。它只查「認不認得」,不查「用得對不對」——後者是人的判斷。
 
-**改過 `scripts/` 底下任何東西之後跑 `bash "<S>/arch-audit/tests/run.sh"`**:fixture 回歸(25 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + 十三支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
+**改過 `scripts/` 底下任何東西之後跑 `bash "<S>/arch-audit/tests/run.sh"`**:fixture 回歸(27 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + `--claim`、`migrate-v3`、`spike-close` 三組在暫存副本上的煙霧測試 + 十四支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
 
 `doc-section.mjs` 平常是**各 skill 自己用來只讀 `_shared/` 指定章節**的(載入行裡就寫著那一道指令);`--verify` 是給本 skill 的:分片的節被改名或刪掉時,載入行不會報錯,只會讓那個 skill 從此少讀一塊,這一關把它叫出來。
 

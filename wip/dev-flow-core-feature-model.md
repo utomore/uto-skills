@@ -1,7 +1,7 @@
 # dev-flow 2.2.1:核心功能模型(feature 重要度絕對、設計檔即真理)
 
 日期:2026-09-04
-狀態:設計稿,尚未動任何 skill
+狀態:2026-09-05 已實作,分四個階段性 commit(doc-lifecycle + spec-redesign → subsys-design / spec-design / 模板 / 其餘 skill 用語 → 腳本與 fixtures → migrate-v3 帳本制遷移)。實際規則以 `_shared/doc-lifecycle.md` 與各 SKILL.md 為準,本稿是設計時的推理與決定紀錄
 前提:2.0.0 已把「一個 feature 一份檔、契約住在檔上」做完;本稿只改**分類的意義**與**改動的去處**,不動資料夾樹與腳本的骨架
 
 ---

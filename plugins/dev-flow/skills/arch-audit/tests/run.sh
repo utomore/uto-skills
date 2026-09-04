@@ -128,6 +128,43 @@ fi
 rm -rf "$CLAIM_TMP"
 
 echo
+echo "=== migrate-v3:既有 E 分流(在暫存副本上跑,不動 fixtures)==="
+# 帳本制:dry-run 只建帳本不動文檔;人在帳本填決定;--apply 才做機械的那半。三件事都要驗,
+# 而且 --apply 之後 scan-status 要讀得懂遷完的樹(REV、rev、archive、契約骨架)。
+MIG_TMP=$(mktemp -d)
+cp -R "$FX/migrate-v3/design" "$MIG_TMP/.design"
+node "$SCRIPTS/migrate-v3.mjs" "$MIG_TMP/.design" --today 2026-09-04 >/dev/null 2>&1; mig_rc=$?
+if [[ $mig_rc == 1 && -f "$MIG_TMP/.design/migration-v3.md" && -f "$MIG_TMP/.design/subsystems/auth/enhancements/E001-token-cache.md" ]] &&
+   ! grep -q '^rev:' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md"; then
+  echo "✓ dry-run:建了帳本(exit 1 = 有未決)、E 與 F 一個字都沒動"
+else
+  echo "✗ migrate-v3 dry-run 動了文檔、沒建帳本,或沒以 1 收場"; fail=1
+fi
+sed -i.bak 's#| auth/E001-token-cache | \(.*\) | 未決 |  |  |  |#| auth/E001-token-cache | \1 | 摺回 | auth/F001-login |  |  |#; s#| auth/E002-remember-device | \(.*\) | 未決 |  |  |  |#| auth/E002-remember-device | \1 | 留 E |  |  |  |#' "$MIG_TMP/.design/migration-v3.md"
+mig_out=$(node "$SCRIPTS/migrate-v3.mjs" "$MIG_TMP/.design" --apply --today 2026-09-04 2>&1 || true)
+if [[ -f "$MIG_TMP/.design/subsystems/auth/archive/E001-token-cache-migrated.md" && ! -f "$MIG_TMP/.design/subsystems/auth/enhancements/E001-token-cache.md" ]] &&
+   grep -q '^rev: 1' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
+   grep -q '^status: specced' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
+   grep -q 'REV-1(2026-09-04,依 遷移自 auth/E001-token-cache)' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
+   grep -q '核心判準' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
+   grep -q '非核心判準' "$MIG_TMP/.design/subsystems/auth/enhancements/E002-remember-device.md" &&
+   grep -q '^rev: 0' "$MIG_TMP/.design/subsystems/auth/enhancements/E002-remember-device.md" &&
+   grep -q '摺回讓 F 退回 specced' <<<"$mig_out"; then
+  echo "✓ --apply:摺回 → F rev 1 + REV-1 + 退回 specced、E 進 archive;留 E → 契約骨架;對帳講得出少的那一份"
+else
+  echo "✗ migrate-v3 --apply 的結果不對"; echo "$mig_out" | tail -8; fail=1
+fi
+# 遷完的樹 scan-status 要讀得懂:REV 與 rev 對得上、archive 不進分母、沒有「不一致」
+mig_scan=$(node "$SCRIPTS/scan-status.mjs" "$MIG_TMP/.design" --today 2026-09-04 2>&1 || true)
+mig_doc=$(node "$SCRIPTS/scan-status.mjs" "$MIG_TMP/.design" --today 2026-09-04 --doc auth/F001 2>&1 || true)
+if grep -q '不一致(0)' <<<"$mig_scan" && grep -q 'rev 1' <<<"$mig_doc"; then
+  echo "✓ 遷完的樹 scan-status 讀得懂:不一致 0"
+else
+  echo "✗ 遷完的樹 scan-status 讀出不一致"; grep '不一致' <<<"$mig_scan" | head -5; fail=1
+fi
+rm -rf "$MIG_TMP"
+
+echo
 echo "=== spike-close:結案刪資料夾的五道關(在暫存 git repo 上跑)==="
 # 刪東西的腳本要在真的 git repo 裡驗:未結案不准刪、sha 沒記不准刪、都過了才刪、刪完 spike/ 根層還在。
 CLOSE_TMP=$(mktemp -d)

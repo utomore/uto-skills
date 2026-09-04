@@ -21,6 +21,10 @@
  * 查詢模式**只對被查的那一份與直接關聯的文檔**讀全文(要取「介面」/「數據」段與契約條目),
  * 盤點模式一個位元組都不多讀。
  *
+ * **盤點模式的任務文檔表只列未完成的**(要全表用 `--all`):已完成的文檔答不出「現在能做
+ * 什麼」,而它們的份數已經收進子系統狀態表的進度欄。一份一行全印出來,只會讓真正卡著的
+ * 那幾條沉在幾十列裡 —— 那正是這張表要回答的東西。
+ *
  * **分母紀律(本腳本的存在理由)**:進度的分母來自 system.md(名冊 + 開發階段)與
  * design.md(模組群)與 features/ 的檔案,**不是**來自「已經存在的資料夾」。名冊列了卻沒有資料夾
  * = 已規劃、未建檔,那是**待辦**不是不一致。分母若由已完成的東西定義,報表只會愈做愈接近
@@ -29,7 +33,9 @@
  * 寫成 YAML 區塊列表會被列為格式不合規並以 exit code 1 收場。
  *
  * 用法:
- *   node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
+ *   node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design),任務文檔只列未完成
+ *   node scan-status.mjs [design目錄] --all            同上,但任務文檔表改列全部(含已完成)
+ *   node scan-status.mjs [design目錄] --today YYYY-MM-DD 停滯天數以這一天為準(預設今天;golden 測試用)
  *   node scan-status.mjs .design --subsys <slug>       聚焦子系統:它的文檔 + 進出依賴 + 反向依賴
  *   node scan-status.mjs .design --doc <文檔>          聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
  *                                                     吃全名 auth/F003-token-cache,也吃 auth/F003 與 F003
@@ -63,6 +69,7 @@ import { parseFrontmatter, readFrontmatter, asList } from "./_frontmatter.mjs";
 import { section } from "./_sections.mjs";
 import { dataCells, isSeparatorRow } from "./_tables.mjs";
 import { printHelpIfAsked, usageBlock } from "./_help.mjs";
+import { countIds, countRulings } from "./_counts.mjs";
 
 /** 用法字串取自本檔檔頭(唯一產地),不另寫一份 —— 兩份只會在改旗標時分岔 */
 const USAGE = usageBlock(import.meta.url);
@@ -71,6 +78,8 @@ const argv = process.argv.slice(2);
 printHelpIfAsked(argv, import.meta.url);
 const query = { subsys: null, doc: null, file: null };
 const writeIndex = argv.includes("--write-index");
+const showAll = argv.includes("--all");
+let todayArg = null;
 let designDirArg = null;
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
@@ -80,7 +89,8 @@ for (let i = 0; i < argv.length; i++) {
   } else if (a === "--subsys") query.subsys = argv[++i] ?? null;
   else if (a === "--doc") query.doc = argv[++i] ?? null;
   else if (a === "--file") query.file = argv[++i] ?? null;
-  else if (a === "--write-index") { /* 已在上面讀掉 */ }
+  else if (a === "--today") todayArg = argv[++i] ?? null;
+  else if (a === "--write-index" || a === "--all") { /* 已在上面讀掉 */ }
   else if (a.startsWith("--")) {
     console.error(`未知選項: ${a}\n\n${USAGE}`);
     process.exit(2);
@@ -124,6 +134,18 @@ function contractGaps(text) {
     const m = sec.text.match(new RegExp(`^-\\s+\\*\\*${f}\\*\\*[::]\\s*(.*)$`, "m"));
     return !m || !m[1].trim() || PLACEHOLDER.test(m[1].trim());
   });
+}
+/** 介面 / 數據表有幾列資料(不含表頭與分隔列)—— 「規格寫到幾成」的介面數 */
+function countTableRows(body) {
+  let n = 0;
+  let header = true;
+  for (const line of String(body ?? "").split(/\r?\n/)) {
+    const cells = dataCells(line);
+    if (!cells) continue;
+    if (header) { header = false; continue; }
+    n++;
+  }
+  return n;
 }
 const DESC_WIDTH = 44; // 主軸(description)欄顯示寬度上限(全形字算 2)
 
@@ -232,6 +254,12 @@ function scanTaskDoc(path, subsystem, kind) {
     citedSpikes: [...new Set([...text.matchAll(/\bSPK-(\d{3})\b/g)].map((x) => `SPK-${x[1]}`))],
     hasContract: /^##\s+契約\s*$/m.test(text),
     contractGaps: contractGaps(text),
+    relatedAdr: asList(meta?.["related-adr"]),
+    // 規格寫到幾成:唯一計數器在 _counts.mjs(與 id-map.mjs 共用)
+    laws: countIds(section(text, /^Laws/)?.body, "LAW", "REG", "L", "R"),
+    examples: countIds(section(text, /^Examples/)?.body, "EX", "E"),
+    ifaces: countTableRows(section(text, /^介面$|^數據$|數據與介面變動/)?.body),
+    asm: countRulings(section(text, /待確認假設/)?.body),
     file: relPath,
   };
   // 收尾漏回寫 code-paths:程式碼寫好了、狀態也回了,只有「這是誰做的」這一格沒填 ——
@@ -430,6 +458,7 @@ for (const name of listMd(join(designDir, "spikes"))) {
     verdict,
     feeds,
     affects: asList(meta?.subsystems),
+    updated: fmtValue(meta?.updated),
     question: question && !/^<.+>$/.test(question) ? question : "",
     file: relPath,
   });
@@ -472,10 +501,12 @@ function parseSpecGaps(path, scope) {
     return [];
   }
   const file = rel(path);
+  // 條目本身沒有日期,「停了多久」只能精確到檔案級:取 spec-gaps.md 的 updated
+  const fileUpdated = fmtValue(parseFrontmatter(text).meta?.updated);
   const out = [];
   for (const g of parseGapBlocks(text)) {
     for (const issue of g.issues) archIssues.push(`${file}:${issue}`);
-    out.push({ scope, file, id: g.id, head: g.head, topic: g.topic, fix: g.fix, resolved: g.resolved });
+    out.push({ scope, file, fileUpdated, id: g.id, head: g.head, topic: g.topic, fix: g.fix, resolved: g.resolved });
   }
   return out;
 }
@@ -1063,8 +1094,364 @@ for (const r of rows)
       archNotes.push(`${r.file}:引用了 ${spikeName(sp)} 當證據,但那份 spike 的 feeds 沒回鏈 ${rowName(r)}(回寫漏了一邊?)`);
   }
 
+// ---------------------------------------------------------------- 派工狀態(PM 視角的機械推導)
+//
+// `status` 講的是**文檔寫到哪**(planned / specced / done),派工要的是**這件事今天能不能動**:
+// 一份 specced 可能卡在 gap,一份 planned 可能契約齊全能直接委派。兩者正交,所以另算一格。
+// 全部從既有欄位推:depends-on、blockedBy(gap)、契約六欄、spike 的 feeds、ASM 的裁決欄。
+// 腳本只算「能不能動」,「該不該先動它」是人的判斷 —— 這裡給的是候選與理由,不是決定。
+
+const today = (() => {
+  const t = todayArg ?? new Date().toISOString().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(t)) {
+    console.error(`--today 要寫成 YYYY-MM-DD,收到:${t}`);
+    process.exit(2);
+  }
+  return t;
+})();
+/** 距今幾天;日期讀不到回 null。停滯天數只印不判 —— 什麼算太久是專案自己的事 */
+const daysSince = (d) => (d && /^\d{4}-\d{2}-\d{2}$/.test(String(d)) ? Math.round((Date.parse(today) - Date.parse(d)) / 86400000) : null);
+const ago = (d) => {
+  const n = daysSince(d);
+  return n === null ? "日期不明" : n <= 0 ? "今天" : `${n} 天`;
+};
+
+/** status 講給人聽:已規劃(planned)。附錄表格仍印原字,這裡只給 § 段落用 */
+const STATUS_ZH = { planned: "已規劃", specced: "規格已寫", done: "已實作", closed: "已結", dropped: "不做", "in-progress": "進行中" };
+const zh = (s) => STATUS_ZH[s] ?? s;
+
+const isUnfinished = (r) => !DONE_STATUSES.has(r.status) && !DROPPED_STATUSES.has(r.status);
+const unbuiltSet = new Set(plannedSubsys);
+const plannedGroupRows = subsysRows.flatMap((s) => s.groupRows.filter((g) => g.status === "planned"));
+
+/** depends-on 的每一條解析成目標:任務文檔 / 契約 / ADR / 解析不到 */
+function depTargets(r) {
+  return r.dependsOn.map((ref) => {
+    const key = refKey(ref, r.subsystem);
+    const bare = key.split("#")[0];
+    if (/^ADR-/.test(bare)) return { ref, key, kind: adrIds.has(bare) ? "adr" : "unknown" };
+    if (/^G-C/.test(bare)) return { ref, key, kind: contractIds.has(bare) ? "contract" : "unknown", contract: contractIds.get(bare) };
+    const row = globalIds.get(bare) ?? (bare.includes("/") ? subsysDocs.get(bare.split("/")[0])?.ids.get(bare.split("/")[1]) : null);
+    return row ? { ref, key, kind: "task", row } : { ref, key, kind: "unknown" };
+  });
+}
+
+/** 誰直接依賴這份文檔(只算未完成的 —— 做完的不會被任何事解鎖) */
+const dependents = (r) => (reverseDeps.get(docKey(r.subsystem, r.id)) ?? []).map((x) => x.row).filter(isUnfinished);
+
+/** 可開工的文檔該下哪條命令(參數一律全名) */
+function commandFor(r) {
+  const name = rowName(r);
+  if (r.type === "feature" && r.status === "planned") return `/spec-design ${name}`;
+  return `/spec-build ${name}`;
+}
+
+const STATE_LABEL = { ready: "可開工", half: "半步可開工", blocked: "卡住", deciding: "等決定", unbuilt: "未開工" };
+const gapScope = (r) => (r.subsystem === "global" ? "global" : r.subsystem);
+
+/**
+ * 每份未完成文檔一格:{ state, why: [{what, since, fix}], command, releases, partial, stale }
+ * 優先序 卡住 > 等決定 > 半步 > 可開工:一份文檔同時有 gap 與未裁 ASM 時,先報會擋住工作的那個。
+ */
+const dispatch = new Map();
+for (const r of rows) {
+  if (!isUnfinished(r)) continue;
+  const name = rowName(r);
+  const targets = depTargets(r);
+  const waiting = targets.filter((t) => t.kind === "task" && isUnfinished(t.row));
+  const unknown = targets.filter((t) => t.kind === "unknown");
+  const gaps = r.blockedBy ?? [];
+  const feeds = openSpikes.filter((sp) => spikeFeeds(sp, r.subsystem, r.id));
+  const asmOpen = r.asm.marked ? r.asm.total - r.asm.ruled : 0;
+  const half = r.type === "feature" && r.status === "planned" && r.contractGaps.length > 0;
+  const why = [];
+  let state;
+  if (gaps.length || waiting.length || unknown.length) {
+    state = "blocked";
+    for (const g of gaps) {
+      const gg = openGaps.find((x) => x.id === g && x.scope === gapScope(r));
+      const role = gg ? gapRole(gg.head) : "";
+      why.push({ what: `${gapScope(r)}/${g}「${gg?.topic ?? "-"}」${role ? `(${role} 提出)` : ""}`, since: gg?.fileUpdated, fix: `/spec-redesign ${name}` });
+    }
+    for (const t of waiting) why.push({ what: `等 ${rowName(t.row)} 做完(現在 ${zh(t.row.status)})`, since: t.row.updated, fix: `先做 ${rowName(t.row)}` });
+    for (const t of unknown) why.push({ what: `depends-on 的 ${t.ref} 指不到任何文檔`, since: r.updated, fix: `修 ${name} 的 depends-on` });
+  } else if (feeds.length || asmOpen) {
+    state = "deciding";
+    for (const sp of feeds) why.push({ what: `${spikeName(sp)} 還沒有結論${sp.question ? `:${sp.question}` : ""}`, since: sp.updated, fix: `/spike ${spikeName(sp)}` });
+    if (asmOpen) why.push({ what: `${asmOpen} 條契約級假設未裁(ASM ${r.asm.ruled}/${r.asm.total})`, since: r.updated, fix: `/spec-redesign ${name}(裁 ASM)` });
+  } else if (half) {
+    state = "half";
+    why.push({ what: `契約缺 ${r.contractGaps.join("、")}`, since: r.updated, fix: `/subsys-design ${r.subsystem}` });
+  } else {
+    state = "ready";
+  }
+  dispatch.set(docKey(r.subsystem, r.id), {
+    row: r,
+    state,
+    why,
+    command: state === "ready" ? commandFor(r) : why[0].fix,
+    releases: dependents(r),
+    asmOpen,
+    partial: r.subsystem === "global" ? r.affects.filter((s) => unbuiltSet.has(s)) : [],
+    stale: daysSince(r.updated),
+  });
+}
+const byState = (st, filter = () => true) => [...dispatch.values()].filter((d) => d.state === st && filter(d.row));
+
+/**
+ * 平行道:可開工 + 半步 + 未開工,每一列是一個能派出去的動作。
+ * 平行判準(全部機械):不同子系統 → 獨立;同子系統不同模組群 → 可平行;同模組群 → 看 `modules`
+ * 有沒有交集,有就串行,沒有就標「要人判」。同一個子系統要下同一條 `/subsys-design` 的合併成一列。
+ */
+function buildLanes(inScope = () => true) {
+  const lanes = [];
+  for (const st of ["ready", "half"]) {
+    for (const d of byState(st, inScope)) {
+      const r = d.row;
+      lanes.push({ items: [rowName(r)], state: st, command: d.command, subsystem: r.subsystem, group: r.group, modules: r.modules, partial: d.partial, note: "" });
+    }
+  }
+  for (const slug of plannedSubsys.filter((s) => inScope({ subsystem: s }))) {
+    const st = stages.find((x) => x.subsys.includes(slug));
+    lanes.push({ items: [`${slug} 子系統`], state: "unbuilt", command: `/subsys-design ${slug}`, subsystem: slug, group: "", modules: [], partial: [], note: st ? `${stageName(st)} 的前置;` : "" });
+  }
+  for (const g of plannedGroupRows.filter((g) => inScope({ subsystem: g.subsystem })))
+    lanes.push({ items: [`${g.subsystem}/${g.name} 模組群`], state: "unbuilt", command: `/subsys-design ${g.subsystem}`, subsystem: g.subsystem, group: g.name, modules: [], partial: [], note: "", planned: true });
+  // 同子系統、同一條 /subsys-design 命令 → 一趟做完,合併成一列
+  const merged = [];
+  for (const l of lanes) {
+    const same = merged.find((m) => m.subsystem === l.subsystem && m.command === l.command && /^\/subsys-design /.test(l.command));
+    if (same) {
+      same.items.push(...l.items);
+      if (l.state === "unbuilt" && same.state !== "unbuilt") same.state = same.state; // 半步優先顯示
+      continue;
+    }
+    merged.push({ ...l, items: [...l.items] });
+  }
+  for (const l of merged) {
+    const sibs = merged.filter((m) => m !== l && m.subsystem === l.subsystem);
+    const notes = [];
+    if (l.partial.length) notes.push(`受影響子系統 ${l.partial.join("、")} 未建檔,只能先做已建檔的那一半`);
+    if (sibs.length === 0) notes.push("與其他道獨立");
+    for (const s of sibs) {
+      const sname = s.items[0];
+      if (l.group && s.group && l.group.toLowerCase() !== s.group.toLowerCase()) notes.push(`與「${sname}」不同模組群,可平行`);
+      else {
+        const shared = l.modules.filter((m) => s.modules.map((x) => x.toLowerCase()).includes(m.toLowerCase()));
+        if (shared.length) notes.push(`與「${sname}」共用模組 ${shared.join("、")},要串行`);
+        else if (l.modules.length && s.modules.length) notes.push(`與「${sname}」同模組群、模組不重疊,可平行`);
+        else notes.push(`與「${sname}」同模組群,共不共用模組要人判`);
+      }
+    }
+    l.note = (l.note + notes.join(";")).replace(/;$/, "");
+  }
+  return merged;
+}
+const laneLabel = (i) => String.fromCharCode(65 + (i % 26)) + (i >= 26 ? Math.floor(i / 26) : "");
+function printLanes(lanes) {
+  if (lanes.length === 0) {
+    console.log("(無)今天沒有任何能直接派出去的工作 —— 先看下面卡住的與等決定的。");
+    return;
+  }
+  printTable(
+    { lane: "道", items: "項目", state: "派工狀態", command: "命令", note: "備註" },
+    lanes.map((l, i) => ({ lane: laneLabel(i), items: l.items.join(" + "), state: STATE_LABEL[l.state], command: l.command, note: l.note || "-" })),
+  );
+  // 契約就緒滿格的子系統可以整批委派,不必一份一份跑
+  const batch = subsysRows.filter((s) => s.built && s.cards !== "-" && s.cards.split("/")[0] === s.cards.split("/")[1] && lanes.some((l) => l.subsystem === s.id));
+  for (const s of batch) console.log(`${s.id} 的 planned feature 契約就緒 ${s.cards}:可以 /subsys-build ${s.id} 一次委派,不必逐份 /spec-design。`);
+}
+
+/** 卡住的表:一份文檔一條原因一列;先排解開後釋放最多的,再排停最久的 */
+function blockedRows(inScope = () => true, withOutside = false) {
+  const out = [];
+  for (const d of byState("blocked", inScope)) {
+    for (const w of d.why) {
+      const rel = d.releases.map((x) => rowName(x));
+      const outside = d.releases.filter((x) => x.subsystem !== d.row.subsystem).map((x) => rowName(x));
+      out.push({
+        doc: rowName(d.row),
+        by: w.what,
+        since: ago(w.since),
+        fix: w.fix,
+        releases: rel.length ? rel.join("、") : "無下游",
+        outside: outside.length ? outside.join("、") : "無",
+        _n: rel.length,
+        _s: daysSince(w.since) ?? -1,
+      });
+    }
+  }
+  out.sort((a, b) => b._n - a._n || b._s - a._s || a.doc.localeCompare(b.doc));
+  return out.map(({ _n, _s, outside, ...r }) => (withOutside ? { ...r, outside } : r));
+}
+function printBlocked(rowsB, withOutside = false) {
+  if (rowsB.length === 0) {
+    console.log("(無)沒有任何文檔被 gap 或上游擋住。");
+    return;
+  }
+  printTable(
+    withOutside
+      ? { doc: "被卡的", by: "卡它的", since: "停了", fix: "解法", releases: "解開後釋放", outside: "卡到外部誰" }
+      : { doc: "被卡的", by: "卡它的", since: "停了", fix: "解法", releases: "解開後釋放" },
+    rowsB,
+  );
+}
+
+/** 等決定的:open spike(不管有沒有下游)+ 未裁 ASM。決定的人是開發者,不是工程師 */
+function decisionLines(inScope = () => true, spikeScope = () => true) {
+  const lines = [];
+  for (const sp of openSpikes.filter(spikeScope)) {
+    const fed = rows.filter((r) => spikeFeeds(sp, r.subsystem, r.id));
+    const others = sp.feeds.filter((f) => !fed.some((r) => feedKey(f) === docKey(r.subsystem, r.id) || feedKey(f) === r.id));
+    const impact = [...fed.map((r) => `${rowName(r)}(${STATE_LABEL[dispatch.get(docKey(r.subsystem, r.id))?.state] ?? zh(r.status)})`), ...others];
+    lines.push(
+      `- ${spikeName(sp)}(open 了 ${ago(sp.updated)})${sp.question ? ` 要回答:${sp.question}` : ""}` +
+        `\n    影響:${impact.length ? impact.join("、") : "feeds 是空的,目前沒有任何文檔在等它 —— 不擋任何線"}` +
+        `\n    建議:/spike ${spikeName(sp)} 做完,或標 dropped 並寫一句為什麼`,
+    );
+  }
+  for (const d of [...dispatch.values()].filter((d) => d.asmOpen > 0 && inScope(d.row))) {
+    lines.push(
+      `- ${rowName(d.row)} 的契約級假設 ASM 已裁 ${d.row.asm.ruled}/${d.row.asm.total}(${d.asmOpen} 條未裁)` +
+        `\n    影響:${rowName(d.row)} 的實作照「暫採」蓋上去,沒有人簽過` +
+        `\n    建議:${d.state === "blocked" ? `與 gap 一起在 /spec-redesign ${rowName(d.row)} 裁` : `/spec-redesign ${rowName(d.row)}(裁 ASM)`}`,
+    );
+  }
+  return lines;
+}
+
+/** 子系統的建檔 / 完成狀態,講給契約影響面用 */
+function subsysBrief(slug) {
+  if (unbuiltSet.has(slug)) return `${slug}(未建檔)`;
+  const s = subsysRows.find((x) => x.id === slug);
+  if (!s) return `${slug}(不在名冊)`;
+  const open = rows.filter((r) => r.subsystem === slug && isUnfinished(r)).length;
+  return open ? `${slug}(未完成 ${open} 份)` : `${slug}(已展開的全部完成)`;
+}
+
+/** 依賴鏈:每份文檔往上游走的最長路徑(含已完成的上游,鏈的形狀要看得到起點) */
+const chainMemo = new Map();
+function chainTo(r, visiting = new Set()) {
+  const k = docKey(r.subsystem, r.id);
+  if (chainMemo.has(k)) return chainMemo.get(k);
+  if (visiting.has(k)) return [r]; // 有環:斷在這裡,環本身由 depends-on 對帳報
+  visiting.add(k);
+  let best = [];
+  for (const t of depTargets(r)) {
+    if (t.kind !== "task") continue;
+    const c = chainTo(t.row, visiting);
+    if (c.length > best.length) best = c;
+  }
+  visiting.delete(k);
+  const out = [...best, r];
+  chainMemo.set(k, out);
+  return out;
+}
+const chainLabel = (r) => `${rowName(r)}(${isUnfinished(r) ? STATE_LABEL[dispatch.get(docKey(r.subsystem, r.id))?.state] ?? zh(r.status) : zh(r.status)})`;
+function impactLines(inScope = () => true) {
+  const lines = [];
+  for (const c of [...contractIds.values()].filter((c) => c.affects.some((s) => inScope({ subsystem: s })))) {
+    const unbuilt = c.affects.filter((s) => unbuiltSet.has(s));
+    const refs = [...reverseDeps.entries()].filter(([k]) => k.split("#")[0] === c.id).flatMap(([, l]) => l.map((x) => rowName(x.row)));
+    lines.push(
+      `- ${c.id}-${c.slug}(共用契約)被 ${c.affects.map(subsysBrief).join("、")} 使用${refs.length ? `,${[...new Set(refs)].join("、")} 直接引用` : ""}。` +
+        (unbuilt.length ? `${unbuilt.join("、")} 還沒建檔,現在改條目代價最低;建檔後每改一次要通知 ${c.affects.length} 邊。` : `改任何條目都要通知 ${c.affects.length} 個子系統。`),
+    );
+  }
+  for (const d of [...dispatch.values()].filter((d) => d.row.subsystem === "global" && d.row.affects.some((s) => inScope({ subsystem: s })))) {
+    lines.push(
+      `- ${rowName(d.row)}(${zh(d.row.status)})橫跨 ${d.row.affects.join(" + ")},是跨子系統的任務文檔` +
+        (d.partial.length ? `;${d.partial.join("、")} 的設計會決定它的另一半長什麼樣,建檔前只能做已建檔的部分。` : "。"),
+    );
+  }
+  for (const sp of spikes.filter((sp) => sp.status === "concluded" && sp.feeds.length && (sp.affects.some((s) => inScope({ subsystem: s })) || rows.some((r) => inScope(r) && spikeFeeds(sp, r.subsystem, r.id))))) {
+    lines.push(`- ${spikeName(sp)}(concluded · ${sp.verdict})的結論餵給 ${sp.feeds.join("、")}:這些決定有證據,改方向要回頭看它。`);
+  }
+  // 依賴鏈與 hub
+  const chains = [];
+  for (const r of rows.filter((r) => isUnfinished(r) && inScope(r))) {
+    const c = chainTo(r);
+    if (c.length >= 2) chains.push(c);
+  }
+  const keyOf = (c) => c.map((r) => docKey(r.subsystem, r.id)).join(">");
+  const maximal = chains.filter((c) => !chains.some((o) => o.length > c.length && keyOf(o).startsWith(keyOf(c))));
+  maximal.sort((a, b) => b.length - a.length || keyOf(a).localeCompare(keyOf(b)));
+  if (maximal.length === 0) lines.push("- 依賴鏈:沒有任何跨文檔的依賴鏈,每一份都可以獨立排程。");
+  else {
+    const top = maximal.slice(0, 3);
+    lines.push(`- 依賴鏈(最長 ${maximal[0].length} 步,共 ${maximal.length} 條):`);
+    for (const c of top) lines.push(`    ${c.map(chainLabel).join(" → ")}`);
+  }
+  const hubs = rows
+    .filter((r) => inScope(r))
+    .map((r) => ({ r, deps: dependents(r) }))
+    .filter((x) => x.deps.length >= 2)
+    .sort((a, b) => b.deps.length - a.deps.length);
+  if (hubs.length) for (const h of hubs) lines.push(`- ${rowName(h.r)}(${chainLabel(h.r).match(/\((.*)\)$/)?.[1]})被 ${h.deps.length} 份未完成文檔依賴:${h.deps.map(rowName).join("、")} —— 先做它解鎖最多。`);
+  else lines.push("- 沒有任何節點被兩份以上的未完成文檔依賴,不存在單點瓶頸。");
+  return lines;
+}
+
+/**
+ * 警訊分兩類:**影響派工的**(依賴指不到、狀態說謊、結案沒證據、名冊漏列…)逐條列;
+ * **格式類**(id 與檔名、缺 description、裸 id、檔名規則…)只報數量,全文放附錄。
+ * 分類靠訊息樣式:訊息都是本檔產的,規則就住在同一份檔裡。
+ */
+const DISPATCH_WARN = [
+  /depends-on 的 .* 無法解析/, /feeds 的 .* 指不到/, /status 是 .*(卻|但)/, /沒有「## 契約」/,
+  /但 subsystems\/ 沒有這個子系統/, /結案於 |沒有「修訂」行|「修訂」沒指出|「修訂」指向/, /缺 design\.md/,
+  /找不到 \.design\/system\.md/, /涵蓋子系統寫了/, /標 active,但沒有任何 feature/, /group「.*」不在/, /沒填 frontmatter 的 group/,
+  /引用了 SPK-\d+,但/, /缺「狀態」行|狀態值「/, /標題沒寫這條 gap|標題指向/, /concluded 但 feeds 是空的/, /未被 system\.md 的 subsystems 名冊列入/,
+  /沒有「開發階段」表格/, /缺 mode 欄/,
+];
+const affectsDispatch = (m) => DISPATCH_WARN.some((re) => re.test(m));
+function printWarnings(issues, notes, bad) {
+  const hot = [...issues.filter(affectsDispatch), ...notes.filter(affectsDispatch)];
+  const cold = issues.length + notes.length - hot.length + bad.length;
+  console.log(`影響派工的(${hot.length}):`);
+  if (hot.length === 0) console.log("(無)");
+  for (const m of hot) console.log(`- ${m}`);
+  console.log(`格式類(${cold}):不影響今天的派工;全文見附錄「警訊全文」。`);
+}
+
+/** 建議路線(機械排序):主線 = 解最便宜的 blocker;同時 = 與主線不同子系統的第一條道;之後 = 其餘 */
+function routeLines(lanes, blocked) {
+  const out = [];
+  const main = blocked[0] ? { cmd: blocked[0].fix, why: `解 ${blocked[0].doc} 的 blocker(${blocked[0].by})` } : lanes[0] ? { cmd: lanes[0].command, why: `${lanes[0].items.join(" + ")} ${STATE_LABEL[lanes[0].state]},沒有人擋它` } : null;
+  if (!main) {
+    out.push("沒有任何可派的工作,也沒有卡住的:看上面「等決定的」與警訊。");
+    return out;
+  }
+  out.push(`1. 主線:${main.cmd} —— ${main.why}`);
+  const mainSub = blocked[0] ? dispatch.get([...dispatch.keys()].find((k) => rowName(dispatch.get(k).row) === blocked[0].doc))?.row.subsystem : lanes[0]?.subsystem;
+  const side = lanes.find((l) => l.subsystem !== mainSub && l.command !== main.cmd);
+  if (side) out.push(`2. 同時開:${side.command} —— ${side.items.join(" + ")} 在${side.subsystem === "global" ? "全域" : ` ${side.subsystem}`},與主線互不影響`);
+  const rest = lanes.filter((l) => l !== side && l.command !== main.cmd).slice(0, 2);
+  if (rest.length) out.push(`${side ? 3 : 2}. 之後:${rest.map((l) => `${l.command}(${l.items.join(" + ")})`).join(";")}`);
+  return out;
+}
+
+/** 一個階段的「已展開 / 還沒展開 / 達成還差什麼」 */
+function stageDetail(st) {
+  const built = st.subsys.filter((s) => !unbuiltSet.has(s));
+  const unbuilt = st.subsys.filter((s) => unbuiltSet.has(s));
+  const expanded = built.map((s) => {
+    const row = subsysRows.find((x) => x.id === s);
+    return row && row.hasFeatures ? `${s} feature ${row.done}/${row.features} 已實作` : `${s} 沒有 feature 檔`;
+  });
+  const pg = plannedGroupRows.filter((g) => st.subsys.includes(g.subsystem)).map((g) => `${g.subsystem}/${g.name} 模組群`);
+  const notExpanded = [...unbuilt.map((s) => `${s} 未建 design.md`), ...pg];
+  const inStage = (r) => (r.subsystem !== "global" && st.subsys.includes(r.subsystem)) || (r.stage && r.stage === st.id);
+  const todo = [
+    ...rows.filter((r) => isUnfinished(r) && inStage(r)).map((r) => `${rowName(r)}(${STATE_LABEL[dispatch.get(docKey(r.subsystem, r.id))?.state]})`),
+    ...pg.map((x) => `${x} 開工`),
+    ...unbuilt.map((s) => `${s} 建 design.md`),
+  ];
+  return { expanded: expanded.length ? expanded.join(";") : "-", notExpanded: notExpanded.length ? notExpanded.join(";") : "-", todo };
+}
+
 const QUERY_TAIL =
-  "\n本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。\n" +
+  "\n本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰、今天能不能動」,答不出「那份文檔寫的對不對」。\n" +
   "要寫進 spec 的每一條介面,仍須打開該文檔讀原文。各角色的使用界線見 _shared/design-query.md。";
 
 if (query.doc) {
@@ -1079,21 +1466,31 @@ if (query.doc) {
   if (contractIds.has(bare)) {
     const c = contractIds.get(bare);
     const text = readFileSync(c.path, "utf8");
-    console.log(`=== 全域契約 ${c.id}-${c.slug} ===`);
-    console.log(`主軸  ${c.description}`);
+    console.log(`=== 全域契約 ${c.id}-${c.slug}(${c.description})===`);
     console.log(`歸屬  全域共用契約(不屬於任何單一子系統)  |  status ${c.status}`);
-    console.log(`使用  ${c.affects.length ? c.affects.join("、") : "⚠ 未列 subsystems"}`);
     console.log(`檔案  ${c.file}`);
 
-    const entries = section(text, /契約條目/);
-    printBlock("契約條目", entries ? entries.text.split("\n") : ["(這份契約沒有「契約條目」章節——格式見 doc-lifecycle.md「全域契約文檔」)"]);
-
+    console.log("\n=== §1 改它會牽動誰 ===");
+    if (c.affects.length === 0) console.log("⚠ 未列 subsystems —— 不知道誰在用,改了不知道要通知誰");
+    else {
+      printTable(
+        { s: "使用的子系統", st: "狀態", note: "改條目的代價" },
+        c.affects.map((s) => ({
+          s,
+          st: unbuiltSet.has(s) ? "未建 design.md" : subsysBrief(s).replace(/^[^(]+\(|\)$/g, ""),
+          note: unbuiltSet.has(s) ? "還沒有任何 feature 依賴它,現在改最便宜" : "已展開,改條目要回頭對它的 feature 與骨架",
+        })),
+      );
+    }
     const users = [];
     for (const [k, list] of reverseDeps) {
       if (k.split("#")[0] !== bare) continue;
-      for (const { row, ref } of list) users.push(`- ${rowName(row)}  [${row.status}]  引用 ${ref}  ${row.file}`);
+      for (const { row, ref } of list) users.push(`- ${rowName(row)}  [${zh(row.status)}]  引用 ${ref}  ${row.file}`);
     }
-    printBlock("誰引用這份契約(反向依賴)", users.sort());
+    printBlock("誰引用這份契約(反向依賴)—— 改條目要逐份通知", users.sort());
+
+    const entries = section(text, /契約條目/);
+    printBlock("附錄:契約條目(原文)", entries ? entries.text.split("\n") : ["(這份契約沒有「契約條目」章節——格式見 doc-lifecycle.md「全域契約文檔」)"]);
     console.log(QUERY_TAIL);
     process.exit(0);
   }
@@ -1123,57 +1520,105 @@ if (query.doc) {
   const key = docKey(hit.subsystem, hit.id);
   const full = readFileSync(join(designDir, hit.file), "utf8");
   const entry = hit.subsystem !== "global" ? subsysDocs.get(hit.subsystem) : null;
-  const road = null; // v2:feature 的一切都在它自己那份檔裡,沒有第二處可以對帳
+  const d = dispatch.get(key) ?? null;
+  const stageOf = hit.stage && hit.stage !== "-" ? stages.find((s) => s.id === hit.stage) : stages.find((s) => s.subsys.includes(hit.subsystem));
 
-  console.log(`=== 文檔 ${rowName(hit)} ===`);
-  console.log(`主軸  ${hit.description}`);
+  // 身份卡
+  console.log(`=== 文檔 ${rowName(hit)}(${hit.description})===`);
   console.log(
     `歸屬  ${hit.subsystem === "global" ? "全域(跨子系統)" : `子系統 ${hit.subsystem}`}` +
-
-      `  |  type ${hit.type}  |  status ${hit.status}${gapFlag(hit)}`,
+      (hit.group ? `  |  模組群 ${hit.subsystem}/${hit.group}` : "") +
+      (stageOf ? `  |  階段 ${stageName(stageOf)} ${stageOf.status}` : hit.type === "feature" ? "  |  階段 未填" : "") +
+      `  |  type ${hit.type}  |  ${zh(hit.status)}`,
   );
-  if (hit.subsystem === "global") console.log(`受影響  ${hit.affects.length ? hit.affects.join("、") : "⚠ 未列 subsystems"}`);
+  console.log(`更新  ${hit.updated}(${ago(hit.updated)}${daysSince(hit.updated) !== null && daysSince(hit.updated) > 0 ? "前" : ""})`);
+  if (hit.subsystem === "global") console.log(`受影響  ${hit.affects.length ? hit.affects.map(subsysBrief).join("、") : "⚠ 未列 subsystems"}`);
   else if (entry?.designFile) console.log(`上層  ${entry.designFile}`);
   console.log(`檔案  ${hit.file}`);
 
+  // §1 能不能開工
+  console.log("\n=== §1 能不能開工 ===");
+  if (!d) console.log(`${zh(hit.status)}。沒有待派的工作。`);
+  else {
+    console.log(`**${STATE_LABEL[d.state]}。** ` + (d.why.length ? d.why.map((w) => w.what).join(";") + "。" : "依賴全部就緒、沒有 gap、契約齊全。"));
+    if (d.partial.length) console.log(`受影響子系統 ${d.partial.join("、")} 還沒建檔:只能先做已建檔的那一半。`);
+  }
+
+  // §2 上游
+  console.log("\n=== §2 上游:它在等什麼 ===");
+  const up = [];
+  for (const w of d?.why ?? []) up.push({ what: w.what, st: w.since ? `${ago(w.since)}` : "-", fix: w.fix });
+  for (const t of depTargets(hit)) {
+    if (t.kind === "task" && !isUnfinished(t.row)) up.push({ what: rowName(t.row), st: zh(t.row.status), fix: "不用等" });
+    if (t.kind === "contract") up.push({ what: `${t.contract.id}-${t.contract.slug}${t.ref.includes("#") ? `#${t.ref.split("#")[1]}` : ""}(共用契約)`, st: t.contract.status, fix: "契約條目是不可逆決定,改動要走 /spec-redesign" });
+    if (t.kind === "adr") up.push({ what: `${adrNames.get(t.key) ?? t.key}(ADR)`, st: "-", fix: "不用等" });
+  }
+  const cited = new Set([...full.matchAll(/\bSPK-(\d{3})\b/g)].map((x) => `SPK-${x[1]}`));
+  const relSpikes = spikes.filter((sp) => spikeFeeds(sp, hit.subsystem, hit.id) || cited.has(sp.id));
+  for (const sp of relSpikes.filter((sp) => sp.status !== "open")) up.push({ what: `${spikeName(sp)}(spike)`, st: `${sp.status}${sp.verdict !== "-" ? ` · ${sp.verdict}` : ""}`, fix: "證據已在,不用等;改方向要回頭讀它的結論" });
+  if (up.length === 0) console.log("(無)不依賴任何文檔,也沒有人擋它。");
+  else printTable({ what: "等什麼", st: "狀態", fix: "誰解 / 怎麼解" }, up);
+
+  // §3 下游
+  console.log("\n=== §3 下游:誰在等它 ===");
+  const back = (reverseDeps.get(key) ?? []).map(({ row, ref }) => ({ row, ref }));
+  if (back.length === 0) console.log("沒有文檔依賴它。");
+  else
+    for (const { row, ref } of back.sort((a, b) => rowName(a.row).localeCompare(rowName(b.row)))) {
+      const dd = dispatch.get(docKey(row.subsystem, row.id));
+      console.log(`- ${rowName(row)}(${dd ? STATE_LABEL[dd.state] : zh(row.status)})引用 ${ref}${isUnfinished(hit) && dd ? " —— 這份做完才能動" : ""}`);
+    }
+  if (stageOf && isUnfinished(hit)) console.log(`它是 ${stageName(stageOf)} 達成的條件之一(該階段目前 ${stageOf.status})。`);
+
+  // §4 規格寫到幾成
+  console.log("\n=== §4 規格寫到幾成 ===");
+  const specRows = [];
+  if (hit.type === "feature")
+    specRows.push({
+      k: "契約六欄",
+      v: hit.hasContract ? (hit.contractGaps.length ? `缺 ${hit.contractGaps.length} 欄(${hit.contractGaps.join("、")})` : "6/6 齊") + (hit.status !== "planned" && hit.contractGaps.length ? " ⚠ 與 status 對不上:規格寫了、契約沒補" : "") : "沒有「## 契約」⚠",
+    });
+  specRows.push({ k: "介面 / 數據", v: hit.ifaces ? `${hit.ifaces} 條` : "沒有表格" });
+  specRows.push({ k: "Laws / Examples", v: `${hit.laws} / ${hit.examples}${hit.laws + hit.examples ? `(照 spec 應有 ${hit.laws + hit.examples} 個測試)` : ""}` });
+  specRows.push({ k: "契約級假設 ASM", v: hit.asm.total ? (hit.asm.marked ? `已裁 ${hit.asm.ruled}/${hit.asm.total}` : `${hit.asm.total} 條,舊格式沒有裁決欄(去 build-log 查)`) : "無" });
+  specRows.push({ k: "code-paths", v: hit.codePaths.length ? `${hit.codePaths.length} 個(${hit.codePaths.join("、")})` : DONE_STATUSES.has(hit.status) ? "空 ⚠ 收尾漏回寫" : "空(實作收尾時回寫)" });
+  printTable({ k: "項目", v: "狀況" }, specRows);
+
+  // §5 改它會牽動誰
+  console.log("\n=== §5 改它會牽動誰 ===");
+  const imp = [];
+  if (back.length) imp.push(`- ${back.length} 份文檔依賴它(${back.map((b) => rowName(b.row)).join("、")}):改介面要逐份通知。`);
+  else imp.push("- 沒有人依賴它,改介面不必通知任何下游。");
+  const usedContracts = contractRefsIn(full);
+  if (usedContracts.length) imp.push(`- 引用共用契約 ${usedContracts.map((r) => refFullName(r.split("#")[0], null) + (r.includes("#") ? `#${r.split("#")[1]}` : "")).join("、")}:那邊改條目時這份要跟著對。`);
+  if (hit.relatedAdr.length) imp.push(`- 相關 ADR:${hit.relatedAdr.map((a) => adrNames.get(a) ?? a).join("、")}。`);
+  for (const sp of relSpikes) imp.push(`- 引用 ${spikeName(sp)}(${sp.status}${sp.verdict !== "-" ? ` · ${sp.verdict}` : ""})當證據:改「不可逆決定」要回頭看它。`);
+  const overlap = [];
+  for (const r of rows) {
+    if (r === hit) continue;
+    const shared = hit.codePaths.filter((a) => r.codePaths.some((b) => pathRel(a, b)));
+    if (shared.length) overlap.push(`${rowName(r)}(${zh(r.status)};${shared.join("、")})`);
+  }
+  if (overlap.length) imp.push(`- code-paths 與 ${overlap.join("、")} 重疊:改實作要一起回歸。`);
+  else if (hit.codePaths.length) imp.push("- code-paths 沒有和其他文檔重疊。");
+  for (const l of imp) console.log(l);
+
+  // §6 下一步
+  console.log("\n=== §6 下一步 ===");
+  if (!d) console.log(`${zh(hit.status)},沒有下一步。${hit.type === "feature" && DONE_STATUSES.has(hit.status) ? "要改它走 /spec-design(enhance 模式)另開 E 文檔。" : ""}`);
+  else console.log(`${d.command}` + (d.state === "blocked" ? " —— 先解 blocker,不要繼續做:兩種相反的實作都會全綠,測試證明不了什麼。" : d.state === "half" ? " —— 補齊契約後才能 /spec-design。" : d.state === "deciding" ? " —— 決定的人是開發者,不是工程師。" : ""));
+
+  // 附錄:原文索引(給要寫 spec 的人)
   for (const [title, re] of [
     ["數據", /^數據$|數據與介面變動/],
     ["介面", /^介面$/],
   ]) {
     const sec = section(full, re);
-    if (sec) printBlock(`${title}(原文)`, sec.text.split("\n"));
+    if (sec) printBlock(`附錄:${title}(原文)`, sec.text.split("\n"));
   }
   if (!section(full, /^數據$|數據與介面變動/) && !section(full, /^介面$/))
-    printBlock("介面 / 數據", ["(這份文檔沒有「數據」或「介面」段——模板見 spec-design/templates/)"]);
-
-  // 阻塞維度:有未結 gap 的文檔,下一步是修 spec,不是繼續做 —— 這件事不能只印在盤點模式
-  if (hit.blockedBy?.length)
-    printBlock(
-      `卡住這份文檔的未結 gap(${hit.blockedBy.length})`,
-      openGaps
-        .filter((g) => hit.blockedBy.includes(g.id) && gapDocRef(g.head) === hit.id)
-        .map(gapLine)
-        .concat(["", `下一步是**修 ${rowName(hit)} 這份 spec**,不是繼續做:兩種相反的實作都會全綠,測試證明不了什麼。`]),
-    );
-
-  // 這份文檔的哪些決定有證據:spike 的 feeds 指到這裡的、或內文引用了 SPK-00x 的。
-  // spec-design 寫不可逆決定前要讀這一段;讀不到證據的決定會在閘門被退回。
-  const cited = new Set([...full.matchAll(/\bSPK-(\d{3})\b/g)].map((x) => `SPK-${x[1]}`));
-  const relSpikes = spikes.filter((sp) => spikeFeeds(sp, hit.subsystem, hit.id) || cited.has(sp.id));
-  printBlock("相關 spike(這份文檔的決定有哪些證據)", relSpikes.map(spikeLine));
-
-  const usedContracts = contractRefsIn(full);
-  printBlock("引用的全域契約", usedContracts.map((r) => fmtRef(r, r)));
-
-  printBlock(
-    "正向依賴(我依賴誰)",
-    hit.dependsOn.map((ref) => fmtRef(refKey(ref, hit.subsystem), ref)),
-  );
-
-  const back = (reverseDeps.get(key) ?? []).map(
-    ({ row, ref }) => `- ${rowName(row)}  [${row.status}]  引用 ${ref}  ${row.file}`,
-  );
-  printBlock("反向依賴(誰依賴我)", back.sort());
+    printBlock("附錄:介面 / 數據", ["(這份文檔沒有「數據」或「介面」段——模板見 spec-design/templates/)"]);
+  if (relSpikes.length) printBlock("附錄:相關 spike(這份文檔的決定有哪些證據)", relSpikes.map(spikeLine));
 
   console.log(QUERY_TAIL);
   process.exit(0);
@@ -1276,12 +1721,14 @@ if (query.subsys) {
   if (!subsysDocs.has(slug) && plannedSubsys.includes(slug)) {
     // 名冊上有、還沒建 design.md:這是「還沒做」,不是「查無此物」
     const st = stages.find((x) => x.subsys.includes(slug));
-    console.log(`=== 子系統 ${slug} ===`);
-    console.log(`主軸  ${subsysBriefs.get(slug) ?? "-"}`);
+    console.log(`=== 子系統 ${slug}(${subsysBriefs.get(slug) ?? "-"})===`);
     console.log(`狀態  已列入 system.md 的 subsystems 名冊,**尚未建 design.md**${st ? `(${stageName(st)} ${st.status})` : ""}`);
     console.log(`檔案  subsystems/${slug}/design.md 不存在`);
-    console.log(`\n${slug} 的職責與邊界只寫在 system.md 的「子系統劃分」;${slug} 沒有契約、也沒有任何 feature 文檔。`);
-    console.log(`下一步:/subsys-design ${slug}`);
+    console.log(`\n=== §1 能不能開工 ===\n**未開工。** ${slug} 的職責與邊界只寫在 system.md 的「子系統劃分」;沒有契約、也沒有任何 feature 文檔,不在任何進度分母裡。`);
+    const waiting = [...contractIds.values()].filter((c) => c.affects.includes(slug)).map((c) => `${c.id}-${c.slug}(共用契約)`)
+      .concat(rows.filter((r) => r.subsystem === "global" && r.affects.includes(slug)).map((r) => `${rowName(r)}(${zh(r.status)})`));
+    printBlock("§2 誰在等它建檔", waiting.map((w) => `- ${w}:它的 ${slug} 那一半在建檔前動不了`));
+    console.log(`\n=== §3 下一步 ===\n/subsys-design ${slug} —— 與其他子系統的工作互不影響,可以同時開。`);
     console.log(QUERY_TAIL);
     process.exit(1);
   }
@@ -1295,59 +1742,81 @@ if (query.subsys) {
   const srow = subsysRows.find((s) => s.id === slug);
   const mine = rows.filter((r) => r.subsystem === slug);
   const inScope = (s) => s.includes(`subsystems/${slug}/`) || s.includes(` ${slug} `) || s.startsWith(`${slug}:`);
+  const scope = (x) => x.subsystem === slug;
+  const st = stages.find((x) => x.subsys.includes(slug));
+  const myGroups = entry.groups;
+  const plannedHere = myGroups.filter((g) => g.status === "planned");
+  const openEB = mine.filter((r) => r.type !== "feature" && isUnfinished(r));
 
-  console.log(`=== 子系統 ${slug} ===`);
-  console.log(`主軸  ${srow?.description ?? "-"}`);
-  console.log(`狀態  status ${srow?.status ?? "-"}  |  模組群 ${srow?.groups ?? "-"}  |  階段 ${srow?.phases ?? "-"}  |  features ${srow?.features ?? "-"}  |  契約就緒 ${srow?.cards ?? "-"}  |  進度 ${srow?.progress ?? "-"}`);
+  // 身份卡
+  console.log(`=== 子系統 ${slug}(${srow?.description ?? "-"})${st ? ` · ${stageName(st)} ${st.status}` : ""} ===`);
+  console.log(`職責  ${subsysBriefs.get(slug) ?? srow?.description ?? "-"}(system.md「子系統劃分」)`);
+  console.log(`狀態  status ${srow?.status ?? "-"}  |  模組群 ${srow?.groups ?? "-"}  |  契約就緒 ${srow?.cards ?? "-"}  |  進度 ${srow?.progress ?? "-"}(分母只有已建 feature 檔的部分)`);
   console.log(`檔案  ${entry.designFile ?? "⚠ 缺 design.md"}`);
   if (entry.parts.length)
     console.log(
       `分冊  ${entry.parts.length} 份(design.md 的延伸,契約條目可能住在這裡,對帳要一起讀):\n` +
         entry.parts.map((p) => `      ${p.file}  [${p.type}]${p.description ? `  ${p.description}` : ""}`).join("\n"),
     );
+  const remaining = [
+    ...mine.filter((r) => r.type === "feature" && isUnfinished(r)).map((r) => `${rowName(r)}(${STATE_LABEL[dispatch.get(docKey(slug, r.id))?.state]})`),
+    ...plannedHere.map((g) => `${slug}/${g.name} 模組群開工`),
+    ...openEB.map((r) => `${rowName(r)}(${r.type === "enhance" ? "優化" : "缺陷"},${STATE_LABEL[dispatch.get(docKey(slug, r.id))?.state]})`),
+  ];
+  console.log(remaining.length ? `完成判準還差 ${remaining.length} 項:${remaining.join("、")}` : "完成判準:全部達成(feature 全 done、無未結 E/B、無 planned 模組群)");
 
-  if (entry.groups.length > 0) {
-    console.log(`\n=== 模組群(${entry.groups.length})===`);
+  // §1 漏斗
+  console.log(`\n=== §1 完成度漏斗(模組群 ${myGroups.length || 1})===`);
+  const feats = mine.filter((r) => r.type === "feature" && !DROPPED_STATUSES.has(r.status));
+  const funnel = (fs) => ({
+    planned: String(fs.filter((r) => r.status === "planned").length),
+    specced: String(fs.filter((r) => r.status === "specced").length),
+    done: String(fs.filter((r) => DONE_STATUSES.has(r.status)).length),
+    note: fs.filter(isUnfinished).map((r) => `${r.id} ${STATE_LABEL[dispatch.get(docKey(slug, r.id))?.state]}`).join("、") || (fs.length ? "全部完成" : "-"),
+  });
+  if (myGroups.length === 0) {
+    printTable({ name: "模組群", status: "狀態", planned: "已規劃", specced: "規格已寫", done: "已實作", note: "未完成的" }, [{ name: `${slug}(單一領域)`, status: "active", ...funnel(feats) }]);
+  } else {
     printTable(
-      { name: "模組群", status: "狀態", prog: "進度", brief: "職責" },
-      entry.groups.map((g) => ({
-        name: `${slug}/${g.name}`,
-        status: g.status,
-        prog: g.status === "planned" ? "未展開" : `${g.done}/${g.total}`,
-        brief: truncate(g.brief || "-", DESC_WIDTH),
-      })),
+      { name: "模組群", status: "狀態", planned: "已規劃", specced: "規格已寫", done: "已實作", note: "未完成的 / 備註" },
+      myGroups.map((g) => {
+        const fs = myGroups.length === 1 ? feats : feats.filter((r) => r.group.toLowerCase() === g.name.toLowerCase());
+        return g.status === "planned"
+          ? { name: `${slug}/${g.name}`, status: "planned", planned: "-", specced: "-", done: "-", note: `未開工:契約章節未寫、feature 檔未建${g.brief ? `(${g.brief})` : ""}` }
+          : { name: `${slug}/${g.name}`, status: "active", ...funnel(fs) };
+      }),
     );
-    if (entry.groups.some((g) => g.status === "planned"))
-      console.log(`planned 的模組群沒有契約、沒有 feature 檔,**不在上面「進度 ${srow?.progress ?? "-"}」那個分母裡**。`);
+    if (plannedHere.length) console.log(`planned 的模組群沒有契約、沒有 feature 檔,**不在上面「進度 ${srow?.progress ?? "-"}」那個分母裡**。`);
   }
 
-  console.log(`\n=== 本子系統的文檔(${mine.length})===`);
-  if (mine.length === 0) console.log("(還沒有任何 feature / enhance / bugfix 文檔)");
-  else
-    printTable(
-      { description: "主軸", name: "文檔(全名)", type: "type", status: "status", dependsOn: "depends-on", file: "file" },
-      mine.map((r) => ({ ...r, name: rowName(r), status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
-    );
-
+  // §2 子系統之間
+  console.log("\n=== §2 子系統之間 ===");
   const out = [];
   for (const r of mine)
     for (const ref of r.dependsOn) {
       const k = refKey(ref, slug);
-      if (k.startsWith(`${slug}/`)) continue; // 子系統內部依賴,上表已經看得到
+      if (k.startsWith(`${slug}/`)) continue; // 子系統內部依賴,漏斗已經看得到
       out.push(`- ${rowName(r)} → ${fmtRef(k, ref).slice(2)}`);
     }
-  printBlock("對外依賴(本子系統依賴誰)", out);
-
+  printBlock("我等誰(對外依賴)", out);
   const back = [];
   for (const [k, list] of reverseDeps) {
     if (!k.startsWith(`${slug}/`)) continue;
     for (const { row, ref } of list) {
       if (row.subsystem === slug) continue; // 內部依賴不算反向跨界
-      back.push(`- ${rowName(row)} 依賴 ${refFullName(k, null)}(該文檔的 depends-on 寫成 ${ref})  [${row.status}]  ${row.file}`);
+      const dd = dispatch.get(docKey(row.subsystem, row.id));
+      back.push(`- ${rowName(row)}(${dd ? STATE_LABEL[dd.state] : zh(row.status)})依賴 ${refFullName(k, null)}(該文檔的 depends-on 寫成 ${ref})  ${row.file}`);
     }
   }
-  printBlock("反向依賴(誰依賴本子系統)—— B1 的候選清單", back.sort());
-
+  printBlock("誰等我(反向依賴)—— B1 的候選清單", back.sort());
+  const cross = rows.filter((r) => r.subsystem === "global" && r.affects.includes(slug));
+  printBlock(
+    "跨子系統的任務文檔(G-E / G-B 掛在本子系統身上的)",
+    cross.map((r) => {
+      const dd = dispatch.get(docKey("global", r.id));
+      return `- ${rowName(r)}(${dd ? STATE_LABEL[dd.state] : zh(r.status)})橫跨 ${r.affects.join(" + ")}${dd?.partial.length ? `;${dd.partial.join("、")} 未建檔,只能先做本子系統這一半` : ""}`;
+    }),
+  );
   // 依契約 id 去重,把引用到的條目收在同一行(同一份契約常被多個條目引用)
   const cmap = new Map(); // bare id → Set(條目名)
   const noteContract = (ref) => {
@@ -1361,35 +1830,64 @@ if (query.subsys) {
     "相關的全域契約",
     [...cmap.keys()].sort().map((bare) => {
       const items = [...cmap.get(bare)].sort();
-      return fmtRef(bare, bare) + (items.length ? `\n  用到的條目:${items.join("、")}` : "\n  ⚠ 只引用了文檔 id,沒寫到條目(引用格式見 doc-lifecycle.md)");
+      const c = contractIds.get(bare);
+      const others = c ? c.affects.filter((s) => s !== slug).map(subsysBrief) : [];
+      return fmtRef(bare, bare) + (others.length ? `\n  另一邊:${others.join("、")} —— 改條目要通知它們` : "") + (items.length ? `\n  用到的條目:${items.join("、")}` : "\n  ⚠ 只引用了文檔 id,沒寫到條目(引用格式見 doc-lifecycle.md)");
     }),
   );
 
-  const relSpikes = spikes.filter((sp) => sp.affects.includes(slug) || mine.some((r) => spikeFeeds(sp, r.subsystem, r.id)));
-  if (relSpikes.length) printBlock(`相關 spike(${relSpikes.length})—— 這個子系統的決定有哪些證據`, relSpikes.map(spikeLine));
+  // §3 平行道
+  const lanes = buildLanes(scope);
+  console.log(`\n=== §3 本子系統能開幾條線(${lanes.length})===`);
+  printLanes(lanes);
 
-  const pend = pendingFeatures.filter((f) => f.subsystem === slug);
-  printBlock(
-    `只規劃了、還沒寫 spec 的 feature(${pend.length})`,
-    pend.map((f) => `- ${rowName(f)}${f.stage && f.stage !== "-" ? `(${f.stage})` : ""}  ${f.file}` +
-      (f.contractGaps.length ? `\n    ⚠ 契約還缺 ${f.contractGaps.join("、")},委派不動` : "")),
-  );
+  // §4 卡住
+  const blocked = blockedRows(scope, true);
+  console.log(`\n=== §4 卡住的,誰卡誰(${blocked.length})===`);
+  printBlocked(blocked, true);
 
-  const gaps = openGaps.filter((g) => g.scope === slug);
-  printBlock(`未結的 spec-gaps(${gaps.length})`, gaps.map(gapLine));
+  // §5 等決定
+  const decisions = decisionLines(scope, (sp) => sp.affects.includes(slug) || mine.some((r) => spikeFeeds(sp, r.subsystem, r.id)));
+  console.log(`\n=== §5 等決定的(${decisions.length})===`);
+  if (decisions.length === 0) console.log("(無)");
+  for (const l of decisions) console.log(l);
 
+  // §6 牽動
+  console.log("\n=== §6 動一個牽動誰 ===");
+  for (const l of impactLines(scope)) console.log(l);
+
+  // §7 警訊
   const issues = archIssues.filter(inScope);
   const notes = archNotes.filter(inScope);
   const bad = badFormat.filter((b) => b.file.includes(`subsystems/${slug}/`));
-  printBlock(`架構 / 子系統不一致(${issues.length})`, issues.map((m) => `- ${m}`));
-  if (notes.length) printBlock(`提示(${notes.length})`, notes.map((m) => `- ${m}`));
-  if (bad.length) printBlock(`frontmatter 格式不合規(${bad.length})`, bad.map((b) => `- ${b.file}:${b.keys.join("、")} 寫成 YAML 區塊列表`));
+  console.log("\n=== §7 警訊 ===");
+  printWarnings(issues, notes, bad);
+
+  // §8 建議路線
+  console.log("\n=== §8 建議路線(機械排序,理由由人補)===");
+  for (const l of routeLines(lanes, blocked)) console.log(l);
+
+  // 附錄
+  console.log(`\n=== 附錄 A:本子系統的文檔(${mine.length})===`);
+  if (mine.length === 0) console.log("(還沒有任何 feature / enhance / bugfix 文檔)");
+  else
+    printTable(
+      { description: "主軸", name: "文檔(全名)", type: "type", status: "status", dependsOn: "depends-on", updated: "updated", file: "file" },
+      mine.map((r) => ({ ...r, name: rowName(r), status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
+    );
+  const relSpikes = spikes.filter((sp) => sp.affects.includes(slug) || mine.some((r) => spikeFeeds(sp, r.subsystem, r.id)));
+  if (relSpikes.length) printBlock(`附錄 B:相關 spike(${relSpikes.length})—— 這個子系統的決定有哪些證據`, relSpikes.map(spikeLine));
+  const pend = pendingFeatures.filter((f) => f.subsystem === slug);
+  const gaps = openGaps.filter((g) => g.scope === slug);
+  printBlock(
+    `附錄 C:警訊全文 —— 不一致(${issues.length})/ 提示(${notes.length})/ frontmatter(${bad.length})`,
+    [...issues.map((m) => `- ${m}`), ...notes.map((m) => `- ${m}`), ...bad.map((b) => `- ${b.file}:${b.keys.join("、")} 寫成 YAML 區塊列表`)],
+  );
 
   console.log(QUERY_TAIL);
 
   const unfinishedHere = mine.filter((r) => !DONE_STATUSES.has(r.status));
-  const plannedHere = entry.groups.filter((g) => g.status === "planned").length;
-  process.exit(unfinishedHere.length || issues.length || bad.length || gaps.length || pend.length || plannedHere ? 1 : 0);
+  process.exit(unfinishedHere.length || issues.length || bad.length || gaps.length || pend.length || plannedHere.length ? 1 : 0);
 }
 
 // ---------------------------------------------------------------- --write-index
@@ -1427,39 +1925,110 @@ if (writeIndex) {
 }
 
 // ---------------------------------------------------------------- 輸出(盤點模式)
+//
+// 版面是「位置 → 能動的 → 卡住的 → 等決定的 → 牽動誰 → 警訊 → 路線 → 附錄」:
+// 前面七段回答「今天派哪幾條線」,原始表格全部退到附錄當證據。三種模式共用同一個骨架,
+// 只差縮放層級(產品 / 子系統 / 一份文檔)。
 
 if (rows.length === 0 && subsysRows.length === 0 && !systemMeta) {
   console.log(`design 目錄(${designDir})下沒有任何文檔。`);
   process.exit(0);
 }
 
-if (rows.length === 0) {
-  console.log(`design 目錄(${designDir})下沒有任何任務文檔(features / enhancements / bugfixes)。`);
-} else {
-  // 欄位順序:主軸(description)優先,文檔全名次之。全名自帶子系統,所以不另立子系統欄
-  printTable(
-    { description: "主軸", name: "文檔(全名)", type: "type", status: "status", created: "created", dependsOn: "depends-on", file: "file" },
-    rows.map((r) => ({ ...r, name: rowName(r), status: `${r.status}${gapFlag(r)}`, dependsOn: fmtValue(r.dependsOn) })),
-  );
-}
-
+const unfinished = rows.filter((r) => !DONE_STATUSES.has(r.status));
+const listed = showAll ? rows : unfinished;
 const counts = {};
 for (const r of rows) counts[r.status] = (counts[r.status] ?? 0) + 1;
-if (rows.length > 0) {
-  console.log("\n=== 統計 ===");
-  for (const [status, n] of Object.entries(counts).sort()) console.log(`${status}: ${n}`);
+const stageCnt = { 已達成: 0, 進行中: 0, 未開始: 0, "?": 0 };
+for (const st of stages) stageCnt[st.status]++;
+const nState = (st) => byState(st).length;
+const builtN = subsysRows.filter((s) => s.built).length;
+
+// 標題與一句話
+const title = systemMeta ? `${fmtValue(systemMeta.title)}(${fmtValue(systemMeta.description)})` : "(找不到 system.md)";
+console.log(`=== ${title} 專案狀態 · ${today} ===`);
+const modeLabel = projectMode
+  ? `${projectMode}(${projectMode === "greenfield" ? "全新建立:禁問 migration 與向後相容" : "維護型:migration 與既有呼叫端必問"})`
+  : "⚠ 未宣告(問開發者一次再回寫 system.md)";
+if (systemMeta) console.log(`專案模式  ${modeLabel}`);
+console.log(
+  `一句話  ` +
+    (stages.length ? `開發階段 已達成 ${stageCnt["已達成"]} / 進行中 ${stageCnt["進行中"]} / 未開始 ${stageCnt["未開始"]}(共 ${stages.length})` : "沒有開發階段表,產品完成度無法量化") +
+    ` · 子系統建檔 ${builtN}/${subsysRows.length}` +
+    ` · 可開工 ${nState("ready")} · 半步 ${nState("half")} · 卡住 ${nState("blocked")} · 等決定 ${nState("deciding")}` +
+    ` · 未開工 ${plannedSubsys.length + plannedGroupRows.length}(子系統 ${plannedSubsys.length}、模組群 ${plannedGroupRows.length})`,
+);
+
+// §1 產品走到哪
+console.log("\n=== §1 產品走到哪(分母是規劃,不是已建的資料夾)===");
+if (!systemMeta) console.log("找不到 system.md(尚未執行 /system-design):沒有名冊、沒有開發階段,答不出「還差什麼」。");
+else if (stages.length === 0) console.log("system.md 沒有「開發階段」表:產品完成度無法量化,只有下面已展開部分的百分比。先用 /system-design 補上。");
+else {
+  const details = stages.map((st) => ({ st, ...stageDetail(st) }));
+  printTable(
+    { id: "階段", title: "名稱", status: "狀態", subsys: "涵蓋子系統", expanded: "已展開的部分", notExpanded: "還沒展開的部分" },
+    details.map(({ st, expanded, notExpanded }) => ({ id: st.id, title: truncate(st.title, DESC_WIDTH), status: st.status, subsys: st.subsys.join("、") || "-", expanded, notExpanded })),
+  );
+  for (const { st, todo } of details) {
+    if (st.status === "已達成") continue;
+    console.log(todo.length ? `${stageName(st)} 要達成還差 ${todo.length} 件:${todo.join("、")}` : `${stageName(st)} 標 ${st.status},但底下已經沒有任何未完成項目 —— 該改成已達成,或涵蓋子系統漏列了`);
+  }
+  if (stageCnt["未開始"] + stageCnt["進行中"] > 0) console.log("**專案還沒做完**:下面所有百分比只涵蓋已展開的部分,未開始的階段完全不在那些分母裡。");
+}
+if (subsysRows.length) console.log(`子系統建檔 ${builtN}/${subsysRows.length}(名冊列了 ${subsysRows.length} 個,${plannedSubsys.length} 個還沒有 design.md)`);
+
+// §2 平行道
+const lanes = buildLanes();
+console.log(`\n=== §2 今天能開幾條線(${lanes.length})===`);
+printLanes(lanes);
+
+// §3 卡住
+const blocked = blockedRows();
+console.log(`\n=== §3 卡住的,誰卡誰(${blocked.length})===`);
+printBlocked(blocked);
+
+// §4 等決定
+const decisions = decisionLines();
+console.log(`\n=== §4 等決定的(${decisions.length})===`);
+if (decisions.length === 0) console.log("(無)");
+for (const l of decisions) console.log(l);
+
+// §5 牽動
+console.log("\n=== §5 動一個牽動誰 ===");
+for (const l of impactLines()) console.log(l);
+
+// §6 警訊
+const noDesc = rows.filter((r) => r.description === "-");
+console.log("\n=== §6 警訊 ===");
+printWarnings(archIssues, archNotes, badFormat);
+if (noDesc.length) console.log(`缺少 description / 主軸(${noDesc.length}):${noDesc.map(rowName).join("、")}`);
+
+// §7 路線
+console.log("\n=== §7 建議路線(機械排序,理由由人補)===");
+for (const l of routeLines(lanes, blocked)) console.log(l);
+
+// ---- 附錄:原始表格,都是上面各段的證據 ----
+if (rows.length === 0) {
+  console.log(`\n=== 附錄 A:任務文檔 ===\ndesign 目錄(${designDir})下沒有任何任務文檔(features / enhancements / bugfixes)。`);
+} else {
+  const doneCount = rows.length - unfinished.length;
+  console.log(`\n=== 附錄 A:任務文檔:${showAll ? `全部(${rows.length} 份)` : `未完成(${unfinished.length}/${rows.length} 份)`}===`);
+  console.log(`狀態統計:${Object.entries(counts).sort().map(([st, n]) => `${st} ${n}`).join("、")}`);
+  if (listed.length === 0) {
+    console.log("沒有未完成的任務文檔(全部收束成 done / closed);要看完整清單跑 --all。");
+  } else {
+    // 欄位順序:主軸(description)優先,文檔全名次之。全名自帶子系統,所以不另立子系統欄
+    printTable(
+      { description: "主軸", name: "文檔(全名)", type: "type", status: "status", dispatch: "派工", updated: "updated", dependsOn: "depends-on", file: "file" },
+      listed.map((r) => ({ ...r, name: rowName(r), status: `${r.status}${gapFlag(r)}`, dispatch: STATE_LABEL[dispatch.get(docKey(r.subsystem, r.id))?.state] ?? "-", dependsOn: fmtValue(r.dependsOn) })),
+    );
+    if (!showAll && doneCount > 0) console.log(`(已完成的 ${doneCount} 份不列在這裡 —— 它們已經算進附錄 B 的進度欄;要全表跑 --all)`);
+  }
 }
 
-console.log("\n=== 子系統狀態 ===");
-if (systemMeta) {
-  const modeLabel = projectMode
-    ? `${projectMode}(${projectMode === "greenfield" ? "全新建立:禁問 migration 與向後相容" : "維護型:migration 與既有呼叫端必問"})`
-    : "⚠ 未宣告(問開發者一次再回寫 system.md)";
-  console.log(`主架構 system:${fmtValue(systemMeta.description)}  [${fmtValue(systemMeta.status)}]  subsystems: ${fmtValue(systemMeta.subsystems)}`);
-  console.log(`專案模式  mode: ${modeLabel}`);
-} else {
-  console.log("主架構:找不到 system.md(尚未執行 /system-design)");
-}
+console.log("\n=== 附錄 B:子系統狀態 ===");
+if (systemMeta) console.log(`主架構 system:${fmtValue(systemMeta.description)}  [${fmtValue(systemMeta.status)}]  subsystems: ${fmtValue(systemMeta.subsystems)}`);
+else console.log("主架構:找不到 system.md(尚未執行 /system-design)");
 if (subsysRows.length === 0) {
   console.log("(subsystems/ 下沒有任何子系統;專案未拆子系統時屬正常,否則請用 /subsys-design 建立)");
 } else {
@@ -1471,129 +2040,41 @@ if (subsysRows.length === 0) {
   const tracked = built.filter((s) => s.hasFeatures);
   const unknown = built.length - tracked.length;
   console.log(
-    `\n子系統建檔:${built.length}/${subsysRows.length}(名冊列了 ${subsysRows.length} 個,` +
-      `${plannedSubsys.length} 個還沒有 design.md)`,
-  );
-  console.log(
     `子系統完成度:${tracked.filter((s) => s.complete).length}/${subsysRows.length} 個子系統的 feature 全部實作完、無未結 E/B 且無 planned 模組群` +
       (unknown > 0 ? `(另有 ${unknown} 個已建 design.md 但 features/ 是空的,進度未知)` : ""),
   );
-  console.log("(「進度」欄的分母只是**該子系統 features/ 底下的檔案數**,不是產品完成度;產品完成度看下面的開發階段)");
+  console.log("(「進度」欄的分母只是**該子系統 features/ 底下的檔案數**,不是產品完成度;產品完成度看 §1 的開發階段)");
+  if (plannedSubsys.length)
+    console.log(
+      `已規劃、未建 design.md 的子系統(${plannedSubsys.length}):` +
+        plannedSubsys.map((s) => `${s}${subsysBriefs.get(s) ? `(${subsysBriefs.get(s)})` : ""}`).join("、"),
+    );
+  if (plannedGroupRows.length)
+    console.log(`已規劃、契約未寫的模組群(${plannedGroupRows.length}):` + plannedGroupRows.map((g) => `${g.subsystem}/${g.name}${g.brief ? `(${g.brief})` : ""}`).join("、"));
 }
 
-// ---- 開發階段:全專案唯一的產品級分母 ----
-if (stages.length > 0) {
-  console.log(`\n=== 開發階段(${stages.length})===`);
-  printTable(
-    { id: "階段", title: "名稱", subsysList: "涵蓋子系統", status: "狀態" },
-    stages.map((st) => ({ id: st.id, title: truncate(st.title, DESC_WIDTH), subsysList: st.subsys.join("、") || "-", status: st.status })),
-  );
-  const cnt = { 已達成: 0, 進行中: 0, 未開始: 0, "?": 0 };
-  for (const st of stages) cnt[st.status]++;
-  console.log(
-    `\n階段進度:已達成 ${cnt["已達成"]} / 進行中 ${cnt["進行中"]} / 未開始 ${cnt["未開始"]}` +
-      (cnt["?"] ? ` / 狀態不明 ${cnt["?"]}` : "") +
-      `(共 ${stages.length} 階段)`,
-  );
-  if (cnt["未開始"] + cnt["進行中"] > 0)
-    console.log("**專案還沒做完**:上面任務文檔的百分比只涵蓋已展開的部分,未開始的階段完全不在那些分母裡。");
-}
-
-// ---- 名冊上還沒建檔的子系統 ----
-if (plannedSubsys.length > 0) {
-  console.log(`\n=== 已規劃、未建 design.md 的子系統(${plannedSubsys.length})===`);
-  console.log("system.md 的名冊列了下面這幾個子系統,但每一個都還沒有 Level 2 設計 —— 這幾個子系統的 feature 一個都還不存在,也不在任何進度分母裡。");
-  for (const s of plannedSubsys) {
-    const st = stages.find((x) => x.subsys.includes(s));
-    console.log(`- ${s}  ${subsysBriefs.get(s) ?? "(system.md 子系統劃分沒撈到職責)"}${st ? `  [${stageName(st)} ${st.status}]` : ""}`);
-  }
-  console.log("下一步:挑上面其中一個子系統,跑 /subsys-design <子系統>。");
-}
-
-// ---- 已建檔子系統裡、還沒開工的模組群 ----
-const plannedGroupRows = subsysRows.flatMap((s) => s.groupRows.filter((g) => g.status === "planned"));
-if (plannedGroupRows.length > 0) {
-  console.log(`\n=== 已規劃、契約未寫的模組群(${plannedGroupRows.length})===`);
-  console.log("子系統的 design.md 認了下面這幾個模組群,但契約章節還沒寫、feature 檔也還沒建 —— 這幾群不在各自子系統的進度分母裡。");
-  for (const g of plannedGroupRows) console.log(`- ${g.subsystem}/${g.name}${g.brief ? `  ${g.brief}` : ""}`);
-  console.log("下一步:對上面模組群所屬的子系統跑 /subsys-design <子系統> 更新模式,把該模組群的契約補上並建出該群的 feature 檔。");
-}
-
-if (Object.keys(adrCounts).length > 0) {
-  console.log(`\nADR:${Object.entries(adrCounts).sort().map(([s, n]) => `${s} ${n}`).join("、")}(共 ${adrIds.size} 份)`);
-}
-
+const appendixC = [];
+if (Object.keys(adrCounts).length > 0) appendixC.push(`ADR:${Object.entries(adrCounts).sort().map(([s, n]) => `${s} ${n}`).join("、")}(共 ${adrIds.size} 份)`);
 if (contractIds.size > 0) {
-  console.log(`\n=== 全域契約(${contractIds.size})===`);
-  printTable(
-    { description: "主軸", name: "契約(全名)", status: "status", affects: "使用的子系統", file: "file" },
-    [...contractIds.values()].map((c) => ({ ...c, name: `${c.id}-${c.slug}`, affects: fmtValue(c.affects) })),
-  );
-  console.log("(契約不是任務文檔,不計入進度;查單一份用 --doc G-C001-<slug>)");
+  appendixC.push(`全域契約(${contractIds.size}),不是任務文檔、不計入進度;查單一份用 --doc G-C001-<slug>:`);
+  for (const c of contractIds.values()) appendixC.push(`- ${c.id}-${c.slug}  [${c.status}]  使用:${c.affects.join("、") || "-"}  ${c.file}  ${c.description}`);
 }
-
 if (spikes.length > 0) {
-  console.log(`\n=== spike:可行性驗證(${spikes.length},open ${openSpikes.length})===`);
-  console.log("spike 不是任務文檔,不進任何百分比;open 的每一份都是一個還沒答完的問題,它的下游決定正在等證據。");
-  for (const sp of spikes) console.log(spikeLine(sp));
-  if (openSpikes.length) console.log("下一步:把 open 的 spike 做完(/spike),或標 dropped 並寫一句為什麼。");
+  appendixC.push(`spike(${spikes.length},open ${openSpikes.length}),不進任何百分比:`);
+  for (const sp of spikes) appendixC.push(spikeLine(sp));
 }
+if (appendixC.length) printBlock("附錄 C:ADR / 全域契約 / spike", appendixC);
 
-if (pendingFeatures.length > 0) {
-  console.log(`\n=== 只規劃了、還沒寫 spec 的 feature(${pendingFeatures.length})===`);
-  console.log("這些檔已經有編號與 `## 契約`,缺的是 Laws / Examples / 骨架。下一步:/spec-design(契約滿格時可用 /subsys-build 批次委派)。");
-  for (const f of pendingFeatures)
-    console.log(`- ${rowName(f)}${f.stage && f.stage !== "-" ? `(${f.stage})` : ""}  ${f.file}` +
-      (f.contractGaps.length ? `\n    ⚠ 契約還缺 ${f.contractGaps.join("、")},委派不動` : ""));
-}
-
-if (openGaps.length > 0) {
-  console.log(`\n=== 未結的 spec-gaps:qa / impl 提出、spec 尚未修訂(${openGaps.length})===`);
-  console.log("上面被標了 ⚠卡 的文檔就是卡在下面這幾條 gap;那幾份文檔的下一步是**修 spec**,不是繼續做。");
-  console.log("每一條未結 gap 都代表有項目正卡著;修 spec 前不要繼續往下做,也不要委派展開。");
-  for (const g of openGaps) console.log(gapLine(g));
-}
-
-const unfinished = rows.filter((r) => !DONE_STATUSES.has(r.status));
-if (unfinished.length > 0) {
-  console.log(`\n=== 未完成 / metadata 缺失(${unfinished.length})===`);
-  for (const r of unfinished) console.log(`- ${r.description}  [${r.status}${gapFlag(r)}] ${rowName(r)}  ${r.file}`);
-}
+printBlock(
+  `附錄 D:警訊全文 —— 不一致(${archIssues.length})/ 提示(${archNotes.length})/ frontmatter 格式(${badFormat.length})`,
+  [
+    ...archIssues.map((m) => `- ${m}`),
+    ...archNotes.map((m) => `- ${m}`),
+    ...badFormat.flatMap((b) => [`- ${b.file}:${b.keys.join("、")} 寫成 YAML 區塊列表`, ...b.keys.map((k) => `  改成 → ${k}: [item-a, item-b]`)]),
+  ],
+);
 
 const openSubsysRows = subsysRows.filter((s) => !s.complete);
-if (openSubsysRows.length > 0) {
-  console.log(`\n=== 未完成的子系統(${openSubsysRows.length})===`);
-  for (const s of openSubsysRows)
-    console.log(
-      `- ${s.description}  [${s.status}] 子系統 ${s.id}  進度 ${s.progress}  未結 ${s.openEB}` +
-        (s.plannedGroups > 0 ? `  ⚠ ${s.id} 還有 ${s.plannedGroups} 個模組群未開工` : ""),
-    );
-}
-
-const noDesc = rows.filter((r) => r.description === "-");
-if (noDesc.length > 0) {
-  console.log(`\n=== 缺少 description / 主軸(${noDesc.length})===`);
-  for (const r of noDesc) console.log(`- ${rowName(r)}  ${r.file}`);
-}
-
-if (archIssues.length > 0) {
-  console.log(`\n=== 架構 / 子系統不一致(${archIssues.length})===`);
-  for (const m of archIssues) console.log(`- ${m}`);
-}
-
-if (archNotes.length > 0) {
-  console.log(`\n=== 提示(${archNotes.length})===`);
-  for (const m of archNotes) console.log(`- ${m}`);
-}
-
-if (badFormat.length > 0) {
-  console.log(`\n=== frontmatter 格式不合規:清單欄位請用行內陣列(${badFormat.length})===`);
-  for (const b of badFormat) {
-    console.log(`- ${b.file}:${b.keys.join("、")} 寫成 YAML 區塊列表`);
-    for (const k of b.keys) console.log(`  改成 → ${k}: [item-a, item-b]`);
-  }
-}
-
 const openStages = stages.filter((st) => st.status !== "已達成");
 if (
   unfinished.length > 0 ||

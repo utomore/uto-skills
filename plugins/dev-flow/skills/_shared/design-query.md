@@ -25,10 +25,11 @@
 
 | 什麼時候 | 指令 | 接著一定要做什麼 |
 |---|---|---|
-| 要展開某個 feature,先看它在整體的哪裡、依賴誰 | `node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <文檔全名>` | **打開它列出的檔案讀原文**再落筆;輸出的介面段是索引不是授權。「相關 spike」段列的每一份都要讀結論——那是這份文檔不可逆決定的證據 |
-| 要對某個子系統做決定(委派、對帳、驗收) | `… scan-status.mjs .design --subsys <slug>` | 先看「模組群」段有沒有 `planned` 的:有的話該子系統的進度數字只涵蓋 active 那幾群。「反向依賴」段是 `contract-readiness.md` **B1 的候選清單**,逐條對照兩邊的 `design.md` 自己判 |
-| 要知道**產品**做到哪、還差什麼 | `… scan-status.mjs .design`(不帶 flag),看「開發階段」表與「已規劃、未建 design.md 的子系統」/「已規劃、契約未寫的模組群」三段 | 這三段才是產品級分母;子系統狀態表的百分比只涵蓋已展開的部分 |
-| 要改一份共用契約,先看誰在用 | `… scan-status.mjs .design --doc G-C00x-<slug>` | 「誰引用這份契約」的每一個子系統都要通知到;契約條目是不可逆決定 |
+| 要展開某個 feature,先看它在整體的哪裡、依賴誰 | `node "<S>/arch-audit/scripts/scan-status.mjs" .design --doc <文檔全名>` | 先看 §1「能不能開工」與 §2「上游」——卡住的先解 blocker,不要往下寫。**打開它列出的檔案讀原文**再落筆;附錄的介面段是索引不是授權。「相關 spike」列的每一份都要讀結論——那是這份文檔不可逆決定的證據 |
+| 要對某個子系統做決定(委派、對帳、驗收) | `… scan-status.mjs .design --subsys <slug>` | 先看 §1「完成度漏斗」有沒有 `planned` 的模組群:有的話該子系統的進度數字只涵蓋 active 那幾群。§2「誰等我(反向依賴)」是 `contract-readiness.md` **B1 的候選清單**,逐條對照兩邊的 `design.md` 自己判;§3 平行道備註「要人判」的列由你判 |
+| 要知道**產品**做到哪、還差什麼 | `… scan-status.mjs .design`(不帶 flag),看 §1「產品走到哪」的開發階段表與每一階的「要達成還差 n 件」 | 那一段才是產品級分母(「還沒展開的部分」就是未建檔子系統與 planned 模組群);附錄 B 子系統狀態表的百分比只涵蓋已展開的部分 |
+| 要知道今天能派幾條線、什麼卡著誰 | `… scan-status.mjs .design`,看 §2「今天能開幾條線」、§3「卡住的」、§7「建議路線」 | 派工狀態由腳本從 depends-on / gap / 契約六欄 / spike feeds / ASM 裁決推出,和 `status` 是兩回事;停滯天數只印不判,`--today` 可釘日期 |
+| 要改一份共用契約,先看誰在用 | `… scan-status.mjs .design --doc G-C00x-<slug>` | §1「改它會牽動誰」的每一個子系統都要通知到,還沒建檔的那幾個現在改最便宜;契約條目是不可逆決定 |
 | 手上有一個程式碼檔案,要知道它是哪份 spec 做的、被哪些 E/B 改過 | `… scan-status.mjs .design --file <path>` | **打開它列出的文檔讀原文**再落筆。查無不代表這段程式碼沒來歷——也可能是那份文檔收尾時漏回寫 `code-paths`,輸出會提示你分辨 |
 | 要全專案進度、就緒度、不一致清單 | `… scan-status.mjs .design`(不帶 flag) | 照 `/arch-audit status` 的既有流程 |
 | 要分辨某份文檔的 `in-progress` 是「正在做」還是「卡死」 | 同上,或 `--subsys` / `--doc` | 看狀態欄有沒有 `⚠卡<子系統>/GAP-n`:有的話下一步是**修 spec**(`/spec-design` 更新模式),不是繼續做 |

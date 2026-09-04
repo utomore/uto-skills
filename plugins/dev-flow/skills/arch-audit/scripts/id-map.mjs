@@ -20,6 +20,7 @@
  */
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { readDoc, asList } from "./_frontmatter.mjs";
+import { countIds, countRulings } from "./_counts.mjs";
 import { section as mdSection } from "./_sections.mjs";
 import { join } from "node:path";
 import { parseGapBlocks } from "./_gap-status.mjs";
@@ -139,44 +140,11 @@ function section(body, titleRe) {
 }
 
 /**
- * 數某個編號在檔案內被**定義**了幾次。只認三種「定義位置」,不認散落在內文的提及:
- *   清單項  `- LAW-1: …` / `- [ ] STEP-1: …`
- *   小標題  `## GAP-1(…)`
- *   表格首欄 `| EX-1 | … |`(Examples 與 build-log 的表都長這樣)
- * 新舊制都收(`LAW-1` 與舊的 `L1`),回傳去重後的序號個數。
- */
-function countIds(body, ...prefixes) {
-  const alt = prefixes.join("|");
-  const em = "[*`_]{0,2}"; // 容忍 `- **LAW-1**(…)` 這種強調寫法 —— 實際文檔大量這樣寫
-  const seen = new Set();
-  const listOrHead = new RegExp(
-    `(?:^|\\n)[ \\t]*(?:[-*][ \\t]*(?:\\[[ x]\\][ \\t]*)?|#{2,4}[ \\t]*)${em}(?:${alt})-?(\\d+)${em}\\s*[::.)\\s(（]`,
-    "g",
-  );
-  const tableCell = new RegExp(`(?:^|\\n)[ \\t]*\\|[ \\t]*${em}(?:${alt})-?(\\d+)${em}[ \\t]*\\|`, "g");
-  for (const re of [listOrHead, tableCell]) for (const m of body.matchAll(re)) seen.add(m[1]);
-  return seen.size;
-}
-
-/**
- * 數 design.md「功能規劃」表有幾列 feature —— 那是這個子系統的**分母**,
- * features/ 裡的檔案數只是已經展開的部分(分子)。
- */
-/**
- * 數一份 spec 的待確認假設:`{ total, ruled, marked }`。
- *
- * `裁決:` 欄是後來才補的(`delegation-design.md`)。**舊文檔一條 `裁決:` 都沒有,
- * 那代表「不知道」,不是「全部未裁」** —— 裁決結果當時寫在 build-log 的彙總表裡。
- * 分不出這兩者就會把一個早就裁完的子系統報成滿江紅,而報一個你證明不了的數字比不報還糟。
- * 所以 `marked` 為 0 時呼叫端要退回只印總數。
+ * 數編號與裁決的解析器住在 `_counts.mjs`(與 scan-status.mjs 共用,唯一產地)。
+ * 這裡只包一層:id-map 的 `section()` 回的是節內文,直接餵給 countRulings。
  */
 function countAssumptions(body) {
-  const sec = section(body, /待確認假設/);
-  const total = countIds(sec, "ASM", "A");
-  const rulingLines = [...sec.matchAll(/^[ \t]*[-*][ \t]*[*`_]{0,2}裁決[*`_]{0,2}[ \t]*[::][ \t]*(.*)$/gm)];
-  const marked = rulingLines.length;
-  const ruled = rulingLines.filter((m) => m[1].trim() && !/^未裁/.test(m[1].trim())).length;
-  return { total, ruled, marked };
+  return countRulings(section(body, /待確認假設/));
 }
 
 /** ASM 欄:有人標過 `裁決:` 才印「已裁/總數」;一條都沒標的是舊格式,只印總數並加 `?`。 */

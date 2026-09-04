@@ -48,13 +48,15 @@ run() {
 echo "=== fixture 回歸(輸出與 exit code 都要相同)==="
 run id-map-proj      "$SCRIPTS/id-map.mjs" design
 run id-map-legend    "$SCRIPTS/id-map.mjs"
-run scan-inventory   "$SCRIPTS/scan-status.mjs" design
-run scan-subsys      "$SCRIPTS/scan-status.mjs" design --subsys auth
-run scan-doc-feature "$SCRIPTS/scan-status.mjs" design --doc F001
-run scan-doc-contract "$SCRIPTS/scan-status.mjs" design --doc G-C001
-run scan-doc-missing "$SCRIPTS/scan-status.mjs" design --doc F999
-run scan-file-hit    "$SCRIPTS/scan-status.mjs" design --file src/Auth/Login.hs
-run scan-file-miss   "$SCRIPTS/scan-status.mjs" design --file src/Web/Api.hs
+run scan-inventory   "$SCRIPTS/scan-status.mjs" design --today 2026-09-04
+# 盤點模式預設只列未完成:--all 是唯一看得到已完成文檔的入口,兩種都釘
+run scan-inventory-all "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --all
+run scan-subsys      "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --subsys auth
+run scan-doc-feature "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc F001
+run scan-doc-contract "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc G-C001
+run scan-doc-missing "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc F999
+run scan-file-hit    "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --file src/Auth/Login.hs
+run scan-file-miss   "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --file src/Web/Api.hs
 run scan-bad-flag    "$SCRIPTS/scan-status.mjs" design --bogus
 run lint-ids         "$SCRIPTS/lint-ids.mjs" design
 run lint-laws        "$SCRIPTS/lint-laws.mjs" design

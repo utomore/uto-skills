@@ -1,7 +1,9 @@
 未知選項: --bogus
 
 用法:
-  node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design)
+  node scan-status.mjs [design目錄]                  盤點全樹(預設 ./.design),任務文檔只列未完成
+  node scan-status.mjs [design目錄] --all            同上,但任務文檔表改列全部(含已完成)
+  node scan-status.mjs [design目錄] --today YYYY-MM-DD 停滯天數以這一天為準(預設今天;golden 測試用)
   node scan-status.mjs .design --subsys <slug>       聚焦子系統:它的文檔 + 進出依賴 + 反向依賴
   node scan-status.mjs .design --doc <文檔>          聚焦文檔:歸屬 / 介面 / 契約 / 正反向依賴
                                                     吃全名 auth/F003-token-cache,也吃 auth/F003 與 F003

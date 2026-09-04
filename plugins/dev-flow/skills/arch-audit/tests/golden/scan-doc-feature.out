@@ -1,27 +1,41 @@
-=== 文檔 auth/F001-login ===
-主軸  登入
-歸屬  子系統 auth  |  type feature  |  status done
+=== 文檔 auth/F001-login(登入)===
+歸屬  子系統 auth  |  模組群 auth/Session  |  階段 S0 進行中  |  type feature  |  已實作
+更新  2026-08-20(15 天前)
 上層  subsystems/auth/design.md
 檔案  subsystems/auth/features/F001-login.md
 
-=== 介面(原文) ===
+=== §1 能不能開工 ===
+已實作。沒有待派的工作。
+
+=== §2 上游:它在等什麼 ===
+(無)不依賴任何文檔,也沒有人擋它。
+
+=== §3 下游:誰在等它 ===
+- auth/F002-token-refresh(卡住)引用 F001
+
+=== §4 規格寫到幾成 ===
+項目             狀況
+---------------  ------------------------------------------------------------------------------------------------------
+契約六欄         缺 4 欄(實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做) ⚠ 與 status 對不上:規格寫了、契約沒補
+介面 / 數據      1 條
+Laws / Examples  2 / 2(照 spec 應有 4 個測試)
+契約級假設 ASM   1 條,舊格式沒有裁決欄(去 build-log 查)
+code-paths       1 個(src/Auth/Login.hs)
+
+=== §5 改它會牽動誰 ===
+- 1 份文檔依賴它(auth/F002-token-refresh):改介面要逐份通知。
+- 相關 ADR:ADR-001-jwt。
+- code-paths 與 auth/F002-token-refresh(規格已寫;src/Auth/Login.hs) 重疊:改實作要一起回歸。
+
+=== §6 下一步 ===
+已實作,沒有下一步。要改它走 /spec-design(enhance 模式)另開 E 文檔。
+
+=== 附錄:介面(原文) ===
 ## 介面
 | 簽名 | 語意 | 骨架位置 |
 |---|---|---|
 | `login :: A -> B` | 登入 | `src/Auth/Login.hs#login` |
 
-=== 相關 spike(這份文檔的決定有哪些證據) ===
-(無)
-
-=== 引用的全域契約 ===
-(無)
-
-=== 正向依賴(我依賴誰) ===
-(無)
-
-=== 反向依賴(誰依賴我) ===
-- auth/F002-token-refresh  [specced]  引用 F001  subsystems/auth/features/F002-token-refresh.md
-
-本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。
+本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰、今天能不能動」,答不出「那份文檔寫的對不對」。
 要寫進 spec 的每一條介面,仍須打開該文檔讀原文。各角色的使用界線見 _shared/design-query.md。
 __exit__ 0

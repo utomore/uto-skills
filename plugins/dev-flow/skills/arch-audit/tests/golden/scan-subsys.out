@@ -1,52 +1,79 @@
-=== 子系統 auth ===
-主軸  認證子系統
-狀態  status active  |  模組群 1/2  |  階段 1  |  features 3  |  契約就緒 0/1  |  進度 1/3 (33%)
+=== 子系統 auth(認證子系統) · S0 進行中 ===
+職責  認證子系統(system.md「子系統劃分」)
+狀態  status active  |  模組群 1/2  |  契約就緒 0/1  |  進度 1/3 (33%)(分母只有已建 feature 檔的部分)
 檔案  subsystems/auth/design.md
+完成判準還差 3 項:auth/F002-token-refresh(卡住)、auth/F003-logout(半步可開工)、auth/MFA 模組群開工
 
-=== 模組群(2)===
-模組群        狀態     進度    職責
-------------  -------  ------  ----------
-auth/Session  active   1/3     工作階段
-auth/MFA      planned  未展開  二階段驗證
+=== §1 完成度漏斗(模組群 2)===
+模組群        狀態     已規劃  規格已寫  已實作  未完成的 / 備註
+------------  -------  ------  --------  ------  -----------------------------------------------
+auth/Session  active   1       1         1       F002 卡住、F003 半步可開工
+auth/MFA      planned  -       -         -       未開工:契約章節未寫、feature 檔未建(二階段驗證)
 planned 的模組群沒有契約、沒有 feature 檔,**不在上面「進度 1/3 (33%)」那個分母裡**。
 
-=== 本子系統的文檔(3)===
-主軸  文檔(全名)               type     status                 depends-on  file
-----  -----------------------  -------  ---------------------  ----------  ----------------------------------------------
-登入  auth/F001-login          feature  done                   []          subsystems/auth/features/F001-login.md
-登入  auth/F002-token-refresh  feature  specced ⚠卡auth/GAP-1  [F001]      subsystems/auth/features/F002-token-refresh.md
-登出  auth/F003-logout         feature  planned                []          subsystems/auth/features/F003-logout.md
+=== §2 子系統之間 ===
 
-=== 對外依賴(本子系統依賴誰) ===
+=== 我等誰(對外依賴) ===
 (無)
 
-=== 反向依賴(誰依賴本子系統)—— B1 的候選清單 ===
+=== 誰等我(反向依賴)—— B1 的候選清單 ===
 (無)
+
+=== 跨子系統的任務文檔(G-E / G-B 掛在本子系統身上的) ===
+- G-E001-cache(可開工)橫跨 auth + billing;billing 未建檔,只能先做本子系統這一半
 
 === 相關的全域契約 ===
 - G-C001-session  [active]  contracts/G-C001-session.md  共用 session 契約
+  另一邊:billing(未建檔) —— 改條目要通知它們
   ⚠ 只引用了文檔 id,沒寫到條目(引用格式見 doc-lifecycle.md)
 
-=== 相關 spike(1)—— 這個子系統的決定有哪些證據 ===
+=== §3 本子系統能開幾條線(1)===
+道  項目                                派工狀態    命令                 備註
+--  ----------------------------------  ----------  -------------------  ------------
+A   auth/F003-logout + auth/MFA 模組群  半步可開工  /subsys-design auth  與其他道獨立
+
+=== §4 卡住的,誰卡誰(1)===
+被卡的                   卡它的                                     停了  解法                                    解開後釋放  卡到外部誰
+-----------------------  -----------------------------------------  ----  --------------------------------------  ----------  ----------
+auth/F002-token-refresh  auth/GAP-1「過期判定用哪個時鐘」(qa 提出)  7 天  /spec-redesign auth/F002-token-refresh  無下游      無
+
+=== §5 等決定的(0)===
+(無)
+
+=== §6 動一個牽動誰 ===
+- G-C001-session(共用契約)被 auth(未完成 2 份)、billing(未建檔) 使用。billing 還沒建檔,現在改條目代價最低;建檔後每改一次要通知 2 邊。
+- G-E001-cache(規格已寫)橫跨 auth + billing,是跨子系統的任務文檔;billing 的設計會決定它的另一半長什麼樣,建檔前只能做已建檔的部分。
+- SPK-001-fts-latency(concluded · feasible)的結論餵給 ADR-001-jwt、auth/F002-token-refresh、auth/F999:這些決定有證據,改方向要回頭看它。
+- 依賴鏈(最長 2 步,共 1 條):
+    auth/F001-login(已實作) → auth/F002-token-refresh(卡住)
+- 沒有任何節點被兩份以上的未完成文檔依賴,不存在單點瓶頸。
+
+=== §7 警訊 ===
+影響派工的(0):
+(無)
+格式類(3):不影響今天的派工;全文見附錄「警訊全文」。
+
+=== §8 建議路線(機械排序,理由由人補)===
+1. 主線:/spec-redesign auth/F002-token-refresh —— 解 auth/F002-token-refresh 的 blocker(auth/GAP-1「過期判定用哪個時鐘」(qa 提出))
+2. 之後:/subsys-design auth(auth/F003-logout + auth/MFA 模組群)
+
+=== 附錄 A:本子系統的文檔(3)===
+主軸  文檔(全名)               type     status                 depends-on  updated     file
+----  -----------------------  -------  ---------------------  ----------  ----------  ----------------------------------------------
+登入  auth/F001-login          feature  done                   []          2026-08-20  subsystems/auth/features/F001-login.md
+登入  auth/F002-token-refresh  feature  specced ⚠卡auth/GAP-1  [F001]      2026-08-20  subsystems/auth/features/F002-token-refresh.md
+登出  auth/F003-logout         feature  planned                []          2026-09-03  subsystems/auth/features/F003-logout.md
+
+=== 附錄 B:相關 spike(1)—— 這個子系統的決定有哪些證據 ===
 - SPK-001-fts-latency  [concluded · feasible]  SQLite FTS5 在 50 萬筆下的查詢延遲  spikes/SPK-001-fts-latency.md
     要回答:FTS5 在 50 萬筆筆記下,單字查詢能不能在 200ms 內回來
     餵給:ADR-001-jwt、auth/F002-token-refresh、auth/F999
 
-=== 只規劃了、還沒寫 spec 的 feature(1) ===
-- auth/F003-logout  subsystems/auth/features/F003-logout.md
-    ⚠ 契約還缺 實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做,委派不動
-
-=== 未結的 spec-gaps(1) ===
-- auth/GAP-1  卡住 auth/F002-token-refresh(qa 提出)  過期判定用哪個時鐘  subsystems/auth/spec-gaps.md
-
-=== 架構 / 子系統不一致(0) ===
-(無)
-
-=== 提示(3) ===
+=== 附錄 C:警訊全文 —— 不一致(0)/ 提示(3)/ frontmatter(0) ===
 - subsystems/auth/features/F003-logout.md:「## 契約」還缺 實作的 Level 2 介面、資料流管線段落、驗收標準、明確不做(該項無法委派展開)
 - subsystems/auth/design.md:模組群 auth/MFA 還是 planned(契約章節未寫、feature 檔未建)——二階段驗證;auth/MFA 不在 auth 子系統的進度分母裡
 - subsystems/auth/features/F002-token-refresh.md:depends-on 的 F001 寫成裸 id —— 改寫成 auth/F001(同一個子系統內部也要帶前綴)
 
-本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。
+本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰、今天能不能動」,答不出「那份文檔寫的對不對」。
 要寫進 spec 的每一條介面,仍須打開該文檔讀原文。各角色的使用界線見 _shared/design-query.md。
 __exit__ 1

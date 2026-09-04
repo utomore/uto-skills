@@ -32,6 +32,7 @@ import { printHelpIfAsked } from "./_help.mjs";
 const REGISTERED = [
   { re: /^[FEB]\d{3}$/, what: "任務文檔 id" },
   { re: /^C\d{3}$/, what: "全域契約 id(G-C001 的後半)" },
+  // G-F001 / G-E001 / G-B001 的後半就是 F001 / E001 / B001,已被上面的任務文檔 id 規則放行
   { re: /^S\d{1,2}$/, what: "開發階段 id" },
   { re: /^A([1-9]|10)$/, what: "contract-readiness A 段檢查條" },
   { re: /^B[1-4]$/, what: "contract-readiness B 段檢查條" },

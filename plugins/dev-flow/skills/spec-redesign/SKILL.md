@@ -1,6 +1,6 @@
 ---
 name: spec-redesign
-description: 契約與 spec 的修改(redesign 角色)— 由 spec-gaps 或開發者觸發,先用機械判準定層級:改動只落在這一份 feature 檔裡就在 Level 3 就地改;有第二份文檔要跟著改就回 Level 2 改 design.md。改完一律留下可查證的修訂痕跡,並講明哪幾條介面要重新委派 qa / impl。觸發詞:改契約、修 spec、spec 修訂、redesign、改設計、契約錯了、回答 gap、結 gap、改介面、改驗收標準、範圍變了。Use when an existing feature contract or spec must change, deciding whether it is a Level 3 in-place edit or a Level 2 architecture change.
+description: 既有功能的修訂(redesign 角色)— 任何對既有 F / E / G-F 的行為、介面、邊界或效能承諾的改動都修訂原檔,不另開檔。由 spec-gaps、spike 結論或開發者觸發,先用機械判準定層級:改動只落在這一份檔裡就在 Level 3 就地改;有第二份文檔要跟著改就回 Level 2 改 design.md。改完留 REV 修訂記錄、rev +1、done 退回 specced,並講明哪幾條 law / 介面要重新委派 qa / impl;效能與重構修訂另有先讀程式碼、回歸 law 與基準線的紀律。觸發詞:改契約、修 spec、spec 修訂、redesign、改設計、契約錯了、回答 gap、結 gap、改介面、改驗收標準、範圍變了、修訂 feature、改既有功能、效能優化、重構規劃、優化設計、enhance design。Use when an existing feature, enhancement, or cross-subsystem feature must change (including performance work and refactors), revising the original document in place.
 user-invocable: true
 ---
 
@@ -40,7 +40,22 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 - 觸發本次修改的是一份 spike 的結論 → 那份 `.design/spikes/SPK-00x-<slug>.md` 全文(結論與「沒驗到的」都要看:後者是這次修訂的邊界)
 - **收尾時** → `../_shared/anchor.md`
 
-不讀 `doc-lifecycle.md`:本 skill **不配號、不建檔**。
+`doc-lifecycle.md` 只讀兩節(本 skill **不配號、不建檔**,其餘用不到):
+
+```
+node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 六種分類與分流判準 "修訂(rev 與 REV)"
+```
+
+第一節是**分流判準**(這次要做的事到底是修訂還是新功能),第二節是修訂的留痕與狀態機。
+
+## 0. 先分流:這是修訂,還是新功能?
+
+進來之前先答 `doc-lifecycle.md`「六種分類與分流判準」那一句:**這個改動能不能被描述成「拿掉它,原功能還在、行為不變」?**
+
+- **不能**(改了既有功能的行為、介面、邊界、效能承諾)→ 是修訂,留在本 skill。效能優化、重構、換演算法、改簽名、收回「明確不做」、放寬定義域都是這一種
+- **能**(一個新的、可獨立拿掉的能力)→ 不是修訂,是新功能。停下來,回 `/subsys-design` 分類(核心 → F、非核心 → E)並鑄號建檔;本 skill 不建檔
+
+**不准為了「改既有功能」開 E。** 2.2.1 之前的流程允許這樣做,結果是 F 檔停在初版、真相散在一堆 E 裡。現在唯一的真相是原檔。
 
 ## 1. 定層級(不可跳過,先於一切)
 
@@ -69,9 +84,17 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 ## 2A. Level 3:就地改
 
-1. **只改被 gap 指到的段落**與骨架對應處。不順手擴張 scope——真要擴張就另開 `E00x` 走 `/spec-design` 的 enhance 模式
+1. **只改這次修訂點名的段落**與骨架對應處。擴張 scope 一樣在這份檔裡做(契約追加修訂行、Laws 加條、REV 寫清楚),**不另開檔**;只有「能獨立拿掉的新能力」才是新功能,而那不叫擴張,回步驟 0
 2. 改 `## Laws` / `## Examples` / `## 數據` / `## 介面`,**`## 契約` 只准追加修訂行,不准改寫既有欄位**——那一節是 Level 2 的產出
-3. 同步骨架:簽名動過的,型別與未實作標記一起改
+3. 同步骨架,分三種情況:
+
+   | 情況 | 骨架怎麼寫 | qa 重跑的測試在骨架上應該 |
+   |---|---|---|
+   | **新增**介面 | 新簽名 + 未實作標記 | 紅 |
+   | **簽名變動** | 新簽名 + 未實作標記,並把呼叫端做**機械性對齊**(只改呼叫形式,不改邏輯);對齊改不動就是層級判錯了,回步驟 1 | 紅 |
+   | **行為不變、只換內部做法**(效能、重構,簽名一個字都不動) | **不動任何程式碼**,骨架就是現狀 | **綠**(REG- 回歸測試捕捉現況,之後 impl 改內部必須維持綠) |
+
+   右欄是 qa 階段的預期,寫在這裡是給你判斷「哪幾條要重委派」用的——不是要你現在跑測試
 4. 一致性檢查**只重跑被動到的那幾條**
 
 ## 2B. Level 2:回架構層
@@ -85,29 +108,52 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
    ```
 
    它會印反向依賴——那些就是要一起看的文檔
-4. 已經 `done` 的 feature 檔契約改了時,**在回報裡點名**:它們的測試可能不再對應現況,是否要開 `E00x` 補做由開發者決定,不要自己動手
+4. 已經 `done` 的 feature 檔契約改了時,**那份檔一樣走第 3 段的留痕**:`rev` +1、REV 一條、`status` 退回 `specced`。沒有「補做它的 E」這個第二份檔——它的實作落後於它自己的新版本,重做被 REV 點名的那幾條就是了
+
+## 2C. 修訂的紀律(效能、重構、換做法時追加)
+
+修訂既有功能的「行為不變、只換做法」那一類(效能優化、重構、換演算法),多三條紀律——這是舊 enhance 模式搬過來的,只是不再另開檔:
+
+1. **先讀程式碼、再談修訂**:沒有打開原始碼讀過現況,就沒有資格提出或評估任何做法。用程式碼知識圖的「反向可達」查誰依賴這個標的,當作影響面的候選清單(圖會漏動態呼叫、反射、設定檔驅動的相依,每個要納入的位置一樣要開原始碼讀過)
+2. **現有行為也是契約**:哪些行為改完必須一模一樣,寫成 `REG-n` 回歸 law 住在原檔,交給 qa;不能靠實作者自己記得。沒有 REG 的「行為不變」等於沒有保護
+3. **量化目標寫進 law,基準線寫在 law 裡**:「LAW-6:p95 ≤ 100ms(基準線 2026-09-18 量測 400ms)」。怎樣算完成由這條 law 決定,不由實作者的感覺決定
 
 ## 3. 留痕(不可跳過)
 
-改完的 `## 契約` 底下追加一行:
+三件事,**同一次動作**做完:
 
-```markdown
-- 修訂 2026-09-03 依 auth/GAP-3:<改了什麼,一句話>(層級:Level 3 就地 / Level 2 連動 design.md「模組間公開介面」)
-```
+1. 改完的 `## 契約` 底下追加一行修訂行:
 
-觸發來源是 spike 時「依」後面寫 spike 全名(`依 SPK-003-storage-engine`),並把這份文檔的全名補進那份 spike 的 `feeds` 欄——那是 spike 唯一被允許的跨文檔回寫,由你做,不由 spike 做。
+   ```markdown
+   - 修訂 2026-09-03 依 auth/GAP-3:<改了什麼,一句話>(層級:Level 3 就地 / Level 2 連動 design.md「模組間公開介面」)
+   ```
+
+2. `## 修訂記錄` 追加一條 `REV-n`(沒有這一節就建;格式與規則見 `doc-lifecycle.md`「修訂(rev 與 REV)」),frontmatter `rev` +1——**兩者是同一個動作**,`rev` 只是 REV 條數的快取,腳本會查對不對得上:
+
+   ```markdown
+   - REV-2(2026-09-03,依 auth/GAP-3):<一句話:改了什麼、為什麼>
+     - 動到:LAW-2 改寫、LAW-5 新增、介面 `refresh(req)` 多一個 `now` 參數
+     - 保護:REG-1(既有 session 在修訂前後都還能 refresh)
+     - 重委派:qa(LAW-2、LAW-5、REG-1)、impl(`refresh`)
+     - 連動:billing/F004-invoice-session 的 `## 契約` 同步(Level 2)
+   ```
+
+   **「連動」欄列的是你在 2B.3 真的同步過的每一份下游**。腳本用它接漏網之魚:下游 X 依賴本檔、本檔這條 REV 晚於 X 的 `updated`、而「連動」沒點名 X,才會提示「沒點名 X,X 也沒對過帳」;你有列到就不報。**law 編號單調遞增**:刪掉的 LAW-3 永久空缺,新增的是下一個沒用過的號
+3. `status` 是 `done` 的,退回 `specced`(文檔已是新版本,實作落後於它);`planned` / `specced` 不動
+
+觸發來源是 spike 時「依」後面寫 spike 全名(`依 SPK-003-storage-engine`),並把這份文檔的全名補進那份 spike 的 `feeds` 欄——那是 spike 唯一被允許的跨文檔回寫,由你做,不由 spike 做。開發者直接提出、沒有 gap 的修訂,「依」寫 `開發者:<一句話>`。
 
 回填 gap 條目的 `狀態:resolved` 與 `修訂` 行(格式見 `../_shared/spec-roles.md`「spec-gaps 協議」)。**`修訂` 行必須指出是哪一份文檔的全名**——`/arch-audit status` 會查「gap 標了 resolved,但修訂行指到的文檔 `updated` 比結案日期早」,指不出來的結案會被列為不一致。
 
-同步該檔的 `updated`;Level 2 的話 `design.md` 也要同步。
+同步該檔的 `updated`;Level 2 的話 `design.md` 也要同步。修訂的討論過程(否決了什麼、為什麼)不留在原檔,搬 `archive/<F00x-slug>-rev<n>-process.md`。
 
 ## 4. 收尾
 
 **改完的東西 qa 與 impl 都要重跑**。收尾必須講明:
 
-- 哪幾條介面的簽名動過 → 骨架與既有測試一起失效,要重新委派
-- 哪幾份文檔的 `status` 該退回 `specced`(實作已經不符現況時)
-- Level 2 的話:哪幾份 `done` 的 feature 現在與契約對不上
+- 哪幾條介面的簽名動過 → 骨架與既有測試一起失效,要重新委派(就是 REV 的「重委派」欄,照抄)
+- 哪幾份文檔退回了 `specced`、現在是 rev 幾(`auth/F002-token-refresh(rev 2)`)
+- Level 2 的話:「連動」欄列的每一份下游各自改了什麼
 
 只說「文檔改好了」是不夠的——那會讓人以為程式碼還是對的。
 
@@ -121,6 +167,6 @@ node "<S>/arch-audit/scripts/scan-status.mjs" .design --subsys <slug>
 
 ## 邊界
 
-- **不配號、不建檔**:本 skill 只改既有文檔。要新的 feature 走 `/subsys-design`,要新的優化走 `/spec-design` enhance 模式
+- **不配號、不建檔**:本 skill 只改既有文檔。新功能(核心 F 或擴充 E)一律回 `/subsys-design` 分類建檔;**「優化既有功能」不是建檔的理由**,那就是本 skill 的修訂
 - **不寫測試、不寫實作**:改完交回 `/spec-qa` 與 `/spec-impl`
 - **委派模式下不啟動**:契約改動一定要人拍板,`/subsys-build` 遇到需要改契約的 gap 會停下來(見該 skill「閘門」)

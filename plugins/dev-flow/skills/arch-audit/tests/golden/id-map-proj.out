@@ -1,14 +1,14 @@
 demo  示範專案:含冒號的描述
 階段  S0 進行中  ·  S1 未開始
-子系統 1/2 已建  ·  ADR 1  ·  全域契約 G-C 1  ·  全域優化 G-E 1  ·  全域修復 G-B 0  ·  spike SPK 2(open 1)
+子系統 1/2 已建  ·  ADR 1  ·  全域契約 G-C 1  ·  跨系統核心 G-F 1  ·  跨系統擴充 G-E 1  ·  跨系統修復 G-B 0  ·  spike SPK 2(open 1)
 
 子系統 / 模組群  狀態     F  E  B  LAW  EX  ASM  GAP  WAVE
 ---------------  -------  -  -  -  ---  --  ---  ---  ----
-auth             active   3  -  -    4   4   2?  1/2     2
+auth             active   3  1  -    4   4   2?  1/2     2
   ├ Session      active   -  -  -    -   -    -    -     -
   └ MFA          planned  -  -  -    -   -    -    -     -
 billing          未建     -  -  -    -   -    -    -     -
-(全域 G-)        —        -  1  -    1   -    -    -     -
+(全域 G-)        —        1  1  -    2   1    -    -     -
 
 所有 n/m 一律「已達成/總數」——不滿就是有待辦(GAP 已結/總數)
 F 是 features/ 的份數 —— v2 起規劃與建檔是同一個動作,沒有兩個數字可以對不上;走到哪跑 scan-status

@@ -1,6 +1,6 @@
 ---
 name: spec-qa
-description: spec 驅動的測試撰寫 — 只讀 spec 文檔(F00x / E00x)的數據、介面、Laws、Examples 與設計階段留下的骨架,把每條 law 翻成 property test、每個 example 翻成 example test;禁止閱讀任何實作程式碼(程式碼知識圖只准用來定位型別與測試檔,不得推論行為),交付前必須確認測試「編譯通過且紅綠符合預期」。觸發詞:寫測試、spec qa、qa、測試設計、property test、性質測試、測試撰寫。Use when writing tests from a feature or enhancement spec without reading any implementation.
+description: spec 驅動的測試撰寫 — 只讀 spec 文檔(F00x / E00x / G-F00x / G-E00x,含修訂過 rev > 0 的)的數據、介面、Laws、Examples 與設計階段留下的骨架,把每條 law 翻成 property test、每個 example 翻成 example test;禁止閱讀任何實作程式碼(程式碼知識圖只准用來定位型別與測試檔,不得推論行為),交付前必須確認測試「編譯通過且紅綠符合預期」。觸發詞:寫測試、spec qa、qa、測試設計、property test、性質測試、測試撰寫。Use when writing tests from a feature or enhancement spec without reading any implementation.
 user-invocable: false
 ---
 
@@ -60,7 +60,7 @@ user-invocable: false
 
 1. `find` 骨架裡的型別 → 拿到它的建構子與 `source_file`,產生器要生什麼形狀由此決定
 2. `find` 既有測試模組 → 對齊命名與目錄慣例
-3. `tests-of <受測符號>`(圖建時帶 `--include-tests`)→ 列出已經依賴這個符號的既有測試。**enhance 目標特別重要**:這是回歸測試的候選清單,能看出哪些現有行為已經有人守著、哪些沒有
+3. `tests-of <受測符號>`(圖建時帶 `--include-tests`)→ 列出已經依賴這個符號的既有測試。**修訂目標(`rev > 0`)特別重要**:這是回歸測試的候選清單,能看出哪些現有行為已經有人守著、哪些沒有
 
 查到的都是**導航資訊**:哪裡放測試、輸入怎麼建。**沒有一條斷言可以來自圖**——斷言只能來自 spec 的 law 或 example 原文。圖上看到某個函數呼叫了什麼,與預期輸出無關,也不能拿來填 spec 沒寫到的地方。
 
@@ -68,7 +68,7 @@ user-invocable: false
 
 ## 3. 翻譯 Laws → property test
 
-spec 的每一條 law 對應**至少一條** property test(enhance spec 的 law 分「回歸 law」與「新 law」兩類,兩類都要翻)。law 是 spec 的一部分,你的工作是翻譯,不是設計性質:
+spec 的每一條 law 對應**至少一條** property test(修訂過的 spec 有 `REG-` 回歸 law 與 `LAW-` 兩類,兩類都要翻;`rev > 0` 時**只翻最後一條 REV「重委派」點名的那幾條**,其餘測試已經存在、不重寫)。law 是 spec 的一部分,你的工作是翻譯,不是設計性質:
 
 law 寫成**四格**(量詞 / 定義域 / 前提 / 觀察點),因為那就是一條 property test 的四個組成部件。**逐格取用,不要通篇意譯**:
 

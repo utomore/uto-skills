@@ -9,6 +9,6 @@
 - auth/F002-token-refresh  [specced]  建立  2026-08-10  subsystems/auth/features/F002-token-refresh.md
     登入  (完全相符:src/Auth/Login.hs)
 
-本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰」,答不出「那份文檔寫的對不對」。
+本腳本只產生索引,不下判斷:它答得出「哪份文檔、什麼狀態、誰依賴誰、今天能不能動」,答不出「那份文檔寫的對不對」。
 要寫進 spec 的每一條介面,仍須打開該文檔讀原文。各角色的使用界線見 _shared/design-query.md。
 __exit__ 0

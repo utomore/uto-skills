@@ -55,16 +55,16 @@ auth/F002-token-refresh  auth/GAP-1「過期判定用哪個時鐘」(qa 提出) 
 2. 同時開:/spec-build G-F001-session-check —— G-F001-session-check 在全域,與主線互不影響
 3. 之後:/spec-build auth/E001-remember-device(auth/E001-remember-device);/spec-build G-E001-cache(G-E001-cache)
 
-=== 附錄 A:任務文檔:未完成(5/6 份)===
+=== 附錄 A:任務文檔:全部(6 份)===
 狀態統計:done 1、planned 2、specced 3
 主軸                        文檔(全名)                 type     status                 派工        rev  updated     depends-on   file
 --------------------------  -------------------------  -------  ---------------------  ----------  ---  ----------  -----------  ----------------------------------------------------
+登入                        auth/F001-login            feature  done                   -           1    2026-08-20  []           subsystems/auth/features/F001-login.md
 登入                        auth/F002-token-refresh    feature  specced ⚠卡auth/GAP-1  卡住        -    2026-08-20  [F001]       subsystems/auth/features/F002-token-refresh.md
 登出                        auth/F003-logout           feature  planned                半步可開工  -    2026-09-03  []           subsystems/auth/features/F003-logout.md
 記住裝置,30 天內免二次驗證  auth/E001-remember-device  enhance  planned                可開工      0    2026-09-01  [auth/F001]  subsystems/auth/enhancements/E001-remember-device.md
 跨子系統的工作階段驗證      G-F001-session-check       feature  specced                可開工      0    2026-08-25  []           features/G-F001-session-check.md
 全域快取                    G-E001-cache               enhance  specced                可開工      -    2026-08-22  []           enhancements/G-E001-cache.md
-(已完成的 1 份不列在這裡 —— 它們已經算進附錄 B 的進度欄;要全表跑 --all)
 
 === 附錄 B:子系統狀態 ===
 主架構 system:示範專案:含冒號的描述  [active]  subsystems: [auth, billing]

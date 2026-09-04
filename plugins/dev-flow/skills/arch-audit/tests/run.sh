@@ -48,13 +48,18 @@ run() {
 echo "=== fixture 回歸(輸出與 exit code 都要相同)==="
 run id-map-proj      "$SCRIPTS/id-map.mjs" design
 run id-map-legend    "$SCRIPTS/id-map.mjs"
-run scan-inventory   "$SCRIPTS/scan-status.mjs" design
-run scan-subsys      "$SCRIPTS/scan-status.mjs" design --subsys auth
-run scan-doc-feature "$SCRIPTS/scan-status.mjs" design --doc F001
-run scan-doc-contract "$SCRIPTS/scan-status.mjs" design --doc G-C001
-run scan-doc-missing "$SCRIPTS/scan-status.mjs" design --doc F999
-run scan-file-hit    "$SCRIPTS/scan-status.mjs" design --file src/Auth/Login.hs
-run scan-file-miss   "$SCRIPTS/scan-status.mjs" design --file src/Web/Api.hs
+run scan-inventory   "$SCRIPTS/scan-status.mjs" design --today 2026-09-04
+# 盤點模式預設只列未完成:--all 是唯一看得到已完成文檔的入口,兩種都釘
+run scan-inventory-all "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --all
+run scan-subsys      "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --subsys auth
+run scan-doc-feature "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc F001
+run scan-doc-contract "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc G-C001
+# G-F(跨子系統核心功能:分工表、等分工 F)與 planned 的 E(擴充功能:非核心判準、不擋階段)各釘一份
+run scan-doc-global  "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc G-F001
+run scan-doc-enhance "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc auth/E001
+run scan-doc-missing "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --doc F999
+run scan-file-hit    "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --file src/Auth/Login.hs
+run scan-file-miss   "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --file src/Web/Api.hs
 run scan-bad-flag    "$SCRIPTS/scan-status.mjs" design --bogus
 run lint-ids         "$SCRIPTS/lint-ids.mjs" design
 run lint-laws        "$SCRIPTS/lint-laws.mjs" design
@@ -121,6 +126,43 @@ else
   echo "✗ scan-ids --claim SPK(文檔或程式碼資料夾少建了一樣,或 lint-spikes 不認得它建出來的東西)"; fail=1
 fi
 rm -rf "$CLAIM_TMP"
+
+echo
+echo "=== migrate-v3:既有 E 分流(在暫存副本上跑,不動 fixtures)==="
+# 帳本制:dry-run 只建帳本不動文檔;人在帳本填決定;--apply 才做機械的那半。三件事都要驗,
+# 而且 --apply 之後 scan-status 要讀得懂遷完的樹(REV、rev、archive、契約骨架)。
+MIG_TMP=$(mktemp -d)
+cp -R "$FX/migrate-v3/design" "$MIG_TMP/.design"
+node "$SCRIPTS/migrate-v3.mjs" "$MIG_TMP/.design" --today 2026-09-04 >/dev/null 2>&1; mig_rc=$?
+if [[ $mig_rc == 1 && -f "$MIG_TMP/.design/migration-v3.md" && -f "$MIG_TMP/.design/subsystems/auth/enhancements/E001-token-cache.md" ]] &&
+   ! grep -q '^rev:' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md"; then
+  echo "✓ dry-run:建了帳本(exit 1 = 有未決)、E 與 F 一個字都沒動"
+else
+  echo "✗ migrate-v3 dry-run 動了文檔、沒建帳本,或沒以 1 收場"; fail=1
+fi
+sed -i.bak 's#| auth/E001-token-cache | \(.*\) | 未決 |  |  |  |#| auth/E001-token-cache | \1 | 摺回 | auth/F001-login |  |  |#; s#| auth/E002-remember-device | \(.*\) | 未決 |  |  |  |#| auth/E002-remember-device | \1 | 留 E |  |  |  |#' "$MIG_TMP/.design/migration-v3.md"
+mig_out=$(node "$SCRIPTS/migrate-v3.mjs" "$MIG_TMP/.design" --apply --today 2026-09-04 2>&1 || true)
+if [[ -f "$MIG_TMP/.design/subsystems/auth/archive/E001-token-cache-migrated.md" && ! -f "$MIG_TMP/.design/subsystems/auth/enhancements/E001-token-cache.md" ]] &&
+   grep -q '^rev: 1' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
+   grep -q '^status: specced' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
+   grep -q 'REV-1(2026-09-04,依 遷移自 auth/E001-token-cache)' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
+   grep -q '核心判準' "$MIG_TMP/.design/subsystems/auth/features/F001-login.md" &&
+   grep -q '非核心判準' "$MIG_TMP/.design/subsystems/auth/enhancements/E002-remember-device.md" &&
+   grep -q '^rev: 0' "$MIG_TMP/.design/subsystems/auth/enhancements/E002-remember-device.md" &&
+   grep -q '摺回讓 F 退回 specced' <<<"$mig_out"; then
+  echo "✓ --apply:摺回 → F rev 1 + REV-1 + 退回 specced、E 進 archive;留 E → 契約骨架;對帳講得出少的那一份"
+else
+  echo "✗ migrate-v3 --apply 的結果不對"; echo "$mig_out" | tail -8; fail=1
+fi
+# 遷完的樹 scan-status 要讀得懂:REV 與 rev 對得上、archive 不進分母、沒有「不一致」
+mig_scan=$(node "$SCRIPTS/scan-status.mjs" "$MIG_TMP/.design" --today 2026-09-04 2>&1 || true)
+mig_doc=$(node "$SCRIPTS/scan-status.mjs" "$MIG_TMP/.design" --today 2026-09-04 --doc auth/F001 2>&1 || true)
+if grep -q '不一致(0)' <<<"$mig_scan" && grep -q 'rev 1' <<<"$mig_doc"; then
+  echo "✓ 遷完的樹 scan-status 讀得懂:不一致 0"
+else
+  echo "✗ 遷完的樹 scan-status 讀出不一致"; grep '不一致' <<<"$mig_scan" | head -5; fail=1
+fi
+rm -rf "$MIG_TMP"
 
 echo
 echo "=== spike-close:結案刪資料夾的五道關(在暫存 git repo 上跑)==="

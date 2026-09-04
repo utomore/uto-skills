@@ -20,7 +20,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例:資訊抽象邊界規範、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 跑東西的紀律 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、角色與設計哲學、資訊抽象邊界規範、通用規則、**跑東西的紀律**(驗骨架那一次編譯)。**不要整份讀** |
 | `../_shared/spec-roles.md` | **三角色契約**:你的產出是 qa 與 impl 的唯一輸入 |
 | `../_shared/boundary-rules.md` | **邊界判斷規則** + 設計階段規則 |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 任務文檔 文檔引用格式 description 狀態與生命週期` | doc-lifecycle 的五節。**不要整份讀**——腳本末尾會附上你沒讀到的章節目錄 |

@@ -22,7 +22,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
 | `/branch-pr` | — | 整合多條 branch 發 PR(先確認當前分支,在 main 上就先開新分支;標題英文 conventional commit、內文繁中、labels 英文) |
 | `/study` | — | 專案導讀(唯讀)— **六層縮放**由上而下帶開發者理解既有專案,範圍逐層收窄、深度逐層加深:全景(入口、技術棧、目錄職責;課末選定**主線情境**貫穿全程)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量;主線攜帶的型別優先)→ **逐跳 trace code**(沿主線從入口到輸出,附呼叫鏈摘要表,課末圈出要拆開看的跳)→ **細讀**(鑽進一兩個關鍵函式逐行講,含桌上執行表與逐分支邊界);每課固定「銜接 → 結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點(難度遞進:複述→預測→修改)→ 課程地圖」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
 
-共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分十二片,核心 `conventions.md` 每個 skill 都讀,其餘按需:`spec-roles.md`(spec 三角色契約)、`boundary-rules.md`(邊界判斷與發問協議)、`doc-lifecycle.md`(建檔、編號、引用與 frontmatter 規格)、`delegation.md` / `delegation-design.md`(委派模式)、`orchestration.md`(編排者專用:模型分派、委派 prompt、骨架快照、仲裁處置、派 spike 驗證)、`codegraph.md` / `codegraph-tools.md`(程式碼知識圖)、`testing-policy.md`、`anchor.md`(收尾定錨)。**分片對照表的唯一權威是 `conventions.md` 開頭那張表**;每個 skill 開頭明列自己要讀哪幾片。
+共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分十二片,核心 `conventions.md` 每個 skill 都讀(用 `doc-section.mjs` 只讀自己那幾節),其餘按需:`spec-roles.md`(spec 三角色契約)、`boundary-rules.md`(邊界判斷與發問協議)、`doc-lifecycle.md`(建檔、編號、引用與 frontmatter 規格)、`delegation.md` / `delegation-design.md`(委派模式)、`orchestration.md`(編排者專用:模型分派、委派 prompt、骨架快照、仲裁處置、派 spike 驗證)、`codegraph.md` / `codegraph-tools.md`(程式碼知識圖)、`testing-policy.md`、`anchor.md`(收尾定錨)。**分片對照表的唯一權威是 `conventions.md` 開頭那張表**;每個 skill 開頭明列自己要讀哪幾片。
 
 改 skill 前請先看 [docs/skill-authoring.md](docs/skill-authoring.md)——撰寫與維護準則(追加閘門、分片規則、成本量測)。
 

@@ -26,7 +26,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-f
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例:資訊抽象邊界規範、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、資訊抽象邊界規範、通用規則。**不讀「跑東西的紀律」**——本 skill 只跑盤點腳本,不跑測試 |
 | `../_shared/spec-roles.md` | 三角色契約與 **spec-gaps 協議**(回填格式) |
 | `../_shared/boundary-rules.md` | **層級判斷**——本 skill 的第一個動作就靠它 |
 | 目標 feature / enhance 檔全文 + 它的骨架 | 你要改的東西 |

@@ -24,7 +24,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 跑東西的紀律 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、通用規則、**跑東西的紀律**。**不要整份讀** |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/doc-lifecycle.md 命名與編號規則 文檔引用格式 description "spike 文檔"` | 配號、引用寫法、spike 的 frontmatter。**不要整份讀** |
 
 條件式:prompt 標明 `【委派模式】` → `../_shared/delegation.md`;要定位既有程式碼**且**專案有知識圖 → `../_shared/codegraph.md` + `codegraph-tools.md`;收尾 → `../_shared/anchor.md`(委派模式不讀)。

@@ -10,7 +10,7 @@ skill 的成本不是檔案長度,是**執行者一次要同時記住多少條�
 SKILL.md + 該 skill 會讀到的 _shared 分片
 ```
 
-所以共用層的每一行,都乘上讀它的 skill 數量。量測:
+所以共用層的每一行,都乘上讀它的 skill 數量。**`conventions.md` 也不整份讀**:每個 SKILL.md 的載入行用 `doc-section.mjs` 點名自己要的節(開頭的分片對照表是給維護者的,執行時跳過;不跑測試 / 建置的 skill 跳過「跑東西的紀律」),光這一項每次執行省 1.1k–2.3k tokens。量測:
 
 ```bash
 cd plugins/dev-flow

@@ -2,7 +2,7 @@
 
 所有開發流程 skills(system-design、subsys-design、subsys-build、spec-build、spec-design、spec-qa、spec-impl、spec-redesign、bugfix、spike、arch-audit、branch-pr、study)共用本慣例。
 
-本檔是**每個 skill 都要讀**的核心。另外十二片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
+本檔是**每個 skill 都要讀**的核心——但**用 `doc-section.mjs` 只讀自己那幾節**(各 SKILL.md 的載入行寫死了節名;不跑測試 / 建置的 skill 不讀「跑東西的紀律」)。下面這張分片對照表是**給維護者**的,執行時不必讀:各 skill 開頭已明列自己要讀哪幾片。另外十二片按需載入,沒踩到條件就不用讀——**沒踩到條件而讀了,是白花 context**:
 
 | 分片 | 內容 | 什麼時候讀 |
 |---|---|---|

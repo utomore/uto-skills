@@ -17,7 +17,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例:資訊抽象邊界規範、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 跑東西的紀律 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、資訊抽象邊界規範、通用規則、**跑東西的紀律**。**不要整份讀** |
 | `../_shared/doc-lifecycle.md` | **對帳要全份**:資料夾樹、引用格式、權威來源與 frontmatter 規格 |
 | `../_shared/boundary-rules.md` | 檢查知識歸屬與依賴邊的判準 |
 | `../_shared/testing-policy.md` | 檢查測試後門的判準 |

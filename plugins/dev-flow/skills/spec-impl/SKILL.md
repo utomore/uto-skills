@@ -17,7 +17,7 @@ user-invocable: false
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 跑東西的紀律 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、資訊抽象邊界規範、通用規則、**跑東西的紀律**。**不要整份讀** |
 | `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/spec-roles.md 鐵律 三個角色的輸入與禁區 "spec-gaps 協議" 仲裁協議` | 你的禁區、骨架規格、gap 協議、仲裁。**不要整份讀** |
 | `../_shared/boundary-rules.md` | **邊界判斷規則** + 實作階段規則 |
 

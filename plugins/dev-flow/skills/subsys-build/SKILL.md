@@ -17,7 +17,7 @@ user-invocable: true
 
 | 讀什麼 | 為什麼 |
 |---|---|
-| `../_shared/conventions.md` | 核心慣例、腳本目錄、**跑東西的紀律** |
+| `node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 跑東西的紀律 角色與設計哲學 資訊抽象邊界規範 通用規則` | 核心慣例:腳本目錄、角色與設計哲學、通用規則、**跑東西的紀律**。**不要整份讀** |
 | `../_shared/spec-roles.md` | **三角色契約**——你是那一片裡的「編排者」 |
 | `../_shared/orchestration.md` | **骨架快照與仲裁的裁決處置,你的職責** |
 | `../_shared/delegation.md` | **委派模式共通契約** |

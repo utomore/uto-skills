@@ -9,6 +9,7 @@ import { lintAll, lintBoundary, lintLaws, lintSig, lintTrace, renderLint } from 
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
 import { claim, modulesGen, spikeClose, sync } from '../lib/commands/edit.mjs';
+import { migrateFromDevFlow } from '../lib/commands/migrate.mjs';
 
 const HELP = `lawful <子命令> [選項]
 
@@ -21,6 +22,9 @@ const HELP = `lawful <子命令> [選項]
   modules --gen                        從程式碼補模組表缺的模組,層欄留白
   section <file> <節>… [--verify]      取 ## 節
   spike close <SPK-00x> [--dry-run]    檢查 verdict / feeds / sha 齊全,刪 spike/SPK-00x-<slug>/
+  migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>] [--language <adapter>]
+                                       盤點 subsystems/ 體系的 .design:每份 F / E / G-F 的介面在程式碼裡對到幾條、
+                                       四格 law 翻成三行草稿、按模組建議怎麼合成 pipeline、開發階段對到里程碑;只印帳本,不改任何檔
 
 選項
   --root <dir>                         專案根目錄(預設目前目錄)
@@ -54,7 +58,7 @@ function loadProject(root) {
   if (!design.system) notes.push('缺 .design/system.md');
   else if (!language) notes.push('system.md 沒有 language 欄,簽名與邊界不對帳');
   else if (!adapter) notes.push(`此語言尚無 adapter(${language}),lint sig 與 lint boundary 跳過`);
-  const source = adapter ? readSource(root, adapter) : null;
+  const source = adapter ? readSource(root, adapter, design.system ? design.system.ignoreDirs : []) : null;
   return { design, adapter, source, notes };
 }
 
@@ -79,6 +83,16 @@ function main() {
       return 1;
     }
     return emit(sectionCommand(path.resolve(root, sub), rest, { verify: !!args.flags.verify, display: sub }));
+  }
+
+  if (cmd === 'migrate') {
+    if (sub !== 'from-dev-flow' || !rest[0]) {
+      console.error('用法:lawful migrate from-dev-flow <.design 路徑> [--write <file>] [--root <專案根目錄>]');
+      return 1;
+    }
+    const ignore = typeof args.flags.ignore === 'string' ? args.flags.ignore.split(',').map((s) => s.trim()).filter(Boolean) : [];
+    const r = migrateFromDevFlow(path.resolve(root, rest[0]), root, { write: typeof args.flags.write === 'string' ? path.resolve(root, args.flags.write) : null, language: typeof args.flags.language === 'string' ? args.flags.language : null, ignore });
+    return emit(r);
   }
 
   const p = loadProject(root);

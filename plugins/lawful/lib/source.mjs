@@ -4,11 +4,13 @@ import path from 'node:path';
 
 const SKIP_DIRS = new Set(['.git', '.design', 'node_modules', 'dist-newstyle', '.stack-work', 'spike', 'dist', 'target', '.cabal-sandbox']);
 
-function walk(dir, exts, out, root) {
+function walk(dir, exts, out, root, ignore) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
     if (ent.isDirectory()) {
       if (SKIP_DIRS.has(ent.name)) continue;
-      walk(path.join(dir, ent.name), exts, out, root);
+      const relDir = path.relative(root, path.join(dir, ent.name)).split(path.sep).join('/');
+      if (ignore.includes(relDir) || ignore.includes(ent.name)) continue;
+      walk(path.join(dir, ent.name), exts, out, root, ignore);
     } else if (exts.some((e) => ent.name.endsWith(e))) {
       const abs = path.join(dir, ent.name);
       out.push({ abs, rel: path.relative(root, abs).split(path.sep).join('/') });
@@ -17,9 +19,10 @@ function walk(dir, exts, out, root) {
 }
 
 // { modules: Map<name, {module, file, layerHint, imports, signatures}>, testFiles: [{file, markers}] }
-export function readSource(root, adapter) {
+// ignore:system.md「忽略目錄」列的相對路徑或目錄名
+export function readSource(root, adapter, ignore = []) {
   const files = [];
-  walk(root, adapter.extensions, files, root);
+  walk(root, adapter.extensions, files, root, ignore);
   const modules = new Map();
   const testFiles = [];
   for (const f of files) {

@@ -24,7 +24,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `modules --gen` | 從程式碼生成模組表骨架,層欄留白;已有的表保留層欄、只補新模組 |
 | `section <file> <節>…` | 取節 |
 | `spike close <SPK-00x>` | 檢查 verdict / feeds / sha 齊全,刪 `spike/SPK-00x-<slug>/` |
-| `migrate from-dev-flow <.design>` | 盤點 `subsystems/<slug>/` 體系的 `.design/`:每份 F / E 的介面表對到哪條 pipeline 的哪些 stage、Laws 與決定怎麼搬、開發階段對到哪些里程碑;帳本制,機械的搬,人只判合併與里程碑切法 |
+| `migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>]` | 盤點 `subsystems/<slug>/` 體系的 `.design`,印一份帳本,不改任何檔:每份 F / E / G-* 的介面簽名在程式碼裡對到幾條、四格 law 翻成三行草稿(散文的標「需形式化」)、按簽名所在模組分組並建議 `claim` 的 slug、開發階段表列成里程碑候選、退場清單、人要判的清單。分組、里程碑切法、law 形式化由人做 |
 
 exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pipeline` / `--module` = 查得到 0、查不到 1;`lint` 一律 0 / 1。
 
@@ -57,7 +57,7 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 | `stdlib`:law 裡可直接用的標準函式庫函數 | `lint laws` |
 | `stub`:未實作本體 | conductor 寫骨架 |
 
-Haskell adapter:`.hs`;簽名行 `name :: Type`,多行合併,record 欄位也算;`import` 行;`IO` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出讀 hspec 的 specdoc 格式;`stub` = `undefined`。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
+Haskell adapter:`.hs`;簽名行 `name :: Type`,多行合併,record 欄位也算;`import` 行;`IO` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `undefined`。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
 
 ## 跑東西的紀律
 

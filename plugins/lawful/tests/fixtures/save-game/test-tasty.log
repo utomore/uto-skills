@@ -1,0 +1,16 @@
+Running 1 test suites...
+Test suite spec: RUNNING...
+save-game
+  P-001#LAW-1
+    roundtrip:                                      OK (0.05s)
+        ✓ <interactive> passed 100 tests.
+  P-001#LAW-2:                                      OK (0.03s)
+        ✓ <interactive> passed 100 tests.
+  P-001#LAW-3:                                      FAIL (0.02s)
+        ✗ <interactive> failed at test/SaveGameSpec.hs:31:7
+          after 12 tests and 3 shrinks.
+  P-001#EX-1:                                       OK
+  P-001#EX-2:                                       OK
+
+1 out of 5 tests failed (0.11s)
+Test suite spec: FAIL

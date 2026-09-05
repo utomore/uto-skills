@@ -107,7 +107,8 @@ export const haskell = {
   },
   // 簽名文字的比對用正規化:同 signatures 的 type 欄。
   normalizeType: normalize,
-  // hspec 輸出 → Map<marker, 'green' | 'red' | 'pending'>。describe 字串是 P-00x#LAW-n 的才對得到。
+  // 測試輸出 → Map<marker, 'green' | 'red' | 'pending'>。認 hspec(specdoc)與 tasty 兩種版面;
+  // 標記可以是群組名(底下的項目算它的)或單一測試名(同一行帶結果)。
   testResults(log) {
     const clean = log.replace(/\x1b\[[0-9;]*m/g, '');
     const results = new Map();
@@ -117,23 +118,34 @@ export const haskell = {
       const prev = results.get(m);
       if (v === 'red' || !prev || (prev === 'pending' && v === 'green')) results.set(m, v);
     };
+    const verdictOf = (line) => {
+      if (/\[✘\]|\bFAILED\b|:\s+FAIL\b/.test(line)) return 'red';
+      if (/\[✔\]|:\s+OK\b/.test(line)) return 'green';
+      if (/\[‐\]|# PENDING|:\s+SKIP\b/.test(line)) return 'pending';
+      return null;
+    };
     for (const raw of clean.split(/\r?\n/)) {
       const line = raw.replace(/\s+$/, '');
-      if (/^(Failures:|Randomized with seed|Finished in|\d+ examples?)/.test(line)) {
+      if (/^(Failures:|Randomized with seed|Finished in|\d+ examples?|All \d+ tests passed|\d+ out of \d+ tests failed)/.test(line)) {
         current = null;
         continue;
       }
       const indent = line.search(/\S/);
-      const head = /^\s*(P-\d{3}#(?:LAW|EX)-\d+)\s*$/.exec(line);
-      if (head) {
-        current = head[1];
-        currentIndent = indent;
+      const marked = /^\s*(P-\d{3}#(?:LAW|EX)-\d+)\b(.*)$/.exec(line);
+      if (marked) {
+        const v = verdictOf(marked[2]);
+        if (v) {
+          set(marked[1], v);
+          if (current && indent > currentIndent) set(current, v);
+        } else {
+          current = marked[1];
+          currentIndent = indent;
+        }
         continue;
       }
       if (current && indent > currentIndent) {
-        if (/\[✘\]|\bFAILED\b/.test(line)) set(current, 'red');
-        else if (/\[✔\]/.test(line)) set(current, 'green');
-        else if (/\[‐\]|# PENDING/.test(line)) set(current, 'pending');
+        const v = verdictOf(line);
+        if (v) set(current, v);
         continue;
       }
       if (indent >= 0 && indent <= currentIndent) current = null;

@@ -14,6 +14,14 @@
       "source": "./plugins/dev-flow"
     },
     {
+      "name": "lawful",
+      "description": "純函數式專案(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 pipeline(input → 純轉換 → output),stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 types / effects / pure / shell 四層;進度由 CLI 從程式碼與測試推導。skills:design、pipeline、build(conductor 帶 qa 與 impl)、qa、impl、revise、status、audit、spike;CLI:status、claim、lint、sync、modules --gen、section、spike close;Haskell adapter",
+      "author": {
+        "name": "utomore"
+      },
+      "source": "./plugins/lawful"
+    },
+    {
       "name": "talk-flow",
       "description": "演講內容產生流程 skills:主軸設計(含風格基底選定、前景/背景分層、Marp 鷹架與文字規範)、段落設計(含 status 掃描與文字技法選用)、段落實作(Marp 排版 + 視覺引導 + 逐頁背景 + SVG 圖形 + 頁內備註)、頁面調整、整體審查(build 後逐頁目視 + 十四項指標含文案語感,產出 review/ 報告)、架構圖排版量測(svg-layout),投影片以 marp-cli 建置輸出;全流程禁對比翻轉句與人稱代名詞(wording.md)",
       "author": {

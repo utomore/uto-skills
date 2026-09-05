@@ -29,14 +29,16 @@ export function readSystem(designDir, root) {
   const secs = sections(body);
   const tools = findSection(secs, '語言與工具');
   const ioExtra = [];
+  const ignoreDirs = [];
   const commands = {};
   if (tools) {
     for (const it of parseList(tools.lines)) {
-      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加)[::]\s*(.*)$/.exec(it.text);
+      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|忽略目錄)[::]\s*(.*)$/.exec(it.text);
       if (!m) continue;
-      if (m[1] === 'IO 模組追加') {
-        for (const v of m[2].split(/[、,]/).map((s) => stripTicks(s.trim()))) if (v && v !== '無') ioExtra.push(v);
-      } else commands[m[1]] = stripTicks(m[2]);
+      const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
+      if (m[1] === 'IO 模組追加') ioExtra.push(...list());
+      else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
+      else commands[m[1]] = stripTicks(m[2]);
     }
   }
   const pl = findSection(secs, 'Pipelines');
@@ -45,7 +47,7 @@ export function readSystem(designDir, root) {
     const t = parseTable(pl.lines);
     if (t) for (const r of t.rows) pipelines.push({ fullName: stripTicks(r[0] || ''), kind: (r[1] || '').trim() });
   }
-  return { file: rel(root, file), fm, language: fm.language || null, ioExtra, commands, pipelines, sections: secs };
+  return { file: rel(root, file), fm, language: fm.language || null, ioExtra, ignoreDirs, commands, pipelines, sections: secs };
 }
 
 // 模組表:[{ pattern, layer, line }];pattern 可能以 .* 結尾。

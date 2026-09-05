@@ -26,6 +26,8 @@ const CASES = [
   ['save-game-status-pipeline', 'save-game', ['status', '--pipeline', 'P-001-save-game', '--tests', 'test.log']],
   ['save-game-status-module', 'save-game', ['status', '--module', 'Save.Codec', '--tests', 'test.log']],
   ['broken-status', 'broken', ['status']],
+  ['save-game-status-tasty', 'save-game', ['status', '--tests', 'test-tasty.log']],
+  ['devflow-migrate', 'devflow', ['migrate', 'from-dev-flow', '.design', '--ignore', 'old']],
   ['save-game-claim', 'save-game', ['claim', 'load-game', '--description', '把存檔讀回 World', '--date', DATE], ['.design/pipelines/P-002-load-game.md', '.design/system.md']],
   ['broken-sync', 'broken', ['sync', '--date', DATE], ['.design/pipelines/P-001-save-game.md']],
   ['broken-modules-gen', 'broken', ['modules', '--gen'], ['.design/modules.md']],

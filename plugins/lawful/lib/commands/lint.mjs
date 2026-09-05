@@ -186,7 +186,7 @@ export function lintTrace(design, source) {
   }
   const seen = new Map();
   for (const t of source.testFiles) {
-    if (!t.markers.length) r.red.push(`${t.file} 沒有任何 P-00x#LAW-n / EX-n 歸屬`);
+    if (!t.markers.length) r.info.push(`${t.file} 沒有歸屬,當內部單元測試,不進 law 分母`);
     for (const m of t.markers) {
       if (!seen.has(m)) seen.set(m, []);
       seen.get(m).push(t.file);

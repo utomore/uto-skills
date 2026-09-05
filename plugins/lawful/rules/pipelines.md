@@ -113,6 +113,19 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 **Examples**:表 `# | 輸入 | 輸出 | 覆蓋`,每列指到它覆蓋的 law;指不到就先補 law。每個 example 一條 example test,歸屬 `P-002#EX-1`。
 
+## 什麼要有 law
+
+law 只掛在 stage 上,所以先問一個函數是不是 stage,再問它有沒有性質。兩題都答是,才立 law;每條 pipeline 的 `=` 列至少一條。
+
+| 問 | 答否 | 答是 |
+|---|---|---|
+| 1. 有沒有任何 pipeline 把它寫進 Stages 表?(別的模組或別的層拿它當資料流的一步) | 不是 stage,不寫 law。只給自己模組用的支架(型別層遍歷的輔助 class、`where` 裡的區域函數、只為了寫出上層公開函數而存在的 method)歸內部單元測試,不標歸屬、不進分母 | 往下 |
+| 2. 型別留下多少自由度?(有幾個型別正確、行為不同的實作) | 一個,不寫 law:回常數或名字的 method、只包一層的 smart constructor、instance 存在與否、deriving。這些由編譯器或初始狀態驗收 | 有限幾個,每個自由度一條 law;無限多(演算法決定),law 寫不變量與邊界,寫不出 `|-` 行的部分靠 example |
+
+typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、component 的 codec)是 stage,它的代數性質在 class 所屬的子流寫成 law,**一條 law、每個 instance 一條測試**,歸屬都標同一個 `P-00x#LAW-n`;instance 不另寫 law。只在模組內遞迴用的 class 不是 stage。
+
+不寫 law 的:常數與設定值、只做接線的 `=` 列本體(由各 stage 的 law 加 example 承接)、shell 層的 IO 函數(它們在對外 I/O 表)、只有型別層知識的東西。law 的條數不是進度,是自由度的數量。
+
 **決定**:每條一句粗體結論、否決的替代方案、理由一句;有證據引用 SPK / ADR 全名。只裝只關這條 pipeline 的決定;跨 pipeline 的開 ADR。解凍紀錄也寫這裡。
 
 ## 修訂(REV)

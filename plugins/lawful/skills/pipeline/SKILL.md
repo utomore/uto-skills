@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「pipeline」「編號與引用」「frontmatter 與 status」「節」「願望 stage」、`rules/boundary.md`「模組表」、`rules/tooling.md`「收尾定錨」。再讀 `.design/system.md`、`.design/modules.md`,以及 types 層模組的匯出(law 只准引用它們與 Stages 的簽名)。
+`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」「願望 stage」、`rules/boundary.md`「模組表」、`rules/tooling.md`「收尾定錨」。再讀 `.design/system.md`、`.design/modules.md`,以及 types 層模組的匯出(law 只准引用它們與 Stages 的簽名)。
 
 ## 輸入 / 產出
 
@@ -20,7 +20,7 @@ user-invocable: true
 
 1. **Brief**:問清楚 input 是什麼、output 是什麼、它在哪條里程碑裡;三到五句寫下,用 `→` 串 stage 的中文名。
 2. **Stages,從 output 往回推**:每一步一條簽名,逐字寫成程式碼會長的樣子;模組與層對模組表;`=` 列是整條。底層還沒有的能力,寫理想簽名並在模組欄註明「願望,見 P-00x-<slug>」或只寫目標模組。引用別條 pipeline 的 stage 照抄簽名並註明「見」。
-3. **Laws,照種類問法表逐種問**(`pipelines.md`「節」的 Laws 表):做完什麼一定不變、什麼輸入等於沒做、存出去要不要一模一樣讀回來、兩步的輸出有什麼對應、哪個數字有上限、有沒有慢但一定對的寫法。每條三行,純 ASCII,`|-` 只引用 Stages 的簽名與 types 層匯出。問出來的「哪些欄位不算」這種答案,常常是一個新的 stage(投影),當場加進 Stages。
+3. **Laws,先過「什麼要有 law」的兩問**(是不是 stage、型別留下幾個自由度),再照種類問法表逐種問(`pipelines.md`「節」的 Laws 表):做完什麼一定不變、什麼輸入等於沒做、存出去要不要一模一樣讀回來、兩步的輸出有什麼對應、哪個數字有上限、有沒有慢但一定對的寫法。每條三行,純 ASCII,`|-` 只引用 Stages 的簽名與 types 層匯出。問出來的「哪些欄位不算」這種答案,常常是一個新的 stage(投影),當場加進 Stages。
 4. **Examples**:每條 law 至少一個具體例子,邊界值優先;覆蓋欄指到 law。
 5. **決定**:對談中否決掉的替代方案,一句結論、一句理由;要證據的派 `lawful:spike`,結論回來再寫。
 6. **對帳**:`lawful lint laws`、`lawful lint sig`(願望與找不到的 stage 不算紅,不一致才紅)。紅的回到對應步驟。

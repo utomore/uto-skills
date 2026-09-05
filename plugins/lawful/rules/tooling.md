@@ -19,7 +19,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `lint sig` | Stages 簽名 vs 程式碼簽名,逐字;願望 stage 列待實作不算紅;簽名一致但模組不同列「搬家」 |
 | `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |
 | `lint laws` | 三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名、types 層匯出或 adapter 的標準函式庫清單、example 指得到 law |
-| `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用、無歸屬 |
+| `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅 |
 | `lint all` | 以上全部 |
 | `modules --gen` | 從程式碼生成模組表骨架,層欄留白;已有的表保留層欄、只補新模組 |
 | `section <file> <節>…` | 取節 |

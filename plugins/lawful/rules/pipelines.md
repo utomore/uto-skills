@@ -59,10 +59,10 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 | status | 意思 |
 |---|---|
 | `draft` | 還在討論;`lawful:build` 拒收 |
-| `ready` | 開發者拍板,可以委派 |
-| `frozen` | 里程碑達成後鎖住,不准修訂。解凍 = 在「決定」記一條為什麼,改回 `ready` |
+| `ready` | 開發者口頭拍板,`lawful:pipeline` 改欄位;可以委派 |
+| `frozen` | 里程碑達成後 conductor 鎖住,不准修訂。解凍 = `lawful:revise` 在「決定」記一條為什麼,改回 `ready` |
 
-`frozen` 而測試紅、或有 REV 卻沒有解凍紀錄,是不一致。進度不是欄位,由 `lawful status` 推導。不做的 pipeline 直接刪檔;值得記住為什麼,開 ADR。
+開發者不親自改任何 `.design/` 檔;開發者說,skill 寫。`frozen` 而測試紅、或有 REV 卻沒有解凍紀錄,是不一致。進度不是欄位,由 `lawful status` 推導。不做的 pipeline 直接刪檔;值得記住為什麼,開 ADR。
 
 ## 節
 
@@ -135,7 +135,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 ```
 
 - 委派模式下 subagent 不寫檔:四欄寫進回報,局部序號 `本次-1`,conductor 單線寫入配號。
-- 結案 = 開發者在 `lawful:revise` 回答,寫 REV 並刪條目,依欄帶模糊點原句。檔空了刪檔。
+- 結案 = 開發者口頭回答,`lawful:revise` 寫 REV 並刪條目,依欄帶模糊點原句。檔空了刪檔。
 - open 的 GAP 擋:那條 pipeline 不算達成、`lawful:build` 前置不放行、`lawful status` exit 1。
 - impl 測試全綠也不得把有 open GAP 的 stage 當完成。
 

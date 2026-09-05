@@ -6,8 +6,8 @@
 
 | 階段 | 誰 | 產出 |
 |---|---|---|
-| **設計** | 開發者與 `lawful:design` / `lawful:pipeline` 對談 | `system.md`、模組表、`draft` 的 pipeline;拍板改 `ready` |
-| **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 骨架、測試、實作、REV;里程碑達成後開發者改 `frozen` |
+| **設計** | 開發者與 `lawful:design` / `lawful:pipeline` 對談 | `system.md`、模組表、`draft` 的 pipeline;開發者拍板後 skill 改 `ready` |
+| **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 骨架、測試、實作、REV;里程碑達成後 conductor 改 `frozen` |
 
 `lawful:build` 只收 `ready` 且沒有 open GAP 的 pipeline。一條 pipeline 一波。
 
@@ -48,7 +48,7 @@ subagent 問不了人:
 - qa 與 impl 自己決定的事整份列出供抽查,不逐條問。
 - 定錨區塊(tooling.md「收尾定錨」)。
 
-開發者的決定只在兩個地方發生:設計對談(`lawful:pipeline`,改 `ready`)與回答 GAP(`lawful:revise`)。build 不替開發者做契約級決定,也不事後追認。
+開發者的決定只在兩個地方發生:設計對談(`lawful:pipeline`)與回答 GAP(`lawful:revise`);開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
 
 ## 仲裁
 

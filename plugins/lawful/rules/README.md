@@ -31,7 +31,8 @@
 | `*.Internal`、後門 | boundary.md「測試與邊界」 |
 | conductor、qa、impl | roles.md「三角色」 |
 | 委派、回報五項 | roles.md「委派」 |
-| 骨架、`stub`、骨架快照 | roles.md「骨架與快照」 |
+| 骨架、`stub`、基線 | roles.md「骨架與基線」 |
+| 產生器、案例數上限 | roles.md「qa 的交付」 |
 | 波末收尾 | roles.md「收尾」 |
 | 仲裁四分流 | roles.md「仲裁」 |
 | `<L>`、子命令、exit code | tooling.md「CLI」 |
@@ -48,7 +49,7 @@
 | `lawful:design` | pipelines.md「`.design/`」「system.md」「ADR」;boundary.md 全份;tooling.md「language adapter」「收尾定錨」 |
 | `lawful:pipeline` | pipelines.md「pipeline」「編號與引用」「frontmatter 與 status」「節」「願望 stage」;boundary.md「模組表」;tooling.md「收尾定錨」 |
 | `lawful:build` | roles.md 全份;pipelines.md「提問(GAP)」「修訂(REV)」「完成度」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
-| `lawful:qa` | roles.md「三角色」「委派」;pipelines.md「節」「提問(GAP)」;boundary.md「測試與邊界」 |
+| `lawful:qa` | roles.md「三角色」「委派」「qa 的交付」;pipelines.md「節」「提問(GAP)」;boundary.md「測試與邊界」 |
 | `lawful:impl` | roles.md「三角色」「委派」;pipelines.md「節」「提問(GAP)」;boundary.md「四層」 |
 | `lawful:revise` | pipelines.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」;tooling.md「收尾定錨」 |
 | `lawful:status` | tooling.md「CLI」「status 報告」「收尾定錨」;pipelines.md「完成度」 |

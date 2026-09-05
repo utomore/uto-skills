@@ -54,13 +54,13 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 ## frontmatter 與 status
 
-`id`、`description`、`status`、`created`、`updated`。`status` 只放人才知道的決定:
+`id`、`description`、`status`、`updated`。`status` 只放人才知道的決定:
 
 | status | 意思 |
 |---|---|
 | `draft` | 還在討論;`lawful:build` 拒收 |
 | `ready` | 開發者口頭拍板,`lawful:pipeline` 改欄位;可以委派 |
-| `frozen` | 里程碑達成後 conductor 鎖住,不准修訂。解凍 = `lawful:revise` 在「決定」記一條為什麼,改回 `ready` |
+| `frozen` | `lawful status` 顯示里程碑達成,conductor 在 build 收尾直接改,不問;不准修訂。解凍 = `lawful:revise` 在「決定」記一條為什麼,改回 `ready` |
 
 開發者不親自改任何 `.design/` 檔;開發者說,skill 寫。`frozen` 而測試紅、或有 REV 卻沒有解凍紀錄,是不一致。進度不是欄位,由 `lawful status` 推導。不做的 pipeline 直接刪檔;值得記住為什麼,開 ADR。
 
@@ -96,8 +96,17 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 ```
 
 - `forall` 行:變數與定義域;前提寫在集合限定裡,或再加一行 `given <前提>`。
-- `|-` 行:結論;只准引用 Stages 表的簽名與型別的既有函數;`==`、`in`、`=>`、`.`、`and`、`or`。
-- 種類:`invariant`(量不變)、`identity`(恆等 / 冪等)、`roundtrip`(往返)、`relation`(兩個 stage 的關係)、`bound`(上下界 / 單調)、`equiv`(兩種算法等價)。
+- `|-` 行:結論;每個識別字必須是 Stages 表的簽名或 types 層匯出的函數,`lint laws` 對帳,對不到不准 `ready`;`==`、`in`、`=>`、`.`、`and`、`or`。law 不定義型別,型別與函數一律住程式碼。
+- 種類與對談時的問法:
+
+| 種類 | 性質 | 問開發者什麼 |
+|---|---|---|
+| `invariant` | 某個量轉換前後不變 | 做完之後什麼一定不會變? |
+| `identity` | 恆等、冪等、單位元 | 什麼輸入等於沒做?做兩次跟做一次一樣嗎? |
+| `roundtrip` | 編了解回原值 | 存出去的東西要能一模一樣讀回來嗎?哪些欄位不算? |
+| `relation` | 兩個 stage 輸出之間的關係 | 這一步的輸出跟上一步的輸出有什麼對應? |
+| `bound` | 上下界、單調 | 哪個數字有上限?輸入變大輸出一定變大嗎? |
+| `equiv` | 兩種算法等價 | 有沒有一個慢但一定對的寫法可以拿來對照? |
 - 每條 law 至少一條 property test,測試以 `P-002#LAW-1` 宣告歸屬(`describe "P-002#LAW-1"` 或註解 `-- lawful: P-002#LAW-1`)。`lawful lint trace` 對帳。
 - 觀察點必須是這條 pipeline 自己的簽名;要觀察別條的內部,law 屬於那條。
 - bug = 某條 law 在現況下不成立:law 已存在就修碼;沒寫到就補 law(走修訂)。沒有 bug 文檔。
@@ -170,7 +179,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 讀了也答不出來、要跑了才知道的問題,才開 spike:替決定生產證據,自己不做決定。
 
-- frontmatter:`id`、`description`、`status`(`open | concluded`)、`verdict`(`feasible | infeasible | partial`)、`created`、`updated`、`feeds`(餵給 `P-00x-<slug>` 的決定或 ADR 全名;concluded 時非空)。
+- frontmatter:`id`、`description`、`status`(`open | concluded`)、`verdict`(`feasible | infeasible | partial`)、`updated`、`feeds`(餵給 `P-00x-<slug>` 的決定或 ADR 全名;concluded 時非空)。
 - 三節:`## 問題`(要回答什麼、為什麼讀不出來、判準、timebox)、`## 輪次`(`RND-n`:這輪要驗、判準、timebox、做法、結果、sha、環境)、`## 結論`(verdict、一句話、學到什麼、餵給哪裡、沒驗到的)。
 - 判準寫成可觀察的數字或現象;每輪先寫三樣(要驗什麼、判準、timebox)再寫程式碼。
 - 程式碼只在 `spike/SPK-00x-<slug>/`;open 期間產品程式碼與測試禁止 import。

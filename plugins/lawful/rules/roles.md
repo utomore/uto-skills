@@ -9,17 +9,17 @@
 | **設計** | 開發者與 `lawful:design` / `lawful:pipeline` 對談 | `system.md`、模組表、`draft` 的 pipeline;開發者拍板後 skill 改 `ready` |
 | **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 骨架、測試、實作、REV;里程碑達成後 conductor 改 `frozen` |
 
-`lawful:build` 只收 `ready` 且沒有 open GAP 的 pipeline。一條 pipeline 一波。
+`lawful:build` 只收 `ready` 且沒有 open GAP 的 pipeline。一條 pipeline 一波,順序:骨架 → qa → 基線 → impl → 仲裁 → 收尾。
 
 ## 三角色
 
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
-| **conductor** | pipeline 文檔、模組表、測試結果 | 把 Stages 寫進程式碼(本體是 adapter 的 `stub`)、記骨架快照、分派 qa 與 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
-| **qa** | pipeline 文檔 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬 | 讀實作(含 `spike/`);讀別條 pipeline;改骨架;要求後門 |
+| **conductor** | pipeline 文檔、模組表、測試結果 | 把 Stages 寫進程式碼(本體是 adapter 的 `stub`)、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
+| **qa** | pipeline 文檔、types 層、骨架的簽名 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器 | 讀 pure 與 shell 的本體(含 `spike/`);讀別條 pipeline;改骨架;要求後門 |
 | **impl** | pipeline 文檔、骨架 | 把 `stub` 換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
 
-qa 與 impl 互不可見。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說,不假裝隔離成立。
+qa 與 impl 互不可見。qa 先、impl 後;開發者明說要平行才平行(平行時 conductor 要在委派前 `git worktree add --detach` 留一份骨架給 qa 的測試跑基線)。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。
 
 ## 委派
 
@@ -33,18 +33,24 @@ subagent 問不了人:
 
 回報固定五項:改了哪些檔;完成了什麼(qa:law / example 各翻幾條、紅綠分佈;impl:簽名 n / m、測試結果與**歸因**);自己決定的事;GAP 清單(局部序號);阻塞項。
 
-## 骨架與快照
+## 骨架與基線
 
 - 骨架 = Stages 表的每條簽名寫進對應模組,本體是 `stub`。骨架要編得過。
-- 發出委派前記下 `HEAD` sha 為骨架快照,並 `git worktree add --detach` 建好快照工作樹。qa 交付的測試在快照工作樹上跑一次:打到 `stub` 的要紅、打到型別本身承載的事實(建構子、欄位、instance)的要綠、REV 保護的既有 law 要綠。
-- 該紅卻綠退回重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。
-- 快照驗不成(依賴帶不過 worktree)→ 回報明寫「本波 qa 紅綠未驗證」,不默認通過。
+- qa 交付後,conductor 在骨架上跑一次 qa 的測試當基線:打到 `stub` 的要紅、打到型別本身承載的事實(建構子、欄位、instance)的要綠、REV 保護的既有 law 要綠。
+- 該紅卻綠退回 qa 重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。基線過了才派 impl。
+
+## qa 的交付
+
+- 產生器由 qa 寫,只准用 types 層的 smart constructor 組合法值;組不出來就是 GAP,指出缺的建構子。
+- 每條 property test 限案例數與尺寸(例:100 個案例、產生器的尺寸參數有上限),整個測試模組有 timeout;不得產生無界的結構或無界的迴圈。跑爆機器的測試視同紅。
+- 測試模組編得過,紅綠分佈符合基線預期。
 
 ## 收尾
 
 本波全綠或停在 GAP 時,conductor 對開發者回報:
 
 - open 的 GAP 清單,各附「需要回答什麼」;回答走 `lawful:revise`,結案的 stage 下一波重派。
+- `lawful status` 顯示里程碑達成 → 直接改 `frozen`。
 - qa 與 impl 自己決定的事整份列出供抽查,不逐條問。
 - 定錨區塊(tooling.md「收尾定錨」)。
 
@@ -69,7 +75,7 @@ qa 與 impl 只做歸因,裁決由 conductor。
 |---|---|---|
 | qa | 自己寫的測試模組 | 1 |
 | impl | 本 pipeline 的子集(`system.md` 的子集指令) | 互動 1;委派 0 |
-| conductor 收齊回報 | 快照工作樹跑本波 qa 的測試 | 1 |
+| conductor 收到 qa | 骨架上跑 qa 的測試當基線 | 1 |
 | conductor 判定 | 本波子集 | 1 |
 | conductor 仲裁每輪 | 上一輪紅的那幾條 + 本波子集 | 每輪 1 |
 | conductor 本波全綠後 | 整套,整條迴圈只這一次 | 1 |

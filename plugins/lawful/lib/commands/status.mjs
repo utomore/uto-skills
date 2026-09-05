@@ -98,7 +98,7 @@ function row(x) {
   const g = x.laws.filter((l) => l.result === 'green').length;
   const traced = x.laws.filter((l) => l.traced).length;
   const state = x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : '進行中';
-  return `| ${x.p.fullName} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.laws.length} | ${traced} | ${x.unknown ? '未跑' : g} | ${state} |`;
+  return `| ${x.p.fullName} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.laws.length} | ${x.unknown ? '未跑' : g}/${traced} | ${state} |`;
 }
 
 export function statusReport(design, source, adapter, results, resultNote) {
@@ -116,8 +116,8 @@ export function statusReport(design, source, adapter, results, resultNote) {
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## pipelines');
-  out.push('| pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 測試數 | Law 通過數 | 狀態 |');
-  out.push('|---|---|---|---|---|---|---|---|');
+  out.push('| pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 通過數/測試數 | 狀態 |');
+  out.push('|---|---|---|---|---|---|---|');
   for (const x of a.info.values()) out.push(row(x));
 
   out.push('', '## 1. 今天能開幾條線');

@@ -4,9 +4,9 @@ $ lawful status
 · 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
 
 ## pipelines
-| pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 測試數 | Law 通過數 | 狀態 |
-|---|---|---|---|---|---|---|---|
-| P-001-save-game | ready | 5 | 5 | 3 | 3 | 未跑 | 進行中 |
+| pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
+|---|---|---|---|---|---|---|
+| P-001-save-game | ready | 5 | 5 | 3 | 未跑/3 | 進行中 |
 
 ## 1. 今天能開幾條線
 - P-001-save-game:lawful:build P-001-save-game

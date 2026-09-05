@@ -22,6 +22,7 @@ updated: 2026-09-05
 | 8 | `(<+>) :: SaveState -> SaveState -> SaveState` | 運算子簽名 | `Save.Class` | pure |
 | 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數,不該抓到 | `Save.Class` | pure |
 | 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Save.State` | types |
+| o | `ghostView :: SaveState -> Int` | 觀察點,程式碼沒有,要紅 | `Save.State` | types |
 | = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Host.Save` | shell |
 
 ## Laws
@@ -43,6 +44,9 @@ updated: 2026-09-05
   - forall s in SaveState
   - given s 這一步有發出至少一個事件
   - |- length (savedEntities s) >= 0
+- LAW-8 [relation] 字串字面值不是識別字,不該紅
+  - forall s in SaveState
+  - |- show (checksum (encode s)) /= "missing marker"
 
 ## Examples
 | # | 輸入 | 輸出 | 覆蓋 |

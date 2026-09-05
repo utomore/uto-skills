@@ -15,7 +15,7 @@
 
 | 名詞 | 在哪 |
 |---|---|
-| pipeline、stage、`=` 列、里程碑、子流 | pipelines.md「pipeline」 |
+| pipeline、stage、`=` 列、`o` 列 / 觀察點、里程碑、子流 | pipelines.md「pipeline」 |
 | 全名、`P-00x#name`、`P-00x#LAW-n` | pipelines.md「編號與引用」 |
 | `draft` / `ready` / `frozen`、解凍 | pipelines.md「frontmatter 與 status」 |
 | Brief、Stages、Laws、law 種類、Examples、決定 | pipelines.md「節」 |

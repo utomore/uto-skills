@@ -26,7 +26,12 @@ export function analyze(design, source, adapter, results) {
       else state = '在';
       return { ...s, state, hit };
     });
-    const sigOk = stages.filter((s) => s.state === '在' || s.state === '搬家').length;
+    // 簽名 m / n 只算步驟(數字列與 = 列);o 列是觀察點,另計,找不到或不一致一樣擋達成
+    const present = (s) => s.state === '在' || s.state === '搬家';
+    const steps = stages.filter((s) => !s.observe);
+    const observes = stages.filter((s) => s.observe);
+    const sigOk = steps.filter(present).length;
+    const obsOk = observes.filter(present).length;
     const laws = p.laws.filter((l) => l.id).map((l) => {
       const key = `${p.id}#${l.id}`;
       const traced = markers.has(key);
@@ -41,7 +46,7 @@ export function analyze(design, source, adapter, results) {
     });
     const gaps = openGaps.filter((g) => g.target.startsWith(p.id) || g.target.startsWith(p.fullName));
     const refs = [...new Set(p.stages.map((s) => s.ref).filter(Boolean))];
-    info.set(p.fullName, { p, stages, sigOk, sigTotal: stages.length, laws, examples, gaps, refs, referrers: [] });
+    info.set(p.fullName, { p, stages, sigOk, sigTotal: steps.length, obsOk, obsTotal: observes.length, laws, examples, gaps, refs, referrers: [] });
   }
   for (const [, x] of info) for (const r of x.refs) if (info.has(r)) info.get(r).referrers.push(x.p.fullName);
   // 沒寫 ref 但 stage 名字是別條 pipeline 的 stage,也算引用
@@ -57,7 +62,7 @@ export function analyze(design, source, adapter, results) {
       }
     }
   }
-  const selfDone = (x) => x.sigOk === x.sigTotal && x.sigTotal > 0 && x.laws.length > 0 && x.laws.every((l) => l.result === 'green') && x.examples.every((e) => e.result === 'green') && x.gaps.length === 0;
+  const selfDone = (x) => x.sigOk === x.sigTotal && x.sigTotal > 0 && x.obsOk === x.obsTotal && x.laws.length > 0 && x.laws.every((l) => l.result === 'green') && x.examples.every((e) => e.result === 'green') && x.gaps.length === 0;
   const achieved = (name, seen = new Set()) => {
     if (seen.has(name)) return true;
     seen.add(name);
@@ -173,7 +178,7 @@ export function statusReport(design, source, adapter, results, resultNote) {
     byModule.get(s.module).push(s);
   }
   if (!byModule.size) out.push('- 無');
-  for (const [m, list] of [...byModule].sort()) out.push(`- ${m}:${list.map((s) => `${s.pipeline}#${s.name}${s.state === '願望' ? '(願望)' : ''}`).join('、')}`);
+  for (const [m, list] of [...byModule].sort()) out.push(`- ${m}:${list.map((s) => `${s.pipeline}#${s.name}${s.state === '願望' ? '(願望)' : s.observe ? '(觀察點)' : ''}`).join('、')}`);
 
   out.push('', '## 6. 警訊');
   const warns = [];
@@ -231,7 +236,8 @@ export function pipelineDetail(design, source, adapter, results, resultNote, nam
   out.push('', '## 引用');
   out.push(`- 引用了:${x.refs.length ? x.refs.join('、') : '無'}`);
   out.push(`- 被引用:${x.referrers.length ? x.referrers.join('、') : '無'}`);
-  out.push('', `文檔寫了 ${x.sigTotal} 條簽名,程式碼裡有 ${x.sigOk} 條 · 寫了 ${x.laws.length} 條 law,通過 ${x.unknown ? 'nan' : x.laws.filter((l) => l.result === 'green').length} 條 · ${x.achieved ? '達成' : '未達成'}`);
+  const obs = x.obsTotal ? ` · 觀察點 ${x.obsTotal} 個,程式碼裡有 ${x.obsOk} 個` : '';
+  out.push('', `文檔寫了 ${x.sigTotal} 條簽名,程式碼裡有 ${x.sigOk} 條${obs} · 寫了 ${x.laws.length} 條 law,通過 ${x.unknown ? 'nan' : x.laws.filter((l) => l.result === 'green').length} 條 · ${x.achieved ? '達成' : '未達成'}`);
   return { text: out.join('\n'), exitCode: 0 };
 }
 

@@ -46,5 +46,6 @@ functional core / imperative shell。邊界的唯一宣告是模組表;`lawful l
 ## 測試與邊界
 
 - 測試不在依賴圖裡:測試 import 任何層都不算違規。
-- 預設只測公開匯出;需要測內部走 `*.Internal`(測試可 import,production 模組不准)。
+- 預設只測公開匯出;需要測內部走 `*.Internal`(`M.Internal` 只准 `M` 自己與測試 import,其他 production 模組不准)。
+- stage 與觀察點都要是匯出的簽名,程式碼才對得到帳。有 production 消費者的住公開模組;只為 law 觀察而匯出、沒有 production 消費者的,住 `*.Internal`。匯出一個純函數給 law 觀察不是後門。
 - 禁止為測試在核心層開後門(test-only export、setter、繞過正常流程的建構子)。不開後門就測不到 = 簽名設計缺陷,開 GAP 指出缺的觀察點。

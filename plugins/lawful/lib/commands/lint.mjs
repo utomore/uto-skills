@@ -92,11 +92,13 @@ export function lintSig(design, source, adapter) {
 
 const KEYWORDS = new Set(['forall', 'in', 'given', 'and', 'or', 'not', 'if', 'then', 'else', 'let', 'where', 'case', 'of']);
 
+// 字串字面值不是識別字:先把 "..." 挖空再抓。
 function identifiers(text) {
   const out = [];
   const re = /(?<![\w.'])([a-z_][\w']*)/g;
+  const stripped = text.replace(/"(?:[^"\\]|\\.)*"/g, (m) => ' '.repeat(m.length));
   let m;
-  while ((m = re.exec(text))) if (!KEYWORDS.has(m[1])) out.push(m[1]);
+  while ((m = re.exec(stripped))) if (!KEYWORDS.has(m[1])) out.push(m[1]);
   return out;
 }
 

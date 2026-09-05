@@ -6,7 +6,7 @@ $ lawful status
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|
-| P-001-save-game | ready | 5 | 5 | 3 | nan/3 | 進行中 |
+| P-001-save-game | ready | 5 | 5 | 4 | nan/4 | 進行中 |
 
 ## 1. 今天能開幾條線
 - P-001-save-game:lawful:build P-001-save-game

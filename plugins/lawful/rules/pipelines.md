@@ -96,7 +96,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 ```
 
 - `forall` 行:變數與定義域;前提寫在集合限定裡,或再加一行 `given <前提>`。
-- `|-` 行:結論;每個識別字必須是 Stages 表的簽名或 types 層匯出的函數,`lint laws` 對帳,對不到不准 `ready`;`==`、`in`、`=>`、`.`、`and`、`or`。law 不定義型別,型別與函數一律住程式碼。
+- `|-` 行:結論;每個識別字必須是 Stages 表的簽名、types 層匯出的函數,或 adapter 認得的標準函式庫函數(`length`、`fst`),`lint laws` 對帳,對不到不准 `ready`;`==`、`in`、`=>`、`.`、`and`、`or`。law 不定義型別,型別與函數一律住程式碼。
 - 種類與對談時的問法:
 
 | 種類 | 性質 | 問開發者什麼 |

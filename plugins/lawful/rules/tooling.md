@@ -57,7 +57,7 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 | `stdlib`:law 裡可直接用的標準函式庫函數 | `lint laws` |
 | `stub`:未實作本體 | conductor 寫骨架 |
 
-Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;`import` 行;`IO` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `undefined`。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
+Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;`import` 行;`IO` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `undefined`。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
 
 ## 跑東西的紀律
 

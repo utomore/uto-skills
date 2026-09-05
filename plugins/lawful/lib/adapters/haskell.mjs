@@ -28,6 +28,28 @@ function normalize(t) {
   return t.replace(/\s+/g, ' ').trim();
 }
 
+// 一行裡的 record 欄位:{ a :: T, b :: U } 或 , c :: [(X, Y)];型別讀到同層的 , 或 } 為止,括號裡的逗號不切。
+function recordFields(line) {
+  const out = [];
+  const re = /[{,]\s*([a-z_][\w']*(?:\s*,\s*[a-z_][\w']*)*)\s*::\s*/g;
+  let m;
+  while ((m = re.exec(line))) {
+    let depth = 0;
+    let j = m.index + m[0].length;
+    let type = '';
+    for (; j < line.length; j++) {
+      const c = line[j];
+      if (c === '(' || c === '[') depth++;
+      else if (c === ')' || c === ']') depth--;
+      if (depth < 0 || (depth === 0 && (c === ',' || c === '}'))) break;
+      type += c;
+    }
+    if (type.trim()) out.push([m[1], type]);
+    re.lastIndex = j;
+  }
+  return out;
+}
+
 function moduleOf(src, relPath) {
   const m = /^module\s+([A-Z][\w.']*)/m.exec(src);
   if (m) return m[1];
@@ -62,8 +84,15 @@ export const haskell = {
     const methodRe = new RegExp(`^(\\s+)${NAMES}\\s*::(.*)$`);
     let block = null; // 'class' | 'instance' | 'other' | null:目前在哪種欄位 0 宣告的縮排區塊裡
     let klass = null;
+    let record = null; // 最近一個 data / newtype 宣告:{ head },record 欄位的存取子型別是 head -> 欄位型別
     const pushNames = (names, type, line, extra = {}) => {
       for (const name of names.split(',').map((s) => s.trim())) out.push({ name, type: normalize(type), module: mod, line, ...extra });
+    };
+    const pushFields = (line, i) => {
+      for (const [names, raw] of recordFields(line)) {
+        const type = raw.trim().replace(/^!\s*/, ''); // 嚴格標記 ! 不屬於存取子的型別
+        pushNames(names, record ? `${record.head} -> ${type}` : type, i + 1, { field: true });
+      }
     };
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -81,6 +110,8 @@ export const haskell = {
           continue;
         }
         block = 'other';
+        const d = /^(?:data|newtype)\s+(?:\([^)]*\)\s*=>\s*)?([A-Z][\w']*(?:\s+(?:[a-z][\w']*|\([^)]*\)))*)/.exec(line);
+        record = d ? { head: d[1].replace(/\s*\([^)]*\)/g, (p) => ' ' + p.trim().replace(/^\(([a-z][\w']*).*$/, '$1')).replace(/\s+/g, ' ').trim() } : null;
       } else if (block === 'class') {
         let mm = methodRe.exec(line);
         let j = i + 1;
@@ -106,18 +137,12 @@ export const haskell = {
       } else {
         // instance 本體、函數 where 區塊、接續行:不是新簽名。record 欄位除外。
         if (block === 'instance') continue;
-        if (/[{,]\s*[a-z_][\w']*\s*::/.test(line)) {
-          const re = /[{,]\s*([a-z_][\w']*(?:\s*,\s*[a-z_][\w']*)*)\s*::\s*([^,}]+)/g;
-          let f;
-          while ((f = re.exec(line))) pushNames(f[1], f[2], i + 1, { field: true });
-        }
+        pushFields(line, i);
         continue;
       }
       // 欄位 0 的一般宣告
       if (/[{,]\s*[a-z_][\w']*\s*::/.test(line) && !sigRe.test(line)) {
-        const re = /[{,]\s*([a-z_][\w']*(?:\s*,\s*[a-z_][\w']*)*)\s*::\s*([^,}]+)/g;
-        let f;
-        while ((f = re.exec(line))) pushNames(f[1], f[2], i + 1, { field: true });
+        pushFields(line, i);
         continue;
       }
       let m = sigRe.exec(line);

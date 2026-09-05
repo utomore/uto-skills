@@ -25,6 +25,7 @@ updated: 2026-09-05
 | 7 | `persistEncode :: a -> ByteString` | class 方法,要抓得到 | `Save.Class` | pure |
 | 8 | `(<+>) :: SaveState -> SaveState -> SaveState` | 運算子簽名 | `Save.Class` | pure |
 | 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數,不該抓到 | `Save.Class` | pure |
+| 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Save.State` | types |
 | = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Host.Save` | shell |
 
 ## Laws

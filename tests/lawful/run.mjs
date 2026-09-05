@@ -1,4 +1,4 @@
-// golden 回歸:對每個夾具跑每道子命令,比對 tests/golden/<名字>.txt。--update 重產。
+// golden 回歸:對每個夾具跑 plugins/lawful/bin/lawful.mjs 的每道子命令,比對 golden/<名字>.txt。--update 重產。
 // 會寫檔的子命令在夾具的暫存副本上跑,golden 收「輸出 + 改動後的檔」。
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const bin = path.join(here, '..', 'bin', 'lawful.mjs');
+const bin = path.join(here, '..', '..', 'plugins', 'lawful', 'bin', 'lawful.mjs');
 const goldenDir = path.join(here, 'golden');
 const update = process.argv.includes('--update');
 const DATE = '2026-09-05';

@@ -16,7 +16,9 @@
 # Exit code:0 = 全部相同 / 1 = 有差異或有腳本崩潰
 set -uo pipefail
 cd "$(dirname "$0")"
-SCRIPTS=../scripts
+ROOT=$(cd ../../.. && pwd)
+SKILLS=$ROOT/plugins/dev-flow/skills
+SCRIPTS=$SKILLS/arch-audit/scripts
 FX=fixtures
 GOLDEN=golden
 UPDATE=0
@@ -26,7 +28,7 @@ fail=0
 run() {
   local name=$1; shift
   local out exit_code
-  out=$(cd "$FX" && node "../$@" 2>&1); exit_code=$?
+  out=$(cd "$FX" && node "$@" 2>&1); exit_code=$?
   local body="$out"$'\n'"__exit__ $exit_code"
   if [[ $UPDATE == 1 ]]; then
     printf '%s\n' "$body" > "$GOLDEN/$name.out"
@@ -63,7 +65,8 @@ run scan-file-miss   "$SCRIPTS/scan-status.mjs" design --today 2026-09-04 --file
 run scan-bad-flag    "$SCRIPTS/scan-status.mjs" design --bogus
 run lint-ids         "$SCRIPTS/lint-ids.mjs" design
 run lint-laws        "$SCRIPTS/lint-laws.mjs" design
-run doc-section-list "$SCRIPTS/doc-section.mjs" ../../_shared/doc-lifecycle.md --list
+# 用相對路徑,golden 才不會釘住某台機器的絕對路徑(從 fixtures/ 起算)
+run doc-section-list "$SCRIPTS/doc-section.mjs" ../../../../plugins/dev-flow/skills/_shared/doc-lifecycle.md --list
 run cross-clean      "$SCRIPTS/lint-cross-spec.mjs" design
 run cross-conflict   "$SCRIPTS/lint-cross-spec.mjs" cross
 run cross-subsys     "$SCRIPTS/lint-cross-spec.mjs" cross --subsys pay
@@ -82,10 +85,10 @@ echo "=== 只驗 exit code,不比對輸出 ==="
 echo "(前四項的輸出隨文檔改動而變;scan-ids 會把**當前分支名**印進輸出 ——"
 echo " 釘死 golden 的話,任何人在別的分支上跑都會紅,那是雜訊不是回歸)"
 for check in \
-  "lint-ids       $SCRIPTS/lint-ids.mjs ../.." \
-  "lint-laws      $SCRIPTS/lint-laws.mjs ../.." \
-  "節名檢查        $SCRIPTS/doc-section.mjs --verify ../../.." \
-  "指令檢查        $SCRIPTS/lint-commands.mjs ../../.." \
+  "lint-ids       $SCRIPTS/lint-ids.mjs $SKILLS" \
+  "lint-laws      $SCRIPTS/lint-laws.mjs $SKILLS" \
+  "節名檢查        $SCRIPTS/doc-section.mjs --verify $ROOT/plugins/dev-flow" \
+  "指令檢查        $SCRIPTS/lint-commands.mjs $ROOT/plugins/dev-flow" \
   "scan-ids       $SCRIPTS/scan-ids.mjs fixtures/design"
 do
   set -- $check; name=$1; shift
@@ -174,7 +177,7 @@ CLOSE_TMP=$(mktemp -d)
 (
   cd "$CLOSE_TMP" && git init -q && git config user.email t@t && git config user.name t && mkdir .design &&
   printf -- '---\nid: system\ntype: system\ntitle: t\ndescription: x\nstatus: active\nmode: greenfield\ncreated: 2026-09-04\nupdated: 2026-09-04\nsubsystems: []\n---\n# t\n' > .design/system.md &&
-  node "$OLDPWD/$SCRIPTS/scan-ids.mjs" .design --claim SPK --slug store >/dev/null 2>&1 &&
+  node "$SCRIPTS/scan-ids.mjs" .design --claim SPK --slug store >/dev/null 2>&1 &&
   echo 'x = 1' > spike/SPK-001-store/main.py && git add -A && git commit -qm "spike: SPK-001-store RND-1"
 ) >/dev/null 2>&1
 SC="$SCRIPTS/spike-close.mjs"

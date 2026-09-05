@@ -17,11 +17,15 @@
 grep -rn -E '2\.[0-9]\.[0-9]|以前|舊制|舊格式|舊文檔|舊專案|舊版|之前的流程|後來才|補上的|修過|修出來|曾同時|\bv1\b|\bv2\b|不再有|不再需要' --include=*.md plugins/dev-flow/skills | grep -v tests/
 ```
 
-## 改了 `scripts/` 之後
+## 測試、夾具、範例住 repo 根目錄的 `tests/`
+
+`plugins/<plugin>/` 底下只放會裝到使用者電腦的東西:規章、skills、模板、腳本。測試、夾具、範例一律在 `tests/<plugin>/`,marketplace 的 `source` 不涵蓋它們。
+
+改了 `plugins/dev-flow/skills/arch-audit/scripts/` 或 `plugins/lawful/{bin,lib}/` 之後:
 
 ```
-bash plugins/dev-flow/skills/arch-audit/tests/run.sh          # dev-flow:golden 回歸 + 文檔四道檢查 + 煙霧測試 + --help
-bash plugins/lawful/tests/run.sh                              # lawful:兩個夾具的 golden 回歸 + --help(改了 bin/ 或 lib/ 就跑)
+bash tests/dev-flow/arch-audit/run.sh     # dev-flow:golden 回歸 + 文檔四道檢查 + 煙霧測試 + --help
+bash tests/lawful/run.sh                  # lawful:三個夾具的 golden 回歸 + --help;fixtures/save-game 同時是 .design 的完整範例
 ```
 
 行為是刻意改的才 `--update` 重產 golden,並在 PR 說明為什麼變。另外四道文檔檢查可以單獨跑:`lint-commands.mjs`(文檔裡的指令與旗標腳本認不認得)、`doc-section.mjs --verify`(載入行點名的節還在不在)、`lint-ids.mjs plugins`(裸寫的單字母+數字;掃整個 repo 會撞到 `wip/` 的草稿)、`lint-laws.mjs`(範例 law 四格)。

@@ -1,0 +1,19 @@
+=== ../../../../plugins/dev-flow/skills/_shared/doc-lifecycle.md 的章節(17)===
+   28  文檔角色與權威來源
+   30    六種分類與分流判準
+   84    狀態與生命週期
+  103    修訂(rev 與 REV)
+  130    `done` 的收束(過程章節的退場)
+  154  資料夾結構(專案內,樹狀)
+  198  命名與編號規則
+  220  編號與縮寫註冊表(唯一鑄號機關)
+  253    文檔引用格式(frontmatter 欄位、內文、回報與腳本輸出)
+  276  Metadata 標準(YAML frontmatter)
+  280    任務文檔(feature / enhance / bugfix,含全域 G-)
+  309    架構文檔(system / subsystem)
+  404    全域契約文檔(G-C)
+  433    ADR
+  447    spike 文檔(SPK)
+  477    清單欄位格式(唯一寫法:行內陣列)
+  496    `description` 欄位規則(必填)
+__exit__ 0

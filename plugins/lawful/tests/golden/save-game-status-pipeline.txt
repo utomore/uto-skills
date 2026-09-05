@@ -24,5 +24,5 @@ $ lawful status --pipeline P-001-save-game --tests test.log
 - 引用了:無
 - 被引用:無
 
-簽名 5/5 · laws 綠 2/3 · 未達成
+文檔寫了 5 條簽名,程式碼裡有 5 條 · 寫了 3 條 law,通過 2 條 · 未達成
 exit 0

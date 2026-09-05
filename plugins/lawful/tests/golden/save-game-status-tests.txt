@@ -1,12 +1,12 @@
 $ lawful status --tests test.log
 # lawful status
-里程碑達成 0/1 · pipeline 達成 0/1 · 待實作 stage 0 · open GAP 0
+里程碑 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 ## pipelines
-| pipeline | status | 簽名 在/寫 | laws 寫了 | laws 有測試 | laws 綠 | 狀態 |
-|---|---|---|---|---|---|---|
-| P-001-save-game | ready | 5/5 | 3 | 3 | 2 | 進行中 |
+| pipeline | status | 文檔寫了幾條簽名 | 程式碼裡有幾條 | 寫了幾條 law | 幾條 law 有測試 | 幾條 law 通過 | 狀態 |
+|---|---|---|---|---|---|---|---|
+| P-001-save-game | ready | 5 | 5 | 3 | 3 | 2 | 進行中 |
 
 ## 1. 今天能開幾條線
 - P-001-save-game:lawful:build P-001-save-game

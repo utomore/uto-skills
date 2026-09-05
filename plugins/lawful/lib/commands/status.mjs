@@ -91,14 +91,14 @@ export function loadResults(design, adapter, flags, root) {
     }
     return { results: adapter.testResults(out), note: `測試結果來自 --run:${cmd}` };
   }
-  return { results: null, note: '沒給測試輸出(--tests <log> 或 --run),laws 綠幾條未知' };
+  return { results: null, note: '沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知' };
 }
 
 function row(x) {
   const g = x.laws.filter((l) => l.result === 'green').length;
   const traced = x.laws.filter((l) => l.traced).length;
   const state = x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : '進行中';
-  return `| ${x.p.fullName} | ${x.p.status || '(無)'} | ${x.sigOk}/${x.sigTotal} | ${x.laws.length} | ${traced} | ${x.unknown ? '未跑' : g} | ${state} |`;
+  return `| ${x.p.fullName} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.laws.length} | ${traced} | ${x.unknown ? '未跑' : g} | ${state} |`;
 }
 
 export function statusReport(design, source, adapter, results, resultNote) {
@@ -112,12 +112,12 @@ export function statusReport(design, source, adapter, results, resultNote) {
   const wishStages = [...a.info.values()].flatMap((x) => x.stages.filter((s) => s.state === '願望' || s.state === '找不到').map((s) => ({ ...s, pipeline: x.p.fullName })));
 
   out.push(`# lawful status`);
-  out.push(`里程碑達成 ${achievedMilestones}/${milestones.length} · pipeline 達成 ${achievedAll}/${total} · 待實作 stage ${wishStages.length} · open GAP ${a.openGaps.length}`);
+  out.push(`里程碑 ${milestones.length} 條,達成 ${achievedMilestones} 條 · pipeline ${total} 條,達成 ${achievedAll} 條 · 還沒實作的 stage ${wishStages.length} 個 · 還開著的 GAP ${a.openGaps.length} 條`);
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## pipelines');
-  out.push('| pipeline | status | 簽名 在/寫 | laws 寫了 | laws 有測試 | laws 綠 | 狀態 |');
-  out.push('|---|---|---|---|---|---|---|');
+  out.push('| pipeline | status | 文檔寫了幾條簽名 | 程式碼裡有幾條 | 寫了幾條 law | 幾條 law 有測試 | 幾條 law 通過 | 狀態 |');
+  out.push('|---|---|---|---|---|---|---|---|');
   for (const x of a.info.values()) out.push(row(x));
 
   out.push('', '## 1. 今天能開幾條線');
@@ -231,7 +231,7 @@ export function pipelineDetail(design, source, adapter, results, resultNote, nam
   out.push('', '## 引用');
   out.push(`- 引用了:${x.refs.length ? x.refs.join('、') : '無'}`);
   out.push(`- 被引用:${x.referrers.length ? x.referrers.join('、') : '無'}`);
-  out.push('', `簽名 ${x.sigOk}/${x.sigTotal} · laws 綠 ${x.unknown ? '未跑' : x.laws.filter((l) => l.result === 'green').length}/${x.laws.length} · ${x.achieved ? '達成' : '未達成'}`);
+  out.push('', `文檔寫了 ${x.sigTotal} 條簽名,程式碼裡有 ${x.sigOk} 條 · 寫了 ${x.laws.length} 條 law,通過 ${x.unknown ? '未跑' : x.laws.filter((l) => l.result === 'green').length} 條 · ${x.achieved ? '達成' : '未達成'}`);
   return { text: out.join('\n'), exitCode: 0 };
 }
 
@@ -248,7 +248,7 @@ export function moduleDetail(design, source, adapter, results, resultNote, modul
       n++;
       const lawsOn = x.laws.filter((l) => l.conclusion && new RegExp(`(?<![\\w.'])${s.name}(?![\\w'])`).test(l.conclusion));
       const g = lawsOn.filter((l) => l.result === 'green').length;
-      out.push(`- ${x.p.fullName}#${s.name}  ${s.state}  laws ${lawsOn.length} 條、綠 ${x.unknown ? '未跑' : g}`);
+      out.push(`- ${x.p.fullName}#${s.name}  ${s.state}  掛在上面的 law ${lawsOn.length} 條,通過 ${x.unknown ? '未跑' : g} 條`);
     }
   }
   if (!n) out.push('- 沒有任何 pipeline 的 stage 住在這裡');

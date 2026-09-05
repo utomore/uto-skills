@@ -27,6 +27,7 @@ bash plugins/dev-flow/skills/arch-audit/tests/run.sh          # golden 回歸 + 
 
 ## 版本與 PR
 
-- dev-flow 在快速調整期間版本固定 `0.1.0`,PR 不動它;版本號何時再動、動成多少由使用者指定,不自行推算(全域規則)。
+- dev-flow 的 `plugin.json` **不寫 `version`**:marketplace 是 git 來源,Claude Code 以 commit SHA 判斷更新,每次 merge 到 `main` 使用端跑 `claude plugin update dev-flow@uto-skills` 就拿到最新。寫了 `version` 反而會讓字串沒變的更新被快取擋住。何時恢復版號由使用者指定,不自行推算(全域規則)。
+- `plugin.json` 與 `marketplace.json` 的 `description` 也是規章:宣告式,講現在有什麼,不講改了什麼。
 - 合併後的 follow-up 從 `main` 開新分支、新 PR,不在已合併的分支上疊 commit。
 - PR 內文照 `branch-pr` skill 的固定章節,繁體中文;標題英文。

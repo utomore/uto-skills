@@ -19,6 +19,7 @@
 | 全名、`P-00x#name`、`P-00x#LAW-n` | pipelines.md「編號與引用」 |
 | `draft` / `ready` / `frozen`、解凍 | pipelines.md「frontmatter 與 status」 |
 | Brief、Stages、Laws、law 種類、Examples、決定 | pipelines.md「節」 |
+| 什麼要有 law、自由度、內部支架 | pipelines.md「什麼要有 law」 |
 | REV、動到 / 保護 / 重委派 | pipelines.md「修訂(REV)」 |
 | GAP、`gaps.md` | pipelines.md「提問(GAP)」 |
 | 願望 stage、進底層 / 留本地 | pipelines.md「願望 stage」 |
@@ -47,13 +48,13 @@
 | skill | 必讀 |
 |---|---|
 | `lawful:design` | pipelines.md「`.design/`」「system.md」「ADR」;boundary.md 全份;tooling.md「language adapter」「收尾定錨」 |
-| `lawful:pipeline` | pipelines.md「pipeline」「編號與引用」「frontmatter 與 status」「節」「願望 stage」;boundary.md「模組表」;tooling.md「收尾定錨」 |
+| `lawful:pipeline` | pipelines.md「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」「願望 stage」;boundary.md「模組表」;tooling.md「收尾定錨」 |
 | `lawful:build` | roles.md 全份;pipelines.md「提問(GAP)」「修訂(REV)」「完成度」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
-| `lawful:qa` | roles.md「三角色」「委派」「qa 的交付」;pipelines.md「節」「提問(GAP)」;boundary.md「測試與邊界」 |
+| `lawful:qa` | roles.md「三角色」「委派」「qa 的交付」;pipelines.md「節」「什麼要有 law」「提問(GAP)」;boundary.md「測試與邊界」 |
 | `lawful:impl` | roles.md「三角色」「委派」;pipelines.md「節」「提問(GAP)」;boundary.md「四層」 |
 | `lawful:revise` | pipelines.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」;tooling.md「收尾定錨」 |
 | `lawful:status` | tooling.md「CLI」「status 報告」「收尾定錨」;pipelines.md「完成度」 |
-| `lawful:audit` | tooling.md「CLI」(含 `sync`);boundary.md 全份;pipelines.md「節」「完成度」 |
+| `lawful:audit` | tooling.md「CLI」(含 `sync`);boundary.md 全份;pipelines.md「節」「什麼要有 law」「完成度」 |
 | `lawful:spike` | pipelines.md「spike」;roles.md「委派」「spike」;tooling.md「跑東西的紀律」 |
 
 prompt 標明委派模式的執行另讀 roles.md「委派」,不讀「收尾定錨」。

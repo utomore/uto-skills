@@ -1,8 +1,9 @@
 $ lawful lint laws
-## lint laws:5 條不合規
+## lint laws:6 條不合規
 - ✗ .design/pipelines/P-001-save-game.md LAW-3 種類「linear」不在 invariant / identity / roundtrip / relation / bound / equiv
 - ✗ .design/pipelines/P-001-save-game.md LAW-4 |- 行的 crc32 對不到 Stages 簽名、types 層匯出或標準函式庫
 - ✗ .design/pipelines/P-001-save-game.md LAW-5 缺 |- 行
+- ✗ .design/pipelines/P-001-save-game.md LAW-6 given 行含非 ASCII 字元,三行只准表達式,不准散文:given s 這一步有發出至少一個事件
 - ✗ .design/pipelines/P-001-save-game.md EX-2 指到的 LAW-9 不存在
 - ✗ .design/pipelines/P-001-save-game.md EX-3 沒有指到任何 law
 exit 1

@@ -18,6 +18,10 @@ updated: 2026-09-05
 | 4 | `compress :: ByteString -> ByteString` | 壓縮 | `Save.Zip`(願望,見 P-002-compression) | pure |
 | 5 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Host.FS` | shell |
 | 6 | `checksum :: ByteString -> Int` | 校驗 | `Host.FS` | pure |
+| 7 | `persistEncode :: a -> ByteString` | class 方法,要抓得到 | `Save.Class` | pure |
+| 8 | `(<+>) :: SaveState -> SaveState -> SaveState` | 運算子簽名 | `Save.Class` | pure |
+| 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數,不該抓到 | `Save.Class` | pure |
+| 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Save.State` | types |
 | = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Host.Save` | shell |
 
 ## Laws
@@ -35,6 +39,10 @@ updated: 2026-09-05
   - |- crc32 (encode s) == checksum (encode s)
 - LAW-5 [identity] 缺結論行
   - forall s in SaveState
+- LAW-6 [relation] given 行寫成散文,要紅
+  - forall s in SaveState
+  - given s 這一步有發出至少一個事件
+  - |- length (savedEntities s) >= 0
 
 ## Examples
 | # | 輸入 | 輸出 | 覆蓋 |

@@ -44,7 +44,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 |---|---|---|
 | pipeline | `P-001`,檔 `pipelines/P-001-<slug>.md` | 全名 `P-001-<slug>` |
 | stage | 函數名 | `P-002#candidates` |
-| law / example / 修訂 / 假設 | `LAW-1` / `EX-1` / `REV-1` / `ASM-1` | `P-002#LAW-1` |
+| law / example / 修訂 | `LAW-1` / `EX-1` / `REV-1` | `P-002#LAW-1` |
 | 提問 | `GAP-1`(`gaps.md` 內遞增) | `GAP-1` |
 | ADR / spike | `ADR-001` / `SPK-001` | 全名 |
 
@@ -66,7 +66,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 ## 節
 
-順序固定。`## Brief`、`## Stages`、`## Laws`、`## Examples` 不得省;`## 決定`、`## 修訂記錄` 無內容寫「無」;`## 待確認假設` 只在委派期間存在,空了刪節。節裡只有事實,沒有填寫指引。
+六節,順序固定。`## Brief`、`## Stages`、`## Laws`、`## Examples` 不得省;`## 決定`、`## 修訂記錄` 無內容寫「無」。節裡只有事實,沒有填寫指引。
 
 **Brief**:三到五句給第一次打開的人:意圖、input → output、流向(用 `→` 串 stage 的中文名)、它在哪條里程碑裡。
 
@@ -117,28 +117,14 @@ description 住各 pipeline 的 frontmatter,清單不重複。
   - 重委派:qa(LAW-2)
 ```
 
-- 依:來源與那一句話(提問原句、ASM 裁決、SPK / ADR 全名、開發者的話)。
+- 依:來源與那一句話(GAP 的提問原句、SPK / ADR 全名、開發者的話)。
 - 保護:這次不准變的既有 law;要保護的行為還不是 LAW 的,先補成 LAW 再修訂。
 - 重委派:law 變了重派 qa,簽名變了重派 impl。簽名變了,程式碼簽名行同步改、本體回未實作;測試只重跑 REV 點名的。
 - 動到與保護只寫還在檔上的條目;`updated` 改成修訂日期。
 
-## 假設(ASM)
-
-委派期間碰到**契約級**判斷(答案會出現在簽名或 law 上,或改錯會驚動別條 pipeline / 別個模組)寫 ASM 繼續推進,閘門裁決:
-
-```markdown
-- ASM-1(P-002#resolve):碰撞事件要不要去重
-  - 現況原文:`resolve :: [(EntityId, EntityId)] -> World -> (World, [CollisionEvent])`
-  - 選項:A 不去重(當下零成本;三個月後每個消費者各寫一次)/ B 在 resolve 內去重(多一條 law;只有一處)
-  - 傾向:B
-  - 可逆性:高
-```
-
-四欄不得省。裁決落地 = 結論寫進「決定」或 REV,刪條目。實作級判斷不寫 ASM,自己裁,記進回報。
-
 ## 提問(GAP)
 
-qa 或 impl 讀不出唯一解釋:停下該項,不腦補、不與另一邊協商,其餘照做。寫在 `.design/gaps.md`:
+任何角色在文檔裡讀不出唯一答案(qa 寫不出斷言、impl 非改簽名不可、conductor 建骨架時模組表沒有那個模組):停下該項,不腦補、不與另一邊協商,其餘照做。委派期間人類決定只有這一條出口。寫在 `.design/gaps.md`:
 
 ```markdown
 ## GAP-1(P-002#LAW-2 / qa)
@@ -149,7 +135,7 @@ qa 或 impl 讀不出唯一解釋:停下該項,不腦補、不與另一邊協商
 ```
 
 - 委派模式下 subagent 不寫檔:四欄寫進回報,局部序號 `本次-1`,conductor 單線寫入配號。
-- 結案 = 寫 REV 並刪條目,依欄帶模糊點原句。檔空了刪檔。
+- 結案 = 開發者在 `lawful:revise` 回答,寫 REV 並刪條目,依欄帶模糊點原句。檔空了刪檔。
 - open 的 GAP 擋:那條 pipeline 不算達成、`lawful:build` 前置不放行、`lawful status` exit 1。
 - impl 測試全綠也不得把有 open GAP 的 stage 當完成。
 

@@ -31,8 +31,8 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 給開發者讀的派工報告,版面固定:
 
 1. 今天能開幾條線:`ready`、沒 open GAP、引用的子流沒卡的 pipeline
-2. 卡住的:open GAP、等修訂、等子流
-3. 等決定:open 的 spike、還在檔上的 ASM、`draft` 的 pipeline
+2. 卡住的:停在 GAP 的 stage、等重派、等子流
+3. 等決定:open 的 GAP、open 的 spike、`draft` 的 pipeline
 4. 牽動誰:誰引用了這條的簽名
 5. 待實作:按模組列願望 stage
 6. 警訊:`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致
@@ -65,7 +65,7 @@ Haskell adapter:`.hs`;簽名行 `name :: Type`,多行合併;`import` 行;`IO` �
 
 ## 收尾定錨
 
-每個 skill 的收尾與每個閘門,回報最後附這四段,不超過一個畫面。委派模式的 subagent 不輸出。
+每個 skill 的收尾,回報最後附這四段,不超過一個畫面。委派模式的 subagent 不輸出。
 
 1. **位置樹**:`system.md` → 里程碑 pipeline 各一行(達成 / 進行中 / 未開工)→ 目前 pipeline 展開到 stage 與 law,各標簽名在不在、law 綠不綠;目前節點標 `◀ 目前`。全部寫全名。
 2. **完成度**兩行:產品(里程碑達成 n / m · pipeline 達成 n / m · 待實作 stage n)、本次(目前 pipeline 簽名 m / n · laws g / k)。數字只來自 `lawful status` 與實際跑過的測試;沒跑寫「沿用 <哪一次>」或「未跑」。

@@ -15,7 +15,7 @@
 
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
-| **conductor** | pipeline 文檔、模組表、測試結果 | 把 Stages 寫進程式碼(本體是 adapter 的 `stub`)、記骨架快照、分派 qa 與 impl、跑測試、仲裁、回寫 REV、刪 ASM 與 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
+| **conductor** | pipeline 文檔、模組表、測試結果 | 把 Stages 寫進程式碼(本體是 adapter 的 `stub`)、記骨架快照、分派 qa 與 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
 | **qa** | pipeline 文檔 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬 | 讀實作(含 `spike/`);讀別條 pipeline;改骨架;要求後門 |
 | **impl** | pipeline 文檔、骨架 | 把 `stub` 換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
 
@@ -25,20 +25,13 @@ qa 與 impl 互不可見。互動模式下同一個人依序扮演,隔離靠紀�
 
 subagent 問不了人:
 
-1. 不提問、不等回覆。不確定的地方分兩種:**契約級**寫 ASM 繼續推進(pipelines.md「假設」),**qa / impl 讀不出唯一解釋**寫 GAP 停該項(pipelines.md「提問」)。
-2. 不寫共用檔(`system.md`、`modules.md`、`gaps.md`、spike 文檔、別人的 pipeline)。ASM 與 GAP 全文放回報,conductor 單線寫入配號。
+1. 不提問、不等回覆。文檔裡讀不出唯一答案就寫 GAP 停該項(pipelines.md「提問(GAP)」);答案不會出現在簽名或 law 上的選擇(私有 helper、資料結構、演算法)自己決定,列進回報。
+2. 不寫共用檔(`system.md`、`modules.md`、`gaps.md`、spike 文檔、別人的 pipeline)。GAP 全文放回報,conductor 單線寫入配號。
 3. 編號與檔名由 conductor 給;提到 pipeline 寫全名。
 4. 機械查證不跳過:骨架與測試要編得過、laws 與 examples 的翻譯要對得上數。
 5. 如實回報:測試紅就貼輸出;做不完的標未完成。
 
-回報固定五項:改了哪些檔;完成了什麼(qa:law / example 各翻幾條、紅綠分佈;impl:簽名 n / m、測試結果與**歸因**);ASM 清單;GAP 清單(局部序號);阻塞項。
-
-## 層級自答
-
-碰到沒寫到的判斷,兩問:答案會不會出現在簽名或 law 上?改錯要不要驚動別條 pipeline 或別個模組?
-
-- 兩問皆否 → 實作級,自己裁,記進回報的自裁清單供抽查。
-- 任一為是 → 契約級,寫 ASM,四欄備齊。
+回報固定五項:改了哪些檔;完成了什麼(qa:law / example 各翻幾條、紅綠分佈;impl:簽名 n / m、測試結果與**歸因**);自己決定的事;GAP 清單(局部序號);阻塞項。
 
 ## 骨架與快照
 
@@ -47,14 +40,15 @@ subagent 問不了人:
 - 該紅卻綠退回重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。
 - 快照驗不成(依賴帶不過 worktree)→ 回報明寫「本波 qa 紅綠未驗證」,不默認通過。
 
-## 閘門
+## 收尾
 
-每波收尾一個閘門,由 conductor 對開發者呈報:
+本波全綠或停在 GAP 時,conductor 對開發者回報:
 
-- ASM 一次一條,附現況原文、選項與代價、傾向、可逆性;開發者裁一條,結論落地(決定或 REV)刪一條。不打包追認。
-- 自裁清單整份列出供抽查,不逐條問。
-- open 的 GAP 列出,各附「需要回答什麼」;回答走 `lawful:revise`。
-- 附定錨區塊(tooling.md「收尾定錨」)。
+- open 的 GAP 清單,各附「需要回答什麼」;回答走 `lawful:revise`,結案的 stage 下一波重派。
+- qa 與 impl 自己決定的事整份列出供抽查,不逐條問。
+- 定錨區塊(tooling.md「收尾定錨」)。
+
+開發者的決定只在兩個地方發生:設計對談(`lawful:pipeline`,改 `ready`)與回答 GAP(`lawful:revise`)。build 不替開發者做契約級決定,也不事後追認。
 
 ## 仲裁
 

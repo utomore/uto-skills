@@ -31,13 +31,13 @@ export function analyze(design, source, adapter, results) {
       const key = `${p.id}#${l.id}`;
       const traced = markers.has(key);
       const res = results ? results.get(key) : undefined;
-      return { ...l, key, traced, result: res || (traced ? (results ? '未對到' : '未跑') : '未翻譯') };
+      return { ...l, key, traced, result: res || (traced ? '未跑' : '未翻譯') };
     });
     const examples = p.examples.map((e) => {
       const key = `${p.id}#${e.id}`;
       const traced = markers.has(key);
       const res = results ? results.get(key) : undefined;
-      return { ...e, key, traced, result: res || (traced ? (results ? '未對到' : '未跑') : '未翻譯') };
+      return { ...e, key, traced, result: res || (traced ? '未跑' : '未翻譯') };
     });
     const gaps = openGaps.filter((g) => g.target.startsWith(p.id) || g.target.startsWith(p.fullName));
     const refs = [...new Set(p.stages.map((s) => s.ref).filter(Boolean))];
@@ -94,12 +94,11 @@ export function loadResults(design, adapter, flags, root) {
   return { results: null, note: '沒給測試輸出(--tests <log> 或 --run),laws 綠幾條未知' };
 }
 
-function line(x) {
+function row(x) {
   const g = x.laws.filter((l) => l.result === 'green').length;
   const traced = x.laws.filter((l) => l.traced).length;
-  const lawsText = `laws ${x.laws.length} 條、已歸屬 ${traced}、綠 ${x.unknown ? '未跑' : g}`;
-  const tail = x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : '';
-  return `${x.p.fullName}  ${x.p.status || '(無 status)'}  簽名 ${x.sigOk}/${x.sigTotal}  ${lawsText}${tail ? `  ${tail}` : ''}`;
+  const state = x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : '進行中';
+  return `| ${x.p.fullName} | ${x.p.status || '(無)'} | ${x.sigOk}/${x.sigTotal} | ${x.laws.length} | ${traced} | ${x.unknown ? '未跑' : g} | ${state} |`;
 }
 
 export function statusReport(design, source, adapter, results, resultNote) {
@@ -117,7 +116,9 @@ export function statusReport(design, source, adapter, results, resultNote) {
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## pipelines');
-  for (const x of a.info.values()) out.push(`- ${line(x)}`);
+  out.push('| pipeline | status | 簽名 在/寫 | laws 寫了 | laws 有測試 | laws 綠 | 狀態 |');
+  out.push('|---|---|---|---|---|---|---|');
+  for (const x of a.info.values()) out.push(row(x));
 
   out.push('', '## 1. 今天能開幾條線');
   const openable = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.some((r) => a.info.get(r).gaps.length || a.info.get(r).p.status !== 'ready' && !a.info.get(r).achieved));
@@ -176,29 +177,32 @@ export function statusReport(design, source, adapter, results, resultNote) {
 
   out.push('', '## 6. 警訊');
   const warns = [];
+  const warn = (where, what, fix) => warns.push([where, what, fix]);
   for (const x of a.info.values()) {
     const p = x.p;
-    if (!p.hasFrontmatter) warns.push(`${p.file} 沒有 frontmatter`);
-    if (p.status && !STATUSES.includes(p.status)) warns.push(`${p.file} status「${p.status}」不在 draft / ready / frozen`);
-    if (p.status === 'frozen' && x.laws.some((l) => l.result === 'red')) warns.push(`${p.fullName} frozen 而測試紅`);
-    if (p.status === 'frozen' && p.revs.length && !p.thawed) warns.push(`${p.fullName} frozen 而有 REV 卻沒有解凍紀錄`);
-    if (p.status === 'ready' && x.achieved && milestones.includes(p.fullName)) warns.push(`${p.fullName} 里程碑已達成,還沒改 frozen`);
-    if (listed.length && !listed.some((l) => l.fullName === p.fullName)) warns.push(`${p.fullName} 不在 system.md 的 Pipelines 表`);
-    for (const s of x.stages) if (s.state === '不一致') warns.push(`${p.fullName}#${s.name} 簽名與程式碼不一致(lint sig)`);
-    for (const s of x.stages) if (s.state === '搬家') warns.push(`${p.fullName}#${s.name} 搬家到 ${s.hit.module}(lawful sync)`);
-    for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warns.push(`${l.key} 紅`);
-    for (const l of [...x.laws, ...x.examples]) if (l.result === '未對到') warns.push(`${l.key} 有歸屬但測試輸出對不到(用 describe "${l.key}" 才對得到)`);
+    if (!p.hasFrontmatter) warn(p.file, '沒有 frontmatter', '照 templates/pipeline.md 補');
+    if (p.status && !STATUSES.includes(p.status)) warn(p.file, `status「${p.status}」不合法`, '改成 draft / ready / frozen');
+    if (p.status === 'frozen' && x.laws.some((l) => l.result === 'red')) warn(p.fullName, 'frozen 而測試紅', '先解凍再修');
+    if (p.status === 'frozen' && p.revs.length && !p.thawed) warn(p.fullName, 'frozen 而有 REV 卻沒有解凍紀錄', '在「決定」補解凍一條');
+    if (p.status === 'ready' && x.achieved && milestones.includes(p.fullName)) warn(p.fullName, '里程碑已達成', 'conductor 改 frozen');
+    if (listed.length && !listed.some((l) => l.fullName === p.fullName)) warn(p.fullName, '不在 system.md 的 Pipelines 表', '補一列,類別填里程碑或子流');
+    for (const s of x.stages) if (s.state === '不一致') warn(`${p.fullName}#${s.name}`, '簽名與程式碼不一致', 'lint sig 看兩邊;誰對就改另一邊,改文檔走 REV');
+    for (const s of x.stages) if (s.state === '搬家') warn(`${p.fullName}#${s.name}`, `程式碼在 ${s.hit.module}`, 'lawful sync');
+    for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁:先歸因再改');
   }
   for (const l of listed) {
-    if (!a.byName.has(l.fullName)) warns.push(`system.md 列了 ${l.fullName},pipelines/ 沒有這個檔`);
-    if (!['里程碑', '子流'].includes(l.kind)) warns.push(`system.md 的 ${l.fullName} 類別「${l.kind}」要是里程碑或子流`);
+    if (!a.byName.has(l.fullName)) warn('system.md', `列了 ${l.fullName},pipelines/ 沒有這個檔`, '刪那一列或 lawful claim');
+    if (!['里程碑', '子流'].includes(l.kind)) warn('system.md', `${l.fullName} 類別「${l.kind}」`, '改成里程碑或子流');
   }
   if (source) {
     const b = lintBoundary(design, source, adapter);
-    if (b.red.length) warns.push(`lint boundary ${b.red.length} 條不合規`);
+    if (b.red.length) warn('模組表', `lint boundary ${b.red.length} 條不合規`, 'lawful lint boundary');
   }
   if (!warns.length) out.push('- 無');
-  for (const w of warns) out.push(`- ${w}`);
+  else {
+    out.push('| 哪裡 | 什麼事 | 怎麼辦 |', '|---|---|---|');
+    for (const [a1, b1, c1] of warns) out.push(`| ${a1} | ${b1} | ${c1} |`);
+  }
 
   out.push('', '## 7. 建議路線');
   if (a.openGaps.length) out.push(`1. 先回答 ${a.openGaps.map((g) => g.id).join('、')}(lawful:revise),卡住的 stage 才能重派`);

@@ -13,7 +13,7 @@ $ lawful status --pipeline P-001-save-game --tests test.log
 ## Laws
 - LAW-1 [roundtrip] 存了再讀回到同一個狀態  green
 - LAW-2 [invariant] 投影不丟實體  green
-- LAW-3 [bound] 檔案大小跟實體數線性  未對到
+- LAW-3 [bound] 檔案大小跟實體數線性  pending
 - EX-1 覆蓋 LAW-1  green
 - EX-2 覆蓋 LAW-2  red
 

@@ -4,7 +4,9 @@ $ lawful status
 · 沒給測試輸出(--tests <log> 或 --run),laws 綠幾條未知
 
 ## pipelines
-- P-001-save-game  ready  簽名 4/7  laws 5 條、已歸屬 2、綠 未跑  卡 GAP-1
+| pipeline | status | 簽名 在/寫 | laws 寫了 | laws 有測試 | laws 綠 | 狀態 |
+|---|---|---|---|---|---|---|
+| P-001-save-game | ready | 4/7 | 5 | 2 | 未跑 | 卡 GAP-1 |
 
 ## 1. 今天能開幾條線
 - 無
@@ -24,9 +26,11 @@ $ lawful status
 - Save.Zip:P-001-save-game#compress(願望)
 
 ## 6. 警訊
-- P-001-save-game#decode 簽名與程式碼不一致(lint sig)
-- P-001-save-game#toSave 搬家到 Save.Codec(lawful sync)
-- lint boundary 5 條不合規
+| 哪裡 | 什麼事 | 怎麼辦 |
+|---|---|---|
+| P-001-save-game#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| P-001-save-game#toSave | 程式碼在 Save.Codec | lawful sync |
+| 模組表 | lint boundary 5 條不合規 | lawful lint boundary |
 
 ## 7. 建議路線
 1. 先回答 GAP-1(lawful:revise),卡住的 stage 才能重派

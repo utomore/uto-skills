@@ -97,12 +97,12 @@ export const haskell = {
   isEffectful(type) {
     return /\bIO\b/.test(type);
   },
-  // 測試檔裡的 P-00x#LAW-n / P-00x#EX-n
+  // 測試檔裡字串字面值 "P-00x#LAW-n" / "P-00x#EX-n";只認字串,測試輸出才對得回來
   testMarkers(src) {
     const out = [];
-    const re = /P-\d{3}#(?:LAW|EX)-\d+/g;
+    const re = /"(P-\d{3}#(?:LAW|EX)-\d+)"/g;
     let m;
-    while ((m = re.exec(src))) out.push(m[0]);
+    while ((m = re.exec(src))) out.push(m[1]);
     return out;
   },
   // 簽名文字的比對用正規化:同 signatures 的 type 欄。

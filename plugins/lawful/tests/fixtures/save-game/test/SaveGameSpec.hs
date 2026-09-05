@@ -32,8 +32,7 @@ spec = do
     it "length (savedEntities (toSave w)) == entityCount w" $
       limited $ forAll genWorld $ \w -> length (savedEntities (toSave w)) == entityCount w
 
-  -- lawful: P-001#LAW-3
-  describe "file size is linear in entity count" $
+  describe "P-001#LAW-3" $
     it "length (encode s) <= 64 + 128 * length (savedEntities s)" $
       limited $ forAll genSaveState $ \s ->
         BS.length (encode s) <= 64 + 128 * length (savedEntities s)

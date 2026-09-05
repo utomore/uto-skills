@@ -57,7 +57,7 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 | `stdlib`:law 裡可直接用的標準函式庫函數 | `lint laws` |
 | `stub`:未實作本體 | conductor 寫骨架 |
 
-Haskell adapter:`.hs`;簽名行 `name :: Type`,多行合併,record 欄位也算;`import` 行;`IO` 出現在簽名即效果;測試輸出讀 hspec 的 specdoc 格式,`describe "P-00x#LAW-n"` 的才對得到結果,註解形式的歸屬只給 `lint trace` 認;`stub` = `undefined`。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
+Haskell adapter:`.hs`;簽名行 `name :: Type`,多行合併,record 欄位也算;`import` 行;`IO` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出讀 hspec 的 specdoc 格式;`stub` = `undefined`。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
 
 ## 跑東西的紀律
 

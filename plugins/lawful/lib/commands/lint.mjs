@@ -162,6 +162,9 @@ export function lintLaws(design, source, adapter) {
           r.red.push(`${where} ${label}的 ${id} 對不到 Stages 簽名、types 層匯出或標準函式庫`);
         }
       };
+      for (const [text, label] of [[l.forall, 'forall 行'], [l.conclusion, '|- 行'], ...l.given.map((g) => [g, 'given 行'])]) {
+        if (/[^\x20-\x7e]/.test(text)) r.red.push(`${where} ${label}含非 ASCII 字元,三行只准表達式,不准散文:${text}`);
+      }
       check(l.conclusion.replace(/^\|-\s*/, ''), '|- 行');
       for (const t of rhs) check(t, 'forall 行');
       for (const g of l.given) check(g.replace(/^given\s*/, ''), 'given 行');

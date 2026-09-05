@@ -39,6 +39,10 @@ updated: 2026-09-05
   - |- crc32 (encode s) == checksum (encode s)
 - LAW-5 [identity] 缺結論行
   - forall s in SaveState
+- LAW-6 [relation] given 行寫成散文,要紅
+  - forall s in SaveState
+  - given s 這一步有發出至少一個事件
+  - |- length (savedEntities s) >= 0
 
 ## Examples
 | # | 輸入 | 輸出 | 覆蓋 |

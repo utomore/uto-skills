@@ -95,7 +95,8 @@ description 住各 pipeline 的 frontmatter,清單不重複。
   - |- (a, b) in candidates w or (b, a) in candidates w
 ```
 
-- `forall` 行:變數與定義域;前提寫在集合限定裡,或再加一行 `given <前提>`。
+- `forall` 行:變數與定義域;一個 stage 的回傳值要拆開用,寫成 `(w1, effs) in step dt w`,`in` 對單一值就是綁定;前提寫在集合限定裡,或再加一行 `given <表達式>`。
+- `given` 行也是純 ASCII 表達式,識別字規則同 `|-` 行。前提寫不成表達式,代表少一個觀察用的 stage(像 `emittedBy :: SystemId -> StepReport -> [SomeEvent]`):補 stage,或開 GAP;不寫散文。
 - `|-` 行:結論;每個識別字必須是 Stages 表的簽名、types 層匯出的函數,或 adapter 認得的標準函式庫函數(`length`、`fst`),`lint laws` 對帳,對不到不准 `ready`;`==`、`in`、`=>`、`.`、`and`、`or`。law 不定義型別,型別與函數一律住程式碼。
 - 種類與對談時的問法:
 

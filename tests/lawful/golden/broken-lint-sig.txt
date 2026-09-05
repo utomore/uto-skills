@@ -1,13 +1,16 @@
 $ lawful lint sig
-## lint sig:6 條不合規
+## lint sig:9 條不合規
+- ✗ .lawful/pipelines/P-001-save-game.md 里程碑要恰好一列 ! 列(shell 的進入點),現在 0 列
 - ✗ .lawful/pipelines/P-001-save-game.md:17 P-001-save-game#decode 簽名不一致
     文檔:decode :: ByteString -> Either DecodeError SaveState
-    程式碼:decode :: ByteString -> Maybe SaveState(src/Save/Codec.hs:20)
+    程式碼:decode :: ByteString -> Maybe SaveState(src/Save/Codec.hs:21)
 - ✗ .lawful/pipelines/P-001-save-game.md:18 compress 引用的 P-002-compression 不存在
 - ✗ .lawful/pipelines/P-001-save-game.md:20 checksum 寫 pure 層,模組表說 Host.FS 是 shell 層
 - ✗ .lawful/pipelines/P-001-save-game.md:20 P-001-save-game#checksum 程式碼裡找不到
 - ✗ .lawful/pipelines/P-001-save-game.md:23 P-001-save-game#go 程式碼裡找不到
+- ✗ src/Save/State.hs:16 P-001-save-game#savedDropped 程式碼裡有,但 Save.State 沒有匯出它;stage 與觀察點都要是匯出的簽名
 - ✗ .lawful/pipelines/P-001-save-game.md:25 P-001-save-game#ghostView 程式碼裡找不到
+- ✗ .lawful/pipelines/P-001-save-game.md:26 = 列 saveGame 在 shell 層;= 列是純的整條(pure 或 effects),shell 的進入點另列成 ! 列
 - · P-001-save-game#toSave 搬家:文檔 Save.Project → 程式碼 Save.Codec(lawful sync 可改)
 - · P-001-save-game#compress 願望,待實作(目標 Save.Zip)
 exit 1

@@ -35,14 +35,17 @@ subagent 問不了人:
 
 ## 骨架與基線
 
-- 骨架 = Stages 表的每條簽名(步驟與 `o` 列的觀察點)寫進對應模組,本體是 `stub`;程式碼已經有的照舊。骨架要編得過。
+- 骨架 = Stages 表的每條簽名(步驟、`=` 列、`!` 列與 `o` 列的觀察點)寫進對應模組並匯出,本體是 adapter 的 `stub`,訊息帶 `P-00x#name`(Haskell:`error "P-00x#name stub"`),基線的紅燈才看得出打到哪個 stage;程式碼已經有的照舊。骨架要編得過,`lawful status` 把還是 `stub` 的列成骨架。
 - qa 交付後,conductor 在骨架上跑一次 qa 的測試當基線:打到 `stub` 的要紅、打到型別本身承載的事實(建構子、欄位、instance)的要綠、REV 保護的既有 law 要綠。
 - 該紅卻綠退回 qa 重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。基線過了才派 impl。
 
 ## qa 的交付
 
-- 產生器由 qa 寫,只准用 types 層的 smart constructor 組合法值;組不出來就是 GAP,指出缺的建構子。
+- 產生器由 qa 寫,只准用 types 層的 smart constructor 組合法值;組不出來就是 GAP,指出缺的建構子。產生器要能縮小(shrink),反例才讀得懂。
+- 有 `given` 行的 law:產生器直接建構滿足前提的值;做不到才用條件過濾,並宣告覆蓋率下限(QuickCheck 的 `checkCoverage` 加 `cover`),沒宣告覆蓋率的過濾式測試視同恆真。
+- `total` 種類的斷言是把結果求值到正規形不拋例外(`total`、`force`),或 `isRight` / `isJust`。
 - 每條 property test 限案例數與尺寸(例:100 個案例、產生器的尺寸參數有上限),整個測試模組有 timeout;不得產生無界的結構或無界的迴圈。跑爆機器的測試視同紅。
+- 里程碑 `=` 列的 law 拿觀察點裡的純解譯器跑,測試不碰 IO。
 - 測試模組編得過,紅綠分佈符合基線預期。
 - 內部支架(不是 stage 的 class、區域函數)的測試不標歸屬、不進 law 分母;要測就另開測試模組,`lint trace` 把它列成內部測試。
 

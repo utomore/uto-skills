@@ -8,7 +8,7 @@ updated: 2026-09-05
 
 ## Brief
 玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
-流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。它是里程碑,兩端碰到 shell。
+流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString;進入點把它接到檔案系統。它是里程碑,兩端碰到 shell。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -18,7 +18,8 @@ updated: 2026-09-05
 | 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態,壞檔回錯誤 | `Save.Codec` | pure |
 | 4 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Host.FS` | shell |
 | o | `savedIds :: SaveState -> [EntityId]` | 觀察:投影後的實體 id | `Save.Project.Internal` | pure |
-| = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Host.Save` | shell |
+| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Save` | pure |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Host.Save` | shell |
 
 ## Laws
 - LAW-1 [roundtrip] 存了再讀回到同一個狀態
@@ -33,6 +34,9 @@ updated: 2026-09-05
 - LAW-4 [invariant] 投影後實體 id 不重複
   - forall w in World
   - |- nub (savedIds (toSave w)) == savedIds (toSave w)
+- LAW-5 [roundtrip] 整條存出去的位元組解回來就是投影
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
 
 ## Examples
 | # | 輸入 | 輸出 | 覆蓋 |

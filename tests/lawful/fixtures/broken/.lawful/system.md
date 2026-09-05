@@ -23,6 +23,7 @@ updated: 2026-09-05
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
 | 存檔檔案 | out | `ByteString` | `Host.FS` | P-001-save-game |
+| 讀檔 | inn | `SaveState` | `Save.Codec` | P-002-load-game |
 
 ## Pipelines
 | 全名 | 類別 |

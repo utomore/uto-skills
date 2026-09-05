@@ -19,12 +19,12 @@ user-invocable: true
 ## 步驟
 
 1. **看現況。** 有 `.lawful/` 就是更新模式:只改開發者點名的節,其餘不動。沒有就建。
-2. **訪談,一題一題問**:這個系統替誰做什麼、不做什麼;語言(決定 adapter);建置、整套測試、子集測試三道指令,子集指令從 CI 設定或測試框架說明找,找不到問一次;跨過 shell 的每個入口與出口叫什麼、帶什麼型別。
-3. **切四層**(`boundary.md`「四層」):哪些型別住 types、有沒有效果的描述要住 effects、pure 的根模組、shell 的進入點。有程式碼就 `lawful modules --gen` 生成模組表,人只填層欄;沒有程式碼就列預期的模組。
+2. **訪談,一題一題問**:這個系統替誰做什麼、不做什麼;語言(決定 adapter)與效果的寫法(直接 `IO`、mtl、effectful 這類效果系統;專案自己的 App monad 寫進「效果型別追加」);建置、整套測試、子集測試三道指令,子集指令從 CI 設定或測試框架說明找,找不到問一次;跨過 shell 的每個入口與出口叫什麼、帶什麼型別。
+3. **切四層**(`boundary.md`「四層」「效果的判定」):哪些型別住 types、有沒有效果的描述要住 effects、每個效果描述的純解譯器與真解譯器各住哪、pure 的根模組、shell 的進入點。有程式碼就 `lawful modules --gen` 生成模組表,人只填層欄;沒有程式碼就列預期的模組。
 4. **列里程碑**:兩端碰到 shell 的資料流各一條,按交付順序排。這張表是 `lawful status` 的分母。
 5. **寫檔**:`system.md` 照 `templates/system.md` 五節;`modules.md` 一張表。層怎麼切、效果 ADT 的形狀這種跨 pipeline 決定,寫 `adr/ADR-00x-<slug>.md`(`templates/adr.md`)。
 6. **建 pipeline 骨架**:每條里程碑 `lawful claim <slug> --description <句>`,得到 `draft` 的檔與 system.md 的一列,類別欄填「里程碑」。內容交給 `lawful:pipeline`。
-7. `lawful lint boundary`:模組表與程式碼對得上才收。
+7. `lawful lint boundary`、`lawful lint io`:模組表、對外 I/O 表與程式碼對得上才收。
 
 ## 收尾
 

@@ -10,7 +10,7 @@ export const ALLOWED_IMPORTS = {
   pure: ['types', 'effects', 'pure'],
   shell: ['types', 'effects', 'pure', 'shell'],
 };
-export const LAW_KINDS = ['invariant', 'identity', 'roundtrip', 'relation', 'bound', 'equiv'];
+export const LAW_KINDS = ['invariant', 'identity', 'roundtrip', 'relation', 'bound', 'equiv', 'total', 'commute'];
 export const STATUSES = ['draft', 'ready', 'frozen'];
 
 function read(p) {
@@ -21,25 +21,37 @@ function rel(root, p) {
   return path.relative(root, p).split(path.sep).join('/');
 }
 
-export function readSystem(designDir, root) {
-  const file = path.join(designDir, 'system.md');
+export function readSystem(lawfulDir, root) {
+  const file = path.join(lawfulDir, 'system.md');
   const text = read(file);
   if (text == null) return null;
   const { fm, body } = parseFrontmatter(text);
   const secs = sections(body);
+  // 節的 start 是 body 內的行號;加回 frontmatter 佔的行數,訊息才指到檔案的真實行
+  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+  for (const s of secs) s.start += offset;
   const tools = findSection(secs, '語言與工具');
   const ioExtra = [];
+  const effectExtra = [];
   const ignoreDirs = [];
   const commands = {};
   if (tools) {
     for (const it of parseList(tools.lines)) {
-      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|忽略目錄)[::]\s*(.*)$/.exec(it.text);
+      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄)[::]\s*(.*)$/.exec(it.text);
       if (!m) continue;
       const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
       if (m[1] === 'IO 模組追加') ioExtra.push(...list());
+      else if (m[1] === '效果型別追加') effectExtra.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
       else commands[m[1]] = stripTicks(m[2]);
     }
+  }
+  // 對外 I/O 表:[{ name, direction, type, module, pipeline, line }]
+  const ioSec = findSection(secs, '對外 I/O');
+  const io = [];
+  if (ioSec) {
+    const t = parseTable(ioSec.lines);
+    if (t) t.rows.forEach((r, i) => io.push({ name: (r[0] || '').trim(), direction: (r[1] || '').trim(), type: stripTicks(r[2] || ''), module: stripTicks(r[3] || ''), pipeline: stripTicks(r[4] || ''), line: ioSec.start + t.rowLines[i] + 2 }));
   }
   const pl = findSection(secs, 'Pipelines');
   const pipelines = [];
@@ -47,12 +59,12 @@ export function readSystem(designDir, root) {
     const t = parseTable(pl.lines);
     if (t) for (const r of t.rows) pipelines.push({ fullName: stripTicks(r[0] || ''), kind: (r[1] || '').trim() });
   }
-  return { file: rel(root, file), fm, language: fm.language || null, ioExtra, ignoreDirs, commands, pipelines, sections: secs };
+  return { file: rel(root, file), fm, language: fm.language || null, ioExtra, effectExtra, ignoreDirs, commands, io, pipelines, sections: secs };
 }
 
 // 模組表:[{ pattern, layer, line }];pattern 可能以 .* 結尾。
-export function readModules(designDir, root) {
-  const file = path.join(designDir, 'modules.md');
+export function readModules(lawfulDir, root) {
+  const file = path.join(lawfulDir, 'modules.md');
   const text = read(file);
   if (text == null) return null;
   const { body } = parseFrontmatter(text);
@@ -112,6 +124,7 @@ function parseStages(sec) {
       index,
       whole: index === '=',
       observe: index === 'o',
+      runner: index === '!',
       name,
       type,
       sigText,
@@ -189,8 +202,8 @@ export function readPipeline(file, root) {
   };
 }
 
-export function readGaps(designDir, root) {
-  const file = path.join(designDir, 'gaps.md');
+export function readGaps(lawfulDir, root) {
+  const file = path.join(lawfulDir, 'gaps.md');
   const text = read(file);
   if (text == null) return { file: rel(root, file), exists: false, gaps: [] };
   const secs = sections(parseFrontmatter(text).body);
@@ -204,8 +217,8 @@ export function readGaps(designDir, root) {
   return { file: rel(root, file), exists: true, gaps };
 }
 
-export function readSpikes(designDir, root) {
-  const dir = path.join(designDir, 'spikes');
+export function readSpikes(lawfulDir, root) {
+  const dir = path.join(lawfulDir, 'spikes');
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => /^SPK-\d{3}-.+\.md$/.test(f)).sort().map((f) => {
     const file = path.join(dir, f);
@@ -231,20 +244,20 @@ export function readSpikes(designDir, root) {
 }
 
 export function readDesign(root) {
-  const designDir = path.join(root, '.lawful');
-  if (!fs.existsSync(designDir)) return null;
-  const pipelinesDir = path.join(designDir, 'pipelines');
+  const lawfulDir = path.join(root, '.lawful');
+  if (!fs.existsSync(lawfulDir)) return null;
+  const pipelinesDir = path.join(lawfulDir, 'pipelines');
   const files = fs.existsSync(pipelinesDir)
     ? fs.readdirSync(pipelinesDir).filter((f) => /^P-\d{3}-.+\.md$/.test(f)).sort()
     : [];
   return {
     root,
-    designDir,
+    lawfulDir,
     pipelinesDir,
-    system: readSystem(designDir, root),
-    modules: readModules(designDir, root),
+    system: readSystem(lawfulDir, root),
+    modules: readModules(lawfulDir, root),
     pipelines: files.map((f) => readPipeline(path.join(pipelinesDir, f), root)),
-    gaps: readGaps(designDir, root),
-    spikes: readSpikes(designDir, root),
+    gaps: readGaps(lawfulDir, root),
+    spikes: readSpikes(lawfulDir, root),
   };
 }

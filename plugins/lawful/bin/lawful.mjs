@@ -5,7 +5,7 @@ import process from 'node:process';
 import { readDesign } from '../lib/design.mjs';
 import { readSource } from '../lib/source.mjs';
 import { pickAdapter, adapterNames } from '../lib/adapters/index.mjs';
-import { lintAll, lintBoundary, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
+import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
 import { claim, modulesGen, spikeClose, sync } from '../lib/commands/edit.mjs';
@@ -17,7 +17,9 @@ const HELP = `lawful <子命令> [選項]
   status --pipeline <P-00x | 全名>     一條 pipeline 的 stage 與 law 逐條狀態
   status --module <模組>               住在該模組的所有 stage 的狀態
   claim <slug> [--description <句>]    鑄號建 pipeline 檔(status: draft),system.md Pipelines 表加一列
-  lint boundary | sig | laws | trace | all
+  lint boundary | sig | laws | trace | io | all
+                                       boundary:import 圖、效果型別、匯出清單、*.Internal vs 模組表;sig:Stages 簽名 vs 程式碼,含 = / o / ! 列的層與匯出;
+                                       laws:三行、種類、識別字、= 列有 law;trace:laws ↔ 測試歸屬;io:對外 I/O 表 vs 里程碑兩端與模組表
   sync                                 同層搬家的 stage,模組欄改成程式碼的模組
   modules --gen                        從程式碼補模組表缺的模組,層欄留白
   section <file> <節>… [--verify]      取 ## 節
@@ -105,12 +107,12 @@ function main() {
 
   if (cmd === 'lint') {
     const which = sub || 'all';
-    const one = { boundary: lintBoundary, sig: lintSig, laws: lintLaws, trace: lintTrace };
+    const one = { boundary: lintBoundary, sig: lintSig, laws: lintLaws, trace: lintTrace, io: lintIo };
     let results;
     if (which === 'all') results = lintAll(design, source, adapter);
     else if (one[which]) results = [one[which](design, source, adapter)];
     else {
-      console.error(`lint 只有 boundary / sig / laws / trace / all,沒有「${which}」`);
+      console.error(`lint 只有 boundary / sig / laws / trace / io / all,沒有「${which}」`);
       return 1;
     }
     return emit(renderLint(results));

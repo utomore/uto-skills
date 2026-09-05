@@ -11,8 +11,10 @@ save-game
           after 12 tests and 3 shrinks.
   P-001#LAW-4:                                      OK (0.03s)
         ✓ <interactive> passed 100 tests.
+  P-001#LAW-5:                                      OK (0.04s)
+        ✓ <interactive> passed 100 tests.
   P-001#EX-1:                                       OK
   P-001#EX-2:                                       OK
 
-1 out of 6 tests failed (0.11s)
+1 out of 7 tests failed (0.11s)
 Test suite spec: FAIL

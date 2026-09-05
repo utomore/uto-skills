@@ -1,23 +1,84 @@
 // Haskell adapter:.hs 檔的簽名、import、效果判定、測試歸屬標記。
 
+// 純層不准 import 的模組:繞過型別系統的逃生口(unsafePerformIO、trace、FFI)與只有效果的模組。
+// 有純 API 的模組(System.Random 的 StdGen、Data.Time 的 UTCTime)不在這裡;它們的效果由簽名上的效果型別擋。
 const IO_MODULES = [
-  'System.IO', 'System.IO.*', 'Data.IORef', 'Control.Concurrent', 'Control.Concurrent.*',
-  'System.Process', 'System.Directory', 'System.Environment', 'System.Exit',
-  'Network.*', 'Foreign.*', 'GHC.IO', 'GHC.IO.*', 'Data.Time.Clock', 'System.Random',
+  'System.IO', 'System.IO.*', 'GHC.IO', 'GHC.IO.*', 'Debug.Trace', 'Foreign.*',
+  'Data.IORef', 'Control.Concurrent', 'Control.Concurrent.*', 'Control.Monad.STM', 'Control.Concurrent.STM.*',
+  'System.Process', 'System.Directory', 'System.Environment', 'System.Exit', 'Network.*',
 ];
+
+// 簽名裡出現就算碰到效果:IO 本身、mtl 的 MonadIO 家族、effectful 的 IOE、STM 與可變參考。
+// 效果系統的描述型別(Eff es、Sem r、Free f)不算:它們是純資料,住 effects 層。
+const EFFECT_TYPES = ['IO', 'IOE', 'MonadIO', 'MonadUnliftIO', 'STM', 'IORef', 'MVar', 'TVar', 'TMVar', 'Chan'];
 
 const STDLIB = [
   'id', 'const', 'fst', 'snd', 'not', 'null', 'length', 'sum', 'product', 'maximum', 'minimum',
   'map', 'filter', 'foldr', 'foldl', 'concat', 'concatMap', 'reverse', 'take', 'drop', 'elem',
-  'notElem', 'lookup', 'zip', 'unzip', 'head', 'tail', 'last', 'init', 'all', 'any', 'and', 'or',
+  'notElem', 'lookup', 'zip', 'zipWith', 'unzip', 'head', 'tail', 'last', 'init', 'all', 'any', 'and', 'or',
   'abs', 'signum', 'negate', 'min', 'max', 'succ', 'pred', 'fromIntegral', 'toInteger', 'round',
   'floor', 'ceiling', 'truncate', 'show', 'read', 'maybe', 'either', 'fmap', 'pure', 'return',
-  'mempty', 'mappend', 'mconcat', 'sort', 'sortBy', 'nub', 'group', 'words', 'unwords', 'lines',
+  'mempty', 'mappend', 'mconcat', 'sort', 'sortBy', 'sortOn', 'nub', 'group', 'words', 'unwords', 'lines',
   'unlines', 'replicate', 'iterate', 'until', 'flip', 'curry', 'uncurry', 'seq', 'error',
   'undefined', 'compare', 'div', 'mod', 'quot', 'rem', 'even', 'odd', 'gcd', 'lcm', 'sqrt',
-  'exp', 'log', 'sin', 'cos', 'floor', 'mapM', 'mapM_', 'sequence', 'traverse', 'foldMap',
+  'exp', 'log', 'sin', 'cos', 'mapM', 'mapM_', 'sequence', 'traverse', 'foldMap',
   'toList', 'fromList', 'member', 'insert', 'delete', 'size', 'empty', 'singleton', 'union',
+  'isJust', 'isNothing', 'fromMaybe', 'catMaybes', 'mapMaybe', 'isLeft', 'isRight', 'lefts', 'rights',
+  'partition', 'span', 'splitAt', 'takeWhile', 'dropWhile', 'elemIndex', 'find', 'isPrefixOf', 'isSuffixOf', 'isInfixOf',
+  'on', 'fix', 'force', 'total',
 ];
+
+// module 行的匯出清單:null = 沒寫匯出清單(整個模組都匯出);否則是名字的清單。
+// `Foo (..)` 收 Foo;`(<+>)` 收 <+>;`module X` 收 module:X。
+function exportList(clean) {
+  const m = /^module\s+[A-Z][\w.']*\s*/m.exec(clean);
+  if (!m) return null;
+  let i = m.index + m[0].length;
+  if (clean[i] !== '(') return null;
+  let depth = 0;
+  let j = i;
+  for (; j < clean.length; j++) {
+    if (clean[j] === '(') depth++;
+    else if (clean[j] === ')' && --depth === 0) break;
+  }
+  // 只切最外層的逗號;型別後面的 (..) / (A, b) 是建構子與欄位清單
+  const items = [];
+  let cur = '';
+  depth = 0;
+  for (const c of clean.slice(i + 1, j)) {
+    if (c === '(') depth++;
+    else if (c === ')') depth--;
+    if (c === ',' && depth === 0) {
+      items.push(cur);
+      cur = '';
+    } else cur += c;
+  }
+  items.push(cur);
+  const out = [];
+  for (const raw of items) {
+    const item = raw.trim();
+    if (!item) continue;
+    const mod = /^module\s+([A-Z][\w.']*)/.exec(item);
+    if (mod) {
+      out.push(`module:${mod[1]}`);
+      continue;
+    }
+    const op = /^\(\s*([^\s()]+)\s*\)/.exec(item);
+    if (op) {
+      out.push(op[1]);
+      continue;
+    }
+    const name = /^(?:type\s+|pattern\s+)?([A-Za-z_][\w']*)\s*(?:\(([^)]*)\))?/.exec(item);
+    if (!name) continue;
+    out.push(name[1]);
+    if (name[2] !== undefined) {
+      const inner = name[2].trim();
+      if (inner === '..') out.push(`${name[1]}(..)`);
+      else for (const sub of inner.split(',').map((s) => s.trim()).filter(Boolean)) out.push(sub.replace(/^\(|\)$/g, ''));
+    }
+  }
+  return out;
+}
 
 function stripComments(src) {
   let s = src.replace(/\{-[\s\S]*?-\}/g, (m) => m.replace(/[^\n]/g, ' '));
@@ -59,9 +120,31 @@ function moduleOf(src, relPath) {
 export const haskell = {
   name: 'haskell',
   extensions: ['.hs'],
-  stub: 'undefined',
+  // 骨架的本體:錯誤訊息帶著 stage 的引用,基線的紅燈才看得出打到哪個 stub。
+  stub: (marker) => `error "${marker} stub"`,
   ioModules: IO_MODULES,
+  effectTypes: EFFECT_TYPES,
   stdlib: STDLIB,
+  // 匯出清單:null = 沒寫(全部匯出);否則名字清單(型別、函數、運算子、module:X)。
+  exports(src) {
+    return exportList(stripComments(src));
+  },
+  // 欄位 0 宣告的型別名:data / newtype / type / class。
+  typeNames(src) {
+    const out = [];
+    const re = /^(?:data|newtype|type|class)\s+(?:\([^)]*\)\s*=>\s*)?(?:[A-Z][\w.']*\s*=>\s*)?(?:family\s+)?([A-Z][\w']*)/gm;
+    let m;
+    while ((m = re.exec(stripComments(src)))) out.push(m[1]);
+    return out;
+  },
+  // 本體還是骨架的頂層名字:等號右邊只有 undefined,或只有一個 error 呼叫。
+  stubs(src) {
+    const out = [];
+    const re = /^([a-z_][\w']*|\([^()\s]+\))(?:\s+[\w'_]+|\s+_)*\s*=\s*(?:undefined|error\s+"[^"]*")\s*$/gm;
+    let m;
+    while ((m = re.exec(stripComments(src)))) out.push(m[1]);
+    return out;
+  },
   isTestFile(relPath) {
     const parts = relPath.split(/[\\/]/);
     return parts.some((p) => /^(test|tests|spec|specs)$/i.test(p)) || /Spec\.hs$/.test(relPath);
@@ -91,7 +174,7 @@ export const haskell = {
     const pushFields = (line, i) => {
       for (const [names, raw] of recordFields(line)) {
         const type = raw.trim().replace(/^!\s*/, ''); // 嚴格標記 ! 不屬於存取子的型別
-        pushNames(names, record ? `${record.head} -> ${type}` : type, i + 1, { field: true });
+        pushNames(names, record ? `${record.head} -> ${type}` : type, i + 1, { field: true, record: record ? record.head.split(' ')[0] : null });
       }
     };
     for (let i = 0; i < lines.length; i++) {
@@ -171,8 +254,10 @@ export const haskell = {
     while ((m = re.exec(clean))) out.push(m[1]);
     return out;
   },
-  isEffectful(type) {
-    return /\bIO\b/.test(type);
+  // extra:system.md「效果型別追加」。
+  isEffectful(type, extra = []) {
+    const names = [...EFFECT_TYPES, ...extra].map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    return new RegExp(`(?<![\\w.'])(?:${names.join('|')})(?![\\w'])`).test(type);
   },
   // 測試檔裡字串字面值 "P-00x#LAW-n" / "P-00x#EX-n";只認字串,測試輸出才對得回來
   testMarkers(src) {

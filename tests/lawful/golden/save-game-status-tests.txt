@@ -1,12 +1,12 @@
 $ lawful status --tests test.log
 # lawful status
-里程碑 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+里程碑 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 還沒實作的 stage 4 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 ## pipelines
-| pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
-|---|---|---|---|---|---|---|
-| P-001-save-game | ready | 5 | 5 | 4 | 3/4 | 進行中 |
+| pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
+|---|---|---|---|---|---|---|---|
+| P-001-save-game | ready | 6 | 6 | 4 | 5 | 4/5 | 進行中 |
 
 ## 1. 今天能開幾條線
 - P-001-save-game:lawful:build P-001-save-game
@@ -21,7 +21,9 @@ $ lawful status --tests test.log
 - 無
 
 ## 5. 待實作(按模組)
-- 無
+- Host.FS:P-001-save-game#writeSave(骨架)
+- Save.Codec:P-001-save-game#encode(骨架)、P-001-save-game#decode(骨架)
+- Save.Project:P-001-save-game#toSave(骨架)
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |

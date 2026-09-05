@@ -37,15 +37,32 @@ export function readSource(root, adapter, ignore = []) {
       file: f.rel,
       imports: adapter.imports(src),
       signatures: adapter.signatures(src, f.rel),
+      exports: adapter.exports ? adapter.exports(src) : null,
+      typeNames: adapter.typeNames ? adapter.typeNames(src) : [],
+      stubs: new Set(adapter.stubs ? adapter.stubs(src) : []),
     });
   }
   return { modules, testFiles };
 }
 
+// 命中帶三個程式碼事實:exported(匯出清單有它;沒寫匯出清單算 true)、stub(本體還是骨架)。
 export function findSignature(source, name) {
   const hits = [];
   for (const m of source.modules.values()) {
-    for (const s of m.signatures) if (s.name === name) hits.push({ ...s, file: m.file });
+    for (const s of m.signatures) {
+      if (s.name !== name) continue;
+      const ex = m.exports;
+      const bare = name.replace(/^\(|\)$/g, '');
+      const exported = ex === null || ex.includes(bare) || (s.klass ? ex.includes(`${s.klass}(..)`) : false) || (s.record ? ex.includes(`${s.record}(..)`) : false);
+      hits.push({ ...s, file: m.file, exported, stub: m.stubs.has(name) });
+    }
   }
+  return hits;
+}
+
+// 型別名住在哪個模組:[{ module, file }]
+export function findType(source, typeName) {
+  const hits = [];
+  for (const m of source.modules.values()) if (m.typeNames.includes(typeName)) hits.push({ module: m.module, file: m.file });
   return hits;
 }

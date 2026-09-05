@@ -6,7 +6,7 @@ $ lawful status
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|
-| P-001-save-game | ready | 7 | 4 | 5 | 未跑/2 | 卡 GAP-1 |
+| P-001-save-game | ready | 7 | 4 | 5 | nan/2 | 卡 GAP-1 |
 
 ## 1. 今天能開幾條線
 - 無

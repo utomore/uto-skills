@@ -98,7 +98,7 @@ function row(x) {
   const g = x.laws.filter((l) => l.result === 'green').length;
   const traced = x.laws.filter((l) => l.traced).length;
   const state = x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : '進行中';
-  return `| ${x.p.fullName} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.laws.length} | ${x.unknown ? '未跑' : g}/${traced} | ${state} |`;
+  return `| ${x.p.fullName} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${state} |`;
 }
 
 export function statusReport(design, source, adapter, results, resultNote) {
@@ -231,7 +231,7 @@ export function pipelineDetail(design, source, adapter, results, resultNote, nam
   out.push('', '## 引用');
   out.push(`- 引用了:${x.refs.length ? x.refs.join('、') : '無'}`);
   out.push(`- 被引用:${x.referrers.length ? x.referrers.join('、') : '無'}`);
-  out.push('', `文檔寫了 ${x.sigTotal} 條簽名,程式碼裡有 ${x.sigOk} 條 · 寫了 ${x.laws.length} 條 law,通過 ${x.unknown ? '未跑' : x.laws.filter((l) => l.result === 'green').length} 條 · ${x.achieved ? '達成' : '未達成'}`);
+  out.push('', `文檔寫了 ${x.sigTotal} 條簽名,程式碼裡有 ${x.sigOk} 條 · 寫了 ${x.laws.length} 條 law,通過 ${x.unknown ? 'nan' : x.laws.filter((l) => l.result === 'green').length} 條 · ${x.achieved ? '達成' : '未達成'}`);
   return { text: out.join('\n'), exitCode: 0 };
 }
 
@@ -248,7 +248,7 @@ export function moduleDetail(design, source, adapter, results, resultNote, modul
       n++;
       const lawsOn = x.laws.filter((l) => l.conclusion && new RegExp(`(?<![\\w.'])${s.name}(?![\\w'])`).test(l.conclusion));
       const g = lawsOn.filter((l) => l.result === 'green').length;
-      out.push(`- ${x.p.fullName}#${s.name}  ${s.state}  掛在上面的 law ${lawsOn.length} 條,通過 ${x.unknown ? '未跑' : g} 條`);
+      out.push(`- ${x.p.fullName}#${s.name}  ${s.state}  掛在上面的 law ${lawsOn.length} 條,通過 ${x.unknown ? 'nan' : g} 條`);
     }
   }
   if (!n) out.push('- 沒有任何 pipeline 的 stage 住在這裡');

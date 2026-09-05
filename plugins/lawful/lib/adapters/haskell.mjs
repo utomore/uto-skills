@@ -107,4 +107,39 @@ export const haskell = {
   },
   // 簽名文字的比對用正規化:同 signatures 的 type 欄。
   normalizeType: normalize,
+  // hspec 輸出 → Map<marker, 'green' | 'red' | 'pending'>。describe 字串是 P-00x#LAW-n 的才對得到。
+  testResults(log) {
+    const clean = log.replace(/\x1b\[[0-9;]*m/g, '');
+    const results = new Map();
+    let current = null;
+    let currentIndent = -1;
+    const set = (m, v) => {
+      const prev = results.get(m);
+      if (v === 'red' || !prev || (prev === 'pending' && v === 'green')) results.set(m, v);
+    };
+    for (const raw of clean.split(/\r?\n/)) {
+      const line = raw.replace(/\s+$/, '');
+      if (/^(Failures:|Randomized with seed|Finished in|\d+ examples?)/.test(line)) {
+        current = null;
+        continue;
+      }
+      const indent = line.search(/\S/);
+      const head = /^\s*(P-\d{3}#(?:LAW|EX)-\d+)\s*$/.exec(line);
+      if (head) {
+        current = head[1];
+        currentIndent = indent;
+        continue;
+      }
+      if (current && indent > currentIndent) {
+        if (/\[✘\]|\bFAILED\b/.test(line)) set(current, 'red');
+        else if (/\[✔\]/.test(line)) set(current, 'green');
+        else if (/\[‐\]|# PENDING/.test(line)) set(current, 'pending');
+        continue;
+      }
+      if (indent >= 0 && indent <= currentIndent) current = null;
+      const fail = /^\s*\d+\)\s+(P-\d{3}#(?:LAW|EX)-\d+)/.exec(line);
+      if (fail) set(fail[1], 'red');
+    }
+    return results;
+  },
 };

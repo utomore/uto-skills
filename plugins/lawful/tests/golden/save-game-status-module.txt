@@ -1,0 +1,7 @@
+$ lawful status --module Save.Codec --tests test.log
+# Save.Codec  pure 層
+· 測試結果來自 test.log
+
+- P-001-save-game#encode  在  laws 2 條、綠 1
+- P-001-save-game#decode  在  laws 1 條、綠 1
+exit 0

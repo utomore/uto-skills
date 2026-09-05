@@ -1,0 +1,34 @@
+$ lawful status
+# lawful status
+里程碑達成 0/1 · pipeline 達成 0/1 · 待實作 stage 2 · open GAP 1
+· 沒給測試輸出(--tests <log> 或 --run),laws 綠幾條未知
+
+## pipelines
+- P-001-save-game  ready  簽名 4/7  laws 5 條、已歸屬 2、綠 未跑  卡 GAP-1
+
+## 1. 今天能開幾條線
+- 無
+
+## 2. 卡住的
+- P-001#LAW-1 停在 GAP-1(qa 提)
+
+## 3. 等決定
+- GAP-1(P-001#LAW-1 / qa):lawful:revise
+- SPK-002-zstd 還 open
+
+## 4. 牽動誰
+- 無
+
+## 5. 待實作(按模組)
+- Host.FS:P-001-save-game#checksum
+- Save.Zip:P-001-save-game#compress(願望)
+
+## 6. 警訊
+- P-001-save-game#decode 簽名與程式碼不一致(lint sig)
+- P-001-save-game#toSave 搬家到 Save.Codec(lawful sync)
+- lint boundary 5 條不合規
+
+## 7. 建議路線
+1. 先回答 GAP-1(lawful:revise),卡住的 stage 才能重派
+2. lawful:build P-001-save-game
+exit 1

@@ -1,0 +1,29 @@
+$ lawful status
+# lawful status
+里程碑達成 0/1 · pipeline 達成 0/1 · 待實作 stage 0 · open GAP 0
+· 沒給測試輸出(--tests <log> 或 --run),laws 綠幾條未知
+
+## pipelines
+- P-001-save-game  ready  簽名 5/5  laws 3 條、已歸屬 3、綠 未跑
+
+## 1. 今天能開幾條線
+- P-001-save-game:lawful:build P-001-save-game
+
+## 2. 卡住的
+- 無
+
+## 3. 等決定
+- 無
+
+## 4. 牽動誰
+- 無
+
+## 5. 待實作(按模組)
+- 無
+
+## 6. 警訊
+- 無
+
+## 7. 建議路線
+1. lawful:build P-001-save-game
+exit 1

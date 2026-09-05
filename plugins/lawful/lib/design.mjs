@@ -116,7 +116,7 @@ function parseStages(sec) {
       wish,
       ref: refM ? refM[1] : null,
       layer: (r[4] || '').trim(),
-      line: sec.start + t.rowLines[i] + 1,
+      line: sec.start + t.rowLines[i] + 2,
     };
   });
 }
@@ -157,6 +157,9 @@ export function readPipeline(file, root) {
   if (text == null) return null;
   const { fm, body, hasFrontmatter } = parseFrontmatter(text);
   const secs = sections(body);
+  // 節的 start 是 body 內的行號;加回 frontmatter 佔的行數,訊息與 sync 才指到檔案的真實行
+  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+  for (const s of secs) s.start += offset;
   const base = path.basename(file, '.md');
   const idM = /^(P-\d{3})-(.+)$/.exec(base);
   const decisions = findSection(secs, '決定');
@@ -197,6 +200,32 @@ export function readGaps(designDir, root) {
   return { file: rel(root, file), exists: true, gaps };
 }
 
+export function readSpikes(designDir, root) {
+  const dir = path.join(designDir, 'spikes');
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => /^SPK-\d{3}-.+\.md$/.test(f)).sort().map((f) => {
+    const file = path.join(dir, f);
+    const { fm, body } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
+    const secs = sections(body);
+    const rounds = secs.filter((s) => s.level === 3 && /^RND-\d+/.test(s.title)).map((s) => ({
+      id: /^(RND-\d+)/.exec(s.title)[1],
+      sha: (parseList(s.lines).find((i) => /^sha[::]/.test(i.text)) || { text: '' }).text.replace(/^sha[::]\s*/, '').trim(),
+    }));
+    const base = path.basename(f, '.md');
+    return {
+      file: rel(root, file),
+      abs: file,
+      fullName: base,
+      id: fm.id || base.slice(0, 7),
+      slug: base.slice(8),
+      status: fm.status || '',
+      verdict: fm.verdict || '',
+      feeds: Array.isArray(fm.feeds) ? fm.feeds : fm.feeds ? [fm.feeds] : [],
+      rounds,
+    };
+  });
+}
+
 export function readDesign(root) {
   const designDir = path.join(root, '.design');
   if (!fs.existsSync(designDir)) return null;
@@ -207,9 +236,11 @@ export function readDesign(root) {
   return {
     root,
     designDir,
+    pipelinesDir,
     system: readSystem(designDir, root),
     modules: readModules(designDir, root),
     pipelines: files.map((f) => readPipeline(path.join(pipelinesDir, f), root)),
     gaps: readGaps(designDir, root),
+    spikes: readSpikes(designDir, root),
   };
 }

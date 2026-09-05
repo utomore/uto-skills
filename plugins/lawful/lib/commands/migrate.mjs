@@ -206,7 +206,7 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
 
   const out = [];
   out.push('# migrate from-dev-flow 帳本', '');
-  out.push(`來源:${path.relative(root, designDir).split(path.sep).join('/') || '.design'} · 文檔 ${docs.length} 份(F ${docs.filter((d) => d.kind === 'F').length}、E ${docs.filter((d) => d.kind === 'E').length}、B ${docs.filter((d) => d.kind === 'B').length}、G-* ${docs.filter((d) => d.kind.startsWith('G-')).length})· ADR ${adrCount} 份原樣搬 · ${source ? `程式碼模組 ${source.modules.size} 個` : '沒有 adapter,簽名未對程式碼'}`);
+  out.push(`來源:${path.relative(root, designDir).split(path.sep).join('/') || '.lawful'} · 文檔 ${docs.length} 份(F ${docs.filter((d) => d.kind === 'F').length}、E ${docs.filter((d) => d.kind === 'E').length}、B ${docs.filter((d) => d.kind === 'B').length}、G-* ${docs.filter((d) => d.kind.startsWith('G-')).length})· ADR ${adrCount} 份原樣搬 · ${source ? `程式碼模組 ${source.modules.size} 個` : '沒有 adapter,簽名未對程式碼'}`);
   out.push('');
 
   out.push('## 里程碑候選(從開發階段表來;每個階段的垂直切片是一條或多條里程碑 pipeline,切法由人定)');

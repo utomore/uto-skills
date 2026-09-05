@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// lawful:純函數式 SDD 的單一 CLI。在有 .design/ 的專案根目錄執行。
+// lawful:純函數式 SDD 的單一 CLI。在有 .lawful/ 的專案根目錄執行。
 import path from 'node:path';
 import process from 'node:process';
 import { readDesign } from '../lib/design.mjs';
@@ -51,11 +51,11 @@ function parseArgs(argv) {
 
 function loadProject(root) {
   const design = readDesign(root);
-  if (!design) return { error: `${root} 底下沒有 .design/` };
+  if (!design) return { error: `${root} 底下沒有 .lawful/` };
   const language = design.system ? design.system.language : null;
   const adapter = pickAdapter(language);
   const notes = [];
-  if (!design.system) notes.push('缺 .design/system.md');
+  if (!design.system) notes.push('缺 .lawful/system.md');
   else if (!language) notes.push('system.md 沒有 language 欄,簽名與邊界不對帳');
   else if (!adapter) notes.push(`此語言尚無 adapter(${language}),lint sig 與 lint boundary 跳過`);
   const source = adapter ? readSource(root, adapter, design.system ? design.system.ignoreDirs : []) : null;

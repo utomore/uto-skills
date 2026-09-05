@@ -1,7 +1,7 @@
 $ lawful sync --date 2026-09-05
 ✓ P-001-save-game#toSave 模組欄 Save.Project → Save.Codec
 exit 0
---- .design/pipelines/P-001-save-game.md
+--- .lawful/pipelines/P-001-save-game.md
 ---
 id: P-001
 description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟

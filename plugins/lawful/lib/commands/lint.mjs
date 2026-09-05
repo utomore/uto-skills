@@ -9,7 +9,7 @@ function at(file, line) {
 export function lintBoundary(design, source, adapter) {
   const r = { title: 'lint boundary', red: [], info: [] };
   if (!design.modules) {
-    r.red.push('缺 .design/modules.md,邊界沒有宣告');
+    r.red.push('缺 .lawful/modules.md,邊界沒有宣告');
     return r;
   }
   const entries = design.modules.entries;

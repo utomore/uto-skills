@@ -1,4 +1,4 @@
-$ lawful section .design/pipelines/P-001-save-game.md Brief Laws
+$ lawful section .lawful/pipelines/P-001-save-game.md Brief Laws
 ## Brief
 玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
 流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。它是里程碑,兩端碰到 shell。

@@ -15,7 +15,7 @@ functional core / imperative shell。邊界的唯一宣告是模組表;`lawful l
 
 ## 模組表
 
-`.design/modules.md`,一張表,是邊界不是進度表:
+`.lawful/modules.md`,一張表,是邊界不是進度表:
 
 ```markdown
 | 模組 | 層 |

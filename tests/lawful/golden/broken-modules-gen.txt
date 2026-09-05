@@ -1,8 +1,22 @@
 $ lawful modules --gen
-modules.md 補了 1 個模組,層欄留白:
-- Util.Extra
-exit 0
---- .design/modules.md
+node:path:513
+      validateString(arg, 'path');
+      ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received undefined
+    at Object.join (node:path:513:7)
+    at modulesGen (file:///C:/Users/User/Documents/SelfProjects/mkSkills/plugins/lawful/lib/commands/edit.mjs:95:21)
+    at main (file:///C:/Users/User/Documents/SelfProjects/mkSkills/plugins/lawful/bin/lawful.mjs:143:17)
+    at file:///C:/Users/User/Documents/SelfProjects/mkSkills/plugins/lawful/bin/lawful.mjs:158:20
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:671:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v24.11.1
+exit 1
+--- .lawful/modules.md
 # 模組表
 
 | 模組 | 層 |
@@ -11,5 +25,4 @@ exit 0
 | `Save.*` | pure |
 | `Save.Legacy` | pure |
 | `Host.*` | shell |
-| `Util.Extra` |  |
 

@@ -2,10 +2,10 @@
 
 文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過純 / IO 邊界的資料流。型別、簽名、模組匯出住程式碼;文檔引用,工具對帳。
 
-## `.design/`
+## `.lawful/`
 
 ```
-.design/
+.lawful/
 ├── system.md          目的、語言與工具、邊界、對外 I/O、pipeline 清單(順序 = 里程碑)
 ├── modules.md         模組表(boundary.md「模組表」)
 ├── pipelines/P-00x-<slug>.md
@@ -62,7 +62,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 | `ready` | 開發者口頭拍板,`lawful:pipeline` 改欄位;可以委派 |
 | `frozen` | `lawful status` 顯示里程碑達成,conductor 在 build 收尾直接改,不問;不准修訂。解凍 = `lawful:revise` 在「決定」記一條為什麼,改回 `ready` |
 
-開發者不親自改任何 `.design/` 檔;開發者說,skill 寫。`frozen` 而測試紅、或有 REV 卻沒有解凍紀錄,是不一致。進度不是欄位,由 `lawful status` 推導。不做的 pipeline 直接刪檔;值得記住為什麼,開 ADR。
+開發者不親自改任何 `.lawful/` 檔;開發者說,skill 寫。`frozen` 而測試紅、或有 REV 卻沒有解凍紀錄,是不一致。進度不是欄位,由 `lawful status` 推導。不做的 pipeline 直接刪檔;值得記住為什麼,開 ADR。
 
 ## 節
 
@@ -148,7 +148,7 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
 
 ## 提問(GAP)
 
-任何角色在文檔裡讀不出唯一答案(qa 寫不出斷言、impl 非改簽名不可、conductor 建骨架時模組表沒有那個模組):停下該項,不腦補、不與另一邊協商,其餘照做。委派期間人類決定只有這一條出口。寫在 `.design/gaps.md`:
+任何角色在文檔裡讀不出唯一答案(qa 寫不出斷言、impl 非改簽名不可、conductor 建骨架時模組表沒有那個模組):停下該項,不腦補、不與另一邊協商,其餘照做。委派期間人類決定只有這一條出口。寫在 `.lawful/gaps.md`:
 
 ```markdown
 ## GAP-1(P-002#LAW-2 / qa)

@@ -1,6 +1,6 @@
 $ lawful lint boundary
 ## lint boundary:5 條不合規
-- ✗ .design/modules.md:7 模組表有 Save.Legacy,程式碼裡沒有(幽靈)
+- ✗ .lawful/modules.md:7 模組表有 Save.Legacy,程式碼裡沒有(幽靈)
 - ✗ src/Save/Codec.hs pure 層的 Save.Codec import 了 IO 模組 System.IO
 - ✗ src/Save/Codec.hs:23 pure 層的 Save.Codec.dumpSave 簽名碰到效果:SaveState -> IO ()
 - ✗ src/Save/State.hs types 層的 Save.State import 了 shell 層的 Host.FS

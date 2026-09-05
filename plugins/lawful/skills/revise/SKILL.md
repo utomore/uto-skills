@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.design/gaps.md`。
+`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.lawful/gaps.md`。
 
 ## 輸入 / 產出
 

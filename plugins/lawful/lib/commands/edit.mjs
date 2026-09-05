@@ -31,7 +31,7 @@ export function claim(design, slug, { description = '', date = today() } = {}) {
   fs.mkdirSync(design.pipelinesDir, { recursive: true });
   fs.writeFileSync(file, tpl);
   const out = [`建了 ${path.relative(design.root, file).split(path.sep).join('/')}(status: draft)`];
-  const sys = path.join(design.designDir, 'system.md');
+  const sys = path.join(design.lawfulDir, 'system.md');
   if (fs.existsSync(sys)) {
     const text = fs.readFileSync(sys, 'utf8');
     const lines = text.split(/\r?\n/);
@@ -92,7 +92,7 @@ export function sync(design, source, adapter, { date = today() } = {}) {
 // 從程式碼生成模組表骨架;既有的列保留,只補新模組(層欄留白)。
 export function modulesGen(design, source) {
   if (!source) return { text: '沒有 adapter,modules --gen 不知道程式碼在哪', exitCode: 1 };
-  const file = path.join(design.designDir, 'modules.md');
+  const file = path.join(design.lawfulDir, 'modules.md');
   const entries = design.modules ? design.modules.entries : [];
   const missing = [...source.modules.keys()].filter((m) => !entries.some((e) => matchesPattern(e.pattern, m))).sort();
   let text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '# 模組表\n\n| 模組 | 層 |\n|---|---|\n';

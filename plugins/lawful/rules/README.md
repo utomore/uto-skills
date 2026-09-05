@@ -6,7 +6,7 @@
 
 | 檔 | 主題 |
 |---|---|
-| `pipelines.md` | `.design/` 樹、system.md、pipeline 文檔的節、laws、REV、GAP、願望 stage、完成度、ADR、spike |
+| `pipelines.md` | `.lawful/` 樹、system.md、pipeline 文檔的節、laws、REV、GAP、願望 stage、完成度、ADR、spike |
 | `boundary.md` | 四層、模組表、效果的判定、對外 I/O、測試與邊界 |
 | `roles.md` | 兩個階段、conductor / qa / impl、委派、收尾、仲裁、測試跑幾次 |
 | `tooling.md` | CLI 子命令與 exit code、status 報告版面、language adapter、跑東西的紀律、收尾定錨 |
@@ -47,7 +47,7 @@
 
 | skill | 必讀 |
 |---|---|
-| `lawful:design` | pipelines.md「`.design/`」「system.md」「ADR」;boundary.md 全份;tooling.md「language adapter」「收尾定錨」 |
+| `lawful:design` | pipelines.md「`.lawful/`」「system.md」「ADR」;boundary.md 全份;tooling.md「language adapter」「收尾定錨」 |
 | `lawful:pipeline` | pipelines.md「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」「願望 stage」;boundary.md「模組表」;tooling.md「收尾定錨」 |
 | `lawful:build` | roles.md 全份;pipelines.md「提問(GAP)」「修訂(REV)」「完成度」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
 | `lawful:qa` | roles.md「三角色」「委派」「qa 的交付」;pipelines.md「節」「什麼要有 law」「提問(GAP)」;boundary.md「測試與邊界」 |

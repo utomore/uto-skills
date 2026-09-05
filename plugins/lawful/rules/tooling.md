@@ -8,7 +8,7 @@
 dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawful/bin/lawful.mjs' 2>/dev/null | head -1)")"
 ```
 
-之後每道指令寫解析出來的實際路徑:`node "<L>/bin/lawful.mjs" <子命令> …`,在專案根目錄(有 `.design/` 的那層)執行。
+之後每道指令寫解析出來的實際路徑:`node "<L>/bin/lawful.mjs" <子命令> …`,在專案根目錄(有 `.lawful/` 的那層)執行。
 
 | 子命令 | 做什麼 |
 |---|---|

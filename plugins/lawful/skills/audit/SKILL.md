@@ -1,6 +1,6 @@
 ---
 name: audit
-description: lawful 的稽核 — lawful lint all 與 status 的機械紅逐條分類(文檔錯還是程式碼錯),同層搬家跑 sync,然後人判每條 pipeline 的 laws 有沒有講到該講的性質、邊界有沒有被繞過;產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、檢查文檔、對帳、lawful audit、文檔與程式碼對不上。Use when checking that .design and the code still agree and that laws cover what matters.
+description: lawful 的稽核 — lawful lint all 與 status 的機械紅逐條分類(文檔錯還是程式碼錯),同層搬家跑 sync,然後人判每條 pipeline 的 laws 有沒有講到該講的性質、邊界有沒有被繞過;產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、檢查文檔、對帳、lawful audit、文檔與程式碼對不上。Use when checking that .lawful and the code still agree and that laws cover what matters.
 user-invocable: true
 ---
 

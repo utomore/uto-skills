@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」「願望 stage」、`rules/boundary.md`「模組表」、`rules/tooling.md`「收尾定錨」。再讀 `.design/system.md`、`.design/modules.md`,以及 types 層模組的匯出(law 只准引用它們與 Stages 的簽名)。
+`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」「願望 stage」、`rules/boundary.md`「模組表」、`rules/tooling.md`「收尾定錨」。再讀 `.lawful/system.md`、`.lawful/modules.md`,以及 types 層模組的匯出(law 只准引用它們與 Stages 的簽名)。
 
 ## 輸入 / 產出
 

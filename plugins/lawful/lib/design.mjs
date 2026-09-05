@@ -1,4 +1,4 @@
-// 讀 .design/ 成一棵樹:system、modules、pipelines、gaps。只讀不判;判在 commands/。
+// 讀 .lawful/ 成一棵樹:system、modules、pipelines、gaps。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks } from './markdown.mjs';
@@ -229,7 +229,7 @@ export function readSpikes(designDir, root) {
 }
 
 export function readDesign(root) {
-  const designDir = path.join(root, '.design');
+  const designDir = path.join(root, '.lawful');
   if (!fs.existsSync(designDir)) return null;
   const pipelinesDir = path.join(designDir, 'pipelines');
   const files = fs.existsSync(pipelinesDir)

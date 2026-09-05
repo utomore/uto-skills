@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const SKIP_DIRS = new Set(['.git', '.design', 'node_modules', 'dist-newstyle', '.stack-work', 'spike', 'dist', 'target', '.cabal-sandbox']);
+const SKIP_DIRS = new Set(['.git', '.lawful', '.design', 'node_modules', 'dist-newstyle', '.stack-work', 'spike', 'dist', 'target', '.cabal-sandbox']);
 
 function walk(dir, exts, out, root, ignore) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {

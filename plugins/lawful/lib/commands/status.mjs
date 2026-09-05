@@ -1,4 +1,4 @@
-// status:派工報告。全部從 .design、程式碼與測試輸出推。
+// status:派工報告。全部從 .lawful、程式碼與測試輸出推。
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import { matchModule, matchesPattern, STATUSES } from '../design.mjs';

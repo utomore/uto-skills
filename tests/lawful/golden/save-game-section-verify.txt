@@ -1,5 +1,5 @@
-$ lawful section .design/pipelines/P-001-save-game.md Brief 沒有的節 --verify
+$ lawful section .lawful/pipelines/P-001-save-game.md Brief 沒有的節 --verify
 ✓ Brief
 
-「沒有的節」在 .design/pipelines/P-001-save-game.md 裡沒有這一節
+「沒有的節」在 .lawful/pipelines/P-001-save-game.md 裡沒有這一節
 exit 1

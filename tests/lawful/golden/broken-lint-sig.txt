@@ -1,12 +1,12 @@
 $ lawful lint sig
 ## lint sig:5 條不合規
-- ✗ .design/pipelines/P-001-save-game.md:17 P-001-save-game#decode 簽名不一致
+- ✗ .lawful/pipelines/P-001-save-game.md:17 P-001-save-game#decode 簽名不一致
     文檔:decode :: ByteString -> Either DecodeError SaveState
     程式碼:decode :: ByteString -> Maybe SaveState(src/Save/Codec.hs:20)
-- ✗ .design/pipelines/P-001-save-game.md:18 compress 引用的 P-002-compression 不存在
-- ✗ .design/pipelines/P-001-save-game.md:20 checksum 寫 pure 層,模組表說 Host.FS 是 shell 層
-- ✗ .design/pipelines/P-001-save-game.md:20 P-001-save-game#checksum 程式碼裡找不到
-- ✗ .design/pipelines/P-001-save-game.md:23 P-001-save-game#go 程式碼裡找不到
+- ✗ .lawful/pipelines/P-001-save-game.md:18 compress 引用的 P-002-compression 不存在
+- ✗ .lawful/pipelines/P-001-save-game.md:20 checksum 寫 pure 層,模組表說 Host.FS 是 shell 層
+- ✗ .lawful/pipelines/P-001-save-game.md:20 P-001-save-game#checksum 程式碼裡找不到
+- ✗ .lawful/pipelines/P-001-save-game.md:23 P-001-save-game#go 程式碼裡找不到
 - · P-001-save-game#toSave 搬家:文檔 Save.Project → 程式碼 Save.Codec(lawful sync 可改)
 - · P-001-save-game#compress 願望,待實作(目標 Save.Zip)
 exit 1

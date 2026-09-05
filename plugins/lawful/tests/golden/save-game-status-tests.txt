@@ -4,7 +4,7 @@ $ lawful status --tests test.log
 · 測試結果來自 test.log
 
 ## pipelines
-| pipeline | status | 文檔寫了幾條簽名 | 程式碼裡有幾條 | 寫了幾條 law | 幾條 law 有測試 | 幾條 law 通過 | 狀態 |
+| pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 測試數 | Law 通過數 | 狀態 |
 |---|---|---|---|---|---|---|---|
 | P-001-save-game | ready | 5 | 5 | 3 | 3 | 2 | 進行中 |
 

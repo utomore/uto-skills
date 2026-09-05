@@ -116,7 +116,7 @@ export function statusReport(design, source, adapter, results, resultNote) {
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## pipelines');
-  out.push('| pipeline | status | 文檔寫了幾條簽名 | 程式碼裡有幾條 | 寫了幾條 law | 幾條 law 有測試 | 幾條 law 通過 | 狀態 |');
+  out.push('| pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 測試數 | Law 通過數 | 狀態 |');
   out.push('|---|---|---|---|---|---|---|---|');
   for (const x of a.info.values()) out.push(row(x));
 

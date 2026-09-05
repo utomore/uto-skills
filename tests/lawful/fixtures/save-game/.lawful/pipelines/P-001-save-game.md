@@ -17,6 +17,7 @@ updated: 2026-09-05
 | 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Save.Codec` | pure |
 | 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態,壞檔回錯誤 | `Save.Codec` | pure |
 | 4 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Host.FS` | shell |
+| o | `savedIds :: SaveState -> [EntityId]` | 觀察:投影後的實體 id | `Save.Project.Internal` | pure |
 | = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Host.Save` | shell |
 
 ## Laws
@@ -29,6 +30,9 @@ updated: 2026-09-05
 - LAW-3 [bound] 檔案大小跟實體數線性
   - forall s in SaveState
   - |- length (encode s) <= 64 + 128 * length (savedEntities s)
+- LAW-4 [invariant] 投影後實體 id 不重複
+  - forall w in World
+  - |- nub (savedIds (toSave w)) == savedIds (toSave w)
 
 ## Examples
 | # | 輸入 | 輸出 | 覆蓋 |

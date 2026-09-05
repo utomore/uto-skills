@@ -1,8 +1,10 @@
 module SaveGameSpec (spec) where
 
 import qualified Data.ByteString as BS
+import Data.List (nub)
 import Save.Codec (decode, encode)
 import Save.Project (toSave)
+import Save.Project.Internal (savedIds)
 import Save.State
 import Test.Hspec
 import Test.QuickCheck
@@ -36,6 +38,10 @@ spec = do
     it "length (encode s) <= 64 + 128 * length (savedEntities s)" $
       limited $ forAll genSaveState $ \s ->
         BS.length (encode s) <= 64 + 128 * length (savedEntities s)
+
+  describe "P-001#LAW-4" $
+    it "nub (savedIds (toSave w)) == savedIds (toSave w)" $
+      limited $ forAll genWorld $ \w -> nub (savedIds (toSave w)) == savedIds (toSave w)
 
   describe "P-001#EX-1" $
     it "decode \"\" == Left EmptyInput" $

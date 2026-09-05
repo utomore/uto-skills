@@ -12,6 +12,9 @@ P-001#LAW-3
   length (encode s) <= 64 + 128 * length (savedEntities s) [‐]
     # PENDING: No reason given
     +++ OK, passed 100 tests.
+P-001#LAW-4
+  nub (savedIds (toSave w)) == savedIds (toSave w) [✔]
+    +++ OK, passed 100 tests.
 P-001#EX-1
   decode "" == Left EmptyInput [✔]
 P-001#EX-2
@@ -29,5 +32,5 @@ Failures:
 Randomized with seed 1234
 
 Finished in 0.0412 seconds
-5 examples, 1 failure
+6 examples, 1 failure
 Test suite spec: FAIL

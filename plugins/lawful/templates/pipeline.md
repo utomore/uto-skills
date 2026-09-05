@@ -14,12 +14,13 @@ updated: <YYYY-MM-DD>
 |---|---|---|---|---|
 | 1 | `<name :: Type>` | <一句> | `<Module>` | pure |
 | 2 | `<name :: Type>` | <一句> | `<Module>`(願望,見 P-00z-<slug>) | pure |
+| o | `<name :: Type>` | 觀察:<law 要看的量,一句> | `<Module.Internal>` | pure |
 | = | `<name :: Type>` | 整條 | `<Module>` | pure |
 
 ## Laws
 - LAW-1 [<invariant | identity | roundtrip | relation | bound | equiv>] <一句中文>
   - forall <x> in <Type>
-  - |- <結論,只用 Stages 的簽名與 types 層的函數>
+  - |- <結論,只用 Stages 的簽名(含 o 列)、types 層的函數與字面值>
 
 ## Examples
 | # | 輸入 | 輸出 | 覆蓋 |

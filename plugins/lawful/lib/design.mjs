@@ -107,9 +107,11 @@ function parseStages(sec) {
     const note = paren ? paren[2] : '';
     const wish = /願望/.test(note);
     const refM = /(P-\d{3}-[a-z0-9-]+)/.exec(note);
+    const index = (r[0] || '').trim();
     return {
-      index: (r[0] || '').trim(),
-      whole: (r[0] || '').trim() === '=',
+      index,
+      whole: index === '=',
+      observe: index === 'o',
       name,
       type,
       sigText,

@@ -13,4 +13,7 @@ $ lawful section .lawful/pipelines/P-001-save-game.md Brief Laws
 - LAW-3 [bound] 檔案大小跟實體數線性
   - forall s in SaveState
   - |- length (encode s) <= 64 + 128 * length (savedEntities s)
+- LAW-4 [invariant] 投影後實體 id 不重複
+  - forall w in World
+  - |- nub (savedIds (toSave w)) == savedIds (toSave w)
 exit 0

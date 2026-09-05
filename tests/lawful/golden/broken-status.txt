@@ -1,12 +1,12 @@
 $ lawful status
 # lawful status
-里程碑 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 還沒實作的 stage 3 個 · 還開著的 GAP 1 條
+里程碑 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 還沒實作的 stage 4 個 · 還開著的 GAP 1 條
 · 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
 
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|
-| P-001-save-game | ready | 11 | 7 | 6 | nan/2 | 卡 GAP-1 |
+| P-001-save-game | ready | 11 | 7 | 7 | nan/2 | 卡 GAP-1 |
 
 ## 1. 今天能開幾條線
 - 無
@@ -24,6 +24,7 @@ $ lawful status
 ## 5. 待實作(按模組)
 - Host.FS:P-001-save-game#checksum
 - Save.Class:P-001-save-game#go
+- Save.State:P-001-save-game#ghostView(觀察點)
 - Save.Zip:P-001-save-game#compress(願望)
 
 ## 6. 警訊

@@ -8,8 +8,8 @@ functional core / imperative shell。邊界的唯一宣告是模組表;`lawful l
 
 | 層 | 裝什麼 | 禁止 | 可以 import |
 |---|---|---|---|
-| **types** | 純值型別、強型別標籤、狀態的 ADT、smart constructor | 函數以外的東西;import 上層 | 無 |
-| **effects** | 效果的**描述**:指令 ADT(純資料)、smart constructor、對描述的純函數(建構、組合、最佳化、檢視、instance) | 把描述變成執行:簽名出現效果型別、import shell 或 IO 模組 | types |
+| **types** | 純值型別、強型別標籤、狀態的 ADT、smart constructor | 函數以外的東西;import 上層 | types |
+| **effects** | 效果的**描述**:指令 ADT(純資料)、smart constructor、對描述的純函數(建構、組合、最佳化、檢視、instance) | 把描述變成執行:簽名出現效果型別、import shell 或 IO 模組 | types、effects |
 | **pure** | pipeline 的 stage 本體:純轉換 | 簽名出現效果型別;import shell 或 IO 模組 | types、effects、pure |
 | **shell** | 解譯器、進入點、平台驅動:唯一出現效果的地方 | 無 | 全部 |
 

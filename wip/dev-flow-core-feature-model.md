@@ -344,6 +344,7 @@ B 與 C 就是 G-C 的存在理由,而且正好是「設計檔即真理」最需
 | 6 | G-C 保留但縮窄,加升格 / 降格規則 | **同意** | 4.4 |
 | 7 | 版本用 `rev` 欄,不用 `F001v2` 進 id | **同意**。升版不是決定,是 REV 紀錄的副作用;下游靠「推 + 連動欄對帳」,不靠讀的人自己查 | 3.3、3.5、7 |
 | 8 | 遷移用帳本檔逐份判,不做臨時 skill | **同意** | 6.2 |
+| 11 | `REG-` 退場,只有 `LAW-`:要保護的既有行為若還不是 law 就補成 LAW-n,REV「保護」欄點名既有 LAW;SKILL 與 `_shared` 文檔一律宣告式(當下規章),不寫版本、歷史、舊制,舊→新只准出現在遷移工具與遷移段 | **同意**(2026-09-05) | doc-lifecycle 註冊表、spec-redesign 2C、spec-roles、spec-impl / spec-qa / spec-build、boundary-rules、templates;全文檔歷史用語清除;腳本訊息同步 |
 | 10 | `build-log.md` 只活在委派期間,子系統收線(F / E 全 done、`spec-gaps.md` 不在、待確認假設全空、自裁清單抽查過或接受)時整份刪掉,不搬 archive;`status` 只有 in-progress | **同意**(2026-09-05):它裝的全是過程,契約類決定 fan out 前就在 design.md、裁決在 REV、結果在 status 與測試;中途停下才是保留的理由 | doc-lifecycle、subsys-build、delegation-design、arch-audit、scan-status(收線漏刪提示)、migrate-v3(四道確認、--apply 刪) |
 | 9 | GAP 結案即刪、ASM 裁完即刪,不留 resolved / 裁決欄,不搬 archive;REV 的「依」欄只寫來源與那一句話,不寫已刪條目的編號 | **同意**(2026-09-05):定案後的問題不需要被找回,留著只是干擾。證據由 REV 與契約承接;`spec-gaps.md` 只裝 open、空了刪檔;`## 待確認假設` 只裝還沒裁的;舊專案的墓碑由 `migrate-v3.mjs --apply` 清 | spec-roles、delegation-design、doc-lifecycle、subsys-build、spec-build、arch-audit、scan-status、id-map、migrate-v3 |
 

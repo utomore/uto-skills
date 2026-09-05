@@ -62,7 +62,6 @@ const CONVENTION = {
         { label: "F001 / E001 / B001", meta: "任務文檔 id · 子系統內各一組 · 建檔時掃描 · 永久", note: "講給人聽時一律寫全名 <子系統>/<id>-<slug>(auth/E001-token-cache):每個子系統各有一組,裸寫 E001 指不到任何一份" },
         { label: "G-F001 / G-E001 / G-B001", meta: "跨子系統核心功能 / 擴充功能 / 核心功能的障礙 · 全域各一組 · 永久", note: "G-F 的契約含分工表,各段是各子系統的 F(part-of 回鏈);done 要分工 F 全 done" },
         { label: "LAW-1", meta: "行為性質 · 單一 spec 檔內 · spec 角色配 · 永久", note: "qa 一條翻一個 property test —— 條數 = 測試的分母,不是跑出來的測試數;講到某一條 law 掛在文檔全名底下:auth/F002-token-refresh 的 LAW-3" },
-        { label: "REG-1", meta: "回歸 law(enhance 專用)· 單一 spec 檔內 · 永久", note: "保護改完必須一模一樣的現有行為" },
         { label: "EX-1", meta: "具體範例 · 單一 spec 檔內 · spec 角色配 · 永久", note: "qa 一個翻一個 example test;LAW + EX 就是「這份 spec 應該有幾個測試」" },
         { label: "STEP-1", meta: "bugfix TodoList 步驟 · 單一 bugfix 檔內 · 永久", note: "同一份 bugfix 文檔裡的 dep: 欄用步驟號互相引用" },
         { label: "GAP-1", meta: "spec 疑問 · 單一 spec-gaps.md 內 · 編排者單線配 · 永久", note: "講到某一條 gap 寫 auth/GAP-1;條目標題要寫出這條 gap 卡住哪份文檔:## GAP-1(auth/F002-token-refresh / qa)" },
@@ -431,9 +430,9 @@ function renderProject(designDir) {
   console.log(
     dim(
       "\n所有 n/m 一律「已達成/總數」——不滿就是有待辦;GAP / ASM 只印還沒結的條數(結案即刪,留著的 resolved / 已裁是墓碑)" +
-        "\nF 是 features/ 的份數 —— v2 起規劃與建檔是同一個動作,沒有兩個數字可以對不上;走到哪跑 scan-status" +
+        "\nF 是 features/ 的份數 —— 規劃與建檔是同一個動作,沒有兩個數字可以對不上;走到哪跑 scan-status" +
         "\nE 優化 · B 缺陷(份數) │ LAW+EX = 照 spec 應有的測試數(分母,非實跑數)" +
-        "\nASM 契約級假設 還沒裁的條數(條目存在就是還沒裁;帶已填「裁決」欄的舊格式算墓碑)" +
+        "\nASM 契約級假設 還沒裁的條數(條目存在就是還沒裁;帶已填「裁決」欄的算墓碑)" +
         "\nWAVE 委派分幾批送出(非 feature 數)",
     ),
   );

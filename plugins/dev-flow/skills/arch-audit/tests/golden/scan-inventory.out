@@ -50,7 +50,7 @@ auth/F002-token-refresh  auth/GAP-1「過期判定用哪個時鐘」(qa 提出) 
 - enhancements/G-E001-cache.md:subsystems 列了 billing,但 subsystems/ 沒有這個子系統
 - contracts/G-C001-session.md:subsystems 列了 billing,但 subsystems/ 沒有這個子系統
 - spikes/SPK-001-fts-latency.md:feeds 的 auth/F999 指不到任何文檔(寫全名:auth/F002、ADR-001、G-C001、auth/design.md、system.md)
-- enhancements/G-E001-cache.md:G-E 沒有「## 契約」—— 2.2.1 之前的舊格式(跨子系統優化);用 migrate-v3.mjs 分流:摺回原 F 成 REV,或補契約留作跨子系統擴充功能
+- enhancements/G-E001-cache.md:G-E 沒有「## 契約」—— 無法分類;用 migrate-v3.mjs 分流:摺回原 F 成 REV,或補契約留作跨子系統擴充功能
 格式類(6):不影響今天的派工;全文見附錄「警訊全文」。
 
 === §7 建議路線(機械排序,理由由人補)===
@@ -101,6 +101,6 @@ spike(2,open 1),不進任何百分比:
 - subsystems/auth/design.md:模組群 auth/MFA 還是 planned(契約章節未寫、feature 檔未建)——二階段驗證;auth/MFA 不在 auth 子系統的進度分母裡
 - subsystems/auth/features/F002-token-refresh.md:depends-on 的 F001 寫成裸 id —— 改寫成 auth/F001(同一個子系統內部也要帶前綴)
 - features/G-F001-session-check.md:分工表列了 billing 的 billing/F001-verify,但 billing 還沒建 design.md —— 那一段要等 /subsys-design billing
-- enhancements/G-E001-cache.md:G-E 沒有「## 契約」—— 2.2.1 之前的舊格式(跨子系統優化);用 migrate-v3.mjs 分流:摺回原 F 成 REV,或補契約留作跨子系統擴充功能
+- enhancements/G-E001-cache.md:G-E 沒有「## 契約」—— 無法分類;用 migrate-v3.mjs 分流:摺回原 F 成 REV,或補契約留作跨子系統擴充功能
 - contracts/G-C001-session.md:只有 G-F001 引用這份契約的條目 —— 只被一份 G-F 或一個子系統用的型別該搬回那裡(doc-lifecycle.md「全域契約文檔」縮窄規則)
 __exit__ 1

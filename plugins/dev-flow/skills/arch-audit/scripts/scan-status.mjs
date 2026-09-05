@@ -884,7 +884,7 @@ for (const slug of subsysDirs) {
       if (r.type === "feature" || r.status === "planned")
         archIssues.push(`${r.file}:沒有「## 契約」—— Level 2 的邊界沒有落地(/subsys-design 建檔當下就該寫)`);
       else
-        archNotes.push(`${r.file}:E 沒有「## 契約」—— 2.2.1 之前「優化既有功能」的舊格式;用 migrate-v3.mjs 分流:摺回原 F 成一條 REV,或補契約留作擴充功能`);
+        archNotes.push(`${r.file}:E 沒有「## 契約」—— 無法分類;用 migrate-v3.mjs 分流:它改的是既有 F 就摺回那份 F 成一條 REV,是可獨立拿掉的能力就補契約留作擴充功能`);
     }
     if (r.status === "planned" && r.hasLaws)
       archIssues.push(`${r.file}:status 是 planned,卻已經有「## Laws」(規格寫過了,狀態沒跟上)`);
@@ -1081,7 +1081,7 @@ for (const g of globalFeatures) {
   if (!g.hasContract) {
     if (g.type === "feature" || g.status === "planned")
       archIssues.push(`${g.file}:沒有「## 契約」(核心判準與分工表都住在那一節)`);
-    else archNotes.push(`${g.file}:G-E 沒有「## 契約」—— 2.2.1 之前的舊格式(跨子系統優化);用 migrate-v3.mjs 分流:摺回原 F 成 REV,或補契約留作跨子系統擴充功能`);
+    else archNotes.push(`${g.file}:G-E 沒有「## 契約」—— 無法分類;用 migrate-v3.mjs 分流:摺回原 F 成 REV,或補契約留作跨子系統擴充功能`);
   }
   if (g.status === "planned" && g.hasLaws) archIssues.push(`${g.file}:status 是 planned,卻已經有「## Laws」`);
   if (g.status !== "planned" && !g.hasLaws && g.hasContract) archIssues.push(`${g.file}:status 是 ${g.status},卻沒有「## Laws」`);

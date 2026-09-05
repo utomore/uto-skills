@@ -1,6 +1,6 @@
 ---
 name: spec-impl
-description: Level 3 實作(impl 角色)— 依指定的 spec(F00x / E00x / G-F00x / G-E00x,含被 /spec-redesign 修訂過、rev > 0 的)與設計階段留下的骨架,把未實作標記逐一換成真實實作;修訂目標(rev > 0)另有基準線與 REG- 回歸測試護欄,只做最後一條 REV 點名的介面。禁止讀寫任何測試檔、禁止改動骨架的簽名與型別,遇紅燈走仲裁協議不自行猜 spec。觸發詞:功能實作、優化實作、spec impl、feature impl、enhance impl、實作功能、開發功能、實作優化、重構實作、執行優化、implement feature。Use when implementing code from a feature or enhancement spec and its skeleton, without touching tests.
+description: Level 3 實作(impl 角色)— 依指定的 spec(F00x / E00x / G-F00x / G-E00x,含被 /spec-redesign 修訂過、rev > 0 的)與設計階段留下的骨架,把未實作標記逐一換成真實實作;修訂目標(rev > 0)另有基準線,REV「保護」欄點名的 law 測試是護欄,只做最後一條 REV 點名的介面。禁止讀寫任何測試檔、禁止改動骨架的簽名與型別,遇紅燈走仲裁協議不自行猜 spec。觸發詞:功能實作、優化實作、spec impl、feature impl、enhance impl、實作功能、開發功能、實作優化、重構實作、執行優化、implement feature。Use when implementing code from a feature or enhancement spec and its skeleton, without touching tests.
 user-invocable: false
 ---
 
@@ -37,7 +37,7 @@ user-invocable: false
 | `F00x` | feature | — |
 | `E00x` / `G-E00x` | enhance(擴充功能) | 與 feature 完全相同——E 是規劃出來的新功能,只是非核心 |
 | `G-F00x` / `G-E00x` | global | 你實作的是端到端組裝層,**不碰分工 F 的程式碼** |
-| 任一種、frontmatter `rev > 0` | **修訂目標**(被 `/spec-redesign` 修訂過) | 動工前要有**基準線**、`REG-` 回歸測試是護欄、**只做最後一條 REV「重委派」點名的介面與 law**(下面各步標「修訂目標」的段落) |
+| 任一種、frontmatter `rev > 0` | **修訂目標**(被 `/spec-redesign` 修訂過) | 動工前要有**基準線**、REV「保護」欄點名的 law 測試是護欄、**只做最後一條 REV「重委派」點名的介面與 law**(下面各步標「修訂目標」的段落) |
 
 ## 你的角色邊界(本階段的核心原則)
 
@@ -47,7 +47,7 @@ user-invocable: false
 
 **四條禁區**(`spec-roles.md`):
 
-- **不得讀、寫、改任何測試檔**。測試是 qa 的產出,你看不到也不需要看;改測試讓它變綠是最嚴重的違規。修訂目標的 **`REG-` 回歸測試**是保護現有行為的護欄,更不是你可以調整的東西
+- **不得讀、寫、改任何測試檔**。測試是 qa 的產出,你看不到也不需要看;改測試讓它變綠是最嚴重的違規。修訂目標裡 REV「保護」欄點名的 law 測試是保護現有行為的護欄,更不是你可以調整的東西
 - **不得改動骨架的函數簽名與型別定義**。骨架是 spec 的程式碼形式,改它等於偷改契約。真的需要改 → 停下該項,記 spec-gaps
 - **只實作 spec 裡有的東西**。禁止新增 spec 沒有的公開 API;文檔沒涵蓋的情況照 `boundary-rules.md`「層級判斷」分流:實作層級自己決定並記進「實作備註」,架構層級**停下來**按發問協議問
 - **禁止「順便」**重構 / 加功能 / 改介面——值得做的記成清單在收尾回報,由開發者決定要不要開新任務
@@ -87,8 +87,8 @@ user-invocable: false
 
 ## 3. 實作
 
-1. 開工前:目標文檔 `updated` 換今天(`status` 維持 `specced`;v2 的值域沒有 `in-progress`)(**委派模式下不做**,見上方對照表)
-2. **修訂目標(`rev > 0`):動工前要有一條基準線。** 回歸測試(對應 `REG-` 回歸 law)此時應該是綠的——它們捕捉的是現況。**這條基準線就是你的護欄**:動工之後任何一條由綠轉紅,都代表你改壞了現有行為。**基準線從哪裡來,分兩種**:
+1. 開工前:目標文檔 `updated` 換今天(`status` 維持 `specced`;值域沒有 `in-progress`)(**委派模式下不做**,見上方對照表)
+2. **修訂目標(`rev > 0`):動工前要有一條基準線。** REV「保護」欄點名的 law 測試此時應該是綠的——它們捕捉的是現況。**這條基準線就是你的護欄**:動工之後任何一條由綠轉紅,都代表你改壞了現有行為。**基準線從哪裡來,分兩種**:
    - **委派模式**:編排者在 fan out 之前已經跑過完整套件並記下結果(`spec-build` 步驟 4 / `subsys-build` 3d),那份結果會寫在 prompt 裡。**直接用它,不要自己再跑一次**——你跑的會是同一個 commit 上的同一套測試,答案必然相同(`../_shared/conventions.md`「跑東西的紀律」)。prompt 裡沒附基準線就當成阻塞項回報,不要自己補跑整庫
    - **互動模式**:自己跑一次,範圍是**本次 scope 涵蓋得到的那些測試**(照 spec「Scope」段列的模組挑路徑),不是整庫
 3. **以骨架為工作清單**:逐一把未實作標記換成真實實作。完成的判準是「骨架裡不再有未實作標記,且 spec 的每條 Law 與 Example 都成立」——沒有另一套進度帳

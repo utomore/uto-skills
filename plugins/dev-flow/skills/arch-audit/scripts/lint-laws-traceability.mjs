@@ -261,7 +261,7 @@ const total = violations.length + perDoc.length;
 
 if (total > 0) {
   console.log(`=== Laws/Examples ↔ 測試 對帳違規(${total} 份文檔 / 檔案)===`);
-  console.log("每條 LAW- / REG- / EX- 都要在測試裡被引用到,而每個引用都要指得到一條還存在的條目。");
+  console.log("每條 LAW- / EX- 都要在測試裡被引用到,而每個引用都要指得到一條還存在的條目。");
   console.log("歸屬寫法二選一:檔案裡一行 `spec: <子系統>/F00x`,或把引用寫成 `<子系統>/F00x#LAW-n`。");
   console.log("");
 

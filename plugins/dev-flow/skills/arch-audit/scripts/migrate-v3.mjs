@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * migrate-v3.mjs — 把 2.2.1 之前的 `.design/` 樹遷到「核心功能模型」(doc-lifecycle.md「六種分類與分流判準」)。
+ * migrate-v3.mjs — 把不合規章的 `.design/` 樹遷到合規(規章:doc-lifecycle.md「六種分類與分流判準」「修訂(rev 與 REV)」「`done` 的收束」)。
  *
- * 2.2.1 改了兩件事,舊專案的文檔要跟上:
+ * 規章要求四件事,不合的樹要跟上:
  *   1. **E 不再是「優化既有功能」,是「拿掉它子系統照樣運作」的擴充功能。** 舊的 E 大多是改既有 F 的
  *      行為 / 介面 / 效能 —— 那在新模型裡是那份 F 的一次**修訂**(REV),不該是第二份檔。
  *   2. **F 多了 `rev` 欄與「核心判準」行**,分類的證據要寫在檔上。
@@ -12,7 +12,7 @@
  *      --apply 刪掉它(第四道「自裁清單抽查過或接受」是人的事,跑 --apply 視為接受)。
  *
  * 判斷不在腳本裡。每一份既有 E 要人決定三選一(摺回 F / 留 E / 拆),腳本只做兩件事:
- *   - **列清單、給提示**(介面表幾列「修改 / 移除」、related-feature 指誰、幾條 REG-),印下一份未決的原文
+ *   - **列清單、給提示**(介面表幾列「修改 / 移除」、related-feature 指誰、幾條觀察點在別份 F 介面上的 law),印下一份未決的原文
  *   - **--apply 做機械的那一半**:搬檔、frontmatter、REV 條目、契約骨架;Laws 合併留給人
  *
  * 決定住在**帳本** `<design>/migration-v3.md`(type: migration,不編號、不進分母):一份 E 一列,
@@ -183,7 +183,7 @@ function writeLedger(rows, nl) {
     "id: migration-v3",
     "type: migration",
     "title: migration-v3",
-    "description: 2.2.1 核心功能模型遷移:既有 E 的分流帳本",
+    "description: 核心功能模型遷移:既有 E 的分流帳本",
     `status: ${rows.every((r) => r.狀態 === "完成") && rows.length ? "done" : "open"}`,
     `created: ${existsSync(LEDGER) ? readLedgerCreated() : today}`,
     `updated: ${today}`,
@@ -208,9 +208,9 @@ function readLedgerCreated() {
 
 const hintOf = (e) => {
   const parts = [];
-  if (!e.hasContract) parts.push("無契約(舊格式)");
+  if (!e.hasContract) parts.push("無契約");
   parts.push(`修改 ${e.modified}、移除 ${e.removed}、新增 ${e.added}`);
-  if (e.reg) parts.push(`REG- ${e.reg}`);
+  if (e.reg) parts.push(`REG- ${e.reg}(要按觀察點歸到各 F,改寫成 LAW-)`);
   parts.push(e.related.length ? `related ${e.related.join("、")}` : "無 related");
   if (!e.subsystem) parts.push(`subsystems ${asList(e.meta?.subsystems).join("、") || "-"}`);
   parts.push(`status ${e.status}`);
@@ -316,8 +316,8 @@ function appendRevision(fText, n, source) {
   const nl = nlOf(fText);
   const entry = [
     `- REV-${n}(${today},依 遷移自 ${source.full}):${source.description}`,
-    `  - 動到:待人合併 —— ${source.full} 的 Laws(LAW- ${source.law} 條、REG- ${source.reg} 條)與介面表(修改 ${source.modified}、移除 ${source.removed}、新增 ${source.added})要併進本檔`,
-    `  - 保護:${source.reg ? `${source.full} 的 REG-(併入本檔後沿用編號規則:本檔已有的號不重用)` : "無"}`,
+    `  - 動到:待人合併 —— ${source.full} 的 Laws(LAW- ${source.law} 條、REG- ${source.reg} 條,REG 要改寫成 LAW-)與介面表(修改 ${source.modified}、移除 ${source.removed}、新增 ${source.added})要併進本檔`,
+    `  - 保護:${source.reg ? `${source.full} 的 REG-(併入時改寫成本檔的 LAW-,用下一個沒用過的號;已被既有 LAW 覆蓋的丟掉)` : "無"}`,
     "  - 重委派:待人填(Laws 合併後才知道動到哪幾條)",
     `  - 連動:無(摺回時 ${source.full} 已搬進 archive/)`,
   ];
@@ -352,7 +352,7 @@ if (apply) {
       const dest = join(archDir, `${basename(e.path, ".md")}-migrated.md`);
       let et = readFileSync(e.path, "utf8");
       et = bumpFrontmatter(et, { set: { type: "archive", updated: today, ...(e.subsystem ? { parent: e.subsystem } : {}) } });
-      et = et.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, (fm) => fm + `${nlOf(et)}> 2.2.1 遷移:本檔已摺回 ${target.full}(REV-${curRev + 1}),號 ${e.id} 永久空缺。留在 archive 只為查「當初怎麼寫的」。${nlOf(et)}`);
+      et = et.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, (fm) => fm + `${nlOf(et)}> 遷移:本檔已摺回 ${target.full}(REV-${curRev + 1}),號 ${e.id} 永久空缺。留在 archive 只為查「當初怎麼寫的」。${nlOf(et)}`);
       writeFileSync(dest, et);
       unlinkSync(e.path); // 存檔寫成功才刪原檔:半途失敗頂多兩份都在,不會一份都不在
       r.狀態 = `已搬檔,Laws 待合併(→ ${target.full} REV-${curRev + 1}${set.status ? ",F 退回 specced" : ""})`;

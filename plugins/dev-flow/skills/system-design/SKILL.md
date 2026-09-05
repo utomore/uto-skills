@@ -31,8 +31,8 @@ user-invocable: true
 
 ## 模式判斷
 
-- `.design/system.md` 不存在、舊版 `docs/arch/architecture.md` 也不存在 → **初始模式**:完整訪談後從零產出
-- 只有舊版 `docs/arch/architecture.md`(或更舊的 `docs/architecture.md`)→ **遷移 + 更新模式**:徵得開發者同意後,把內容重組進 `.design/system.md`(依本檔章節結構改寫,frontmatter 補 `subsystems: []`;既有 `subarch-*` 提醒之後用 `/subsys-design` 逐一遷移為 `subsystems/<slug>/design.md`),再依更新模式進行
+- `.design/system.md` 不存在、`docs/arch/architecture.md` 也不存在 → **初始模式**:完整訪談後從零產出
+- 只有 `docs/arch/architecture.md`(或 `docs/architecture.md`)→ **遷移 + 更新模式**:徵得開發者同意後,把內容重組進 `.design/system.md`(依本檔章節結構改寫,frontmatter 補 `subsystems: []`;既有 `subarch-*` 提醒之後用 `/subsys-design` 逐一遷移為 `subsystems/<slug>/design.md`),再依更新模式進行
 - `.design/system.md` 已存在 → **更新模式**:先讀取現有內容,針對要調整的部分訪談,更新文件並視情況新增 ADR
 
 ## 流程

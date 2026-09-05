@@ -150,7 +150,6 @@ node "<S>/arch-audit/scripts/migrate-v3.mjs" .design       不合本規章的樹
 
 `lint-commands.mjs` 的判準是**腳本自己的 `--help`**,不另外維護旗標清單(另外維護的那份就是下一個會漂的東西)。它只查「認不認得」,不查「用得對不對」——後者是人的判斷。
 
-**改過 `scripts/` 底下任何東西之後跑 `bash "<S>/arch-audit/tests/run.sh"`**:fixture 回歸(27 項輸出與 exit code 逐字比對)+ 對本 plugin 文檔的四道檢查 + `--claim`、`migrate-v3`、`spike-close` 三組在暫存副本上的煙霧測試 + 十四支腳本的 `--help`。行為是刻意改的才用 `--update` 重產 golden,並在 PR 說明為什麼變。
 
 `doc-section.mjs` 平常是**各 skill 自己用來只讀 `_shared/` 指定章節**的(載入行裡就寫著那一道指令);`--verify` 是給本 skill 的:分片的節被改名或刪掉時,載入行不會報錯,只會讓那個 skill 從此少讀一塊,這一關把它叫出來。
 

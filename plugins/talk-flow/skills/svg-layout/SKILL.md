@@ -120,13 +120,6 @@ Python 3.10+ 與 uv;依賴(`svgelements`、`fontTools`、`pypinyin`)由 uv 自�
 支援的元素:`rect / circle / ellipse / line / polyline / polygon / path / text /
 tspan / g / use / marker`;其餘在 digest 中標為 `unsupported`。
 
-## 測試資料
-
-`tests/fixtures/` 有四個案例可用來確認腳本行為正常:
-`clean.svg`(乾淨的三層微服務圖,應該零診斷)、`cjk-overflow.svg`(中文與中英混排溢出)、
-`broken-edges.svg`(端點沒貼齊、線穿節點、標籤壓線)、`no-ids.svg`(完全沒有 id,
-用來驗證 normalize 與 inspect 的警告行為)。
-
 ## Future(本階段不實作)
 
 - **Layer 3 — 編輯 DSL**:讓 LLM 輸出操作而非座標,由程式執行。架構圖的操作集合是

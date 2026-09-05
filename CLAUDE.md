@@ -27,6 +27,6 @@ bash plugins/dev-flow/skills/arch-audit/tests/run.sh          # golden 回歸 + 
 
 ## 版本與 PR
 
-- plugin 版本號由使用者指定,不自行推算(全域規則)。
-- 一個 PR 一個版本;合併後的 follow-up 從 `main` 開新分支、新版本、新 PR,不在已合併的分支上疊 commit。
+- dev-flow 在快速調整期間版本固定 `0.1.0`,PR 不動它;版本號何時再動、動成多少由使用者指定,不自行推算(全域規則)。
+- 合併後的 follow-up 從 `main` 開新分支、新 PR,不在已合併的分支上疊 commit。
 - PR 內文照 `branch-pr` skill 的固定章節,繁體中文;標題英文。

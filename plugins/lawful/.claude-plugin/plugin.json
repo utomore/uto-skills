@@ -1,6 +1,6 @@
 {
   "name": "lawful",
-  "description": "純函數式專案(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 pipeline:input → 純轉換 → output 的資料流,stage 是住在程式碼裡的簽名,laws 是形式化的性質、由 property test 承接;模組表宣告 types / effects / pure / shell 四層邊界,願望 stage 由上而下宣告底層需求;建構期由 conductor 帶 qa 與 impl 兩個互不可見的角色;進度一律由工具從程式碼與測試推導。",
+  "description": "純函數式專案(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 pipeline:input → 純轉換 → output 的資料流,stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 types / effects / pure / shell 四層邊界,願望 stage 由上而下宣告底層需求;建構期由 conductor 帶 qa 與 impl 兩個互不可見的角色,人類決定只在設計對談與回答 GAP 兩處;進度一律由 CLI 從程式碼與測試推導。skills:design、pipeline、build、qa、impl、revise、status、audit、spike。CLI lawful:status、claim、lint boundary / sig / laws / trace、sync、modules --gen、section、spike close;第一個 adapter 是 Haskell。",
   "author": {
     "name": "utomore"
   },

@@ -96,7 +96,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 ```
 
 - `forall` 行:變數與定義域;前提寫在集合限定裡,或再加一行 `given <前提>`。
-- `|-` 行:結論;每個識別字必須是 Stages 表的簽名或 types 層匯出的函數,`lint laws` 對帳,對不到不准 `ready`;`==`、`in`、`=>`、`.`、`and`、`or`。law 不定義型別,型別與函數一律住程式碼。
+- `|-` 行:結論;每個識別字必須是 Stages 表的簽名、types 層匯出的函數,或 adapter 認得的標準函式庫函數(`length`、`fst`),`lint laws` 對帳,對不到不准 `ready`;`==`、`in`、`=>`、`.`、`and`、`or`。law 不定義型別,型別與函數一律住程式碼。
 - 種類與對談時的問法:
 
 | 種類 | 性質 | 問開發者什麼 |
@@ -107,7 +107,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 | `relation` | 兩個 stage 輸出之間的關係 | 這一步的輸出跟上一步的輸出有什麼對應? |
 | `bound` | 上下界、單調 | 哪個數字有上限?輸入變大輸出一定變大嗎? |
 | `equiv` | 兩種算法等價 | 有沒有一個慢但一定對的寫法可以拿來對照? |
-- 每條 law 至少一條 property test,測試以 `P-002#LAW-1` 宣告歸屬(`describe "P-002#LAW-1"` 或註解 `-- lawful: P-002#LAW-1`)。`lawful lint trace` 對帳。
+- 每條 law 至少一條 property test,測試以 `describe "P-002#LAW-1"` 宣告歸屬,歸屬字串只放這一個,測試輸出才對得回來。`lawful lint trace` 對帳。
 - 觀察點必須是這條 pipeline 自己的簽名;要觀察別條的內部,law 屬於那條。
 - bug = 某條 law 在現況下不成立:law 已存在就修碼;沒寫到就補 law(走修訂)。沒有 bug 文檔。
 

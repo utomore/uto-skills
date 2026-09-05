@@ -12,12 +12,13 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 
 | 子命令 | 做什麼 |
 |---|---|
-| `status [--pipeline P-00x] [--module M]` | 派工報告;`--module` 列該模組所有 stage 的狀態 |
-| `claim <slug>` | 鑄號建 pipeline 檔(`status: draft`),回傳全名 |
+| `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 跑 `system.md` 的整套指令;兩者都沒給就列「未跑」 |
+| `status --pipeline <P-00x>` / `--module <M>` | 一條 pipeline 的 stage 與 law 逐條狀態 / 住在該模組的所有 stage 的狀態 |
+| `claim <slug> [--description <句>]` | 鑄號建 pipeline 檔(`status: draft`),`system.md` Pipelines 表加一列,類別欄由人填 |
 | `lint boundary` | import 與簽名 vs 模組表;types / effects / pure 命中效果即紅;未登記與幽靈模組即紅 |
 | `lint sig` | Stages 簽名 vs 程式碼簽名,逐字;願望 stage 列待實作不算紅;簽名一致但模組不同列「搬家」 |
 | `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |
-| `lint laws` | 三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名或 types 層匯出、example 指得到 law |
+| `lint laws` | 三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名、types 層匯出或 adapter 的標準函式庫清單、example 指得到 law |
 | `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用、無歸屬 |
 | `lint all` | 以上全部 |
 | `modules --gen` | 從程式碼生成模組表骨架,層欄留白;已有的表保留層欄、只補新模組 |
@@ -52,9 +53,11 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 | `isEffectful(signature)`:簽名是否碰到效果 | `lint boundary` |
 | `ioModules`:預設 IO 模組黑名單 | `lint boundary` |
 | `testMarkers(file)`:測試檔裡的 `P-00x#LAW-n` / `P-00x#EX-n` 歸屬 | `lint trace` |
+| `testResults(log)`:測試輸出 → 每個歸屬標記綠 / 紅 / pending | `status` |
+| `stdlib`:law 裡可直接用的標準函式庫函數 | `lint laws` |
 | `stub`:未實作本體 | conductor 寫骨架 |
 
-Haskell adapter:`.hs`;簽名行 `name :: Type`,多行合併;`import` 行;`IO` 出現在簽名即效果;`stub` = `undefined`。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
+Haskell adapter:`.hs`;簽名行 `name :: Type`,多行合併,record 欄位也算;`import` 行;`IO` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出讀 hspec 的 specdoc 格式;`stub` = `undefined`。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
 
 ## 跑東西的紀律
 

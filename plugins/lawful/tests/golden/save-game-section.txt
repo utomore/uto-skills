@@ -1,0 +1,16 @@
+$ lawful section .design/pipelines/P-001-save-game.md Brief Laws
+## Brief
+玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
+流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。它是里程碑,兩端碰到 shell。
+
+## Laws
+- LAW-1 [roundtrip] 存了再讀回到同一個狀態
+  - forall s in SaveState
+  - |- decode (encode s) == Right s
+- LAW-2 [invariant] 投影不丟實體
+  - forall w in World
+  - |- length (savedEntities (toSave w)) == entityCount w
+- LAW-3 [bound] 檔案大小跟實體數線性
+  - forall s in SaveState
+  - |- length (encode s) <= 64 + 128 * length (savedEntities s)
+exit 0

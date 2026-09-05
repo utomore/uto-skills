@@ -1,0 +1,28 @@
+$ lawful status --pipeline P-001-save-game --tests test.log
+# P-001-save-game  ready
+把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+· 測試結果來自 test.log
+
+## Stages
+- 1  toSave :: World -> SaveState  Save.Project/pure  在
+- 2  encode :: SaveState -> ByteString  Save.Codec/pure  在
+- 3  decode :: ByteString -> Either DecodeError SaveState  Save.Codec/pure  在
+- 4  writeSave :: FilePath -> ByteString -> IO ()  Host.FS/shell  在
+- =  saveGame :: FilePath -> World -> IO ()  Host.Save/shell  在
+
+## Laws
+- LAW-1 [roundtrip] 存了再讀回到同一個狀態  green
+- LAW-2 [invariant] 投影不丟實體  green
+- LAW-3 [bound] 檔案大小跟實體數線性  pending
+- EX-1 覆蓋 LAW-1  green
+- EX-2 覆蓋 LAW-2  red
+
+## GAP
+- 無
+
+## 引用
+- 引用了:無
+- 被引用:無
+
+文檔寫了 5 條簽名,程式碼裡有 5 條 · 寫了 3 條 law,通過 2 條 · 未達成
+exit 0

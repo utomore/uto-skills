@@ -20,7 +20,8 @@ grep -rn -E '2\.[0-9]\.[0-9]|以前|舊制|舊格式|舊文檔|舊專案|舊版|
 ## 改了 `scripts/` 之後
 
 ```
-bash plugins/dev-flow/skills/arch-audit/tests/run.sh          # golden 回歸 + 文檔四道檢查 + 煙霧測試 + --help
+bash plugins/dev-flow/skills/arch-audit/tests/run.sh          # dev-flow:golden 回歸 + 文檔四道檢查 + 煙霧測試 + --help
+bash plugins/lawful/tests/run.sh                              # lawful:兩個夾具的 golden 回歸 + --help(改了 bin/ 或 lib/ 就跑)
 ```
 
 行為是刻意改的才 `--update` 重產 golden,並在 PR 說明為什麼變。另外四道文檔檢查可以單獨跑:`lint-commands.mjs`(文檔裡的指令與旗標腳本認不認得)、`doc-section.mjs --verify`(載入行點名的節還在不在)、`lint-ids.mjs plugins`(裸寫的單字母+數字;掃整個 repo 會撞到 `wip/` 的草稿)、`lint-laws.mjs`(範例 law 四格)。

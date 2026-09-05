@@ -1,0 +1,15 @@
+$ lawful modules --gen
+modules.md 補了 1 個模組,層欄留白:
+- Util.Extra
+exit 0
+--- .design/modules.md
+# 模組表
+
+| 模組 | 層 |
+|---|---|
+| `World`、`Save.State` | types |
+| `Save.*` | pure |
+| `Save.Legacy` | pure |
+| `Host.*` | shell |
+| `Util.Extra` |  |
+

@@ -1,0 +1,50 @@
+---
+id: P-001
+description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+status: ready
+updated: 2026-09-05
+---
+# P-001-save-game:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+
+## Brief
+壞掉的版本,給 lint 的 golden 用。
+
+## Stages
+| # | 簽名 | 做什麼 | 模組 | 層 |
+|---|---|---|---|---|
+| 1 | `toSave :: World -> SaveState` | 去掉快取 | `Save.Project` | pure |
+| 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Save.Codec` | pure |
+| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態 | `Save.Codec` | pure |
+| 4 | `compress :: ByteString -> ByteString` | 壓縮 | `Save.Zip`(願望,見 P-002-compression) | pure |
+| 5 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Host.FS` | shell |
+| 6 | `checksum :: ByteString -> Int` | 校驗 | `Host.FS` | pure |
+| = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Host.Save` | shell |
+
+## Laws
+- LAW-1 [roundtrip] 存了再讀回到同一個狀態
+  - forall s in SaveState
+  - |- decode (encode s) == Right s
+- LAW-2 [invariant] 投影不丟實體
+  - forall w in World
+  - |- length (savedEntities (toSave w)) == entityCount w
+- LAW-3 [linear] 檔案大小跟實體數線性
+  - forall s in SaveState
+  - |- length (encode s) <= 64 + 128 * length (savedEntities s)
+- LAW-4 [invariant] 校驗碼穩定
+  - forall s in SaveState
+  - |- crc32 (encode s) == checksum (encode s)
+- LAW-5 [identity] 缺結論行
+  - forall s in SaveState
+
+## Examples
+| # | 輸入 | 輸出 | 覆蓋 |
+|---|---|---|---|
+| EX-1 | `decode ""` | `Left EmptyInput` | LAW-1 |
+| EX-2 | `toSave emptyWorld` | `emptySave` | LAW-9 |
+| EX-3 | `encode emptySave` | `<bytes>` | |
+
+## 決定
+無
+
+## 修訂記錄
+無

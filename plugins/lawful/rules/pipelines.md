@@ -108,7 +108,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 ## 修訂(REV)
 
-改既有 pipeline 的簽名、laws、模組或層,一律改原檔,一次修訂一條 REV:
+改既有 pipeline 的簽名、laws 或層,一律改原檔,一次修訂一條 REV。stage 在同一層內搬模組不是修訂:`lint sig` 報「搬家」,`lawful sync` 機械更新模組欄,不寫 REV。
 
 ```markdown
 - REV-1(2026-09-12,依 qa 提問「零時間步進要不要清事件」):LAW-2 改成整組相等
@@ -121,6 +121,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 - 保護:這次不准變的既有 law;要保護的行為還不是 LAW 的,先補成 LAW 再修訂。
 - 重委派:law 變了重派 qa,簽名變了重派 impl。簽名變了,程式碼簽名行同步改、本體回未實作;測試只重跑 REV 點名的。
 - 動到與保護只寫還在檔上的條目;`updated` 改成修訂日期。
+- 引用的子流簽名變了,消費者跟著 REV;`frozen` 的消費者先解凍。
 
 ## 提問(GAP)
 

@@ -52,7 +52,7 @@
 | `lawful:impl` | roles.md「三角色」「委派」;pipelines.md「節」「提問(GAP)」;boundary.md「四層」 |
 | `lawful:revise` | pipelines.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」;tooling.md「收尾定錨」 |
 | `lawful:status` | tooling.md「CLI」「status 報告」「收尾定錨」;pipelines.md「完成度」 |
-| `lawful:audit` | tooling.md「CLI」;boundary.md 全份;pipelines.md「節」「完成度」 |
+| `lawful:audit` | tooling.md「CLI」(含 `sync`);boundary.md 全份;pipelines.md「節」「完成度」 |
 | `lawful:spike` | pipelines.md「spike」;roles.md「委派」「spike」;tooling.md「跑東西的紀律」 |
 
 prompt 標明委派模式的執行另讀 roles.md「委派」,不讀「收尾定錨」。

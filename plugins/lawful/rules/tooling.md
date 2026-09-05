@@ -15,7 +15,8 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `status [--pipeline P-00x] [--module M]` | 派工報告;`--module` 列該模組所有 stage 的狀態 |
 | `claim <slug>` | 鑄號建 pipeline 檔(`status: draft`),回傳全名 |
 | `lint boundary` | import 與簽名 vs 模組表;types / effects / pure 命中效果即紅;未登記與幽靈模組即紅 |
-| `lint sig` | Stages 簽名 vs 程式碼簽名,逐字;願望 stage 列待實作不算紅 |
+| `lint sig` | Stages 簽名 vs 程式碼簽名,逐字;願望 stage 列待實作不算紅;簽名一致但模組不同列「搬家」 |
+| `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |
 | `lint laws` | 三行齊全、種類合法、`\|-` 引用得到 stage、example 指得到 law |
 | `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用、無歸屬 |
 | `lint all` | 以上全部 |

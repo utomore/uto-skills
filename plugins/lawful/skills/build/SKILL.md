@@ -16,7 +16,7 @@ user-invocable: true
 
 ## 步驟
 
-1. **骨架**:每條 stage 的簽名寫進它的模組,本體是 adapter 的 `stub`(Haskell `undefined`);`=` 列照 Stages 組裝。編譯過、`lawful lint sig` 全在。
+1. **骨架**:每條 stage 的簽名寫進它的模組並匯出,本體是 adapter 的 `stub`(Haskell `error "P-00x#name stub"`);`=` 列照 Stages 組裝純的整條,`!` 列把它接到 shell。編譯過、`lawful lint sig` 全在、`lawful status --pipeline <全名>` 每列是「骨架」或「在」。
 2. **派 qa**(`lawful:qa`,委派模式,prompt 用下面的模板):給全名、pipeline 檔路徑、types 層模組清單、子集測試指令。
 3. **基線**:qa 交付後在骨架上跑 qa 的測試模組,輸出留檔。打到 stub 的要紅、打到型別事實的要綠、REV 保護的要綠(`roles.md`「骨架與基線」)。該紅卻綠退回 qa;該綠卻紅寫成 GAP。回報裡的 GAP 由你寫進 `.lawful/gaps.md` 配號。
 4. **派 impl**(`lawful:impl`,委派模式):給全名、pipeline 檔路徑、骨架檔路徑、子集指令;不給測試檔。

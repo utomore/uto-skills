@@ -2,6 +2,6 @@ $ lawful status --module Save.Codec --tests test.log
 # Save.Codec  pure 層
 · 測試結果來自 test.log
 
-- P-001-save-game#encode  在  掛在上面的 law 2 條,通過 1 條
-- P-001-save-game#decode  在  掛在上面的 law 1 條,通過 1 條
+- P-001-save-game#encode  骨架  掛在上面的 law 2 條,通過 1 條
+- P-001-save-game#decode  骨架  掛在上面的 law 2 條,通過 2 條
 exit 0

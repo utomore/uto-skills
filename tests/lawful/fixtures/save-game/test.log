@@ -15,6 +15,9 @@ P-001#LAW-3
 P-001#LAW-4
   nub (savedIds (toSave w)) == savedIds (toSave w) [✔]
     +++ OK, passed 100 tests.
+P-001#LAW-5
+  decode (saveBytes w) == Right (toSave w) [✔]
+    +++ OK, passed 100 tests.
 P-001#EX-1
   decode "" == Left EmptyInput [✔]
 P-001#EX-2
@@ -32,5 +35,5 @@ Failures:
 Randomized with seed 1234
 
 Finished in 0.0412 seconds
-6 examples, 1 failure
+7 examples, 1 failure
 Test suite spec: FAIL

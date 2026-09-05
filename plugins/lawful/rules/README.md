@@ -15,7 +15,7 @@
 
 | 名詞 | 在哪 |
 |---|---|
-| pipeline、stage、`=` 列、`o` 列 / 觀察點、里程碑、子流 | pipelines.md「pipeline」 |
+| pipeline、stage、`=` 列 / 純的整條、`!` 列 / 進入點、`o` 列 / 觀察點、里程碑、子流 | pipelines.md「pipeline」 |
 | 全名、`P-00x#name`、`P-00x#LAW-n` | pipelines.md「編號與引用」 |
 | `draft` / `ready` / `frozen`、解凍 | pipelines.md「frontmatter 與 status」 |
 | Brief、Stages、Laws、law 種類、Examples、決定 | pipelines.md「節」 |
@@ -23,17 +23,18 @@
 | REV、動到 / 保護 / 重委派 | pipelines.md「修訂(REV)」 |
 | GAP、`gaps.md` | pipelines.md「提問(GAP)」 |
 | 願望 stage、進底層 / 留本地 | pipelines.md「願望 stage」 |
-| 簽名 m / n、laws g / k、達成 | pipelines.md「完成度」 |
+| 簽名 m / n、骨架 s、laws g / k、達成 | pipelines.md「完成度」 |
+| law 種類(`invariant` … `total`、`commute`)、class 法則 | pipelines.md「節」「什麼要有 law」 |
 | ADR、spike、SPK、RND、verdict、feeds | pipelines.md「ADR」「spike」 |
-| types / effects / pure / shell、效果 ADT | boundary.md「四層」 |
+| types / effects / pure / shell、效果 ADT、匯出清單 | boundary.md「四層」 |
 | 模組表、未登記、幽靈、`--module` | boundary.md「模組表」 |
-| IO 模組、`isEffectful` | boundary.md「效果的判定」 |
-| 對外 I/O | boundary.md「對外 I/O」 |
+| 效果型別、IO 模組、`isEffectful`、純解譯器、真解譯器 | boundary.md「效果的判定」 |
+| 對外 I/O、`lint io` | boundary.md「對外 I/O」 |
 | `*.Internal`、後門 | boundary.md「測試與邊界」 |
 | conductor、qa、impl | roles.md「三角色」 |
 | 委派、回報五項 | roles.md「委派」 |
 | 骨架、`stub`、基線 | roles.md「骨架與基線」 |
-| 產生器、案例數上限 | roles.md「qa 的交付」 |
+| 產生器、shrink、覆蓋率、案例數上限 | roles.md「qa 的交付」 |
 | 波末收尾 | roles.md「收尾」 |
 | 仲裁四分流 | roles.md「仲裁」 |
 | `<L>`、子命令、exit code | tooling.md「CLI」 |

@@ -1,8 +1,10 @@
 $ lawful lint boundary
-## lint boundary:5 條不合規
+## lint boundary:7 條不合規
 - ✗ .lawful/modules.md:7 模組表有 Save.Legacy,程式碼裡沒有(幽靈)
+- ✗ src/Save/Codec.hs Save.Codec import 了 Save.Project.Internal;*.Internal 只准它自己的模組與測試 import
 - ✗ src/Save/Codec.hs pure 層的 Save.Codec import 了 IO 模組 System.IO
-- ✗ src/Save/Codec.hs:23 pure 層的 Save.Codec.dumpSave 簽名碰到效果:SaveState -> IO ()
+- ✗ src/Save/Codec.hs:24 pure 層的 Save.Codec.dumpSave 簽名碰到效果:SaveState -> IO ()
+- ✗ src/Save/Project.hs pure 層的 Save.Project 沒有匯出清單,整個模組都是公開的;stage 與觀察點以外的東西要收起來
 - ✗ src/Save/State.hs types 層的 Save.State import 了 shell 層的 Host.FS
 - ✗ src/Util/Extra.hs 模組 Util.Extra 不在模組表(未登記)
 exit 1

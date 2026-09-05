@@ -21,7 +21,7 @@ frontmatter:`language`(選 adapter)、`updated`。五節:
 | 節 | 裝什麼 |
 |---|---|
 | `## 目的` | 三到五句:替誰做什麼、不做什麼 |
-| `## 語言與工具` | 三道指令:建置、整套測試、**子集測試**;IO 模組追加清單;忽略目錄(不掃的原始碼目錄,例如搬遷中的舊樹) |
+| `## 語言與工具` | 三道指令:建置、整套測試、**子集測試**;IO 模組追加清單;效果型別追加清單(boundary.md「效果的判定」);忽略目錄(不掃的原始碼目錄,例如搬遷中的舊樹) |
 | `## 邊界` | 四層各一句(boundary.md「四層」) |
 | `## 對外 I/O` | 表:名稱、方向(in / out)、型別或效果 ADT、shell 模組、進入哪條 pipeline |
 | `## Pipelines` | 表:全名、類別(里程碑 / 子流)。里程碑列的順序就是里程碑順序;`lawful status` 的分母 |
@@ -35,8 +35,9 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 - 可以橫跨任意模組。模組是 stage 的屬性,不是文檔的歸屬。
 - 兩端碰到 shell 的是**里程碑**;只在純核心裡的是**子流**。底層能力(查詢、碰撞偵測)也是子流。
 - 值得端到端規格的才建檔。單一小函數的 laws 直接寫 property test;它以 stage 的身分出現在用到它的 pipeline 裡。
-- stage 順序是資料流的拓撲序。`=` 列(整條的簽名)是權威。
-- **觀察點**:law 要引用、但不是資料流步驟的簽名(存取子、投影、輔助判定),在 Stages 表列成 `#` 欄寫 `o` 的列。它是程式碼裡的簽名,`lint sig` 照對帳;它不是 stage:不掛 law、不進簽名 m / n、不算依賴。types 層匯出的函數 law 本來就能引用,不必列成觀察點。
+- stage 順序是資料流的拓撲序。`=` 列(**純的整條**)是權威:它把純的步驟組合成一個值,住 pure 或 effects,不住 shell;整條的 law 掛在它上面。
+- **進入點**:里程碑另有恰好一列 `!` 列,shell 的函數,把 `=` 列接到解譯器與對外 I/O(讀檔、寫檔、跑效果描述)。它是程式碼裡的簽名,`lint sig` 照對帳、進簽名 m / n;不掛 law,它做的事由對外 I/O 表與 shell 的步驟承接。子流沒有 `!` 列。
+- **觀察點**:law 要引用、但不是資料流步驟的簽名(存取子、投影、輔助判定、效果描述的純解譯器),在 Stages 表列成 `#` 欄寫 `o` 的列。它是程式碼裡的簽名,`lint sig` 照對帳;它不是 stage:不掛 law、不進簽名 m / n、不算依賴。types 層匯出的函數 law 本來就能引用,不必列成觀察點。
 - 依賴不手寫:A 的 Stages 表引用 B 的簽名,A 就依賴 B。
 
 ## 編號與引用
@@ -79,12 +80,19 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 | 1 | `candidates :: World -> [(EntityId, EntityId)]` | 粗篩可能碰撞的對 | `Physics.Broadphase` | pure |
 | 2 | `queryDynamic :: World -> [(EntityId, RigidBody)]` | 取非靜態剛體 | `ECS.Query`(願望,見 P-003-ecs-query) | pure |
 | o | `overlaps :: EntityId -> EntityId -> World -> Bool` | 觀察:兩實體是否相交 | `Physics.Broadphase.Internal` | pure |
-| = | `step :: Time -> World -> (World, [CollisionEvent])` | 整條 | `Physics` | pure |
+| = | `step :: Time -> World -> (World, [CollisionEvent])` | 純的整條 | `Physics` | pure |
 ```
 
-- 簽名欄逐字等於程式碼的型別簽名行(多行合併、空白正規化)。`lawful lint sig` 對帳。
+里程碑多一列進入點,放在最後:
+
+```markdown
+| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Save` | pure |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Host.Save` | shell |
+```
+
+- 簽名欄逐字等於程式碼的型別簽名行(多行合併、空白正規化),而且是該模組匯出的名字。`lawful lint sig` 對帳。
 - 模組欄與層欄與模組表一致。引用別條 pipeline 的 stage:簽名照抄,模組欄註明「見 P-00x-<slug>」。
-- `#` 欄:數字是步驟,`=` 是整條,`o` 是觀察點。`=` 列恰好一列;`o` 列幾列都可以,放在 `=` 列之前。列號只在本檔內有意義,引用用函數名。
+- `#` 欄:數字是步驟,`=` 是純的整條,`o` 是觀察點,`!` 是進入點。`=` 列恰好一列,不在 shell;`o` 列幾列都可以,不在 shell,放在 `=` 列之前;`!` 列里程碑恰好一列、子流沒有,在 shell,放在最後。步驟可以在 shell(寫檔、讀檔),它們沒有 law。列號只在本檔內有意義,引用用函數名。
 
 **Laws**:純 ASCII 三行。
 
@@ -99,7 +107,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 - `forall` 行:變數與定義域;一個 stage 的回傳值要拆開用,寫成 `(w1, effs) in step dt w`,`in` 對單一值就是綁定;前提寫在集合限定裡,或再加一行 `given <表達式>`。
 - `given` 行也是純 ASCII 表達式,識別字規則同 `|-` 行。前提寫不成表達式,代表少一個觀察點(像 `emittedBy :: SystemId -> StepReport -> [SomeEvent]`):補 `o` 列,或開 GAP;不寫散文。
-- `|-` 行:結論;每個識別字必須是 Stages 表的簽名(步驟或觀察點)、types 層匯出的函數,或 adapter 認得的標準函式庫函數(`length`、`fst`),`lint laws` 對帳,對不到不准 `ready`;`==`、`in`、`=>`、`.`、`and`、`or`。字串與數字字面值(`"teleport"`、`0`)不是識別字,直接寫,不為它造常數。law 不定義型別,型別與函數一律住程式碼。
+- `|-` 行:結論;每個識別字必須是 Stages 表的簽名(步驟、純的整條或觀察點)、types 層匯出的函數,或 adapter 認得的標準函式庫函數(`length`、`fst`),`lint laws` 對帳,對不到不准 `ready`;運算子 `==`、`/=`、`<`、`<=`、`>`、`>=`、`in`、`=>`、`.`、`and`、`or`、`not`。字串與數字字面值(`"teleport"`、`0`)不是識別字,直接寫,不為它造常數。law 不定義型別,型別與函數一律住程式碼。`!` 列不准出現在 law 裡。
 - 種類與對談時的問法:
 
 | 種類 | 性質 | 問開發者什麼 |
@@ -110,7 +118,10 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 | `relation` | 兩個 stage 輸出之間的關係 | 這一步的輸出跟上一步的輸出有什麼對應? |
 | `bound` | 上下界、單調 | 哪個數字有上限?輸入變大輸出一定變大嗎? |
 | `equiv` | 兩種算法等價 | 有沒有一個慢但一定對的寫法可以拿來對照? |
+| `total` | 定義域內每個輸入都有值:不拋例外、不回 `Left` / `Nothing`;`\|-` 行寫 `total (f x)` 或 `isRight (f x)` | 哪些輸入看起來合法卻會爆?空的、最大的、負的呢? |
+| `commute` | 順序無關:兩步對調、兩個輸入對調結果相同 | 先做 A 再做 B,跟先 B 再 A 一樣嗎?合併 a b 跟合併 b a 一樣嗎? |
 - 每條 law 至少一條 property test,測試以 `describe "P-002#LAW-1"` 宣告歸屬,歸屬字串只放這一個,測試輸出才對得回來。`lawful lint trace` 對帳。
+- `=` 列至少被一條 law 引用:整條的端到端性質(往返、不變量),不是各 stage law 的加總。`lint laws` 對帳。
 - 觀察點必須是這條 pipeline 自己的簽名;要觀察別條的內部,law 屬於那條。
 - bug = 某條 law 在現況下不成立:law 已存在就修碼;沒寫到就補 law(走修訂)。沒有 bug 文檔。
 
@@ -127,7 +138,9 @@ law 只掛在 stage 上,所以先問一個函數是不是 stage,再問它有沒�
 
 typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、component 的 codec)是 stage,它的代數性質在 class 所屬的子流寫成 law,**一條 law、每個 instance 一條測試**,歸屬都標同一個 `P-00x#LAW-n`;instance 不另寫 law。只在模組內遞迴用的 class 不是 stage。
 
-不寫 law 的:常數與設定值、只做接線的 `=` 列本體(由各 stage 的 law 加 example 承接)、shell 層的 IO 函數(它們在對外 I/O 表)、只有型別層知識的東西。law 的條數不是進度,是自由度的數量。
+手寫的標準 class instance(`Semigroup`、`Monoid`、`Functor`、`Traversable`、`Ord`)自由度無限:class 的法則照一般 law 寫在該型別所屬的 pipeline(結合律是 `relation`、單位元是 `identity`),qa 可以用 class 法則套件承接,一條 law 對一個 `describe`。`deriving` 出來的不寫。
+
+不寫 law 的:常數與設定值、`!` 列(進入點只接線,由對外 I/O 表承接)、shell 層的 IO 函數(它們在對外 I/O 表)、只有型別層知識的東西。law 的條數不是進度,是自由度的數量。
 
 **決定**:每條一句粗體結論、否決的替代方案、理由一句;有證據引用 SPK / ADR 全名。只裝只關這條 pipeline 的決定;跨 pipeline 的開 ADR。解凍紀錄也寫這裡。
 
@@ -183,9 +196,10 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
 
 | 數字 | 怎麼算 |
 |---|---|
-| 簽名 m / n | Stages 的步驟(數字列與 `=` 列)n 條;程式碼找得到且逐字一致 m 條。`o` 列另計「觀察點 j / k」 |
+| 簽名 m / n | Stages 的步驟(數字列、`=` 列與 `!` 列)n 條;程式碼找得到且逐字一致 m 條。`o` 列另計「觀察點 j / k」 |
+| 骨架 s | m 條裡本體還是 `stub` 的 s 條;`lawful status` 列成待實作 |
 | laws g / k | 寫了 k 條;測試宣告歸屬 j 條;綠 g 條 |
-| 達成 | m = n、觀察點全在、g = k、沒有 open GAP。里程碑達成 = 它與它引用的每條子流都達成 |
+| 達成 | m = n、s = 0、觀察點全在、g = k、沒有 open GAP。里程碑達成 = 它與它引用的每條子流都達成 |
 
 ## ADR
 

@@ -12,6 +12,7 @@ updated: 2026-09-05
 - 測試(整套):`cabal test`
 - 測試(子集):`cabal test --test-options='-m "P-001"'`
 - IO 模組追加:無
+- 效果型別追加:無
 - 忽略目錄:`old`
 
 ## 邊界

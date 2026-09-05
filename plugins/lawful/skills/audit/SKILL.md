@@ -13,9 +13,9 @@ user-invocable: true
 ## 步驟
 
 1. **機械**:`lawful lint all`、`lawful status --tests <log>`(log 照 `lawful:status` 第 1 步拿)。
-2. **分類每條紅**:簽名不一致看兩邊誰對,文檔錯走 `lawful:revise`、程式碼錯列給 impl;同層搬家直接 `lawful sync`;未登記模組 `lawful modules --gen` 再請開發者填層;跨層 import 與 pure 碰 IO 列為結構問題。
-3. **人判 laws**:每條 law 先過「什麼要有 law」的兩問,自由度為一的提議刪;再拿種類問法表(`pipelines.md`「節」的 Laws 表)逐種對:該有 invariant 的有沒有、roundtrip 有沒有說哪些欄位不算、bound 有沒有數字。缺的寫成提議,不直接加。
-4. **人判邊界**:對外 I/O 表每一列有沒有對到里程碑的兩端;`*.Internal` 有沒有被 production import;有沒有 test-only export。
+2. **分類每條紅**:簽名不一致看兩邊誰對,文檔錯走 `lawful:revise`、程式碼錯列給 impl;同層搬家直接 `lawful sync`;未登記模組 `lawful modules --gen` 再請開發者填層;沒匯出的 stage、沒有匯出清單的模組列給 impl;跨層 import、pure 碰效果型別、production import `*.Internal`、`=` 列在 shell、對外 I/O 對不上里程碑,列為結構問題。
+3. **人判 laws**:每條 law 先過「什麼要有 law」的兩問,自由度為一的提議刪;再拿種類問法表(`pipelines.md`「節」的 Laws 表)逐種對:該有 invariant 的有沒有、roundtrip 有沒有說哪些欄位不算、bound 有沒有數字、會爆的輸入有沒有 total、手寫的 instance 有沒有 class 法則、`given` 的測試有沒有宣告覆蓋率。缺的寫成提議,不直接加。
+4. **人判邊界**:對外 I/O 表有沒有漏列真實的入口與出口;每個效果描述有沒有純解譯器,里程碑 `=` 列的 law 是不是拿它寫的;有沒有 test-only export。
 5. **報告一張表**:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`lawful:revise P-00x-<slug>`、`lawful sync`)。
 
 ## 收尾

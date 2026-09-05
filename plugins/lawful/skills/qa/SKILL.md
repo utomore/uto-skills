@@ -18,8 +18,8 @@ user-invocable: false
 
 ## 步驟
 
-1. **產生器**:每個 law 的 `forall` 定義域一個產生器,只用 types 層的 smart constructor 組合法值;尺寸有上限(`resize`)。組不出合法值 = GAP,指出缺的建構子。
-2. **每條 law 一條 property test**:`describe "P-00x#LAW-n"` 包住;斷言逐字照 `|-` 行翻;案例數上限(`withMaxSuccess 100` 這一級),整個模組有 timeout。
+1. **產生器**:每個 law 的 `forall` 定義域一個產生器,只用 types 層的 smart constructor 組合法值;尺寸有上限(`resize`),能縮小。有 `given` 行的直接建構滿足前提的值;非過濾不可就宣告覆蓋率(`checkCoverage` 加 `cover`)。組不出合法值 = GAP,指出缺的建構子。
+2. **每條 law 一條 property test**:`describe "P-00x#LAW-n"` 包住;斷言逐字照 `|-` 行翻(`total` 種類是求值到正規形不拋例外);案例數上限(`withMaxSuccess 100` 這一級),整個模組有 timeout。`=` 列是效果描述的,拿 `o` 列的純解譯器跑,不碰 IO。
 3. **每個 example 一條 example test**:`describe "P-00x#EX-n"`,輸入輸出照表。
 4. **寫不出斷言**(law 讀不出唯一解釋、缺 `Eq` 實例、觀察點不在簽名上):停這一條,GAP 四欄寫進回報,局部序號;其餘照做。不猜、不看實作、不要求後門。
 5. **只跑自己的測試模組一次**:編得過;打到 stub 的紅、打到型別事實的綠、REV 保護的綠。該紅卻綠自己先改。

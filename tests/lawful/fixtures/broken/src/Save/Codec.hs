@@ -7,6 +7,7 @@ module Save.Codec
   ) where
 
 import Data.ByteString (ByteString)
+import Save.Project.Internal (savedIds)
 import Save.State (DecodeError, SaveState)
 import System.IO (hPutStrLn, stderr)
 import World (World)

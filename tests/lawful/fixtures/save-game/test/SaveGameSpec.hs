@@ -2,6 +2,7 @@ module SaveGameSpec (spec) where
 
 import qualified Data.ByteString as BS
 import Data.List (nub)
+import Save (saveBytes)
 import Save.Codec (decode, encode)
 import Save.Project (toSave)
 import Save.Project.Internal (savedIds)
@@ -42,6 +43,10 @@ spec = do
   describe "P-001#LAW-4" $
     it "nub (savedIds (toSave w)) == savedIds (toSave w)" $
       limited $ forAll genWorld $ \w -> nub (savedIds (toSave w)) == savedIds (toSave w)
+
+  describe "P-001#LAW-5" $
+    it "decode (saveBytes w) == Right (toSave w)" $
+      limited $ forAll genWorld $ \w -> decode (saveBytes w) == Right (toSave w)
 
   describe "P-001#EX-1" $
     it "decode \"\" == Left EmptyInput" $

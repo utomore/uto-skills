@@ -1,0 +1,33 @@
+Build profile: -w ghc-9.14.1 -O1
+Running 1 test suites...
+Test suite spec: RUNNING...
+
+P-001#LAW-1
+  decode (encode s) == Right s [✔]
+    +++ OK, passed 100 tests.
+P-001#LAW-2
+  length (savedEntities (toSave w)) == entityCount w [✔]
+    +++ OK, passed 100 tests.
+P-001#LAW-3
+  length (encode s) <= 64 + 128 * length (savedEntities s) [‐]
+    # PENDING: No reason given
+    +++ OK, passed 100 tests.
+P-001#EX-1
+  decode "" == Left EmptyInput [✔]
+P-001#EX-2
+  toSave emptyWorld == emptySave [✘]
+
+Failures:
+
+  test/SaveGameSpec.hs:44:7:
+  1) P-001#EX-2 toSave emptyWorld == emptySave
+       expected: SaveState {savedEntities = []}
+        but got: SaveState {savedEntities = [SavedEntity ...]}
+
+  To rerun use: --match "/P-001#EX-2/"
+
+Randomized with seed 1234
+
+Finished in 0.0412 seconds
+5 examples, 1 failure
+Test suite spec: FAIL

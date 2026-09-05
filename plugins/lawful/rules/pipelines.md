@@ -107,7 +107,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 | `relation` | 兩個 stage 輸出之間的關係 | 這一步的輸出跟上一步的輸出有什麼對應? |
 | `bound` | 上下界、單調 | 哪個數字有上限?輸入變大輸出一定變大嗎? |
 | `equiv` | 兩種算法等價 | 有沒有一個慢但一定對的寫法可以拿來對照? |
-- 每條 law 至少一條 property test,測試以 `P-002#LAW-1` 宣告歸屬(`describe "P-002#LAW-1"` 或註解 `-- lawful: P-002#LAW-1`)。`lawful lint trace` 對帳。
+- 每條 law 至少一條 property test,測試以 `describe "P-002#LAW-1"` 宣告歸屬,歸屬字串只放這一個,測試輸出才對得回來。`lawful lint trace` 對帳。
 - 觀察點必須是這條 pipeline 自己的簽名;要觀察別條的內部,law 屬於那條。
 - bug = 某條 law 在現況下不成立:law 已存在就修碼;沒寫到就補 law(走修訂)。沒有 bug 文檔。
 

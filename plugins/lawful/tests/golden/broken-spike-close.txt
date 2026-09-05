@@ -1,0 +1,5 @@
+$ lawful spike close SPK-001
+刪了 spike/SPK-001-cbor-size/;程式碼用 RND 的 sha 撈
+exit 0
+--- spike/SPK-001-cbor-size/Main.hs
+(不存在)

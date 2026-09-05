@@ -1,0 +1,7 @@
+$ lawful spike close SPK-002
+SPK-002-zstd 還不能結案:
+- status 是「open」,要 concluded
+- verdict「」要是 feasible / infeasible / partial
+- feeds 是空的
+- RND-1 沒有 sha
+exit 1

@@ -1,0 +1,3 @@
+$ lawful spike close SPK-001 --dry-run
+會刪 spike/SPK-001-cbor-size/;程式碼用 RND 的 sha 撈
+exit 0

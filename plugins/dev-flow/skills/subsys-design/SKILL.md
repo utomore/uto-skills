@@ -38,7 +38,7 @@ user-invocable: true
 
 ## 前置(不可跳過)
 
-1. 讀取 `.design/system.md`。**不存在時**:停止,告知開發者必須先執行 `/system-design` 建立主架構——沒有 Level 1 就沒有子系統可言(只有舊版 `docs/arch/` 體系時,提醒先用 `/system-design` 遷移)
+1. 讀取 `.design/system.md`。**不存在時**:停止,告知開發者必須先執行 `/system-design` 建立主架構——沒有 Level 1 就沒有子系統可言(只有 `docs/arch/` 體系時,提醒先用 `/system-design` 遷移)
 2. 讀取與本子系統相關的 `.design/adr/`(依主題挑選,不必全讀)
 3. 讀主架構 frontmatter 的 `subsystems` **名冊**與「子系統劃分」章節,確認要設計的子系統是否已有 `design.md`;把它那一小節的**職責逐句抄下來**——那是本次產出要逐條對帳的東西(`contract-readiness.md` A10)
 

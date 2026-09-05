@@ -41,7 +41,7 @@ user-invocable: true
 
 1. **定位地圖**:
    - 有 `.design/system.md` → 以它與各 `design.md` 為地圖(架構、子系統清單、ADR 都是現成的導讀骨架)。地圖仍要對照程式碼驗證,文檔與程式碼不一致時兩邊都攤給開發者看、標明以程式碼為準,並提示可用 `/arch-audit` 處理
-   - 沒有 `.design/`(或只有舊版 `docs/arch/`)→ 自己從程式碼建地圖:套件管理檔(`package.json` 的 `main`/`bin`/`scripts`、`pyproject.toml` 的 entry points、`go.mod` + `main` 套件、`Cargo.toml` 的 `[[bin]]`…)、README、兩層深的目錄樹、測試目錄。據此推出「子系統劃分」的**工作假說**,整份導讀都標明它是推測,不是作者定義
+   - 沒有 `.design/`(或只有 `docs/arch/`)→ 自己從程式碼建地圖:套件管理檔(`package.json` 的 `main`/`bin`/`scripts`、`pyproject.toml` 的 entry points、`go.mod` + `main` 套件、`Cargo.toml` 的 `[[bin]]`…)、README、兩層深的目錄樹、測試目錄。據此推出「子系統劃分」的**工作假說**,整份導讀都標明它是推測,不是作者定義
    - 有程式碼知識圖(判定見 `../_shared/codegraph.md`)→ 用它找入口、hub 與候選呼叫鏈;圖給的每一跳都要打開檔案確認
 2. **問一次就好**(AskUserQuestion,之後不再反覆問背景):
    - 開發者的起點:完全陌生 / 懂領域但沒看過 code / 看過一部分

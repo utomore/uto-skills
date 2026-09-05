@@ -36,9 +36,6 @@
 │  ├─ LAW-1
 │  │  行為性質 · 單一 spec 檔內 · spec 角色配 · 永久
 │  │  ↳ qa 一條翻一個 property test —— 條數 = 測試的分母,不是跑出來的測試數;講到某一條 law 掛在文檔全名底下:auth/F002-token-refresh 的 LAW-3
-│  ├─ REG-1
-│  │  回歸 law(enhance 專用)· 單一 spec 檔內 · 永久
-│  │  ↳ 保護改完必須一模一樣的現有行為
 │  ├─ EX-1
 │  │  具體範例 · 單一 spec 檔內 · spec 角色配 · 永久
 │  │  ↳ qa 一個翻一個 example test;LAW + EX 就是「這份 spec 應該有幾個測試」

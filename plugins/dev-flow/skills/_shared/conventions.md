@@ -9,7 +9,7 @@
 | `spec-roles.md` | **spec 三角色契約**:設計 / qa / impl 各自的輸入與禁區、骨架規格、qa 的交付判準、spec-gaps 協議、仲裁的歸因分流 | **走 spec 驅動流程時**:spec-design、spec-qa、spec-impl、spec-build、subsys-build(bugfix 不適用) |
 | `boundary-rules.md` | **專案模式**(`greenfield` 全新建立 / `brownfield` 維護型,決定 migration 類問題該不該問)、知識歸屬、層級判斷(哪些自己決定、哪些要問開發者)、發問協議,外加設計/實作各自的階段規則 | **設計或實作動手前**:system-design、subsys-design、spec-design、spec-impl、bugfix;`/subsys-build`、`/spec-build` 做層級複審時 |
 | `testing-policy.md` | 只測公開介面、property-based 測 law、`*.Internal`、禁止測試後門 | **要寫或改測試時**:spec-qa、bugfix、arch-audit(查後門)。spec 驅動的 impl 不寫測試,不讀 |
-| `doc-lifecycle.md` | **`.design/` 資料夾樹**、文檔角色與權威來源、命名與編號規則、**編號與縮寫註冊表**(所有首碼的唯一鑄號機關:文檔 id、階段 S、LAW-/EX-/GAP-/ASM- 等詞首碼)、跨文檔引用格式、舊版路徑遷移、各類文檔的 YAML frontmatter 規格 | 要**新建 / 改名 / 編號 `.design/` 文檔**、要給任何東西編號或取縮寫、要寫跨文檔引用,或要確認某個 frontmatter 欄位怎麼寫時;只改 `status` / `updated` 不用。**這片長,開頭有「你要做什麼 → 讀哪幾節」對照表,照它只讀對應的節** |
+| `doc-lifecycle.md` | **`.design/` 資料夾樹**、文檔角色與權威來源、命名與編號規則、**編號與縮寫註冊表**(所有首碼的唯一鑄號機關:文檔 id、階段 S、LAW-/EX-/GAP-/ASM- 等詞首碼)、跨文檔引用格式、各類文檔的 YAML frontmatter 規格 | 要**新建 / 改名 / 編號 `.design/` 文檔**、要給任何東西編號或取縮寫、要寫跨文檔引用,或要確認某個 frontmatter 欄位怎麼寫時;只改 `status` / `updated` 不用。**這片長,開頭有「你要做什麼 → 讀哪幾節」對照表,照它只讀對應的節** |
 | `contract-readiness.md` | **契約就緒度檢查清單**:A 段子系統內 10 條、B 段子系統之間 4 條,幾乎全是純文檔的機械比對(A10 要開 system.md 對帳職責) | `/subsys-design` 產出 `design.md` 之前(自評)、`/subsys-build` 的委派門檻檢查(他評) |
 | `design-query.md` | **設計文檔查詢**:`scan-status.mjs` 的 `--subsys` / `--doc` / `--file` 能力對照、exit code 語意、各角色的使用界線、與程式碼知識圖的分工 | 要查「某份文檔跟誰有關係、介面怎麼寫、誰依賴我」或「這個程式碼檔案是哪份文檔做出來的」時 |
 | `delegation.md` | 委派模式共通契約、回報格式 | prompt 標明 `【委派模式】`,或你是 `/spec-build` / `/subsys-build` 的編排者 |
@@ -103,9 +103,9 @@ Level 3 採 **spec 驅動的三角色**:設計寫 spec 文檔與程式碼骨架(
   - **只有兩個地方寫裸 id**:文檔自己的 frontmatter `id:` 欄、檔名。frontmatter 的清單欄位(`depends-on`、`related-feature` 等)一律帶子系統前綴(`[auth/F001]`),同一個子系統內部也要
   - **主詞與受詞不准省**:「它」「那份」「上面那個」不得是一句話裡唯一的指稱;每一條發現、每一個下一步,都要寫出**誰**、**對哪一份文檔或哪個檔案**、**做什麼**。寫「它不在分母裡」不算數,要寫「`auth/MFA` 模組群不在 auth 子系統的進度分母裡」
 - **專案模式**:`system.md` frontmatter 的 `mode` 欄分 `greenfield`(全新建立)與 `brownfield`(維護型)。`greenfield` 專案**禁止問 migration / 向後相容問題、禁止預留相容層**,決策一律以專案未來性為第一優先;`brownfield` 則相反,migration 與既有呼叫端是必問。兩個模式的完整規則與唯一例外(外部系統的既有契約)見 `boundary-rules.md`「專案模式」
-- 設計文檔一律住在專案的 `.design/`;**完整資料夾樹**與舊版 `docs/arch/` 的遷移規則見 `doc-lifecycle.md`
+- 設計文檔一律住在專案的 `.design/`;**完整資料夾樹**見 `doc-lifecycle.md`
 - 修改任何文檔內容時,同步更新 frontmatter 的 `updated`
-- feature / enhance / bugfix 完成(實作完成且測試通過)後 `status` 改 `done`;確認不再需要或已廢棄時改 `closed`
+- feature / enhance / bugfix 完成(實作完成且測試通過)後 `status` 改 `done`;決定不做了改 `dropped`
 - **Context 載入紀律**:分析或開發時只讀 `.design/system.md`、目標所屬子系統的 `design.md`(不相關的子系統不讀)、相關(最新)ADR、當前目標文檔;已 closed 的 bugfix 檔除非必要否則不載入
 - `.design/system.md` 是專案燈塔:任何文檔產出後若與其描述衝突,必須回頭檢查並(經開發者同意)更新
 - **層級分工**:顆粒度見上方「資訊抽象邊界規範」;兩層描述衝突時以上層為準,並回頭修正下層

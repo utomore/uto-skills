@@ -5,7 +5,7 @@
  * 檢查對象是含「## Laws」段的 **markdown 文檔**(專案的 `.design/` 全樹,或本 plugin 自己的模板)。
  * 它強制執行 spec-design 的三條規則:
  *
- *   1. **四格齊全**:每條 `LAW-n` / `REG-n` 底下必須有「量詞 / 定義域 / 前提 / 觀察點」四個子項。
+ *   1. **四格齊全**:每條 `LAW-n` 底下必須有「量詞 / 定義域 / 前提 / 觀察點」四個子項。
  *      這四格不是隨便挑的,是 property test 的四個組成部件(量詞→forall 變數、定義域→產生器、
  *      前提→precondition、觀察點→斷言)。**填不滿 = 這條 law 翻不成測試**。
  *   2. **觀察點可觀察**:觀察點至少要引用一個出現在同一份文檔「介面」表裡的識別碼。
@@ -303,7 +303,7 @@ for (const f of files) {
 
 if (violations.length > 0) {
   console.log(`=== spec 文檔違規(${violations.length})===`);
-  console.log("每條 LAW- / REG- 底下要有「量詞 / 定義域 / 前提 / 觀察點」四個子項,");
+  console.log("每條 LAW- 底下要有「量詞 / 定義域 / 前提 / 觀察點」四個子項,");
   console.log("觀察點必須用反引號引用一個介面表裡有的識別碼,");
   console.log("介面表的「骨架位置」欄一律寫 `檔案#符號`(移除的列寫 `-`)。格式見 spec-design/templates/。");
   if (skeletonOn) console.log("`--skeleton` 開著,所以「骨架位置」還要在專案樹裡指得到:檔案在、符號在、且與同一列的簽名同名。");

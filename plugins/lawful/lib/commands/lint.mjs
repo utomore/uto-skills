@@ -91,6 +91,11 @@ export function lintSig(design, source, adapter) {
       if (entries.length && !entry) r.red.push(`${at(p.file, s.line)} ${s.name} 的模組 ${s.module} 不在模組表`);
       else if (entry && entry.layer !== s.layer) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,模組表說 ${s.module} 是 ${entry.layer} 層`);
       if (s.ref && !design.pipelines.some((q) => q.fullName === s.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 引用的 ${s.ref} 不存在`);
+      if (!s.ref && s.name) {
+        const owner = design.pipelines.find((q) => q !== p && q.stages.some((t) => t.name === s.name && t.whole));
+        if (owner) r.red.push(`${at(p.file, s.line)} ${s.name} 是 ${owner.fullName} 的 = 列;引用別條的 stage 要在模組欄註明「見 ${owner.fullName}」`);
+        else for (const q of design.pipelines) if (q !== p && q.fullName > p.fullName && q.stages.some((t) => t.name === s.name && !t.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 也是 ${q.fullName} 的 stage,兩邊都沒註明「見」;引用的那一邊補「見 P-00x-<slug>」`);
+      }
       if (!source) continue;
       const hits = findSignature(source, s.name);
       if (!hits.length) {

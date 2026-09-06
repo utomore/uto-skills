@@ -28,6 +28,8 @@ const CASES = [
   ['broken-status', 'broken', ['status']],
   ['save-game-status-tasty', 'save-game', ['status', '--tests', 'test-tasty.log']],
   ['devflow-migrate', 'devflow', ['migrate', 'from-dev-flow', '.design', '--ignore', 'old']],
+  ['refs-status', 'refs', ['status']],
+  ['refs-lint-sig', 'refs', ['lint', 'sig']],
   ['save-game-claim', 'save-game', ['claim', 'load-game', '--description', '把存檔讀回 World', '--date', DATE], ['.lawful/pipelines/P-002-load-game.md', '.lawful/system.md']],
   ['broken-sync', 'broken', ['sync', '--date', DATE], ['.lawful/pipelines/P-001-save-game.md']],
   ['broken-modules-gen', 'broken', ['modules', '--gen'], ['.lawful/modules.md']],

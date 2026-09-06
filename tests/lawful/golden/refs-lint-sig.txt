@@ -1,0 +1,6 @@
+$ lawful lint sig
+· system.md 沒有 language 欄,簽名與邊界不對帳
+
+## lint sig:1 條不合規
+- ✗ .lawful/pipelines/P-002-parse.md:15 shared 也是 P-003-normalize 的 stage,兩邊都沒註明「見」;引用的那一邊補「見 P-00x-<slug>」
+exit 1

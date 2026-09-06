@@ -50,17 +50,16 @@ export function analyze(design, source, adapter, results) {
     const refs = [...new Set(p.stages.map((s) => s.ref).filter(Boolean))];
     info.set(p.fullName, { p, stages, sigOk, sigTotal: steps.length, stubCount, obsOk, obsTotal: observes.length, laws, examples, gaps, refs, referrers: [] });
   }
+  // 依賴只從模組欄的「見 P-00x-<slug>」來:A 引用 B 的簽名,A 依賴 B;B 不因為被引用而等 A。
   for (const [, x] of info) for (const r of x.refs) if (info.has(r)) info.get(r).referrers.push(x.p.fullName);
-  // 沒寫 ref 但 stage 名字是別條 pipeline 的 stage,也算引用
+  // 同一個名字出現在兩條 pipeline 的 Stages 表、兩邊都沒註明「見」:分不出誰引用誰,列警訊,不算依賴
+  const unmarked = [];
   for (const [, x] of info) {
     for (const s of x.stages) {
-      if (s.ref || s.whole) continue;
+      if (s.ref || !s.name) continue;
       for (const [, y] of info) {
-        if (y === x) continue;
-        if (y.stages.some((t) => t.name === s.name)) {
-          if (!x.refs.includes(y.p.fullName)) x.refs.push(y.p.fullName);
-          if (!y.referrers.includes(x.p.fullName)) y.referrers.push(x.p.fullName);
-        }
+        if (y === x || x.p.fullName > y.p.fullName) continue;
+        if (y.stages.some((t) => t.name === s.name && !t.ref)) unmarked.push({ name: s.name, a: x.p.fullName, b: y.p.fullName });
       }
     }
   }
@@ -78,7 +77,7 @@ export function analyze(design, source, adapter, results) {
     x.blockedBy = x.refs.filter((r) => info.has(r) && !info.get(r).achieved);
     x.unknown = !results && x.laws.some((l) => l.traced);
   }
-  return { info, byName, byId, openGaps, markers };
+  return { info, byName, byId, openGaps, markers, unmarked };
 }
 
 export function loadResults(design, adapter, flags, root) {
@@ -197,6 +196,7 @@ export function statusReport(design, source, adapter, results, resultNote) {
     for (const s of x.stages) if (s.state === '搬家') warn(`${p.fullName}#${s.name}`, `程式碼在 ${s.hit.module}`, 'lawful sync');
     for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁:先歸因再改');
   }
+  for (const u of a.unmarked) warn(`${u.a}#${u.name}`, `${u.b} 也把 ${u.name} 列成 stage,兩邊都沒註明「見」`, '引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來');
   for (const l of listed) {
     if (!a.byName.has(l.fullName)) warn('system.md', `列了 ${l.fullName},pipelines/ 沒有這個檔`, '刪那一列或 lawful claim');
     if (!['里程碑', '子流'].includes(l.kind)) warn('system.md', `${l.fullName} 類別「${l.kind}」`, '改成里程碑或子流');

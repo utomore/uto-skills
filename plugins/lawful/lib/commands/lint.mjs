@@ -68,8 +68,9 @@ export function lintSig(design, source, adapter) {
   const r = { title: 'lint sig', red: [], info: [] };
   const entries = design.modules ? design.modules.entries : [];
   for (const p of design.pipelines) {
+    if (p.template.stages) r.red.push(`${p.file} Stages 表還是模板(${p.template.stages} 列佔位符);lawful:pipeline 寫成真的簽名`);
     if (!p.stages.length) {
-      r.red.push(`${p.file} 沒有 Stages 表`);
+      if (!p.template.stages) r.red.push(`${p.file} 沒有 Stages 表`);
       continue;
     }
     const wholes = p.stages.filter((s) => s.whole);
@@ -173,7 +174,8 @@ export function lintLaws(design, source, adapter) {
     const stageNames = new Set(p.stages.map((s) => s.name));
     const lawIds = new Set();
     const mentioned = new Set();
-    if (!p.laws.length) r.red.push(`${p.file} 沒有 law`);
+    if (p.template.laws) r.red.push(`${p.file} Laws 還是模板(${p.template.laws} 條佔位符);lawful:pipeline 寫成真的 law`);
+    else if (!p.laws.length) r.red.push(`${p.file} 沒有 law`);
     for (const l of p.laws) {
       const where = `${p.file} ${l.id || l.title}`;
       if (!l.id) {
@@ -206,7 +208,8 @@ export function lintLaws(design, source, adapter) {
       if (s.whole && s.name && !mentioned.has(s.name)) r.red.push(`${at(p.file, s.line)} = 列 ${s.name} 沒有任何 law 引用;整條至少一條 law`);
       if (s.runner && s.name && mentioned.has(s.name)) r.red.push(`${at(p.file, s.line)} ! 列 ${s.name} 被 law 引用;law 只講純的量,進入點不掛 law`);
     }
-    if (!p.examples.length) r.red.push(`${p.file} 沒有 example`);
+    if (p.template.examples) r.red.push(`${p.file} Examples 還是模板(${p.template.examples} 列佔位符);lawful:pipeline 寫成真的 example`);
+    else if (!p.examples.length) r.red.push(`${p.file} 沒有 example`);
     for (const ex of p.examples) {
       if (!/^EX-\d+$/.test(ex.id)) r.red.push(`${p.file} example 編號「${ex.id}」不是 EX-n`);
       if (!ex.covers.length) r.red.push(`${p.file} ${ex.id} 沒有指到任何 law`);

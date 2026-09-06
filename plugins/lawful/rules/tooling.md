@@ -38,7 +38,7 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 3. 等決定:open 的 GAP、open 的 spike、`draft` 的 pipeline
 4. 牽動誰:誰引用了這條的簽名
 5. 待實作:按模組列願望 stage、找不到的 stage、本體還是骨架的 stage
-6. 警訊:`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致
+6. 警訊:`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致、還是模板(claim 建出來的檔還留著 `<…>` 佔位符的 Stages / Laws / Examples 列;這些列不算 stage、law、example,不進任何數字)
 7. 建議路線
 
 分母是 `system.md`「Pipelines」表的 pipeline 數與里程碑數。

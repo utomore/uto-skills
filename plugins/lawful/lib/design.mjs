@@ -9,6 +9,9 @@ function codeSpan(s) {
   return m ? m[1].trim() : s.trim();
 }
 
+// 模板的佔位符:整格是 <…>。claim 建出來還沒寫的列不算 stage / law / example,另計成「還是模板」。
+const isPlaceholder = (s) => /^<[^>]*>?$/.test((s || '').trim());
+
 export const LAYERS = ['types', 'effects', 'pure', 'shell'];
 export const ALLOWED_IMPORTS = {
   types: ['types'],
@@ -140,6 +143,7 @@ function parseStages(sec) {
       ref: refM ? refM[1] : null,
       layer: (r[4] || '').trim(),
       line: sec.start + t.rowLines[i] + 2,
+      placeholder: isPlaceholder(sigText) || isPlaceholder(module),
     };
   });
 }
@@ -159,6 +163,7 @@ function parseLaws(sec) {
       given,
       conclusion: concl,
       raw: it,
+      placeholder: !!head && isPlaceholder(head[2]),
     };
   });
 }
@@ -172,6 +177,7 @@ function parseExamples(sec) {
     input: stripTicks(r[1] || ''),
     output: stripTicks(r[2] || ''),
     covers: (r[3] || '').split(/[、,]/).map((s) => s.trim()).filter(Boolean),
+    placeholder: isPlaceholder(stripTicks(r[1] || '')) || isPlaceholder(stripTicks(r[2] || '')),
   }));
 }
 
@@ -188,6 +194,10 @@ export function readPipeline(file, root) {
   const decisions = findSection(secs, '決定');
   const revs = findSection(secs, '修訂記錄');
   const revItems = revs ? parseList(revs.lines).filter((i) => /^REV-\d+/.test(i.text)) : [];
+  const stages = parseStages(findSection(secs, 'Stages'));
+  const laws = parseLaws(findSection(secs, 'Laws'));
+  const examples = parseExamples(findSection(secs, 'Examples'));
+  const template = { stages: stages.filter((s) => s.placeholder).length, laws: laws.filter((l) => l.placeholder).length, examples: examples.filter((e) => e.placeholder).length };
   return {
     file: rel(root, file),
     fullName: base,
@@ -199,9 +209,10 @@ export function readPipeline(file, root) {
     description: fm.description || '',
     sections: secs,
     brief: findSection(secs, 'Brief'),
-    stages: parseStages(findSection(secs, 'Stages')),
-    laws: parseLaws(findSection(secs, 'Laws')),
-    examples: parseExamples(findSection(secs, 'Examples')),
+    stages: stages.filter((s) => !s.placeholder),
+    laws: laws.filter((l) => !l.placeholder),
+    examples: examples.filter((e) => !e.placeholder),
+    template,
     decisions,
     thawed: decisions ? decisions.lines.some((l) => /解凍/.test(l)) : false,
     revs: revItems,

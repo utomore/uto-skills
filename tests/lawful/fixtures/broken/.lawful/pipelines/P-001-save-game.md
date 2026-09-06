@@ -53,7 +53,7 @@ updated: 2026-09-05
 |---|---|---|---|
 | EX-1 | `decode ""` | `Left EmptyInput` | LAW-1 |
 | EX-2 | `toSave emptyWorld` | `emptySave` | LAW-9 |
-| EX-3 | `encode emptySave` | `<bytes>` | |
+| EX-3 | `encode emptySave` | `pack [0]` | |
 
 ## 決定
 無

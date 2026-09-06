@@ -32,6 +32,8 @@ const CASES = [
   ['refs-lint-sig', 'refs', ['lint', 'sig']],
   ['frozen-ref-status', 'frozen-ref', ['status']],
   ['frozen-ref-status-tests', 'frozen-ref', ['status', '--tests', 'test.log']],
+  ['run-cmd-status-run', 'run-cmd', ['status', '--run']],
+  ['run-cmd-status-empty', 'run-cmd', ['status', '--tests', 'empty.log']],
   ['save-game-claim', 'save-game', ['claim', 'load-game', '--description', '把存檔讀回 World', '--date', DATE], ['.lawful/pipelines/P-002-load-game.md', '.lawful/system.md']],
   ['broken-sync', 'broken', ['sync', '--date', DATE], ['.lawful/pipelines/P-001-save-game.md']],
   ['broken-modules-gen', 'broken', ['modules', '--gen'], ['.lawful/modules.md']],

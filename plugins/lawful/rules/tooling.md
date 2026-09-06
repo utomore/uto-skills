@@ -12,7 +12,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 
 | 子命令 | 做什麼 |
 |---|---|
-| `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 跑 `system.md` 的整套指令;兩者都沒給就列「未跑」 |
+| `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 在專案根目錄跑 `system.md` 的整套指令;兩者都沒給、或輸出裡一條 `P-00x#LAW-n` 標記都沒有,就列「未跑」並在開頭寫明 |
 | `status --pipeline <P-00x>` / `--module <M>` | 一條 pipeline 的 stage 與 law 逐條狀態 / 住在該模組的所有 stage 的狀態 |
 | `claim <slug> [--description <句>]` | 鑄號建 pipeline 檔(`status: draft`),`system.md` Pipelines 表加一列,類別欄由人填 |
 | `lint boundary` | import 與簽名 vs 模組表;types / effects / pure 命中效果型別即紅;未登記與幽靈模組即紅;非 shell 模組沒有匯出清單即紅;production 模組 import 別人的 `*.Internal` 即紅 |

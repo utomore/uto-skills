@@ -1,0 +1,32 @@
+$ lawful status --tests test.log
+# lawful status
+里程碑 2 條,達成 1 條 · pipeline 2 條,達成 1 條 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
+· 測試結果來自 test.log
+
+## pipelines
+| pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
+|---|---|---|---|---|---|---|---|
+| P-001-report | ready | 3 | 3 | 1 | 1 | 0/0 | 進行中 |
+| P-002-count | frozen | 2 | 2 | 0 | 1 | 1/1 | 達成 |
+
+## 1. 今天能開幾條線
+- P-001-report:lawful:build P-001-report
+
+## 2. 卡住的
+- 無
+
+## 3. 等決定
+- 無
+
+## 4. 牽動誰
+- P-002-count ← P-001-report
+
+## 5. 待實作(按模組)
+- Report:P-001-report#report(骨架)
+
+## 6. 警訊
+- 無
+
+## 7. 建議路線
+1. lawful:build P-001-report
+exit 1

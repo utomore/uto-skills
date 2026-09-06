@@ -128,7 +128,7 @@ export function statusReport(design, source, adapter, results, resultNote) {
   for (const x of a.info.values()) out.push(row(x));
 
   out.push('', '## 1. 今天能開幾條線');
-  const openable = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.some((r) => a.info.get(r).gaps.length || a.info.get(r).p.status !== 'ready' && !a.info.get(r).achieved));
+  const openable = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.some((r) => a.info.get(r).gaps.length || !['ready', 'frozen'].includes(a.info.get(r).p.status) && !a.info.get(r).achieved));
   if (!openable.length) out.push('- 無');
   for (const x of openable) out.push(`- ${x.p.fullName}:lawful:build ${x.p.fullName}${x.blockedBy.length ? `(引用的 ${x.blockedBy.join('、')} 未達成,同一波先做子流)` : ''}`);
 

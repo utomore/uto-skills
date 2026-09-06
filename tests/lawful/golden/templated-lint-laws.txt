@@ -1,0 +1,5 @@
+$ lawful lint laws
+## lint laws:2 條不合規
+- ✗ .lawful/pipelines/P-003-tally.md Laws 還是模板(1 條佔位符);lawful:pipeline 寫成真的 law
+- ✗ .lawful/pipelines/P-003-tally.md Examples 還是模板(1 列佔位符);lawful:pipeline 寫成真的 example
+exit 1

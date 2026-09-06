@@ -71,12 +71,13 @@ export function analyze(design, source, adapter, results) {
     if (!x) return false;
     return selfDone(x) && x.refs.every((r) => achieved(r, seen));
   };
+  // 先把每條的 achieved 算完,再算 blockedBy:引用排在後面的 pipeline 時,它的 achieved 才有值
   for (const [name, x] of info) {
     x.selfDone = selfDone(x);
     x.achieved = achieved(name);
-    x.blockedBy = x.refs.filter((r) => info.has(r) && !info.get(r).achieved);
     x.unknown = !results && x.laws.some((l) => l.traced);
   }
+  for (const [, x] of info) x.blockedBy = x.refs.filter((r) => info.has(r) && !info.get(r).achieved);
   return { info, byName, byId, openGaps, markers, unmarked };
 }
 
@@ -140,7 +141,7 @@ export function statusReport(design, source, adapter, results, resultNote) {
     }
     for (const r of x.blockedBy) {
       const y = a.info.get(r);
-      if (y.p.status !== 'ready' || y.gaps.length) {
+      if ((y.p.status !== 'ready' && y.p.status !== 'frozen') || y.gaps.length) {
         stuck++;
         out.push(`- ${x.p.fullName} 等 ${r}(${y.p.status === 'draft' ? '還是 draft' : y.gaps.length ? `卡 ${y.gaps.map((g) => g.id).join('、')}` : '未達成'})`);
       }

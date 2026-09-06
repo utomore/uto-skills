@@ -3,6 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks } from './markdown.mjs';
 
+// 指令欄只取第一個反引號區段;反引號外的文字是給人看的說明,不是指令的一部分。沒有反引號就整段當指令。
+function codeSpan(s) {
+  const m = /`([^`]+)`/.exec(s);
+  return m ? m[1].trim() : s.trim();
+}
+
 export const LAYERS = ['types', 'effects', 'pure', 'shell'];
 export const ALLOWED_IMPORTS = {
   types: ['types'],
@@ -43,7 +49,7 @@ export function readSystem(lawfulDir, root) {
       if (m[1] === 'IO 模組追加') ioExtra.push(...list());
       else if (m[1] === '效果型別追加') effectExtra.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
-      else commands[m[1]] = stripTicks(m[2]);
+      else commands[m[1]] = codeSpan(m[2]);
     }
   }
   // 對外 I/O 表:[{ name, direction, type, module, pipeline, line }]

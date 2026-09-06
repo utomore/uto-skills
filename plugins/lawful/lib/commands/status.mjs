@@ -81,22 +81,30 @@ export function analyze(design, source, adapter, results) {
   return { info, byName, byId, openGaps, markers, unmarked };
 }
 
+// 測試輸出裡一條 P-00x#LAW-n / EX-n 標記都沒有,就不是「全部沒過」,是讀不到:當成沒給輸出,通過數印 nan。
+function checked(results, note) {
+  if (results.size) return { results, note };
+  return { results: null, note: `${note};輸出裡沒有任何 P-00x#LAW-n 標記,幾條 law 通過測試未知(指令跑錯目錄、跑失敗、或測試名沒帶歸屬字串)` };
+}
+
 export function loadResults(design, adapter, flags, root) {
   if (!adapter || !adapter.testResults) return { results: null, note: '此 adapter 不解析測試輸出' };
   if (flags.tests) {
     if (!fs.existsSync(flags.tests)) return { results: null, note: `找不到測試輸出 ${flags.tests}` };
-    return { results: adapter.testResults(fs.readFileSync(flags.tests, 'utf8')), note: `測試結果來自 ${flags.tests}` };
+    return checked(adapter.testResults(fs.readFileSync(flags.tests, 'utf8')), `測試結果來自 ${flags.tests}`);
   }
   if (flags.run) {
     const cmd = design.system && design.system.commands['測試(整套)'];
     if (!cmd) return { results: null, note: 'system.md「語言與工具」沒有整套測試指令,--run 不知道跑什麼' };
     let out = '';
+    let exit = 0;
     try {
       out = execSync(cmd, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
     } catch (e) {
       out = (e.stdout || '') + (e.stderr || '');
+      exit = e.status == null ? 1 : e.status;
     }
-    return { results: adapter.testResults(out), note: `測試結果來自 --run:${cmd}` };
+    return checked(adapter.testResults(out), `測試結果來自 --run:${cmd}${exit ? `(指令 exit ${exit})` : ''}`);
   }
   return { results: null, note: '沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知' };
 }

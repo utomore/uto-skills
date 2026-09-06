@@ -1,0 +1,2 @@
+Build profile: -w ghc-9.14.1 -O1
+cabal: Cannot find the package 'shell-test'. Did you mean to run this in a subdirectory?

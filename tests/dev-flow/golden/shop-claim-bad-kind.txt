@@ -1,0 +1,3 @@
+$ devflow claim bugfix oops
+claim 的類別只有 feature / abstract / spike / adr,沒有「bugfix」
+exit 1

@@ -1,0 +1,102 @@
+// golden 回歸:對每個夾具跑 plugins/dev-flow/bin/devflow.mjs 的每道子命令,比對 golden/<名字>.txt。--update 重產。
+// 會寫檔的子命令在夾具的暫存副本上跑,golden 收「輸出 + 改動後的檔」。
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const bin = path.join(here, '..', '..', 'plugins', 'dev-flow', 'bin', 'devflow.mjs');
+const goldenDir = path.join(here, 'golden');
+const update = process.argv.includes('--update');
+const DATE = '2026-09-07';
+
+// [名字, 夾具, argv, 寫檔後要收進 golden 的檔(相對夾具)]
+const CASES = [
+  // shop:一份健康的樹,兩份 feature 共用一份 abstract
+  ['shop-lint-all', 'shop', ['lint', 'all']],
+  ['shop-status', 'shop', ['status']],
+  ['shop-status-tests', 'shop', ['status', '--tests', 'test.log']],
+  ['shop-status-doc', 'shop', ['status', '--doc', 'F-001-checkout', '--tests', 'test.log']],
+  ['shop-status-abstract', 'shop', ['status', '--doc', 'A-001-settle', '--tests', 'test.log']],
+  ['shop-status-module', 'shop', ['status', '--module', 'src/domain/**', '--tests', 'test.log']],
+  ['shop-section', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', 'Laws']],
+  ['shop-section-verify', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', '沒有的節', '--verify']],
+  ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md']],
+  ['shop-claim-abstract', 'shop', ['claim', 'abstract', 'audit-log', '--description', '共用的稽核紀錄', '--date', DATE], ['.design/abstracts/A-002-audit-log.md']],
+  ['shop-claim-spike', 'shop', ['claim', 'spike', 'cbor', '--description', 'CBOR 夠不夠快', '--date', DATE], ['.design/spikes/SPK-001-cbor.md']],
+  ['shop-claim-bad-kind', 'shop', ['claim', 'bugfix', 'oops']],
+  ['shop-modules-gen', 'shop', ['modules', '--gen']],
+
+  // blank:剛從模板複製出來、一個字都還沒填的樹;佔位符列不准被當成真的
+  ['blank-status', 'blank', ['status']],
+  ['blank-lint-all', 'blank', ['lint', 'all']],
+  ['blank-claim', 'blank', ['claim', 'feature', 'login', '--description', '使用者以憑證換取工作階段', '--date', DATE], ['.design/features/F-001-login.md', '.design/system.md']],
+
+  // shaky:每一種紅與警訊各出現一次
+  ['shaky-lint-boundary', 'shaky', ['lint', 'boundary']],
+  ['shaky-lint-sig', 'shaky', ['lint', 'sig']],
+  ['shaky-lint-laws', 'shaky', ['lint', 'laws']],
+  ['shaky-lint-trace', 'shaky', ['lint', 'trace']],
+  ['shaky-lint-io', 'shaky', ['lint', 'io']],
+  ['shaky-status', 'shaky', ['status']],
+  ['shaky-sync', 'shaky', ['sync', '--date', DATE], ['.design/features/F-001-score.md']],
+  ['shaky-modules-gen', 'shaky', ['modules', '--gen'], ['.design/modules.md']],
+  ['shaky-bad-lint', 'shaky', ['lint', 'nonsense']],
+
+  // 三個語言 adapter 各一份
+  ['py-lint-all', 'py-svc', ['lint', 'all']],
+  ['py-status', 'py-svc', ['status', '--tests', 'test.log']],
+  ['go-lint-all', 'go-svc', ['lint', 'all']],
+  ['go-status', 'go-svc', ['status', '--tests', 'test.log']],
+  ['rs-lint-all', 'rs-svc', ['lint', 'all']],
+  ['rs-status', 'rs-svc', ['status', '--tests', 'test.log']],
+
+  // 舊樹的遷移帳本
+  ['legacy-migrate', 'legacy', ['migrate', '.design', '--language', 'typescript']],
+  ['legacy-migrate-no-lang', 'legacy', ['migrate', '.design']],
+];
+
+function snapshot(root, files) {
+  return files.map((f) => {
+    const p = path.join(root, f);
+    return `--- ${f}\n${fs.existsSync(p) ? fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n') : '(不存在)'}`;
+  }).join('\n');
+}
+
+let failed = 0;
+for (const [name, fixture, argv, files] of CASES) {
+  let root = path.join(here, 'fixtures', fixture);
+  let tmp = null;
+  if (files) {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'devflow-'));
+    fs.cpSync(root, tmp, { recursive: true });
+    root = tmp;
+  }
+  const r = spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8' });
+  let actual = `$ devflow ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
+  if (files) actual += snapshot(root, files) + '\n';
+  if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
+  const file = path.join(goldenDir, `${name}.txt`);
+  if (update || !fs.existsSync(file)) {
+    fs.writeFileSync(file, actual);
+    console.log(`寫入 ${name}.txt`);
+    continue;
+  }
+  const expected = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  if (expected === actual) console.log(`✓ ${name}`);
+  else {
+    failed++;
+    console.log(`✗ ${name}\n--- 預期\n${expected}\n--- 實際\n${actual}`);
+  }
+}
+
+const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
+if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/claim feature/.test(h.stdout)) {
+  failed++;
+  console.log('✗ --help');
+} else console.log('✓ --help');
+
+console.log(failed ? `\n${failed} 個不符` : '\n全部通過');
+process.exitCode = failed ? 1 : 0;

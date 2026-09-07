@@ -4,32 +4,26 @@ description: 整合多條 branch 並發 PR 到主 branch — 先確認當前分�
 user-invocable: true
 ---
 
-# /branch-pr — 整合 branch 發 PR
+# dev-flow:branch-pr — 整合 branch 發 PR
 
-## 先讀什麼(**一批送出,不要一個一個開**)
+## 讀什麼
 
-`<S>` = 本 plugin 的 `skills/` 目錄,**整場對話只解析一次**(規則見 `../_shared/conventions.md`「腳本目錄」):
-`dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 9 -type d -path '*dev-flow*/skills/arch-audit/scripts' 2>/dev/null | head -1)")"`
-
-拿到 `<S>` 後,把下面**必讀**與成立的**條件式**項目放進**同一則訊息**一次讀完(多個 Read / Bash 併發)。**禁止讀一個、想一下、再讀下一個**——這一段是純載入,拆成幾趟只是把幾次 prefill 疊起來。
-
-**必讀**:`node "<S>/arch-audit/scripts/doc-section.mjs" ../_shared/conventions.md 腳本目錄 跑東西的紀律 角色與設計哲學 資訊抽象邊界規範 通用規則`(核心慣例:腳本目錄、通用規則、**跑東西的紀律**;**不要整份讀**)
-**條件式**:**收尾時** → `../_shared/anchor.md`(定錨區塊格式)
+`<D>` 解析一次(`../../rules/tooling.md`「CLI」)。一次讀完:`../../rules/tooling.md`「跑東西的紀律」「收尾定錨」。專案沒有 `.design/` 的話兩節都不必讀,照 git 的部分做完即可。
 
 ## 0. 確認當前分支(必做,不得跳過)
 
 1. `git fetch --all --prune`;用 `gh repo view --json defaultBranchRef` 確認主 branch,`git branch --show-current` 取得當前分支
 2. **當前分支 = 主 branch 時,禁止直接在主 branch 上發 PR**,先開新分支把變更帶走:
    - 用 `git status --porcelain` 與 `git log origin/<主branch>..HEAD --oneline` 盤點主 branch 上的未提交變更與領先 origin 的本地 commit
-   - 從變更內容推斷是哪一份文檔與哪個 type,開分支 `<type>/<slug>`(如 `feat/auth-F001-login`、`fix/auth-B002-login-timeout`、`enhance/G-E001-cache`);推斷不出來才用 AskUserQuestion 問分支名
+   - 從變更內容推斷是哪一份文檔與哪個 type,開分支 `<type>/<slug>`(如 `feat/F-001-checkout`、`fix/F-002-refund`、`refactor/A-001-settle`);推斷不出來才用 AskUserQuestion 問分支名
    - `git switch -c <新分支>`:未提交變更會跟著過去,領先的本地 commit 也保留在新分支;接著把本地主 branch 還原到 `origin/<主branch>`(`git branch -f <主branch> origin/<主branch>`),避免主 branch 留著未發 PR 的 commit
-   - 未提交變更在新分支上 commit(conventional commit 風格,訊息附**文檔全名** `auth/F001-login`)後,以這條新分支當唯一候選,直接進入 §3 發 PR(不需整合分支)
+   - 未提交變更在新分支上 commit(conventional commit 風格,訊息附**文檔全名** `F-001-checkout`)後,以這條新分支當唯一候選,直接進入 §3 發 PR(不需整合分支)
    - 主 branch 上既無未提交變更也無領先 commit → 沒有東西可發,回報後停止
 3. 當前分支不是主 branch → 照常進入 §1 盤點
 
 ## 1. 盤點
 
-1. 列出候選 branch(`git branch -a --no-merged <主branch>`;當前分支有未 push 的變更也算候選)與各自對應的**文檔全名**(從 branch 名或 commit 訊息推斷;寫成 `auth/F001-login`、`G-E001-cache`,不要只寫 `F001`——PR 描述會被子系統以外的人讀到)
+1. 列出候選 branch(`git branch -a --no-merged <主branch>`;當前分支有未 push 的變更也算候選)與各自對應的**文檔全名**(從 branch 名或 commit 訊息推斷;寫成 `F-001-checkout`、`A-001-settle`,不要只寫 `F-001`——PR 描述會被沒讀過這份文檔的人讀到)
 2. 若使用者已指明要整合的 branch,或候選只有一條、順序無疑義,直接進行;僅在多條候選且無法從文檔或 branch 名推斷取捨時,才用 AskUserQuestion 詢問要整合哪些 branch 與順序
 
 ## 2. 整合
@@ -46,7 +40,7 @@ user-invocable: true
 1. 再次確認 `git branch --show-current` 不是主 branch,Push 要發 PR 的分支(整合分支,或 §0 新開的分支)
 2. 測試 / build 全綠後,組好 PR 內容**直接 `gh pr create` 送出,不需先向開發者確認**(發完後在收尾階段回報大綱與說明):
    - **標題**:英文 conventional commit 風格 + 對應文檔全名
-     例:`feat: add user authentication (auth/F001-login)`、`fix: login timeout (auth/B002-login-timeout)`、`perf: incremental file scan (G-E001-cache)`
+     例:`feat: add checkout (F-001-checkout)`、`fix: refund rounding (F-002-refund)`、`refactor: lift money settlement (A-001-settle)`
    - **內文**:繁體中文,固定章節:
 
      ```markdown
@@ -57,13 +51,13 @@ user-invocable: true
      (依「動了哪個部分、為什麼」分組列點,不用檔案清單)
 
      ## 依賴與決定
-     - 新增的依賴邊:<模組 / 子系統之間新增的 import 方向,無則「無」>
+     - 新增的依賴邊:<層與層之間、檔案與檔案之間新增的 import 方向,無則「無」>
      - 實作層級決定:<實作中自行決定、設計文檔沒寫的事>
      - 發現但沒做的事:<建議另開任務的項目>
 
      ## 對應文檔
-     - .design/subsystems/auth/features/F001-user-authentication.md
-     - .design/subsystems/auth/bugfixes/B002-login-timeout.md
+     - .design/features/F-001-checkout.md
+     - .design/abstracts/A-001-settle.md
 
      ## 測試結果
      (實際執行的指令與結果)
@@ -73,9 +67,9 @@ user-invocable: true
      🤖 Generated with [Claude Code](https://claude.com/claude-code)
      ```
 
-   - **Labels**(英文):依整合內容的文檔 type 對應 — feature → `feature`、bugfix → `bugfix`、enhance → `enhancement`;多種混合就都打上。Label 不存在時先 `gh label create <name>` 再套用
+   - **Labels**(英文):依整合內容對應 — 新的 feature → `feature`、收整 → `refactor`、修訂既有文檔 → `revision`;多種混合就都打上。Label 不存在時先 `gh label create <name>` 再套用
 
 ## 4. 收尾
 
 - 向使用者回報 PR 的大綱與說明:PR 網址、標題、內文各章節的重點摘要(摘要 / 變更內容 / 對應文檔 / 測試結果 / 注意事項)、包含的 branch 清單、labels
-- 最後輸出**定錨區塊**(`../_shared/anchor.md`):位置樹把本 PR 涵蓋的 feature/E/B 文檔全部標出,狀態以其 frontmatter 為準;PR 內有變更卻對不到任何文檔的檔案,上偏離清單;下一步通常是 merge 後 `/arch-audit status`
+- 最後輸出**定錨區塊**(`../../rules/tooling.md`「收尾定錨」):位置樹把本 PR 涵蓋的文檔全部標出;PR 內有變更卻對不到任何文檔的檔案,上偏離清單;下一步通常是 merge 後 `dev-flow:status`

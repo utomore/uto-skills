@@ -1,0 +1,5 @@
+$ devflow section .design/features/F-001-checkout.md Brief 沒有的節 --verify
+✓ Brief
+
+「沒有的節」在 .design/features/F-001-checkout.md 裡沒有這一節
+exit 1

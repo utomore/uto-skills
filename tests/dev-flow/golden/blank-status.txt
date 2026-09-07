@@ -1,0 +1,35 @@
+$ devflow status
+· system.md 的 language 還是模板(<typescript | javascript | python | go | rust>),填成 typescript / javascript / python / go / rust 其中一個
+
+# devflow status
+feature 0 份,達成 0 份 · abstract 0 份 · 文檔共 0 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+· 此 adapter 不解析測試輸出
+
+## 文檔
+| 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 還是骨架 | law 條數 | law 綠/翻 | REV | 狀態 |
+|---|---|---|---|---|---|---|---|---|---|
+
+## 1. 今天能開幾條線
+- 無
+
+## 2. 卡住的
+- 無
+
+## 3. 等決定
+- 無
+
+## 4. 牽動誰
+- 無
+
+## 5. 待實作(按檔案)
+- 無
+
+## 6. 修訂熱點
+- 無(還沒有任何 REV)
+
+## 7. 警訊
+- 無
+
+## 8. 建議路線
+- 全部達成或 frozen;下一份用 devflow claim
+exit 1

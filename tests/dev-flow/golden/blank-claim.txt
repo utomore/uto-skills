@@ -1,0 +1,85 @@
+$ devflow claim feature login --description 使用者以憑證換取工作階段 --date 2026-09-07
+· system.md 的 language 還是模板(<typescript | javascript | python | go | rust>),填成 typescript / javascript / python / go / rust 其中一個
+
+建了 .design/features/F-001-login.md(status: draft)
+system.md Features 表加了一列,階段欄自己填
+exit 0
+--- .design/features/F-001-login.md
+---
+id: F-001
+description: 使用者以憑證換取工作階段
+status: draft
+updated: 2026-09-07
+---
+# F-001-login:使用者以憑證換取工作階段
+
+## Brief
+<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。哪個對外入口進來、從哪個出口出去。>
+
+## Steps
+| # | 簽名 | 做什麼 | 模組 | 層 |
+|---|---|---|---|---|
+| 1 | `<name(T1, T2): R>` | <一句> | `<src/app/x.ts>` | <application> |
+| 2 | `<name(T1): R>` | <一句> | `<src/domain/y.ts>`(見 A-00x-<slug>) | <domain> |
+| o | `<name(T1): R>` | 觀察:<law 要看的量,一句> | `<src/domain/y.ts>` | <domain> |
+| = | `<name(T1, T2): R>` | 整條 | `<src/app/x.ts>` | <application> |
+| ! | `<name(T1): R>` | 進入點:<接到哪一列對外 I/O> | `<src/entry/z.ts>` | <entry> |
+
+## Laws
+- LAW-1 [<invariant | identity | roundtrip | relation | bound | equiv | total | commute>] <一句中文>
+  - forall <x> in <Type>
+  - given <前提表達式;沒有前提就刪這行。given 的呼叫先發生,|- 行在其後求值>
+  - |- <結論,只用 Steps 的簽名(含 o 列與 = 列,不含 ! 列)、最內層的匯出、型別名與字面值>
+
+## Examples
+| # | 輸入 | 輸出 | 覆蓋 |
+|---|---|---|---|
+| EX-1 | `<expr>` | `<value>` | LAW-1 |
+
+## 決定
+- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<SPK-00x-<slug> 或 ADR-00x-<slug>,無則省略>
+
+## 修訂記錄
+無
+
+--- .design/system.md
+---
+language: <typescript | javascript | python | go | rust>
+updated: <YYYY-MM-DD>
+---
+# <專案名>:<一句話>
+
+## 目的
+<三到五句:替誰做什麼、不做什麼。期望三個月後這個專案長什麼樣。>
+
+## 語言與工具
+- 建置:`<指令>`
+- 測試(整套):`<指令>`
+- 測試(子集):`<指令,以一份文檔選>`
+- IO 模組追加:<這個專案自己的 IO 模組或客戶端,無則「無」>
+- Laws 詞彙追加:<law 會用到、但不是 Steps 簽名也不是型別名的字,無則「無」>
+- 忽略目錄:<不掃的原始碼目錄,無則「無」>
+
+## 層
+由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。
+
+| 層 | 裝什麼 |
+|---|---|
+| <domain> | <純值型別與規則,一句> |
+| <application> | <用例的組裝,一句> |
+| <adapter> | <外部系統的實作,一句> |
+| <entry> | <程序進入點與路由,一句> |
+
+## 對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
+|---|---|---|---|---|---|---|
+| <名稱> | in | `<Type>` | `<src/entry/x.ts>` | F-00x-<slug> | untrusted | `<驗證的 step 名>` |
+| <名稱> | out | `<Type>` | `<src/entry/x.ts>` | F-00x-<slug> | trusted | - |
+
+## Features
+| 全名 | 類別 | 階段 |
+|---|---|---|
+| F-001-<slug> | feature | <階段> |
+| A-001-<slug> | abstract | - |
+| F-001-login | feature | <階段> |
+

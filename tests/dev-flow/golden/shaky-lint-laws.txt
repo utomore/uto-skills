@@ -1,0 +1,6 @@
+$ devflow lint laws
+## lint laws:3 條不合規
+- ✗ .design/features/F-001-score.md LAW-2 種類「nonsense」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute
+- ✗ .design/features/F-001-score.md LAW-2 |- 行的 mysteryFn 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/features/F-001-score.md EX-2 指到的 LAW-7 不存在
+exit 1

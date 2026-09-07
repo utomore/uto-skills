@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "dev-flow",
-      "description": "文檔驅動開發流程 skills:主架構與子系統架構設計、核心 / 擴充 / 跨子系統功能的規劃與契約、spec 驅動三角色(設計、qa、impl)、修訂原檔的 spec-redesign、單份與整子系統的委派編排、可行性驗證 spike、PM 視角的派工報告與設計文檔查詢(arch-audit)、專案導讀、整合發 PR",
+      "description": "一般程式語言專案的 spec 驅動開發,不限語言。文檔單位是 feature:一段從對外邊界進出的資料流,直接掛在 system.md 底下,沒有子系統這一層;step 是住在程式碼裡的正規式簽名 name(T1, T2): R,laws 是純 ASCII 三行、由 property test 承接,given 的呼叫先發生所以命令式的時序也寫得出來。feature 之間長出來的共同部分由 refactor 收整成 abstract,被動到的每一份記一條 REV;層由專案自己宣告、由內而外,對外 I/O 表帶信任與驗證兩欄。建構期由 conductor 帶 qa 與 impl 兩個互不可見的角色;進度不是欄位,由 CLI 從程式碼與測試推導。skills:project、feature、refactor、build、qa、impl、revise、status、audit、spike、branch-pr、study;adapter 有 TypeScript / JavaScript、Python、Go、Rust",
       "author": {
         "name": "utomore"
       },

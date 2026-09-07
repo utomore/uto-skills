@@ -1,0 +1,3 @@
+$ devflow lint nonsense
+lint 只有 boundary / sig / laws / trace / io / all,沒有「nonsense」
+exit 1

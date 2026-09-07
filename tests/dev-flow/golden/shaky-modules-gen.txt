@@ -1,0 +1,15 @@
+$ devflow modules --gen
+modules.md 補了 1 個檔案,層欄留白;可以合併成 `目錄/**` 一列:
+- src/helper.ts
+exit 0
+--- .design/modules.md
+# 模組表
+
+| 路徑 | 層 |
+|---|---|
+| `src/domain/**` | domain |
+| `src/app/**` | application |
+| `src/entry/**` | entry |
+| `src/gone/**` | domain |
+| `src/helper.ts` |  |
+

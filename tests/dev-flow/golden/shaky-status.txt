@@ -1,0 +1,54 @@
+$ devflow status
+# devflow status
+feature 2 份,達成 0 份 · abstract 2 份 · 文檔共 4 份,達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 1 條
+· 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
+
+## 文檔
+| 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 還是骨架 | law 條數 | law 綠/翻 | REV | 狀態 |
+|---|---|---|---|---|---|---|---|---|---|
+| F-001-score | feature | frozen | 5 | 2 | 1 | 2 | nan/1 | 1 | 卡 GAP-1 |
+| F-002-other | feature | draft | 2 | 1 | 0 | 1 | 0/0 | 0 | 等 A-002-single |
+| A-001-lonely | abstract | draft | 2 | 2 | 0 | 1 | 0/0 | 0 | 進行中 |
+| A-002-single | abstract | draft | 1 | 1 | 0 | 1 | 0/0 | 0 | 進行中 |
+
+## 1. 今天能開幾條線
+- 無
+
+## 2. 卡住的
+- F-001-score#LAW-1 停在 GAP-1(qa 提)
+- F-001-score 等 F-002-other(還是 draft)
+- F-002-other 等 A-002-single(還是 draft)
+
+## 3. 等決定
+- GAP-1(F-001-score#LAW-1 / qa):dev-flow:revise
+- F-002-other 還是 draft:dev-flow:feature 討論完改 ready
+- A-001-lonely 還是 draft:dev-flow:feature 討論完改 ready
+- A-002-single 還是 draft:dev-flow:feature 討論完改 ready
+
+## 4. 牽動誰
+- F-002-other ← F-001-score
+- A-002-single ← F-002-other
+
+## 5. 待實作(按檔案)
+- src/app/other.ts:F-001-score#score(骨架)
+- src/app/store.ts:F-001-score#missingStep、F-001-score#helperOnly、F-002-other#helperOnly
+
+## 6. 修訂熱點
+- F-001-score:REV 1 條,最後一條「REV-1(2026-09-07,依 開發者):改了但沒有解凍紀錄」
+
+## 7. 警訊
+| 哪裡 | 什麼事 | 怎麼辦 |
+|---|---|---|
+| A-002-single | 只有 F-002-other 用它 | 收整沒有成立;dev-flow:refactor 搬回去,或找出第二個消費者 |
+| F-001-score | frozen 而有 REV 卻沒有解凍紀錄 | 在「決定」補一條解凍 |
+| F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| F-001-score#score | 程式碼在 src/app/store.ts | devflow sync |
+| F-002-other | 不在 system.md 的 Features 表 | 補一列 |
+| system.md | 列了 F-003-missing,features/ 沒有這個檔 | 刪那一列或 devflow claim |
+| 模組表 / 層 | lint boundary 3 條不合規 | devflow lint boundary |
+
+## 8. 建議路線
+1. 先回答 GAP-1(dev-flow:revise),卡住的 step 才能重派
+2. F-002-other、A-001-lonely、A-002-single 討論完改 ready
+exit 1

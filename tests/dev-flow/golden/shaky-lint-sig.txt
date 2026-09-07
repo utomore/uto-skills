@@ -1,0 +1,20 @@
+$ devflow lint sig
+## lint sig:12 條不合規
+- ✗ .design/features/F-001-score.md:15 weigh 是 A-002-single 的 = 列;引用別份的 step 要在模組欄註明「見 A-002-single」
+- ✗ .design/features/F-001-score.md:15 F-001-score#weigh 簽名不一致(回傳 string vs number)
+    文檔:weigh(Rule): string
+    程式碼:weigh(Rule): number(src/domain/rule.ts:5)
+- ✗ .design/features/F-001-score.md:16 F-001-score#missingStep 程式碼裡找不到
+- ✗ .design/features/F-001-score.md:17 helperOnly 引用了 feature F-002-other;feature 之間不互相引用,共用的部分走 dev-flow:refactor 抽成 abstract
+- ✗ .design/features/F-001-score.md:17 F-001-score#helperOnly 程式碼裡找不到
+- ✗ .design/features/F-001-score.md:18 weigh 是 A-002-single 的 = 列;引用別份的 step 要在模組欄註明「見 A-002-single」
+- ✗ .design/features/F-001-score.md:18 F-001-score#weigh 簽名不一致(回傳 string vs number)
+    文檔:weigh(Rule): string
+    程式碼:weigh(Rule): number(src/domain/rule.ts:5)
+- ✗ .design/features/F-002-other.md feature 要恰好一列 ! 列(對外進入點),現在 0 列
+- ✗ .design/features/F-002-other.md:16 F-002-other#helperOnly 程式碼裡找不到
+- ✗ .design/abstracts/A-001-lonely.md abstract 不碰對外邊界,不該有 ! 列
+- ✗ .design/abstracts/A-002-single.md:15 weigh 也是 F-001-score 的 step,兩邊都沒註明「見」;共用就走 dev-flow:refactor
+- ✗ .design/abstracts/A-001-lonely.md 沒有任何文檔引用 A-001-lonely;abstract 是 refactor 收整出來的共用部分,沒有消費者就該刪
+- · F-001-score#score 搬家:文檔 src/app/other.ts → 程式碼 src/app/store.ts(devflow sync 可改)
+exit 1

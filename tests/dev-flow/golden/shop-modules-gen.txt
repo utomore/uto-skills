@@ -1,0 +1,3 @@
+$ devflow modules --gen
+模組表已經涵蓋程式碼裡所有檔案
+exit 0

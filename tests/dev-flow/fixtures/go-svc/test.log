@@ -1,0 +1,10 @@
+=== RUN   TestQueue
+=== RUN   TestQueue/F-001#LAW-1
+=== RUN   TestQueue/F-001#LAW-2
+=== RUN   TestQueue/F-001#EX-1
+--- PASS: TestQueue (0.00s)
+    --- PASS: TestQueue/F-001#LAW-1 (0.00s)
+    --- PASS: TestQueue/F-001#LAW-2 (0.00s)
+    --- PASS: TestQueue/F-001#EX-1 (0.00s)
+PASS
+ok  	example.com/svc/internal/queue	0.003s

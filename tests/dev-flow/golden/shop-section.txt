@@ -1,0 +1,18 @@
+$ devflow section .design/features/F-001-checkout.md Brief Laws
+## Brief
+把一段請求文字解析成購物車,結算應付金額,產生一張訂單。
+input 是 POST /checkout 的 RawBody,output 是 HttpRes。
+流向:解析 → 結算 → 產生訂單。從對外 I/O 表的「POST /checkout」進來,從「結帳結果」出去。
+
+## Laws
+- LAW-1 [relation] 訂單付的錢就是這張購物車的結算金額
+  - forall raw in RawBody
+  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw))))
+- LAW-2 [total] 任何一段請求文字都得到一個結果,不拋例外
+  - forall raw in RawBody
+  - |- total(checkout(raw))
+- LAW-3 [bound] 成單時付款金額不為負
+  - forall raw in RawBody
+  - given paidCents(checkout(raw)) != -1
+  - |- paidCents(checkout(raw)) >= 0
+exit 0

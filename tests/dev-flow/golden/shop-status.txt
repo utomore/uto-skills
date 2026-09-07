@@ -1,0 +1,39 @@
+$ devflow status
+# devflow status
+feature 2 份,達成 0 份 · abstract 1 份 · 文檔共 3 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+· 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
+
+## 文檔
+| 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 還是骨架 | law 條數 | law 綠/翻 | REV | 狀態 |
+|---|---|---|---|---|---|---|---|---|---|
+| F-001-checkout | feature | frozen | 5 | 5 | 0 | 3 | nan/3 | 1 | 等 A-001-settle |
+| F-002-refund | feature | frozen | 5 | 5 | 0 | 2 | nan/2 | 1 | 等 A-001-settle |
+| A-001-settle | abstract | frozen | 3 | 3 | 0 | 3 | nan/3 | 1 | 進行中 |
+
+## 1. 今天能開幾條線
+- 無
+
+## 2. 卡住的
+- 無
+
+## 3. 等決定
+- 無
+
+## 4. 牽動誰
+- A-001-settle ← F-001-checkout、F-002-refund
+
+## 5. 待實作(按檔案)
+- 無
+
+## 6. 修訂熱點
+- F-001-checkout:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-sett」
+- F-002-refund:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-sett」
+- A-001-settle:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):把 F-001-checkout 與 」
+- A-001-settle:2 份文檔引用它,改它要一起 REV
+
+## 7. 警訊
+- 無
+
+## 8. 建議路線
+- 全部達成或 frozen;下一份用 devflow claim
+exit 1

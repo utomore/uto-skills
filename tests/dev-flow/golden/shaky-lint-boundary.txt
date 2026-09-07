@@ -1,0 +1,6 @@
+$ devflow lint boundary
+## lint boundary:3 條不合規
+- ✗ .design/modules.md:8 模組表有 src/gone/**,程式碼裡沒有檔案對得到(幽靈)
+- ✗ src/domain/rule.ts domain 層 import 了更外面的 application 層:src/app/store.ts
+- ✗ src/helper.ts 不在模組表(未登記),它在哪一層沒有人知道
+exit 1

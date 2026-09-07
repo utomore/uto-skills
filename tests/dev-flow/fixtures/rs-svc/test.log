@@ -1,0 +1,6 @@
+running 3 tests
+test core::span::tests::f_001__law_1_merge_covers_both ... ok
+test core::span::tests::f_001__law_2_make_is_total ... ok
+test core::span::tests::f_001__ex_1 ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out

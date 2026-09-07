@@ -1,0 +1,64 @@
+$ devflow migrate .design
+# devflow migrate 帳本
+來源:.design · 任務文檔 4 份 · 子系統 2 個
+· 沒給 --language(typescript / javascript / python / go / rust),介面對不到程式碼
+
+**這份帳本不改任何檔。** 分組、feature / abstract 的切法、law 的形式化由人做。
+
+## 1. 每份舊文檔
+| 舊文檔 | type | status | 階段 | 介面 | 程式碼對到 | law | 要形式化的 law | REV |
+|---|---|---|---|---|---|---|---|---|
+| auth/E001-remember-device | enhance | planned | - | 1 | ? | 1 | 1 | 0 |
+| auth/F001-token-refresh | feature | done | S1 | 2 | ? | 2 | 1 | 1 |
+| billing/F001-charge | feature | specced | S2 | 2 | ? | 1 | 0 | 0 |
+| global/G-F001-checkout | feature | planned | S2 | 1 | ? | 0 | 0 | 0 |
+
+## 2. 共用簽名(abstract 的候選)
+- `verify` 出現在 auth/E001-remember-device、auth/F001-token-refresh → 抽成 abstract 的候選
+- `rotate` 出現在 auth/F001-token-refresh、billing/F001-charge → 抽成 abstract 的候選
+- `charge` 出現在 billing/F001-charge、global/G-F001-checkout → 抽成 abstract 的候選
+
+## 3. 建議的新樹
+- 階段 (沒有階段)
+  - auth/E001-remember-device → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)
+- 階段 S1
+  - auth/F001-token-refresh → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)
+- 階段 S2
+  - billing/F001-charge → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)
+  - global/G-F001-checkout → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)
+- 一份舊文檔不必然對一份新 feature:同一條使用者路徑上的幾份合成一條,共用的那幾個 step 抽成 abstract。
+
+## 4. law 草稿
+### auth/E001-remember-device
+- LAW-1 [<種類>] 記住的裝置在 30 天內不再要求驗證
+  - forall d in DeviceId
+  - given <需形式化:無>
+  - |- <需形式化:講不清楚,要看實作>
+### auth/F001-token-refresh
+- LAW-1 [<種類>] rotate 成功後,舊 TokenId 立刻失效
+  - forall t in TokenId
+  - given <需形式化:rotate(t) 回傳成功>
+  - |- verify(t) == false
+- LAW-2 [<種類>] rotate 不改變別的 token 的可用性
+  - forall u in TokenId
+  - given <需形式化:無>
+  - |- <需形式化:呼叫前後 verify(u) 相同>
+### billing/F001-charge
+- LAW-1 [<種類>] 負金額收不成
+  - forall a in Cents
+  - given a < 0
+  - |- charge(a) == false
+
+## 5. 退場
+- 全域契約 G-C
+- spec-gaps(.design/subsystems/auth/spec-gaps.md)
+- bugfix 文檔 1 份(新樹沒有 bug 文檔:law 在就修碼,law 不在就補 law 走 REV)
+- `planned / specced / done` 與 `rev` 欄:新樹的 status 只有 draft / ready / frozen,進度由 `devflow status` 從程式碼與測試推
+- `code-paths` / `modules` / `part-of` / 功能總覽索引:靠簽名對帳查得到,不再寫進 frontmatter
+
+## 6. 人要判的
+1. 每條使用者路徑要幾份 feature:舊樹一個子系統切好幾份 F,新樹是一條端到端的資料流一份
+2. 第 2 節的共用簽名哪些真的該抽成 abstract(判準:被兩份以上 feature 用)
+3. 第 4 節標「需形式化」的 law 怎麼寫成三行;寫不出來的補觀察點
+4. 層怎麼切:`system.md` 的層表由內而外,再用 `devflow modules --gen` 把檔案填進模組表
+exit 0

@@ -1,0 +1,38 @@
+ PASS  test/settle.test.ts
+  A-001#LAW-1 結算成功時金額不為負
+    ✓ holds (2 ms)
+  A-001#LAW-2 折扣是零時等於相加
+    ✓ holds (1 ms)
+  A-001#LAW-3 不拋例外
+    ✓ holds
+  A-001#EX-1
+    ✓ holds
+  A-001#EX-2
+    ✓ holds
+
+ PASS  test/checkout.test.ts
+  F-001#LAW-1 訂單付的錢等於結算金額
+    ✓ holds (1 ms)
+  F-001#LAW-2 不拋例外
+    ✓ holds
+  F-001#LAW-3 成單時不為負
+    ✓ holds
+  F-001#EX-1
+    ✓ holds
+  F-001#EX-2
+    ✓ holds
+  F-001#EX-3
+    ✓ holds
+
+ PASS  test/refund.test.ts
+  F-002#LAW-1 退回的錢等於結算金額
+    ✓ holds (1 ms)
+  F-002#LAW-2 不拋例外
+    ✓ holds
+  F-002#EX-1
+    ✓ holds
+  F-002#EX-2
+    ✓ holds
+
+Test Suites: 3 passed, 3 total
+Tests:       15 passed, 15 total

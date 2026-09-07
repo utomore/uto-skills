@@ -1,0 +1,10 @@
+$ devflow lint all
+· system.md 的 language 還是模板(<typescript | javascript | python | go | rust>),填成 typescript / javascript / python / go / rust 其中一個
+
+## lint boundary:1 條不合規
+- ✗ system.md 的「層」表還是模板,依賴方向沒有宣告
+## lint sig:通過
+## lint laws:通過
+## lint trace:通過
+## lint io:通過
+exit 1

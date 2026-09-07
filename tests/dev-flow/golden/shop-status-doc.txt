@@ -1,0 +1,35 @@
+$ devflow status --doc F-001-checkout --tests test.log
+# F-001-checkout  feature  frozen
+使用者把購物車結成一張已付款的訂單
+· 測試結果來自 test.log
+
+## Steps
+- 1  parseCheckout(RawBody): CheckoutReq  src/app/checkout.ts/application  在
+- 2  settle(MoneyList, Money): Settlement  src/domain/money.ts/domain  在  見 A-001-settle
+- 3  toOrder(CheckoutReq, Settlement): CheckoutResult  src/app/checkout.ts/application  在
+- o  reqLines(CheckoutReq): MoneyList  src/app/checkout.ts/application  在
+- o  reqDiscount(CheckoutReq): Money  src/app/checkout.ts/application  在
+- o  paidCents(CheckoutResult): number  src/app/checkout.ts/application  在
+- =  checkout(RawBody): CheckoutResult  src/app/checkout.ts/application  在
+- !  checkoutHandler(HttpReq): HttpRes  src/entry/routes.ts/entry  在
+
+## Laws
+- LAW-1 [relation] 訂單付的錢就是這張購物車的結算金額  green
+- LAW-2 [total] 任何一段請求文字都得到一個結果,不拋例外  green
+- LAW-3 [bound] 成單時付款金額不為負  green
+- EX-1 覆蓋 LAW-1、LAW-3  green
+- EX-2 覆蓋 LAW-1、LAW-2  green
+- EX-3 覆蓋 LAW-2、LAW-3  green
+
+## GAP
+- 無
+
+## 引用
+- 引用了:A-001-settle
+- 被引用:無
+
+## 修訂
+- REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle
+
+文檔寫了 5 條簽名,程式碼裡有 5 條,還是骨架的 0 條 · 觀察點 3 個,程式碼裡有 3 個 · 寫了 3 條 law,通過 3 條 · 達成
+exit 0

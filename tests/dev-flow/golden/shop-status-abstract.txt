@@ -1,0 +1,31 @@
+$ devflow status --doc A-001-settle --tests test.log
+# A-001-settle  abstract  frozen
+一組品項金額扣掉折扣之後的應付金額
+· 測試結果來自 test.log
+
+## Steps
+- 1  sumLines(MoneyList): Settlement  src/domain/money.ts/domain  在
+- 2  subtract(Settlement, Money): Settlement  src/domain/money.ts/domain  在
+- o  cents(Settlement): number  src/domain/money.ts/domain  在
+- o  settled(Settlement): boolean  src/domain/money.ts/domain  在
+- =  settle(MoneyList, Money): Settlement  src/domain/money.ts/domain  在
+
+## Laws
+- LAW-1 [invariant] 結算成功時金額不為負  green
+- LAW-2 [identity] 折扣是零時,結算金額等於各品項相加  green
+- LAW-3 [total] 任何品項清單與任何折扣都得到一個 Settlement,不拋例外  green
+- EX-1 覆蓋 LAW-1、LAW-2  green
+- EX-2 覆蓋 LAW-1、LAW-3  green
+
+## GAP
+- 無
+
+## 引用
+- 引用了:無
+- 被引用:F-001-checkout、F-002-refund
+
+## 修訂
+- REV-1(2026-09-07,依 dev-flow:refactor 收整):把 F-001-checkout 與 F-002-refund 各自寫的金額計算收整進本檔
+
+文檔寫了 3 條簽名,程式碼裡有 3 條,還是骨架的 0 條 · 觀察點 2 個,程式碼裡有 2 個 · 寫了 3 條 law,通過 3 條 · 達成
+exit 0

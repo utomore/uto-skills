@@ -1,120 +1,65 @@
 # uto-skills
 
-utomore 的 Claude Code plugin marketplace。目前收錄兩個 plugins:
+utomore 的 Claude Code plugin marketplace。目前收錄三個 plugins:**dev-flow**(一般程式語言的 spec 驅動開發)、**lawful**(純函數式專案的 spec 驅動開發)、**talk-flow**(演講內容產生流程)。
 
 ## dev-flow
 
-三層階梯式(Level 1 主架構 → Level 2 子系統 → Level 3 Feature 實作)文檔驅動開發流程的 Claude Code plugin,遵循關注點分離與契約優先:架構階段只定義邊界契約與資料流(嚴禁過早具體化),實作階段在契約內擁有完全自主權。Level 3 再切成 **spec 驅動的三角色**(設計 / qa / impl,見下方專節)。包含十三個 skills:
+一般程式語言專案的 **spec 驅動開發** plugin,不限語言。
 
-| 指令 | 層級 | 職責 |
-|---|---|---|
-| `/system-design` | Level 1 | 系統主架構 — 深度訪談後產出 `.design/system.md` + `.design/adr/ADR-00x-*.md`:技術棧、對外 I/O 契約、子系統劃分(Bounded Contexts)、通訊拓撲、**子系統完整名冊**與**開發階段表**(產品級分母);只到子系統邊界顆粒度 |
-| `/subsys-design` | Level 2 | 子系統架構 — 產出 `.design/subsystems/<slug>/design.md`:公開介面與 DTO、**模組群**(子系統內的平行領域,含還沒開工的 `planned` 群)、內部模組劃分、資料流管線、模組間抽象介面,以及 **feature 路線圖:規劃當下就整批鑄號、建出 `status: planned` 的 `features/F00x-*.md`,每份帶一節 `## 契約`**(六欄,委派展開的門檻),並與主架構的職責逐條對帳(A10) |
-| `/subsys-build` | Level 2→3 | 子系統委派展開(orchestrator)— 把 `status: planned` 的 feature 檔依 `depends-on` 排波次,**批次澄清一次問完** → 指派骨架路徑 → 委派 spec(平行,opus)→ **spec 批准閘門** → qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(同一 feature 上限 3 輪)** → 每階段跑 `arch-audit` 後**停下來給人驗收**;`status` 回寫、索引重生成、`build-log.md`、git commit 由編排者單線負責 |
-| `/spec-design` | Level 3 · spec | spec 設計 — 深度討論後產出 spec 文檔與**程式碼骨架**(型別與簽名完整、本體 `undefined`);相依性**必用**程式碼知識圖定位再開原始碼查證。**兩種模式**:**feature**(把一份 `planned` 的 `features/F00x-*.md` 往下寫成 `specced` —— 加上目的 / 數據 / 介面 / **Laws** / **Examples** / 依賴 / 不可逆決定,介面必須落在該檔 `## 契約` 與 Level 2 契約內;**不改 `## 契約`**)、**enhance**(既有程式碼的優化 → `enhancements/E00x-*.md`,跨子系統為 `G-E00x`;追加「檢視現況」與「**與開發者確認 scope**」兩個前置步驟,Laws 分「回歸 law(改完必須一模一樣的現有行為)」與「新 law」兩類)。文檔模板放在 `templates/`,執行時只讀模式對應的那一份 |
-| `/spec-build` | 編排 | 單份 spec 的委派迴圈(orchestrator)— 拿一份寫好的 spec(F00x / E00x):門檻檢查(骨架編得過、介面對得上、無未結 gap)→ **spec 批准閘門** → 委派 qa ∥ impl(sonnet,互相不可見)→ **編排者跑測試與仲裁(上限 3 輪)** → 回寫 status。enhance 的 scope 談完之後就走這條 |
-| `dev-flow:spec-qa` | Level 3 · qa | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。從 spec 寫測試 — 只讀 spec 的數據 / 介面 / Laws / Examples 與骨架,每條 law 翻成 property test、每個 example 翻成 example test;**禁止讀任何實作程式碼與程式碼知識圖**,交付前確認測試「編譯通過 + 紅綠符合預期」 |
-| `dev-flow:spec-impl` | Level 3 · impl | **委派角色,不在斜線選單**(user-invocable: false;編排者委派,或用自然語言觸發)。spec 實作 — 以骨架為工作清單,把 `undefined` 換成實作;**禁止讀寫任何測試檔、禁止改動骨架簽名**;紅燈只做歸因走仲裁協議,不自行猜 spec。模式由 id 前綴判定,`E00x` / `G-E00x` 追加三條:動工前先跑回歸測試留基準線、scope 標明不動的範圍絕對不碰、收尾記錄量化結果 |
-| `/spec-redesign` | 修改 | 契約與 spec 的修改 — 既有 `## 契約` 或既有 spec 要改時的**唯一入口**。先用機械判準定層級:**改動只落在這一份 feature 檔裡就 Level 3 就地改,有第二份文檔要跟著改就回 Level 2**(收回「明確不做」一律算 Level 2)。改完在 `## 契約` 底下追加可查證的修訂行、回填 gap,並講明哪幾條介面要重跑 qa / impl |
-| `/bugfix` | Level 3 | 缺陷修復(單角色)— 重現 → 建 `bugfixes/B00x-*.md`(跨子系統為 `G-B00x`)→ 先寫重現測試再修 → 保留回歸測試 |
-| `/spike` | 驗證 | 可行性驗證 — 讀原始碼答不出來、**要跑了才知道**的問題:先寫問題、判準、timebox,再在專案根目錄 `spike/SPK-00x-<slug>/` 寫拋棄式程式碼驗證,結論記進 `.design/spikes/SPK-00x-<slug>.md`,`feeds` 欄指明餵給哪份 ADR / 契約 / feature 檔。可多輪疊代(`RND-n`,模型屋式的 demo 範本)、可候選比較(各候選一個子資料夾)、可由任何編排者委派(`orchestration.md`「派 spike 驗證」)。`spike/` 是常駐的共用 sandbox 環境,該 spike 的資料夾**結案即刪**、每輪 sha 留在文檔裡用 git 撈,open 期間**產品程式碼禁止 import**(`lint-spikes.mjs` 查);結論落地一律走 `/spec-redesign` 或對應的 design skill,spike 只是證據 |
-| `/arch-audit` | 全 | 架構檢測 — `system`(子系統循環依賴、對外 I/O 契約一致性)/ `subsys`(資料流管線、SRP、邊界外洩、**模組群與職責對帳**、各 feature `## 契約` 對帳、未結 spec-gaps、仲裁紀錄、spike 對帳)/ `feature`(Level 2 介面符合度、**Laws/Examples 與測試對照**、**骨架符合度**、edge cases、型別安全)/ `status`(腳本盤點**開發階段**、名冊上未建檔的子系統、未開工的模組群、完成度漏斗(僅規劃 / 已寫spec / 已實作)、契約就緒度與未結 spec-gaps) |
-| `/branch-pr` | — | 整合多條 branch 發 PR(先確認當前分支,在 main 上就先開新分支;標題英文 conventional commit、內文繁中、labels 英文) |
-| `/study` | — | 專案導讀(唯讀)— **六層縮放**由上而下帶開發者理解既有專案,範圍逐層收窄、深度逐層加深:全景(入口、技術棧、目錄職責;課末選定**主線情境**貫穿全程)→ 架構(子系統邊界、依賴方向、通訊方式)→ 設計理念(理由逐條標來源:`[文檔]`/`[註解]`/`[commit]`/`[推測]`)→ 核心資料結構(定義、生產者/消費者、邊界轉換、不變量;主線攜帶的型別優先)→ **逐跳 trace code**(沿主線從入口到輸出,附呼叫鏈摘要表,課末圈出要拆開看的跳)→ **細讀**(鑽進一兩個關鍵函式逐行講,含桌上執行表與逐分支邊界);每課固定「銜接 → 結論 → 理由 → `檔案:行號` 原文片段證據 → 檢查點(難度遞進:複述→預測→修改)→ 課程地圖」,一次一課等開發者消化;有 `.design/` 就以它為地圖並對照程式碼驗證,沒有就從入口與目錄樹建工作假說 |
+文檔的單位是 **feature**:一段從對外邊界進、從對外邊界出的資料流,直接掛在 `system.md` 底下 —— **沒有子系統這一層**。feature 之間長出來的共同部分由 `refactor` 收整成 **abstract**,被動到的每一份記一條 REV。**進度不是欄位**:`devflow status` 從程式碼與測試推導,沒有任何一格要人記得改。
 
-共用文檔慣例放在 `plugins/dev-flow/skills/_shared/`,依**載入時機**分十二片,核心 `conventions.md` 每個 skill 都讀(用 `doc-section.mjs` 只讀自己那幾節),其餘按需:`spec-roles.md`(spec 三角色契約)、`boundary-rules.md`(邊界判斷與發問協議)、`doc-lifecycle.md`(建檔、編號、引用與 frontmatter 規格)、`delegation.md` / `delegation-design.md`(委派模式)、`orchestration.md`(編排者專用:模型分派、委派 prompt、骨架快照、仲裁處置、派 spike 驗證)、`codegraph.md` / `codegraph-tools.md`(程式碼知識圖)、`testing-policy.md`、`anchor.md`(收尾定錨)。**分片對照表的唯一權威是 `conventions.md` 開頭那張表**;每個 skill 開頭明列自己要讀哪幾片。
+| 指令 | 職責 |
+|---|---|
+| `/project` | 立案 — 訪談後產出 `.design/system.md`(目的與期望、語言與工具、**由內而外的層**、對外 I/O 表含**信任與驗證**兩欄、Features 清單)與 `modules.md` 模組表,跨文檔的決定寫 ADR,每條要交付的能力 `devflow claim` 成 `draft` |
+| `/feature` | 一份功能文檔 — `F-00x` 是一條使用者能做到的事的唯一真相:Brief、Steps(正規式簽名 `name(T1, T2): R`,`=` 整條 / `o` 觀察點 / `!` 進入點)、Laws(純 ASCII 三行)、Examples、決定,寫完改 `ready` |
+| `/refactor` | 收整 — 把兩份以上 feature 之間可以抽象統一的部分抽成 `A-00x`,原檔那幾列改成「見 A-00x-…」,每一份被動到的 feature 各記一條 REV。**abstract 少於兩個消費者就該搬回去**,腳本盯著 |
+| `/build` | 建構指揮(conductor)— 骨架 → 派 qa → 在骨架快照上跑基線 → 派 impl → 跑子集 → 仲裁四分流 → 全綠後整套一次 → 達成改 `frozen` |
+| `dev-flow:qa` | **委派角色**(不在斜線選單)— 只讀文檔、最內層的匯出與骨架簽名,每條 law 一條 property test;禁止讀任何實作 |
+| `dev-flow:impl` | **委派角色** — 把骨架標記換成實作;禁止讀寫任何測試檔、禁止改簽名 |
+| `/revise` | 修訂 — 任何對既有文檔的改動都改原檔:回答 GAP、寫一條 REV(依 / 動到 / 保護 / 重委派 / 連動)、必要時解凍。**不開第二份檔** |
+| `/status` | 派工報告 — 今天能開幾條線、卡住的、等決定、牽動誰、待實作、**修訂熱點**、警訊、建議路線 |
+| `/audit` | 稽核三段 — **對帳**(機械紅逐條分類)、**穩定度**(修訂熱點、改動半徑、收整成立了沒、卡多久)、**安全度**(信任與驗證、秘密字面值、沒登記的出入口、進入點有沒有繞過整條) |
+| `/spike` | 可行性驗證 — 讀原始碼答不出來的問題,先寫問題 / 判準 / timebox,再在 `spike/SPK-00x-<slug>/` 寫拋棄式程式碼,結案即刪、sha 留在文檔 |
+| `/study` | 專案導讀 — 六層縮放(全景 → 架構 → 理念 → 資料結構 → trace → 細讀),每個結論附 `檔案:行號` 證據,一次一課 |
+| `/branch-pr` | 整合 branch 發 PR — 標題英文、內文繁中、打 labels |
 
-改 skill 前請先看 [docs/skill-authoring.md](docs/skill-authoring.md)——撰寫與維護準則(追加閘門、分片規則、成本量測)。
+### CLI:`devflow`
 
-### spec 驅動的三角色(Level 3)
+規章不靠自覺,靠一支 CLI 對帳(`plugins/dev-flow/bin/devflow.mjs`,吃 `--help`):
 
-Level 3 的一句話:**spec 是唯一真相,測試與實作都只是 spec 的投影。**
+| 子命令 | 回答什麼 |
+|---|---|
+| `status [--tests <log> \| --run]` | 派工報告;`--doc` / `--module` 追問單份文檔或單一檔案 |
+| `claim feature\|abstract\|spike\|adr <slug>` | 鑄號建檔;feature 另在 Features 表加一列,spike 另建程式碼資料夾 |
+| `lint boundary` | import 方向 vs 層表;內層 import 外層、非最外層碰 IO 模組、未登記與幽靈檔案 |
+| `lint sig` | Steps 簽名 vs 程式碼,而且要匯出;`=` / `o` / `!` 列的層與份數;**abstract 沒有消費者**、**feature 引用 feature**、同名簽名兩邊都沒註明「見」 |
+| `lint laws` | 三行齊全、種類合法、識別字對得到簽名或型別、`=` 列至少一條 law、example 指得到 law |
+| `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用 |
+| `lint io` | 對外 I/O 表;**untrusted 的入口必須指名驗證 step**;文檔裡的秘密字面值;最外層沒登記的出入口 |
+| `sync` / `modules --gen` | 同層搬家的 step 改模組欄 / 從程式碼補模組表 |
+| `migrate <.design>` | 舊 `subsystems/` 樹的遷移帳本:介面在程式碼裡對到幾條、四格 law 翻成三行草稿、共用簽名列成 abstract 候選、退場清單。**只印帳本,不改任何檔** |
 
-```
-     設計 ──> spec 文檔 + 骨架(型別完整、簽名完整、本體 undefined)
-                          │
-              ┌───────────┴───────────┐
-        qa 讀 │                       │ impl 讀
-        寫測試 │                       │ 填本體
-              └───────> 編排者 <───────┘
-                    跑測試 → 仲裁
-```
+### language adapter
 
-| 角色 | 唯一輸入 | 產出 | 絕對禁區 |
-|---|---|---|---|
-| **設計**(`/spec-design`) | 該 feature 檔的 `## 契約` + 既有程式碼(必用程式碼知識圖定位) | spec 文檔 + 骨架 | 不寫任何實作邏輯、不寫測試 |
-| **qa**(`/spec-qa`) | spec 的數據 / 介面 / Laws / Examples + 骨架 | 測試檔 | 不讀實作;程式碼知識圖只能導航(型別、測試檔位置、既有測試候選),不得推論行為;不改骨架、不要後門 |
-| **impl**(`/spec-impl`) | spec 全文 + 骨架 | 把 `undefined` 換成本體 | 不讀不改任何測試檔、不動骨架簽名與型別 |
-| **編排者**(`/spec-build` 單份、`/subsys-build` 整個子系統,或開發者本人) | 全部 | 跑測試、仲裁、閘門 | 不寫 spec、不寫測試、不寫實作 |
+語言相關的事全部走 adapter,讀取層不認識任何語言:
 
-四個設計要點:
+| adapter | 副檔名 | 匯出 | 骨架標記 | 測試輸出 |
+|---|---|---|---|---|
+| `typescript`(含 javascript) | `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` | `export` | `throw new Error(…)` | jest / vitest / mocha |
+| `python` | `.py` | `__all__`,沒寫就是不以底線開頭的 | `raise NotImplementedError` | pytest / unittest |
+| `go` | `.go` | 大寫開頭 | `panic(…)` | `go test -v` |
+| `rust` | `.rs` | `pub` | `todo!()` | `cargo test` |
 
-- **骨架讓隔離變得可執行**。設計階段直接把檔案框架寫進原始碼樹——型別定義與函數簽名完整,函數本體一律 `undefined`(各語言的等價標記見 `spec-roles.md`)。qa 因此有東西可以 import,impl 的紀律變成機械的(只准替換未實作標記,`git diff` 一眼看得出有沒有偷改簽名),進度也變成客觀的(骨架裡還剩幾個 `undefined`)。骨架有兩條硬規則:**必須通過編譯**、**未實作處必須在執行期明確失敗**(回傳 `0` 或 `[]` 會讓測試假綠,比沒寫還糟)
-- **Laws 是 spec 的一部分,不是 QA 的發明**。每個核心函數至少一條可被 property-based 測試驗證的代數性質,寫成「對所有 x,P(x) 成立」;再配 3-5 個覆蓋邊界的 Examples。qa 的工作是**翻譯**這些條文,不是設計性質。連帶把「1-to-1 測試對照」的錨點從 TodoList 換成 Laws/Examples——`/spec-design` 的 TodoList 與「實作方式」段因此整段刪除,完成的定義變成「骨架無未實作標記 + Laws 與 Examples 全綠」
-- **qa 的交付判準可機械驗證**:測試必須「編譯通過 + 紅綠符合預期」——feature 與 enhance 新增/簽名變動的介面對應的測試應**全紅**(骨架還沒實作),enhance 的**回歸 law** 對應的測試應**全綠**(捕捉現況)。該紅卻綠 = 那條測試沒真的測到東西,退回重寫
-- **紅燈先歸因,誰都不准先改碼**。失敗的測試對得上某條 law/example 且與原文一致 → impl 錯;與原文不符 → qa 誤讀(判定只看 spec 原文,**不得拿實作行為當依據**);對不上或 spec 沒涵蓋 → **spec bug**,停下來等 spec 修訂,禁止 qa 與 impl 私下協商。**同一 feature 上限 3 輪**,三輪不綠就升級給人並附結構性原因——三輪收斂不了,問題幾乎不在這一輪的程式碼
+模組的身分是**相對專案根目錄的檔案路徑**(package / crate / dotted module 各語言不一致,路徑一致)。**型別註記可有可無的語言**(Python、JavaScript)照樣對得到帳:程式碼那一側沒有註記時只比名字與參數個數,並列 info 說明。沒有 adapter 的語言 `lint sig` 與 `lint boundary` 跳過,其餘照常。
 
-qa 或 impl 發現 spec 模糊時,**停下該項**、追加一條到 `.design/subsystems/<slug>/spec-gaps.md`,其餘照做完。這與委派模式的「待確認假設」是兩種不可互換的機制:待確認假設是**設計者**自己做判斷後繼續推進,spec-gaps 是 **qa/impl 停下來等 spec**。未結的 gap 會被 `/arch-audit status` 列出來(並讓它以 exit 1 收場),也會擋住 `/subsys-build` 啟動。
+規章住 `plugins/dev-flow/rules/` 四份主題檔(`features.md` / `boundary.md` / `roles.md` / `tooling.md`),**每條規則只有一個住處**;skill 只寫步驟並用檔名加節名引用,不重述。
 
-**feature 與 enhance 是同一個角色的兩種模式,不是兩個角色。** 三個角色各只有一條命令:設計是 `/spec-design`、實作是 `/spec-impl`。判準只有一條——**有沒有必須被保護的現有行為**,有就是 enhance 模式。差異全部集中成可列舉的追加項:設計端追加「檢視現況」與「Scope 討論」兩個前置步驟、Laws 多一類回歸 law、骨架多一張三種情況表;實作端追加基準線、scope 紀律與量化結果。除此之外(相依性查證、骨架三條硬規則、一致性檢查、仲裁協議、收尾定錨)兩種模式一字不差。
+## lawful
 
-拆成四條命令時,這些共通條文要寫四遍、改四遍,而編排層(`/spec-build`)本來就已經把兩者當同一件事處理——那份判斷才是對的,設計層跟著收斂。代價是每次執行會讀到另一個模式的追加段落(約十餘行),換掉的是四份會各自漂移的規則。spec 文檔的兩份模板差異夠大,所以拆進 `spec-design/templates/`,執行時只讀模式對應的那一份。
+**純函數式專案**(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 **pipeline**(input → 純轉換 → output),stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 `types / effects / pure / shell` 四層邊界,`=` 列是純的整條、`!` 列是 shell 進入點。skills:`design`、`pipeline`、`build`、`qa`、`impl`、`revise`、`status`、`audit`、`spike`;CLI `lawful` 的子命令與 dev-flow 同形,第一個 adapter 是 Haskell。
 
-**兩個編排者,差別只在規模。** 後半段(spec 批准 → qa ∥ impl → 跑測試 → 仲裁)在 feature 與 enhance 上完全相同,所以拆成兩層:
+dev-flow 與 lawful 是**同一套方法的兩種形狀**:前者的邊界由專案自己宣告(層由內而外),後者的邊界由純度決定(四層固定)。專案是純函數式的用 lawful,其餘用 dev-flow。
 
-| | 何時用 | 多做了什麼 |
-|---|---|---|
-| `/spec-build <id>` | 手上有**一份**寫好的 spec(F00x 或 E00x) | — (最小迴圈;enhance 另加「委派前先跑一次測試留基準線」,才分得出「本來就紅」與「這次改壞」) |
-| `/subsys-build <slug>` | 一次跑完**整個子系統**的多個 features | 批次澄清、排波次、配號與指派骨架路徑、`design.md` 回填、`build-log.md`、階段閘門 |
-
-`/spec-design` 的 **enhance 模式**需要人讀程式碼、談 scope,所以不能被無訪談委派(`/subsys-build` 委派出去的一律是 feature 模式)——但 scope 談完、spec 寫好之後就交給 `/spec-build`,這就是 enhance 的編排路徑。
-
-`/bugfix` 不套三角色:它的輸入是既有程式碼而不是 spec,沒有可投影的唯一真相,而且「先寫重現測試」本來就需要看實作才寫得出來。
-
-### 文檔的退場與 Laws 的 checksum(2.1.0)
-
-文檔會膨脹,不是因為寫太多,是因為**沒有退場機制**。實測一個 20,480 行 src / 29,018 行 `.design/` 的專案,文檔組成是:不可推導的理由與邊界(ADR、不可逆決定、明確不做)19%、規格(Laws / 數據 / Examples / 介面 / 骨架,測試套件裡有可執行的第二份)46%、**過程殘留 22%**——待確認假設、閘門裁決紀錄、修訂記錄、build-log、spec-gaps,全部屬於 `status: done` 的 feature。2.1.0 針對後兩塊各加一條紀律:
-
-- **`done` 的收束**(`_shared/doc-lifecycle.md`)——`status` 推到 `done` 的**同一次動作**裡,過程章節逐節處置:待確認假設逐條三選一(已裁決 → 結論搬進 `## 不可逆決定` 或 ADR、**刪掉原條目**;已變成契約 → 走 `/spec-redesign`;沒裁決 → 那就還不能 `done`),閘門裁決與修訂記錄整節搬 `archive/<id>-<slug>-process.md`,實作備註只留讀碼看不出來的那幾條。硬規則是**不留墓碑**:「已裁決,不再是待確認假設」留在原位是最糟的形式,它同時佔著版面又宣告自己無效。`/spec-build`、`/subsys-build` 的收尾各綁一步,`/arch-audit feature` 加一條查殘留。理由是不對稱的衰減——**程式碼被編譯器與測試逼著保持誠實,文檔沒有東西逼它**,而工地筆記留著會被下一個只讀得到這一份檔的讀者(包括委派出去的 subagent)讀成現況
-- **Laws ↔ 測試的編號對帳**(`arch-audit/scripts/lint-laws-traceability.mjs`)——`lint-laws.mjs` 查 spec 那一側寫得夠不夠格,這一支查**規格與測試之間那條線有沒有接上**:**未翻譯**(law 寫了沒有任何測試引用)、**幽靈引用**(測試守著一條已被 redesign 刪掉的編號)、**無歸屬**(裸 `LAW-n` 沒說是哪一份 spec 的——law id 的命名空間是每份文檔一組)。歸屬寫法二選一:測試檔一行 `spec: <子系統>/F00x`(`/spec-qa` 的對照表表頭就是這一行),或把引用寫成 `<子系統>/F00x#LAW-n`。**只驗編號不驗語意**,語意那一半仍在 `/arch-audit feature` 第 5 項——但它讓那 46% 的重複從「可能靜默漂移的第二份」變成「有 checksum 的第二份」
-
-### 收尾定錨
-
-每個 skill 的收尾與 `/subsys-build` 的每個階段閘門,回報的最後都固定附一個**定錨區塊**(格式在 `_shared/anchor.md`),四段順序固定:
-
-1. **位置樹**:從 `.design/system.md` 畫到目前工作的文檔的 ASCII 樹,只畫最近的(所在子系統展開、其他子系統各一行),目前文檔之下列出它的介面與資料結構,狀態只用五個詞——契約 / 設計 / 實作中 / 完成 / 偏離——每條介面都註明對應 `design.md` 的哪一章,找不到就是偏離
-2. **完成度**:整體 → 所在子系統 → 目前文檔的 done 數、**介面 n/m 已實作**、**測試 n/m 綠**(分母是 Laws + Examples 總條數),只能來自 `scan-status.mjs`、文檔與實際跑過的測試輸出,不准估百分比
-3. **主軸檢查**:本次動作對應到 `system.md` / `design.md` / 契約卡的哪一條,以及**偏離清單**(做了但上層沒寫的事,每條附位置與建議;沒有也要寫「無」)
-4. **下一步**:一條具體命令,必須從樹上的「目前」推得出來,不得建議樹上沒有的工作
-
-四段的目的只有一個:一次執行只看得到自己那一小塊,連做幾次方向就會被眼前的工作帶走;把「在哪、多遠、偏了沒、接著做什麼」釘在每次收尾的最後,開發者每次都用同一個視角核對,LLM 就帶不歪。
-
-### 選配:程式碼知識圖
-
-專案裡有程式碼知識圖時,dev-flow 會把它當成**導航層**:`/arch-audit` 的 system / subsys scope 用 `scan-graph.mjs` 直接算出子系統依賴矩陣、循環依賴(附每條邊的 `檔案:行號` 證據)、跨界引用清單與架構 hub;`/bugfix` 追呼叫鏈;實作類 skill 收尾時把圖更新到最新。
-
-適用範圍分三級:**`/spec-design` 必用**(feature 模式定位既有介面並用反向可達查出誰會被新介面影響,enhance 模式估改動的影響面——設計階段的相依結論會直接變成 qa 與 impl 的前提,不能靠印象);**`/spec-qa` 限用**(可以查型別建構子、既有測試放在哪、`tests-of` 抓回歸候選,**不准順著受測函數追內部呼叫鏈、不准拿圖上看到的東西當斷言依據**——圖決定「測試放哪、輸入怎麼建」,不決定「預期輸出是什麼」);其餘選配。必用不等於有保證:跑不了圖(沒建過、產生器不支援這個語言、`extract` 失敗)時退回一般搜尋,但要在收尾寫明具體原因。
-
-**契約是 `graph.json` 的格式,不是產生它的工具。** 下游只認「節點帶 `source_file`、邊帶 `relation`」這個形狀(完整規格見 `_shared/codegraph.md`),換產生器只要吐同格式,`scan-graph.mjs` 與各 skill 的接點一行都不用改;只給 `graph.json`、沒有查詢 CLI 的產生器也可用,架構檢測那一整塊由腳本自己算。目前登記的產生器有兩個:graphify(多語言啟發式抽取,不含 Haskell)與 [knot](https://github.com/utomore/knot-hs)(只服務 Haskell,從 GHC `.hie` 抽型別檢查後的事實,圖直接落在專案根的 `codegraph.json`);支援語言、建圖 / 更新指令與各自的查詢對應見該片的「目前的產生器」表。
-
-界線只有一條:**圖是導航,不是查證**——它只說「去哪裡看」,寫進 `.design/` 的每個簽名、相依、契約違反都必須回原始碼讀到原文再確認。圖會過期、會漏抽、`INFERRED` 的邊是推測的,所以它不能取代 `/spec-design` 那條「必須打開原始碼讀到實際定義」的防線。
-
-檔案級的圖要捲回子系統級,靠 `design.md` frontmatter 的選填欄位 `code-paths: [src/auth]`;沒填就只能猜路徑,腳本會把可信度警告印出來。**沒有圖的專案完全不受影響**:各 skill 判定不到圖就整段略過,照原流程走。
-
-### 委派展開(`/subsys-build`)的設計要點
-
-Level 2 把契約鎖死之後,Level 3 就變成**可委派**的:相依性查證、骨架、把 law 翻成 property test、把 `undefined` 換成實作,都是機械性工作,不需要人。真正需要人的只有「功能邊界的取捨」,而那些可以**批次前置**到一次問完。整個流程建立在四個約束上:
-
-- **subagent 問不了人** → 所有人類決策移到 fan out 之前的「批次澄清」;之後設計端的不確定寫成「待確認假設」繼續推進,qa/impl 端的不確定寫成 `spec-gaps` 停下該項,兩者都由編排者在閘門呈報
-- **spec 錯了就是兩邊一起錯** → spec 寫完後設 **spec 批准閘門**(每一波批一次),人放行才 fan out qa 與 impl。停不停由批次澄清時選定的**閘門密度**(嚴格 / 標準 / 快速)與該波的議程共同決定:三道機械過濾跑完後**議程為空**(沒有不可逆決定、沒有未宣告的依賴邊、沒有契約層級假設)時,標準檔降級為**非阻塞呈報**——那一問問的是「你同意這份沒有爭議點的 spec 嗎」,蓋章慣了,有爭議點的那一波也會被順手蓋過去。**降級的是問不問,不是呈不呈報**
-- **誤差沿依賴鏈複利** → 閘門設在**波次**(spec)與**階段**(驗收)邊界,不是全自動跑完;有阻塞或 spec bug 就立刻停下後續實作。仲裁**同一 feature 上限 3 輪**
-- **平行會撞** → 配號(`F00x`)、**骨架檔案路徑**、`design.md` 回填、`build-log.md`、git commit 一律由編排者**單線**負責;spec 平行(各寫各的文檔與骨架,路徑由編排者指派不重疊)、qa 平行(測試檔互不衝突)、impl 也平行——靠的是同一條「骨架路徑波內不重疊」加上委派 prompt 裡的**寫入白名單**(要動清單外的既有共用檔就停下該項回報,不自己動手)。白名單寫在 prompt 裡只是要求,互蓋當下不會有任何錯誤訊息,所以收齊回報後由編排者拿**骨架快照 sha 對一次工作樹**(`git diff --name-only` 加 `git ls-files --others`,後者才看得到偷偷新增的檔案),每條變更路徑都要落在某份白名單、本波測試檔或編排者自己寫的檔案之內,結果記進 build-log。checkpoint 因此從每個 feature 一次改成**每波一次**,而對帳要排在 checkpoint 之前——`git add -A` 一吞,退回的粒度就從檔案變成整波
-
-紅綠基線的**快照 worktree 在 fan out 之前就建好**(`git worktree add --detach`),不等發現骨架被填掉才補——qa 與 impl 平行跑,誰先落地不受編排者控制,「工作樹還乾淨就直接跑」那條捷徑會隨排程順序時靈時不靈。
-
-**測試由編排者跑,不是由 subagent 自己宣稱**——qa 與 impl 各自只看得到自己那一半,只有編排者兩邊都看得到,所以仲裁只能發生在這一層。委派模型固定:spec 用 **opus**(唯一在做契約判斷的一層,錯誤要到仲裁才浮出來),qa 與 impl 用 **sonnet**(拿到的是已鎖死的 spec 與骨架),編排者不指定、跟隨開發者當下的 session。固定下來,閘門看到品質問題時就歸因得回 spec 寫得夠不夠,不會混進模型差異。
-
-用 subagent 的主要理由是 **context 隔離**:相依性查證要讀大量原始碼,那些 context 留在 subagent 裡,編排者只收結構化回報——即 conventions 裡「Context 載入紀律」的自動化版本。`build-log.md` 記配號表(含骨架路徑與模型欄)、委派決策、待確認假設彙總、**仲裁紀錄**與各階段結果,讓中斷後能接續、事後查得到當初為什麼這樣決定;仲裁紀錄那張表是事後判斷「spec 哪裡寫不清楚」的唯一資料。
 
 ## talk-flow
 
@@ -142,6 +87,7 @@ Level 2 把契約鎖死之後,Level 3 就變成**可委派**的:相依性查證�
 ```
 /plugin marketplace add utomore/uto-skills
 /plugin install dev-flow@uto-skills
+/plugin install lawful@uto-skills
 /plugin install talk-flow@uto-skills
 ```
 
@@ -150,6 +96,7 @@ Level 2 把契約鎖死之後,Level 3 就變成**可委派**的:相依性查證�
 ```
 claude plugin marketplace add utomore/uto-skills
 claude plugin install dev-flow@uto-skills
+claude plugin install lawful@uto-skills
 claude plugin install talk-flow@uto-skills
 ```
 
@@ -163,83 +110,73 @@ repo 有新版本後:
 
 ## 文檔慣例摘要(dev-flow)
 
-設計文檔樹與系統架構樹同構:根節點是主架構、第二層是各 subsystem。所有文檔放在專案 `.design/`,檔名英文 kebab-case、內文繁體中文:
+所有文檔放在專案 `.design/`,檔名英文 kebab-case、內文繁體中文:
 
 ```
 .design/
-├── system.md                        # /system-design:Level 1 主架構(`subsystems` 為完整名冊 + 開發階段表)
-├── subsystems/
-│   └── <subsystem-slug>/
-│       ├── design.md                # /subsys-design:Level 2 子系統架構(模組群 + 功能規劃 + Feature 契約卡;`parent: system` 回鏈)
-│       ├── build-log.md             # /subsys-build:配號表、委派決策、待確認假設彙總、仲裁紀錄、階段結果(跑過才有)
-│       ├── spec-gaps.md             # /spec-qa 與實作 skill 追加:spec 模糊處待修訂清單(有 gap 才有)
-│       ├── features/F001-<slug>.md          # /spec-design(spec 文檔;骨架寫在專案原始碼樹)
-│       ├── enhancements/E001-<slug>.md      # /spec-design
-│       └── bugfixes/B001-<slug>.md          # /bugfix
-├── enhancements/G-E001-<slug>.md    # 跨子系統的全域優化
-├── bugfixes/G-B001-<slug>.md        # 跨子系統的全域修復
-├── spikes/SPK-001-<slug>.md        # /spike:可行性驗證紀錄(非任務文檔;程式碼在專案根目錄的 sandbox spike/SPK-001-<slug>/,結案即刪、sha 留在文檔)
-└── adr/ADR-001-<slug>.md            # 架構決策紀錄,全局共用
+├── system.md                   # /project:目的、語言與工具、層、對外 I/O、Features 清單
+├── modules.md                  # 模組表:相對路徑 → 層(`src/domain/**` 這種樣式)
+├── features/F-001-<slug>.md    # /feature:一條從對外邊界進出的資料流
+├── abstracts/A-001-<slug>.md   # /refactor:兩份以上 feature 收整出來的共用能力
+├── gaps.md                     # 只裝 open 的 GAP;空了刪檔
+├── adr/ADR-001-<slug>.md       # 跨文檔的決定
+└── spikes/SPK-001-<slug>.md    # /spike;程式碼在專案根目錄 spike/SPK-001-<slug>/,結案即刪
+
+spike/SPK-001-<slug>/           # 與 .design/ 同層,只活在 open 期間
 ```
 
-編號**三位數**遞增、不放日期(日期在 frontmatter 的 `created` / `updated`);**每個子系統自己一組編號**(F/E/B 各自計數)、全域 G- 自己一組、ADR 全局一組。跨子系統引用寫 `<subsystem>/<id>`(如 `auth/F002`),同子系統直寫 id,全域直寫 `G-E001` / `ADR-003`。
+### 進度是推導出來的,不是欄位
 
-任務文檔開頭必須有 YAML frontmatter(`id` / `type` / `title` / `description` / `status` / `created` / `updated` / `depends-on` / `related-adr` / `related-feature` / `code-paths`;全域文檔另加 `subsystems`),`status` 取值 `open | in-progress | done | closed`,狀態掃描腳本(`plugins/dev-flow/skills/arch-audit/scripts/scan-status.mjs`)只解析這一段,清單欄位一律行內陣列 `[a, b]`。子系統 `design.md` 另有選填的 `code-paths`(程式碼路徑**前綴**),供 `scan-graph.mjs` 把檔案級的圖捲回子系統級。
+`status` 只有 `draft`(還在討論)、`ready`(開發者拍板,可以委派)、`frozen`(達成,不准修訂),**三格都只放人才知道的決定**。做到哪由 `devflow status` 算:
 
-### spec 文檔 ↔ 實作:兩條線都要指得回去
-
-「這份 spec 做成什麼了」與「這個檔案是哪份 spec 做的」是**兩個方向**,各由一個機制答:
-
-| 方向 | 機制 | 誰維護 |
-|---|---|---|
-| spec → 程式碼(逐條介面) | spec「介面」表的**骨架位置**欄,寫 `檔案#符號`。**不准寫行號**——行號在 impl 把未實作標記換成本體的那一刻就往下移,而沒有任何角色負責回頭修它;`lint-laws.mjs` 會擋 | `/spec-design`,一致性檢查時對帳 |
-| 程式碼 → spec(逐個檔案) | 任務文檔 frontmatter 的 **`code-paths`**,`scan-status.mjs --file <path>` 現掃現算(不另存索引),答「這條路徑歸哪個子系統、被哪些 F/E/B 動過、各是什麼狀態」 | `/spec-impl`、`/bugfix` 在收尾**與 `status: done` 同一個動作**回寫;委派模式下 impl 回報路徑、編排者填 |
-
-`code-paths` 綁在 `status` 上是刻意的:單獨拉出來的「記得更新索引」這種步驟,漏了不會有任何東西抱怨(程式碼真的寫好了,只有帳沒回),一定會爛掉。`status` 是 `done` 卻留著空 `code-paths` 時,`/arch-audit status` 會列進提示。
-
-### 進度與阻塞是兩個維度
-
-`status` 是**累加**的(`open → in-progress → done`),spec-gap 則是從**任何一格**都會發射的**中斷**——qa 寫不出斷言時撞到、impl 發現非改簽名不可時撞到。所以 gap 不佔 `status` 的任何一個值,而是標回那份文檔的狀態欄:
-
-```
-login 功能          F001  feature  in-progress                 ← 正在做
-token-refresh 功能  F002  feature  in-progress ⚠卡GAP-1,GAP-2  ← 卡死,等 spec 修訂
-```
-
-兩者的下一步完全相反(繼續做 vs 回頭修 spec),而在這之前它們在報表上長得一模一樣。歸屬靠 gap 條目標題裡的文檔 id(`## GAP-1(F002 / qa)`)認,零新欄位。
-
-### 分母紀律:名冊、開發階段、模組群
-
-進度的分母**必須來自規劃,不能來自產出**。這條慣例是修一個真實失真修出來的:名冊若只收「已經建了 `design.md` 的子系統」,它就跟資料夾清單同義,雙向比對永遠成立,而還沒開工的那一大半在任何數字裡都不存在——報表於是宣稱一個只做了引擎層的遊戲專案「48/49 完成」。
-
-因此有三層分母,各有唯一權威:
-
-| 分母 | 住在哪 | 誰維護 | 答什麼問題 |
-|---|---|---|---|
-| **開發階段**(產品級) | `system.md` 的「開發階段」表,狀態只有 `未開始 / 進行中 / 已達成` | `/system-design` | 產品做到哪、還差什麼 |
-| **子系統名冊** | `system.md` frontmatter 的 `subsystems`,**含還沒建 `design.md` 的** | `/system-design`(新增或廢棄子系統時) | 一共要做幾個子系統、幾個還沒開工 |
-| **模組群** | 各 `design.md` 的「模組群」表,狀態只有 `active / planned` | `/subsys-design` | 這個子系統裡幾個平行領域寫了契約、幾個還沒 |
-
-`/arch-audit status` 會分別列出「已規劃、未建 design.md 的子系統」與「已規劃、契約未寫的模組群」,任一非空或任一階段未達成時 exit code 為 1。子系統狀態表的百分比**只涵蓋已展開的部分**,不是產品完成度;回報一律**先講還沒做的,再講已完成的百分比**。
-
-### 編號與縮寫:一張註冊表,兩支腳本在守
-
-所有會被編號的東西登記在 `_shared/doc-lifecycle.md`「編號與縮寫註冊表」。三條鐵律:**「單字母+數字」只留給文檔 id(三位數、永不簡寫)與開發階段(`S0`…`Sn`)**;檔案內的條目一律**詞首碼**(`LAW-` / `REG-` / `EX-` / `GAP-` / `ASM-` / `SELF-` / `DEC-` / `WAVE-` / `STEP-`);`Level` 一律寫全名(`L` 誰都不給)。
-
-這張表是修一次真實撞號修出來的 —— `E1` 曾同時是 Example 1、`E001` 的簡寫與專案的階段名,`L1` 曾同時是 Law 1、Level 1 與專案的 Layer 1。註冊表本身是文檔,靠自覺會漏,所以配兩支腳本(`plugins/dev-flow/skills/arch-audit/scripts/`):
-
-| 腳本 | 回答什麼 |
+| 數字 | 怎麼算 |
 |---|---|
-| `id-map.mjs` | 給 `.design` 路徑 → 一張 **system → 子系統 → 模組群**的階層表(F/E/B 份數、LAW/EX 測試分母、ASM/GAP、委派批次、哪些子系統還沒建檔、哪些 spec 還是舊版模板)。`/arch-audit status` 會**先跑它並原樣貼在回報最前面**當定位;不帶參數 → 把註冊表畫成流程形狀的樹 |
-| `lint-ids.mjs` | 揪出**裸寫**的「單字母+數字」。被禁的形式只准出現在反引號裡(那是在講這個寫法),裸寫就是真的拿它當識別碼在用。`--allow` 讓專案帶自己的前綴進來,exit 1 = 有違規 |
+| 簽名 m / n | Steps 的步驟 n 條;程式碼找得到且簽名對得上 m 條 |
+| 骨架 s | m 條裡本體還是骨架標記的 s 條 |
+| laws g / k | 寫了 k 條;測試宣告歸屬 j 條;綠 g 條 |
+| 達成 | m = n、s = 0、觀察點全在、g = k、examples 全綠、沒有 open GAP;feature 還要它引用的每份 abstract 都達成 |
 
-腳本共七支(`plugins/dev-flow/skills/arch-audit/scripts/`),**每一支都吃 `--help`**,而 `--help` 印的就是該檔檔頭那段「用法 + Exit code」——同一份文字,不可能分岔。所以 skill 文檔裡不抄旗標與 exit code 數值,只留「一行常用指令」與「誰能用、用到什麼程度」(後者腳本產不出來,它不知道是誰在呼叫它)。
+沒有 `planned / specced / done`、沒有 `rev` 欄、沒有 `code-paths`、沒有生成的索引表 —— 那些都是「要記得改」的格子,而要記得改的格子一定會爛掉。
 
-改過 `scripts/` 之後跑 `bash tests/dev-flow/arch-audit/run.sh`(測試與夾具住 repo 根目錄的 `tests/`,不隨 plugin 安裝):fixture 回歸(14 項輸出與 exit code 逐字比對)、對 plugin 自己文檔的四道檢查(`lint-ids` / `lint-laws` / 章節名 / 指令旗標)、七支腳本的 `--help`。**這套測試是修真實事故修出來的**——抽共用解析器時它抓到三處同名不同答案的解析器,以及一個「程式碼圍欄裡的假標題會把章節提前切斷」的靜默錯誤,四個都不會拋例外。
+### 簽名:一種正規式,四種語言
 
-格式解析集中在四支 `_` 開頭的模組(`_gap-status` / `_sections` / `_frontmatter` / `_tables`),CLI 只管自己的輸出與 exit code。**一種格式只准有一個解析器**——這條是修真實事故修出來的:`section()` 曾經有兩份(一份含標題行、一份不含)、`frontmatter()` 曾經有兩份(一份剝引號、一份不剝,而且對 YAML 區塊列表靜默讀成空值)、`tableCells()` 曾經同名不同約(一份回 `null`、一份回陣列)。三處都不會報錯,只會讓兩支腳本對同一份檔案給出不同答案。
+文檔一律寫 `name(型別, 型別): 回傳型別`,adapter 負責把各語言的宣告正規化成它。**參數名不寫**(改參數名是實作自由,不是契約變動);方法寫 `型別.方法`,接收者 / `self` / `cls` 不算參數。
 
-`description` 為**一句話、繁體中文、40 字以內**的文檔主軸,**所有類型都要寫**(feature 寫「這功能做什麼」、bugfix 寫「什麼壞了」、enhance 寫「要改善什麼」、adr 寫「決定了什麼」),讓 `/arch-audit status` 不必開檔就能看出每份文檔在講什麼;缺這欄會被腳本列為不合規並以 exit code 1 收場。
+### law:純 ASCII 三行,`given` 帶時序
+
+```markdown
+- LAW-1 [state] 換發成功之後,舊的 TokenId 立刻失效
+  - forall t in TokenId, s in TokenStore, now in Instant
+  - given isOk(refresh(mkReq(t), s, now))
+  - |- isValid(lookup(t, s), now) == false
+```
+
+`|-` 行的每個識別字必須對得到 Steps 的簽名、最內層的匯出、程式碼裡的型別名,或 adapter 的標準函式庫名 —— `lint laws` 對帳,對不到不准 `ready`。**`given` 行的呼叫先發生,`|-` 行在其後求值**:命令式語言的時序靠這一句表達,不必另立語法。
+
+測試宣告歸屬 `F-00x#LAW-n`;測試名必須是識別字的框架(Python 的 `def`、Rust 的 `fn`)寫成 `f_00x__law_n`,兩種寫法 `lint trace` 都認。
+
+### abstract 的存在條件
+
+| 消費者 | 判定 |
+|---|---|
+| 0 份 | `lint sig` 紅:死的抽象,刪掉 |
+| 1 份 | `status` 警訊:收整沒有成立,搬回那一份 feature |
+| 2 份以上 | 成立 |
+
+**feature 之間不互相引用**:兩份 feature 需要同一段東西,那一段就是一份 abstract。同名簽名出現在兩份文檔而沒有一邊註明「見」就是紅 —— 那正是該走 `/refactor` 的訊號。
+
+### 安全度掛在對外 I/O 表上,不是一份通用清單
+
+`system.md` 的對外 I/O 表帶 **信任**(`trusted` / `untrusted`)與 **驗證**(哪個 step 做驗證)兩欄。`lint io` 對帳三條:`untrusted` 的入口沒有驗證 step、Laws 與 Examples 出現密碼 / 金鑰 / token 樣式的字面值、最外層 import 了 IO 模組卻沒登記在表上。三條都是這個專案自己的事實。
+
+### 沒有 bug 文檔
+
+bug = 某條 law 在現況下不成立:law 已存在就修碼,沒寫到就補 law 走 REV。一個功能一份檔,從搖籃到墳墓。
+
+### 測試
+
+改過 `plugins/dev-flow/{bin,lib}/` 之後跑 `bash tests/dev-flow/run.sh`:七個夾具(健康的 TypeScript 樹、剛從模板複製出來的空樹、每一種紅各一次的破樹、Python / Go / Rust 各一份、舊樹的遷移帳本)三十三道 golden 逐字比對,加 `--help`。行為刻意改了才 `--update`。測試與夾具住 repo 根目錄的 `tests/`,不隨 plugin 安裝。
+
 
 ## Repo 結構
 
@@ -250,11 +187,17 @@ token-refresh 功能  F002  feature  in-progress ⚠卡GAP-1,GAP-2  ← 卡死,�
 plugins/
 ├── dev-flow/                       # ← 安裝時只有被裝的 plugin 目錄被複製
 │   ├── .claude-plugin/plugin.json  # plugin「dev-flow」(skill 前綴 dev-flow:)
-│   └── skills/                     # 各 skill 的 SKILL.md 與腳本
+│   ├── rules/                      # 四份主題規章:每條規則唯一的住處
+│   ├── bin/devflow.mjs             # 單一 CLI
+│   ├── lib/                        # 讀取層與 language adapter
+│   ├── templates/                  # 建檔用的骨架
+│   └── skills/                     # 各 skill 的 SKILL.md(只寫步驟,規則引用 rules/)
+├── lawful/                         # 同形,四層邊界由純度決定
 └── talk-flow/
     ├── .claude-plugin/plugin.json  # plugin「talk-flow」(skill 前綴 talk-flow:)
     └── skills/
-wip/                                # 未上架的 plugin 草稿,只在 repo,不進 payload
+tests/                              # 夾具與 golden,不隨 plugin 安裝
+wip/                                # 設計稿與決定紀錄,只在 repo,不進 payload
 README.md                           # 只在 repo,不進 payload
 ```
 
@@ -262,6 +205,4 @@ README.md                           # 只在 repo,不進 payload
 
 日後新增 plugin:在 `plugins/` 下開新目錄,到 `marketplace.json` 的 `plugins[]` 加一筆即可。marketplace 名稱、plugin 名稱與 GitHub repo 名稱彼此獨立。
 
-`wip/` 放**還沒上架**的 plugin 草稿:目錄結構與 `plugins/` 下的一樣,但不在 `marketplace.json` 裡,Claude Code 也不會把它當成 skill(發現路徑是 `plugins/<plugin>/skills/<name>/SKILL.md`)。目前有一個:
-
-- [`wip/game-flow/`](wip/game-flow/) —— 遊戲資源設計流程(八個 skill),包裝 [story-flow](https://github.com/utomore/story-flow)(設定片段圖譜與場景樹)與 [assetdb](https://github.com/utomore/assetdb)(素材庫索引與專案配置)。**兩個 CLI 都還在開發中,等它們穩定後一次整合再上架**;內容、上架前的確認事項與上架步驟見該目錄的 `README.md`
+`wip/` 放**設計稿與決定紀錄**:推理過程、否決了什麼、為什麼這樣切。它不被任何 session 載入,所以可以有歷史;`plugins/` 底下的規章不行(規則見 `CLAUDE.md`)。還沒上架的 plugin 草稿也放這裡,目錄結構與 `plugins/` 下的一樣,但不在 `marketplace.json` 裡,Claude Code 也不會把它當成 skill(發現路徑是 `plugins/<plugin>/skills/<name>/SKILL.md`)。

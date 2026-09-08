@@ -35,5 +35,5 @@ feature 2 份,達成 0 份 · abstract 1 份 · 文檔共 3 份,達成 0 份 · 
 - 無
 
 ## 8. 建議路線
-- 全部達成或 frozen;下一份用 devflow claim
+- 沒有可派的線,但 F-001-checkout、F-002-refund、A-001-settle 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常
 exit 1

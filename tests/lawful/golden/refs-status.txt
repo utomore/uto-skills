@@ -2,8 +2,15 @@ $ lawful status
 · system.md 沒有 language 欄,簽名與邊界不對帳
 
 # lawful status
-里程碑 1 條,達成 0 條 · pipeline 3 條,達成 0 條 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+願景:輸入檔解析、正規化後跑完整條。
+目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 3 條,達成 0 條 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
+
+## 目標
+| 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |
+|---|---|---|---|---|---|
+| O-1 | 1 | 輸入檔跑完整條 | 2 | 0 | 0% |
+- O-1 下一個里程碑:M-1 解析與正規化走通(P-002-parse 進行中、P-003-normalize 進行中)
 
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
@@ -13,9 +20,9 @@ $ lawful status
 | P-003-normalize | ready | 2 | 0 | 0 | 1 | 0/0 | 進行中 |
 
 ## 1. 今天能開幾條線
-- P-001-run:lawful:build P-001-run(引用的 P-002-parse 未達成,同一波先做子流)
-- P-002-parse:lawful:build P-002-parse
-- P-003-normalize:lawful:build P-003-normalize
+- P-002-parse:lawful:build P-002-parse(O-1 優先 1 · M-1 解析與正規化走通)
+- P-003-normalize:lawful:build P-003-normalize(O-1 優先 1 · M-1 解析與正規化走通)
+- P-001-run:lawful:build P-001-run(O-1 優先 1 · M-2 整條跑完)(引用的 P-002-parse 未達成,同一波先做子流)
 
 ## 2. 卡住的
 - 無
@@ -35,7 +42,7 @@ $ lawful status
 | P-002-parse#shared | P-003-normalize 也把 shared 列成 stage,兩邊都沒註明「見」 | 引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來 |
 
 ## 7. 建議路線
-1. lawful:build P-002-parse
-2. lawful:build P-003-normalize
-3. lawful:build P-001-run
+1. lawful:build P-002-parse(O-1 優先 1 · M-1 解析與正規化走通)
+2. lawful:build P-003-normalize(O-1 優先 1 · M-1 解析與正規化走通)
+3. lawful:build P-001-run(O-1 優先 1 · M-2 整條跑完)
 exit 1

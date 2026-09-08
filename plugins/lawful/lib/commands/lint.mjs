@@ -77,7 +77,7 @@ export function lintSig(design, source, adapter) {
     if (wholes.length !== 1) r.red.push(`${p.file} = 列要恰好一列,現在 ${wholes.length} 列`);
     const runners = p.stages.filter((s) => s.runner);
     const kind = kindOf(design, p.fullName);
-    if (kind === '里程碑' && runners.length !== 1) r.red.push(`${p.file} 里程碑要恰好一列 ! 列(shell 的進入點),現在 ${runners.length} 列`);
+    if (kind === 'IO 介面' && runners.length !== 1) r.red.push(`${p.file} IO 介面要恰好一列 ! 列(shell 的進入點),現在 ${runners.length} 列`);
     if (kind === '子流' && runners.length) r.red.push(`${p.file} 子流不碰 shell,不該有 ! 列`);
     for (const s of p.stages) {
       if (!s.name || !s.type) {
@@ -240,7 +240,7 @@ export function lintTrace(design, source) {
   return r;
 }
 
-// 對外 I/O 表 vs 里程碑兩端、模組表、程式碼。
+// 對外 I/O 表 vs IO 介面兩端、模組表、程式碼。
 export function lintIo(design, source) {
   const r = { title: 'lint io', red: [], info: [] };
   if (!design.system) {
@@ -249,14 +249,14 @@ export function lintIo(design, source) {
   }
   const sys = design.system;
   const entries = design.modules ? design.modules.entries : [];
-  const milestones = sys.pipelines.filter((l) => l.kind === '里程碑').map((l) => l.fullName);
+  const ioFaces = sys.pipelines.filter((l) => l.kind === 'IO 介面').map((l) => l.fullName);
   const covered = new Set();
   for (const row of sys.io) {
     const where = at(sys.file, row.line);
     if (!['in', 'out'].includes(row.direction)) r.red.push(`${where} ${row.name} 的方向「${row.direction}」要是 in 或 out`);
     if (!row.pipeline) r.red.push(`${where} ${row.name} 沒寫進入哪條 pipeline`);
     else if (!design.pipelines.some((p) => p.fullName === row.pipeline)) r.red.push(`${where} ${row.name} 指到的 ${row.pipeline} 不存在`);
-    else if (!milestones.includes(row.pipeline)) r.red.push(`${where} ${row.name} 指到的 ${row.pipeline} 不是里程碑;跨過 shell 的資料流才會出現在對外 I/O 表`);
+    else if (!ioFaces.includes(row.pipeline)) r.red.push(`${where} ${row.name} 指到的 ${row.pipeline} 不是 IO 介面;跨過 shell 的資料流才會出現在對外 I/O 表`);
     else covered.add(row.pipeline);
     if (row.module) {
       const entry = entries.length ? matchModule(entries, row.module) : null;
@@ -272,9 +272,9 @@ export function lintIo(design, source) {
       }
     }
   }
-  for (const m of milestones) {
+  for (const m of ioFaces) {
     if (!design.pipelines.some((p) => p.fullName === m)) continue;
-    if (!covered.has(m)) r.red.push(`${sys.file} 里程碑 ${m} 沒有任何對外 I/O 列;里程碑的兩端都要對得到這張表`);
+    if (!covered.has(m)) r.red.push(`${sys.file} IO 介面 ${m} 沒有任何對外 I/O 列;IO 介面的兩端都要對得到這張表`);
   }
   return r;
 }

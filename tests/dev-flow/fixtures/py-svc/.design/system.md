@@ -4,6 +4,9 @@ updated: 2026-09-07
 ---
 # py-svc:購物籃小服務
 
+## 願景
+購物籃的總金額永遠等於品項加總。
+
 ## 目的
 夾具:證明 Python adapter 的簽名、匯出、import 與測試歸屬對得上。
 
@@ -28,6 +31,6 @@ updated: 2026-09-07
 | 總金額 | out | `str` | `cart/api.py` | F-001-basket | trusted | - |
 
 ## Features
-| 全名 | 類別 | 階段 |
-|---|---|---|
-| F-001-basket | feature | S1 |
+| 全名 | 類別 |
+|---|---|
+| F-001-basket | feature |

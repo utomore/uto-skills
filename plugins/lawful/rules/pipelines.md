@@ -6,7 +6,8 @@
 
 ```
 .lawful/
-├── system.md          目的、語言與工具、邊界、對外 I/O、pipeline 清單(順序 = 里程碑)
+├── system.md          願景、目的、語言與工具、邊界、對外 I/O、pipeline 清單
+├── objectives.md      目標與里程碑(「願景、目標與里程碑」)
 ├── modules.md         模組表(boundary.md「模組表」)
 ├── pipelines/P-00x-<slug>.md
 ├── gaps.md            只裝 open 的 GAP;空了刪檔
@@ -16,27 +17,56 @@
 
 ## system.md
 
-frontmatter:`language`(選 adapter)、`updated`。五節:
+frontmatter:`language`(選 adapter)、`updated`。六節:
 
 | 節 | 裝什麼 |
 |---|---|
-| `## 目的` | 三到五句:替誰做什麼、不做什麼 |
+| `## 願景` | 一到三句:這個專案做完時世界長什麼樣、替誰改變了什麼。系統設計時訂,不隨里程碑變;`lawful status` 把它印在第一行,還是模板就列警訊 |
+| `## 目的` | 三到五句:替誰做什麼、明確不做什麼 |
 | `## 語言與工具` | 三道指令:建置、整套測試、**子集測試**;每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令(`cd weft && cabal test`)。IO 模組追加清單;效果型別追加清單(boundary.md「效果的判定」);忽略目錄(不掃的原始碼目錄,例如搬遷中的舊樹) |
 | `## 邊界` | 四層各一句(boundary.md「四層」) |
 | `## 對外 I/O` | 表:名稱、方向(in / out)、型別或效果 ADT、shell 模組、進入哪條 pipeline |
-| `## Pipelines` | 表:全名、類別(里程碑 / 子流)。里程碑列的順序就是里程碑順序;`lawful status` 的分母 |
+| `## Pipelines` | 表:全名、類別(IO 介面 / 子流)。`lawful status` 的分母;交付順序不寫在這裡,由目標的優先與里程碑的順序推 |
 
 description 住各 pipeline 的 frontmatter,清單不重複。
+
+## 願景、目標與里程碑
+
+三層,每一層都回答「為什麼做這條 pipeline」:
+
+| 層 | 住哪 | 是什麼 |
+|---|---|---|
+| 願景 | `system.md`「願景」 | 專案的終極目標,做完時世界長什麼樣;只有一個,系統設計時訂 |
+| 目標 | `objectives.md` 的 `## O-n:<一句話>` | 通往願景的一步:使用者做得到什麼、或世界變成什麼樣;至少一個,可以多個。每個目標一個**優先**(1 到 4,1 最高)與一句**可觀察的判準**(達成時看得到什麼) |
+| 里程碑 | 目標底下的表 `里程碑 \| 做到什麼 \| 綁定` | 為了達成目標而切出來的階段,`M-n` 全檔唯一,表的順序就是先後;**綁定**欄是 pipeline 全名,「、」分隔,至少一條 |
+
+```markdown
+## O-1:玩家存檔後能讀回同一個世界
+- 優先:1
+- 判準:任一 World 存檔再讀回,可存檔的投影一模一樣
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 存檔寫得出檔案 | P-001-save-game |
+| M-2 | 讀檔還原世界 | P-002-load-game |
+```
+
+- 里程碑綁 pipeline,IO 介面與子流都可以;看得見的階段通常綁 IO 介面,底層能力的階段綁子流。綁定是里程碑對到 pipeline 的唯一寫法。
+- 每條 pipeline 至少被一條里程碑綁定;沒被綁的 pipeline 不朝向任何目標,`lawful status` 列警訊。要它就綁進一條里程碑,不要它就刪檔。
+- 每個目標要能說出它服務願景的哪一句;說不出來的目標是分歧,`lawful:objective` 對談時問,`lawful:audit` 人判。
+- 進度不是欄位:里程碑達成 = 綁定的每條 pipeline 都達成;目標完成度 = 達成的里程碑 / 里程碑數;都由 `lawful status` 算。
+- 配號只走 `lawful objective add` 與 `lawful objective milestone`;`lawful claim <slug> --milestone <M-n>` 把新 pipeline 綁進里程碑。刪掉的號永久空缺。
+- 建議路線與能開的線照目標優先、目標順序、里程碑順序排;沒被綁的排最後。
 
 ## pipeline
 
 一段 **input → 純轉換 → output** 的資料流,由 **stage** 組成;每個 stage 是一條住在程式碼裡的簽名。
 
 - 可以橫跨任意模組。模組是 stage 的屬性,不是文檔的歸屬。
-- 兩端碰到 shell 的是**里程碑**;只在純核心裡的是**子流**。底層能力(查詢、碰撞偵測)也是子流。
+- 兩端碰到 shell 的是 **IO 介面**;只在純核心裡的是**子流**。底層能力(查詢、碰撞偵測)也是子流。類別講的是形狀,不是先後;先後由目標與里程碑定。
 - 值得端到端規格的才建檔。單一小函數的 laws 直接寫 property test;它以 stage 的身分出現在用到它的 pipeline 裡。
 - stage 順序是資料流的拓撲序。`=` 列(**純的整條**)是權威:它把純的步驟組合成一個值,住 pure 或 effects,不住 shell;整條的 law 掛在它上面。
-- **進入點**:里程碑另有恰好一列 `!` 列,shell 的函數,把 `=` 列接到解譯器與對外 I/O(讀檔、寫檔、跑效果描述)。它是程式碼裡的簽名,`lint sig` 照對帳、進簽名 m / n;不掛 law,它做的事由對外 I/O 表與 shell 的步驟承接。子流沒有 `!` 列。
+- **進入點**:IO 介面另有恰好一列 `!` 列,shell 的函數,把 `=` 列接到解譯器與對外 I/O(讀檔、寫檔、跑效果描述)。它是程式碼裡的簽名,`lint sig` 照對帳、進簽名 m / n;不掛 law,它做的事由對外 I/O 表與 shell 的步驟承接。子流沒有 `!` 列。
 - **觀察點**:law 要引用、但不是資料流步驟的簽名(存取子、投影、輔助判定、效果描述的純解譯器),在 Stages 表列成 `#` 欄寫 `o` 的列。它是程式碼裡的簽名,`lint sig` 照對帳;它不是 stage:不掛 law、不進簽名 m / n、不算依賴。types 層匯出的函數 law 本來就能引用,不必列成觀察點。
 - 依賴不手寫:A 的 Stages 表某列的模組欄註明「見 B」,A 就依賴 B;B 不因為被引用而依賴 A。同名簽名出現在兩條 pipeline 而沒有一邊註明「見」,分不出誰引用誰,`lint sig` 紅、`lawful status` 警訊,不算依賴。
 
@@ -62,7 +92,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 |---|---|
 | `draft` | 還在討論;`lawful:build` 拒收 |
 | `ready` | 開發者口頭拍板,`lawful:pipeline` 改欄位;可以委派 |
-| `frozen` | `lawful status` 顯示里程碑達成,conductor 在 build 收尾直接改,不問;不准修訂。解凍 = `lawful:revise` 在「決定」記一條為什麼,改回 `ready` |
+| `frozen` | `lawful status` 顯示達成,conductor 在 build 收尾直接改,不問;不准修訂。解凍 = `lawful:revise` 在「決定」記一條為什麼,改回 `ready` |
 
 開發者不親自改任何 `.lawful/` 檔;開發者說,skill 寫。`frozen` 而測試紅、或有 REV 卻沒有解凍紀錄,是不一致。進度不是欄位,由 `lawful status` 推導。不做的 pipeline 直接刪檔;值得記住為什麼,開 ADR。
 
@@ -70,7 +100,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 六節,順序固定。`## Brief`、`## Stages`、`## Laws`、`## Examples` 不得省;`## 決定`、`## 修訂記錄` 無內容寫「無」。節裡只有事實,沒有填寫指引。
 
-**Brief**:三到五句給第一次打開的人:意圖、input → output、流向(用 `→` 串 stage 的中文名)、它在哪條里程碑裡。
+**Brief**:三到五句給第一次打開的人:意圖、input → output、流向(用 `→` 串 stage 的中文名)、它是 IO 介面還是哪條 IO 介面的子流、它讓哪條里程碑往前一步。
 
 **Stages**:
 
@@ -83,7 +113,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 | = | `step :: Time -> World -> (World, [CollisionEvent])` | 純的整條 | `Physics` | pure |
 ```
 
-里程碑多一列進入點,放在最後:
+IO 介面多一列進入點,放在最後:
 
 ```markdown
 | = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Save` | pure |
@@ -92,7 +122,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 - 簽名欄逐字等於程式碼的型別簽名行(多行合併、空白正規化),而且是該模組匯出的名字。`lawful lint sig` 對帳。
 - 模組欄與層欄與模組表一致。引用別條 pipeline 的 stage:簽名照抄,模組欄註明「見 P-00x-<slug>」。
-- `#` 欄:數字是步驟,`=` 是純的整條,`o` 是觀察點,`!` 是進入點。`=` 列恰好一列,不在 shell;`o` 列幾列都可以,不在 shell,放在 `=` 列之前;`!` 列里程碑恰好一列、子流沒有,在 shell,放在最後。步驟可以在 shell(寫檔、讀檔),它們沒有 law。列號只在本檔內有意義,引用用函數名。
+- `#` 欄:數字是步驟,`=` 是純的整條,`o` 是觀察點,`!` 是進入點。`=` 列恰好一列,不在 shell;`o` 列幾列都可以,不在 shell,放在 `=` 列之前;`!` 列 IO 介面恰好一列、子流沒有,在 shell,放在最後。步驟可以在 shell(寫檔、讀檔),它們沒有 law。列號只在本檔內有意義,引用用函數名。
 
 **Laws**:純 ASCII 三行。
 
@@ -199,7 +229,9 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
 | 簽名 m / n | Stages 的步驟(數字列、`=` 列與 `!` 列)n 條;程式碼找得到且逐字一致 m 條。`o` 列另計「觀察點 j / k」。整格還是 `<…>` 佔位符的列是模板,不算 stage,警訊列「還是模板」;law 與 example 同理 |
 | 骨架 s | m 條裡本體還是 `stub` 的 s 條;`lawful status` 列成待實作 |
 | laws g / k | 寫了 k 條;測試宣告歸屬 j 條;綠 g 條 |
-| 達成 | m = n、s = 0、觀察點全在、g = k、沒有 open GAP。里程碑達成 = 它與它引用的每條子流都達成 |
+| 達成 | m = n、s = 0、觀察點全在、g = k、沒有 open GAP。pipeline 達成 = 它與它引用的每條子流都達成 |
+| 里程碑達成 | 綁定的每條 pipeline 都達成 |
+| 目標完成度 | 達成的里程碑 / 里程碑數,印成百分比;沒有里程碑的目標印「-」並列警訊 |
 
 ## ADR
 

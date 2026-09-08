@@ -1,7 +1,14 @@
 $ lawful status
 # lawful status
-里程碑 2 條,達成 0 條 · pipeline 2 條,達成 0 條 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
+願景:一段文字丟進來,字數統計與報表一次算對。
+目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · IO 介面 2 條,達成 0 條 · pipeline 2 條,達成 0 條 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
 · 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
+
+## 目標
+| 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |
+|---|---|---|---|---|---|
+| O-1 | 1 | 一段文字進來,報表算對 | 2 | 0 | 0% |
+- O-1 下一個里程碑:M-1 字數算得對(P-002-count 進行中)
 
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
@@ -10,7 +17,7 @@ $ lawful status
 | P-002-count | frozen | 2 | 2 | 0 | 1 | nan/1 | 進行中 |
 
 ## 1. 今天能開幾條線
-- P-001-report:lawful:build P-001-report(引用的 P-002-count 未達成,同一波先做子流)
+- P-001-report:lawful:build P-001-report(O-1 優先 1 · M-2 報表印得出來)(引用的 P-002-count 未達成,同一波先做子流)
 
 ## 2. 卡住的
 - 無
@@ -28,5 +35,5 @@ $ lawful status
 - 無
 
 ## 7. 建議路線
-1. lawful:build P-001-report
+1. lawful:build P-001-report(O-1 優先 1 · M-2 報表印得出來)
 exit 1

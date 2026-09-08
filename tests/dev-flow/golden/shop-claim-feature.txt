@@ -1,6 +1,7 @@
-$ devflow claim feature ship --description 把已付款的訂單交給物流 --date 2026-09-07
+$ devflow claim feature ship --description 把已付款的訂單交給物流 --milestone M-2 --date 2026-09-07
 建了 .design/features/F-003-ship.md(status: draft)
-system.md Features 表加了一列,階段欄自己填
+system.md Features 表加了一列
+綁進 M-2
 exit 0
 --- .design/features/F-003-ship.md
 ---
@@ -47,9 +48,11 @@ updated: 2026-09-07
 ---
 # shop:購物車結帳與退款
 
+## 願景
+小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
+
 ## 目的
 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。
-三個月後期望它仍然只有這兩條路徑,金額的規則集中在一處,加第三條路徑時不必再寫一次金額計算。
 
 ## 語言與工具
 - 建置:`npx tsc --noEmit`
@@ -77,10 +80,22 @@ updated: 2026-09-07
 | 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - |
 
 ## Features
-| 全名 | 類別 | 階段 |
+| 全名 | 類別 |
+|---|---|
+| F-001-checkout | feature |
+| F-002-refund | feature |
+| A-001-settle | abstract |
+| F-003-ship | feature |
+
+--- .design/objectives.md
+# 目標
+
+## O-1:每一筆結帳與退款的金額都算對
+- 優先:1
+- 判準:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分
+
+| 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| F-001-checkout | feature | S1 |
-| F-002-refund | feature | S2 |
-| A-001-settle | abstract | - |
-| F-003-ship | feature | <階段> |
+| M-1 | 結帳走通 | F-001-checkout |
+| M-2 | 退款走通 | F-002-refund、F-003-ship |
 

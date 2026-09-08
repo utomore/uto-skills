@@ -1,6 +1,7 @@
-$ lawful claim load-game --description 把存檔讀回 World --date 2026-09-05
+$ lawful claim load-game --description 把存檔讀回 World --milestone M-1 --date 2026-09-05
 建了 .lawful/pipelines/P-002-load-game.md(status: draft)
-system.md Pipelines 表加了一列,類別欄填里程碑或子流
+system.md Pipelines 表加了一列,類別欄填 IO 介面或子流
+綁進 M-1
 exit 0
 --- .lawful/pipelines/P-002-load-game.md
 ---
@@ -12,7 +13,7 @@ updated: 2026-09-05
 # P-002-load-game:把存檔讀回 World
 
 ## Brief
-<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是里程碑。>
+<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是 IO 介面。>
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -46,6 +47,9 @@ updated: 2026-09-05
 ---
 # save-game:把遊戲世界存成檔案再讀回來
 
+## 願景
+玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
+
 ## 目的
 替一個小型 2D 遊戲提供存檔與讀檔。玩家按存檔,當前世界寫成一個檔案;讀檔把檔案還原成同一個世界。不處理雲端同步,不處理跨版本升級。
 
@@ -71,6 +75,17 @@ updated: 2026-09-05
 ## Pipelines
 | 全名 | 類別 |
 |---|---|
-| P-001-save-game | 里程碑 |
-| P-002-load-game | <里程碑 或 子流> |
+| P-001-save-game | IO 介面 |
+| P-002-load-game | <IO 介面 或 子流> |
+
+--- .lawful/objectives.md
+# 目標
+
+## O-1:玩家存檔後能讀回同一個世界
+- 優先:1
+- 判準:任一 World 存檔再讀回,可存檔的投影一模一樣
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 存檔寫得出檔案 | P-001-save-game、P-002-load-game |
 

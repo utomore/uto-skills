@@ -1,6 +1,6 @@
 {
   "name": "lawful",
-  "description": "純函數式專案(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 pipeline:input → 純轉換 → output 的資料流,stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 types / effects / pure / shell 四層邊界,= 列是純的整條、! 列是 shell 進入點,願望 stage 由上而下宣告底層需求;建構期由 conductor 帶 qa 與 impl 兩個互不可見的角色,人類決定只在設計對談與回答 GAP 兩處;進度一律由 CLI 從程式碼與測試推導。skills:design、pipeline、build、qa、impl、revise、status、audit、spike。CLI lawful:status、claim、lint boundary / sig / laws / trace / io、sync、modules --gen、section、spike close;第一個 adapter 是 Haskell。",
+  "description": "純函數式專案(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 pipeline:input → 純轉換 → output 的資料流,兩端碰 shell 的是 IO 介面、只在純核心裡的是子流;stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 types / effects / pure / shell 四層邊界,= 列是純的整條、! 列是 shell 進入點,願望 stage 由上而下宣告底層需求。pipeline 之上三層「為什麼」:system.md 的願景、objectives.md 的目標(優先 1 到 4、可觀察的判準)與目標底下的里程碑,每條里程碑綁定它要做到的 pipeline;完成度由 status 從綁定推,建議路線照目標優先排,沒被綁的 pipeline 列成不朝向任何目標。建構期由 conductor 帶 qa 與 impl 兩個互不可見的角色,人類決定只在設計對談與回答 GAP 兩處;進度一律由 CLI 從程式碼與測試推導。skills:design、objective、pipeline、build、qa、impl、revise、status、audit、spike。CLI lawful:status、claim、objective add / milestone、lint boundary / sig / laws / trace / io、sync、modules --gen、section、spike close;第一個 adapter 是 Haskell。",
   "author": {
     "name": "utomore"
   },

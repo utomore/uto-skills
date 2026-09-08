@@ -18,14 +18,15 @@ user-invocable: true
 
 ## 前置
 
-- 沒有 `.design/system.md` → 停,先跑 `dev-flow:project`。
+- 沒有 `.design/system.md`、願景還是模板、或 `objectives.md` 一個目標都沒有 → 停,先跑 `dev-flow:project` 或 `dev-flow:objective`。
+- 這份 feature 沒有被任何里程碑綁定 → 先問開發者它服務哪個目標的哪條里程碑,`dev-flow:objective` 綁進去;答不出來就是不該做的功能,停。
 - 目標是**既有**功能的改動 → 這裡不是入口,走 `dev-flow:revise`(它會寫 REV)。
 - 目標是**兩份以上 feature 的共同部分** → 走 `dev-flow:refactor`。
-- 檔還不存在 → `devflow claim feature <slug> --description <句>`。
+- 檔還不存在 → `devflow claim feature <slug> --description <句> --milestone <M-n>`。
 
 ## 步驟
 
-1. **Brief 先寫**:一句意圖、input 是什麼、output 是什麼、流向。寫不出流向就代表還沒想清楚要做什麼,回去問開發者。
+1. **Brief 先寫**:一句意圖、input 是什麼、output 是什麼、流向,以及它讓哪條里程碑往前一步。寫不出流向就代表還沒想清楚要做什麼,回去問開發者。
 2. **對外的兩端**:這條資料流從 `system.md` 對外 I/O 表的哪一列進來、從哪一列出去。表上沒有就現在補一列,`untrusted` 的入口一起想好誰做驗證。
 3. **Steps**:把資料流拆成步驟,每一列一條正規式簽名 `name(T1, T2): R`、做什麼一句、住哪個檔案、哪一層。
    - 需要底層還沒有的能力 → 願望 step(模組欄註明「願望」)。

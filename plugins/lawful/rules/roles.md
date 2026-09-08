@@ -6,8 +6,8 @@
 
 | 階段 | 誰 | 產出 |
 |---|---|---|
-| **設計** | 開發者與 `lawful:design` / `lawful:pipeline` 對談 | `system.md`、模組表、`draft` 的 pipeline;開發者拍板後 skill 改 `ready` |
-| **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 骨架、測試、實作、REV;里程碑達成後 conductor 改 `frozen` |
+| **設計** | 開發者與 `lawful:design` / `lawful:objective` / `lawful:pipeline` 對談 | `system.md`(含願景)、`objectives.md`、模組表、`draft` 的 pipeline;開發者拍板後 skill 改 `ready` |
+| **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 骨架、測試、實作、REV;達成後 conductor 改 `frozen` |
 
 `lawful:build` 只收 `ready` 且沒有 open GAP 的 pipeline。一條 pipeline 一波,順序:骨架 → qa → 基線 → impl → 仲裁 → 收尾。
 
@@ -45,7 +45,7 @@ subagent 問不了人:
 - 有 `given` 行的 law:產生器直接建構滿足前提的值;做不到才用條件過濾,並宣告覆蓋率下限(QuickCheck 的 `checkCoverage` 加 `cover`),沒宣告覆蓋率的過濾式測試視同恆真。
 - `total` 種類的斷言是把結果求值到正規形不拋例外(`total`、`force`),或 `isRight` / `isJust`。
 - 每條 property test 限案例數與尺寸(例:100 個案例、產生器的尺寸參數有上限),整個測試模組有 timeout;不得產生無界的結構或無界的迴圈。跑爆機器的測試視同紅。
-- 里程碑 `=` 列的 law 拿觀察點裡的純解譯器跑,測試不碰 IO。
+- IO 介面 `=` 列的 law 拿觀察點裡的純解譯器跑,測試不碰 IO。
 - 測試模組編得過,紅綠分佈符合基線預期。
 - 內部支架(不是 stage 的 class、區域函數)的測試不標歸屬、不進 law 分母;要測就另開測試模組,`lint trace` 把它列成內部測試。
 
@@ -54,7 +54,7 @@ subagent 問不了人:
 本波全綠或停在 GAP 時,conductor 對開發者回報:
 
 - open 的 GAP 清單,各附「需要回答什麼」;回答走 `lawful:revise`,結案的 stage 下一波重派。
-- `lawful status` 顯示里程碑達成 → 直接改 `frozen`。
+- `lawful status` 顯示達成 → 直接改 `frozen`。
 - qa 與 impl 自己決定的事整份列出供抽查,不逐條問。
 - 定錨區塊(tooling.md「收尾定錨」)。
 

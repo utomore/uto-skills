@@ -1,0 +1,3 @@
+$ devflow objective milestone O-1 出貨走通 --bind F-009-nope
+綁定的 F-009-nope 不存在;里程碑只綁 features/ 裡有的全名
+exit 1

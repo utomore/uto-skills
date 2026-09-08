@@ -109,6 +109,28 @@ export function loadResults(design, adapter, flags, root) {
   return { results: null, note: '沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知' };
 }
 
+// 目標 → 里程碑 → pipeline:里程碑達成 = 綁定的每條 pipeline 都達成;目標完成度 = 達成的里程碑 / 里程碑數。
+// rank 給每條 pipeline 一個排序鍵(目標優先、目標順序、里程碑順序),建議路線與能開的線照它排;沒被綁的排最後。
+export function objectiveView(design, a) {
+  const objs = design.objectives.objectives.map((o) => {
+    const ms = o.milestones.map((m) => {
+      const docs = m.binds.map((b) => ({ name: b, x: a.info.get(b) || null }));
+      const achieved = docs.length > 0 && docs.every((d) => d.x && d.x.achieved);
+      return { ...m, docs, achieved };
+    });
+    const done = ms.filter((m) => m.achieved).length;
+    return { ...o, ms, done, pct: ms.length ? Math.round((done / ms.length) * 100) : null, achieved: ms.length > 0 && done === ms.length };
+  });
+  const sorted = [...objs].sort((x, y) => (x.priority || 5) - (y.priority || 5) || x.line - y.line);
+  const rank = new Map();
+  sorted.forEach((o, oi) => o.ms.forEach((m, mi) => m.binds.forEach((b) => {
+    if (!rank.has(b)) rank.set(b, { o, m, key: (o.priority || 5) * 1e6 + oi * 1e3 + mi });
+  })));
+  const keyOf = (name) => (rank.has(name) ? rank.get(name).key : 9e9);
+  const tag = (name) => (rank.has(name) ? `${rank.get(name).o.id} 優先 ${rank.get(name).o.priority || '?'} · ${rank.get(name).m.id} ${rank.get(name).m.title}` : '沒有綁到任何目標');
+  return { objs: sorted, rank, keyOf, tag };
+}
+
 function row(x) {
   const g = x.laws.filter((l) => l.result === 'green').length;
   const traced = x.laws.filter((l) => l.traced).length;
@@ -120,15 +142,34 @@ export function statusReport(design, source, adapter, results, resultNote) {
   const a = analyze(design, source, adapter, results);
   const out = [];
   const listed = design.system ? design.system.pipelines : [];
-  const milestones = listed.filter((l) => l.kind === '里程碑').map((l) => l.fullName);
+  const ioFaces = listed.filter((l) => l.kind === 'IO 介面').map((l) => l.fullName);
   const total = listed.length || design.pipelines.length;
   const achievedAll = [...a.info.values()].filter((x) => x.achieved).length;
-  const achievedMilestones = milestones.filter((m) => a.info.has(m) && a.info.get(m).achieved).length;
+  const achievedIoFaces = ioFaces.filter((m) => a.info.has(m) && a.info.get(m).achieved).length;
+  const ov = objectiveView(design, a);
+  const milestones = ov.objs.flatMap((o) => o.ms);
+  const sys = design.system;
   const wishStages = [...a.info.values()].flatMap((x) => x.stages.filter((s) => s.state === '願望' || s.state === '找不到' || (s.hit && s.hit.stub)).map((s) => ({ ...s, pipeline: x.p.fullName })));
 
   out.push(`# lawful status`);
-  out.push(`里程碑 ${milestones.length} 條,達成 ${achievedMilestones} 條 · pipeline ${total} 條,達成 ${achievedAll} 條 · 還沒實作的 stage ${wishStages.length} 個 · 還開著的 GAP ${a.openGaps.length} 條`);
+  if (sys && sys.visionState === 'ok') out.push(`願景:${sys.vision}`);
+  out.push(`目標 ${ov.objs.length} 個,達成 ${ov.objs.filter((o) => o.achieved).length} 個 · 里程碑 ${milestones.length} 條,達成 ${milestones.filter((m) => m.achieved).length} 條 · IO 介面 ${ioFaces.length} 條,達成 ${achievedIoFaces} 條 · pipeline ${total} 條,達成 ${achievedAll} 條 · 還沒實作的 stage ${wishStages.length} 個 · 還開著的 GAP ${a.openGaps.length} 條`);
   out.push(`· ${resultNote}`);
+  out.push('');
+  out.push('## 目標');
+  if (!ov.objs.length) out.push('- 沒有任何目標;lawful:objective 訂第一個');
+  else {
+    out.push('| 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |', '|---|---|---|---|---|---|');
+    for (const o of ov.objs) out.push(`| ${o.id} | ${o.priorityRaw || '(沒填)'} | ${o.title} | ${o.ms.length} | ${o.done} | ${o.pct == null ? '-' : `${o.pct}%`} |`);
+    for (const o of ov.objs) {
+      const next = o.ms.find((m) => !m.achieved);
+      if (!next) continue;
+      const state = (d) => (!d.x ? '不存在' : d.x.achieved ? '達成' : d.x.gaps.length ? `卡 ${d.x.gaps.map((g) => g.id).join('、')}` : d.x.p.status === 'draft' ? '還是 draft' : '進行中');
+      out.push(`- ${o.id} 下一個里程碑:${next.id} ${next.title}${next.docs.length ? `(${next.docs.map((d) => `${d.name} ${state(d)}`).join('、')})` : '(還沒綁定任何 pipeline)'}`);
+    }
+  }
+  const unbound = [...a.info.keys()].filter((n) => !ov.rank.has(n));
+  if (unbound.length) out.push(`- 沒有被任何里程碑綁定的 pipeline:${unbound.join('、')};它們不朝向任何目標`);
   out.push('');
   out.push('## pipelines');
   out.push('| pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |');
@@ -136,9 +177,9 @@ export function statusReport(design, source, adapter, results, resultNote) {
   for (const x of a.info.values()) out.push(row(x));
 
   out.push('', '## 1. 今天能開幾條線');
-  const openable = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.some((r) => a.info.get(r).gaps.length || !['ready', 'frozen'].includes(a.info.get(r).p.status) && !a.info.get(r).achieved));
+  const openable = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.some((r) => a.info.get(r).gaps.length || !['ready', 'frozen'].includes(a.info.get(r).p.status) && !a.info.get(r).achieved)).sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
   if (!openable.length) out.push('- 無');
-  for (const x of openable) out.push(`- ${x.p.fullName}:lawful:build ${x.p.fullName}${x.blockedBy.length ? `(引用的 ${x.blockedBy.join('、')} 未達成,同一波先做子流)` : ''}`);
+  for (const x of openable) out.push(`- ${x.p.fullName}:lawful:build ${x.p.fullName}(${ov.tag(x.p.fullName)})${x.blockedBy.length ? `(引用的 ${x.blockedBy.join('、')} 未達成,同一波先做子流)` : ''}`);
 
   out.push('', '## 2. 卡住的');
   let stuck = 0;
@@ -193,6 +234,25 @@ export function statusReport(design, source, adapter, results, resultNote) {
   out.push('', '## 6. 警訊');
   const warns = [];
   const warn = (where, what, fix) => warns.push([where, what, fix]);
+  if (!sys) warn('system.md', '不存在', 'lawful:design 建 .lawful');
+  else if (sys.visionState === 'missing') warn('system.md', '沒有 ## 願景 節', 'lawful:design 訂願景');
+  else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'lawful:design 訂願景');
+  if (!ov.objs.length) warn(design.objectives.exists ? 'objectives.md' : '.lawful/', '沒有任何目標', 'lawful:objective 訂第一個目標(至少一個)');
+  const seenM = new Set();
+  for (const o of ov.objs) {
+    if (o.placeholder) warn(o.id, '目標還是模板', 'lawful:objective 寫成一句話');
+    if (!o.priority) warn(o.id, `優先「${o.priorityRaw || '(沒填)'}」不是 1 到 4`, '改成 1(最高)到 4(最低)');
+    if (!o.criteria) warn(o.id, '沒有可觀察的判準', 'lawful:objective 補一句達成時看得到什麼');
+    if (!o.ms.length) warn(o.id, '沒有任何里程碑', 'lawful:objective 補里程碑並綁定 pipeline');
+    for (const m of o.ms) {
+      if (seenM.has(m.id)) warn(m.id, '里程碑編號重複', '編號全檔唯一;配號只走 lawful objective milestone');
+      seenM.add(m.id);
+      if (m.placeholder) warn(m.id, '里程碑還是模板', 'lawful:objective 寫成一句話');
+      if (!m.binds.length) warn(m.id, '沒有綁定任何 pipeline', 'lawful claim <slug> --milestone ' + m.id + ',或在綁定欄填既有的 pipeline 全名');
+      for (const d of m.docs) if (!d.x) warn(m.id, `綁定的 ${d.name} 不存在`, '改成 pipelines/ 裡有的全名,或刪這個綁定');
+    }
+  }
+  for (const n of unbound) warn(n, '沒有被任何里程碑綁定', '不朝向任何目標:lawful:objective 綁進一條里程碑,或刪掉這條 pipeline');
   for (const x of a.info.values()) {
     const p = x.p;
     if (!p.hasFrontmatter) warn(p.file, '沒有 frontmatter', '照 templates/pipeline.md 補');
@@ -201,8 +261,8 @@ export function statusReport(design, source, adapter, results, resultNote) {
     if (t.stages || t.laws || t.examples) warn(p.fullName, `還是模板(${[t.stages && `Stages ${t.stages} 列`, t.laws && `Laws ${t.laws} 條`, t.examples && `Examples ${t.examples} 列`].filter(Boolean).join('、')}是佔位符)`, 'lawful:pipeline 討論完寫成真的');
     if (p.status === 'frozen' && x.laws.some((l) => l.result === 'red')) warn(p.fullName, 'frozen 而測試紅', '先解凍再修');
     if (p.status === 'frozen' && p.revs.length && !p.thawed) warn(p.fullName, 'frozen 而有 REV 卻沒有解凍紀錄', '在「決定」補解凍一條');
-    if (p.status === 'ready' && x.achieved && milestones.includes(p.fullName)) warn(p.fullName, '里程碑已達成', 'conductor 改 frozen');
-    if (listed.length && !listed.some((l) => l.fullName === p.fullName)) warn(p.fullName, '不在 system.md 的 Pipelines 表', '補一列,類別填里程碑或子流');
+    if (p.status === 'ready' && x.achieved) warn(p.fullName, '已達成', 'conductor 改 frozen');
+    if (listed.length && !listed.some((l) => l.fullName === p.fullName)) warn(p.fullName, '不在 system.md 的 Pipelines 表', '補一列,類別填 IO 介面或子流');
     for (const s of x.stages) if (s.state === '不一致') warn(`${p.fullName}#${s.name}`, '簽名與程式碼不一致', 'lint sig 看兩邊;誰對就改另一邊,改文檔走 REV');
     for (const s of x.stages) if (s.state === '搬家') warn(`${p.fullName}#${s.name}`, `程式碼在 ${s.hit.module}`, 'lawful sync');
     for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁:先歸因再改');
@@ -210,7 +270,7 @@ export function statusReport(design, source, adapter, results, resultNote) {
   for (const u of a.unmarked) warn(`${u.a}#${u.name}`, `${u.b} 也把 ${u.name} 列成 stage,兩邊都沒註明「見」`, '引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來');
   for (const l of listed) {
     if (!a.byName.has(l.fullName)) warn('system.md', `列了 ${l.fullName},pipelines/ 沒有這個檔`, '刪那一列或 lawful claim');
-    if (!['里程碑', '子流'].includes(l.kind)) warn('system.md', `${l.fullName} 類別「${l.kind}」`, '改成里程碑或子流');
+    if (!['IO 介面', '子流'].includes(l.kind)) warn('system.md', `${l.fullName} 類別「${l.kind}」`, '改成 IO 介面或子流');
   }
   if (source) {
     const b = lintBoundary(design, source, adapter);
@@ -224,14 +284,14 @@ export function statusReport(design, source, adapter, results, resultNote) {
 
   out.push('', '## 7. 建議路線');
   if (a.openGaps.length) out.push(`1. 先回答 ${a.openGaps.map((g) => g.id).join('、')}(lawful:revise),卡住的 stage 才能重派`);
-  const order = [...a.info.values()].filter((x) => !x.achieved && x.p.status === 'ready').sort((x, y) => (x.refs.length - y.refs.length));
-  order.forEach((x, i) => out.push(`${(a.openGaps.length ? 2 : 1) + i}. lawful:build ${x.p.fullName}`));
+  const order = [...a.info.values()].filter((x) => !x.achieved && x.p.status === 'ready').sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || (x.refs.length - y.refs.length));
+  order.forEach((x, i) => out.push(`${(a.openGaps.length ? 2 : 1) + i}. lawful:build ${x.p.fullName}(${ov.tag(x.p.fullName)})`));
   const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
   if (drafts.length) out.push(`${(a.openGaps.length ? 2 : 1) + order.length}. ${drafts.map((x) => x.p.fullName).join('、')} 討論完改 ready`);
   const allDone = [...a.info.values()].every((x) => x.achieved) && !a.openGaps.length;
   if (!a.openGaps.length && !order.length && !drafts.length) {
     const notDone = [...a.info.values()].filter((x) => !x.achieved);
-    if (!a.info.size) out.push('- 還沒有任何 pipeline;lawful claim <slug> 建第一條');
+    if (!a.info.size) out.push(`- 還沒有任何 pipeline;${ov.objs.length ? 'lawful claim <slug> --milestone <M-n> 建第一條' : '先 lawful:objective 訂目標與里程碑,再 lawful claim <slug> --milestone <M-n>'}`);
     else if (allDone && !warns.length) out.push('- 目前功能全部正常運作:每條 pipeline 達成、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:lawful claim <slug>');
     else if (allDone) out.push(`- 目前功能全部正常運作(每條 pipeline 達成、測試全綠、沒有 open GAP);警訊還有 ${warns.length} 條,照第 6 段的怎麼辦欄清,清完加新功能`);
     else if (notDone.some((x) => x.unknown || x.laws.some((l) => l.result === '未跑'))) out.push(`- 沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常`);

@@ -6,7 +6,8 @@
 
 ```
 .design/
-├── system.md          目的、語言與工具、層、對外 I/O、Features 清單
+├── system.md          願景、目的、語言與工具、層、對外 I/O、Features 清單
+├── objectives.md      目標與里程碑(「願景、目標與里程碑」)
 ├── modules.md         模組表(boundary.md「模組表」)
 ├── features/F-00x-<slug>.md
 ├── abstracts/A-00x-<slug>.md
@@ -17,17 +18,46 @@
 
 ## system.md
 
-frontmatter:`language`(選 adapter)、`updated`。五節:
+frontmatter:`language`(選 adapter)、`updated`。六節:
 
 | 節 | 裝什麼 |
 |---|---|
-| `## 目的` | 三到五句:替誰做什麼、不做什麼、期望三個月後長什麼樣 |
+| `## 願景` | 一到三句:這個專案做完時世界長什麼樣、替誰改變了什麼。立案時訂,不隨里程碑變;`devflow status` 把它印在第一行,還是模板就列警訊 |
+| `## 目的` | 三到五句:替誰做什麼、明確不做什麼 |
 | `## 語言與工具` | 三道指令:建置、整套測試、**子集測試**;每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令。IO 模組追加、Laws 詞彙追加(law 會用到但不是簽名也不是型別名的字)、忽略目錄 |
 | `## 層` | 表,由內而外(boundary.md「層」) |
 | `## 對外 I/O` | 表:名稱、方向(in / out)、型別、模組、進入哪份 feature、信任(trusted / untrusted)、驗證(boundary.md「對外 I/O」) |
-| `## Features` | 表:全名、類別(feature / abstract)、階段。feature 的順序就是交付順序;`devflow status` 的分母 |
+| `## Features` | 表:全名、類別(feature / abstract)。`devflow status` 的分母;交付順序不寫在這裡,由目標的優先與里程碑的順序推 |
 
 description 住各文檔的 frontmatter,清單不重複。
+
+## 願景、目標與里程碑
+
+三層,每一層都回答「為什麼做這份 feature」:
+
+| 層 | 住哪 | 是什麼 |
+|---|---|---|
+| 願景 | `system.md`「願景」 | 專案的終極目標,做完時世界長什麼樣;只有一個,立案時訂 |
+| 目標 | `objectives.md` 的 `## O-n:<一句話>` | 通往願景的一步:使用者做得到什麼、或世界變成什麼樣;至少一個,可以多個。每個目標一個**優先**(1 到 4,1 最高)與一句**可觀察的判準**(達成時看得到什麼) |
+| 里程碑 | 目標底下的表 `里程碑 \| 做到什麼 \| 綁定` | 為了達成目標而切出來的階段,`M-n` 全檔唯一,表的順序就是先後;**綁定**欄是 feature 全名,「、」分隔,至少一份 |
+
+```markdown
+## O-1:每一筆結帳與退款的金額都算對
+- 優先:1
+- 判準:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 結帳走通 | F-001-checkout |
+| M-2 | 退款走通 | F-002-refund |
+```
+
+- 里程碑綁的是 feature;abstract 跟著引用它的 feature 達成,不綁。綁定是里程碑對到文檔的唯一寫法。
+- 每份 feature 至少被一條里程碑綁定;沒被綁的 feature 不朝向任何目標,`devflow status` 列警訊。要它就綁進一條里程碑,不要它就刪檔。
+- 每個目標要能說出它服務願景的哪一句;說不出來的目標是分歧,`dev-flow:objective` 對談時問,`dev-flow:audit` 人判。
+- 進度不是欄位:里程碑達成 = 綁定的每份 feature 都達成;目標完成度 = 達成的里程碑 / 里程碑數;都由 `devflow status` 算。
+- 配號只走 `devflow objective add` 與 `devflow objective milestone`;`devflow claim feature --milestone <M-n>` 把新 feature 綁進里程碑。刪掉的號永久空缺。
+- 建議路線與能開的線照目標優先、目標順序、里程碑順序排;沒被綁的排最後。
 
 ## feature 與 abstract
 
@@ -234,6 +264,8 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 | 骨架 s | m 條裡本體還是骨架標記的 s 條;`devflow status` 列成待實作 |
 | laws g / k | 寫了 k 條;測試宣告歸屬 j 條;綠 g 條 |
 | 達成 | m = n、s = 0、觀察點全在、g = k、examples 全綠、沒有 open GAP。feature 達成 = 它與它引用的每份 abstract 都達成 |
+| 里程碑達成 | 綁定的每份 feature 都達成 |
+| 目標完成度 | 達成的里程碑 / 里程碑數,印成百分比;沒有里程碑的目標印「-」並列警訊 |
 
 ## ADR
 

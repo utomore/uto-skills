@@ -8,7 +8,7 @@ import { pickAdapter, adapterNames } from '../lib/adapters/index.mjs';
 import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
-import { claim, modulesGen, spikeClose, sync } from '../lib/commands/edit.mjs';
+import { claim, milestoneAdd, modulesGen, objectiveAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
 import { migrateFromDevFlow } from '../lib/commands/migrate.mjs';
 
 const HELP = `lawful <子命令> [選項]
@@ -16,17 +16,22 @@ const HELP = `lawful <子命令> [選項]
   status [--tests <log> | --run]       派工報告;laws 綠幾條要給測試輸出,或 --run 跑 system.md 的整套指令
   status --pipeline <P-00x | 全名>     一條 pipeline 的 stage 與 law 逐條狀態
   status --module <模組>               住在該模組的所有 stage 的狀態
-  claim <slug> [--description <句>]    鑄號建 pipeline 檔(status: draft),system.md Pipelines 表加一列
+  claim <slug> [--description <句>] [--milestone <M-n>]
+                                       鑄號建 pipeline 檔(status: draft),system.md Pipelines 表加一列,綁進 --milestone 那條里程碑
+  objective add <一句話> --priority <1-4> [--criteria <句>]
+                                       鑄 O-n 寫進 objectives.md;優先 1 最高、4 最低
+  objective milestone <O-n> <一句話> [--bind <全名,全名>]
+                                       鑄 M-n 加進該目標;綁定的全名要是 pipelines/ 裡有的 pipeline
   lint boundary | sig | laws | trace | io | all
                                        boundary:import 圖、效果型別、匯出清單、*.Internal vs 模組表;sig:Stages 簽名 vs 程式碼,含 = / o / ! 列的層與匯出;
-                                       laws:三行、種類、識別字、= 列有 law;trace:laws ↔ 測試歸屬;io:對外 I/O 表 vs 里程碑兩端與模組表
+                                       laws:三行、種類、識別字、= 列有 law;trace:laws ↔ 測試歸屬;io:對外 I/O 表 vs IO 介面兩端與模組表
   sync                                 同層搬家的 stage,模組欄改成程式碼的模組
   modules --gen                        從程式碼補模組表缺的模組,層欄留白
   section <file> <節>… [--verify]      取 ## 節
   spike close <SPK-00x> [--dry-run]    檢查 verdict / feeds / sha 齊全,刪 spike/SPK-00x-<slug>/
   migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>] [--language <adapter>]
                                        盤點 subsystems/ 體系的 .design:每份 F / E / G-F 的介面在程式碼裡對到幾條、
-                                       四格 law 翻成三行草稿、按模組建議怎麼合成 pipeline、開發階段對到里程碑;只印帳本,不改任何檔
+                                       四格 law 翻成三行草稿、按模組建議怎麼合成 pipeline、開發階段列成目標與里程碑候選;只印帳本,不改任何檔
 
 選項
   --root <dir>                         專案根目錄(預設目前目錄)
@@ -129,10 +134,17 @@ function main() {
 
   if (cmd === 'claim') {
     if (!sub) {
-      console.error('用法:lawful claim <slug> [--description <句>]');
+      console.error('用法:lawful claim <slug> [--description <句>] [--milestone <M-n>]');
       return 1;
     }
-    return emit(claim(design, sub, { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined }));
+    return emit(claim(design, sub, { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined, milestone: typeof args.flags.milestone === 'string' ? args.flags.milestone : '' }));
+  }
+
+  if (cmd === 'objective') {
+    if (sub === 'add' && rest[0]) return emit(objectiveAdd(design, rest.join(' '), { priority: args.flags.priority, criteria: typeof args.flags.criteria === 'string' ? args.flags.criteria : '' }));
+    if (sub === 'milestone' && rest[0] && rest[1]) return emit(milestoneAdd(design, rest[0], rest.slice(1).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
+    console.error('用法:lawful objective add <一句話> --priority <1-4> [--criteria <句>]\n      lawful objective milestone <O-n> <一句話> [--bind <全名,全名>]');
+    return 1;
   }
 
   if (cmd === 'sync') return emit(sync(design, source, adapter, { date: args.flags.date || undefined }));

@@ -1,6 +1,6 @@
 $ lawful lint sig
 ## lint sig:9 條不合規
-- ✗ .lawful/pipelines/P-001-save-game.md 里程碑要恰好一列 ! 列(shell 的進入點),現在 0 列
+- ✗ .lawful/pipelines/P-001-save-game.md IO 介面要恰好一列 ! 列(shell 的進入點),現在 0 列
 - ✗ .lawful/pipelines/P-001-save-game.md:17 P-001-save-game#decode 簽名不一致
     文檔:decode :: ByteString -> Either DecodeError SaveState
     程式碼:decode :: ByteString -> Maybe SaveState(src/Save/Codec.hs:21)

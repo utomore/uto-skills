@@ -14,17 +14,22 @@ user-invocable: true
 
 | 輸入 | 產出 |
 |---|---|
-| 一條 pipeline 的全名(沒有就 `lawful claim <slug>`)、開發者的意圖 | 該 pipeline 檔六節寫齊,`status: ready` |
+| 一條 pipeline 的全名(沒有就 `lawful claim <slug> --milestone <M-n>`)、開發者的意圖 | 該 pipeline 檔六節寫齊,`status: ready` |
+
+## 前置
+
+- 願景還是模板、或 `objectives.md` 一個目標都沒有 → 停,先跑 `lawful:design` 或 `lawful:objective`。
+- 這條 pipeline 沒有被任何里程碑綁定 → 先問開發者它服務哪個目標的哪條里程碑,`lawful:objective` 綁進去;答不出來就是不該做的資料流,停。
 
 ## 步驟
 
-1. **Brief**:問清楚 input 是什麼、output 是什麼、它在哪條里程碑裡;三到五句寫下,用 `→` 串 stage 的中文名。
-2. **Stages,從 output 往回推**:每一步一條簽名,逐字寫成程式碼會長的樣子;模組與層對模組表。`=` 列是純的整條:把純的步驟組成一個 pure 或 effects 層的值;里程碑再加一列 `!`,shell 的進入點,把 `=` 列接到對外 I/O。只有資料流的步驟才是數字列。底層還沒有的能力,寫理想簽名並在模組欄註明「願望,見 P-00x-<slug>」或只寫目標模組。引用別條 pipeline 的 stage 照抄簽名並註明「見」。
+1. **Brief**:問清楚 input 是什麼、output 是什麼、它是 IO 介面還是哪條 IO 介面的子流、它讓哪條里程碑往前一步;三到五句寫下,用 `→` 串 stage 的中文名。
+2. **Stages,從 output 往回推**:每一步一條簽名,逐字寫成程式碼會長的樣子;模組與層對模組表。`=` 列是純的整條:把純的步驟組成一個 pure 或 effects 層的值;IO 介面再加一列 `!`,shell 的進入點,把 `=` 列接到對外 I/O。只有資料流的步驟才是數字列。底層還沒有的能力,寫理想簽名並在模組欄註明「願望,見 P-00x-<slug>」或只寫目標模組。引用別條 pipeline 的 stage 照抄簽名並註明「見」。
 3. **Laws,先過「什麼要有 law」的兩問**(是不是 stage、型別留下幾個自由度),再照種類問法表逐種問(`pipelines.md`「節」的 Laws 表):做完什麼一定不變、什麼輸入等於沒做、存出去要不要一模一樣讀回來、兩步的輸出有什麼對應、哪個數字有上限、有沒有慢但一定對的寫法、哪些輸入看起來合法卻會爆、順序對調一不一樣。`=` 列至少一條端到端的 law。每條三行,純 ASCII,`|-` 只引用 Stages 的簽名(不含 `!` 列)、types 層匯出與字面值。問出來的「哪些欄位不算」「怎麼看得到這個量」這種答案,是一個觀察點(投影、存取子、判定):當場加成 `o` 列,住 `*.Internal` 或它本來的模組;它是資料流的一步才加成數字列。`=` 列是效果描述時,觀察點是它的純解譯器(`boundary.md`「效果的判定」),law 拿純解譯器的結果寫。
 4. **Examples**:每條 law 至少一個具體例子,邊界值優先;覆蓋欄指到 law。
 5. **決定**:對談中否決掉的替代方案,一句結論、一句理由;要證據的派 `lawful:spike`,結論回來再寫。
 6. **對帳**:`lawful lint laws`、`lawful lint sig`(願望與找不到的 stage 不算紅,不一致才紅)。紅的回到對應步驟。
-7. **拍板**:把 Stages 與 Laws 唸給開發者聽,開發者說好,改 `status: ready`,`system.md` Pipelines 表的類別欄填里程碑或子流。
+7. **拍板**:把 Stages 與 Laws 唸給開發者聽,開發者說好,改 `status: ready`,`system.md` Pipelines 表的類別欄填 IO 介面或子流。
 
 ## 收尾
 

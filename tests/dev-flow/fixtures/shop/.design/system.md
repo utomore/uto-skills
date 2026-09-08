@@ -4,9 +4,11 @@ updated: 2026-09-07
 ---
 # shop:購物車結帳與退款
 
+## 願景
+小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
+
 ## 目的
 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。
-三個月後期望它仍然只有這兩條路徑,金額的規則集中在一處,加第三條路徑時不必再寫一次金額計算。
 
 ## 語言與工具
 - 建置:`npx tsc --noEmit`
@@ -34,8 +36,8 @@ updated: 2026-09-07
 | 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - |
 
 ## Features
-| 全名 | 類別 | 階段 |
-|---|---|---|
-| F-001-checkout | feature | S1 |
-| F-002-refund | feature | S2 |
-| A-001-settle | abstract | - |
+| 全名 | 類別 |
+|---|---|
+| F-001-checkout | feature |
+| F-002-refund | feature |
+| A-001-settle | abstract |

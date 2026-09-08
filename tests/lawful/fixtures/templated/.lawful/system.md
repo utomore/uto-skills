@@ -4,6 +4,9 @@ updated: 2026-09-06
 ---
 # templated:claim 建出來、還沒寫的 draft
 
+## 願景
+一段文字丟進來,字數統計與報表一次算對。
+
 ## 目的
 frozen-ref 的兩條,再加一條剛 claim、Stages 與 Laws 都還是模板佔位符的 draft。
 
@@ -29,6 +32,6 @@ frozen-ref 的兩條,再加一條剛 claim、Stages 與 Laws 都還是模板佔�
 ## Pipelines
 | 全名 | 類別 |
 |---|---|
-| P-001-report | 里程碑 |
-| P-002-count | 里程碑 |
+| P-001-report | IO 介面 |
+| P-002-count | IO 介面 |
 | P-003-tally | 子流 |

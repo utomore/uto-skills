@@ -38,13 +38,13 @@ types / effects / pure 的每個模組都有匯出清單;沒寫匯出清單的�
 - 效果系統的描述型別(`Eff es`、`Sem r`、`Free f`、自家的指令 ADT)不是效果:它是純資料,住 effects;帶著 `IOE :> es` 這種執行能力的才算效果。
 - IO 模組黑名單由 adapter 的 `ioModules` 給預設:繞過型別系統的逃生口(`unsafePerformIO`、`Debug.Trace`、FFI)與只有效果的模組;有純 API 的模組(`System.Random` 的 `StdGen`、`Data.Time` 的 `UTCTime`)不在名單上,它們的效果由簽名擋。`system.md`「語言與工具」可追加。
 - 效果的**描述**是純資料,住 effects;**執行**它的真解譯器住 shell。同一個效果在兩層各有一個名字,不共用模組。
-- 每個效果描述配一個**純解譯器**(把描述跑在記憶體裡的資料上:`Map FilePath ByteString` 當檔案系統、固定序列當時鐘),住 effects 或 pure。它是觀察點:里程碑 `=` 列的 law 靠它寫,qa 不必碰 IO。
+- 每個效果描述配一個**純解譯器**(把描述跑在記憶體裡的資料上:`Map FilePath ByteString` 當檔案系統、固定序列當時鐘),住 effects 或 pure。它是觀察點:IO 介面 `=` 列的 law 靠它寫,qa 不必碰 IO。
 
 ## 對外 I/O
 
 `system.md`「對外 I/O」表列出每個跨過 shell 邊界的入口與出口:名稱、方向、型別或效果 ADT、shell 模組、進入哪條 pipeline。
 
-- 每條里程碑 pipeline 的兩端都要對得到這張表的某一列;表上的 pipeline 必須是里程碑。
+- 每條 IO 介面的兩端都要對得到這張表的某一列;表上的 pipeline 必須是 IO 介面。
 - 表上的 shell 模組在模組表是 shell 層;型別與效果 ADT 住 types 或 effects,不住 shell。
 - `lawful lint io` 對帳以上三條。
 

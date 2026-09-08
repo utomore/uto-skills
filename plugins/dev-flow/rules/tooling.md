@@ -14,7 +14,9 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-f
 |---|---|
 | `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 在專案根目錄跑 `system.md` 的整套指令;兩者都沒給、或輸出裡一條 `F-00x#LAW-n` 標記都沒有,就列「未跑」並在開頭寫明 |
 | `status --doc <F-00x>` / `--module <路徑>` | 一份文檔的 step 與 law 逐條狀態 / 住在該檔案或目錄的所有 step 的狀態 |
-| `claim feature\|abstract\|spike\|adr <slug> [--description <句>]` | 鑄號建檔(feature 與 abstract 是 `status: draft`);feature 另在 `system.md` Features 表加一列,spike 另建 `spike/SPK-00x-<slug>/` |
+| `claim feature\|abstract\|spike\|adr <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建檔(feature 與 abstract 是 `status: draft`);feature 另在 `system.md` Features 表加一列並綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標;spike 另建 `spike/SPK-00x-<slug>/` |
+| `objective add <一句話> --priority <1-4> [--criteria <句>]` | 鑄 `O-n` 寫進 `objectives.md`;優先 1 最高、4 最低;判準沒給就留佔位符並提醒 |
+| `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全檔唯一)加進該目標的表;綁定的全名要是 `features/` 裡有的 feature,abstract 或不存在的都拒絕 |
 | `lint boundary` | import 方向 vs 層表;內層 import 外層即紅;非最外層 import IO 模組即紅;未登記與幽靈檔案即紅 |
 | `lint sig` | Steps 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,而且要匯出;`=` 列與 `o` 列不在最外層、`!` 列在最外層、feature 恰好一列 `!`、abstract 沒有;abstract 沒有消費者即紅;feature 引用 feature 即紅;同名簽名在兩份文檔都沒註明「見」即紅;願望 step 列待實作不算紅;簽名一致但檔案不同列「搬家」 |
 | `sync` | 把「搬家」的 step 模組欄改成程式碼裡的實際檔案(同層才改,跨層列紅要走 REV) |
@@ -31,18 +33,23 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --doc
 
 ## status 報告
 
-給開發者讀的派工報告,版面固定:
+給開發者讀的派工報告,版面固定。第一行印願景(還是模板就不印,列警訊),第二行是數字(目標、里程碑、feature、abstract、文檔、待實作 step、open GAP);接著兩張表:
 
-1. 今天能開幾條線:`ready`、沒 open GAP、引用的 abstract 沒卡的文檔
+- **目標**:每個目標一列(優先、一句話、里程碑總數、里程碑達成、完成度),照優先排;每個沒達成的目標一行「下一個里程碑」,附綁定的文檔各在什麼狀態;最後一行列沒有被任何里程碑綁定的 feature。**這一段答的是「我們有沒有朝向目標」**
+- **文檔**:每份文檔一列
+
+然後八段:
+
+1. 今天能開幾條線:`ready`、沒 open GAP、引用的 abstract 沒卡的文檔;每條附它綁在哪個目標與里程碑,照目標優先排
 2. 卡住的:停在 GAP 的 step、等重派、等 abstract
 3. 等決定:open 的 GAP、open 的 spike、`draft` 的文檔
 4. 牽動誰:誰引用了這份的簽名
 5. 待實作:按檔案列願望 step、找不到的 step、本體還是骨架的 step
 6. 修訂熱點:REV 條數最多的三份與最後一條、被兩份以上引用的 abstract。**這一段答的是穩定度**:一直在改的地方就是設計還沒收斂的地方
-7. 警訊:`frozen` 而紅、REV 沒解凍紀錄、只有一個消費者的 abstract、未登記檔案、簽名不一致、還是模板
-8. 建議路線:先回答 GAP、再 build 能開的線、`draft` 討論完改 `ready`。沒有可派的線時分兩種:全部達成寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾份沒達成、缺什麼輸入,不催加新功能
+7. 警訊:願景還是模板、沒有任何目標、優先不在 1 到 4、目標沒有判準或沒有里程碑、里程碑沒有綁定或綁到不存在的檔或 abstract、里程碑編號重複、feature 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、只有一個消費者的 abstract、未登記檔案、簽名不一致、還是模板
+8. 建議路線:先回答 GAP、再 build 能開的線(照目標優先、里程碑順序排,每條附目標與里程碑)、`draft` 討論完改 `ready`。沒有可派的線時分兩種:全部達成寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾份沒達成、缺什麼輸入,不催加新功能
 
-分母是 `system.md`「Features」表的份數。
+分母是 `system.md`「Features」表的份數,以及 `objectives.md` 的目標數與里程碑數。
 
 ## 測試歸屬
 
@@ -98,12 +105,12 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --doc
 
 每個 skill 的收尾,回報最後附這四段,不超過一個畫面。委派模式的 subagent 不輸出。
 
-1. **位置樹**:`system.md` → 每份 feature 一行(達成 / 進行中 / 未開工)→ 目前文檔展開到 step 與 law,各標簽名在不在、law 綠不綠;引用到的 abstract 掛在它底下。目前節點標 `◀ 目前`。全部寫全名。
-2. **完成度**兩行:產品(feature 達成 n / m · 文檔達成 n / m · 待實作 step n)、本次(目前文檔簽名 m / n · laws g / k)。數字只來自 `devflow status` 與實際跑過的測試;沒跑寫「沿用 <哪一次>」或「未跑」。
-3. **主軸檢查**:本次對應哪份文檔的哪個 step 或 law;偏離清單(簽名與 Steps 不符、內層 import 外層、測試後門、未登記檔案、open GAP、動了文檔沒寫的東西、兩份 feature 開始寫同一段而沒走 refactor),每條附位置與建議;沒有寫「無」。
+1. **位置樹**:願景一行 → 每個目標一行(優先、完成度)→ 每條里程碑一行(達成 / 進行中 / 未開工)→ 綁定的 feature → 目前文檔展開到 step 與 law,各標簽名在不在、law 綠不綠;引用到的 abstract 掛在它底下;沒被任何里程碑綁定的 feature 掛在最後的「沒有目標」底下。目前節點標 `◀ 目前`。全部寫全名。
+2. **完成度**三行:目標(最高優先還沒達成的目標 O-n 完成度 x% · 里程碑達成 n / m)、產品(feature 達成 n / m · 文檔達成 n / m · 待實作 step n)、本次(目前文檔簽名 m / n · laws g / k)。數字只來自 `devflow status` 與實際跑過的測試;沒跑寫「沿用 <哪一次>」或「未跑」。
+3. **主軸檢查**:本次對應哪個目標的哪條里程碑、哪份文檔的哪個 step 或 law;偏離清單(做的事不在任何里程碑的綁定裡、比最高優先目標的里程碑先做了低優先的、簽名與 Steps 不符、內層 import 外層、測試後門、未登記檔案、open GAP、動了文檔沒寫的東西、兩份 feature 開始寫同一段而沒走 refactor),每條附位置與建議;沒有寫「無」。
 4. **下一步**:一條具體命令(參數寫全名),附下面四題的答案;最多兩條替代,各附同四題,外加一句為什麼不是第一。下一步必須從樹上推得出來。
-   - **必要性**:不做它,樹上哪一份文檔停在哪個 step 或 law、哪條功能因此無法正常運作。答不出具體的一份與一條,它就不是下一步,也排不進替代。
-   - **替代為什麼排後面**:等一個決定、等別份先達成、只是清警訊;寫明是哪一個。
-   - **需求來源**:這條命令對到位置樹的哪個節點、警訊表的哪一列、`gaps.md` 的哪一條、或開發者的哪一句話。都對不到的是自己長出來的需求,不列。
+   - **必要性**:不做它,樹上哪個目標的哪條里程碑停在哪份文檔的哪個 step 或 law、哪條功能因此無法正常運作。答不出具體的一份與一條,它就不是下一步,也排不進替代。
+   - **替代為什麼排後面**:目標優先較低、等一個決定、等別份先達成、只是清警訊;寫明是哪一個。
+   - **需求來源**:這條命令對到位置樹的哪個目標與里程碑、警訊表的哪一列、`gaps.md` 的哪一條、或開發者的哪一句話。都對不到的是自己長出來的需求,不列。
    - **架構缺口**:重切 feature、抽 abstract、改層、換外部系統這類架構級動作,只能因為現在的架構解決不了一個具體問題才提;寫出那個問題。寫不出來就不提。
-   - **全部正常時**:每份文檔達成、測試全綠、沒有 open GAP、警訊為空,明寫「目前功能全部正常運作,沒有非做不可的事,可以加新功能」,下一步是 `devflow claim feature <slug>`;不另造下一步。
+   - **全部正常時**:每份文檔達成、測試全綠、沒有 open GAP、警訊為空,明寫「目前功能全部正常運作,沒有非做不可的事,可以加新功能」,下一步是 `dev-flow:objective`(訂下一個目標或里程碑)再 `devflow claim feature <slug> --milestone <M-n>`;不另造下一步。

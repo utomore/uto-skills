@@ -4,6 +4,9 @@ updated: 2026-09-06
 ---
 # frozen-ref:引用排在後面、已凍結的 pipeline
 
+## 願景
+一段文字丟進來,字數統計與報表一次算對。
+
 ## 目的
 兩條里程碑:P-001-report 引用 P-002-count 的 = 列;P-002-count 已實作完、測試全綠、frozen,而它在檔名順序上排在引用者後面。
 
@@ -29,5 +32,5 @@ updated: 2026-09-06
 ## Pipelines
 | 全名 | 類別 |
 |---|---|
-| P-001-report | 里程碑 |
-| P-002-count | 里程碑 |
+| P-001-report | IO 介面 |
+| P-002-count | IO 介面 |

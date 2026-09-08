@@ -144,7 +144,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
   }
   for (const [stage, list] of [...byStage].sort()) {
     out.push(`- 階段 ${stage}`);
-    for (const t of list) out.push(`  - ${t.fullName} → \`devflow claim feature <slug>\`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)`);
+    for (const t of list) out.push(`  - ${t.fullName} → \`devflow claim feature <slug>\`(F 與 E 在新樹裡都是 feature;這個階段先 devflow objective add 成一個目標、devflow objective milestone 切里程碑,feature 用 --milestone 綁進去)`);
   }
   out.push('- 一份舊文檔不必然對一份新 feature:同一條使用者路徑上的幾份合成一條,共用的那幾個 step 抽成 abstract。');
 

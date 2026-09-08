@@ -4,6 +4,9 @@ updated: 2026-09-07
 ---
 # go-svc:優先權佇列
 
+## 願景
+工作永遠按優先權出隊,先來的同權工作先出。
+
 ## 目的
 夾具:證明 Go adapter 的簽名(含接收者方法與多回傳值)、匯出、import 與子測試歸屬對得上。
 
@@ -28,6 +31,6 @@ updated: 2026-09-07
 | 佇列深度 | out | `int` | `cmd/main.go` | F-001-queue | trusted | - |
 
 ## Features
-| 全名 | 類別 | 階段 |
-|---|---|---|
-| F-001-queue | feature | S1 |
+| 全名 | 類別 |
+|---|---|
+| F-001-queue | feature |

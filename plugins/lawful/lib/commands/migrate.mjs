@@ -209,7 +209,7 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
   out.push(`來源:${path.relative(root, designDir).split(path.sep).join('/') || '.lawful'} · 文檔 ${docs.length} 份(F ${docs.filter((d) => d.kind === 'F').length}、E ${docs.filter((d) => d.kind === 'E').length}、B ${docs.filter((d) => d.kind === 'B').length}、G-* ${docs.filter((d) => d.kind.startsWith('G-')).length})· ADR ${adrCount} 份原樣搬 · ${source ? `程式碼模組 ${source.modules.size} 個` : '沒有 adapter,簽名未對程式碼'}`);
   out.push('');
 
-  out.push('## 里程碑候選(從開發階段表來;每個階段的垂直切片是一條或多條里程碑 pipeline,切法由人定)');
+  out.push('## 目標與里程碑候選(從開發階段表來;每個階段是一個目標候選、它的里程碑欄是里程碑候選,綁到哪幾條 pipeline 由人定)');
   if (!stages.length) out.push('- system.md 沒有開發階段表');
   else {
     out.push('| 階段 | 里程碑 | 狀態 |', '|---|---|---|');
@@ -270,8 +270,8 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
   const prose = docs.reduce((n, d) => n + d.laws.filter((l) => !l.formal).length, 0);
   const asm = docs.reduce((n, d) => n + d.openAsm, 0);
   out.push('## 人要判的');
-  out.push(`1. 分組:${groups.size} 組要不要合、各叫什麼;哪幾組是同一條里程碑的 stage`);
-  out.push(`2. 里程碑切法:${stages.length} 個階段各切成幾條里程碑 pipeline`);
+  out.push(`1. 分組:${groups.size} 組要不要合、各叫什麼;哪幾組是同一條 IO 介面 pipeline 的 stage`);
+  out.push(`2. 目標與里程碑:${stages.length} 個階段各是不是一個目標(lawful objective add,優先 1 到 4)、它的里程碑綁哪幾條 pipeline`);
   out.push(`3. law 形式化:${prose} 條 law 的觀察點是散文,要改寫成只引用 Stages 簽名與 types 匯出的 \`|-\` 行`);
   out.push(`4. 簽名:${missing.length} 條找不到、${mismatched.length} 條不一致,誰對誰錯`);
   out.push(`5. 待確認假設:${asm} 條還在檔上,決定了寫進「決定」,沒決定的開 GAP`);

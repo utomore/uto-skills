@@ -4,6 +4,9 @@ updated: 2026-09-07
 ---
 # rs-svc:區間合併
 
+## 願景
+任何一組區間都能合併成不重疊的最少區間。
+
 ## 目的
 夾具:證明 Rust adapter 的簽名(含 impl 方法與泛型回傳)、pub 匯出、cfg(test) 的排除與內嵌測試歸屬對得上。
 
@@ -28,6 +31,6 @@ updated: 2026-09-07
 | 區間寬度 | out | `u32` | `src/bin/cli.rs` | F-001-span | trusted | - |
 
 ## Features
-| 全名 | 類別 | 階段 |
-|---|---|---|
-| F-001-span | feature | S1 |
+| 全名 | 類別 |
+|---|---|
+| F-001-span | feature |

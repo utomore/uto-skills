@@ -23,7 +23,14 @@ const CASES = [
   ['shop-status-module', 'shop', ['status', '--module', 'src/domain/**', '--tests', 'test.log']],
   ['shop-section', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', 'Laws']],
   ['shop-section-verify', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', '沒有的節', '--verify']],
-  ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md']],
+  ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--milestone', 'M-2', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md', '.design/objectives.md']],
+  ['shop-claim-feature-no-milestone', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--date', DATE], ['.design/system.md']],
+  ['shop-claim-feature-bad-milestone', 'shop', ['claim', 'feature', 'ship', '--milestone', 'M-9', '--date', DATE]],
+  ['shop-objective-add', 'shop', ['objective', 'add', '退款也算對錢', '--priority', '2', '--criteria', '退款金額等於原訂單可退部分'], ['.design/objectives.md']],
+  ['shop-objective-add-bad-priority', 'shop', ['objective', 'add', '退款也算對錢', '--priority', '7']],
+  ['shop-objective-milestone', 'shop', ['objective', 'milestone', 'O-1', '出貨走通', '--bind', 'F-002-refund'], ['.design/objectives.md']],
+  ['shop-objective-milestone-abstract', 'shop', ['objective', 'milestone', 'O-1', '結算共用', '--bind', 'A-001-settle']],
+  ['shop-objective-milestone-missing', 'shop', ['objective', 'milestone', 'O-1', '出貨走通', '--bind', 'F-009-nope']],
   ['shop-claim-abstract', 'shop', ['claim', 'abstract', 'audit-log', '--description', '共用的稽核紀錄', '--date', DATE], ['.design/abstracts/A-002-audit-log.md']],
   ['shop-claim-spike', 'shop', ['claim', 'spike', 'cbor', '--description', 'CBOR 夠不夠快', '--date', DATE], ['.design/spikes/SPK-001-cbor.md']],
   ['shop-claim-bad-kind', 'shop', ['claim', 'bugfix', 'oops']],
@@ -33,6 +40,7 @@ const CASES = [
   ['blank-status', 'blank', ['status']],
   ['blank-lint-all', 'blank', ['lint', 'all']],
   ['blank-claim', 'blank', ['claim', 'feature', 'login', '--description', '使用者以憑證換取工作階段', '--date', DATE], ['.design/features/F-001-login.md', '.design/system.md']],
+  ['blank-objective-add', 'blank', ['objective', 'add', '使用者登入後看得到自己的東西', '--priority', '1'], ['.design/objectives.md']],
 
   // shaky:每一種紅與警訊各出現一次
   ['shaky-lint-boundary', 'shaky', ['lint', 'boundary']],

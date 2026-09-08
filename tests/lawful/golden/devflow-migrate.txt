@@ -3,7 +3,7 @@ $ lawful migrate from-dev-flow .design --ignore old
 
 來源:.design · 文檔 4 份(F 2、E 1、B 0、G-* 1)· ADR 0 份原樣搬 · 程式碼模組 3 個
 
-## 里程碑候選(從開發階段表來;每個階段的垂直切片是一條或多條里程碑 pipeline,切法由人定)
+## 目標與里程碑候選(從開發階段表來;每個階段是一個目標候選、它的里程碑欄是里程碑候選,綁到哪幾條 pipeline 由人定)
 | 階段 | 里程碑 | 狀態 |
 |---|---|---|
 | S0 骨架 | 真的地圖畫出來,一個角色在上面走 | 已達成 |
@@ -60,8 +60,8 @@ $ lawful migrate from-dev-flow .design --ignore old
 - subsystems/gameplay/enhancements/E001-fast-scan.md:E 的內容寫進對應 pipeline 的 Stages,不另建檔
 
 ## 人要判的
-1. 分組:2 組要不要合、各叫什麼;哪幾組是同一條里程碑的 stage
-2. 里程碑切法:2 個階段各切成幾條里程碑 pipeline
+1. 分組:2 組要不要合、各叫什麼;哪幾組是同一條 IO 介面 pipeline 的 stage
+2. 目標與里程碑:2 個階段各是不是一個目標(lawful objective add,優先 1 到 4)、它的里程碑綁哪幾條 pipeline
 3. law 形式化:3 條 law 的觀察點是散文,要改寫成只引用 Stages 簽名與 types 匯出的 `|-` 行
 4. 簽名:1 條找不到、1 條不一致,誰對誰錯
 5. 待確認假設:1 條還在檔上,決定了寫進「決定」,沒決定的開 GAP

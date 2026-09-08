@@ -4,6 +4,9 @@ updated: 2026-09-07
 ---
 # shaky:每一種紅都示範一次
 
+## 願景
+<一到三句:這個專案做完時世界長什麼樣、替誰改變了什麼。>
+
 ## 目的
 夾具:讓每一道 lint 的紅與 status 的警訊各出現一次。
 
@@ -28,7 +31,7 @@ updated: 2026-09-07
 | POST /score | in | `Raw` | `src/entry/api.ts` | F-001-score | untrusted | - |
 
 ## Features
-| 全名 | 類別 | 階段 |
-|---|---|---|
-| F-001-score | feature | S1 |
-| F-003-missing | feature | S1 |
+| 全名 | 類別 |
+|---|---|
+| F-001-score | feature |
+| F-003-missing | feature |

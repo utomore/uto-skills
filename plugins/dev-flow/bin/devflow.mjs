@@ -8,7 +8,7 @@ import { pickAdapter, adapterNames } from '../lib/adapters/index.mjs';
 import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { loadResults, docDetail, moduleDetail, statusReport } from '../lib/commands/status.mjs';
-import { claim, modulesGen, spikeClose, sync } from '../lib/commands/edit.mjs';
+import { claim, milestoneAdd, modulesGen, objectiveAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
 import { migrate } from '../lib/commands/migrate.mjs';
 
 const HELP = `devflow <子命令> [選項]
@@ -16,8 +16,12 @@ const HELP = `devflow <子命令> [選項]
   status [--tests <log> | --run]       派工報告;law 綠幾條要給測試輸出,或 --run 跑 system.md 的整套指令
   status --doc <F-00x | 全名>          一份文檔的 step 與 law 逐條狀態
   status --module <路徑或 目錄/**>     住在該檔案或目錄的所有 step 的狀態
-  claim feature|abstract|spike|adr <slug> [--description <句>]
-                                       鑄號建檔;feature 另在 system.md Features 表加一列,spike 另建 spike/ 資料夾
+  claim feature|abstract|spike|adr <slug> [--description <句>] [--milestone <M-n>]
+                                       鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑,spike 另建 spike/ 資料夾
+  objective add <一句話> --priority <1-4> [--criteria <句>]
+                                       鑄 O-n 寫進 objectives.md;優先 1 最高、4 最低
+  objective milestone <O-n> <一句話> [--bind <全名,全名>]
+                                       鑄 M-n 加進該目標;綁定的全名要是 features/ 裡有的 feature
   lint boundary | sig | laws | trace | io | all
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與 abstract 的消費者;
                                        laws:三行、種類、識別字、= 列有 law;trace:laws ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、秘密字面值
@@ -130,10 +134,17 @@ function main() {
 
   if (cmd === 'claim') {
     if (!sub || !rest[0]) {
-      console.error('用法:devflow claim feature|abstract|spike|adr <slug> [--description <句>]');
+      console.error('用法:devflow claim feature|abstract|spike|adr <slug> [--description <句>] [--milestone <M-n>]');
       return 1;
     }
-    return emit(claim(design, sub, rest[0], { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined }));
+    return emit(claim(design, sub, rest[0], { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined, milestone: typeof args.flags.milestone === 'string' ? args.flags.milestone : '' }));
+  }
+
+  if (cmd === 'objective') {
+    if (sub === 'add' && rest[0]) return emit(objectiveAdd(design, rest.join(' '), { priority: args.flags.priority, criteria: typeof args.flags.criteria === 'string' ? args.flags.criteria : '' }));
+    if (sub === 'milestone' && rest[0] && rest[1]) return emit(milestoneAdd(design, rest[0], rest.slice(1).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
+    console.error('用法:devflow objective add <一句話> --priority <1-4> [--criteria <句>]\n      devflow objective milestone <O-n> <一句話> [--bind <全名,全名>]');
+    return 1;
   }
 
   if (cmd === 'sync') return emit(sync(design, source, { date: args.flags.date || undefined }));

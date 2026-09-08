@@ -1,0 +1,3 @@
+$ devflow claim feature ship --milestone M-9 --date 2026-09-07
+objectives.md 沒有 M-9 這條里程碑;先 devflow objective milestone <O-n> <一句話>
+exit 1

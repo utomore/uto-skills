@@ -2,8 +2,11 @@ $ devflow status
 · system.md 的 language 還是模板(<typescript | javascript | python | go | rust>),填成 typescript / javascript / python / go / rust 其中一個
 
 # devflow status
-feature 0 份,達成 0 份 · abstract 0 份 · 文檔共 0 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+目標 0 個,達成 0 個 · 里程碑 0 條,達成 0 條 · feature 0 份,達成 0 份 · abstract 0 份 · 文檔共 0 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
+
+## 目標
+- 沒有任何目標;dev-flow:objective 訂第一個
 
 ## 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 還是骨架 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -28,8 +31,11 @@ feature 0 份,達成 0 份 · abstract 0 份 · 文檔共 0 份,達成 0 份 · 
 - 無(還沒有任何 REV)
 
 ## 7. 警訊
-- 無
+| 哪裡 | 什麼事 | 怎麼辦 |
+|---|---|---|
+| system.md | 願景還是模板 | dev-flow:project 訂願景 |
+| .design/ | 沒有任何目標 | dev-flow:objective 訂第一個目標(至少一個) |
 
 ## 8. 建議路線
-- 還沒有任何文檔;devflow claim feature <slug> 建第一份
+- 還沒有任何文檔;先 dev-flow:objective 訂目標與里程碑,再 devflow claim feature <slug> --milestone <M-n>
 exit 1

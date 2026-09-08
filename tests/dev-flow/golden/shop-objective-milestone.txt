@@ -1,0 +1,16 @@
+$ devflow objective milestone O-1 出貨走通 --bind F-002-refund
+M-3 寫進 O-1,綁定 F-002-refund
+exit 0
+--- .design/objectives.md
+# 目標
+
+## O-1:每一筆結帳與退款的金額都算對
+- 優先:1
+- 判準:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 結帳走通 | F-001-checkout |
+| M-2 | 退款走通 | F-002-refund |
+| M-3 | 出貨走通 | F-002-refund |
+

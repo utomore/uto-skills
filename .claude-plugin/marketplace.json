@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "dev-flow",
-      "description": "一般程式語言專案的 spec 驅動開發,不限語言。文檔單位是 feature:一段從對外邊界進出的資料流,直接掛在 system.md 底下,沒有子系統這一層;step 是住在程式碼裡的正規式簽名 name(T1, T2): R,laws 是純 ASCII 三行、由 property test 承接,given 的呼叫先發生所以命令式的時序也寫得出來。feature 之間長出來的共同部分由 refactor 收整成 abstract,被動到的每一份記一條 REV;層由專案自己宣告、由內而外,對外 I/O 表帶信任與驗證兩欄。建構期由 conductor 帶 qa 與 impl 兩個互不可見的角色;進度不是欄位,由 CLI 從程式碼與測試推導。skills:project、feature、refactor、build、qa、impl、revise、status、audit、spike、branch-pr、study;adapter 有 TypeScript / JavaScript、Python、Go、Rust",
+      "description": "一般程式語言專案的 spec 驅動開發,不限語言。文檔單位是 feature:一段從對外邊界進出的資料流,直接掛在 system.md 底下,沒有子系統這一層;step 是住在程式碼裡的正規式簽名 name(T1, T2): R,laws 是純 ASCII 三行、由 property test 承接,given 的呼叫先發生所以命令式的時序也寫得出來。feature 之間長出來的共同部分由 refactor 收整成 abstract,被動到的每一份記一條 REV;層由專案自己宣告、由內而外,對外 I/O 表帶信任與驗證兩欄。feature 之上是願景、目標(優先 1 到 4)與綁定 feature 的里程碑,完成度與建議路線由 CLI 從綁定推。建構期由 conductor 帶 qa 與 impl 兩個互不可見的角色;進度不是欄位,由 CLI 從程式碼與測試推導。skills:project、objective、feature、refactor、build、qa、impl、revise、status、audit、spike、branch-pr、study;adapter 有 TypeScript / JavaScript、Python、Go、Rust",
       "author": {
         "name": "utomore"
       },
@@ -15,7 +15,7 @@
     },
     {
       "name": "lawful",
-      "description": "純函數式專案(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 pipeline(input → 純轉換 → output),stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 types / effects / pure / shell 四層;進度由 CLI 從程式碼與測試推導。skills:design、pipeline、build(conductor 帶 qa 與 impl)、qa、impl、revise、status、audit、spike;CLI:status、claim、lint boundary / sig / laws / trace / io、sync、modules --gen、section、spike close;Haskell adapter",
+      "description": "純函數式專案(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 pipeline(input → 純轉換 → output),兩端碰 shell 的是 IO 介面、只在純核心裡的是子流;stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 types / effects / pure / shell 四層。pipeline 之上是願景、目標(優先 1 到 4)與綁定 pipeline 的里程碑,完成度與建議路線由 CLI 從綁定推;進度由 CLI 從程式碼與測試推導。skills:design、objective、pipeline、build(conductor 帶 qa 與 impl)、qa、impl、revise、status、audit、spike;CLI:status、claim、objective add / milestone、lint boundary / sig / laws / trace / io、sync、modules --gen、section、spike close;Haskell adapter",
       "author": {
         "name": "utomore"
       },

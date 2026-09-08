@@ -1,6 +1,6 @@
 $ devflow lint io
 ## lint io:3 條不合規
-- ✗ .design/system.md:28 POST /score 是 untrusted 的入口,驗證欄要指名做驗證的 step
+- ✗ .design/system.md:31 POST /score 是 untrusted 的入口,驗證欄要指名做驗證的 step
 - ✗ .design/system.md feature F-002-other 沒有任何對外 I/O 列;feature 的兩端都要對得到這張表
 - ✗ .design/features/F-001-score.md:33 F-001-score 的 EX-1 字面值出現「api_key」;秘密不進文檔,example 用假名或型別描述
 - · src/entry/debug.ts 在最外層而且 import 了 node:fs,但不在對外 I/O 表;可能是沒登記的出入口

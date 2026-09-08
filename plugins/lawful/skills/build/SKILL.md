@@ -1,6 +1,6 @@
 ---
 name: build
-description: lawful 的建構指揮(conductor)— 對一條 ready 的 pipeline:把 Stages 寫成骨架、先派 qa 拿測試在骨架上跑基線、再派 impl、跑子集、仲裁四分流、全綠後跑整套一次、寫 GAP、里程碑達成改 frozen;不寫測試、不寫實作、不補 law。觸發詞:build、建構、開工、實作這條 pipeline、lawful build、委派。Use when a ready pipeline should be turned into tests and code by delegated qa and impl roles.
+description: lawful 的建構指揮(conductor)— 對一條 ready 的 pipeline:把 Stages 寫成骨架、先派 qa 拿測試在骨架上跑基線、再派 impl、跑子集、仲裁四分流、全綠後跑整套一次、寫 GAP、達成改 frozen;不寫測試、不寫實作、不補 law。觸發詞:build、建構、開工、實作這條 pipeline、lawful build、委派。Use when a ready pipeline should be turned into tests and code by delegated qa and impl roles.
 user-invocable: true
 ---
 
@@ -22,7 +22,7 @@ user-invocable: true
 4. **派 impl**(`lawful:impl`,委派模式):給全名、pipeline 檔路徑、骨架檔路徑、子集指令;不給測試檔。
 5. **判定**:跑本波子集。有紅走仲裁(`roles.md`「仲裁」):每條紅先歸因到哪條 law 或 example,再照四分流處置;每輪只跑上一輪紅的加子集;同一 pipeline 三輪仍紅停止並升級。
 6. **整套一次**:本波全綠後跑整套,輸出留檔,`lawful status --tests <log>`。
-7. **收尾**(`roles.md`「收尾」):open GAP 清單各附「需要回答什麼」;qa 與 impl 自己決定的事整份列出;`status` 顯示里程碑達成就改 `frozen`。
+7. **收尾**(`roles.md`「收尾」):open GAP 清單各附「需要回答什麼」;qa 與 impl 自己決定的事整份列出;`status` 顯示達成就改 `frozen`。
 
 ## 委派 prompt 模板
 

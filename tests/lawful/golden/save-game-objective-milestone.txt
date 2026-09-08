@@ -1,0 +1,15 @@
+$ lawful objective milestone O-1 讀檔還原世界 --bind P-001-save-game
+M-2 寫進 O-1,綁定 P-001-save-game
+exit 0
+--- .lawful/objectives.md
+# 目標
+
+## O-1:玩家存檔後能讀回同一個世界
+- 優先:1
+- 判準:任一 World 存檔再讀回,可存檔的投影一模一樣
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 存檔寫得出檔案 | P-001-save-game |
+| M-2 | 讀檔還原世界 | P-001-save-game |
+

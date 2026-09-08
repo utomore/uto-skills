@@ -7,7 +7,7 @@ updated: <YYYY-MM-DD>
 # P-00x-<slug>:<同 description>
 
 ## Brief
-<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是里程碑。>
+<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是 IO 介面。>
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |

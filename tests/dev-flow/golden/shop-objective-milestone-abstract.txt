@@ -1,0 +1,3 @@
+$ devflow objective milestone O-1 結算共用 --bind A-001-settle
+A-001-settle 是 abstract;里程碑綁 feature,abstract 跟著引用它的 feature 達成
+exit 1

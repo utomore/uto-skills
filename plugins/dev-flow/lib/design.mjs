@@ -1,4 +1,4 @@
-// 讀 .design/ 成一棵樹:system、modules、features、abstracts、gaps、spikes。只讀不判;判在 commands/。
+// 讀 .design/ 成一棵樹:system(含願景)、objectives(目標與里程碑)、modules、features、abstracts、gaps、spikes。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks } from './markdown.mjs';
@@ -164,14 +164,21 @@ export function readSystem(designDir, root) {
     const t = parseTable(fl.lines);
     if (t) for (const r of t.rows) {
       const fullName = stripTicks(r[0] || '');
-      if (fullName && !hasPlaceholder(fullName)) listed.push({ fullName, kind: (r[1] || '').trim(), stage: (r[2] || '').trim() });
+      if (fullName && !hasPlaceholder(fullName)) listed.push({ fullName, kind: (r[1] || '').trim() });
     }
   }
+
+  // 願景:整節的文字;沒有這一節是 missing,還留著 <…> 是 template
+  const visionSec = findSection(secs, '願景');
+  const vision = visionSec ? visionSec.lines.map((l) => l.trim()).filter(Boolean).join(' ') : '';
+  const visionState = !visionSec ? 'missing' : !vision || hasPlaceholder(vision) ? 'template' : 'ok';
 
   return {
     file: rel(root, file),
     fm,
     language: fm.language || null,
+    vision,
+    visionState,
     commands,
     ioExtra,
     vocab,
@@ -182,6 +189,50 @@ export function readSystem(designDir, root) {
     listed,
     sections: secs,
   };
+}
+
+// 目標:objectives.md 每個 ## O-n:<一句話> 一個目標;優先與判準是清單項,里程碑是節裡的表(里程碑 | 做到什麼 | 綁定)。
+// 綁定欄是文檔全名,「、」分隔;綁定是里程碑對到文檔的唯一寫法,完成度從綁定的文檔推。
+export function readObjectives(designDir, root) {
+  const file = path.join(designDir, 'objectives.md');
+  const text = read(file);
+  if (text == null) return { file: rel(root, file), exists: false, objectives: [] };
+  const { body } = parseFrontmatter(text);
+  const secs = sections(body);
+  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+  const objectives = [];
+  for (const s of secs) {
+    if (s.level !== 2) continue;
+    const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+    if (!m) continue;
+    const items = parseList(s.lines);
+    const field = (k) => {
+      const it = items.find((i) => new RegExp(`^${k}[::]`).test(i.text));
+      return it ? it.text.replace(/^[^::]*[::]\s*/, '').trim() : '';
+    };
+    const priorityRaw = field('優先');
+    const criteria = field('判準');
+    const t = parseTable(s.lines);
+    const milestones = [];
+    if (t) t.rows.forEach((r, i) => {
+      const id = (r[0] || '').trim();
+      if (!id || hasPlaceholder(id)) return;
+      const title = (r[1] || '').trim();
+      const binds = (r[2] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && x !== '-' && !hasPlaceholder(x));
+      milestones.push({ id, title, binds, line: s.start + offset + t.rowLines[i] + 2, placeholder: hasPlaceholder(title) });
+    });
+    objectives.push({
+      id: m[1],
+      title: m[2].trim(),
+      priority: /^[1-4]$/.test(priorityRaw) ? Number(priorityRaw) : null,
+      priorityRaw,
+      criteria: hasPlaceholder(criteria) ? '' : criteria,
+      milestones,
+      line: s.start + offset + 1,
+      placeholder: hasPlaceholder(m[2]),
+    });
+  }
+  return { file: rel(root, file), exists: true, objectives };
 }
 
 // 模組表:[{ pattern, layer, line }];pattern 是相對路徑,可用 ** 結尾通配。
@@ -394,6 +445,7 @@ export function readDesign(root) {
     featuresDir,
     abstractsDir,
     system: readSystem(designDir, root),
+    objectives: readObjectives(designDir, root),
     modules: readModules(designDir, root),
     features,
     abstracts,

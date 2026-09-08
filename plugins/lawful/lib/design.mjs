@@ -1,4 +1,4 @@
-// 讀 .lawful/ 成一棵樹:system、modules、pipelines、gaps。只讀不判;判在 commands/。
+// 讀 .lawful/ 成一棵樹:system(含願景)、objectives(目標與里程碑)、modules、pipelines、gaps、spikes。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks } from './markdown.mjs';
@@ -11,6 +11,8 @@ function codeSpan(s) {
 
 // 模板的佔位符:整格是 <…>。claim 建出來還沒寫的列不算 stage / law / example,另計成「還是模板」。
 const isPlaceholder = (s) => /^<[^>]*>?$/.test((s || '').trim());
+// 願景、目標、里程碑的文字裡永遠不會有角括號,所以出現 <…> 就是還沒填。
+const hasPlaceholder = (s) => /<[^>]*>/.test(s || '');
 
 export const LAYERS = ['types', 'effects', 'pure', 'shell'];
 export const ALLOWED_IMPORTS = {
@@ -68,7 +70,55 @@ export function readSystem(lawfulDir, root) {
     const t = parseTable(pl.lines);
     if (t) for (const r of t.rows) pipelines.push({ fullName: stripTicks(r[0] || ''), kind: (r[1] || '').trim() });
   }
-  return { file: rel(root, file), fm, language: fm.language || null, ioExtra, effectExtra, ignoreDirs, commands, io, pipelines, sections: secs };
+  // 願景:整節的文字;沒有這一節是 missing,還留著 <…> 是 template
+  const visionSec = findSection(secs, '願景');
+  const vision = visionSec ? visionSec.lines.map((l) => l.trim()).filter(Boolean).join(' ') : '';
+  const visionState = !visionSec ? 'missing' : !vision || hasPlaceholder(vision) ? 'template' : 'ok';
+  return { file: rel(root, file), fm, language: fm.language || null, vision, visionState, ioExtra, effectExtra, ignoreDirs, commands, io, pipelines, sections: secs };
+}
+
+// 目標:objectives.md 每個 ## O-n:<一句話> 一個目標;優先與判準是清單項,里程碑是節裡的表(里程碑 | 做到什麼 | 綁定)。
+// 綁定欄是 pipeline 全名,「、」分隔;綁定是里程碑對到 pipeline 的唯一寫法,完成度從綁定的 pipeline 推。
+export function readObjectives(lawfulDir, root) {
+  const file = path.join(lawfulDir, 'objectives.md');
+  const text = read(file);
+  if (text == null) return { file: rel(root, file), exists: false, objectives: [] };
+  const { body } = parseFrontmatter(text);
+  const secs = sections(body);
+  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+  const objectives = [];
+  for (const s of secs) {
+    if (s.level !== 2) continue;
+    const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+    if (!m) continue;
+    const items = parseList(s.lines);
+    const field = (k) => {
+      const it = items.find((i) => new RegExp(`^${k}[::]`).test(i.text));
+      return it ? it.text.replace(/^[^::]*[::]\s*/, '').trim() : '';
+    };
+    const priorityRaw = field('優先');
+    const criteria = field('判準');
+    const t = parseTable(s.lines);
+    const milestones = [];
+    if (t) t.rows.forEach((r, i) => {
+      const id = (r[0] || '').trim();
+      if (!id || hasPlaceholder(id)) return;
+      const title = (r[1] || '').trim();
+      const binds = (r[2] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && x !== '-' && !hasPlaceholder(x));
+      milestones.push({ id, title, binds, line: s.start + offset + t.rowLines[i] + 2, placeholder: hasPlaceholder(title) });
+    });
+    objectives.push({
+      id: m[1],
+      title: m[2].trim(),
+      priority: /^[1-4]$/.test(priorityRaw) ? Number(priorityRaw) : null,
+      priorityRaw,
+      criteria: hasPlaceholder(criteria) ? '' : criteria,
+      milestones,
+      line: s.start + offset + 1,
+      placeholder: hasPlaceholder(m[2]),
+    });
+  }
+  return { file: rel(root, file), exists: true, objectives };
 }
 
 // 模組表:[{ pattern, layer, line }];pattern 可能以 .* 結尾。
@@ -272,6 +322,7 @@ export function readDesign(root) {
     lawfulDir,
     pipelinesDir,
     system: readSystem(lawfulDir, root),
+    objectives: readObjectives(lawfulDir, root),
     modules: readModules(lawfulDir, root),
     pipelines: files.map((f) => readPipeline(path.join(pipelinesDir, f), root)),
     gaps: readGaps(lawfulDir, root),

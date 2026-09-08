@@ -1,0 +1,3 @@
+$ devflow objective add 退款也算對錢 --priority 7
+--priority 要是 1 到 4,1 最高
+exit 1

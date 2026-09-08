@@ -20,12 +20,12 @@ $ devflow migrate .design
 
 ## 3. 建議的新樹
 - 階段 (沒有階段)
-  - auth/E001-remember-device → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)
+  - auth/E001-remember-device → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;這個階段先 devflow objective add 成一個目標、devflow objective milestone 切里程碑,feature 用 --milestone 綁進去)
 - 階段 S1
-  - auth/F001-token-refresh → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)
+  - auth/F001-token-refresh → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;這個階段先 devflow objective add 成一個目標、devflow objective milestone 切里程碑,feature 用 --milestone 綁進去)
 - 階段 S2
-  - billing/F001-charge → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)
-  - global/G-F001-checkout → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;不擋交付的寫進 Features 表的階段欄)
+  - billing/F001-charge → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;這個階段先 devflow objective add 成一個目標、devflow objective milestone 切里程碑,feature 用 --milestone 綁進去)
+  - global/G-F001-checkout → `devflow claim feature <slug>`(F 與 E 在新樹裡都是 feature;這個階段先 devflow objective add 成一個目標、devflow objective milestone 切里程碑,feature 用 --milestone 綁進去)
 - 一份舊文檔不必然對一份新 feature:同一條使用者路徑上的幾份合成一條,共用的那幾個 step 抽成 abstract。
 
 ## 4. law 草稿

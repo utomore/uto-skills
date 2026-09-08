@@ -1,14 +1,14 @@
 ---
 name: audit
-description: dev-flow 的稽核 — 三段:對帳(devflow lint all 與 status 的機械紅逐條分類成文檔錯還是程式碼錯)、穩定度(修訂熱點、改動半徑、收整沒成立的 abstract、卡住多久)、安全度(對外 I/O 的信任與驗證、秘密字面值、沒登記的出入口、內層碰 IO);產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、架構檢測、檢查文檔、對帳、專案健檢、穩定度、安全檢查、文檔與程式碼對不上。Use when checking that .design and the code still agree, and how stable and how safe the project currently is.
+description: dev-flow 的稽核 — 四段:對帳(devflow lint all 與 status 的機械紅逐條分類成文檔錯還是程式碼錯)、目標貼合度(每個目標服務願景的哪一句、工作是不是集中在最高優先目標、有沒有 feature 不朝向任何目標)、穩定度(修訂熱點、改動半徑、收整沒成立的 abstract、卡住多久)、安全度(對外 I/O 的信任與驗證、秘密字面值、沒登記的出入口、內層碰 IO);產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、架構檢測、檢查文檔、對帳、專案健檢、目標貼合、穩定度、安全檢查、文檔與程式碼對不上。Use when checking that .design and the code still agree, that the work still heads toward the vision and objectives, and how stable and how safe the project currently is.
 user-invocable: true
 ---
 
-# dev-flow:audit — 對帳、穩定度、安全度
+# dev-flow:audit — 對帳、目標貼合度、穩定度、安全度
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/tooling.md`「CLI」「status 報告」、`rules/boundary.md` 全份、`rules/features.md`「節」「什麼要有 law」「完成度」「收整(refactor)」。
+`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/tooling.md`「CLI」「status 報告」、`rules/boundary.md` 全份、`rules/features.md`「願景、目標與里程碑」「節」「什麼要有 law」「完成度」「收整(refactor)」。
 
 ## 步驟
 
@@ -28,7 +28,18 @@ user-invocable: true
 
 `sync` 與 `modules --gen` 是你可以直接做的兩個機械動作,其餘一律回報。
 
-### 2. 穩定度(哪裡還沒收斂)
+### 2. 目標貼合度(我們還在朝向願景嗎)
+
+從 `status` 開頭的願景行與目標表讀,四題:
+
+1. **每個目標服務願景的哪一句**:逐個目標寫出來;寫不出來的是分歧,列成提議「改目標或改願景,由開發者決定」。
+2. **工作集中在哪個優先**:進行中與最近 REV 的文檔各綁在哪個目標;比最高優先目標的里程碑先做了低優先的,寫明是哪幾份。
+3. **誰不朝向任何目標**:沒被任何里程碑綁定的 feature、沒有里程碑的目標、綁到不存在的檔或 abstract 的里程碑(`status` 的警訊)。
+4. **完成度說的是實話嗎**:每條達成的里程碑,它綁定的 feature 是不是真的涵蓋「做到什麼」那一句;綁得太少的里程碑完成度是假的。
+
+三句話回答「最高優先的目標離達成還差什麼、有沒有東西在往別的方向走、願景與目標有沒有分歧」。
+
+### 3. 穩定度(哪裡還沒收斂)
 
 從 `status` 第 6 段與各文檔的 `## 修訂記錄` 讀,四題:
 
@@ -39,7 +50,7 @@ user-invocable: true
 
 三句話回答「現在最不穩的是哪裡、為什麼、要動什麼」。
 
-### 3. 安全度(這個專案自己的事實,不是通用清單)
+### 4. 安全度(這個專案自己的事實,不是通用清單)
 
 `devflow lint io` 已經擋掉三條機械的(untrusted 入口沒有驗證 step、文檔裡的秘密字面值、最外層沒登記的出入口)。剩下四題人判:
 
@@ -48,13 +59,13 @@ user-invocable: true
 3. **對外 I/O 表有沒有漏列真實的出入口**:拿 `lint io` 的 info(最外層 import 了 IO 模組卻沒登記)逐條開檔確認;確實是出入口就補一列,不是就說明為什麼。
 4. **信任欄標對了沒**:內容由系統外面決定的一律 `untrusted`——包含第三方 API 的回應、讀進來的檔案、環境變數,不是只有使用者輸入。標成 `trusted` 的逐條問「這個內容真的是我們自己產生的嗎」。
 
-### 4. 人判 laws
+### 5. 人判 laws
 
 每條 law 先過「什麼要有 law」的兩問,自由度為一的提議刪;再拿種類表逐種對:該有 invariant 的有沒有、roundtrip 有沒有說哪些欄位不算、bound 有沒有數字、會爆的輸入有沒有 total、`given` 的測試有沒有宣告覆蓋率。缺的寫成提議,**不直接加**。
 
-### 5. 報告
+### 6. 報告
 
-一張表:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`dev-flow:revise F-00x-<slug>`、`dev-flow:refactor`、`devflow sync`)。每列先答 `tooling.md`「收尾定錨」下一步的四題:答得出必要性(不做它哪條功能無法正常運作)的列成「必要」,答不出的列成「提議」,兩段分開;架構級的列要寫出現在的架構解決不了的那個具體問題。前面加三句話的結論:對帳幾條紅、最不穩的是哪裡、安全上最值得動的是哪一條。必要段是空的,結論第一句明寫「目前功能全部正常運作,可以加新功能」。
+一張表:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`dev-flow:revise F-00x-<slug>`、`dev-flow:refactor`、`dev-flow:objective`、`devflow sync`)。每列先答 `tooling.md`「收尾定錨」下一步的四題:答得出必要性(不做它哪個目標的哪條里程碑、哪條功能無法正常運作)的列成「必要」,答不出的列成「提議」,兩段分開;架構級的列要寫出現在的架構解決不了的那個具體問題。前面加四句話的結論:對帳幾條紅、最高優先的目標差什麼、最不穩的是哪裡、安全上最值得動的是哪一條。必要段是空的,結論第一句明寫「目前功能全部正常運作,可以加新功能」。
 
 ## 收尾
 
@@ -62,4 +73,4 @@ user-invocable: true
 
 ## 邊界
 
-只有 `sync` 與 `modules --gen` 可以直接做;契約(簽名、law、層、對外 I/O)一律走 `dev-flow:revise` 或 `dev-flow:refactor`;不寫測試、不寫實作、不自己補 law。
+只有 `sync` 與 `modules --gen` 可以直接做;契約(簽名、law、層、對外 I/O)一律走 `dev-flow:revise` 或 `dev-flow:refactor`,願景、目標與里程碑一律走 `dev-flow:objective`;不寫測試、不寫實作、不自己補 law。

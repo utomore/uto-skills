@@ -32,5 +32,5 @@ feature 1 份,達成 1 份 · abstract 0 份 · 文檔共 1 份,達成 1 份 · 
 | F-001-queue | 已達成 | build 收尾改 frozen |
 
 ## 8. 建議路線
-- 全部達成或 frozen;下一份用 devflow claim
+- 目前功能全部正常運作(每份文檔達成、測試全綠、沒有 open GAP);警訊還有 1 條,照第 7 段的怎麼辦欄清,清完加新功能
 exit 0

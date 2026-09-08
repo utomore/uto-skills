@@ -31,5 +31,5 @@ feature 0 份,達成 0 份 · abstract 0 份 · 文檔共 0 份,達成 0 份 · 
 - 無
 
 ## 8. 建議路線
-- 全部達成或 frozen;下一份用 devflow claim
+- 還沒有任何文檔;devflow claim feature <slug> 建第一份
 exit 1

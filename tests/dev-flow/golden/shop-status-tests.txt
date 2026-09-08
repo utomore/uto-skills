@@ -35,5 +35,5 @@ feature 2 份,達成 2 份 · abstract 1 份 · 文檔共 3 份,達成 3 份 · 
 - 無
 
 ## 8. 建議路線
-- 全部達成或 frozen;下一份用 devflow claim
+- 目前功能全部正常運作:每份文檔達成、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:devflow claim feature <slug>
 exit 0

@@ -228,9 +228,16 @@ export function statusReport(design, source, adapter, results, resultNote) {
   order.forEach((x, i) => out.push(`${(a.openGaps.length ? 2 : 1) + i}. lawful:build ${x.p.fullName}`));
   const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
   if (drafts.length) out.push(`${(a.openGaps.length ? 2 : 1) + order.length}. ${drafts.map((x) => x.p.fullName).join('、')} 討論完改 ready`);
-  if (!a.openGaps.length && !order.length && !drafts.length) out.push('- 全部達成或 frozen;下一條 pipeline 用 lawful claim');
-
   const allDone = [...a.info.values()].every((x) => x.achieved) && !a.openGaps.length;
+  if (!a.openGaps.length && !order.length && !drafts.length) {
+    const notDone = [...a.info.values()].filter((x) => !x.achieved);
+    if (!a.info.size) out.push('- 還沒有任何 pipeline;lawful claim <slug> 建第一條');
+    else if (allDone && !warns.length) out.push('- 目前功能全部正常運作:每條 pipeline 達成、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:lawful claim <slug>');
+    else if (allDone) out.push(`- 目前功能全部正常運作(每條 pipeline 達成、測試全綠、沒有 open GAP);警訊還有 ${warns.length} 條,照第 6 段的怎麼辦欄清,清完加新功能`);
+    else if (notDone.some((x) => x.unknown || x.laws.some((l) => l.result === '未跑'))) out.push(`- 沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常`);
+    else out.push(`- 沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 還沒達成:lawful status --pipeline <全名> 看哪一列還不在;不加新功能`);
+  }
+
   return { text: out.join('\n'), exitCode: allDone && a.info.size ? 0 : 1 };
 }
 

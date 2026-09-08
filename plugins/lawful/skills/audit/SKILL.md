@@ -16,7 +16,7 @@ user-invocable: true
 2. **分類每條紅**:簽名不一致看兩邊誰對,文檔錯走 `lawful:revise`、程式碼錯列給 impl;同層搬家直接 `lawful sync`;未登記模組 `lawful modules --gen` 再請開發者填層;沒匯出的 stage、沒有匯出清單的模組列給 impl;跨層 import、pure 碰效果型別、production import `*.Internal`、`=` 列在 shell、對外 I/O 對不上里程碑,列為結構問題。
 3. **人判 laws**:每條 law 先過「什麼要有 law」的兩問,自由度為一的提議刪;再拿種類問法表(`pipelines.md`「節」的 Laws 表)逐種對:該有 invariant 的有沒有、roundtrip 有沒有說哪些欄位不算、bound 有沒有數字、會爆的輸入有沒有 total、手寫的 instance 有沒有 class 法則、`given` 的測試有沒有宣告覆蓋率。缺的寫成提議,不直接加。
 4. **人判邊界**:對外 I/O 表有沒有漏列真實的入口與出口;每個效果描述有沒有純解譯器,里程碑 `=` 列的 law 是不是拿它寫的;有沒有 test-only export。
-5. **報告一張表**:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`lawful:revise P-00x-<slug>`、`lawful sync`)。
+5. **報告一張表**:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`lawful:revise P-00x-<slug>`、`lawful sync`)。每列先答 `tooling.md`「收尾定錨」下一步的四題:答得出必要性(不做它哪條里程碑無法正常運作)的列成「必要」,答不出的列成「提議」,兩段分開;架構級的列要寫出現在的架構解決不了的那個具體問題。必要段是空的,結論第一句明寫「目前功能全部正常運作,可以加新功能」。
 
 ## 收尾
 

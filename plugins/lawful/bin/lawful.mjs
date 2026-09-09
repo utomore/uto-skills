@@ -7,13 +7,13 @@ import { readSource } from '../lib/source.mjs';
 import { pickAdapter, adapterNames } from '../lib/adapters/index.mjs';
 import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
-import { loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
+import { buildingBranches, loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
 import { claim, milestoneAdd, modulesGen, objectiveAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
 import { migrateFromDevFlow } from '../lib/commands/migrate.mjs';
 
 const HELP = `lawful <子命令> [選項]
 
-  status [--tests <log> | --run]       派工報告;laws 綠幾條要給測試輸出,或 --run 跑 system.md 的整套指令
+  status [--tests <log> | --run]       派工報告;laws 綠幾條要給測試輸出,或 --run 跑 system.md 的整套指令;有 .git 時把已有 build/<全名> 分支的線列成建構中
   status --pipeline <P-00x | 全名>     一條 pipeline 的 stage 與 law 逐條狀態
   status --module <模組>               住在該模組的所有 stage 的狀態
   claim <slug> [--description <句>] [--milestone <M-n>]
@@ -129,7 +129,7 @@ function main() {
     const note = testsFlag ? rawNote.replace(testsFlag, args.flags.tests) : rawNote;
     if (args.flags.pipeline) return emit(pipelineDetail(design, source, adapter, results, note, args.flags.pipeline));
     if (args.flags.module) return emit(moduleDetail(design, source, adapter, results, note, args.flags.module));
-    return emit(statusReport(design, source, adapter, results, note));
+    return emit(statusReport(design, source, adapter, results, note, buildingBranches(root)));
   }
 
   if (cmd === 'claim') {

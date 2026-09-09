@@ -40,12 +40,12 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 
 然後七段:
 
-1. 今天能開幾條線:`ready`、沒 open GAP、引用的子流沒卡的 pipeline;每條附它綁在哪個目標與里程碑,照目標優先排
-2. 卡住的:停在 GAP 的 stage、等重派、等子流
+1. 今天能開幾條線:`ready`、沒 open GAP、引用的子流全部達成的 pipeline;每條附它綁在哪個目標與里程碑,照目標優先排。專案根目錄有 `.git` 時查分支:已有 `build/<全名>` 分支的列成建構中,不算能開。兩條能開的線的 stage 住同一個模組,附一行提示:同時開,整合時那個模組的檔會兩邊都動
+2. 卡住的:停在 GAP 的 stage、等重派、等子流(子流還是 `draft`、卡 GAP、建構中、或還沒建)
 3. 等決定:open 的 GAP、open 的 spike、`draft` 的 pipeline
 4. 牽動誰:誰引用了這條的簽名
 5. 待實作:按模組列願望 stage、找不到的 stage、本體還是骨架的 stage
-6. 警訊:願景還是模板、沒有任何目標、優先不在 1 到 4、目標沒有判準或沒有里程碑、里程碑沒有綁定或綁到不存在的 pipeline、里程碑編號重複、pipeline 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致、還是模板(claim 建出來的檔還留著 `<…>` 佔位符的 Stages / Laws / Examples 列;這些列不算 stage、law、example,不進任何數字)
+6. 警訊:願景還是模板、沒有任何目標、優先不在 1 到 4、目標沒有判準或沒有里程碑、里程碑沒有綁定或綁到不存在的 pipeline、里程碑編號重複、pipeline 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、還是模板(claim 建出來的檔還留著 `<…>` 佔位符的 Stages / Laws / Examples 列;這些列不算 stage、law、example,不進任何數字)
 7. 建議路線:先回答 GAP、再 build 能開的線(照目標優先、里程碑順序排,每條附目標與里程碑)、`draft` 討論完改 `ready`。沒有可派的線時分兩種:全部達成寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾條沒達成、缺什麼輸入,不催加新功能
 
 分母是 `system.md`「Pipelines」表的 pipeline 數與其中 IO 介面的條數,以及 `objectives.md` 的目標數與里程碑數。

@@ -1,28 +1,30 @@
 $ lawful status
 # lawful status
 願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 還沒實作的 stage 9 個 · 還開著的 GAP 1 條
+目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
 · 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
 
 ## 目標
 | 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|
 | O-1 | 1 | 玩家存檔後能讀回同一個世界 | 2 | 0 | 0% |
-- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-save-game 卡 GAP-1)
+- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-save-game 卡 GAP-1、GAP-1)
 
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|
-| P-001-save-game | ready | 11 | 7 | 5 | 7 | nan/2 | 卡 GAP-1 |
+| P-001-save-game | ready | 11 | 7 | 5 | 7 | nan/2 | 卡 GAP-1、GAP-1 |
 
 ## 1. 今天能開幾條線
 - 無
 
 ## 2. 卡住的
 - P-001#LAW-1 停在 GAP-1(qa 提)
+- P-001#toSave 停在 GAP-1(impl 提)
 
 ## 3. 等決定
 - GAP-1(P-001#LAW-1 / qa):lawful:revise
+- GAP-1(P-001#toSave / impl):lawful:revise
 - SPK-002-zstd 還 open
 
 ## 4. 牽動誰
@@ -42,9 +44,10 @@ $ lawful status
 | M-2 | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
 | P-001-save-game#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
 | P-001-save-game#toSave | 程式碼在 Save.Codec | lawful sync |
+| GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
 | 模組表 | lint boundary 7 條不合規 | lawful lint boundary |
 
 ## 7. 建議路線
-1. 先回答 GAP-1(lawful:revise),卡住的 stage 才能重派
+1. 先回答 GAP-1、GAP-1(lawful:revise),卡住的 stage 才能重派
 2. lawful:build P-001-save-game(O-1 優先 1 · M-1 存檔寫得出檔案)
 exit 1

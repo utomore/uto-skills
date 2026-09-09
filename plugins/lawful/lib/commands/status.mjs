@@ -1,6 +1,7 @@
 // status:派工報告。全部從 .lawful、程式碼與測試輸出推。
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
+import path from 'node:path';
 import { matchModule, matchesPattern, STATUSES } from '../design.mjs';
 import { findSignature } from '../source.mjs';
 import { lintBoundary, lintSig } from './lint.mjs';
@@ -81,6 +82,17 @@ export function analyze(design, source, adapter, results) {
   return { info, byName, byId, openGaps, markers, unmarked };
 }
 
+// 建構中的 pipeline = 有 build/<全名> 分支。只在專案根目錄有 .git 時問 git;沒有(夾具、匯出的樹)就一條都不算,報告不受環境影響。
+export function buildingBranches(root) {
+  if (!root || !fs.existsSync(path.join(root, '.git'))) return new Set();
+  try {
+    const out = execSync('git branch --list "build/*" --format=%(refname:short)', { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return new Set(out.split(/\r?\n/).map((s) => s.trim()).filter(Boolean).map((s) => s.replace(/^build\//, '')));
+  } catch {
+    return new Set();
+  }
+}
+
 // 測試輸出裡一條 P-00x#LAW-n / EX-n 標記都沒有,就不是「全部沒過」,是讀不到:當成沒給輸出,通過數印 nan。
 function checked(results, note) {
   if (results.size) return { results, note };
@@ -138,7 +150,7 @@ function row(x) {
   return `| ${x.p.fullName} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${state} |`;
 }
 
-export function statusReport(design, source, adapter, results, resultNote) {
+export function statusReport(design, source, adapter, results, resultNote, building = new Set()) {
   const a = analyze(design, source, adapter, results);
   const out = [];
   const listed = design.system ? design.system.pipelines : [];
@@ -177,9 +189,18 @@ export function statusReport(design, source, adapter, results, resultNote) {
   for (const x of a.info.values()) out.push(row(x));
 
   out.push('', '## 1. 今天能開幾條線');
-  const openable = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.some((r) => a.info.get(r).gaps.length || !['ready', 'frozen'].includes(a.info.get(r).p.status) && !a.info.get(r).achieved)).sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
+  // 能開 = ready、沒 open GAP、引用的子流全部達成(消費者在子流合進主線之後才開,roles.md「分支與所有權」)
+  const candidates = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.length).sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
+  const openable = candidates.filter((x) => !building.has(x.p.fullName));
+  const inBuild = candidates.filter((x) => building.has(x.p.fullName));
   if (!openable.length) out.push('- 無');
-  for (const x of openable) out.push(`- ${x.p.fullName}:lawful:build ${x.p.fullName}(${ov.tag(x.p.fullName)})${x.blockedBy.length ? `(引用的 ${x.blockedBy.join('、')} 未達成,同一波先做子流)` : ''}`);
+  for (const x of openable) out.push(`- ${x.p.fullName}:lawful:build ${x.p.fullName}(${ov.tag(x.p.fullName)})`);
+  for (const x of inBuild) out.push(`- ${x.p.fullName}:建構中,分支 build/${x.p.fullName};收尾後 lawful:integrate`);
+  // 兩條能開的線的 stage 住同一個模組:同時開,整合時那個模組的檔兩邊都動
+  for (let i = 0; i < openable.length; i++) for (let j = i + 1; j < openable.length; j++) {
+    const mods = [...new Set(openable[i].stages.filter((s) => !s.ref).map((s) => s.module))].filter((m) => openable[j].stages.some((s) => !s.ref && s.module === m));
+    if (mods.length) out.push(`- ${openable[i].p.fullName} 與 ${openable[j].p.fullName} 的 stage 都住 ${mods.map((m) => `\`${m}\``).join('、')}:可以同時開,整合時這些模組的檔兩邊都動`);
+  }
 
   out.push('', '## 2. 卡住的');
   let stuck = 0;
@@ -190,10 +211,13 @@ export function statusReport(design, source, adapter, results, resultNote) {
     }
     for (const r of x.blockedBy) {
       const y = a.info.get(r);
-      if ((y.p.status !== 'ready' && y.p.status !== 'frozen') || y.gaps.length) {
-        stuck++;
-        out.push(`- ${x.p.fullName} 等 ${r}(${y.p.status === 'draft' ? '還是 draft' : y.gaps.length ? `卡 ${y.gaps.map((g) => g.id).join('、')}` : '未達成'})`);
-      }
+      stuck++;
+      const why = y.p.status === 'draft' ? '還是 draft'
+        : y.gaps.length ? `卡 ${y.gaps.map((g) => g.id).join('、')}`
+        : building.has(r) ? `建構中,分支 build/${r}`
+        : y.unknown || y.laws.some((l) => l.result === '未跑') ? '達成與否未知,給測試輸出'
+        : '未達成,先建它';
+      out.push(`- ${x.p.fullName} 等 ${r}(${why})`);
     }
   }
   if (!stuck) out.push('- 無');
@@ -268,6 +292,9 @@ export function statusReport(design, source, adapter, results, resultNote) {
     for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁:先歸因再改');
   }
   for (const u of a.unmarked) warn(`${u.a}#${u.name}`, `${u.b} 也把 ${u.name} 列成 stage,兩邊都沒註明「見」`, '引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來');
+  const gapIds = new Map();
+  for (const g of design.gaps.gaps) gapIds.set(g.id, (gapIds.get(g.id) || 0) + 1);
+  for (const [id, n] of gapIds) if (n > 1) warn(id, `gaps.md 裡出現 ${n} 次`, '兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」)');
   for (const l of listed) {
     if (!a.byName.has(l.fullName)) warn('system.md', `列了 ${l.fullName},pipelines/ 沒有這個檔`, '刪那一列或 lawful claim');
     if (!['IO 介面', '子流'].includes(l.kind)) warn('system.md', `${l.fullName} 類別「${l.kind}」`, '改成 IO 介面或子流');

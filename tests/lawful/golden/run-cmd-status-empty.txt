@@ -17,10 +17,10 @@ $ lawful status --tests empty.log
 | P-002-count | frozen | 2 | 2 | 0 | 1 | nan/1 | 進行中 |
 
 ## 1. 今天能開幾條線
-- P-001-report:lawful:build P-001-report(O-1 優先 1 · M-2 報表印得出來)(引用的 P-002-count 未達成,同一波先做子流)
+- 無
 
 ## 2. 卡住的
-- 無
+- P-001-report 等 P-002-count(達成與否未知,給測試輸出)
 
 ## 3. 等決定
 - 無

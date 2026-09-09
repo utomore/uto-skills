@@ -12,7 +12,8 @@
 ├── pipelines/P-00x-<slug>.md
 ├── gaps.md            只裝 open 的 GAP;空了刪檔
 ├── adr/ADR-00x-<slug>.md
-└── spikes/SPK-00x-<slug>.md   程式碼在專案根目錄 spike/SPK-00x-<slug>/,結案即刪
+├── spikes/SPK-00x-<slug>.md   程式碼在專案根目錄 spike/SPK-00x-<slug>/,結案即刪
+└── journal/<全名>.md          開發日誌,只存在於 build 分支;整合寫進 PR 後刪(roles.md「開發日誌」)
 ```
 
 ## system.md
@@ -203,7 +204,7 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
 - 狀態:open
 ```
 
-- 委派模式下 subagent 不寫檔:四欄寫進回報,局部序號 `本次-1`,conductor 單線寫入配號。
+- 委派模式下 subagent 不寫檔:四欄寫進回報,局部序號 `本次-1`,conductor 單線寫入配號;在 build 分支上從主線的最大號往上配,整合時撞號的由整合者把後合進來的往上移(roles.md「整合」)。
 - 結案 = 開發者口頭回答,`lawful:revise` 寫 REV 並刪條目,依欄帶模糊點原句。檔空了刪檔。
 - open 的 GAP 擋:那條 pipeline 不算達成、`lawful:build` 前置不放行、`lawful status` exit 1。
 - impl 測試全綠也不得把有 open GAP 的 stage 當完成。

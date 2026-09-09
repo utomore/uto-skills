@@ -8,7 +8,7 @@
 |---|---|
 | `pipelines.md` | `.lawful/` 樹、system.md、願景、目標與里程碑、pipeline 文檔的節、laws、REV、GAP、願望 stage、完成度、ADR、spike |
 | `boundary.md` | 四層、模組表、效果的判定、對外 I/O、測試與邊界 |
-| `roles.md` | 兩個階段、conductor / qa / impl、委派、收尾、仲裁、測試跑幾次 |
+| `roles.md` | 三個階段、分支與所有權、conductor / qa / impl、委派、收尾、仲裁、測試跑幾次、開發日誌、整合 |
 | `tooling.md` | CLI 子命令與 exit code、status 報告版面、language adapter、跑東西的紀律、收尾定錨 |
 
 ## 名詞
@@ -33,7 +33,10 @@
 | 對外 I/O、`lint io` | boundary.md「對外 I/O」 |
 | `*.Internal`、後門 | boundary.md「測試與邊界」 |
 | conductor、qa、impl | roles.md「三角色」 |
+| build 分支、工作樹、建構中、所有權 | roles.md「分支與所有權」 |
 | 委派、回報五項 | roles.md「委派」 |
+| 開發日誌、`journal/<全名>.md` | roles.md「開發日誌」 |
+| 整合分支、清單型衝突、合併後紅、清理 | roles.md「整合」 |
 | 骨架、`stub`、基線 | roles.md「骨架與基線」 |
 | 產生器、shrink、覆蓋率、案例數上限 | roles.md「qa 的交付」 |
 | 波末收尾 | roles.md「收尾」 |
@@ -53,6 +56,7 @@
 | `lawful:objective` | pipelines.md「願景、目標與里程碑」「完成度」;tooling.md「CLI」「status 報告」「收尾定錨」 |
 | `lawful:pipeline` | pipelines.md「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」「願望 stage」;boundary.md「模組表」;tooling.md「收尾定錨」 |
 | `lawful:build` | roles.md 全份;pipelines.md「提問(GAP)」「修訂(REV)」「完成度」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
+| `lawful:integrate` | roles.md「分支與所有權」「開發日誌」「整合」「仲裁」;pipelines.md「提問(GAP)」「完成度」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
 | `lawful:qa` | roles.md「三角色」「委派」「qa 的交付」;pipelines.md「節」「什麼要有 law」「提問(GAP)」;boundary.md「測試與邊界」 |
 | `lawful:impl` | roles.md「三角色」「委派」;pipelines.md「節」「提問(GAP)」;boundary.md「四層」 |
 | `lawful:revise` | pipelines.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」;tooling.md「收尾定錨」 |

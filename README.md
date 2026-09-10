@@ -6,22 +6,23 @@ utomore 的 Claude Code plugin marketplace。目前收錄三個 plugins:**dev-fl
 
 一般程式語言專案的 **spec 驅動開發** plugin,不限語言。
 
-文檔的單位是 **feature**:一段從對外邊界進、從對外邊界出的資料流,直接掛在 `system.md` 底下 —— **沒有子系統這一層**。feature 之間長出來的共同部分由 `refactor` 收整成 **abstract**,被動到的每一份記一條 REV。**進度不是欄位**:`devflow status` 從程式碼與測試推導,沒有任何一格要人記得改。
+文檔的單位是 **feature**:一段從對外邊界進、從對外邊界出的資料流,直接掛在 `system.md` 底下 —— **沒有子系統這一層**。feature 之上是三層「為什麼」:`system.md` 的**願景**、`objectives.md` 的**目標**(優先 1 到 4、可觀察的判準)與目標底下的**里程碑**,每條里程碑綁定它要做到的 feature。feature 之間長出來的共同部分由 `refactor` 收整成 **abstract**,被動到的每一份記一條 REV。**進度不是欄位**:`devflow status` 從程式碼與測試推導,沒有任何一格要人記得改。
 
 | 指令 | 職責 |
 |---|---|
 | `/project` | 立案 — 訪談後產出 `.design/system.md`(目的與期望、語言與工具、**由內而外的層**、對外 I/O 表含**信任與驗證**兩欄、Features 清單)與 `modules.md` 模組表,跨文檔的決定寫 ADR,每條要交付的能力 `devflow claim` 成 `draft` |
+| `/objective` | 目標與里程碑 — `O-n` 一句話加優先(1 到 4)與可觀察的判準,切成有順序的 `M-n`,每條里程碑綁定它要做到的 feature;也回答「這份 feature 服務哪個目標」。**每個目標都要能說出它服務願景的哪一句**,說不出來就是分歧 |
 | `/feature` | 一份功能文檔 — `F-00x` 是一條使用者能做到的事的唯一真相:Brief、Steps(正規式簽名 `name(T1, T2): R`,`=` 整條 / `o` 觀察點 / `!` 進入點)、Laws(純 ASCII 三行)、Examples、決定,寫完改 `ready` |
 | `/refactor` | 收整 — 把兩份以上 feature 之間可以抽象統一的部分抽成 `A-00x`,原檔那幾列改成「見 A-00x-…」,每一份被動到的 feature 各記一條 REV。**abstract 少於兩個消費者就該搬回去**,腳本盯著 |
-| `/build` | 建構指揮(conductor)— 骨架 → 派 qa → 在骨架快照上跑基線 → 派 impl → 跑子集 → 仲裁四分流 → 全綠後整套一次 → 達成改 `frozen` |
+| `/build` | 建構指揮(conductor)— 開 `build/<全名>` 分支與工作樹 → 骨架 → 派 qa → 在骨架快照上跑基線 → 派 impl → 跑子集 → 仲裁四分流 → 全綠後整套一次 → 達成改 `frozen` → 寫開發日誌。**互不引用的文檔可以同時各開一波**,合併交給 `/integrate` |
 | `dev-flow:qa` | **委派角色**(不在斜線選單)— 只讀文檔、最內層的匯出與骨架簽名,每條 law 一條 property test;禁止讀任何實作 |
 | `dev-flow:impl` | **委派角色** — 把骨架標記換成實作;禁止讀寫任何測試檔、禁止改簽名 |
 | `/revise` | 修訂 — 任何對既有文檔的改動都改原檔:回答 GAP、寫一條 REV(依 / 動到 / 保護 / 重委派 / 連動)、必要時解凍。**不開第二份檔** |
-| `/status` | 派工報告 — 今天能開幾條線、卡住的、等決定、牽動誰、待實作、**修訂熱點**、警訊、建議路線 |
-| `/audit` | 稽核三段 — **對帳**(機械紅逐條分類)、**穩定度**(修訂熱點、改動半徑、收整成立了沒、卡多久)、**安全度**(信任與驗證、秘密字面值、沒登記的出入口、進入點有沒有繞過整條) |
+| `/status` | 派工報告 — 先講願景與目標表(最高優先的目標卡在哪條里程碑、哪份 feature 不朝向任何目標),再照八段講今天能開幾條線、卡住的、等決定、牽動誰、待實作、**修訂熱點**、警訊、建議路線 |
+| `/audit` | 稽核四段 — **對帳**(機械紅逐條分類)、**目標貼合度**(每個目標服務願景的哪一句、工作有沒有集中在最高優先、有沒有 feature 不朝向任何目標)、**穩定度**(修訂熱點、改動半徑、收整成立了沒、卡多久)、**安全度**(信任與驗證、秘密字面值、沒登記的出入口、進入點有沒有繞過整條) |
 | `/spike` | 可行性驗證 — 讀原始碼答不出來的問題,先寫問題 / 判準 / timebox,再在 `spike/SPK-00x-<slug>/` 寫拋棄式程式碼,結案即刪、sha 留在文檔 |
 | `/study` | 專案導讀 — 六層縮放(全景 → 架構 → 理念 → 資料結構 → trace → 細讀),每個結論附 `檔案:行號` 證據,一次一課 |
-| `/branch-pr` | 整合 branch 發 PR — 標題英文、內文繁中、打 labels |
+| `/integrate` | 整合分支發 PR — 唯一發 PR 的出口:清掉已合的 build 分支與工作樹、`build/<全名>` 讀它的開發日誌定順序與衝突預報、逐條 merge、建置與整套綠了才發;標題英文、內文繁中、打 labels |
 
 ### CLI:`devflow`
 
@@ -30,7 +31,8 @@ utomore 的 Claude Code plugin marketplace。目前收錄三個 plugins:**dev-fl
 | 子命令 | 回答什麼 |
 |---|---|
 | `status [--tests <log> \| --run]` | 派工報告;`--doc` / `--module` 追問單份文檔或單一檔案 |
-| `claim feature\|abstract\|spike\|adr <slug>` | 鑄號建檔;feature 另在 Features 表加一列,spike 另建程式碼資料夾 |
+| `claim feature\|abstract\|spike\|adr <slug>` | 鑄號建檔;feature 另在 Features 表加一列並綁進 `--milestone` 那條里程碑,spike 另建程式碼資料夾 |
+| `objective add` / `objective milestone` | 鑄 `O-n`(優先 1 到 4、判準)/ 鑄 `M-n` 加進該目標並綁定 feature;綁 abstract 或不存在的全名會被擋 |
 | `lint boundary` | import 方向 vs 層表;內層 import 外層、非最外層碰 IO 模組、未登記與幽靈檔案 |
 | `lint sig` | Steps 簽名 vs 程式碼,而且要匯出;`=` / `o` / `!` 列的層與份數;**abstract 沒有消費者**、**feature 引用 feature**、同名簽名兩邊都沒註明「見」 |
 | `lint laws` | 三行齊全、種類合法、識別字對得到簽名或型別、`=` 列至少一條 law、example 指得到 law |
@@ -56,7 +58,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄三個 plugins:**dev-fl
 
 ## lawful
 
-**純函數式專案**(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 **pipeline**(input → 純轉換 → output),stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 `types / effects / pure / shell` 四層邊界,`=` 列是純的整條、`!` 列是 shell 進入點。skills:`design`、`pipeline`、`build`、`qa`、`impl`、`revise`、`status`、`audit`、`spike`;CLI `lawful` 的子命令與 dev-flow 同形,第一個 adapter 是 Haskell。
+**純函數式專案**(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 **pipeline**(input → 純轉換 → output),stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 `types / effects / pure / shell` 四層邊界,`=` 列是純的整條、`!` 列是 shell 進入點。pipeline 之上同樣是願景、目標與里程碑。skills:`design`、`objective`、`pipeline`、`build`、`qa`、`impl`、`revise`、`status`、`audit`、`spike`、`integrate`;CLI `lawful` 的子命令與 dev-flow 同形,第一個 adapter 是 Haskell。
 
 dev-flow 與 lawful 是**同一套方法的兩種形狀**:前者的邊界由專案自己宣告(層由內而外),後者的邊界由純度決定(四層固定)。專案是純函數式的用 lawful,其餘用 dev-flow。
 

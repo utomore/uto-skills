@@ -2,14 +2,24 @@
 
 > feature 文檔是唯一真相;測試與實作都是它的投影。兩邊對不上,先懷疑文檔。
 
-## 兩個階段
+## 三個階段
 
-| 階段 | 誰 | 產出 |
-|---|---|---|
-| **設計** | 開發者與 `dev-flow:project` / `dev-flow:feature` / `dev-flow:refactor` 對談 | `system.md`、模組表、`draft` 的 feature 與 abstract;開發者拍板後 skill 改 `ready` |
-| **建構** | `dev-flow:build` 的 conductor 帶 qa 與 impl | 骨架、測試、實作、REV;達成後 conductor 改 `frozen` |
+| 階段 | 誰 | 在哪 | 產出 |
+|---|---|---|---|
+| **設計** | 開發者與 `dev-flow:project` / `dev-flow:objective` / `dev-flow:feature` / `dev-flow:refactor` 對談 | 主線 | `system.md`、`objectives.md`、模組表、`draft` 的 feature 與 abstract;開發者拍板後 skill 改 `ready` |
+| **建構** | `dev-flow:build` 的 conductor 帶 qa 與 impl | 該份文檔自己的分支與工作樹 | 骨架、測試、實作、REV、開發日誌;達成後 conductor 改 `frozen` |
+| **整合** | `dev-flow:integrate` | 整合分支 | 幾條建構分支合成一條、整套綠、PR |
 
-`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:骨架 → qa → 基線 → impl → 仲裁 → 收尾。
+`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:開分支 → 骨架 → qa → 基線 → impl → 仲裁 → 收尾。互不引用的文檔可以同時各開一波;主線只透過整合 PR 前進。
+
+## 分支與所有權
+
+- 一份文檔一條分支 `build/<全名>`,從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在就代表這份文檔有人在建,`devflow status` 把它列成建構中。
+- 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP;它引用的每份 abstract 都已達成並合進主線。引用的 abstract 還沒合進主線就不開,等它;不替別份文檔寫骨架。
+- 分支上准動的東西只有自己的:這份文檔、自己 step 的簽名與本體(模組表登記了但還沒有的檔案可以建)、匯出裡自己的名字、以自己全名命名的測試檔、建置設定裡登記自己那幾行、`gaps.md` 追加、`journal/<全名>.md`。
+- 不動:`system.md`、`objectives.md`、`modules.md`、最內層的型別、別份文檔與它的 step 本體、別人的測試檔。非動不可就是 GAP。
+- `gaps.md` 在分支上從主線最大號往上配。
+- 分支上的 commit 訊息帶文檔全名;骨架、測試、實作、日誌各自成 commit,整合時才對得出誰動了什麼。
 
 ## 三角色
 
@@ -19,7 +29,7 @@
 | **qa** | 目標文檔、最內層的匯出、骨架的簽名 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器 | 讀任何實作本體(含 `spike/`);讀別份文檔;改骨架;要求後門 |
 | **impl** | 目標文檔、骨架 | 把骨架標記換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
 
-qa 與 impl 互不可見。qa 先、impl 後;開發者明說要平行才平行(平行時 conductor 要在委派前 `git worktree add --detach` 留一份骨架給 qa 的測試跑基線)。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。
+qa 與 impl 互不可見。qa 先、impl 後;開發者明說要平行才平行(平行時 conductor 在委派前對骨架的 commit `git worktree add --detach` 留一棵快照,qa 的測試在快照上跑基線)。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。
 
 ## 委派
 
@@ -47,7 +57,7 @@ subagent 問不了人:
 
 - qa 交付後,conductor 在骨架上跑一次 qa 的測試當基線:打到骨架的要紅、打到型別本身承載的事實(建構子、欄位、列舉成員)的要綠、REV 保護的既有 law 要綠。
 - 該紅卻綠退回 qa 重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。基線過了才派 impl。
-- **委派模式下基線由 conductor 驗,不由 qa 保證**:impl 一旦填完本體,假綠與真綠在測試輸出裡同形,判準不是被違反,是被靜默停用。發委派之前記下 `HEAD` 的 sha 並 `git worktree add --detach <路徑> <sha>` 建好快照工作樹,收到測試檔就複製進去跑。環境帶不過去、驗不成 → 在回報明寫「本波 qa 紅綠未驗證」,不得默認通過。
+- **委派模式下基線由 conductor 驗,不由 qa 保證**:impl 一旦填完本體,假綠與真綠在測試輸出裡同形,判準不是被違反,是被靜默停用。發委派之前記下骨架那個 commit 的 sha 並 `git worktree add --detach <路徑> <sha>` 建好快照工作樹(建構工作樹之外的第二棵,驗完移除),收到測試檔就複製進去跑。環境帶不過去、驗不成 → 在回報明寫「本波 qa 紅綠未驗證」,不得默認通過。
 
 ## qa 的交付
 
@@ -65,6 +75,7 @@ subagent 問不了人:
 - open 的 GAP 清單,各附「需要回答什麼」;回答走 `dev-flow:revise`,結案的 step 下一波重派。
 - `devflow status` 顯示達成 → 直接改 `frozen`。
 - qa 與 impl 自己決定的事整份列出供抽查,不逐條問。
+- 寫開發日誌(「開發日誌」),連同所有改動 commit 在分支上;不合併、不發 PR,那是 `dev-flow:integrate` 的事。
 - 定錨區塊(tooling.md「收尾定錨」)。
 
 開發者的決定只在三個地方發生:設計對談(`dev-flow:project` / `feature` / `refactor`)、回答 GAP(`dev-flow:revise`)、驗收。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
@@ -94,7 +105,35 @@ qa 與 impl 只做歸因,裁決由 conductor。
 | conductor 本波全綠後 | 整套,整條迴圈只這一次 | 1 |
 | 修訂目標(有 REV) | 委派前先跑整套當基準線 | 1 |
 
-整套回答「有沒有連累別人」,只在自己這一塊全綠之後問一次。
+整套回答「有沒有連累別人」,只在自己這一塊全綠之後問一次;在自己的分支上,「別人」是主線合進來時的狀態。
+
+## 開發日誌
+
+`.design/journal/<全名>.md`,照 `templates/journal.md`,一條分支一份,conductor 收尾時寫,達成或停在 GAP 都寫。它只活在 build 分支:整合把內容寫進 PR 內文後刪檔,主線沒有日誌。
+
+日誌裝程式碼與文檔裝不下、整合者又非知道不可的事:
+
+| 節 | 裝什麼 |
+|---|---|
+| frontmatter | `doc`、`branch`、`base`(開分支時主線的 sha)、`updated` |
+| 做了什麼 | 骨架幾條、測試檔哪些、簽名 m / n、觀察點 j / k、laws g / k;達成,或停在哪幾條 GAP |
+| 動到的檔 | 分兩組:自己的(文檔、程式碼檔、測試檔)與共用的(建置設定改了哪幾行、共用檔案裡新增了哪些名字) |
+| 決定 | qa 與 impl 自己決定的事,一條一句:產生器的分佈與尺寸、資料結構、演算法、私有 helper。契約級決定不在這裡,它們在文檔的「決定」與 REV |
+| GAP | 本分支開的號與「需要回答什麼」 |
+| 測試 | 整套在本分支跑的指令、log 路徑、綠紅分佈 |
+| 合併時要看 | 與哪些文檔的 step 住同一個檔案、哪些檔別份也可能動、合併後預期什麼會變 |
+
+## 整合
+
+`dev-flow:integrate` 把分支合成一條整合分支 `integrate/<YYYY-MM-DD>-<slug>`,整套綠了才發 PR;它是唯一發 PR 的出口,主線只透過它前進。整合者是 conductor 的身分:不寫實作、不寫測試、不補 law。
+
+- **候選**:沒合進主線的分支,開發者指定就只合那些。`build/<全名>` 要有 `journal/<全名>.md` 才收,沒有代表還沒收尾;不是 `build/` 的分支(手動改的、專案沒有 `.design/`)照分支名或 commit 訊息對到文檔全名,對不到就寫分支名。當前分支是主線而且有未提交的變更或領先的 commit,先開一條分支把它帶走,不從主線發 PR。
+- **順序**:有日誌的照目標優先 → 里程碑順序 → 分支名,被引用的 abstract 在消費者之前(照規則它已經先合進主線,這條只是保險);其餘照開發者指定的順序。
+- **衝突三類**:清單型(建置設定的檔案清單、匯出清單、`gaps.md`)兩邊都留;相鄰行的加法兩邊都留;同一個簽名或本體兩邊都改 = 所有權被違反,停下,列出是哪條 step、哪兩條分支,不猜。GAP 撞號,後合進來的往上移;GAP 的號只住 `gaps.md`,移號不牽動別處。
+- **判準**:合完跑建置與整套一次,`devflow status --tests <log>`、`devflow lint all`。每份日誌宣稱達成的文檔合併後仍達成;日誌「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。
+- **合併後紅**:先歸因,不改碼。那條 law 屬於哪份文檔、在它自己的分支上綠不綠(看日誌的「測試」)、哪幾條分支與它共用檔案(看日誌的「合併時要看」)。分支綠、合併紅 = 兩份文檔對共用的東西假設不同,寫成 GAP(角色 conductor,目標寫那條 law)停下;候選超過一條才逐條重合找出第一條讓它紅的分支。
+- **PR**:日誌內容進 PR 內文後刪日誌檔;標題英文、內文繁體中文,章節固定(`skills/integrate/SKILL.md`)。
+- **清理**:整合開頭先刪已合進主線的 `build/*` 分支與它們的工作樹。
 
 ## spike
 

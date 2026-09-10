@@ -1,6 +1,6 @@
 $ devflow status
 # devflow status
-目標 3 個,達成 0 個 · 里程碑 2 條,達成 0 條 · feature 2 份,達成 0 份 · abstract 2 份 · 文檔共 4 份,達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 1 條
+目標 3 個,達成 0 個 · 里程碑 2 條,達成 0 條 · feature 2 份,達成 0 份 · abstract 2 份 · 文檔共 4 份,達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 2 條
 · 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
 
 ## 目標
@@ -10,13 +10,13 @@ $ devflow status
 | O-3 | 3 | 編號撞到的目標 | 1 | 0 | 0% |
 | O-1 | 9 | 算分 | 1 | 0 | 0% |
 - O-3 下一個里程碑:M-1 <一句話>(還沒綁定任何文檔)
-- O-1 下一個里程碑:M-1 分數算得出來(F-001-score 卡 GAP-1、A-001-lonely 還是 draft、F-009-nope 不存在)
+- O-1 下一個里程碑:M-1 分數算得出來(F-001-score 卡 GAP-1、GAP-1、A-001-lonely 還是 draft、F-009-nope 不存在)
 - 沒有被任何里程碑綁定的 feature:F-002-other;它們不朝向任何目標
 
 ## 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 還是骨架 | law 條數 | law 綠/翻 | REV | 狀態 |
 |---|---|---|---|---|---|---|---|---|---|
-| F-001-score | feature | frozen | 5 | 2 | 1 | 2 | nan/1 | 1 | 卡 GAP-1 |
+| F-001-score | feature | frozen | 5 | 2 | 1 | 2 | nan/1 | 1 | 卡 GAP-1、GAP-1 |
 | F-002-other | feature | draft | 2 | 1 | 0 | 1 | 0/0 | 0 | 等 A-002-single |
 | A-001-lonely | abstract | draft | 2 | 2 | 0 | 1 | 0/0 | 0 | 進行中 |
 | A-002-single | abstract | draft | 1 | 1 | 0 | 1 | 0/0 | 0 | 進行中 |
@@ -26,11 +26,13 @@ $ devflow status
 
 ## 2. 卡住的
 - F-001-score#LAW-1 停在 GAP-1(qa 提)
+- F-001-score#missingStep 停在 GAP-1(impl 提)
 - F-001-score 等 F-002-other(還是 draft)
 - F-002-other 等 A-002-single(還是 draft)
 
 ## 3. 等決定
 - GAP-1(F-001-score#LAW-1 / qa):dev-flow:revise
+- GAP-1(F-001-score#missingStep / impl):dev-flow:revise
 - F-002-other 還是 draft:dev-flow:feature 討論完改 ready
 - A-001-lonely 還是 draft:dev-flow:feature 討論完改 ready
 - A-002-single 還是 draft:dev-flow:feature 討論完改 ready
@@ -60,6 +62,7 @@ $ devflow status
 | M-1 | 綁定的 F-009-nope 不存在 | 改成 features/ 裡有的全名,或刪這個綁定 |
 | F-002-other | 沒有被任何里程碑綁定 | 不朝向任何目標:dev-flow:objective 綁進一條里程碑,或刪掉這份 feature |
 | A-002-single | 只有 F-002-other 用它 | 收整沒有成立;dev-flow:refactor 搬回去,或找出第二個消費者 |
+| GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
 | F-001-score | frozen 而有 REV 卻沒有解凍紀錄 | 在「決定」補一條解凍 |
 | F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
 | F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
@@ -69,6 +72,6 @@ $ devflow status
 | 模組表 / 層 | lint boundary 3 條不合規 | devflow lint boundary |
 
 ## 8. 建議路線
-1. 先回答 GAP-1(dev-flow:revise),卡住的 step 才能重派
+1. 先回答 GAP-1、GAP-1(dev-flow:revise),卡住的 step 才能重派
 2. F-002-other、A-001-lonely、A-002-single 討論完改 ready
 exit 1

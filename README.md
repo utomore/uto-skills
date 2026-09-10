@@ -58,7 +58,7 @@ utomore 的 Claude Code plugin marketplace。目前收錄三個 plugins:**dev-fl
 
 ## lawful
 
-**純函數式專案**(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 **pipeline**(input → 純轉換 → output),stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 `types / effects / pure / shell` 四層邊界,`=` 列是純的整條、`!` 列是 shell 進入點。pipeline 之上同樣是願景、目標與里程碑。skills:`design`、`objective`、`pipeline`、`build`、`qa`、`impl`、`revise`、`status`、`audit`、`spike`、`integrate`;CLI `lawful` 的子命令與 dev-flow 同形,第一個 adapter 是 Haskell。
+**純函數式專案**(functional core / imperative shell)的 spec 驅動開發,不限語言。文檔單位是 **pipeline**(input → 純轉換 → output),stage 是住在程式碼裡的簽名,laws 是純 ASCII 三行的形式化性質、由 property test 承接;模組表宣告 `types / effects / pure / shell` 四層邊界,`=` 列是純的整條、`!` 列是 shell 進入點。pipeline 之上同樣是願景、目標與里程碑。skills:`design`、`objective`、`pipeline`、`build`、`qa`、`impl`、`revise`、`status`、`audit`、`spike`、`integrate`、`study`(六層縮放的專案導讀:全景 → 純度地圖 → 設計理念 → 型別 → 逐跳 trace → 細讀,每個結論附 `檔案:行號` 證據);CLI `lawful` 的子命令與 dev-flow 同形,第一個 adapter 是 Haskell。
 
 dev-flow 與 lawful 是**同一套方法的兩種形狀**:前者的邊界由專案自己宣告(層由內而外),後者的邊界由純度決定(四層固定)。專案是純函數式的用 lawful,其餘用 dev-flow。
 

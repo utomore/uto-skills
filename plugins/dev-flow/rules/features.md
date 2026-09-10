@@ -13,7 +13,8 @@
 ├── abstracts/A-00x-<slug>.md
 ├── gaps.md            只裝 open 的 GAP;空了刪檔
 ├── adr/ADR-00x-<slug>.md
-└── spikes/SPK-00x-<slug>.md   程式碼在專案根目錄 spike/SPK-00x-<slug>/,結案即刪
+├── spikes/SPK-00x-<slug>.md   程式碼在專案根目錄 spike/SPK-00x-<slug>/,結案即刪
+└── journal/<全名>.md          開發日誌,只存在於 build 分支;整合寫進 PR 後刪(roles.md「開發日誌」)
 ```
 
 ## system.md
@@ -237,7 +238,7 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 - 狀態:open
 ```
 
-- 委派模式下 subagent 不寫檔:四欄寫進回報,局部序號 `本次-1`,conductor 單線寫入配號。
+- 委派模式下 subagent 不寫檔:四欄寫進回報,局部序號 `本次-1`,conductor 單線寫入配號;在 build 分支上從主線的最大號往上配,整合時撞號的由整合者把後合進來的往上移(roles.md「整合」)。
 - 結案 = 開發者口頭回答,`dev-flow:revise` 寫 REV 並刪條目,依欄帶模糊點原句。檔空了刪檔。**不留 resolved**:定案後的問題不需要被找回。
 - open 的 GAP 擋:那份文檔不算達成、`dev-flow:build` 前置不放行、`devflow status` exit 1。
 - impl 測試全綠也不得把有 open GAP 的 step 當完成。

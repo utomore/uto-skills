@@ -21,7 +21,8 @@ $ devflow status
 - 無
 
 ## 2. 卡住的
-- 無
+- F-001-checkout 等 A-001-settle(達成與否未知,給測試輸出)
+- F-002-refund 等 A-001-settle(達成與否未知,給測試輸出)
 
 ## 3. 等決定
 - 無

@@ -12,7 +12,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-f
 
 | 子命令 | 做什麼 |
 |---|---|
-| `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 在專案根目錄跑 `system.md` 的整套指令;兩者都沒給、或輸出裡一條 `F-00x#LAW-n` 標記都沒有,就列「未跑」並在開頭寫明 |
+| `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 在專案根目錄跑 `system.md` 的整套指令;兩者都沒給、或輸出裡一條 `F-00x#LAW-n` 標記都沒有,就列「未跑」並在開頭寫明。專案根目錄有 `.git` 時查分支,已有 `build/<全名>` 分支的線列成建構中 |
 | `status --doc <F-00x>` / `--module <路徑>` | 一份文檔的 step 與 law 逐條狀態 / 住在該檔案或目錄的所有 step 的狀態 |
 | `claim feature\|abstract\|spike\|adr <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建檔(feature 與 abstract 是 `status: draft`);feature 另在 `system.md` Features 表加一列並綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標;spike 另建 `spike/SPK-00x-<slug>/` |
 | `objective add <一句話> --priority <1-4> [--criteria <句>]` | 鑄 `O-n` 寫進 `objectives.md`;優先 1 最高、4 最低;判準沒給就留佔位符並提醒 |
@@ -40,13 +40,13 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --doc
 
 然後八段:
 
-1. 今天能開幾條線:`ready`、沒 open GAP、引用的 abstract 沒卡的文檔;每條附它綁在哪個目標與里程碑,照目標優先排
-2. 卡住的:停在 GAP 的 step、等重派、等 abstract
+1. 今天能開幾條線:`ready`、沒 open GAP、引用的 abstract 全部達成的文檔;每條附它綁在哪個目標與里程碑,照目標優先排。專案根目錄有 `.git` 時查分支:已有 `build/<全名>` 分支的列成建構中,不算能開。兩條能開的線的 step 住同一個檔案,附一行提示:同時開,整合時那個檔案兩邊都動
+2. 卡住的:停在 GAP 的 step、等重派、等 abstract(abstract 還是 `draft`、卡 GAP、建構中、或還沒建)
 3. 等決定:open 的 GAP、open 的 spike、`draft` 的文檔
 4. 牽動誰:誰引用了這份的簽名
 5. 待實作:按檔案列願望 step、找不到的 step、本體還是骨架的 step
 6. 修訂熱點:REV 條數最多的三份與最後一條、被兩份以上引用的 abstract。**這一段答的是穩定度**:一直在改的地方就是設計還沒收斂的地方
-7. 警訊:願景還是模板、沒有任何目標、優先不在 1 到 4、目標沒有判準或沒有里程碑、里程碑沒有綁定或綁到不存在的檔或 abstract、里程碑編號重複、feature 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、只有一個消費者的 abstract、未登記檔案、簽名不一致、還是模板
+7. 警訊:願景還是模板、沒有任何目標、優先不在 1 到 4、目標沒有判準或沒有里程碑、里程碑沒有綁定或綁到不存在的檔或 abstract、里程碑編號重複、feature 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、只有一個消費者的 abstract、未登記檔案、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、還是模板
 8. 建議路線:先回答 GAP、再 build 能開的線(照目標優先、里程碑順序排,每條附目標與里程碑)、`draft` 討論完改 `ready`。沒有可派的線時分兩種:全部達成寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾份沒達成、缺什麼輸入,不催加新功能
 
 分母是 `system.md`「Features」表的份數,以及 `objectives.md` 的目標數與里程碑數。

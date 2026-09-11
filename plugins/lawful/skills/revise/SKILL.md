@@ -1,6 +1,6 @@
 ---
 name: revise
-description: lawful 的修訂 — 回答 GAP、開發者要改簽名或 law、解凍 frozen 的 pipeline:一律改原檔,一次修訂一條 REV(依 / 動到 / 保護 / 重委派),簽名變了程式碼同步回 stub,刪 GAP 條目,列出要重派的角色。觸發詞:修訂、回答 GAP、改 law、改簽名、解凍、revise、lawful revise。Use when an existing pipeline's contract must change or a GAP has been answered.
+description: lawful 的修訂 — 回答 GAP、開發者要改簽名或 law、解凍 frozen 的 pipeline:一律改原檔,一次修訂一條 REV(依 / 動到 / 保護 / 重委派),簽名變了程式碼同步回 stub,刪 GAP 條目,列出要重派的角色。觸發詞:修訂、回答 GAP、改 law、改簽名、解凍、改名、搬模組、收整、revise、lawful revise。Use when an existing pipeline's contract must change or a GAP has been answered.
 user-invocable: true
 ---
 

@@ -89,7 +89,7 @@ $ lawful status --json --tests test.log
     {
       "id": "p1",
       "title": "優先 1(最高)",
-      "note": "1 個目標,達成 0 個 · 1 條 pipeline",
+      "note": "讀寫的正確性 · 1 個目標,達成 0 個 · 1 條 pipeline",
       "achieved": false,
       "bare": false,
       "lanes": [
@@ -110,7 +110,7 @@ $ lawful status --json --tests test.log
               ]
             },
             {
-              "title": "M-2 存檔壞了看得出來",
+              "title": "M-2 存檔壞了看得出來(待 claim)",
               "achieved": false,
               "docs": []
             }

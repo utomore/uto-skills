@@ -97,9 +97,15 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     achieved: o.achieved,
     title: `${o.id} ${o.title}`,
     notes: [`里程碑 ${o.done}/${o.ms.length} 達成 · 完成度 ${o.pct == null ? '-' : `${o.pct}%`}`, o.criteria ? `判準:${o.criteria}` : '沒有可觀察的判準'],
-    columns: o.ms.map((m) => ({ title: `${m.id} ${m.title}`, achieved: m.achieved, docs: m.binds })),
+    columns: o.ms.map((m) => ({ title: `${m.id} ${m.title}${m.binds.length ? '' : '(待 claim)'}`, achieved: m.achieved, docs: m.binds })),
     empty: o.ms.length ? null : '沒有任何里程碑',
   });
+  // objectives.md 開頭那行「優先:1 = …;2 = …」拆成各級的意思,寫在區塊的副標上
+  const tierMeaning = new Map();
+  if (design.objectives.priorityNoteState === 'ok') for (const part of design.objectives.priorityNote.split(/[;;]/)) {
+    const m = /^\s*([1-4])\s*[=＝::]\s*(.+?)[。.]?\s*$/.exec(part);
+    if (m) tierMeaning.set(Number(m[1]), m[2].trim());
+  }
   const byPriority = new Map();   // ov.objs 已經照優先排好,沒填的排在最後
   for (const o of ov.objs) {
     const key = o.priority >= 1 && o.priority <= 4 ? o.priority : 'none';
@@ -109,7 +115,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const bands = [...byPriority].map(([key, objs]) => ({
     id: key === 'none' ? 'p-none' : `p${key}`,
     title: key === 'none' ? '沒填優先' : `優先 ${key}${key === 1 ? '(最高)' : key === 4 ? '(最低)' : ''}`,
-    note: `${objs.length} 個目標,達成 ${objs.filter((o) => o.achieved).length} 個 · ${objs.reduce((n, o) => n + o.ms.reduce((k, m) => k + m.binds.length, 0), 0)} 條 pipeline`,
+    note: `${tierMeaning.has(key) ? `${tierMeaning.get(key)} · ` : ''}${objs.length} 個目標,達成 ${objs.filter((o) => o.achieved).length} 個 · ${objs.reduce((n, o) => n + o.ms.reduce((k, m) => k + m.binds.length, 0), 0)} 條 pipeline`,
     achieved: objs.every((o) => o.achieved),
     bare: false,
     lanes: objs.map(laneOf),

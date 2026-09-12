@@ -94,7 +94,7 @@ $ lawful status --json
     {
       "id": "p1",
       "title": "優先 1(最高)",
-      "note": "1 個目標,達成 0 個 · 3 條 pipeline",
+      "note": "讀寫的正確性 · 1 個目標,達成 0 個 · 3 條 pipeline",
       "achieved": false,
       "bare": false,
       "lanes": [

@@ -8,6 +8,7 @@ import { pickAdapter, adapterNames } from '../lib/adapters/index.mjs';
 import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { buildingBranches, loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
+import { statusBoard, statusJson } from '../lib/commands/board.mjs';
 import { claim, milestoneAdd, modulesGen, objectiveAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
 import { migrateFromDevFlow } from '../lib/commands/migrate.mjs';
 
@@ -16,6 +17,8 @@ const HELP = `lawful <子命令> [選項]
   status [--tests <log> | --run]       派工報告;laws 綠幾條要給測試輸出,或 --run 跑 system.md 的整套指令;有 .git 時把已有 build/<全名> 分支的線列成建構中
   status --pipeline <P-00x | 全名>     一條 pipeline 的 stage 與 law 逐條狀態
   status --module <模組>               住在該模組的所有 stage 的狀態
+  status --json                        同一份報告的資料原樣輸出,給別的工具讀
+  status --html [檔名]                 同一份報告畫成看板:一條 pipeline 一張便利貼,連線是引用;寫成自帶資料的單檔網頁(預設 lawful-status.html)
   claim <slug> [--description <句>] [--milestone <M-n>]
                                        鑄號建 pipeline 檔(status: draft),system.md Pipelines 表加一列,綁進 --milestone 那條里程碑
   objective add <一句話> --priority <1-4> [--criteria <句>]
@@ -129,7 +132,14 @@ function main() {
     const note = testsFlag ? rawNote.replace(testsFlag, args.flags.tests) : rawNote;
     if (args.flags.pipeline) return emit(pipelineDetail(design, source, adapter, results, note, args.flags.pipeline));
     if (args.flags.module) return emit(moduleDetail(design, source, adapter, results, note, args.flags.module));
-    return emit(statusReport(design, source, adapter, results, note, buildingBranches(root)));
+    const building = buildingBranches(root);
+    if (args.flags.json) {
+      const data = statusJson(design, source, adapter, results, note, building);
+      console.log(JSON.stringify(data, null, 2));
+      return data.route.allDone && data.summary.docs ? 0 : 1;
+    }
+    if (args.flags.html) return emit(statusBoard(design, source, adapter, results, note, building, root, args.flags.html));
+    return emit(statusReport(design, source, adapter, results, note, building));
   }
 
   if (cmd === 'claim') {

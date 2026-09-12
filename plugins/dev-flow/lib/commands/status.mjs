@@ -125,17 +125,118 @@ export function objectiveView(design, a) {
   return { objs: sorted, rank, keyOf, tag };
 }
 
+// 一份文檔在報告與看板上的同一句狀態
+export function docState(x) {
+  return x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : '進行中';
+}
+
 function row(x) {
   const g = x.laws.filter((l) => l.result === 'green').length;
   const traced = x.laws.filter((l) => l.traced).length;
-  const state = x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : '進行中';
-  return `| ${x.p.fullName} | ${x.p.kind === 'abstract' ? 'abstract' : 'feature'} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${x.p.revs.length} | ${state} |`;
+  return `| ${x.p.fullName} | ${x.p.kind === 'abstract' ? 'abstract' : 'feature'} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${x.p.revs.length} | ${docState(x)} |`;
+}
+
+// 能開 = ready、沒 open GAP、引用的 abstract 全部達成(消費者在 abstract 合進主線之後才開,roles.md「分支與所有權」)
+export function openLines(a, ov, building) {
+  const candidates = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.length).sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
+  const openable = candidates.filter((x) => !building.has(x.p.fullName));
+  const inBuild = candidates.filter((x) => building.has(x.p.fullName));
+  // 兩條能開的線的 step 住同一個檔案:同時開,整合時那個檔案兩邊都動
+  const shared = [];
+  for (let i = 0; i < openable.length; i++) for (let j = i + 1; j < openable.length; j++) {
+    const files = [...new Set(openable[i].steps.filter((s) => !s.ref).map((s) => s.module))].filter((m) => openable[j].steps.some((s) => !s.ref && s.module === m));
+    if (files.length) shared.push({ a: openable[i].p.fullName, b: openable[j].p.fullName, files });
+  }
+  return { openable, inBuild, shared };
+}
+
+export function lineTag(x, ov) {
+  return x.p.kind === 'abstract' ? `abstract,${x.referrers.length ? `${x.referrers.join('、')} 引用它` : '沒有消費者'}` : ov.tag(x.p.fullName);
+}
+
+// 警訊:每條是 [哪裡, 什麼事, 怎麼辦]
+export function warnings(design, a, ov, source, adapter) {
+  const sys = design.system;
+  const listed = sys ? sys.listed : [];
+  const unbound = design.features.map((f) => f.fullName).filter((f) => !ov.rank.has(f));
+  const warns = [];
+  const warn = (where, what, fix) => warns.push([where, what, fix]);
+  if (!sys) warn('system.md', '不存在', 'dev-flow:project 立案');
+  else if (sys.visionState === 'missing') warn('system.md', '沒有 ## 願景 節', 'dev-flow:project 訂願景');
+  else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'dev-flow:project 訂願景');
+  if (!ov.objs.length) warn(design.objectives.exists ? 'objectives.md' : '.design/', '沒有任何目標', 'dev-flow:objective 訂第一個目標(至少一個)');
+  const seenM = new Set();
+  for (const o of ov.objs) {
+    if (o.placeholder) warn(o.id, '目標還是模板', 'dev-flow:objective 寫成一句話');
+    if (!o.priority) warn(o.id, `優先「${o.priorityRaw || '(沒填)'}」不是 1 到 4`, '改成 1(最高)到 4(最低)');
+    if (!o.criteria) warn(o.id, '沒有可觀察的判準', 'dev-flow:objective 補一句達成時看得到什麼');
+    if (!o.ms.length) warn(o.id, '沒有任何里程碑', 'dev-flow:objective 補里程碑並綁定文檔');
+    for (const m of o.ms) {
+      if (seenM.has(m.id)) warn(m.id, '里程碑編號重複', '編號全檔唯一;配號只走 devflow objective milestone');
+      seenM.add(m.id);
+      if (m.placeholder) warn(m.id, '里程碑還是模板', 'dev-flow:objective 寫成一句話');
+      if (!m.binds.length) warn(m.id, '沒有綁定任何文檔', 'devflow claim feature <slug> --milestone ' + m.id + ',或在綁定欄填既有的 feature 全名');
+      for (const d of m.docs) {
+        if (!d.x) warn(m.id, `綁定的 ${d.name} 不存在`, '改成 features/ 裡有的全名,或刪這個綁定');
+        else if (d.x.p.kind === 'abstract') warn(m.id, `綁定的 ${d.name} 是 abstract`, '改綁引用它的 feature;abstract 跟著 feature 達成');
+      }
+    }
+  }
+  for (const f of unbound) warn(f, '沒有被任何里程碑綁定', '不朝向任何目標:dev-flow:objective 綁進一條里程碑,或刪掉這份 feature');
+  const consumers = new Map(design.abstracts.map((x) => [x.fullName, []]));
+  for (const d of design.docs) for (const s of d.steps) if (s.ref && consumers.has(s.ref)) consumers.get(s.ref).push(d.fullName);
+  for (const [name, cs] of consumers) if (new Set(cs).size === 1) warn(name, `只有 ${cs[0]} 用它`, '收整沒有成立;dev-flow:refactor 搬回去,或找出第二個消費者');
+  const gapIds = new Map();
+  for (const g of design.gaps.gaps) gapIds.set(g.id, (gapIds.get(g.id) || 0) + 1);
+  for (const [id, n] of gapIds) if (n > 1) warn(id, `gaps.md 裡出現 ${n} 次`, '兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」)');
+  for (const x of a.info.values()) {
+    const p = x.p;
+    if (!p.hasFrontmatter) warn(p.file, '沒有 frontmatter', '照 templates/ 補');
+    if (p.status && !STATUSES.includes(p.status)) warn(p.file, `status「${p.status}」不合法`, '改成 draft / ready / frozen');
+    const t = p.template;
+    if (t.steps || t.laws || t.examples) warn(p.fullName, `還是模板(${[t.steps && `Steps ${t.steps} 列`, t.laws && `Laws ${t.laws} 條`, t.examples && `Examples ${t.examples} 列`].filter(Boolean).join('、')}是佔位符)`, 'dev-flow:feature 討論完寫成真的');
+    if (p.status === 'frozen' && [...x.laws, ...x.examples].some((l) => l.result === 'red')) warn(p.fullName, 'frozen 而測試紅', '先解凍再修');
+    if (p.status === 'frozen' && p.revs.length && !p.thawed) warn(p.fullName, 'frozen 而有 REV 卻沒有解凍紀錄', '在「決定」補一條解凍');
+    if (p.status === 'ready' && x.achieved) warn(p.fullName, '已達成', 'build 收尾改 frozen');
+    if (listed.length && p.kind === 'feature' && !listed.some((l) => l.fullName === p.fullName)) warn(p.fullName, '不在 system.md 的 Features 表', '補一列');
+    for (const s of x.steps) if (s.state === '不一致') warn(`${p.fullName}#${s.name}`, '簽名與程式碼不一致', 'devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV');
+    for (const s of x.steps) if (s.state === '搬家') warn(`${p.fullName}#${s.name}`, `程式碼在 ${s.hit.file}`, 'devflow sync');
+    for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁:先歸因再改');
+  }
+  for (const l of listed) {
+    if (!design.docs.some((d) => d.fullName === l.fullName)) warn('system.md', `列了 ${l.fullName},features/ 沒有這個檔`, '刪那一列或 devflow claim');
+  }
+  if (source) {
+    const b = lintBoundary(design, source, adapter);
+    if (b.red.length) warn('模組表 / 層', `lint boundary ${b.red.length} 條不合規`, 'devflow lint boundary');
+  }
+  return warns;
+}
+
+// 建議路線:steps 是編號的那幾條,一條都沒有時 note 是那一句話
+export function suggestRoutes(design, a, ov, warnCount) {
+  const steps = [];
+  if (a.openGaps.length) steps.push(`先回答 ${a.openGaps.map((g) => g.id).join('、')}(dev-flow:revise),卡住的 step 才能重派`);
+  const order = [...a.info.values()].filter((x) => !x.achieved && x.p.status === 'ready').sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || x.refs.length - y.refs.length);
+  for (const x of order) steps.push(`dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);
+  const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
+  if (drafts.length) steps.push(`${drafts.map((x) => x.p.fullName).join('、')} 討論完改 ready`);
+  const allDone = [...a.info.values()].every((x) => x.achieved) && !a.openGaps.length;
+  let note = null;
+  if (!steps.length) {
+    const notDone = [...a.info.values()].filter((x) => !x.achieved);
+    if (!a.info.size) note = `還沒有任何文檔;${ov.objs.length ? 'devflow claim feature <slug> --milestone <M-n> 建第一份' : '先 dev-flow:objective 訂目標與里程碑,再 devflow claim feature <slug> --milestone <M-n>'}`;
+    else if (allDone && !warnCount) note = '目前功能全部正常運作:每份文檔達成、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:devflow claim feature <slug>';
+    else if (allDone) note = `目前功能全部正常運作(每份文檔達成、測試全綠、沒有 open GAP);警訊還有 ${warnCount} 條,照第 7 段的怎麼辦欄清,清完加新功能`;
+    else if (notDone.some((x) => x.unknown || x.laws.some((l) => l.result === '未跑'))) note = `沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常`;
+    else note = `沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 還沒達成:devflow status --doc <全名> 看哪一列還不在;不加新功能`;
+  }
+  return { steps, note, allDone };
 }
 
 export function statusReport(design, source, adapter, results, resultNote, building = new Set()) {
   const a = analyze(design, source, adapter, results);
   const out = [];
-  const listed = design.system ? design.system.listed : [];
   const features = design.features.map((f) => f.fullName);
   const achievedAll = [...a.info.values()].filter((x) => x.achieved).length;
   const achievedFeatures = features.filter((m) => a.info.has(m) && a.info.get(m).achieved).length;
@@ -171,19 +272,11 @@ export function statusReport(design, source, adapter, results, resultNote, build
   for (const x of a.info.values()) out.push(row(x));
 
   out.push('', '## 1. 今天能開幾條線');
-  // 能開 = ready、沒 open GAP、引用的 abstract 全部達成(消費者在 abstract 合進主線之後才開,roles.md「分支與所有權」)
-  const tagOf = (x) => (x.p.kind === 'abstract' ? `abstract,${x.referrers.length ? `${x.referrers.join('、')} 引用它` : '沒有消費者'}` : ov.tag(x.p.fullName));
-  const candidates = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.length).sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
-  const openable = candidates.filter((x) => !building.has(x.p.fullName));
-  const inBuild = candidates.filter((x) => building.has(x.p.fullName));
+  const { openable, inBuild, shared } = openLines(a, ov, building);
   if (!openable.length) out.push('- 無');
-  for (const x of openable) out.push(`- ${x.p.fullName}:dev-flow:build ${x.p.fullName}(${tagOf(x)})`);
+  for (const x of openable) out.push(`- ${x.p.fullName}:dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);
   for (const x of inBuild) out.push(`- ${x.p.fullName}:建構中,分支 build/${x.p.fullName};收尾後 dev-flow:integrate`);
-  // 兩條能開的線的 step 住同一個檔案:同時開,整合時那個檔案兩邊都動
-  for (let i = 0; i < openable.length; i++) for (let j = i + 1; j < openable.length; j++) {
-    const files = [...new Set(openable[i].steps.filter((s) => !s.ref).map((s) => s.module))].filter((m) => openable[j].steps.some((s) => !s.ref && s.module === m));
-    if (files.length) out.push(`- ${openable[i].p.fullName} 與 ${openable[j].p.fullName} 的 step 都住 ${files.map((m) => `\`${m}\``).join('、')}:可以同時開,整合時這些檔案兩邊都動`);
-  }
+  for (const s of shared) out.push(`- ${s.a} 與 ${s.b} 的 step 都住 ${s.files.map((m) => `\`${m}\``).join('、')}:可以同時開,整合時這些檔案兩邊都動`);
 
   out.push('', '## 2. 卡住的');
   let stuck = 0;
@@ -246,57 +339,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
   for (const x of wide) out.push(`- ${x.p.fullName}:${x.referrers.length} 份文檔引用它,改它要一起 REV`);
 
   out.push('', '## 7. 警訊');
-  const warns = [];
-  const warn = (where, what, fix) => warns.push([where, what, fix]);
-  if (!sys) warn('system.md', '不存在', 'dev-flow:project 立案');
-  else if (sys.visionState === 'missing') warn('system.md', '沒有 ## 願景 節', 'dev-flow:project 訂願景');
-  else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'dev-flow:project 訂願景');
-  if (!ov.objs.length) warn(design.objectives.exists ? 'objectives.md' : '.design/', '沒有任何目標', 'dev-flow:objective 訂第一個目標(至少一個)');
-  const seenM = new Set();
-  for (const o of ov.objs) {
-    if (o.placeholder) warn(o.id, '目標還是模板', 'dev-flow:objective 寫成一句話');
-    if (!o.priority) warn(o.id, `優先「${o.priorityRaw || '(沒填)'}」不是 1 到 4`, '改成 1(最高)到 4(最低)');
-    if (!o.criteria) warn(o.id, '沒有可觀察的判準', 'dev-flow:objective 補一句達成時看得到什麼');
-    if (!o.ms.length) warn(o.id, '沒有任何里程碑', 'dev-flow:objective 補里程碑並綁定文檔');
-    for (const m of o.ms) {
-      if (seenM.has(m.id)) warn(m.id, '里程碑編號重複', '編號全檔唯一;配號只走 devflow objective milestone');
-      seenM.add(m.id);
-      if (m.placeholder) warn(m.id, '里程碑還是模板', 'dev-flow:objective 寫成一句話');
-      if (!m.binds.length) warn(m.id, '沒有綁定任何文檔', 'devflow claim feature <slug> --milestone ' + m.id + ',或在綁定欄填既有的 feature 全名');
-      for (const d of m.docs) {
-        if (!d.x) warn(m.id, `綁定的 ${d.name} 不存在`, '改成 features/ 裡有的全名,或刪這個綁定');
-        else if (d.x.p.kind === 'abstract') warn(m.id, `綁定的 ${d.name} 是 abstract`, '改綁引用它的 feature;abstract 跟著 feature 達成');
-      }
-    }
-  }
-  for (const f of unbound) warn(f, '沒有被任何里程碑綁定', '不朝向任何目標:dev-flow:objective 綁進一條里程碑,或刪掉這份 feature');
-  const consumers = new Map(design.abstracts.map((x) => [x.fullName, []]));
-  for (const d of design.docs) for (const s of d.steps) if (s.ref && consumers.has(s.ref)) consumers.get(s.ref).push(d.fullName);
-  for (const [name, cs] of consumers) if (new Set(cs).size === 1) warn(name, `只有 ${cs[0]} 用它`, '收整沒有成立;dev-flow:refactor 搬回去,或找出第二個消費者');
-  const gapIds = new Map();
-  for (const g of design.gaps.gaps) gapIds.set(g.id, (gapIds.get(g.id) || 0) + 1);
-  for (const [id, n] of gapIds) if (n > 1) warn(id, `gaps.md 裡出現 ${n} 次`, '兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」)');
-  for (const x of a.info.values()) {
-    const p = x.p;
-    if (!p.hasFrontmatter) warn(p.file, '沒有 frontmatter', '照 templates/ 補');
-    if (p.status && !STATUSES.includes(p.status)) warn(p.file, `status「${p.status}」不合法`, '改成 draft / ready / frozen');
-    const t = p.template;
-    if (t.steps || t.laws || t.examples) warn(p.fullName, `還是模板(${[t.steps && `Steps ${t.steps} 列`, t.laws && `Laws ${t.laws} 條`, t.examples && `Examples ${t.examples} 列`].filter(Boolean).join('、')}是佔位符)`, 'dev-flow:feature 討論完寫成真的');
-    if (p.status === 'frozen' && [...x.laws, ...x.examples].some((l) => l.result === 'red')) warn(p.fullName, 'frozen 而測試紅', '先解凍再修');
-    if (p.status === 'frozen' && p.revs.length && !p.thawed) warn(p.fullName, 'frozen 而有 REV 卻沒有解凍紀錄', '在「決定」補一條解凍');
-    if (p.status === 'ready' && x.achieved) warn(p.fullName, '已達成', 'build 收尾改 frozen');
-    if (listed.length && p.kind === 'feature' && !listed.some((l) => l.fullName === p.fullName)) warn(p.fullName, '不在 system.md 的 Features 表', '補一列');
-    for (const s of x.steps) if (s.state === '不一致') warn(`${p.fullName}#${s.name}`, '簽名與程式碼不一致', 'devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV');
-    for (const s of x.steps) if (s.state === '搬家') warn(`${p.fullName}#${s.name}`, `程式碼在 ${s.hit.file}`, 'devflow sync');
-    for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁:先歸因再改');
-  }
-  for (const l of listed) {
-    if (!design.docs.some((d) => d.fullName === l.fullName)) warn('system.md', `列了 ${l.fullName},features/ 沒有這個檔`, '刪那一列或 devflow claim');
-  }
-  if (source) {
-    const b = lintBoundary(design, source, adapter);
-    if (b.red.length) warn('模組表 / 層', `lint boundary ${b.red.length} 條不合規`, 'devflow lint boundary');
-  }
+  const warns = warnings(design, a, ov, source, adapter);
   if (!warns.length) out.push('- 無');
   else {
     out.push('| 哪裡 | 什麼事 | 怎麼辦 |', '|---|---|---|');
@@ -304,23 +347,11 @@ export function statusReport(design, source, adapter, results, resultNote, build
   }
 
   out.push('', '## 8. 建議路線');
-  let n = 1;
-  if (a.openGaps.length) out.push(`${n++}. 先回答 ${a.openGaps.map((g) => g.id).join('、')}(dev-flow:revise),卡住的 step 才能重派`);
-  const order = [...a.info.values()].filter((x) => !x.achieved && x.p.status === 'ready').sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || x.refs.length - y.refs.length);
-  for (const x of order) out.push(`${n++}. dev-flow:build ${x.p.fullName}(${x.p.kind === 'abstract' ? `abstract,${x.referrers.length ? `${x.referrers.join('、')} 引用它` : '沒有消費者'}` : ov.tag(x.p.fullName)})`);
-  const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
-  if (drafts.length) out.push(`${n++}. ${drafts.map((x) => x.p.fullName).join('、')} 討論完改 ready`);
-  const allDone = [...a.info.values()].every((x) => x.achieved) && !a.openGaps.length;
-  if (n === 1) {
-    const notDone = [...a.info.values()].filter((x) => !x.achieved);
-    if (!a.info.size) out.push(`- 還沒有任何文檔;${ov.objs.length ? 'devflow claim feature <slug> --milestone <M-n> 建第一份' : '先 dev-flow:objective 訂目標與里程碑,再 devflow claim feature <slug> --milestone <M-n>'}`);
-    else if (allDone && !warns.length) out.push('- 目前功能全部正常運作:每份文檔達成、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:devflow claim feature <slug>');
-    else if (allDone) out.push(`- 目前功能全部正常運作(每份文檔達成、測試全綠、沒有 open GAP);警訊還有 ${warns.length} 條,照第 7 段的怎麼辦欄清,清完加新功能`);
-    else if (notDone.some((x) => x.unknown || x.laws.some((l) => l.result === '未跑'))) out.push(`- 沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常`);
-    else out.push(`- 沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 還沒達成:devflow status --doc <全名> 看哪一列還不在;不加新功能`);
-  }
+  const route = suggestRoutes(design, a, ov, warns.length);
+  route.steps.forEach((s, i) => out.push(`${i + 1}. ${s}`));
+  if (route.note) out.push(`- ${route.note}`);
 
-  return { text: out.join('\n'), exitCode: allDone && a.info.size ? 0 : 1 };
+  return { text: out.join('\n'), exitCode: route.allDone && a.info.size ? 0 : 1 };
 }
 
 export function docDetail(design, source, adapter, results, resultNote, name) {

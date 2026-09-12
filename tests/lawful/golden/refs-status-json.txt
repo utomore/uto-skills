@@ -1,0 +1,443 @@
+$ lawful status --json
+· system.md 沒有 language 欄,簽名與邊界不對帳
+
+{
+  "tool": "lawful",
+  "labels": {
+    "unit": "pipeline",
+    "steps": "Stages"
+  },
+  "vision": "輸入檔解析、正規化後跑完整條。",
+  "visionState": "ok",
+  "tests": "此 adapter 不解析測試輸出",
+  "summary": {
+    "objectives": 1,
+    "objectivesAchieved": 0,
+    "milestones": 2,
+    "milestonesAchieved": 0,
+    "ioFaces": 1,
+    "ioFacesAchieved": 0,
+    "pipelines": 3,
+    "pipelinesAchieved": 0,
+    "docs": 3,
+    "docsAchieved": 0,
+    "todoSteps": 0,
+    "openGaps": 0
+  },
+  "headline": [
+    {
+      "label": "目標",
+      "value": "0 / 1 達成"
+    },
+    {
+      "label": "里程碑",
+      "value": "0 / 2 達成"
+    },
+    {
+      "label": "IO 介面",
+      "value": "0 / 1 達成"
+    },
+    {
+      "label": "pipeline",
+      "value": "0 / 3 達成"
+    },
+    {
+      "label": "還沒實作的 stage",
+      "value": "0 個"
+    },
+    {
+      "label": "還開著的 GAP",
+      "value": "0 條"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "O-1",
+      "title": "輸入檔跑完整條",
+      "priority": 1,
+      "priorityRaw": "1",
+      "criteria": "任一輸入檔解析、正規化後跑完不出錯",
+      "achieved": false,
+      "milestonesAchieved": 0,
+      "percent": 0,
+      "milestones": [
+        {
+          "id": "M-1",
+          "title": "解析與正規化走通",
+          "achieved": false,
+          "binds": [
+            "P-002-parse",
+            "P-003-normalize"
+          ]
+        },
+        {
+          "id": "M-2",
+          "title": "整條跑完",
+          "achieved": false,
+          "binds": [
+            "P-001-run"
+          ]
+        }
+      ]
+    }
+  ],
+  "lanes": [
+    {
+      "title": "O-1 輸入檔跑完整條",
+      "badge": "優先 1",
+      "notes": [
+        "里程碑 0/2 達成 · 完成度 0%",
+        "判準:任一輸入檔解析、正規化後跑完不出錯"
+      ],
+      "columns": [
+        {
+          "title": "M-1 解析與正規化走通",
+          "achieved": false,
+          "docs": [
+            "P-002-parse",
+            "P-003-normalize"
+          ]
+        },
+        {
+          "title": "M-2 整條跑完",
+          "achieved": false,
+          "docs": [
+            "P-001-run"
+          ]
+        }
+      ],
+      "empty": null
+    }
+  ],
+  "docs": [
+    {
+      "name": "P-001-run",
+      "id": "P-001",
+      "kind": "IO 介面",
+      "status": "ready",
+      "description": "讀一段文字,解析後正規化",
+      "state": "等 P-002-parse",
+      "achieved": false,
+      "building": false,
+      "objective": "O-1",
+      "priority": 1,
+      "milestone": "M-2",
+      "signatures": {
+        "total": 3,
+        "matched": 0,
+        "stub": 0
+      },
+      "observations": {
+        "total": 0,
+        "matched": 0
+      },
+      "laws": {
+        "total": 1,
+        "green": 0,
+        "traced": 0,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "total",
+            "title": "任何文字都有結果",
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "examples": {
+        "total": 1,
+        "green": 0,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 0,
+        "last": null
+      },
+      "gaps": [],
+      "refs": [
+        "P-002-parse"
+      ],
+      "referrers": [],
+      "blockedBy": [
+        "P-002-parse"
+      ],
+      "modules": [
+        "Core.Run",
+        "Host.Main"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "parse",
+          "signature": "parse :: Text -> Either ParseError Doc",
+          "module": "Core.Parse",
+          "layer": "pure",
+          "state": "未查",
+          "at": null,
+          "ref": "P-002-parse",
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "run",
+          "signature": "run :: Text -> Either ParseError Doc",
+          "module": "Core.Run",
+          "layer": "pure",
+          "state": "未查",
+          "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "!",
+          "name": "main",
+          "signature": "main :: IO ()",
+          "module": "Host.Main",
+          "layer": "shell",
+          "state": "未查",
+          "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": true,
+          "wish": false
+        }
+      ]
+    },
+    {
+      "name": "P-002-parse",
+      "id": "P-002",
+      "kind": "子流",
+      "status": "ready",
+      "description": "文字解析成 Doc",
+      "state": "進行中",
+      "achieved": false,
+      "building": false,
+      "objective": "O-1",
+      "priority": 1,
+      "milestone": "M-1",
+      "signatures": {
+        "total": 2,
+        "matched": 0,
+        "stub": 0
+      },
+      "observations": {
+        "total": 0,
+        "matched": 0
+      },
+      "laws": {
+        "total": 1,
+        "green": 0,
+        "traced": 0,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "total",
+            "title": "任何文字都解得出結果或錯誤",
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "examples": {
+        "total": 1,
+        "green": 0,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 0,
+        "last": null
+      },
+      "gaps": [],
+      "refs": [],
+      "referrers": [
+        "P-001-run"
+      ],
+      "blockedBy": [],
+      "modules": [
+        "Core.Token",
+        "Core.Parse"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "shared",
+          "signature": "shared :: Text -> [Token]",
+          "module": "Core.Token",
+          "layer": "pure",
+          "state": "未查",
+          "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "parse",
+          "signature": "parse :: Text -> Either ParseError Doc",
+          "module": "Core.Parse",
+          "layer": "pure",
+          "state": "未查",
+          "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        }
+      ]
+    },
+    {
+      "name": "P-003-normalize",
+      "id": "P-003",
+      "kind": "子流",
+      "status": "ready",
+      "description": "Doc 正規化",
+      "state": "進行中",
+      "achieved": false,
+      "building": false,
+      "objective": "O-1",
+      "priority": 1,
+      "milestone": "M-1",
+      "signatures": {
+        "total": 2,
+        "matched": 0,
+        "stub": 0
+      },
+      "observations": {
+        "total": 0,
+        "matched": 0
+      },
+      "laws": {
+        "total": 1,
+        "green": 0,
+        "traced": 0,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "identity",
+            "title": "正規化冪等",
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "examples": {
+        "total": 1,
+        "green": 0,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 0,
+        "last": null
+      },
+      "gaps": [],
+      "refs": [],
+      "referrers": [],
+      "blockedBy": [],
+      "modules": [
+        "Core.Token",
+        "Core.Normalize"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "shared",
+          "signature": "shared :: Text -> [Token]",
+          "module": "Core.Token",
+          "layer": "pure",
+          "state": "未查",
+          "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "normalize",
+          "signature": "normalize :: Doc -> Doc",
+          "module": "Core.Normalize",
+          "layer": "pure",
+          "state": "未查",
+          "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "P-001-run",
+      "to": "P-002-parse"
+    }
+  ],
+  "lines": {
+    "openable": [
+      {
+        "name": "P-002-parse",
+        "tag": "O-1 優先 1 · M-1 解析與正規化走通"
+      },
+      {
+        "name": "P-003-normalize",
+        "tag": "O-1 優先 1 · M-1 解析與正規化走通"
+      }
+    ],
+    "building": [],
+    "shared": [
+      {
+        "a": "P-002-parse",
+        "b": "P-003-normalize",
+        "files": [
+          "Core.Token"
+        ]
+      }
+    ]
+  },
+  "gaps": [],
+  "warnings": [
+    {
+      "where": "P-002-parse#shared",
+      "what": "P-003-normalize 也把 shared 列成 stage,兩邊都沒註明「見」",
+      "fix": "引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來"
+    }
+  ],
+  "route": {
+    "steps": [
+      "lawful:build P-002-parse(O-1 優先 1 · M-1 解析與正規化走通)",
+      "lawful:build P-003-normalize(O-1 優先 1 · M-1 解析與正規化走通)",
+      "lawful:build P-001-run(O-1 優先 1 · M-2 整條跑完)"
+    ],
+    "note": null,
+    "allDone": false
+  }
+}
+exit 1

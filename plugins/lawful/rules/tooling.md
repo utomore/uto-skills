@@ -14,6 +14,8 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 |---|---|
 | `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 在專案根目錄跑 `system.md` 的整套指令;兩者都沒給、或輸出裡一條 `P-00x#LAW-n` 標記都沒有,就列「未跑」並在開頭寫明 |
 | `status --pipeline <P-00x>` / `--module <M>` | 一條 pipeline 的 stage 與 law 逐條狀態 / 住在該模組的所有 stage 的狀態 |
+| `status --json` | 同一份報告的資料原樣輸出:願景、目標與里程碑、每條 pipeline(stage、law、example、GAP、引用與被引用、模組)、能開的線、警訊、建議路線。數字與文字都與報告同源,給別的工具讀 |
+| `status --html [檔名]` | 同一份報告畫成看板,寫成一個自帶資料的單檔網頁(預設 `lawful-status.html`):一條 pipeline 一張便利貼,顏色是狀態,連線是引用(箭頭指向被引用的那一條),點一張看它的 stage 與 law 逐條、牽動誰、警訊。不連網、不起服務,瀏覽器打開就看 |
 | `claim <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建 pipeline 檔(`status: draft`),`system.md` Pipelines 表加一列(類別欄由人填 IO 介面或子流),綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標 |
 | `objective add <一句話> --priority <1-4> [--criteria <句>]` | 鑄 `O-n` 寫進 `objectives.md`;優先 1 最高、4 最低;判準沒給就留佔位符並提醒 |
 | `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全檔唯一)加進該目標的表;綁定的全名要是 `pipelines/` 裡有的 pipeline |

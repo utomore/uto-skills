@@ -1,0 +1,310 @@
+$ lawful status --json --tests test.log
+{
+  "tool": "lawful",
+  "labels": {
+    "unit": "pipeline",
+    "steps": "Stages"
+  },
+  "vision": "玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。",
+  "visionState": "ok",
+  "tests": "測試結果來自 test.log",
+  "summary": {
+    "objectives": 1,
+    "objectivesAchieved": 0,
+    "milestones": 1,
+    "milestonesAchieved": 0,
+    "ioFaces": 1,
+    "ioFacesAchieved": 0,
+    "pipelines": 1,
+    "pipelinesAchieved": 0,
+    "docs": 1,
+    "docsAchieved": 0,
+    "todoSteps": 4,
+    "openGaps": 0
+  },
+  "headline": [
+    {
+      "label": "目標",
+      "value": "0 / 1 達成"
+    },
+    {
+      "label": "里程碑",
+      "value": "0 / 1 達成"
+    },
+    {
+      "label": "IO 介面",
+      "value": "0 / 1 達成"
+    },
+    {
+      "label": "pipeline",
+      "value": "0 / 1 達成"
+    },
+    {
+      "label": "還沒實作的 stage",
+      "value": "4 個"
+    },
+    {
+      "label": "還開著的 GAP",
+      "value": "0 條"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "O-1",
+      "title": "玩家存檔後能讀回同一個世界",
+      "priority": 1,
+      "priorityRaw": "1",
+      "criteria": "任一 World 存檔再讀回,可存檔的投影一模一樣",
+      "achieved": false,
+      "milestonesAchieved": 0,
+      "percent": 0,
+      "milestones": [
+        {
+          "id": "M-1",
+          "title": "存檔寫得出檔案",
+          "achieved": false,
+          "binds": [
+            "P-001-save-game"
+          ]
+        }
+      ]
+    }
+  ],
+  "lanes": [
+    {
+      "title": "O-1 玩家存檔後能讀回同一個世界",
+      "badge": "優先 1",
+      "notes": [
+        "里程碑 0/1 達成 · 完成度 0%",
+        "判準:任一 World 存檔再讀回,可存檔的投影一模一樣"
+      ],
+      "columns": [
+        {
+          "title": "M-1 存檔寫得出檔案",
+          "achieved": false,
+          "docs": [
+            "P-001-save-game"
+          ]
+        }
+      ],
+      "empty": null
+    }
+  ],
+  "docs": [
+    {
+      "name": "P-001-save-game",
+      "id": "P-001",
+      "kind": "IO 介面",
+      "status": "ready",
+      "description": "把當前 World 投影成可存檔的狀態,編碼後寫到磁碟",
+      "state": "進行中",
+      "achieved": false,
+      "building": false,
+      "objective": "O-1",
+      "priority": 1,
+      "milestone": "M-1",
+      "signatures": {
+        "total": 6,
+        "matched": 6,
+        "stub": 4
+      },
+      "observations": {
+        "total": 1,
+        "matched": 1
+      },
+      "laws": {
+        "total": 5,
+        "green": 4,
+        "traced": 5,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "roundtrip",
+            "title": "存了再讀回到同一個狀態",
+            "result": "green"
+          },
+          {
+            "id": "LAW-2",
+            "kind": "invariant",
+            "title": "投影不丟實體",
+            "result": "green"
+          },
+          {
+            "id": "LAW-3",
+            "kind": "bound",
+            "title": "檔案大小跟實體數線性",
+            "result": "pending"
+          },
+          {
+            "id": "LAW-4",
+            "kind": "invariant",
+            "title": "投影後實體 id 不重複",
+            "result": "green"
+          },
+          {
+            "id": "LAW-5",
+            "kind": "roundtrip",
+            "title": "整條存出去的位元組解回來就是投影",
+            "result": "green"
+          }
+        ]
+      },
+      "examples": {
+        "total": 2,
+        "green": 1,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "green"
+          },
+          {
+            "id": "EX-2",
+            "covers": [
+              "LAW-2"
+            ],
+            "result": "red"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 0,
+        "last": null
+      },
+      "gaps": [],
+      "refs": [],
+      "referrers": [],
+      "blockedBy": [],
+      "modules": [
+        "Save.Project",
+        "Save.Codec",
+        "Host.FS",
+        "Save.Project.Internal",
+        "Save",
+        "Host.Save"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "toSave",
+          "signature": "toSave :: World -> SaveState",
+          "module": "Save.Project",
+          "layer": "pure",
+          "state": "骨架",
+          "at": "Save.Project",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "2",
+          "name": "encode",
+          "signature": "encode :: SaveState -> ByteString",
+          "module": "Save.Codec",
+          "layer": "pure",
+          "state": "骨架",
+          "at": "Save.Codec",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "3",
+          "name": "decode",
+          "signature": "decode :: ByteString -> Either DecodeError SaveState",
+          "module": "Save.Codec",
+          "layer": "pure",
+          "state": "骨架",
+          "at": "Save.Codec",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "4",
+          "name": "writeSave",
+          "signature": "writeSave :: FilePath -> ByteString -> IO ()",
+          "module": "Host.FS",
+          "layer": "shell",
+          "state": "骨架",
+          "at": "Host.FS",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "savedIds",
+          "signature": "savedIds :: SaveState -> [EntityId]",
+          "module": "Save.Project.Internal",
+          "layer": "pure",
+          "state": "在",
+          "at": "Save.Project.Internal",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "saveBytes",
+          "signature": "saveBytes :: World -> ByteString",
+          "module": "Save",
+          "layer": "pure",
+          "state": "在",
+          "at": "Save",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "!",
+          "name": "saveGame",
+          "signature": "saveGame :: FilePath -> World -> IO ()",
+          "module": "Host.Save",
+          "layer": "shell",
+          "state": "在",
+          "at": "Host.Save",
+          "ref": null,
+          "observe": false,
+          "entry": true,
+          "wish": false
+        }
+      ]
+    }
+  ],
+  "edges": [],
+  "lines": {
+    "openable": [
+      {
+        "name": "P-001-save-game",
+        "tag": "O-1 優先 1 · M-1 存檔寫得出檔案"
+      }
+    ],
+    "building": [],
+    "shared": []
+  },
+  "gaps": [],
+  "warnings": [
+    {
+      "where": "P-001#EX-2",
+      "what": "測試紅",
+      "fix": "仲裁:先歸因再改"
+    }
+  ],
+  "route": {
+    "steps": [
+      "lawful:build P-001-save-game(O-1 優先 1 · M-1 存檔寫得出檔案)"
+    ],
+    "note": null,
+    "allDone": false
+  }
+}
+exit 1

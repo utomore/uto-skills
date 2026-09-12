@@ -25,10 +25,12 @@ const CASES = [
   ['save-game-status-tests', 'save-game', ['status', '--tests', 'test.log']],
   ['save-game-status-pipeline', 'save-game', ['status', '--pipeline', 'P-001-save-game', '--tests', 'test.log']],
   ['save-game-status-module', 'save-game', ['status', '--module', 'Save.Codec', '--tests', 'test.log']],
+  ['save-game-status-json', 'save-game', ['status', '--json', '--tests', 'test.log']],
   ['broken-status', 'broken', ['status']],
   ['save-game-status-tasty', 'save-game', ['status', '--tests', 'test-tasty.log']],
   ['devflow-migrate', 'devflow', ['migrate', 'from-dev-flow', '.design', '--ignore', 'old']],
   ['refs-status', 'refs', ['status']],
+  ['refs-status-json', 'refs', ['status', '--json']],
   ['refs-lint-sig', 'refs', ['lint', 'sig']],
   ['frozen-ref-status', 'frozen-ref', ['status']],
   ['frozen-ref-status-tests', 'frozen-ref', ['status', '--tests', 'test.log']],
@@ -89,6 +91,34 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/status/.test(h.stdout
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
+
+// --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事
+{
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-html-'));
+  const out = path.join(tmp, 'board.html');
+  const r = spawnSync(process.execPath, [bin, 'status', '--html', out, '--tests', 'test.log', '--root', path.join(here, 'fixtures', 'save-game')], { encoding: 'utf8' });
+  const html = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';
+  const data = /<script id="data" type="application\/json">([\s\S]*?)<\/script>/.exec(html);
+  // exit code 帶的是報告判定(有沒有全部達成),不是寫檔成敗;寫成功了就一定讀得到資料區塊。
+  // 資料區塊裡一個生的 < 都不該有:全部逃成 <,文檔寫了什麼都關不掉這個標籤
+  const ok = !html.includes('__STATUS_JSON__') && !!data
+    && /"tool": "lawful"/.test(data[1]) && /P-001-save-game/.test(data[1]) && !data[1].includes('<');
+  fs.rmSync(tmp, { recursive: true, force: true });
+  if (!ok) {
+    failed++;
+    console.log('✗ status --html');
+  } else console.log('✓ status --html');
+}
+
+// 看板的頁面兩個 plugin 共用同一份,逐位元組相同;改了一邊就要複製到另一邊
+{
+  const mine = path.join(here, '..', '..', 'plugins', 'lawful', 'templates', 'status-board.html');
+  const other = path.join(here, '..', '..', 'plugins', 'dev-flow', 'templates', 'status-board.html');
+  if (!fs.existsSync(other) || fs.readFileSync(mine, 'utf8') !== fs.readFileSync(other, 'utf8')) {
+    failed++;
+    console.log('✗ status-board.html 與 dev-flow 的那份不一致');
+  } else console.log('✓ status-board.html 兩個 plugin 一致');
+}
 
 console.log(failed ? `\n${failed} 個不符` : '\n全部通過');
 process.exitCode = failed ? 1 : 0;

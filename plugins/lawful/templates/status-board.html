@@ -53,7 +53,7 @@ h1,h2,h3{margin:0;font-weight:600}
 #stage{position:absolute;inset:0;top:var(--topH,108px);overflow:hidden;cursor:grab;
   background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:26px 26px}
 #stage.grabbing{cursor:grabbing}
-#world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;user-select:none}
+#world{position:absolute;top:0;left:0;transform-origin:0 0;user-select:none}
 #links{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
 #links path{fill:none}
 #links .tree{stroke:var(--wire);stroke-width:1.6;opacity:.5}
@@ -175,8 +175,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
     <span class="sep"></span>
     <label>引用連線
       <select id="refmode">
-        <option value="all" selected>全部顯示</option>
-        <option value="sel">只有選取的</option>
+        <option value="sel" selected>只有選取的</option>
+        <option value="all">全部顯示</option>
         <option value="off">不顯示</option>
       </select>
     </label>
@@ -250,7 +250,7 @@ document.getElementById('legend').innerHTML = TERMS
   + '<span title="虛線箭頭:箭頭那一端是被引用的那一份"><i style="background:var(--wire)"></i>引用</span>';
 helpEl.innerHTML = `<button class="close">關閉</button><h3>便利貼的顏色</h3><dl>${
   TERMS.map(([t, name, why]) => `<dt><i style="background:var(--${t})"></i>${esc(name)}</dt><dd>${esc(why)}</dd>`).join('')
-}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份。實線是樹的骨架(願景 → 優先度區塊 → 目標 → 里程碑 → ${esc(D.labels.unit)})</dd></dl>`;
+}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,走右邊的通道繞過去,不從卡片上壓過。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 優先度區塊 → 目標 → 里程碑 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd></dl>`;
 const setTopHeight = () => document.body.style.setProperty('--topH', document.getElementById('top').offsetHeight + 'px');
 
 // 側欄的首頁:派工
@@ -267,19 +267,20 @@ document.getElementById('warnings').innerHTML = D.warnings.length
   ? D.warnings.map((w) => `<div class="warn"><b>${esc(w.where)}</b>${esc(w.what)}<i>${esc(w.fix)}</i></div>`).join('')
   : '<p class="empty">無</p>';
 
-// ── 這棵樹:願景 → 優先度區塊 → 目標 → 里程碑 → 一份文檔一張便利貼 ──
-const NOTE_W = 236, GROUP_W = 236, LANE_W = 300, BAND_W = 208, VISION_W = 660;
-const GAP_NOTE = 16;      // 同一條里程碑底下,便利貼之間
-const GAP_GROUP = 30;     // 里程碑之間
-const GAP_LANE = 64;      // 目標之間
-const GAP_ROW = 62;       // 層與層之間
-const GAP_SHELF = 76;     // 同一個區塊裡,折行之後的兩排之間
-const GAP_BAND = 118;     // 區塊之間
-const MAX_SHELF = 4200;   // 一排最寬到這裡就折行
-const LEFT = 112;         // 願景的左緣,也是整張圖的最左邊
-const TRUNK = 150;        // 願景底下垂直落下的主幹,落點就在願景卡片底下
-const BAND_X = 202;       // 區塊標籤的左緣
-const SPINE = 36;         // 區塊標籤右邊的支幹
+// ── 這棵樹:從左上往下長,每深一層往右縮排一格 ──
+// 願景 → 優先度區塊 → 目標 → 里程碑 → 便利貼;便利貼在里程碑底下折成方陣往右鋪
+const NOTE_W = 236, GROUP_W = 360, LANE_W = 620, BAND_W = 420, VISION_W = 660;
+const LEFT = 40;          // 願景的左緣,也是整張圖的最左邊
+const IND = 36;           // 每深一層往右縮排這麼多
+const STUB = 22;          // 接線從子卡片上緣往下這麼多,接進它的左緣
+const GAP_DROP = 18;      // 父卡片底下到第一個子卡片
+const GAP_NOTE = 16;      // 同一排的便利貼之間
+const GAP_NOTE_ROW = 18;  // 便利貼折行之間
+const GAP_COL = 28;       // 里程碑卡片到它右邊那一叢便利貼
+const GAP_GROUP = 28;     // 里程碑那一叢之間
+const GAP_LANE = 40;      // 目標那一叢之間
+const GAP_BAND = 58;      // 優先度區塊之間
+const MAX_GRID = 1800;    // 便利貼一排最寬到這裡就折行
 
 function noteHtml(name) {
   const d = byName.get(name);
@@ -344,189 +345,158 @@ function place(el, x, y, w) {
   box.set(el, b);
   return b;
 }
-// 每層都置中在它的子節點上:線才會從卡片正下方出去、從卡片正上方進來
-const midOf = (xs, fallback) => (xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : fallback);
 const hull = (boxes) => ({
   x1: Math.min(...boxes.map((b) => b.x)), y1: Math.min(...boxes.map((b) => b.y)),
   x2: Math.max(...boxes.map((b) => b.x + b.w)), y2: Math.max(...boxes.map((b) => b.y + b.h)),
 });
 
 const visionEl = pick('.vision');
-const laneRowH = Math.max(0, ...[...world.querySelectorAll('.lane')].map((el) => H.get(el)));
-const groupRowH = Math.max(0, ...[...world.querySelectorAll('.group')].map((el) => H.get(el)));
 const notesOf = (col) => col.own.map((n) => noteEls.get(n)).filter(Boolean);
-const colWidth = (col) => {
-  const n = notesOf(col).length;
-  return Math.max(GROUP_W, n ? n * NOTE_W + (n - 1) * GAP_NOTE : NOTE_W);
-};
-const laneWidth = (lane) => {
-  const ws = lane.columns.map(colWidth);
-  return Math.max(LANE_W, ws.length ? ws.reduce((a, b) => a + b, 0) + (ws.length - 1) * GAP_GROUP : LANE_W);
-};
-// 一條里程碑:卡片置中,便利貼排在它正下方
-function placeCol(bi, li, ci, col, mid, yGroup, yNote) {
-  const g = groupEl(bi, li, ci);
-  const out = [place(g, mid - GROUP_W / 2, yGroup, GROUP_W)];
-  const ns = notesOf(col);
-  const nw = ns.length ? ns.length * NOTE_W + (ns.length - 1) * GAP_NOTE : 0;
-  let nx = mid - nw / 2;
-  for (const el of ns) {
-    out.push(place(el, nx, yNote, NOTE_W));
-    nx += NOTE_W + GAP_NOTE;
-  }
-  return out;
-}
-// 一個目標:它的里程碑攤在下一層,自己置中在它們上面
-function placeLane(bi, li, lane, x, w, yLane, yGroup, yNote) {
-  const ws = lane.columns.map(colWidth);
-  const kidsW = ws.length ? ws.reduce((a, b) => a + b, 0) + (ws.length - 1) * GAP_GROUP : 0;
-  let gx = x + (w - kidsW) / 2;
-  const mids = [];
-  const out = [];
-  lane.columns.forEach((col, ci) => {
-    const mid = gx + ws[ci] / 2;
-    mids.push(mid);
-    out.push(...placeCol(bi, li, ci, col, mid, yGroup, yNote));
-    gx += ws[ci] + GAP_GROUP;
-  });
-  out.push(place(laneEl(bi, li), midOf(mids, x + w / 2) - LANE_W / 2, yLane, LANE_W));
-  return out;
-}
-
 const zones = [];            // 「跳到」用得到的範圍
 const zoneOf = new Map();    // 卡片 → 點它要縮放到的範圍
 const ancestors = new Map(); // 便利貼 → 它上面那一串卡片
-const X0 = BAND_X + BAND_W + SPINE + 30;
-const bandWires = [];
-let bandTop = (visionEl ? H.get(visionEl) : 0) + GAP_ROW;
-D.bands.forEach((band, bi) => {
-  const units = band.bare
-    ? band.columns.map((col, ci) => ({ col, ci, li: -1, w: colWidth(col) }))
-    : band.lanes.map((lane, li) => ({ lane, li, w: laneWidth(lane) }));
-  const gap = band.bare ? GAP_GROUP : GAP_LANE;
-  const shelves = [];
-  for (const u of units) {
-    const s = shelves[shelves.length - 1];
-    if (!s || s.w + gap + u.w > MAX_SHELF) shelves.push({ items: [u], w: u.w });
-    else { s.items.push(u); s.w += gap + u.w; }
-  }
-  const label = place(bandEl(bi), BAND_X, bandTop, BAND_W);
-  const mine = [label];
-  const inner = [];   // 這個區塊底下的目標,排在區塊本身後面進「跳到」
+const trees = [];            // 每一組「父卡片 → 它的子卡片進線點」
+
+// 便利貼方陣:一排排滿了就往下折,每一排從左緣接一條線進來
+const PER_ROW = Math.max(1, Math.floor((MAX_GRID + GAP_NOTE) / (NOTE_W + GAP_NOTE)));
+function grid(els, x0, yTop) {
   const rows = [];
-  let sy = bandTop;
-  for (const s of shelves) {
-    const yA = sy;
-    const yB = yA + (band.bare ? groupRowH : laneRowH) + GAP_ROW;
-    const yC = band.bare ? 0 : yB + groupRowH + GAP_ROW;
-    let x = X0;
-    const heads = [];
-    let bottom = sy;
-    for (const u of s.items) {
-      const made = band.bare
-        ? placeCol(bi, -1, u.ci, u.col, x + u.w / 2, yA, yB)
-        : placeLane(bi, u.li, u.lane, x, u.w, yA, yB, yC);
-      const head = box.get(band.bare ? groupEl(bi, -1, u.ci) : laneEl(bi, u.li));
-      heads.push(head);
-      mine.push(...made);
-      bottom = Math.max(bottom, hull(made).y2);
-      if (!band.bare) {
-        zoneOf.set(laneEl(bi, u.li), hull(made));
-        inner.push({ label: `　${u.lane.title}`, zone: hull(made) });
-        u.lane.columns.forEach((col, ci) => {
-          const g = groupEl(bi, u.li, ci);
-          const kids = [box.get(g), ...notesOf(col).map((el) => box.get(el))];
-          zoneOf.set(g, hull(kids));
-          for (const el of notesOf(col)) ancestors.set(el, [g, laneEl(bi, u.li), bandEl(bi)]);
-        });
-      } else {
-        const g = groupEl(bi, -1, u.ci);
-        zoneOf.set(g, hull(made));
-        for (const el of notesOf(u.col)) ancestors.set(el, [g, bandEl(bi)]);
-      }
-      x += u.w + gap;
-    }
-    rows.push({ armY: yA - GAP_ROW / 2, heads });
-    sy = bottom + GAP_SHELF;
+  let yy = yTop;
+  for (let i = 0; i < els.length; i += PER_ROW) {
+    const row = els.slice(i, i + PER_ROW);
+    let xx = x0;
+    let h = 0;
+    for (const el of row) { place(el, xx, yy, NOTE_W); xx += NOTE_W + GAP_NOTE; h = Math.max(h, H.get(el)); }
+    rows.push({ x: x0, ey: yy + STUB });
+    yy += h + GAP_NOTE_ROW;
+  }
+  return { rows, bottom: els.length ? yy - GAP_NOTE_ROW : yTop };
+}
+const entry = (b) => ({ x: b.x, ey: b.y + STUB });
+
+let y = 0;
+if (visionEl) { place(visionEl, LEFT, 0, VISION_W); y = H.get(visionEl) + GAP_BAND; }
+const bandEntries = [];
+D.bands.forEach((band, bi) => {
+  const bEl = bandEl(bi);
+  const bx = LEFT + IND;
+  const bBox = place(bEl, bx, y, BAND_W);
+  bandEntries.push(entry(bBox));
+  const mine = [bBox];
+  const inner = [];
+  y += bBox.h + GAP_DROP;
+
+  // 一條里程碑:卡片一張,便利貼在它右邊鋪成方陣,排滿了才往下折
+  const putCol = (li, ci, col, x) => {
+    const g = groupEl(bi, li, ci);
+    const gBox = place(g, x, y, GROUP_W);
+    const ns = notesOf(col);
+    const gr = grid(ns, x + GROUP_W + GAP_COL, y);
+    y = Math.max(gBox.y + gBox.h, gr.bottom);
+    trees.push({ from: gBox, kids: gr.rows, side: 'right' });
+    const kids = [gBox, ...ns.map((el) => box.get(el))];
+    zoneOf.set(g, hull(kids));
+    mine.push(...kids);
+    return { gBox, kids };
+  };
+
+  if (band.bare) {
+    band.columns.forEach((col, ci) => {
+      if (ci) y += GAP_GROUP;
+      const { gBox } = putCol(-1, ci, col, bx + IND);
+      trees.push({ from: bBox, kids: [entry(gBox)] });
+      for (const el of notesOf(col)) ancestors.set(el, [groupEl(bi, -1, ci), bEl]);
+    });
+  } else {
+    const laneKids = [];
+    band.lanes.forEach((lane, li) => {
+      if (li) y += GAP_LANE;
+      const lEl = laneEl(bi, li);
+      const lx = bx + IND;
+      const lBox = place(lEl, lx, y, LANE_W);
+      laneKids.push(entry(lBox));
+      const laneMine = [lBox];
+      y += lBox.h + GAP_DROP;
+      const colKids = [];
+      lane.columns.forEach((col, ci) => {
+        if (ci) y += GAP_GROUP;
+        const { gBox, kids } = putCol(li, ci, col, lx + IND);
+        colKids.push(entry(gBox));
+        laneMine.push(...kids);
+        for (const el of notesOf(col)) ancestors.set(el, [groupEl(bi, li, ci), lEl, bEl]);
+      });
+      trees.push({ from: lBox, kids: colKids });
+      const z = hull(laneMine);
+      zoneOf.set(lEl, z);
+      inner.push({ label: `　${lane.title}`, zone: z });
+      mine.push(...laneMine);
+    });
+    trees.push({ from: bBox, kids: laneKids });
   }
   const zone = hull(mine);
-  zoneOf.set(bandEl(bi), zone);
+  zoneOf.set(bEl, zone);
   zones.push({ label: band.title, zone }, ...inner);
-  bandWires.push({ label, rows });
-  bandTop = zone.y2 + GAP_BAND;
+  y = zone.y2 + GAP_BAND;
 });
+if (visionEl && bandEntries.length) trees.push({ from: box.get(visionEl), kids: bandEntries });
 
-let totalW = Math.max(...[...box.values()].map((b) => b.x + b.w), VISION_W + LEFT);
-if (visionEl) place(visionEl, LEFT, 0, VISION_W);
-let maxY = Math.max(0, ...[...box.values()].map((b) => b.y + b.h));
-
-// ── 連線:樹的骨架恆亮;引用是另一種線,箭頭那一端是被引用的那一份 ──
-const cx = (b) => b.x + b.w / 2;
+// ── 連線:骨架是縮排樹的直角線,一條線最長只走一格縮排 ──
 const paths = [`<defs>
   <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--wire)"></path></marker>
   <marker id="arrowWait" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--wait)"></path></marker>
   <marker id="arrowLit" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--going)"></path></marker>
 </defs>`];
 const wire = (d) => paths.push(`<path class="tree" d="${d}"></path>`);
-// 一個父節點對多個子節點:父底下一條豎線落到中間高度,一條橫幹接過去,再各自垂直落下
-function bus(parent, kids) {
-  if (!parent || !kids.length) return;
-  const py = parent.y + parent.h;
-  const mid = py + (Math.min(...kids.map((b) => b.y)) - py) / 2;
-  const xs = kids.map(cx).concat(cx(parent));
-  wire(`M ${cx(parent)} ${py} V ${mid}`);
-  if (Math.max(...xs) - Math.min(...xs) > 0.5) wire(`M ${Math.min(...xs)} ${mid} H ${Math.max(...xs)}`);
-  for (const b of kids) wire(`M ${cx(b)} ${mid} V ${b.y}`);
+// 父卡片垂一條下來,每個子卡片各自從那條橫過來接進自己的左緣;便利貼掛在里程碑右邊,就從右緣垂
+for (const t of trees) {
+  const kids = t.kids.filter(Boolean);
+  if (!t.from || !kids.length) continue;
+  const last = kids[kids.length - 1].ey;
+  const right = t.side === 'right';
+  const sx = right ? t.from.x + t.from.w + GAP_COL / 2 : t.from.x + IND / 2;
+  if (right) {
+    const y0 = t.from.y + Math.min(STUB, t.from.h / 2);
+    wire(`M ${t.from.x + t.from.w} ${y0} H ${sx}`);
+    if (last > y0) wire(`M ${sx} ${y0} V ${last}`);
+  } else wire(`M ${sx} ${t.from.y + t.from.h} V ${last}`);
+  for (const kd of kids) wire(`M ${sx} ${kd.ey} H ${kd.x}`);
 }
-// 區塊標籤在左邊:從它的右緣拉一條支幹,每一排各自橫過去再垂直落下
-function fanRight(label, rows) {
-  const live = rows.filter((r) => r.heads.length);
-  if (!live.length) return;
-  const lx = label.x + label.w, ly = label.y + label.h / 2;
-  const sx = lx + SPINE;
-  const ys = [ly, ...live.map((r) => r.armY)];
-  wire(`M ${lx} ${ly} H ${sx}`);
-  if (Math.max(...ys) - Math.min(...ys) > 0.5) wire(`M ${sx} ${Math.min(...ys)} V ${Math.max(...ys)}`);
-  for (const r of live) {
-    wire(`M ${sx} ${r.armY} H ${Math.max(...r.heads.map(cx))}`);
-    for (const b of r.heads) wire(`M ${cx(b)} ${r.armY} V ${b.y}`);
-  }
+
+// ── 引用:全部走右邊的通道,直角轉彎,不從卡片上面壓過去 ──
+const contentRight = Math.max(...[...box.values()].map((b) => b.x + b.w));
+const CHAN_GAP = 18, CHAN_X0 = contentRight + 46, BEND = 9;
+const outs = new Map();
+for (const e of D.edges) outs.set(e.from, (outs.get(e.from) || 0) + 1);
+const used = new Map();
+const chanBottom = [];   // 每一條通道用到的最下緣;錯開才不會兩條疊在一起
+const live = D.edges
+  .map((e) => ({ e, a: noteEls.get(e.from), b: noteEls.get(e.to) }))
+  .filter((x) => x.a && x.b && box.get(x.a) && box.get(x.b));
+for (const x of live) {
+  const ba = box.get(x.a); const bb = box.get(x.b);
+  const i = used.get(x.e.from) || 0; used.set(x.e.from, i + 1);
+  const n = outs.get(x.e.from);
+  x.y1 = Math.round(ba.y + ba.h / 2 + (i - (n - 1) / 2) * 9);
+  x.y2 = Math.round(bb.y + bb.h / 2);
+  x.x1 = ba.x + ba.w; x.x2 = bb.x + bb.w;
+  x.lo = Math.min(x.y1, x.y2); x.hi = Math.max(x.y1, x.y2);
 }
-// 願景垂一條主幹到左邊,每一個優先度區塊各自橫過去
-if (visionEl && bandWires.length) {
-  const v = box.get(visionEl);
-  const labels = bandWires.map((w) => w.label);
-  wire(`M ${TRUNK} ${v.y + v.h} V ${Math.max(...labels.map((b) => b.y + b.h / 2))}`);
-  for (const b of labels) wire(`M ${TRUNK} ${b.y + b.h / 2} H ${b.x}`);
+for (const x of [...live].sort((p, q) => p.lo - q.lo)) {
+  let ch = chanBottom.findIndex((v) => v < x.lo - 10);
+  if (ch < 0) { ch = chanBottom.length; chanBottom.push(0); }
+  chanBottom[ch] = x.hi;
+  const cxx = CHAN_X0 + ch * CHAN_GAP;
+  const dir = x.y2 > x.y1 ? 1 : -1;
+  const d = Math.abs(x.y2 - x.y1) < 2 * BEND + 2
+    ? `M ${x.x1} ${x.y1} H ${cxx} V ${x.y2} H ${x.x2}`
+    : `M ${x.x1} ${x.y1} H ${cxx - BEND} Q ${cxx} ${x.y1} ${cxx} ${x.y1 + dir * BEND} V ${x.y2 - dir * BEND} Q ${cxx} ${x.y2} ${cxx - BEND} ${x.y2} H ${x.x2}`;
+  const t = byName.get(x.e.to);
+  paths.push(`<path class="ref${t && !t.achieved ? ' blocking' : ''}" data-from="${esc(x.e.from)}" data-to="${esc(x.e.to)}" d="${d}"></path>`);
 }
-for (const w of bandWires) fanRight(w.label, w.rows);
-D.bands.forEach((band, bi) => {
-  if (band.bare) return;
-  band.lanes.forEach((lane, li) => {
-    const lb = box.get(laneEl(bi, li));
-    const gs = lane.columns.map((_, ci) => box.get(groupEl(bi, li, ci))).filter(Boolean);
-    bus(lb, gs);
-  });
-});
-D.bands.forEach((band, bi) => {
-  const cols = band.bare ? band.columns.map((col, ci) => [-1, ci, col]) : band.lanes.flatMap((lane, li) => lane.columns.map((col, ci) => [li, ci, col]));
-  for (const [li, ci, col] of cols) bus(box.get(groupEl(bi, li, ci)), notesOf(col).map((el) => box.get(el)));
-});
-const elbow = (x1, y1, x2, y2) => `M ${x1} ${y1} C ${x1} ${y1 + (y2 - y1) / 2}, ${x2} ${y1 + (y2 - y1) / 2}, ${x2} ${y2}`;
-for (const e of D.edges) {
-  const a = noteEls.get(e.from); const b = noteEls.get(e.to);
-  if (!a || !b || !box.get(a) || !box.get(b)) continue;
-  const ba = box.get(a); const bb = box.get(b);
-  const t = byName.get(e.to);
-  // 被引用的那一份在下面就從底邊接到頂邊,在上面就反過來;同一排的兩張從底下繞過去,不壓到中間的卡片
-  const below = Math.max(ba.y + ba.h, bb.y + bb.h) + 46;
-  const d = ba.y + ba.h < bb.y ? elbow(cx(ba), ba.y + ba.h, cx(bb), bb.y)
-    : bb.y + bb.h < ba.y ? elbow(cx(ba), ba.y, cx(bb), bb.y + bb.h)
-      : `M ${cx(ba)} ${ba.y + ba.h} C ${cx(ba)} ${below}, ${cx(bb)} ${below}, ${cx(bb)} ${bb.y + bb.h}`;
-  paths.push(`<path class="ref${t && !t.achieved ? ' blocking' : ''}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" d="${d}"></path>`);
-}
-totalW = Math.max(totalW, ...[...box.values()].map((b) => b.x + b.w)) + 120;
-maxY = Math.max(maxY, ...[...box.values()].map((b) => b.y + b.h)) + 60;
+
+// 通道不算進畫布:它平常沒在畫,把它算進來只會讓全景永遠縮太小。線畫到界外照樣看得見
+const totalW = contentRight + 80;
+const maxY = Math.max(0, ...[...box.values()].map((b) => b.y + b.h)) + 60;
 links.setAttribute('viewBox', `0 0 ${totalW} ${maxY}`);
 links.setAttribute('width', totalW);
 links.setAttribute('height', maxY);
@@ -592,16 +562,33 @@ jump.addEventListener('change', () => {
 // ── 平移縮放 ──
 let k = 1, tx = 0, ty = 0;
 const sideW = () => (asideEl.hidden ? 0 : asideEl.offsetWidth);
+// 手在動的時候把畫布交給合成器,手一停就交還:交還了瀏覽器才會用現在這個倍率重畫,字才是清的
+let restT = 0;
+function moving() { world.style.willChange = 'transform'; clearTimeout(restT); }
+function resting() {
+  clearTimeout(restT);
+  restT = setTimeout(() => { if (!drag) world.style.willChange = 'auto'; }, 140);
+}
 function apply() {
   world.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
   document.getElementById('zoom').textContent = Math.round(k * 100) + '%';
   drawMini();
+  resting();
 }
 function fit() {
   const r = stage.getBoundingClientRect();
   const pad = 40;
   k = Math.min(2, Math.max(0.04, Math.min((r.width - pad * 2 - sideW()) / (totalW || 1), (r.height - pad * 2) / (maxY || 1))));
   tx = pad + ((r.width - sideW()) - pad * 2 - totalW * k) / 2;
+  ty = pad;
+  apply();
+}
+// 一打開停在樹的最上面,寬度剛好:這棵樹是往下長的,一開始就全景只會小到看不見字
+function home() {
+  const r = stage.getBoundingClientRect();
+  const pad = 32;
+  k = Math.min(1, Math.max(0.04, (r.width - pad * 2 - sideW()) / (totalW || 1)));
+  tx = pad;
   ty = pad;
   apply();
 }
@@ -629,20 +616,25 @@ function zoomAt(px, py, nk) {
 }
 stage.addEventListener('wheel', (ev) => {
   ev.preventDefault();
+  moving();
   const r = stage.getBoundingClientRect();
   if (ev.ctrlKey || ev.metaKey) zoomAt(ev.clientX - r.left, ev.clientY - r.top, k * (ev.deltaY < 0 ? 1.12 : 0.89));
   else { tx -= ev.deltaX; ty -= ev.deltaY; apply(); }
 }, { passive: false });
 
-let drag = null, moved = 0;
-// 這裡不擋預設行為:擋了瀏覽器就不發 click,點卡片會沒反應。選字交給 CSS,拖曳交給 dragstart
+// 點選認的是「按下去的時候手指底下那張卡片」,不靠瀏覽器發的 click:
+// 拖曳要吃 pointermove,而吃了就得指標鎖定,指標鎖定會把 click 的 target 換成整個畫布,
+// 那時候 closest('.note') 永遠是 null,點便利貼就一點反應都沒有。
+let drag = null, moved = 0, pressed = null;
 stage.addEventListener('dragstart', (ev) => ev.preventDefault());
 stage.addEventListener('pointerdown', (ev) => {
   if (ev.button !== 0) return;
-  moved = 0;   // 這一下點下去就重算;上一次拖曳沒收尾也不會吃掉這一次的點選
-  drag = { x: ev.clientX, y: ev.clientY, tx, ty };
+  moved = 0;
+  pressed = ev.target;
+  drag = { x: ev.clientX, y: ev.clientY, tx, ty, id: ev.pointerId };
   stage.setPointerCapture(ev.pointerId);
   stage.classList.add('grabbing');
+  moving();
 });
 stage.addEventListener('pointermove', (ev) => {
   if (!drag) return;
@@ -651,20 +643,28 @@ stage.addEventListener('pointermove', (ev) => {
   tx = drag.tx + dx; ty = drag.ty + dy;
   apply();
 });
-stage.addEventListener('pointerup', () => {
+function letGo(ev) {
   if (!drag) return;
+  if (stage.hasPointerCapture(drag.id)) stage.releasePointerCapture(drag.id);
   stage.classList.remove('grabbing');
   drag = null;
-});
-// 拖曳歸拖曳、點選歸點選:拖過的那一下不算點到
-stage.addEventListener('click', (ev) => {
-  if (moved >= 5) return;
-  const note = ev.target.closest('.note');
+  resting();
+  // 拖曳歸拖曳、點選歸點選:拖過的那一下不算點到
+  if (moved < 5 && pressed) hit(pressed);
+  pressed = null;
+}
+stage.addEventListener('pointerup', letGo);
+stage.addEventListener('pointercancel', letGo);
+// 手在畫面外放開、或視窗被切走:沒收到 pointerup 也要收尾,不然畫布會卡在拖曳狀態
+addEventListener('pointerup', letGo);
+addEventListener('blur', letGo);
+function hit(t) {
+  const note = t.closest && t.closest('.note');
   if (note) { select(note.dataset.name === selected ? null : note.dataset.name); return; }
-  const card = ev.target.closest('.band, .lane, .group');
+  const card = t.closest && t.closest('.band, .lane, .group');
   if (card && zoneOf.has(card)) { zoomTo(zoneOf.get(card)); return; }
   select(null);
-});
+}
 document.getElementById('zoomin').onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, k * 1.25); };
 document.getElementById('zoomout').onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, k * 0.8); };
 document.getElementById('fit').onclick = fit;
@@ -794,8 +794,8 @@ refmode.addEventListener('change', setRefMode);
 setTopHeight();
 setRefMode();
 paint();
-fit();
-addEventListener('resize', () => { setTopHeight(); fit(); });
+home();
+addEventListener('resize', () => { setTopHeight(); home(); });
 </script>
 </body>
 </html>

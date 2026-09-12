@@ -202,7 +202,7 @@ export function statusBoard(design, source, adapter, results, resultNote, buildi
     text: [
       `看板寫到 ${shown}` + (opened ? ',已經叫瀏覽器打開' : ',點這個網址打開'),
       url,
-      '願景在最上面,底下一層優先度一個區塊;便利貼是 pipeline,虛線箭頭是引用',
+      '樹從左上往下長,每深一層往右縮排一格:願景 → 優先度 → 目標 → 里程碑 → 便利貼;便利貼是 pipeline,虛線箭頭是引用,預設只畫選取那一份的',
     ].join('\n'),
     exitCode: data.route.allDone && data.summary.docs ? 0 : 1,
   };

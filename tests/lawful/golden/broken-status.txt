@@ -31,21 +31,21 @@ $ lawful status
 - 無
 
 ## 5. 待實作(按模組)
-- Host.FS:P-001-save-game#writeSave(骨架)、P-001-save-game#checksum
-- Save.Class:P-001-save-game#(<+>)(骨架)、P-001-save-game#go
-- Save.Codec:P-001-save-game#encode(骨架)、P-001-save-game#decode(骨架)
-- Save.Project:P-001-save-game#toSave(骨架)
-- Save.State:P-001-save-game#ghostView(觀察點)
-- Save.Zip:P-001-save-game#compress(願望)
+- Game.FS:P-001-save-game#writeSave(骨架)、P-001-save-game#checksum
+- Game.Save.Class:P-001-save-game#(<+>)(骨架)、P-001-save-game#go
+- Game.Save.Codec:P-001-save-game#encode(骨架)、P-001-save-game#decode(骨架)
+- Game.Save.Project:P-001-save-game#toSave(骨架)
+- Game.Save.State:P-001-save-game#ghostView(觀察點)
+- Game.Save.Zip:P-001-save-game#compress(願望)
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | M-2 | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
 | P-001-save-game#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
-| P-001-save-game#toSave | 程式碼在 Save.Codec | lawful sync |
+| P-001-save-game#toSave | 程式碼在 Game.Save.Codec | lawful sync |
 | GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
-| 模組表 | lint boundary 7 條不合規 | lawful lint boundary |
+| 模組表 | lint boundary 13 條不合規 | lawful lint boundary |
 
 ## 7. 建議路線
 1. 先回答 GAP-1、GAP-1(lawful:revise),卡住的 stage 才能重派

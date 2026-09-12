@@ -18,15 +18,15 @@ updated: 2026-09-06
 - 忽略目錄:無
 
 ## 邊界
-- types:`Types`
-- effects:無
-- pure:`Core.*`
-- shell:`Host.*`
+- types:`App.Doc`
+- effect:無
+- core:`App.Parse`、`App.Normalize`、`App.Run`
+- shell:`App.Run.Main`
 
 ## 對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
-| 輸入檔 | in | `Text` | `Host.Main` | P-001-run |
+| 輸入檔 | in | `Text` | `App.Run.Main` | P-001-run |
 
 ## Pipelines
 | 全名 | 類別 |

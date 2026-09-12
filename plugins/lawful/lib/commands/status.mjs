@@ -2,7 +2,7 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { matchModule, matchesPattern, STATUSES } from '../design.mjs';
+import { unitOf, STATUSES } from '../design.mjs';
 import { findSignature } from '../source.mjs';
 import { lintBoundary, lintSig } from './lint.mjs';
 
@@ -408,14 +408,17 @@ export function pipelineDetail(design, source, adapter, results, resultNote, nam
 
 export function moduleDetail(design, source, adapter, results, resultNote, moduleName) {
   const a = analyze(design, source, adapter, results);
-  const entry = design.modules ? matchModule(design.modules.entries, moduleName) : null;
-  const inCode = source ? [...source.modules.keys()].filter((m) => matchesPattern(moduleName, m) || m === moduleName) : [];
+  const under = (m) => m === moduleName || m.startsWith(`${moduleName}.`);
+  const entry = design.modules ? unitOf(design.modules.entries, moduleName) : null;
+  const inCode = source ? [...source.modules.keys()].filter(under) : [];
   if (!entry && !inCode.length) return { text: `模組表與程式碼都沒有 ${moduleName}`, exitCode: 1 };
-  const out = [`# ${moduleName}  ${entry ? entry.layer + ' 層' : '未登記'}`, `· ${resultNote}`, ''];
+  const own = source && source.modules.has(moduleName) ? source.modules.get(moduleName).layer : null;
+  const head = !entry ? '未登記' : entry.unit === moduleName ? `模組單元:${entry.layers.join('、')} 層` : own ? `${own} 層(${entry.unit})` : entry.unit;
+  const out = [`# ${moduleName}  ${head}`, `· ${resultNote}`, ''];
   let n = 0;
   for (const x of a.info.values()) {
     for (const s of x.stages) {
-      if (!(s.module === moduleName || matchesPattern(moduleName, s.module) || (s.hit && s.hit.module === moduleName))) continue;
+      if (!(under(s.module) || (s.hit && under(s.hit.module)))) continue;
       n++;
       const lawsOn = x.laws.filter((l) => l.conclusion && new RegExp(`(?<![\\w.'])${s.name}(?![\\w'])`).test(l.conclusion));
       const g = lawsOn.filter((l) => l.result === 'green').length;

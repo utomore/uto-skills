@@ -19,15 +19,15 @@ updated: 2026-09-06
 - 忽略目錄:無
 
 ## 邊界
-- types:`Types`
-- effects:無
-- pure:`Count`、`Report`
-- shell:`Host.*`
+- types:`App.Token`
+- effect:無
+- core:`App.Count`、`App.Report`
+- shell:`App.Report.Main`
 
 ## 對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
-| 輸入文字 | in | `Text` | `Host.Main` | P-001-report |
+| 輸入文字 | in | `Text` | `App.Report.Main` | P-001-report |
 
 ## Pipelines
 | 全名 | 類別 |

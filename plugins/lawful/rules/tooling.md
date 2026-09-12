@@ -16,17 +16,18 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `status --pipeline <P-00x>` / `--module <M>` | 一條 pipeline 的 stage 與 law 逐條狀態 / 住在該模組的所有 stage 的狀態 |
 | `status --json` | 同一份報告的資料原樣輸出:願景、目標與里程碑、每條 pipeline(stage、law、example、GAP、引用與被引用、模組)、能開的線、警訊、建議路線。數字與文字都與報告同源,給別的工具讀 |
 | `status --html [檔名] [--open]` | **報告照印**,另外把同一份資料畫成看板,寫成一個自帶資料的單檔網頁,結尾附上它的 `file://` 網址;沒給檔名就寫進系統暫存區的 `lawful-board/<專案資料夾名>-status.html`,不在專案裡留檔。`--open` 直接用系統預設瀏覽器打開。可平移縮放的畫布上由上而下一棵樹:願景一張,往下一層是目標,再一層是里程碑,最底下一條 pipeline 一張便利貼、顏色是狀態。pipeline 之間的引用是另一種線,預設只在選取時出現。點便利貼看它的 stage 與 law 逐條、牽動誰、警訊;點目標或里程碑縮放到那一叢。不連網、不起服務,瀏覽器打開就看 |
+| `module <名稱> [--layers <types,effect,core,shell>] [--responsibility <句>] [--dry-run]` | 劃一個模組單元(boundary.md「模組單元」):`modules.md` 寫一列,它宣告的每一層在那棵原始碼樹裡開好資料夾,不放任何模組。名稱沒有 `.` 就接上 `system.md` 的模組前綴;已經在表上的單元補上缺的層,已經有的資料夾不動。層預設 `types,core`;職責沒給就提醒 `lint boundary` 會紅。`--facade [層]` 另外建一個與單元同名的門面模組(只有 module 宣告與空匯出清單),沒指定層就開在最上層;門面只准一個,別層已經有就停下不建 |
 | `claim <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建 pipeline 檔(`status: draft`),`system.md` Pipelines 表加一列(類別欄由人填 IO 介面或子流),綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標 |
 | `objective add <一句話> --priority <1-4> [--criteria <句>]` | 鑄 `O-n` 寫進 `objectives.md`;優先 1 最高、4 最低;判準沒給就留佔位符並提醒 |
 | `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全檔唯一)加進該目標的表;綁定的全名要是 `pipelines/` 裡有的 pipeline |
-| `lint boundary` | import 與簽名 vs 模組表;types / effects / pure 命中效果型別即紅;未登記與幽靈模組即紅;非 shell 模組沒有匯出清單即紅;production 模組 import 別人的 `*.Internal` 即紅 |
+| `lint boundary` | import 與簽名 vs 模組表;types / effect / core 命中效果型別即紅;未登記模組、單元巢狀、檔不在任何一棵原始碼樹底下、所在那棵樹的層沒宣告、檔案位置對不上模組名、同一個模組名有兩個檔即紅;職責欄空的即紅;表上有而程式碼還沒有的單元或層列成訊息;非 shell 模組沒有匯出清單即紅;production 模組 import 別人的 `*.Internal` 即紅 |
 | `lint sig` | Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;願望 stage 列待實作不算紅;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
 | `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |
 | `lint laws` | 三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名、types 層匯出或 adapter 的標準函式庫清單(字串字面值不算識別字)、`=` 列至少被一條 law 引用、`!` 列不被引用、example 指得到 law |
 | `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅 |
-| `lint io` | `system.md`「對外 I/O」表:方向是 in / out、pipeline 存在且是 IO 介面、shell 模組在模組表是 shell 層且程式碼裡有、型別住 types 或 effects;每條 IO 介面至少一列 |
+| `lint io` | `system.md`「對外 I/O」表:方向是 in / out、pipeline 存在且是 IO 介面、shell 模組在模組表是 shell 層且程式碼裡有、型別住 types 或 effect;每條 IO 介面至少一列 |
 | `lint all` | 以上全部 |
-| `modules --gen` | 從程式碼生成模組表骨架,層欄留白;已有的表保留層欄、只補新模組 |
+| `modules --gen` | 從程式碼的模組名推出模組單元與它有哪幾層,補進模組表,職責欄留白;已有的列不動 |
 | `section <file> <節>…` | 取節 |
 | `spike close <SPK-00x>` | 檢查 verdict / feeds / sha 齊全,刪 `spike/SPK-00x-<slug>/` |
 | `migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>]` | 盤點 `subsystems/<slug>/` 體系的 `.design`,印一份帳本,不改任何檔:每份 F / E / G-* 的介面簽名在程式碼裡對到幾條、四格 law 翻成三行草稿(散文的標「需形式化」)、按簽名所在模組分組並建議 `claim` 的 slug、開發階段表列成目標與里程碑候選、退場清單、人要判的清單。分組、目標與里程碑怎麼綁、law 形式化由人做 |
@@ -69,8 +70,10 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 | `testResults(log)`:測試輸出 → 每個歸屬標記綠 / 紅 / pending | `status` |
 | `stdlib`:law 裡可直接用的標準函式庫函數 | `lint laws` |
 | `stub(marker)`:帶 `P-00x#name` 的未實作本體 | conductor 寫骨架 |
+| `modulePath(module)`:模組名 → 它在自己那棵原始碼樹底下的相對路徑 | `lint boundary`、`module --facade` |
+| `moduleFile(module)`:一個只有 module 宣告與空匯出清單的新檔 | `module --facade` |
 
-Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;匯出清單認 `Foo (..)`、`Foo (a, b)`、`(<+>)`、`module X`;型別名認 `data` / `newtype` / `type` / `class`;`import` 行;效果型別 `IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`、`TMVar`、`Chan` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `error "P-00x#name stub"`,`undefined` 也算骨架。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
+Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;匯出清單認 `Foo (..)`、`Foo (a, b)`、`(<+>)`、`module X`;型別名認 `data` / `newtype` / `type` / `class`;`import` 行;效果型別 `IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`、`TMVar`、`Chan` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `error "P-00x#name stub"`,`undefined` 也算骨架;模組名的每一段是一層資料夾、最後一段加 `.hs`,前面接它那一層的原始碼根目錄;四棵樹在 `.cabal` 裡各是一個 sub-library,`build-depends` 只往下一層宣告。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
 
 ## 跑東西的紀律
 
@@ -92,4 +95,4 @@ Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)�
    - **替代為什麼排後面**:目標優先較低、等一個決定、等子流先達成、只是清警訊;寫明是哪一個。
    - **需求來源**:這條命令對到位置樹的哪個目標與里程碑、警訊表的哪一列、`gaps.md` 的哪一條、或開發者的哪一句話。都對不到的是自己長出來的需求,不列。
    - **架構缺口**:重切 pipeline、改層、換效果型別或外部系統這類架構級動作,只能因為現在的架構解決不了一個具體問題才提;寫出那個問題。寫不出來就不提。
-   - **全部正常時**:每條 pipeline 達成、測試全綠、沒有 open GAP、警訊為空,明寫「目前功能全部正常運作,沒有非做不可的事,可以加新功能」,下一步是 `lawful:objective`(訂下一個目標或里程碑)再 `lawful claim <slug> --milestone <M-n>`;不另造下一步。
+   - **全部正常時**:每條 pipeline 達成、測試全綠、沒有 open GAP、警訊為空,明寫「目前功能全部正常運作,沒有非做不可的事,可以加新功能」,下一步是 `lawful:objective`(訂下一個目標或里程碑)再走兩條路線的其中一條(README.md 的路線表):只動既有模組單元的 `lawful claim <slug> --milestone <M-n>`,要新單元的先 `lawful:module`;不另造下一步。

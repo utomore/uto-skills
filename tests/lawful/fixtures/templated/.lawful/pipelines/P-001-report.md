@@ -12,9 +12,9 @@ IO 介面。文字 → 數字數 → 報告。數字數引用 P-002-count 的整
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `count :: Text -> Int` | 數字數 | `Count`(見 P-002-count) | pure |
-| = | `report :: Text -> Text` | 純的整條 | `Report` | pure |
-| ! | `main :: IO ()` | 進入點 | `Host.Main` | shell |
+| 1 | `count :: Text -> Int` | 數字數 | `App.Count`(見 P-002-count) | core |
+| = | `report :: Text -> Text` | 純的整條 | `App.Report` | core |
+| ! | `main :: IO ()` | 進入點 | `App.Report.Main` | shell |
 
 ## Laws
 - LAW-1 [total] 任何文字都有報告

@@ -145,6 +145,14 @@ export const haskell = {
     while ((m = re.exec(stripComments(src)))) out.push(m[1]);
     return out;
   },
+  // 模組名 → 它在自己那棵原始碼樹底下的相對路徑。
+  modulePath(moduleName) {
+    return `${moduleName.split('.').join('/')}.hs`;
+  },
+  // 門面:一個只有 module 宣告與空匯出清單的新檔,匯出什麼由 pipeline 的 Stages 長出來。
+  moduleFile(moduleName) {
+    return [`module ${moduleName}`, '  (', '  ) where', ''].join('\n');
+  },
   isTestFile(relPath) {
     const parts = relPath.split(/[\\/]/);
     return parts.some((p) => /^(test|tests|spec|specs)$/i.test(p)) || /Spec\.hs$/.test(relPath);

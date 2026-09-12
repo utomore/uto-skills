@@ -12,8 +12,8 @@ updated: 2026-09-06
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `shared :: Text -> [Token]` | 切 token | `Core.Token` | pure |
-| = | `parse :: Text -> Either ParseError Doc` | 純的整條 | `Core.Parse` | pure |
+| 1 | `shared :: Text -> [Token]` | 切 token | `App.Parse.Token` | core |
+| = | `parse :: Text -> Either ParseError Doc` | 純的整條 | `App.Parse` | core |
 
 ## Laws
 - LAW-1 [total] 任何文字都解得出結果或錯誤

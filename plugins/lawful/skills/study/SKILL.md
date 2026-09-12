@@ -1,6 +1,6 @@
 ---
 name: study
-description: lawful 的專案導讀 — 帶開發者由上而下讀懂一個純函數式專案,六層縮放:全景(這是什麼、怎麼編、入口在哪)→ 純度地圖(types / effects / pure / shell 四層落在哪些模組、效果被推到哪裡)→ 設計理念(為什麼把效果描述成資料、為什麼這樣拆,區分文檔明載與推測)→ 型別(和積型別與 smart constructor 怎麼撐起資料流、哪些非法狀態被型別排除)→ 逐跳 trace(沿一條 pipeline 從進入點走到 output,每跳看型別怎麼變)→ 細讀(一個函數逐行、等式推理當桌上執行、REPL 當場跑、講得出它該有什麼性質);第 1 課選定一條主線 pipeline 貫穿六層,每個結論都附從原始碼讀出的 檔案:行號 片段作證明,一次一課、等開發者消化再往下。課程與語言無關,指令以 Haskell 為準,其他純函數語言換等價物。觸發詞:study、理解專案、學習專案、專案導讀、帶我看 code、trace code、code walkthrough、讀懂純函數專案、熟悉專案、onboarding。Use when guiding a developer top-down through an existing pure-functional codebase with code evidence, type-level tracing and line-level close reading.
+description: lawful 的專案導讀 — 帶開發者由上而下讀懂一個純函數式專案,六層縮放:全景(這是什麼、怎麼編、入口在哪)→ 純度地圖(types / effect / core / shell 四層落在哪幾棵原始碼樹與哪些模組單元、效果被推到哪裡)→ 設計理念(為什麼把效果描述成資料、為什麼這樣拆,區分文檔明載與推測)→ 型別(和積型別與 smart constructor 怎麼撐起資料流、哪些非法狀態被型別排除)→ 逐跳 trace(沿一條 pipeline 從進入點走到 output,每跳看型別怎麼變)→ 細讀(一個函數逐行、等式推理當桌上執行、REPL 當場跑、講得出它該有什麼性質);第 1 課選定一條主線 pipeline 貫穿六層,每個結論都附從原始碼讀出的 檔案:行號 片段作證明,一次一課、等開發者消化再往下。課程與語言無關,指令以 Haskell 為準,其他純函數語言換等價物。觸發詞:study、理解專案、學習專案、專案導讀、帶我看 code、trace code、code walkthrough、讀懂純函數專案、熟悉專案、onboarding。Use when guiding a developer top-down through an existing pure-functional codebase with code evidence, type-level tracing and line-level close reading.
 user-invocable: true
 ---
 
@@ -52,13 +52,13 @@ user-invocable: true
 |---|---|---|
 | 套件怎麼切、原始碼在哪幾個目錄、公開哪些模組 | 套件描述檔 | `sed -n '1,120p' *.cabal`:`hs-source-dirs`、`exposed-modules`、`other-modules` |
 | 影響架構的依賴、打開了哪些語言擴充 | 描述檔的依賴清單與擴充設定 | `build-depends`、`default-extensions`;效果系統、串流、web 框架各預告一種資料流寫法,`GADTs` / `DataKinds` / `TypeFamilies` 預告會看到型別層計算 |
-| 入口在哪 | 該語言的入口約定 | `grep -rn '^main ::' app src` |
+| 入口在哪 | 該語言的入口約定 | `grep -rn '^main ::' app src*` |
 | 一個模組公開什麼(抽象的邊界) | 匯出清單或介面檔 | `sed -n '/^module /,/where/p' <檔>`;沒有匯出清單就是整個公開 |
 | 一個模組的頂層簽名有哪些 | 頂層型別宣告 | `grep -n '^[a-z].* :: ' <檔>` |
-| 型別定義在哪 | 和積型別的宣告關鍵字 | `grep -rn '^data \|^newtype \|^type \|^class ' src` |
-| **效果出現在哪(shell 的實測邊界)** | 效果型別出現在簽名,加 IO 模組黑名單(`boundary.md`「效果的判定」) | `grep -rn ':: .*\bIO\b' src app`、`grep -rln 'IORef\|MVar\|STM\|unsafePerformIO\|Debug.Trace' src` |
-| 誰依賴誰 | import / open 行,正反兩向查 | `grep -n '^import ' <檔>`;`grep -rln 'import .*<模組>' src app test` |
-| 誰產生、誰消費一個型別 | 型別在回傳位置是產生、在參數位置是消費;先拿候選再逐個開檔確認 | `grep -rn '\b<型別>\b' src` |
+| 型別定義在哪 | 和積型別的宣告關鍵字 | `grep -rn '^data \|^newtype \|^type \|^class ' src*` |
+| **效果出現在哪(shell 的實測邊界)** | 效果型別出現在簽名,加 IO 模組黑名單(`boundary.md`「效果的判定」) | `grep -rn ':: .*\bIO\b' src* app`、`grep -rln 'IORef\|MVar\|STM\|unsafePerformIO\|Debug.Trace' src*` |
+| 誰依賴誰 | import / open 行,正反兩向查 | `grep -n '^import ' <檔>`;`grep -rln 'import .*<模組>' src* app test` |
+| 誰產生、誰消費一個型別 | 型別在回傳位置是產生、在參數位置是消費;先拿候選再逐個開檔確認 | `grep -rn '\b<型別>\b' src*` |
 | 別人怎麼用這個函數 | 測試——現成的使用範例,常比再讀一個呼叫端更快建立直覺 | `grep -rn '<函數名>' test` |
 
 **REPL**(型別的權威;搜尋答不了的問它):
@@ -102,7 +102,7 @@ user-invocable: true
   (四種來源不得混寫;只有 [推測] 時要講清楚「作者沒說,這是我的解讀」)
 
 **證據**:
-  `src/Physics/Broadphase.hs:42-58`
+  `src-core/Weft/Physics/Broadphase.hs:42-58`
   ```haskell
   (從檔案讀出的原文片段,3–20 行;要完整到能看出結論為真,不要只貼一行簽名)
   ```
@@ -133,7 +133,7 @@ user-invocable: true
 ### 第 2 層:純度地圖 — 效果被推到哪裡
 
 - 先用主線開場:這一次執行哪幾段是純的、哪幾段碰外界(此刻只點名檔案,不進去)
-- 四層各落在哪些模組(`boundary.md`「四層」)。有 `modules.md` 就是現成答案,抽三到五個模組驗證;沒有就用效果的搜尋反推:簽名出現效果型別的是 shell 候選、只有型別宣告與 smart constructor 的是 types 候選、其餘是 pure 候選
+- 四層各落在哪些模組(`boundary.md`「四層」)。有 `modules.md` 就是現成答案,抽三到五個模組驗證;沒有就用效果的搜尋反推:簽名出現效果型別的是 shell 候選、只有型別宣告與 smart constructor 的是 types 候選、其餘是 core 候選
 - **效果是描述還是執行**(`boundary.md`「效果的判定」):專案有沒有把效果寫成資料(指令 ADT、free monad、代數效果的描述型別)。有,就講描述住哪、真解譯器住哪、有沒有純解譯器;沒有,就講效果型別直接出現在哪幾個簽名上——這一格決定了整個專案的可測性,值得講清楚
 - 依賴方向:抽三到五條 import 邊驗證內層不 import 外層;找到反例就攤開,不替任何一邊圓場
 - 對外 I/O:入口與出口各有哪些(`system.md`「對外 I/O」表,或 shell 模組裡實際的 I/O 呼叫)

@@ -181,16 +181,16 @@ $ lawful status --json
         "P-002-parse"
       ],
       "modules": [
-        "Core.Run",
-        "Host.Main"
+        "App.Run",
+        "App.Run.Main"
       ],
       "steps": [
         {
           "index": "1",
           "name": "parse",
           "signature": "parse :: Text -> Either ParseError Doc",
-          "module": "Core.Parse",
-          "layer": "pure",
+          "module": "App.Parse",
+          "layer": "core",
           "state": "未查",
           "at": null,
           "ref": "P-002-parse",
@@ -202,8 +202,8 @@ $ lawful status --json
           "index": "=",
           "name": "run",
           "signature": "run :: Text -> Either ParseError Doc",
-          "module": "Core.Run",
-          "layer": "pure",
+          "module": "App.Run",
+          "layer": "core",
           "state": "未查",
           "at": null,
           "ref": null,
@@ -215,7 +215,7 @@ $ lawful status --json
           "index": "!",
           "name": "main",
           "signature": "main :: IO ()",
-          "module": "Host.Main",
+          "module": "App.Run.Main",
           "layer": "shell",
           "state": "未查",
           "at": null,
@@ -284,16 +284,16 @@ $ lawful status --json
       ],
       "blockedBy": [],
       "modules": [
-        "Core.Token",
-        "Core.Parse"
+        "App.Parse.Token",
+        "App.Parse"
       ],
       "steps": [
         {
           "index": "1",
           "name": "shared",
           "signature": "shared :: Text -> [Token]",
-          "module": "Core.Token",
-          "layer": "pure",
+          "module": "App.Parse.Token",
+          "layer": "core",
           "state": "未查",
           "at": null,
           "ref": null,
@@ -305,8 +305,8 @@ $ lawful status --json
           "index": "=",
           "name": "parse",
           "signature": "parse :: Text -> Either ParseError Doc",
-          "module": "Core.Parse",
-          "layer": "pure",
+          "module": "App.Parse",
+          "layer": "core",
           "state": "未查",
           "at": null,
           "ref": null,
@@ -372,16 +372,16 @@ $ lawful status --json
       "referrers": [],
       "blockedBy": [],
       "modules": [
-        "Core.Token",
-        "Core.Normalize"
+        "App.Parse.Token",
+        "App.Normalize"
       ],
       "steps": [
         {
           "index": "1",
           "name": "shared",
           "signature": "shared :: Text -> [Token]",
-          "module": "Core.Token",
-          "layer": "pure",
+          "module": "App.Parse.Token",
+          "layer": "core",
           "state": "未查",
           "at": null,
           "ref": null,
@@ -393,8 +393,8 @@ $ lawful status --json
           "index": "=",
           "name": "normalize",
           "signature": "normalize :: Doc -> Doc",
-          "module": "Core.Normalize",
-          "layer": "pure",
+          "module": "App.Normalize",
+          "layer": "core",
           "state": "未查",
           "at": null,
           "ref": null,
@@ -428,7 +428,7 @@ $ lawful status --json
         "a": "P-002-parse",
         "b": "P-003-normalize",
         "files": [
-          "Core.Token"
+          "App.Parse.Token"
         ]
       }
     ]

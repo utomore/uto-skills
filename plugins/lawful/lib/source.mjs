@@ -1,6 +1,7 @@
 // 走原始碼樹,透過 adapter 讀出模組、簽名、import、測試標記。
 import fs from 'node:fs';
 import path from 'node:path';
+import { layerOfFile } from './design.mjs';
 
 const SKIP_DIRS = new Set(['.git', '.lawful', '.design', 'node_modules', 'dist-newstyle', '.stack-work', 'spike', 'dist', 'target', '.cabal-sandbox']);
 
@@ -18,13 +19,15 @@ function walk(dir, exts, out, root, ignore) {
   }
 }
 
-// { modules: Map<name, {module, file, layerHint, imports, signatures}>, testFiles: [{file, markers}] }
+// { modules: Map<name, {module, file, layer, imports, signatures}>, testFiles: [{file, markers}], duplicates: [{module, files}] }
+// 層來自檔案住在哪一棵原始碼樹;同一個模組名出現在兩棵樹是 duplicates,編譯期會撞名。
 // ignore:system.md「忽略目錄」列的相對路徑或目錄名
-export function readSource(root, adapter, ignore = []) {
+export function readSource(root, adapter, ignore = [], system = null) {
   const files = [];
   walk(root, adapter.extensions, files, root, ignore);
   const modules = new Map();
   const testFiles = [];
+  const duplicates = [];
   for (const f of files) {
     const src = fs.readFileSync(f.abs, 'utf8');
     if (adapter.isTestFile(f.rel)) {
@@ -32,9 +35,17 @@ export function readSource(root, adapter, ignore = []) {
       continue;
     }
     const name = adapter.moduleName(src, f.rel);
+    const seen = modules.get(name);
+    if (seen) {
+      const dup = duplicates.find((d) => d.module === name);
+      if (dup) dup.files.push(f.rel);
+      else duplicates.push({ module: name, files: [seen.file, f.rel] });
+      continue;
+    }
     modules.set(name, {
       module: name,
       file: f.rel,
+      layer: layerOfFile(system, f.rel),
       imports: adapter.imports(src),
       signatures: adapter.signatures(src, f.rel),
       exports: adapter.exports ? adapter.exports(src) : null,
@@ -42,7 +53,7 @@ export function readSource(root, adapter, ignore = []) {
       stubs: new Set(adapter.stubs ? adapter.stubs(src) : []),
     });
   }
-  return { modules, testFiles };
+  return { modules, testFiles, duplicates };
 }
 
 // 命中帶三個程式碼事實:exported(匯出清單有它;沒寫匯出清單算 true)、stub(本體還是骨架)。

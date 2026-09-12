@@ -12,8 +12,8 @@ IO 介面。文字 → 切字 → 數個數。
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `tokens :: Text -> [Token]` | 切字 | `Count` | pure |
-| = | `count :: Text -> Int` | 純的整條 | `Count` | pure |
+| 1 | `tokens :: Text -> [Token]` | 切字 | `App.Count` | core |
+| = | `count :: Text -> Int` | 純的整條 | `App.Count` | core |
 
 ## Laws
 - LAW-1 [invariant] 字數等於切出來的字的個數

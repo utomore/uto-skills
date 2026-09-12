@@ -27,4 +27,4 @@ user-invocable: false
 
 ## 邊界
 
-不讀 pure 與 shell 的本體,`spike/` 也算;不讀別條 pipeline;不改骨架;不跑整套;不寫 `gaps.md`。互動模式下同一個人接著扮 impl 前,如實說已經看過測試。
+不讀 core 與 shell 的本體,`spike/` 也算;不讀別條 pipeline;不改骨架;不跑整套;不寫 `gaps.md`。互動模式下同一個人接著扮 impl 前,如實說已經看過測試。

@@ -28,9 +28,9 @@ $ lawful status --tests test-tasty.log
 - 無
 
 ## 5. 待實作(按模組)
-- Host.FS:P-001-save-game#writeSave(骨架)
-- Save.Codec:P-001-save-game#encode(骨架)、P-001-save-game#decode(骨架)
-- Save.Project:P-001-save-game#toSave(骨架)
+- Game.FS:P-001-save-game#writeSave(骨架)
+- Game.Save.Codec:P-001-save-game#encode(骨架)、P-001-save-game#decode(骨架)
+- Game.Save.Project:P-001-save-game#toSave(骨架)
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |

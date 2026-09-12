@@ -26,7 +26,7 @@
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
 | **conductor** | pipeline 文檔、模組表、測試結果 | 把 Stages 寫進程式碼(本體是 adapter 的 `stub`)、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
-| **qa** | pipeline 文檔、types 層、骨架的簽名 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器 | 讀 pure 與 shell 的本體(含 `spike/`);讀別條 pipeline;改骨架;要求後門 |
+| **qa** | pipeline 文檔、types 層、骨架的簽名 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器 | 讀 core 與 shell 的本體(含 `spike/`);讀別條 pipeline;改骨架;要求後門 |
 | **impl** | pipeline 文檔、骨架 | 把 `stub` 換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
 
 qa 與 impl 互不可見。qa 先、impl 後;開發者明說要平行才平行(平行時 conductor 在委派前對骨架的 commit `git worktree add --detach` 留一棵快照,qa 的測試在快照上跑基線)。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。

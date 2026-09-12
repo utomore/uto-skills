@@ -66,7 +66,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 - 可以橫跨任意模組。模組是 stage 的屬性,不是文檔的歸屬。
 - 兩端碰到 shell 的是 **IO 介面**;只在純核心裡的是**子流**。底層能力(查詢、碰撞偵測)也是子流。類別講的是形狀,不是先後;先後由目標與里程碑定。
 - 值得端到端規格的才建檔。單一小函數的 laws 直接寫 property test;它以 stage 的身分出現在用到它的 pipeline 裡。
-- stage 順序是資料流的拓撲序。`=` 列(**純的整條**)是權威:它把純的步驟組合成一個值,住 pure 或 effects,不住 shell;整條的 law 掛在它上面。
+- stage 順序是資料流的拓撲序。`=` 列(**純的整條**)是權威:它把純的步驟組合成一個值,住 core 或 effect,不住 shell;整條的 law 掛在它上面。
 - **進入點**:IO 介面另有恰好一列 `!` 列,shell 的函數,把 `=` 列接到解譯器與對外 I/O(讀檔、寫檔、跑效果描述)。它是程式碼裡的簽名,`lint sig` 照對帳、進簽名 m / n;不掛 law,它做的事由對外 I/O 表與 shell 的步驟承接。子流沒有 `!` 列。
 - **觀察點**:law 要引用、但不是資料流步驟的簽名(存取子、投影、輔助判定、效果描述的純解譯器),在 Stages 表列成 `#` 欄寫 `o` 的列。它是程式碼裡的簽名,`lint sig` 照對帳;它不是 stage:不掛 law、不進簽名 m / n、不算依賴。types 層匯出的函數 law 本來就能引用,不必列成觀察點。
 - 依賴不手寫:A 的 Stages 表某列的模組欄註明「見 B」,A 就依賴 B;B 不因為被引用而依賴 A。同名簽名出現在兩條 pipeline 而沒有一邊註明「見」,分不出誰引用誰,`lint sig` 紅、`lawful status` 警訊,不算依賴。
@@ -108,17 +108,17 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 ```markdown
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `candidates :: World -> [(EntityId, EntityId)]` | 粗篩可能碰撞的對 | `Physics.Broadphase` | pure |
-| 2 | `queryDynamic :: World -> [(EntityId, RigidBody)]` | 取非靜態剛體 | `ECS.Query`(願望,見 P-003-ecs-query) | pure |
-| o | `overlaps :: EntityId -> EntityId -> World -> Bool` | 觀察:兩實體是否相交 | `Physics.Broadphase.Internal` | pure |
-| = | `step :: Time -> World -> (World, [CollisionEvent])` | 純的整條 | `Physics` | pure |
+| 1 | `candidates :: World -> [(EntityId, EntityId)]` | 粗篩可能碰撞的對 | `Weft.Physics.Broadphase` | core |
+| 2 | `queryDynamic :: World -> [(EntityId, RigidBody)]` | 取非靜態剛體 | `Weft.ECS.Query`(願望,見 P-003-ecs-query) | core |
+| o | `overlaps :: EntityId -> EntityId -> World -> Bool` | 觀察:兩實體是否相交 | `Weft.Physics.Broadphase.Internal` | core |
+| = | `step :: Time -> World -> (World, [CollisionEvent])` | 純的整條 | `Weft.Physics` | core |
 ```
 
 IO 介面多一列進入點,放在最後:
 
 ```markdown
-| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Save` | pure |
-| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Host.Save` | shell |
+| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Weft.Save` | core |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Weft.Save.Host` | shell |
 ```
 
 - 簽名欄逐字等於程式碼的型別簽名行(多行合併、空白正規化),而且是該模組匯出的名字。`lawful lint sig` 對帳。

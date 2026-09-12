@@ -14,20 +14,22 @@ updated: 2026-09-05
 - 建置:`cabal build`
 - 測試(整套):`cabal test`
 - 測試(子集):`cabal test --test-options='-m "P-001"'`
+- 模組前綴:`Game`
+- 原始碼根目錄:`src-<層>`
 - IO 模組追加:無
 - 效果型別追加:無
 - 忽略目錄:`old`
 
 ## 邊界
-- types:`World`(遊戲世界的不可變值,含渲染快取)、`Save.State`(可存檔的投影)
-- effects:無
-- pure:`Save.*`(投影與編解碼)
-- shell:`Host.*`(檔案系統與進入點)
+- types:`Game.World`(遊戲世界的不可變值,含渲染快取)、`Game.Save.State`(可存檔的投影)
+- effect:無
+- core:`Game.Save.Core.*`(投影與編解碼)
+- shell:`Game.Save.Host`(存檔進入點)、`Game.FS`(檔案系統)
 
 ## 對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
-| 存檔檔案 | out | `ByteString` | `Host.FS` | P-001-save-game |
+| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-game |
 
 ## Pipelines
 | 全名 | 類別 |

@@ -1,0 +1,3 @@
+$ lawful module Save --layers types --facade types
+src-core/Game/Save.hs 已經是 Game.Save 的門面;一個模組名只准一個檔,要換層先把那個檔搬走
+exit 1

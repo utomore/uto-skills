@@ -1,0 +1,3 @@
+$ lawful module Audio --layers pure
+層只有 types / effect / core / shell,沒有「pure」
+exit 1

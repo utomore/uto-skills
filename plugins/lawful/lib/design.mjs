@@ -1,3 +1,20 @@
+// 一層一棵原始碼樹;system.md 的「原始碼根目錄」是帶 <層> 的樣式,預設 src-<層>。
+export function layerRoot(system, layer) {
+  const pattern = (system && system.srcRoot) || 'src-<層>';
+  return pattern.split('<層>').join(layer);
+}
+
+// 一個檔住在哪一層:看它在哪棵原始碼樹底下;都不在回 null。最長的根目錄先算,樹互相包含也對。
+export function layerOfFile(system, file) {
+  let best = null;
+  for (const layer of LAYERS) {
+    const root = layerRoot(system, layer);
+    if (file === root || file.startsWith(`${root}/`)) {
+      if (!best || root.length > layerRoot(system, best).length) best = layer;
+    }
+  }
+  return best;
+}
 // 讀 .lawful/ 成一棵樹:system(含願景)、objectives(目標與里程碑)、modules、pipelines、gaps、spikes。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,12 +31,12 @@ const isPlaceholder = (s) => /^<[^>]*>?$/.test((s || '').trim());
 // 願景、目標、里程碑的文字裡永遠不會有角括號,所以出現 <…> 就是還沒填。
 const hasPlaceholder = (s) => /<[^>]*>/.test(s || '');
 
-export const LAYERS = ['types', 'effects', 'pure', 'shell'];
+export const LAYERS = ['types', 'effect', 'core', 'shell'];
 export const ALLOWED_IMPORTS = {
   types: ['types'],
-  effects: ['types', 'effects'],
-  pure: ['types', 'effects', 'pure'],
-  shell: ['types', 'effects', 'pure', 'shell'],
+  effect: ['types', 'effect'],
+  core: ['types', 'effect', 'core'],
+  shell: ['types', 'effect', 'core', 'shell'],
 };
 export const LAW_KINDS = ['invariant', 'identity', 'roundtrip', 'relation', 'bound', 'equiv', 'total', 'commute'];
 export const STATUSES = ['draft', 'ready', 'frozen'];
@@ -46,14 +63,20 @@ export function readSystem(lawfulDir, root) {
   const effectExtra = [];
   const ignoreDirs = [];
   const commands = {};
+  let modulePrefix = '';
+  let srcRoot = '';
+  // 反引號區段以外的文字是給人看的說明;「無」與還沒填的佔位符都當沒給
+  const one = (v) => (!v || v === '無' || /^<[^>]*>$/.test(v) ? '' : v);
   if (tools) {
     for (const it of parseList(tools.lines)) {
-      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄)[::]\s*(.*)$/.exec(it.text);
+      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄)[::]\s*(.*)$/.exec(it.text);
       if (!m) continue;
       const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
       if (m[1] === 'IO 模組追加') ioExtra.push(...list());
       else if (m[1] === '效果型別追加') effectExtra.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
+      else if (m[1] === '模組前綴') modulePrefix = one(codeSpan(m[2]));
+      else if (m[1] === '原始碼根目錄') srcRoot = one(codeSpan(m[2])).replace(/[/]$/, '');
       else commands[m[1]] = codeSpan(m[2]);
     }
   }
@@ -74,7 +97,7 @@ export function readSystem(lawfulDir, root) {
   const visionSec = findSection(secs, '願景');
   const vision = visionSec ? visionSec.lines.map((l) => l.trim()).filter(Boolean).join(' ') : '';
   const visionState = !visionSec ? 'missing' : !vision || hasPlaceholder(vision) ? 'template' : 'ok';
-  return { file: rel(root, file), fm, language: fm.language || null, vision, visionState, ioExtra, effectExtra, ignoreDirs, commands, io, pipelines, sections: secs };
+  return { file: rel(root, file), fm, language: fm.language || null, vision, visionState, ioExtra, effectExtra, ignoreDirs, modulePrefix, srcRoot: srcRoot || 'src-<層>', commands, io, pipelines, sections: secs };
 }
 
 // 目標:objectives.md 每個 ## O-n:<一句話> 一個目標;優先與判準是清單項,里程碑是節裡的表(里程碑 | 做到什麼 | 綁定)。
@@ -121,7 +144,7 @@ export function readObjectives(lawfulDir, root) {
   return { file: rel(root, file), exists: true, objectives };
 }
 
-// 模組表:[{ pattern, layer, line }];pattern 可能以 .* 結尾。
+// 模組表:一列一個模組單元 [{ unit, layers, responsibility, line }]。
 export function readModules(lawfulDir, root) {
   const file = path.join(lawfulDir, 'modules.md');
   const text = read(file);
@@ -131,30 +154,26 @@ export function readModules(lawfulDir, root) {
   const entries = [];
   if (t) {
     t.rows.forEach((r, i) => {
-      const layer = (r[1] || '').trim();
-      for (const raw of (r[0] || '').split(/[、,]/)) {
-        const pattern = stripTicks(raw.trim());
-        if (pattern) entries.push({ pattern, layer, line: t.rowLines[i] + 1 });
-      }
+      const unit = stripTicks((r[0] || '').trim());
+      if (!unit) return;
+      const layers = (r[1] || '').split(/[、,]/).map((s) => stripTicks(s.trim())).filter(Boolean);
+      const responsibility = (r[2] || '').trim();
+      entries.push({ unit, layers, responsibility, line: t.rowLines[i] + 1, placeholder: isPlaceholder(unit) || hasPlaceholder(responsibility) });
     });
   }
   return { file: rel(root, file), entries };
 }
 
-export function matchModule(entries, moduleName) {
-  const exact = entries.find((e) => e.pattern === moduleName);
-  if (exact) return exact;
+// 一個模組名屬於哪個模組單元:模組表上名字是它最長前綴的那一列;對不到回 null。
+// 層不看名字,看檔案在哪棵樹(layerOfFile)。
+export function unitOf(entries, moduleName) {
   let best = null;
   for (const e of entries) {
-    if (!e.pattern.endsWith('.*')) continue;
-    const prefix = e.pattern.slice(0, -2);
-    if (moduleName === prefix || moduleName.startsWith(prefix + '.')) {
-      if (!best || prefix.length > best.pattern.length - 2) best = e;
-    }
+    if (moduleName !== e.unit && !moduleName.startsWith(e.unit + '.')) continue;
+    if (!best || e.unit.length > best.unit.length) best = e;
   }
   return best;
 }
-
 export function matchesPattern(pattern, moduleName) {
   if (pattern.endsWith('.*')) {
     const prefix = pattern.slice(0, -2);

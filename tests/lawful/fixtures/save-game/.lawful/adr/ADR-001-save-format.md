@@ -16,5 +16,5 @@ P-001-save-game 要把 SaveState 寫成檔案。實體數上千時檔案大小�
 - 自訂二進位:最小,但要自己維護版本欄與對齊,三個月後沒人記得格式。
 
 ## 後果
-- `Save.Codec` 依賴 `cborg`,住 pure 層,不碰 IO。
+- `Game.Save.Codec` 依賴 `cborg`,住 pure 層,不碰 IO。
 - 之後加版本欄要在 P-001-save-game 走 REV,動到 `decode` 的簽名。

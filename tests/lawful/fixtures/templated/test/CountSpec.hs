@@ -1,6 +1,6 @@
 module CountSpec (spec) where
 
-import Count (count, tokens)
+import App.Count (count, tokens)
 import qualified Data.Text as T
 import Test.Hspec
 import Test.QuickCheck

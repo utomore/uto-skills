@@ -1,5 +1,5 @@
 // lint boundary / sig / laws / trace / io / all。每道回 { title, red: [], info: [] }。
-import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, matchModule, matchesPattern } from '../design.mjs';
+import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, layerRoot, matchesPattern, unitOf } from '../design.mjs';
 import { findSignature, findType } from '../source.mjs';
 
 function at(file, line) {
@@ -20,28 +20,50 @@ export function lintBoundary(design, source, adapter) {
   }
   const entries = design.modules.entries;
   for (const e of entries) {
-    if (!LAYERS.includes(e.layer)) r.red.push(`${at(design.modules.file, e.line)} 模組 ${e.pattern} 的層「${e.layer}」不在 types / effects / pure / shell 裡`);
+    if (e.placeholder) continue;
+    if (!e.layers.length) r.red.push(`${at(design.modules.file, e.line)} 模組單元 ${e.unit} 沒有層;至少宣告一層`);
+    for (const l of e.layers) if (!LAYERS.includes(l)) r.red.push(`${at(design.modules.file, e.line)} 模組單元 ${e.unit} 的層「${l}」不在 types / effect / core / shell 裡`);
+    if (!e.responsibility) r.red.push(`${at(design.modules.file, e.line)} 模組單元 ${e.unit} 沒有職責;模組表劃的是範圍,一句話寫它負責什麼`);
+    const inside = entries.find((o) => o !== e && !o.placeholder && e.unit.startsWith(`${o.unit}.`));
+    if (inside) r.red.push(`${at(design.modules.file, e.line)} 模組單元 ${e.unit} 住在 ${inside.unit} 底下;單元不巢狀`);
   }
   if (!source) return r;
   const ioPatterns = [...adapter.ioModules, ...(design.system ? design.system.ioExtra : [])];
   const effectExtra = design.system ? design.system.effectExtra : [];
-  const codeModules = [...source.modules.keys()];
+  for (const d of source.duplicates) r.red.push(`${d.files.join('、')} 都叫 ${d.module};一個模組名只准一個檔,編譯期會撞名`);
   for (const e of entries) {
-    if (!codeModules.some((m) => matchesPattern(e.pattern, m))) r.red.push(`${at(design.modules.file, e.line)} 模組表有 ${e.pattern},程式碼裡沒有(幽靈)`);
+    if (e.placeholder) continue;
+    const mine = [...source.modules.values()].filter((m) => m.module === e.unit || m.module.startsWith(`${e.unit}.`));
+    if (!mine.length) {
+      r.info.push(`模組單元 ${e.unit} 還沒有程式碼(層 ${e.layers.join('、')})`);
+      continue;
+    }
+    for (const l of e.layers) {
+      if (!LAYERS.includes(l)) continue;
+      if (!mine.some((m) => m.layer === l)) r.info.push(`模組單元 ${e.unit} 的 ${l} 層還沒有程式碼(${layerRoot(design.system, l)}/ 底下是空的)`);
+    }
   }
   for (const m of source.modules.values()) {
-    const entry = matchModule(entries, m.module);
+    const entry = unitOf(entries, m.module);
     if (!entry) {
       r.red.push(`${m.file} 模組 ${m.module} 不在模組表(未登記)`);
       continue;
     }
-    const layer = entry.layer;
+    if (!m.layer) {
+      r.red.push(`${m.file} 模組 ${m.module} 不在任何一層的原始碼根目錄底下;層是檔住在哪一棵樹`);
+      continue;
+    }
+    const layer = m.layer;
+    if (!entry.layers.includes(layer)) r.red.push(`${m.file} 模組 ${m.module} 在 ${layerRoot(design.system, layer)}/ 底下,模組表的 ${entry.unit} 沒有宣告 ${layer} 層`);
+    if (adapter.modulePath) {
+      const want = `${layerRoot(design.system, layer)}/${adapter.modulePath(m.module)}`;
+      if (m.file !== want) r.red.push(`${m.file} 的模組叫 ${m.module},檔案位置要是 ${want}`);
+    }
     const allowed = ALLOWED_IMPORTS[layer] || [];
     for (const imp of m.imports) {
       const target = source.modules.get(imp);
       if (target) {
-        const te = matchModule(entries, imp);
-        if (te && !allowed.includes(te.layer)) r.red.push(`${m.file} ${layer} 層的 ${m.module} import 了 ${te.layer} 層的 ${imp}`);
+        if (target.layer && !allowed.includes(target.layer)) r.red.push(`${m.file} ${layer} 層的 ${m.module} import 了 ${target.layer} 層的 ${imp}`);
         if (/\.Internal(\.|$)/.test(imp) && !mayImportInternal(m.module, imp)) r.red.push(`${m.file} ${m.module} import 了 ${imp};*.Internal 只准它自己的模組與測試 import`);
       } else if (layer !== 'shell' && ioPatterns.some((p) => matchesPattern(p, imp))) {
         r.red.push(`${m.file} ${layer} 層的 ${m.module} import 了 IO 模組 ${imp}`);
@@ -85,12 +107,14 @@ export function lintSig(design, source, adapter) {
         continue;
       }
       if (!LAYERS.includes(s.layer)) r.red.push(`${at(p.file, s.line)} ${s.name} 的層「${s.layer}」不合法`);
-      if (s.whole && s.layer === 'shell') r.red.push(`${at(p.file, s.line)} = 列 ${s.name} 在 shell 層;= 列是純的整條(pure 或 effects),shell 的進入點另列成 ! 列`);
+      if (s.whole && s.layer === 'shell') r.red.push(`${at(p.file, s.line)} = 列 ${s.name} 在 shell 層;= 列是純的整條(core 或 effect),shell 的進入點另列成 ! 列`);
       if (s.observe && s.layer === 'shell') r.red.push(`${at(p.file, s.line)} 觀察點 ${s.name} 在 shell 層;law 引用的量要是純的`);
       if (s.runner && s.layer !== 'shell') r.red.push(`${at(p.file, s.line)} ! 列 ${s.name} 不在 shell 層;! 列是把 = 列接到解譯器與對外 I/O 的進入點`);
-      const entry = entries.length ? matchModule(entries, s.module) : null;
+      const entry = entries.length ? unitOf(entries, s.module) : null;
       if (entries.length && !entry) r.red.push(`${at(p.file, s.line)} ${s.name} 的模組 ${s.module} 不在模組表`);
-      else if (entry && entry.layer !== s.layer) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,模組表說 ${s.module} 是 ${entry.layer} 層`);
+      else if (entry && LAYERS.includes(s.layer) && !entry.layers.includes(s.layer)) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,模組表的 ${entry.unit} 只宣告了 ${entry.layers.join('、')} 層`);
+      const codeLayer = source && source.modules.has(s.module) ? source.modules.get(s.module).layer : null;
+      if (codeLayer && codeLayer !== s.layer) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,${s.module} 的檔在 ${layerRoot(design.system, codeLayer)}/ 底下`);
       if (s.ref && !design.pipelines.some((q) => q.fullName === s.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 引用的 ${s.ref} 不存在`);
       if (!s.ref && s.name) {
         const owner = design.pipelines.find((q) => q !== p && q.stages.some((t) => t.name === s.name && t.whole));
@@ -111,8 +135,8 @@ export function lintSig(design, source, adapter) {
       }
       if (!same.exported) r.red.push(`${at(same.file, same.line)} ${p.fullName}#${s.name} 程式碼裡有,但 ${same.module} 沒有匯出它;stage 與觀察點都要是匯出的簽名`);
       if (same.module !== s.module) {
-        const codeEntry = entries.length ? matchModule(entries, same.module) : null;
-        if (codeEntry && entry && codeEntry.layer !== entry.layer) r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} 從 ${s.layer} 層的 ${s.module} 跨到 ${codeEntry.layer} 層的 ${same.module},走 REV`);
+        const toLayer = source.modules.has(same.module) ? source.modules.get(same.module).layer : null;
+        if (toLayer && toLayer !== s.layer) r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} 從 ${s.layer} 層的 ${s.module} 跨到 ${toLayer} 層的 ${same.module},走 REV`);
         else r.info.push(`${p.fullName}#${s.name} 搬家:文檔 ${s.module} → 程式碼 ${same.module}(lawful sync 可改)`);
       }
     }
@@ -165,8 +189,7 @@ export function lintLaws(design, source, adapter) {
   const typesExports = new Set();
   if (source && design.modules) {
     for (const m of source.modules.values()) {
-      const e = matchModule(design.modules.entries, m.module);
-      if (e && e.layer === 'types') for (const s of m.signatures) typesExports.add(s.name);
+      if (m.layer === 'types' && unitOf(design.modules.entries, m.module)) for (const s of m.signatures) typesExports.add(s.name);
     }
   }
   const stdlib = new Set(adapter ? adapter.stdlib : []);
@@ -259,16 +282,17 @@ export function lintIo(design, source) {
     else if (!ioFaces.includes(row.pipeline)) r.red.push(`${where} ${row.name} 指到的 ${row.pipeline} 不是 IO 介面;跨過 shell 的資料流才會出現在對外 I/O 表`);
     else covered.add(row.pipeline);
     if (row.module) {
-      const entry = entries.length ? matchModule(entries, row.module) : null;
+      const entry = entries.length ? unitOf(entries, row.module) : null;
       if (entries.length && !entry) r.red.push(`${where} ${row.name} 的 shell 模組 ${row.module} 不在模組表`);
-      else if (entry && entry.layer !== 'shell') r.red.push(`${where} ${row.name} 的模組 ${row.module} 是 ${entry.layer} 層;對外 I/O 只從 shell 進出`);
+      else if (entry && !entry.layers.includes('shell')) r.red.push(`${where} ${row.name} 的模組 ${row.module} 屬於 ${entry.unit},那一列沒有 shell 層;對外 I/O 只從 shell 進出`);
       if (source && !source.modules.has(row.module)) r.red.push(`${where} ${row.name} 的 shell 模組 ${row.module} 程式碼裡沒有`);
+      else if (source && source.modules.get(row.module).layer !== 'shell') r.red.push(`${where} ${row.name} 的模組 ${row.module} 的檔不在 ${layerRoot(design.system, 'shell')}/ 底下;對外 I/O 只從 shell 進出`);
     } else r.red.push(`${where} ${row.name} 沒寫 shell 模組`);
     const typeName = /(?<![\w.'])([A-Z][\w']*)/.exec(row.type);
     if (source && typeName) {
       for (const hit of findType(source, typeName[1])) {
-        const entry = entries.length ? matchModule(entries, hit.module) : null;
-        if (entry && !['types', 'effects'].includes(entry.layer)) r.red.push(`${where} ${row.name} 的型別 ${typeName[1]} 住在 ${entry.layer} 層的 ${hit.module};對外 I/O 的型別與效果 ADT 住 types 或 effects`);
+        const hitLayer = source.modules.has(hit.module) ? source.modules.get(hit.module).layer : null;
+        if (hitLayer && !['types', 'effect'].includes(hitLayer)) r.red.push(`${where} ${row.name} 的型別 ${typeName[1]} 住在 ${hitLayer} 層的 ${hit.module};對外 I/O 的型別與效果 ADT 住 types 或 effect`);
       }
     }
   }

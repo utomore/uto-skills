@@ -12,9 +12,9 @@ IO 介面。文字 → 解析 → 正規化 → 輸出。引用 P-002-parse 的�
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `parse :: Text -> Either ParseError Doc` | 解析 | `Core.Parse`(見 P-002-parse) | pure |
-| = | `run :: Text -> Either ParseError Doc` | 純的整條 | `Core.Run` | pure |
-| ! | `main :: IO ()` | 進入點 | `Host.Main` | shell |
+| 1 | `parse :: Text -> Either ParseError Doc` | 解析 | `App.Parse`(見 P-002-parse) | core |
+| = | `run :: Text -> Either ParseError Doc` | 純的整條 | `App.Run` | core |
+| ! | `main :: IO ()` | 進入點 | `App.Run.Main` | shell |
 
 ## Laws
 - LAW-1 [total] 任何文字都有結果

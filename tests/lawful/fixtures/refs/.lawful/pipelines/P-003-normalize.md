@@ -12,8 +12,8 @@ updated: 2026-09-06
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `shared :: Text -> [Token]` | 切 token | `Core.Token` | pure |
-| = | `normalize :: Doc -> Doc` | 純的整條 | `Core.Normalize` | pure |
+| 1 | `shared :: Text -> [Token]` | 切 token | `App.Parse.Token` | core |
+| = | `normalize :: Doc -> Doc` | 純的整條 | `App.Normalize` | core |
 
 ## Laws
 - LAW-1 [identity] 正規化冪等

@@ -222,11 +222,12 @@ document.getElementById('warnings').innerHTML = D.warnings.length
 
 // ── 這棵樹:願景 → 目標 → 里程碑 → 一份文檔一張便利貼 ──
 const NOTE_W = 236, GROUP_W = 236, LANE_W = 320, VISION_W = 660;
-const SPINE = 18;            // 里程碑底下那條垂直骨幹到便利貼左緣的距離
-const GAP_NOTE = 14;         // 同一條里程碑底下,便利貼之間
+const GAP_NOTE = 16;         // 同一條里程碑底下,便利貼之間
 const GAP_GROUP = 30;        // 里程碑之間
 const GAP_LANE = 64;         // 目標之間
 const GAP_ROW = 62;          // 層與層之間
+const GAP_BAND = 96;         // 折行之後,帶與帶之間
+const MAX_BAND = 4200;       // 一帶最寬到這裡就折行;目標多的專案才不會攤成一條細長條
 
 function noteHtml(name) {
   const d = byName.get(name);
@@ -284,52 +285,81 @@ const pick = (sel) => world.querySelector(sel);
 const visionEl = pick('.vision');
 const laneEls = D.lanes.map((_, i) => pick(`.lane[data-lane="${i}"]`)).filter(Boolean);
 const groupEls = D.lanes.map((lane, i) => lane.columns.map((_, c) => pick(`.group[data-lane="${i}"][data-col="${c}"]`)));
-const yLane = (visionEl ? H.get(visionEl) : 0) + GAP_ROW;
 const laneRowH = Math.max(0, ...laneEls.map((el) => H.get(el)));
-const yGroup = yLane + laneRowH + GAP_ROW;
 const groupRowH = Math.max(0, ...groupEls.flat().map((el) => H.get(el)));
-const yNote = yGroup + groupRowH + GAP_ROW;
+const bandTop0 = (visionEl ? H.get(visionEl) : 0) + GAP_ROW;
 
 let cursor = 0;
-const laneSpan = [];
 const subtree = new Map();   // 目標 / 里程碑的卡片 → 它那一叢的範圍
 const grow = (el, b) => {
   const s = subtree.get(el);
   if (!s) subtree.set(el, { x1: b.x, y1: b.y, x2: b.x + b.w, y2: b.y + b.h });
   else { s.x1 = Math.min(s.x1, b.x); s.y1 = Math.min(s.y1, b.y); s.x2 = Math.max(s.x2, b.x + b.w); s.y2 = Math.max(s.y2, b.y + b.h); }
 };
-D.lanes.forEach((lane, li) => {
-  const cols = lane.columns;
-  const clusterW = SPINE + NOTE_W;
-  const kidsW = cols.length ? cols.length * clusterW + (cols.length - 1) * GAP_GROUP : 0;
-  const w = Math.max(LANE_W, kidsW);
-  const left = cursor;
-  let cx = left + (w - kidsW) / 2;
-  cols.forEach((col, ci) => {
-    const g = groupEls[li][ci];
-    place(g, cx + SPINE + (NOTE_W - GROUP_W) / 2, yGroup, GROUP_W);
-    let y = yNote;
-    for (const name of col.docs) {
-      const el = noteEls.get(name);
-      if (!el || box.has(el)) continue;
-      place(el, cx + SPINE, y, NOTE_W);
-      grow(g, box.get(el));
-      y += H.get(el) + GAP_NOTE;
-    }
-    grow(g, box.get(g));
-    cx += clusterW + GAP_GROUP;
-  });
-  const laneEl = laneEls[li];
-  if (laneEl) {
-    place(laneEl, left + (w - LANE_W) / 2, yLane, LANE_W);
-    grow(laneEl, box.get(laneEl));
-    for (const g of groupEls[li]) if (subtree.has(g)) { const s = subtree.get(g); grow(laneEl, { x: s.x1, y: s.y1, w: s.x2 - s.x1, h: s.y2 - s.y1 }); }
-  }
-  laneSpan.push({ left, w });
-  cursor = left + w + GAP_LANE;
+// 每一層都置中在它的子節點上:線才會從卡片正下方出去、從卡片正上方進來
+const spanOf = (mids, fallback) => (mids.length ? (Math.min(...mids) + Math.max(...mids)) / 2 : fallback);
+// 先量每個目標叢要多寬,再決定哪幾個排成一帶
+const plan = D.lanes.map((lane, li) => {
+  const kids = lane.columns.map((col) => col.docs.map((n) => noteEls.get(n)).filter((el) => el && !box.has(el)));
+  const colW = kids.map((ns) => Math.max(GROUP_W, ns.length ? ns.length * NOTE_W + (ns.length - 1) * GAP_NOTE : NOTE_W));
+  const kidsW = colW.length ? colW.reduce((a, b) => a + b, 0) + (colW.length - 1) * GAP_GROUP : 0;
+  return { li, kids, colW, w: Math.max(LANE_W, kidsW), kidsW };
 });
-const totalW = Math.max(VISION_W, cursor - GAP_LANE);
-if (visionEl) place(visionEl, (totalW - VISION_W) / 2, 0, VISION_W);
+const bands = [];
+for (const p of plan) {
+  const band = bands[bands.length - 1];
+  if (!band || band.w + GAP_LANE + p.w > MAX_BAND) bands.push({ lanes: [p], w: p.w });
+  else { band.lanes.push(p); band.w += GAP_LANE + p.w; }
+}
+
+let bandTop = bandTop0;
+const bandRows = [];   // 每一帶的三層 y,連線要用
+for (const band of bands) {
+  const yLane = bandTop;
+  const yGroup = yLane + laneRowH + GAP_ROW;
+  const yNote = yGroup + groupRowH + GAP_ROW;
+  let cursor = 0;
+  let bottom = yNote;
+  for (const p of band.lanes) {
+    const left = cursor;
+    let gx = left + (p.w - p.kidsW) / 2;
+    const colMid = [];
+    D.lanes[p.li].columns.forEach((col, ci) => {
+      const g = groupEls[p.li][ci];
+      const mid = gx + p.colW[ci] / 2;
+      colMid.push(mid);
+      place(g, mid - GROUP_W / 2, yGroup, GROUP_W);
+      const ns = p.kids[ci];
+      const nw = ns.length ? ns.length * NOTE_W + (ns.length - 1) * GAP_NOTE : 0;
+      let nx = mid - nw / 2;
+      for (const el of ns) {
+        place(el, nx, yNote, NOTE_W);
+        grow(g, box.get(el));
+        bottom = Math.max(bottom, yNote + H.get(el));
+        nx += NOTE_W + GAP_NOTE;
+      }
+      grow(g, box.get(g));
+      gx += p.colW[ci] + GAP_GROUP;
+    });
+    const laneEl = laneEls[p.li];
+    if (laneEl) {
+      place(laneEl, spanOf(colMid, left + p.w / 2) - LANE_W / 2, yLane, LANE_W);
+      grow(laneEl, box.get(laneEl));
+      bottom = Math.max(bottom, yLane + H.get(laneEl));
+      for (const g of groupEls[p.li]) if (subtree.has(g)) { const s = subtree.get(g); grow(laneEl, { x: s.x1, y: s.y1, w: s.x2 - s.x1, h: s.y2 - s.y1 }); }
+    }
+    cursor = left + p.w + GAP_LANE;
+  }
+  bandRows.push({ yLane, lanes: band.lanes.map((p) => p.li) });
+  bandTop = bottom + GAP_BAND;
+}
+
+let totalW = Math.max(VISION_W, ...bands.map((b) => b.w));
+if (visionEl) {
+  const mids = (bandRows[0] ? bandRows[0].lanes : []).map((li) => box.get(laneEls[li])).filter(Boolean).map((b) => b.x + b.w / 2);
+  place(visionEl, Math.max(0, spanOf(mids, totalW / 2) - VISION_W / 2), 0, VISION_W);
+  totalW = Math.max(totalW, box.get(visionEl).x + VISION_W);
+}
 const empty = pick('.lane[data-lane="-1"]');
 if (empty) place(empty, (totalW - LANE_W) / 2, yLane, LANE_W);
 
@@ -344,33 +374,40 @@ const paths = [];
 function bus(parent, kids) {
   if (!parent || !kids.length) return;
   const py = parent.y + parent.h;
-  const ky = Math.min(...kids.map((b) => b.y));
-  const mid = py + (ky - py) / 2;
-  if (kids.length === 1 && Math.abs(cx(kids[0]) - cx(parent)) < 1) {
-    paths.push(`<path class="tree" d="M ${cx(parent)} ${py} V ${kids[0].y}"></path>`);
-    return;
-  }
-  const xs = kids.map(cx);
-  paths.push(`<path class="tree" d="M ${cx(parent)} ${py} V ${mid} M ${Math.min(...xs)} ${mid} H ${Math.max(...xs)}"></path>`);
+  const mid = py + (Math.min(...kids.map((b) => b.y)) - py) / 2;
+  const xs = kids.map(cx).concat(cx(parent));
+  const x1 = Math.min(...xs);
+  const x2 = Math.max(...xs);
+  paths.push(`<path class="tree" d="M ${cx(parent)} ${py} V ${mid}"></path>`);
+  if (x2 - x1 > 0.5) paths.push(`<path class="tree" d="M ${x1} ${mid} H ${x2}"></path>`);
   for (const b of kids) paths.push(`<path class="tree" d="M ${cx(b)} ${mid} V ${b.y}"></path>`);
 }
-if (visionEl) bus(box.get(visionEl), laneEls.map((el) => box.get(el)).filter(Boolean));
+if (visionEl && bandRows.length) {
+  const v = box.get(visionEl);
+  const boxesOf = (r) => r.lanes.map((li) => box.get(laneEls[li])).filter(Boolean);
+  bus(v, boxesOf(bandRows[0]));
+  // 折行之後的帶接不到願景正下方:左邊拉一條主幹下來,每一帶各自橫過去
+  const rest = bandRows.slice(1).filter((r) => boxesOf(r).length);
+  if (rest.length) {
+    const trunk = -40;
+    const last = rest[rest.length - 1];
+    const armY = (r) => r.yLane - GAP_ROW / 2;
+    paths.push(`<path class="tree" d="M ${cx(v)} ${v.y + v.h / 2} H ${trunk} V ${armY(last)}"></path>`);
+    for (const r of rest) {
+      const bs = boxesOf(r);
+      const xs = bs.map(cx);
+      paths.push(`<path class="tree" d="M ${trunk} ${armY(r)} H ${Math.max(...xs)}"></path>`);
+      for (const b of bs) paths.push(`<path class="tree" d="M ${cx(b)} ${armY(r)} V ${b.y}"></path>`);
+    }
+  }
+}
 D.lanes.forEach((lane, li) => {
   const lb = laneEls[li] && box.get(laneEls[li]);
   if (lb) bus(lb, groupEls[li].map((el) => box.get(el)).filter(Boolean));
   lane.columns.forEach((col, ci) => {
-    const g = groupEls[li][ci];
-    const gb = box.get(g);
-    // 里程碑底下一條垂直骨幹,每張便利貼從左緣接上去:它們並列,不是先後
-    const kids = col.docs.map((n) => noteEls.get(n)).filter((el) => el && box.get(el));
-    if (!kids.length || !gb) return;
-    const sx = box.get(kids[0]).x - SPINE / 2;
-    const last = box.get(kids[kids.length - 1]);
-    paths.push(`<path class="tree" d="M ${cx(gb)} ${gb.y + gb.h} V ${yNote - 14} H ${sx} V ${last.y + Math.min(28, last.h / 2)}"></path>`);
-    for (const el of kids) {
-      const b = box.get(el);
-      paths.push(`<path class="tree" d="M ${sx} ${b.y + Math.min(28, b.h / 2)} H ${b.x}"></path>`);
-    }
+    const gb = box.get(groupEls[li][ci]);
+    const kids = col.docs.map((n) => noteEls.get(n)).filter((el) => el && box.get(el)).map((el) => box.get(el));
+    if (gb) bus(gb, kids);
   });
 });
 for (const e of D.edges) {
@@ -385,7 +422,10 @@ for (const e of D.edges) {
 }
 let maxY = 0;
 for (const b of box.values()) maxY = Math.max(maxY, b.y + b.h);
-links.setAttribute('width', totalW + 200);
+links.style.left = '-60px';
+links.style.top = '0';
+links.setAttribute('viewBox', `-60 0 ${totalW + 260} ${maxY + 120}`);
+links.setAttribute('width', totalW + 260);
 links.setAttribute('height', maxY + 120);
 links.innerHTML = paths.join('');
 world.style.width = totalW + 'px';

@@ -250,7 +250,7 @@ document.getElementById('legend').innerHTML = TERMS
   + '<span title="虛線箭頭:箭頭那一端是被引用的那一份"><i style="background:var(--wire)"></i>引用</span>';
 helpEl.innerHTML = `<button class="close">關閉</button><h3>便利貼的顏色</h3><dl>${
   TERMS.map(([t, name, why]) => `<dt><i style="background:var(--${t})"></i>${esc(name)}</dt><dd>${esc(why)}</dd>`).join('')
-}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,走右邊的通道繞過去,不從卡片上壓過。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 優先度區塊 → 目標 → 里程碑 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd></dl>`;
+}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,一條弧線從右邊繞過去。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 優先度區塊 → 目標 → 里程碑 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd></dl>`;
 const setTopHeight = () => document.body.style.setProperty('--topH', document.getElementById('top').offsetHeight + 'px');
 
 // 側欄的首頁:派工
@@ -462,39 +462,29 @@ for (const t of trees) {
   for (const kd of kids) wire(`M ${sx} ${kd.ey} H ${kd.x}`);
 }
 
-// ── 引用:全部走右邊的通道,直角轉彎,不從卡片上面壓過去 ──
+// ── 引用:一條弧線,從引用者的右緣出去,繞到右邊,再接進被引用那一份的右緣 ──
 const contentRight = Math.max(...[...box.values()].map((b) => b.x + b.w));
-const CHAN_GAP = 18, CHAN_X0 = contentRight + 46, BEND = 9;
 const outs = new Map();
 for (const e of D.edges) outs.set(e.from, (outs.get(e.from) || 0) + 1);
 const used = new Map();
-const chanBottom = [];   // 每一條通道用到的最下緣;錯開才不會兩條疊在一起
-const live = D.edges
-  .map((e) => ({ e, a: noteEls.get(e.from), b: noteEls.get(e.to) }))
-  .filter((x) => x.a && x.b && box.get(x.a) && box.get(x.b));
-for (const x of live) {
-  const ba = box.get(x.a); const bb = box.get(x.b);
-  const i = used.get(x.e.from) || 0; used.set(x.e.from, i + 1);
-  const n = outs.get(x.e.from);
-  x.y1 = Math.round(ba.y + ba.h / 2 + (i - (n - 1) / 2) * 9);
-  x.y2 = Math.round(bb.y + bb.h / 2);
-  x.x1 = ba.x + ba.w; x.x2 = bb.x + bb.w;
-  x.lo = Math.min(x.y1, x.y2); x.hi = Math.max(x.y1, x.y2);
-}
-for (const x of [...live].sort((p, q) => p.lo - q.lo)) {
-  let ch = chanBottom.findIndex((v) => v < x.lo - 10);
-  if (ch < 0) { ch = chanBottom.length; chanBottom.push(0); }
-  chanBottom[ch] = x.hi;
-  const cxx = CHAN_X0 + ch * CHAN_GAP;
-  const dir = x.y2 > x.y1 ? 1 : -1;
-  const d = Math.abs(x.y2 - x.y1) < 2 * BEND + 2
-    ? `M ${x.x1} ${x.y1} H ${cxx} V ${x.y2} H ${x.x2}`
-    : `M ${x.x1} ${x.y1} H ${cxx - BEND} Q ${cxx} ${x.y1} ${cxx} ${x.y1 + dir * BEND} V ${x.y2 - dir * BEND} Q ${cxx} ${x.y2} ${cxx - BEND} ${x.y2} H ${x.x2}`;
-  const t = byName.get(x.e.to);
-  paths.push(`<path class="ref${t && !t.achieved ? ' blocking' : ''}" data-from="${esc(x.e.from)}" data-to="${esc(x.e.to)}" d="${d}"></path>`);
+for (const e of D.edges) {
+  const a = noteEls.get(e.from); const b = noteEls.get(e.to);
+  if (!a || !b || !box.get(a) || !box.get(b)) continue;
+  const ba = box.get(a); const bb = box.get(b);
+  const i = used.get(e.from) || 0; used.set(e.from, i + 1);
+  const n = outs.get(e.from);
+  // 同一張便利貼出去好幾條就把出口錯開,不然幾條線疊在一起看不出有幾條
+  const y1 = Math.round(ba.y + ba.h / 2 + (i - (n - 1) / 2) * 9);
+  const y2 = Math.round(bb.y + bb.h / 2);
+  const x1 = ba.x + ba.w; const x2 = bb.x + bb.w;
+  // 弧度跟著兩份的距離走:離得越遠鼓得越開,線與線才不會黏成一團
+  const bulge = Math.min(460, Math.max(70, Math.abs(y2 - y1) * 0.34 + Math.abs(x2 - x1) * 0.2));
+  const d = `M ${x1} ${y1} C ${x1 + bulge} ${y1}, ${x2 + bulge} ${y2}, ${x2} ${y2}`;
+  const t = byName.get(e.to);
+  paths.push(`<path class="ref${t && !t.achieved ? ' blocking' : ''}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" d="${d}"></path>`);
 }
 
-// 通道不算進畫布:它平常沒在畫,把它算進來只會讓全景永遠縮太小。線畫到界外照樣看得見
+// 弧線鼓出去的那一段不算進畫布:它平常沒在畫,算進來只會讓全景永遠縮太小。畫到界外照樣看得見
 const totalW = contentRight + 80;
 const maxY = Math.max(0, ...[...box.values()].map((b) => b.y + b.h)) + 60;
 links.setAttribute('viewBox', `0 0 ${totalW} ${maxY}`);

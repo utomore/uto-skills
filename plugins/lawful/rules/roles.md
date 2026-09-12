@@ -14,7 +14,7 @@
 
 ## 分支與所有權
 
-- 一條 pipeline 一條分支 `build/<全名>`,從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在就代表這條 pipeline 有人在建,`lawful status` 把它列成建構中。
+- 一條 pipeline 一條分支 `build/<全名>`,從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這條 pipeline 有人在建,`lawful status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
 - 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP;它引用的每條子流都已達成並合進主線。引用的子流還沒合進主線就不開,等它;不替別條 pipeline 寫 stub。
 - 分支上准動的東西只有自己的:這條 pipeline 檔、自己 stage 的簽名與本體(模組表登記了但還沒有的模組檔可以建)、匯出清單裡自己的名字、以自己全名命名的測試模組、建置設定裡登記自己模組與測試模組的那幾行、`gaps.md` 追加、`journal/<全名>.md`。
 - 不動:`system.md`、`objectives.md`、`modules.md`、types 層、別條 pipeline 的檔與 stage 本體、別人的測試模組。非動不可就是 GAP。

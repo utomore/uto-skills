@@ -128,6 +128,43 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/status/.test(h.stdout
   } else console.log('✓ status --html 沒給檔名');
 }
 
+// 合進主線的 build 分支是殘留,不是有人在建:不算建構中,改列成警訊。真的開一個 repo 來問 git
+{
+  const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
+  if (!hasGit) console.log('· 沒有 git,跳過殘留 build 分支的檢查');
+  else {
+    const { branchState } = await import('../../plugins/lawful/lib/commands/status.mjs');
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'branch-'));
+    const git = (...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd: tmp, encoding: 'utf8' });
+    fs.cpSync(path.join(here, 'fixtures', 'save-game'), tmp, { recursive: true });
+    git('init', '-b', 'main');
+    git('add', '-A');
+    git('commit', '-m', 'base');
+    git('switch', '-c', 'build/P-001-save-game');
+    fs.writeFileSync(path.join(tmp, 'done.txt'), 'done');
+    git('add', '-A');
+    git('commit', '-m', 'done');
+    git('switch', 'main');
+    git('merge', '--no-ff', 'build/P-001-save-game', '-m', 'merge');
+    git('switch', '-c', 'build/P-002-load-game');
+    fs.writeFileSync(path.join(tmp, 'wip.txt'), 'wip');
+    git('add', '-A');
+    git('commit', '-m', 'wip');
+    git('switch', 'main');
+    const s = branchState(tmp);
+    const r = spawnSync(process.execPath, [bin, 'status', '--root', tmp], { encoding: 'utf8' });
+    const ok = !s.building.has('P-001-save-game') && s.stale.has('P-001-save-game')
+      && s.building.has('P-002-load-game') && !s.stale.has('P-002-load-game')
+      && r.stdout.includes('| build/P-001-save-game | 已合進主線卻還在 |')
+      && !r.stdout.includes('| build/P-002-load-game | 已合進主線卻還在 |');
+    fs.rmSync(tmp, { recursive: true, force: true });
+    if (!ok) {
+      failed++;
+      console.log('✗ 殘留的 build 分支');
+    } else console.log('✓ 殘留的 build 分支');
+  }
+}
+
 // 看板的頁面兩個 plugin 共用同一份,逐位元組相同;改了一邊就要複製到另一邊
 {
   const mine = path.join(here, '..', '..', 'plugins', 'lawful', 'templates', 'status-board.html');

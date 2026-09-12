@@ -27,10 +27,10 @@ function examplesOf(x) {
   };
 }
 
-export function statusJson(design, source, adapter, results, resultNote, building = new Set()) {
+export function statusJson(design, source, adapter, results, resultNote, building = new Set(), stale = new Set()) {
   const a = analyze(design, source, adapter, results);
   const ov = objectiveView(design, a);
-  const warns = warnings(design, a, ov, source, adapter);
+  const warns = warnings(design, a, ov, source, adapter, stale);
   const route = suggestRoutes(design, a, ov, warns.length);
   const { openable, inBuild, shared } = openLines(a, ov, building);
   const sys = design.system;
@@ -161,8 +161,8 @@ function openInBrowser(file) {
   }
 }
 
-export function statusBoard(design, source, adapter, results, resultNote, building, root, out, open) {
-  const data = statusJson(design, source, adapter, results, resultNote, building);
+export function statusBoard(design, source, adapter, results, resultNote, building, root, out, open, stale) {
+  const data = statusJson(design, source, adapter, results, resultNote, building, stale);
   // 沒指定檔名就寫暫存區:每次跑 status 都產一份,不在專案裡留檔
   const file = typeof out === 'string'
     ? path.resolve(root, out)

@@ -65,15 +65,42 @@ export function analyze(design, source, adapter, results) {
   return { info, openGaps, markers };
 }
 
-// 建構中的文檔 = 有 build/<全名> 分支。只在專案根目錄有 .git 時問 git;沒有(夾具、匯出的樹)就一條都不算,報告不受環境影響。
-export function buildingBranches(root) {
-  if (!root || !fs.existsSync(path.join(root, '.git'))) return new Set();
+function gitLines(root, cmd) {
   try {
-    const out = execSync('git branch --list "build/*" --format=%(refname:short)', { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    return new Set(out.split(/\r?\n/).map((s) => s.trim()).filter(Boolean).map((s) => s.replace(/^build\//, '')));
+    return execSync(cmd, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      .split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
   } catch {
-    return new Set();
+    return null;
   }
+}
+
+// 主線的參照:clone 設好的 origin/HEAD 優先,再退到常見的名字;都解不到就沒有基準
+function mainRef(root) {
+  const head = gitLines(root, 'git symbolic-ref --quiet --short refs/remotes/origin/HEAD');
+  if (head && head[0]) return head[0];
+  for (const ref of ['origin/main', 'origin/master', 'main', 'master']) {
+    if (gitLines(root, `git rev-parse --verify --quiet ${ref}`)) return ref;
+  }
+  return null;
+}
+
+// 建構中的文檔 = 有 build/<全名> 分支,而且它還沒被合進主線。
+// 合進主線的分支是做完了沒人收的殘留,不是有人在建;它列成警訊,清掉是整合的職責(roles.md「整合」)。
+// 只在專案根目錄有 .git 時問 git;沒有(夾具、匯出的樹)就一條都不算,報告不受環境影響。
+export function branchState(root) {
+  const none = { building: new Set(), stale: new Set() };
+  if (!root || !fs.existsSync(path.join(root, '.git'))) return none;
+  const all = gitLines(root, 'git branch --list "build/*" --format=%(refname:short)');
+  if (!all) return none;
+  const name = (s) => s.replace(/^build\//, '');
+  const ref = mainRef(root);
+  const merged = ref ? gitLines(root, `git branch --list "build/*" --merged ${ref} --format=%(refname:short)`) : null;
+  const stale = new Set((merged || []).map(name));
+  return { building: new Set(all.map(name).filter((n) => !stale.has(n))), stale };
+}
+
+export function buildingBranches(root) {
+  return branchState(root).building;
 }
 
 function checked(results, note) {
@@ -155,7 +182,7 @@ export function lineTag(x, ov) {
 }
 
 // 警訊:每條是 [哪裡, 什麼事, 怎麼辦]
-export function warnings(design, a, ov, source, adapter) {
+export function warnings(design, a, ov, source, adapter, stale = new Set()) {
   const sys = design.system;
   const listed = sys ? sys.listed : [];
   const unbound = design.features.map((f) => f.fullName).filter((f) => !ov.rank.has(f));
@@ -186,6 +213,7 @@ export function warnings(design, a, ov, source, adapter) {
   const consumers = new Map(design.abstracts.map((x) => [x.fullName, []]));
   for (const d of design.docs) for (const s of d.steps) if (s.ref && consumers.has(s.ref)) consumers.get(s.ref).push(d.fullName);
   for (const [name, cs] of consumers) if (new Set(cs).size === 1) warn(name, `只有 ${cs[0]} 用它`, '收整沒有成立;dev-flow:refactor 搬回去,或找出第二個消費者');
+  for (const n of [...stale].sort()) warn(`build/${n}`, '已合進主線卻還在', 'dev-flow:integrate 開頭會清掉它;或 git worktree remove <工作樹> 後 git branch -d build/' + n);
   const gapIds = new Map();
   for (const g of design.gaps.gaps) gapIds.set(g.id, (gapIds.get(g.id) || 0) + 1);
   for (const [id, n] of gapIds) if (n > 1) warn(id, `gaps.md 裡出現 ${n} 次`, '兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」)');
@@ -234,7 +262,7 @@ export function suggestRoutes(design, a, ov, warnCount) {
   return { steps, note, allDone };
 }
 
-export function statusReport(design, source, adapter, results, resultNote, building = new Set()) {
+export function statusReport(design, source, adapter, results, resultNote, building = new Set(), stale = new Set()) {
   const a = analyze(design, source, adapter, results);
   const out = [];
   const features = design.features.map((f) => f.fullName);
@@ -339,7 +367,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
   for (const x of wide) out.push(`- ${x.p.fullName}:${x.referrers.length} 份文檔引用它,改它要一起 REV`);
 
   out.push('', '## 7. 警訊');
-  const warns = warnings(design, a, ov, source, adapter);
+  const warns = warnings(design, a, ov, source, adapter, stale);
   if (!warns.length) out.push('- 無');
   else {
     out.push('| 哪裡 | 什麼事 | 怎麼辦 |', '|---|---|---|');

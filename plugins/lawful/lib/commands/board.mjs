@@ -83,19 +83,35 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     };
   });
 
-  // 看板的分法:一個目標一條帶、一條里程碑一欄;沒被綁的 pipeline 自己成帶
+  // 看板的分法:一層優先度一個區塊,區塊底下一個目標一叢、一條里程碑一欄;
+  // 沒被綁的 pipeline 自己成一個區塊,底下直接掛欄,沒有目標那一層(bare)
   const bound = new Set(ov.objs.flatMap((o) => o.ms.flatMap((m) => m.binds)));
-  const lanes = ov.objs.map((o) => ({
+  const laneOf = (o) => ({
     id: o.id,
     achieved: o.achieved,
     title: `${o.id} ${o.title}`,
-    badge: `優先 ${o.priorityRaw || '沒填'}`,
     notes: [`里程碑 ${o.done}/${o.ms.length} 達成 · 完成度 ${o.pct == null ? '-' : `${o.pct}%`}`, o.criteria ? `判準:${o.criteria}` : '沒有可觀察的判準'],
     columns: o.ms.map((m) => ({ title: `${m.id} ${m.title}`, achieved: m.achieved, docs: m.binds })),
     empty: o.ms.length ? null : '沒有任何里程碑',
+  });
+  const byPriority = new Map();   // ov.objs 已經照優先排好,沒填的排在最後
+  for (const o of ov.objs) {
+    const key = o.priority >= 1 && o.priority <= 4 ? o.priority : 'none';
+    if (!byPriority.has(key)) byPriority.set(key, []);
+    byPriority.get(key).push(o);
+  }
+  const bands = [...byPriority].map(([key, objs]) => ({
+    id: key === 'none' ? 'p-none' : `p${key}`,
+    title: key === 'none' ? '沒填優先' : `優先 ${key}${key === 1 ? '(最高)' : key === 4 ? '(最低)' : ''}`,
+    note: `${objs.length} 個目標,達成 ${objs.filter((o) => o.achieved).length} 個 · ${objs.reduce((n, o) => n + o.ms.reduce((k, m) => k + m.binds.length, 0), 0)} 條 pipeline`,
+    achieved: objs.every((o) => o.achieved),
+    bare: false,
+    lanes: objs.map(laneOf),
+    columns: [],
   }));
   const loose = docs.filter((d) => !bound.has(d.name)).map((d) => d.name);
-  if (loose.length) lanes.push({ id: null, achieved: false, title: '不朝向任何目標', badge: null, notes: ['沒有被任何里程碑綁定'], columns: [{ title: 'pipeline', achieved: false, docs: loose }], empty: null });
+  if (loose.length) bands.push({ id: 'loose', title: '不朝向任何目標', note: `${loose.length} 條 pipeline 沒有被任何里程碑綁定`, achieved: false, bare: true, lanes: [], columns: [{ title: 'pipeline', achieved: false, docs: loose }] });
+  if (!bands.length) bands.push({ id: 'empty', title: '還沒有任何目標', note: 'lawful:objective 訂第一個', achieved: false, bare: true, lanes: [], columns: [] });
 
   const summary = {
     objectives: ov.objs.length,
@@ -138,7 +154,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       percent: o.pct,
       milestones: o.ms.map((m) => ({ id: m.id, title: m.title, achieved: m.achieved, binds: m.binds })),
     })),
-    lanes,
+    bands,
     docs,
     edges: docs.flatMap((d) => d.refs.map((r) => ({ from: d.name, to: r }))),
     lines: {
@@ -186,7 +202,7 @@ export function statusBoard(design, source, adapter, results, resultNote, buildi
     text: [
       `看板寫到 ${shown}` + (opened ? ',已經叫瀏覽器打開' : ',點這個網址打開'),
       url,
-      '便利貼是 pipeline,連線是引用;願景在最上面,一層一層往下',
+      '願景在最上面,底下一層優先度一個區塊;便利貼是 pipeline,虛線箭頭是引用',
     ].join('\n'),
     exitCode: data.route.allDone && data.summary.docs ? 0 : 1,
   };

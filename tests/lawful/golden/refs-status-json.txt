@@ -81,34 +81,43 @@ $ lawful status --json
       ]
     }
   ],
-  "lanes": [
+  "bands": [
     {
-      "id": "O-1",
+      "id": "p1",
+      "title": "優先 1(最高)",
+      "note": "1 個目標,達成 0 個 · 3 條 pipeline",
       "achieved": false,
-      "title": "O-1 輸入檔跑完整條",
-      "badge": "優先 1",
-      "notes": [
-        "里程碑 0/2 達成 · 完成度 0%",
-        "判準:任一輸入檔解析、正規化後跑完不出錯"
-      ],
-      "columns": [
+      "bare": false,
+      "lanes": [
         {
-          "title": "M-1 解析與正規化走通",
+          "id": "O-1",
           "achieved": false,
-          "docs": [
-            "P-002-parse",
-            "P-003-normalize"
-          ]
-        },
-        {
-          "title": "M-2 整條跑完",
-          "achieved": false,
-          "docs": [
-            "P-001-run"
-          ]
+          "title": "O-1 輸入檔跑完整條",
+          "notes": [
+            "里程碑 0/2 達成 · 完成度 0%",
+            "判準:任一輸入檔解析、正規化後跑完不出錯"
+          ],
+          "columns": [
+            {
+              "title": "M-1 解析與正規化走通",
+              "achieved": false,
+              "docs": [
+                "P-002-parse",
+                "P-003-normalize"
+              ]
+            },
+            {
+              "title": "M-2 整條跑完",
+              "achieved": false,
+              "docs": [
+                "P-001-run"
+              ]
+            }
+          ],
+          "empty": null
         }
       ],
-      "empty": null
+      "columns": []
     }
   ],
   "docs": [

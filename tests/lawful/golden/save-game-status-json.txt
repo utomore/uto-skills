@@ -70,26 +70,35 @@ $ lawful status --json --tests test.log
       ]
     }
   ],
-  "lanes": [
+  "bands": [
     {
-      "id": "O-1",
+      "id": "p1",
+      "title": "優先 1(最高)",
+      "note": "1 個目標,達成 0 個 · 1 條 pipeline",
       "achieved": false,
-      "title": "O-1 玩家存檔後能讀回同一個世界",
-      "badge": "優先 1",
-      "notes": [
-        "里程碑 0/1 達成 · 完成度 0%",
-        "判準:任一 World 存檔再讀回,可存檔的投影一模一樣"
-      ],
-      "columns": [
+      "bare": false,
+      "lanes": [
         {
-          "title": "M-1 存檔寫得出檔案",
+          "id": "O-1",
           "achieved": false,
-          "docs": [
-            "P-001-save-game"
-          ]
+          "title": "O-1 玩家存檔後能讀回同一個世界",
+          "notes": [
+            "里程碑 0/1 達成 · 完成度 0%",
+            "判準:任一 World 存檔再讀回,可存檔的投影一模一樣"
+          ],
+          "columns": [
+            {
+              "title": "M-1 存檔寫得出檔案",
+              "achieved": false,
+              "docs": [
+                "P-001-save-game"
+              ]
+            }
+          ],
+          "empty": null
         }
       ],
-      "empty": null
+      "columns": []
     }
   ],
   "docs": [

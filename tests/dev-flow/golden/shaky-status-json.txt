@@ -100,67 +100,93 @@ $ devflow status --json
       ]
     }
   ],
-  "lanes": [
+  "bands": [
     {
-      "id": "O-2",
+      "id": "p2",
+      "title": "優先 2",
+      "note": "1 個目標,達成 0 個 · 0 份文檔",
       "achieved": false,
-      "title": "O-2 沒有里程碑的目標",
-      "badge": "優先 2",
-      "notes": [
-        "里程碑 0/0 達成 · 完成度 -",
-        "判準:看得到一個數字"
-      ],
-      "columns": [],
-      "empty": "沒有任何里程碑"
-    },
-    {
-      "id": "O-3",
-      "achieved": false,
-      "title": "O-3 編號撞到的目標",
-      "badge": "優先 3",
-      "notes": [
-        "里程碑 0/1 達成 · 完成度 0%",
-        "判準:看得到另一個數字"
-      ],
-      "columns": [
+      "bare": false,
+      "lanes": [
         {
-          "title": "M-1 <一句話>",
+          "id": "O-2",
           "achieved": false,
-          "docs": []
+          "title": "O-2 沒有里程碑的目標",
+          "notes": [
+            "里程碑 0/0 達成 · 完成度 -",
+            "判準:看得到一個數字"
+          ],
+          "columns": [],
+          "empty": "沒有任何里程碑"
         }
       ],
-      "empty": null
+      "columns": []
     },
     {
-      "id": "O-1",
+      "id": "p3",
+      "title": "優先 3",
+      "note": "1 個目標,達成 0 個 · 0 份文檔",
       "achieved": false,
-      "title": "O-1 算分",
-      "badge": "優先 9",
-      "notes": [
-        "里程碑 0/1 達成 · 完成度 0%",
-        "沒有可觀察的判準"
-      ],
-      "columns": [
+      "bare": false,
+      "lanes": [
         {
-          "title": "M-1 分數算得出來",
+          "id": "O-3",
           "achieved": false,
-          "docs": [
-            "F-001-score",
-            "A-001-lonely",
-            "F-009-nope"
-          ]
+          "title": "O-3 編號撞到的目標",
+          "notes": [
+            "里程碑 0/1 達成 · 完成度 0%",
+            "判準:看得到另一個數字"
+          ],
+          "columns": [
+            {
+              "title": "M-1 <一句話>",
+              "achieved": false,
+              "docs": []
+            }
+          ],
+          "empty": null
         }
       ],
-      "empty": null
+      "columns": []
     },
     {
-      "id": null,
+      "id": "p-none",
+      "title": "沒填優先",
+      "note": "1 個目標,達成 0 個 · 3 份文檔",
       "achieved": false,
+      "bare": false,
+      "lanes": [
+        {
+          "id": "O-1",
+          "achieved": false,
+          "title": "O-1 算分",
+          "notes": [
+            "里程碑 0/1 達成 · 完成度 0%",
+            "沒有可觀察的判準"
+          ],
+          "columns": [
+            {
+              "title": "M-1 分數算得出來",
+              "achieved": false,
+              "docs": [
+                "F-001-score",
+                "A-001-lonely",
+                "F-009-nope"
+              ]
+            }
+          ],
+          "empty": null
+        }
+      ],
+      "columns": []
+    },
+    {
+      "id": "loose",
       "title": "不朝向任何目標",
-      "badge": null,
-      "notes": [
-        "沒有被任何里程碑綁定"
-      ],
+      "note": "1 份 feature 沒有被任何里程碑綁定",
+      "achieved": false,
+      "bare": true,
+      "lanes": [],
       "columns": [
         {
           "title": "feature",
@@ -169,17 +195,15 @@ $ devflow status --json
             "F-002-other"
           ]
         }
-      ],
-      "empty": null
+      ]
     },
     {
-      "id": null,
-      "achieved": false,
+      "id": "shared",
       "title": "共用",
-      "badge": null,
-      "notes": [
-        "abstract 跟著引用它的 feature 達成"
-      ],
+      "note": "abstract 跟著引用它的 feature 達成",
+      "achieved": false,
+      "bare": true,
+      "lanes": [],
       "columns": [
         {
           "title": "被 feature 引用",
@@ -188,8 +212,7 @@ $ devflow status --json
             "A-002-single"
           ]
         }
-      ],
-      "empty": null
+      ]
     }
   ],
   "docs": [

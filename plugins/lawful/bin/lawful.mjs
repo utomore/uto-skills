@@ -18,7 +18,7 @@ const HELP = `lawful <子命令> [選項]
   status --pipeline <P-00x | 全名>     一條 pipeline 的 stage 與 law 逐條狀態
   status --module <模組>               住在該模組的所有 stage 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
-  status --html [檔名] [--open]        同一份報告畫成看板,寫成自帶資料的單檔網頁(預設 lawful-status.html);印出它的 file:// 網址,--open 直接用瀏覽器打開
+  status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
   claim <slug> [--description <句>] [--milestone <M-n>]
                                        鑄號建 pipeline 檔(status: draft),system.md Pipelines 表加一列,綁進 --milestone 那條里程碑
   objective add <一句話> --priority <1-4> [--criteria <句>]
@@ -138,8 +138,13 @@ function main() {
       console.log(JSON.stringify(data, null, 2));
       return data.route.allDone && data.summary.docs ? 0 : 1;
     }
-    if (args.flags.html) return emit(statusBoard(design, source, adapter, results, note, building, root, args.flags.html, !!args.flags.open));
-    return emit(statusReport(design, source, adapter, results, note, building));
+    // --html 是額外產出,不取代報告:同一次呼叫先印報告,最後附看板的網址
+    const report = statusReport(design, source, adapter, results, note, building);
+    if (args.flags.html) {
+      const b = statusBoard(design, source, adapter, results, note, building, root, args.flags.html, !!args.flags.open);
+      report.text += `\n\n${b.text}`;
+    }
+    return emit(report);
   }
 
   if (cmd === 'claim') {

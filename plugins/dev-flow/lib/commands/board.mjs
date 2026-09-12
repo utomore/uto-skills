@@ -1,6 +1,7 @@
 // 看板:同一份 status 的第二個渲染器。analyze() 算好的圖原樣吐成 JSON,再灌進 templates/status-board.html 成一個自帶資料的單檔網頁。
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -162,7 +163,11 @@ function openInBrowser(file) {
 
 export function statusBoard(design, source, adapter, results, resultNote, building, root, out, open) {
   const data = statusJson(design, source, adapter, results, resultNote, building);
-  const file = path.resolve(root, typeof out === 'string' ? out : 'devflow-status.html');
+  // 沒指定檔名就寫暫存區:每次跑 status 都產一份,不在專案裡留檔
+  const file = typeof out === 'string'
+    ? path.resolve(root, out)
+    : path.join(os.tmpdir(), 'devflow-board', `${path.basename(root) || 'devflow'}-status.html`);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   if (!fs.existsSync(TEMPLATE)) return { text: `找不到看板模板 ${TEMPLATE}`, exitCode: 1 };
   const html = fs.readFileSync(TEMPLATE, 'utf8');
   if (!html.includes(TOKEN)) return { text: `看板模板少了 ${TOKEN}`, exitCode: 1 };

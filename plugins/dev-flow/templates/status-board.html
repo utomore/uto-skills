@@ -138,7 +138,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
 .dot.g{background:var(--done)} .dot.r{background:var(--stuck)} .dot.y{background:var(--wait)} .dot.n{background:var(--idle)}
 
 /* 小地圖 */
-#mini{position:absolute;left:14px;bottom:44px;z-index:9;background:var(--panel);border:1px solid var(--rule);
+#mini{position:absolute;right:calc(var(--sideNow, var(--sideW)) + 14px);top:calc(var(--topH,108px) + 12px);z-index:9;background:var(--panel);border:1px solid var(--rule);
   border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.16);padding:7px 8px 8px;width:262px}
 #mini[hidden]{display:none}
 #minihead{display:flex;align-items:center;gap:6px;margin-bottom:6px}
@@ -147,7 +147,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
   border-radius:5px;background:transparent;color:var(--faint);cursor:pointer}
 #minimap{display:block;width:246px;height:158px;cursor:crosshair;border-radius:4px;background:var(--bg)}
 
-#help{position:absolute;right:calc(var(--sideW) + 16px);top:calc(var(--topH,108px) + 12px);z-index:14;width:min(430px,88vw);
+#help{position:absolute;right:calc(var(--sideNow, var(--sideW)) + 16px);top:calc(var(--topH,108px) + 12px + var(--miniH, 0px));z-index:14;width:min(430px,88vw);
   background:var(--panel);border:1px solid var(--rule);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.22);padding:14px 16px}
 #help[hidden]{display:none}
 #help h3{margin-bottom:10px}
@@ -560,6 +560,8 @@ function resting() {
   restT = setTimeout(() => { if (!drag) world.style.willChange = 'auto'; }, 140);
 }
 function apply() {
+  document.body.style.setProperty('--sideNow', sideW() + 'px');
+  document.body.style.setProperty('--miniH', (miniEl.hidden ? 0 : miniEl.offsetHeight + 12) + 'px');
   world.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
   document.getElementById('zoom').textContent = Math.round(k * 100) + '%';
   drawMini();

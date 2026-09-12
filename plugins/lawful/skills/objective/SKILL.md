@@ -1,6 +1,6 @@
 ---
 name: objective
-description: lawful 的目標 — 對談後在 .lawful/objectives.md 訂專案目標(O-n):開發者答三問 What 做到什麼(一句話)、How 怎麼看得出做到了(可觀察的判準)、Which 落在哪一級優先(1 到 4,各級代表什麼由檔頭一行宣告)與由哪幾條 pipeline 撐;每個目標切成有順序的里程碑(M-n),里程碑綁定它要做到的 pipeline,還沒有 pipeline 的里程碑是待 claim;也回答「這條 pipeline 服務哪個目標」、重排優先。配號只走 lawful objective add / milestone。觸發詞:目標、專案目標、objective、里程碑、milestone、優先、priority、這條 pipeline 為什麼做、朝向目標、lawful objective。Use when adding or reshaping project objectives, their priorities and milestones, or binding pipelines to a milestone.
+description: lawful 的目標 — 對談後在 .lawful/objectives.md 訂專案目標(O-n):開發者答三問 What 做到什麼(一句話)、How 怎麼看得出做到了(可觀察的判準)、Which 落在哪一級優先(1 到 4,各級代表什麼由檔頭一行宣告);每個目標切成有順序的里程碑(M-n),里程碑綁定它要做到的 pipeline,還沒有 pipeline 的里程碑是待 claim;也回答「這條 pipeline 服務哪個目標」、重排優先。配號只走 lawful objective add / milestone。觸發詞:目標、專案目標、objective、里程碑、milestone、優先、priority、這條 pipeline 為什麼做、朝向目標、lawful objective。Use when adding or reshaping project objectives, their priorities and milestones, or binding pipelines to a milestone.
 user-invocable: true
 ---
 

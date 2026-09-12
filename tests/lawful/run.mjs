@@ -102,7 +102,8 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/status/.test(h.stdout
   // exit code 帶的是報告判定(有沒有全部達成),不是寫檔成敗;寫成功了就一定讀得到資料區塊。
   // 資料區塊裡一個生的 < 都不該有:全部逃成 <,文檔寫了什麼都關不掉這個標籤
   const ok = !html.includes('__STATUS_JSON__') && !!data
-    && /"tool": "lawful"/.test(data[1]) && /P-001-save-game/.test(data[1]) && !data[1].includes('<');
+    && /"tool": "lawful"/.test(data[1]) && /P-001-save-game/.test(data[1]) && !data[1].includes('<')
+    && /^file:\/\/\/.*board\.html$/m.test(r.stdout);
   fs.rmSync(tmp, { recursive: true, force: true });
   if (!ok) {
     failed++;

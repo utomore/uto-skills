@@ -1,7 +1,9 @@
 // 看板:同一份 status 的第二個渲染器。analyze() 算好的圖原樣吐成 JSON,再灌進 templates/status-board.html 成一個自帶資料的單檔網頁。
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import process from 'node:process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { analyze, docState, objectiveView, openLines, suggestRoutes, warnings } from './status.mjs';
 
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
@@ -83,6 +85,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   // 看板的分法:一個目標一條帶、一條里程碑一欄;沒被綁的 pipeline 自己成帶
   const bound = new Set(ov.objs.flatMap((o) => o.ms.flatMap((m) => m.binds)));
   const lanes = ov.objs.map((o) => ({
+    id: o.id,
+    achieved: o.achieved,
     title: `${o.id} ${o.title}`,
     badge: `優先 ${o.priorityRaw || '沒填'}`,
     notes: [`里程碑 ${o.done}/${o.ms.length} 達成 · 完成度 ${o.pct == null ? '-' : `${o.pct}%`}`, o.criteria ? `判準:${o.criteria}` : '沒有可觀察的判準'],
@@ -90,7 +94,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     empty: o.ms.length ? null : '沒有任何里程碑',
   }));
   const loose = docs.filter((d) => !bound.has(d.name)).map((d) => d.name);
-  if (loose.length) lanes.push({ title: '不朝向任何目標', badge: null, notes: ['沒有被任何里程碑綁定'], columns: [{ title: 'pipeline', achieved: false, docs: loose }], empty: null });
+  if (loose.length) lanes.push({ id: null, achieved: false, title: '不朝向任何目標', badge: null, notes: ['沒有被任何里程碑綁定'], columns: [{ title: 'pipeline', achieved: false, docs: loose }], empty: null });
 
   const summary = {
     objectives: ov.objs.length,
@@ -147,7 +151,20 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   };
 }
 
-export function statusBoard(design, source, adapter, results, resultNote, building, root, out) {
+// 用系統預設的方式打開檔案;打不開不算失敗,網址還是印得出來
+function openInBrowser(file) {
+  const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', file]]
+    : process.platform === 'darwin' ? ['open', [file]]
+    : ['xdg-open', [file]];
+  try {
+    spawn(cmd, args, { detached: true, stdio: 'ignore' }).unref();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function statusBoard(design, source, adapter, results, resultNote, building, root, out, open) {
   const data = statusJson(design, source, adapter, results, resultNote, building);
   const file = path.resolve(root, typeof out === 'string' ? out : 'lawful-status.html');
   if (!fs.existsSync(TEMPLATE)) return { text: `找不到看板模板 ${TEMPLATE}`, exitCode: 1 };
@@ -158,5 +175,14 @@ export function statusBoard(design, source, adapter, results, resultNote, buildi
   fs.writeFileSync(file, html.replace(TOKEN, json));
   const rel = path.relative(root, file);
   const shown = !rel || rel.startsWith('..') ? file : rel;
-  return { text: `看板寫到 ${shown};瀏覽器打開它,便利貼是 pipeline,連線是引用`, exitCode: data.route.allDone && data.summary.docs ? 0 : 1 };
+  const url = pathToFileURL(file).href;
+  const opened = open ? openInBrowser(file) : false;
+  return {
+    text: [
+      `看板寫到 ${shown}` + (opened ? ',已經叫瀏覽器打開' : ',點這個網址打開'),
+      url,
+      '便利貼是 pipeline,連線是引用;願景在最上面,一層一層往下',
+    ].join('\n'),
+    exitCode: data.route.allDone && data.summary.docs ? 0 : 1,
+  };
 }

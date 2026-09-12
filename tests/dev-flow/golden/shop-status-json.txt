@@ -79,6 +79,8 @@ $ devflow status --json --tests test.log
   ],
   "lanes": [
     {
+      "id": "O-1",
+      "achieved": true,
       "title": "O-1 每一筆結帳與退款的金額都算對",
       "badge": "優先 1",
       "notes": [
@@ -104,6 +106,8 @@ $ devflow status --json --tests test.log
       "empty": null
     },
     {
+      "id": null,
+      "achieved": false,
       "title": "共用",
       "badge": null,
       "notes": [

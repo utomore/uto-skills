@@ -18,7 +18,7 @@ const HELP = `devflow <子命令> [選項]
   status --doc <F-00x | 全名>          一份文檔的 step 與 law 逐條狀態
   status --module <路徑或 目錄/**>     住在該檔案或目錄的所有 step 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
-  status --html [檔名]                 同一份報告畫成看板:一份文檔一張便利貼,連線是引用;寫成自帶資料的單檔網頁(預設 devflow-status.html)
+  status --html [檔名] [--open]        同一份報告畫成看板,寫成自帶資料的單檔網頁(預設 devflow-status.html);印出它的 file:// 網址,--open 直接用瀏覽器打開
   claim feature|abstract|spike|adr <slug> [--description <句>] [--milestone <M-n>]
                                        鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑,spike 另建 spike/ 資料夾
   objective add <一句話> --priority <1-4> [--criteria <句>]
@@ -138,7 +138,7 @@ function main() {
       console.log(JSON.stringify(data, null, 2));
       return data.route.allDone && data.summary.docs ? 0 : 1;
     }
-    if (args.flags.html) return emit(statusBoard(design, source, adapter, results, note, building, root, args.flags.html));
+    if (args.flags.html) return emit(statusBoard(design, source, adapter, results, note, building, root, args.flags.html, !!args.flags.open));
     return emit(statusReport(design, source, adapter, results, note, building));
   }
 

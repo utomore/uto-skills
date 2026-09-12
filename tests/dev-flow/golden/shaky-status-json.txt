@@ -102,6 +102,8 @@ $ devflow status --json
   ],
   "lanes": [
     {
+      "id": "O-2",
+      "achieved": false,
       "title": "O-2 沒有里程碑的目標",
       "badge": "優先 2",
       "notes": [
@@ -112,6 +114,8 @@ $ devflow status --json
       "empty": "沒有任何里程碑"
     },
     {
+      "id": "O-3",
+      "achieved": false,
       "title": "O-3 編號撞到的目標",
       "badge": "優先 3",
       "notes": [
@@ -128,6 +132,8 @@ $ devflow status --json
       "empty": null
     },
     {
+      "id": "O-1",
+      "achieved": false,
       "title": "O-1 算分",
       "badge": "優先 9",
       "notes": [
@@ -148,6 +154,8 @@ $ devflow status --json
       "empty": null
     },
     {
+      "id": null,
+      "achieved": false,
       "title": "不朝向任何目標",
       "badge": null,
       "notes": [
@@ -165,6 +173,8 @@ $ devflow status --json
       "empty": null
     },
     {
+      "id": null,
+      "achieved": false,
       "title": "共用",
       "badge": null,
       "notes": [

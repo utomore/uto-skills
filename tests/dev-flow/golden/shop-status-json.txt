@@ -77,42 +77,50 @@ $ devflow status --json --tests test.log
       ]
     }
   ],
-  "lanes": [
+  "bands": [
     {
-      "id": "O-1",
+      "id": "p1",
+      "title": "優先 1(最高)",
+      "note": "1 個目標,達成 1 個 · 2 份文檔",
       "achieved": true,
-      "title": "O-1 每一筆結帳與退款的金額都算對",
-      "badge": "優先 1",
-      "notes": [
-        "里程碑 2/2 達成 · 完成度 100%",
-        "判準:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分"
-      ],
-      "columns": [
+      "bare": false,
+      "lanes": [
         {
-          "title": "M-1 結帳走通",
+          "id": "O-1",
           "achieved": true,
-          "docs": [
-            "F-001-checkout"
-          ]
-        },
-        {
-          "title": "M-2 退款走通",
-          "achieved": true,
-          "docs": [
-            "F-002-refund"
-          ]
+          "title": "O-1 每一筆結帳與退款的金額都算對",
+          "notes": [
+            "里程碑 2/2 達成 · 完成度 100%",
+            "判準:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分"
+          ],
+          "columns": [
+            {
+              "title": "M-1 結帳走通",
+              "achieved": true,
+              "docs": [
+                "F-001-checkout"
+              ]
+            },
+            {
+              "title": "M-2 退款走通",
+              "achieved": true,
+              "docs": [
+                "F-002-refund"
+              ]
+            }
+          ],
+          "empty": null
         }
       ],
-      "empty": null
+      "columns": []
     },
     {
-      "id": null,
-      "achieved": false,
+      "id": "shared",
       "title": "共用",
-      "badge": null,
-      "notes": [
-        "abstract 跟著引用它的 feature 達成"
-      ],
+      "note": "abstract 跟著引用它的 feature 達成",
+      "achieved": false,
+      "bare": true,
+      "lanes": [],
       "columns": [
         {
           "title": "被 feature 引用",
@@ -121,8 +129,7 @@ $ devflow status --json --tests test.log
             "A-001-settle"
           ]
         }
-      ],
-      "empty": null
+      ]
     }
   ],
   "docs": [

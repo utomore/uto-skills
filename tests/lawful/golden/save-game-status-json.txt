@@ -20,7 +20,10 @@ $ lawful status --json --tests test.log
     "docs": 1,
     "docsAchieved": 0,
     "todoSteps": 4,
-    "openGaps": 0
+    "openGaps": 0,
+    "moduleUnits": 3,
+    "moduleUnitsIdle": 1,
+    "modulesUnregistered": 0
   },
   "headline": [
     {
@@ -38,6 +41,10 @@ $ lawful status --json --tests test.log
     {
       "label": "pipeline",
       "value": "0 / 1 達成"
+    },
+    {
+      "label": "模組單元",
+      "value": "3 個 · 1 個還沒有 stage"
     },
     {
       "label": "還沒實作的 stage",
@@ -101,6 +108,108 @@ $ lawful status --json --tests test.log
       "columns": []
     }
   ],
+  "modules": {
+    "units": [
+      {
+        "unit": "Game.World",
+        "responsibility": "遊戲世界的不可變值與它的實體",
+        "layers": [
+          "types"
+        ],
+        "layerState": [
+          {
+            "layer": "types",
+            "root": "src-types",
+            "empty": false,
+            "modules": [
+              "Game.World"
+            ]
+          }
+        ],
+        "emptyLayers": [],
+        "pipelines": [],
+        "stages": 0,
+        "todo": 0,
+        "mismatch": 0,
+        "achieved": false,
+        "idle": true
+      },
+      {
+        "unit": "Game.Save",
+        "responsibility": "可存檔的投影、編解碼與存檔的進入點",
+        "layers": [
+          "types",
+          "core",
+          "shell"
+        ],
+        "layerState": [
+          {
+            "layer": "types",
+            "root": "src-types",
+            "empty": false,
+            "modules": [
+              "Game.Save.State"
+            ]
+          },
+          {
+            "layer": "core",
+            "root": "src-core",
+            "empty": false,
+            "modules": [
+              "Game.Save",
+              "Game.Save.Codec",
+              "Game.Save.Project",
+              "Game.Save.Project.Internal"
+            ]
+          },
+          {
+            "layer": "shell",
+            "root": "src-shell",
+            "empty": false,
+            "modules": [
+              "Game.Save.Host"
+            ]
+          }
+        ],
+        "emptyLayers": [],
+        "pipelines": [
+          "P-001-save-game"
+        ],
+        "stages": 6,
+        "todo": 3,
+        "mismatch": 0,
+        "achieved": false,
+        "idle": false
+      },
+      {
+        "unit": "Game.FS",
+        "responsibility": "檔案系統:原子寫檔",
+        "layers": [
+          "shell"
+        ],
+        "layerState": [
+          {
+            "layer": "shell",
+            "root": "src-shell",
+            "empty": false,
+            "modules": [
+              "Game.FS"
+            ]
+          }
+        ],
+        "emptyLayers": [],
+        "pipelines": [
+          "P-001-save-game"
+        ],
+        "stages": 1,
+        "todo": 1,
+        "mismatch": 0,
+        "achieved": false,
+        "idle": false
+      }
+    ],
+    "unregistered": []
+  },
   "docs": [
     {
       "name": "P-001-save-game",
@@ -195,6 +304,10 @@ $ lawful status --json --tests test.log
         "Game.Save.Project.Internal",
         "Game.Save",
         "Game.Save.Host"
+      ],
+      "units": [
+        "Game.Save",
+        "Game.FS"
       ],
       "steps": [
         {

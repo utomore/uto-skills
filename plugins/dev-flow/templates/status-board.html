@@ -135,7 +135,13 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
 #doc td.s{white-space:nowrap}
 #doc .jump{background:none;border:0;padding:0;font:inherit;color:var(--going);cursor:pointer;text-decoration:underline}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
-.dot.g{background:var(--done)} .dot.r{background:var(--stuck)} .dot.y{background:var(--wait)} .dot.n{background:var(--idle)}
+.dot.g{background:var(--done)} .dot.r{background:var(--stuck)} .dot.y{background:var(--wait)} .dot.n{background:var(--idle)} .dot.e{background:var(--rule)}
+.unit{border-top:1px solid var(--rule);padding:8px 0;font-size:12.5px}
+.unit b{font-weight:600}
+.unit .sub{color:var(--faint);font-size:11.5px;margin-top:3px;line-height:1.5}
+.unit .layers{margin-top:4px}
+.layer{display:inline-block;font-size:10.5px;letter-spacing:.04em;border:1px solid var(--ink);border-radius:3px;padding:1px 5px;margin-right:4px}
+.layer.none{border-color:var(--rule);color:var(--faint)}
 
 /* 小地圖 */
 #mini{position:absolute;right:calc(var(--sideNow, var(--sideW)) + 14px);top:calc(var(--topH,108px) + 12px);z-index:9;background:var(--panel);border:1px solid var(--rule);
@@ -203,6 +209,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
   <div id="home">
     <section><h3>建議路線</h3><div id="route"></div></section>
     <section><h3>今天能開幾條線</h3><ul id="lines"></ul></section>
+    <section id="modules-section" hidden><h3 id="modules-title">模組</h3><div id="modules"></div></section>
     <section><h3>警訊</h3><div id="warnings"></div></section>
   </div>
   <div id="doc" hidden></div>
@@ -260,12 +267,34 @@ document.getElementById('route').innerHTML = D.route.steps.length
 const lineItems = [
   ...D.lines.openable.map((x) => `<li><b>${esc(x.name)}</b><br><span class="empty">${esc(x.tag)}</span></li>`),
   ...D.lines.building.map((x) => `<li><b>${esc(x.name)}</b><br><span class="empty">建構中,分支 build/${esc(x.name)}</span></li>`),
-  ...D.lines.shared.map((x) => `<li class="empty">${esc(x.a)} 與 ${esc(x.b)} 的 ${esc(D.labels.steps)} 都住 ${x.files.map((f) => `<code>${esc(f)}</code>`).join('、')},可以同時開</li>`),
+  ...D.lines.shared.map((x) => `<li class="empty">${esc(x.a)} 與 ${esc(x.b)} 的 ${esc(D.labels.steps)} 都住 ${(x.units || x.files || []).map((f) => `<code>${esc(f)}</code>`).join('、')},可以同時開</li>`),
 ];
 document.getElementById('lines').innerHTML = lineItems.length ? lineItems.join('') : '<li class="empty">一條都開不了</li>';
 document.getElementById('warnings').innerHTML = D.warnings.length
   ? D.warnings.map((w) => `<div class="warn"><b>${esc(w.where)}</b>${esc(w.what)}<i>${esc(w.fix)}</i></div>`).join('')
   : '<p class="empty">無</p>';
+
+// 模組:一個模組單元一列,層是它在原始碼樹裡的落點,pipeline 點得進去。沒有這份資料就整段不出現。
+if (D.modules && (D.modules.units.length || D.modules.unregistered.length)) {
+  const mods = D.modules;
+  document.getElementById('modules-section').hidden = false;
+  document.getElementById('modules-title').textContent = `模組(${mods.units.length} 個單元)`;
+  const layerCell = (u) => u.layerState.map((l) => `<span class="layer${l.empty ? ' none' : ''}" title="${esc(l.root)}/">${esc(l.layer)}</span>`).join('');
+  const rows = mods.units.map((u) => `<div class="unit" data-unit="${esc(u.unit)}">
+    <span class="dot ${u.achieved ? 'g' : u.idle ? 'e' : 'y'}"></span><b>${esc(u.unit)}</b>
+    <div class="layers">${layerCell(u)}</div>
+    <div class="sub">${esc(u.responsibility || '(職責沒填)')}</div>
+    <div class="sub">${u.idle ? '還沒有任何 ' + esc(D.labels.steps) + ' 住進去' : `${esc(D.labels.steps)} ${u.stages} 個,待實作 ${u.todo}`}${u.pipelines.length ? ' · ' + u.pipelines.map((n) => `<a href="#" data-go="${esc(n)}">${esc(n)}</a>`).join('、') : ''}</div>
+  </div>`).join('');
+  const stray = mods.unregistered.length ? `<div class="unit"><b>不在模組表</b><div class="sub">${mods.unregistered.map((m) => `<code>${esc(m.module)}</code>`).join('、')}</div></div>` : '';
+  document.getElementById('modules').innerHTML = rows + stray;
+  document.getElementById('modules').addEventListener('click', (ev) => {
+    const go = ev.target.closest('[data-go]');
+    if (!go) return;
+    ev.preventDefault();
+    select(go.dataset.go);
+  });
+}
 
 // ── 這棵樹:從左上往下長,每深一層往右縮排一格 ──
 // 願景 → 優先度區塊 → 目標 → 里程碑 → 便利貼;便利貼在里程碑底下折成方陣往右鋪
@@ -748,7 +777,8 @@ function openDoc(name) {
       <li>引用了:${d.refs.length ? d.refs.map(linkTo).join('、') : '無'}</li>
       <li>被引用:${d.referrers.length ? d.referrers.map(linkTo).join('、') : '無'}</li>
       <li>等誰:${d.blockedBy.length ? d.blockedBy.map(linkTo).join('、') : '無'}</li>
-      <li>住哪裡:${d.modules.length ? d.modules.map((m) => `<code>${esc(m)}</code>`).join('、') : '無'}</li>
+      <li>住哪個模組單元:${(d.units && d.units.length) ? d.units.map((m) => `<code>${esc(m)}</code>`).join('、') : '無'}</li>
+      <li>住哪些模組:${d.modules.length ? d.modules.map((m) => `<code>${esc(m)}</code>`).join('、') : '無'}</li>
     </ul></section>
     ${d.gaps.length ? `<section><h3>GAP</h3><ul>${d.gaps.map((g) => `<li>${esc(g)}</li>`).join('')}</ul></section>` : ''}
     ${warns.length ? `<section><h3>警訊</h3>${warns.map((w) => `<div class="warn"><b>${esc(w.where)}</b>${esc(w.what)}<i>${esc(w.fix)}</i></div>`).join('')}</section>` : ''}

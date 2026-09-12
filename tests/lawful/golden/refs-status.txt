@@ -3,7 +3,7 @@ $ lawful status
 
 # lawful status
 願景:輸入檔解析、正規化後跑完整條。
-目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 3 條,達成 0 條 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 3 條,達成 0 條 · 模組單元 4 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 目標
@@ -19,10 +19,19 @@ $ lawful status
 | P-002-parse | ready | 2 | 0 | 0 | 1 | 0/0 | 進行中 |
 | P-003-normalize | ready | 2 | 0 | 0 | 1 | 0/0 | 進行中 |
 
+## 模組
+| 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
+|---|---|---|---|---|---|---|
+| App.Doc | 文件與解析錯誤的型別 | types | - | - | 0 | 0 |
+| App.Parse | 把文字解析成文件 | core | - | P-002-parse、P-003-normalize | 3 | 0 |
+| App.Normalize | 文件的正規化 | core | - | P-003-normalize | 1 | 0 |
+| App.Run | 整條與命令列進入點 | core、shell | - | P-001-run | 2 | 0 |
+- 還沒有任何 stage 住進去的單元:App.Doc
+
 ## 1. 今天能開幾條線
 - P-002-parse:lawful:build P-002-parse(O-1 優先 1 · M-1 解析與正規化走通)
 - P-003-normalize:lawful:build P-003-normalize(O-1 優先 1 · M-1 解析與正規化走通)
-- P-002-parse 與 P-003-normalize 的 stage 都住 `App.Parse.Token`:可以同時開,整合時這些模組的檔兩邊都動
+- P-002-parse 與 P-003-normalize 的 stage 都住 `App.Parse`:可以同時開,整合時這幾個模組單元的檔兩邊都動
 
 ## 2. 卡住的
 - P-001-run 等 P-002-parse(未達成,先建它)
@@ -33,7 +42,7 @@ $ lawful status
 ## 4. 牽動誰
 - P-002-parse ← P-001-run
 
-## 5. 待實作(按模組)
+## 5. 待實作(按模組單元)
 - 無
 
 ## 6. 警訊

@@ -2,7 +2,7 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { unitOf, STATUSES } from '../design.mjs';
+import { layerRoot, unitOf, STATUSES } from '../design.mjs';
 import { findSignature } from '../source.mjs';
 import { lintBoundary, lintSig } from './lint.mjs';
 
@@ -182,15 +182,21 @@ function row(x) {
 }
 
 // 能開 = ready、沒 open GAP、引用的子流全部達成(消費者在子流合進主線之後才開,roles.md「分支與所有權」)
-export function openLines(a, ov, building) {
+export function openLines(a, ov, building, entries = []) {
   const candidates = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.length).sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
   const openable = candidates.filter((x) => !building.has(x.p.fullName));
   const inBuild = candidates.filter((x) => building.has(x.p.fullName));
-  // 兩條能開的線的 stage 住同一個模組:同時開,整合時那個模組的檔兩邊都動
+  // 兩條能開的線的 stage 住同一個模組單元:同時開,整合時那個單元的檔兩邊都動
+  const unitsOf = (x) => [...new Set(x.stages.filter((s) => !s.ref).map((s) => {
+    const e = unitOf(entries, s.module);
+    return e ? e.unit : s.module;
+  }))];
   const shared = [];
   for (let i = 0; i < openable.length; i++) for (let j = i + 1; j < openable.length; j++) {
-    const mods = [...new Set(openable[i].stages.filter((s) => !s.ref).map((s) => s.module))].filter((m) => openable[j].stages.some((s) => !s.ref && s.module === m));
-    if (mods.length) shared.push({ a: openable[i].p.fullName, b: openable[j].p.fullName, modules: mods });
+    const mine = unitsOf(openable[i]);
+    const theirs = new Set(unitsOf(openable[j]));
+    const units = mine.filter((u) => theirs.has(u));
+    if (units.length) shared.push({ a: openable[i].p.fullName, b: openable[j].p.fullName, units });
   }
   return { openable, inBuild, shared };
 }
@@ -272,6 +278,48 @@ export function suggestRoutes(design, a, ov, warnCount) {
   return { steps, note, allDone };
 }
 
+// 模組視角:報告、JSON 與看板共用的那一份。一個模組單元一筆,層的狀態來自程式碼住在哪棵樹。
+// 進度不是模組的欄位:單元的達成 = 住在它裡面的每個 stage 都在、都不是骨架。
+export function moduleView(design, source, a) {
+  const entries = design.modules ? design.modules.entries.filter((e) => !e.placeholder) : [];
+  const stagesOf = new Map(entries.map((e) => [e.unit, []]));
+  const loose = [];
+  for (const x of a.info.values()) {
+    for (const s of x.stages) {
+      if (s.ref) continue;
+      const e = unitOf(entries, s.module);
+      const row = { pipeline: x.p.fullName, name: s.name, module: s.module, layer: s.layer, state: s.state, observe: !!s.observe, stub: !!(s.hit && s.hit.stub) };
+      if (e) stagesOf.get(e.unit).push(row);
+      else loose.push(row);
+    }
+  }
+  const units = entries.map((e) => {
+    const stages = stagesOf.get(e.unit);
+    const layers = e.layers.map((layer) => {
+      const modules = source ? [...source.modules.values()].filter((m) => m.layer === layer && (m.module === e.unit || m.module.startsWith(`${e.unit}.`))).map((m) => m.module).sort() : [];
+      return { layer, modules, empty: !!source && !modules.length, root: layerRoot(design.system, layer) };
+    });
+    // 待實作與報告第 5 段同一套判準:願望、找不到、本體還是骨架,一個 stage 只算一次
+    const todo = stages.filter((s) => s.state === '願望' || s.state === '找不到' || s.state === '骨架' || s.stub);
+    const mismatch = stages.filter((s) => s.state === '不一致');
+    return {
+      unit: e.unit,
+      layers: e.layers,
+      responsibility: e.responsibility,
+      layerState: layers,
+      emptyLayers: layers.filter((l) => l.empty).map((l) => l.layer),
+      pipelines: [...new Set(stages.map((s) => s.pipeline))],
+      stages,
+      todo,
+      mismatch,
+      achieved: stages.length > 0 && !todo.length && !mismatch.length,
+      idle: !stages.length,
+    };
+  });
+  const unregistered = source ? [...source.modules.values()].filter((m) => !unitOf(entries, m.module)).map((m) => ({ module: m.module, file: m.file, layer: m.layer })) : [];
+  return { units, unregistered, loose };
+}
+
 export function statusReport(design, source, adapter, results, resultNote, building = new Set(), stale = new Set()) {
   const a = analyze(design, source, adapter, results);
   const out = [];
@@ -287,7 +335,8 @@ export function statusReport(design, source, adapter, results, resultNote, build
 
   out.push(`# lawful status`);
   if (sys && sys.visionState === 'ok') out.push(`願景:${sys.vision}`);
-  out.push(`目標 ${ov.objs.length} 個,達成 ${ov.objs.filter((o) => o.achieved).length} 個 · 里程碑 ${milestones.length} 條,達成 ${milestones.filter((m) => m.achieved).length} 條 · IO 介面 ${ioFaces.length} 條,達成 ${achievedIoFaces} 條 · pipeline ${total} 條,達成 ${achievedAll} 條 · 還沒實作的 stage ${wishStages.length} 個 · 還開著的 GAP ${a.openGaps.length} 條`);
+  const mv = moduleView(design, source, a);
+  out.push(`目標 ${ov.objs.length} 個,達成 ${ov.objs.filter((o) => o.achieved).length} 個 · 里程碑 ${milestones.length} 條,達成 ${milestones.filter((m) => m.achieved).length} 條 · IO 介面 ${ioFaces.length} 條,達成 ${achievedIoFaces} 條 · pipeline ${total} 條,達成 ${achievedAll} 條 · 模組單元 ${mv.units.length} 個 · 還沒實作的 stage ${wishStages.length} 個 · 還開著的 GAP ${a.openGaps.length} 條`);
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## 目標');
@@ -310,12 +359,25 @@ export function statusReport(design, source, adapter, results, resultNote, build
   out.push('|---|---|---|---|---|---|---|---|');
   for (const x of a.info.values()) out.push(row(x));
 
+  out.push('', '## 模組');
+  if (!design.modules) out.push('- 缺 .lawful/modules.md,邊界沒有宣告');
+  else if (!mv.units.length) out.push('- 模組表還沒有任何模組單元;lawful module <名稱> --layers <…> --responsibility <一句話> 劃第一個');
+  else {
+    out.push('| 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |', '|---|---|---|---|---|---|---|');
+    for (const u of mv.units) {
+      out.push(`| ${u.unit} | ${u.responsibility || '(沒填)'} | ${u.layers.join('、') || '(沒填)'} | ${u.emptyLayers.join('、') || '-'} | ${u.pipelines.join('、') || '-'} | ${u.stages.length} | ${u.todo.length} |`);
+    }
+    const idle = mv.units.filter((u) => u.idle).map((u) => u.unit);
+    if (idle.length) out.push(`- 還沒有任何 stage 住進去的單元:${idle.join('、')}`);
+    if (mv.unregistered.length) out.push(`- 程式碼有、模組表沒有:${mv.unregistered.map((m) => m.module).join('、')};lawful modules --gen 再填職責`);
+  }
+
   out.push('', '## 1. 今天能開幾條線');
-  const { openable, inBuild, shared } = openLines(a, ov, building);
+  const { openable, inBuild, shared } = openLines(a, ov, building, design.modules ? design.modules.entries : []);
   if (!openable.length) out.push('- 無');
   for (const x of openable) out.push(`- ${x.p.fullName}:lawful:build ${x.p.fullName}(${ov.tag(x.p.fullName)})`);
   for (const x of inBuild) out.push(`- ${x.p.fullName}:建構中,分支 build/${x.p.fullName};收尾後 lawful:integrate`);
-  for (const s of shared) out.push(`- ${s.a} 與 ${s.b} 的 stage 都住 ${s.modules.map((m) => `\`${m}\``).join('、')}:可以同時開,整合時這些模組的檔兩邊都動`);
+  for (const s of shared) out.push(`- ${s.a} 與 ${s.b} 的 stage 都住 ${s.units.map((m) => `\`${m}\``).join('、')}:可以同時開,整合時這幾個模組單元的檔兩邊都動`);
 
   out.push('', '## 2. 卡住的');
   let stuck = 0;
@@ -361,14 +423,26 @@ export function statusReport(design, source, adapter, results, resultNote, build
   }
   if (!touched) out.push('- 無');
 
-  out.push('', '## 5. 待實作(按模組)');
+  out.push('', '## 5. 待實作(按模組單元)');
   const byModule = new Map();
   for (const s of wishStages) {
     if (!byModule.has(s.module)) byModule.set(s.module, []);
     byModule.get(s.module).push(s);
   }
   if (!byModule.size) out.push('- 無');
-  for (const [m, list] of [...byModule].sort()) out.push(`- ${m}:${list.map((s) => `${s.pipeline}#${s.name}${s.state === '願望' ? '(願望)' : s.hit && s.hit.stub ? '(骨架)' : s.observe ? '(觀察點)' : ''}`).join('、')}`);
+  else {
+    const byUnit = new Map();
+    for (const [m] of byModule) {
+      const u = mv.units.find((x) => m === x.unit || m.startsWith(`${x.unit}.`));
+      const key = u ? u.unit : '(不在模組表)';
+      if (!byUnit.has(key)) byUnit.set(key, []);
+      byUnit.get(key).push(m);
+    }
+    for (const [unit, mods] of [...byUnit].sort()) {
+      out.push(`- ${unit}`);
+      for (const m of mods.sort()) out.push(`  - ${m}:${byModule.get(m).map((s) => `${s.pipeline}#${s.name}${s.state === '願望' ? '(願望)' : s.hit && s.hit.stub ? '(骨架)' : s.observe ? '(觀察點)' : ''}`).join('、')}`);
+    }
+  }
 
   out.push('', '## 6. 警訊');
   const warns = warnings(design, a, ov, source, adapter, stale);

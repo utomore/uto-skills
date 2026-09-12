@@ -22,7 +22,10 @@ $ lawful status --json
     "docs": 3,
     "docsAchieved": 0,
     "todoSteps": 0,
-    "openGaps": 0
+    "openGaps": 0,
+    "moduleUnits": 4,
+    "moduleUnitsIdle": 1,
+    "modulesUnregistered": 0
   },
   "headline": [
     {
@@ -40,6 +43,10 @@ $ lawful status --json
     {
       "label": "pipeline",
       "value": "0 / 3 達成"
+    },
+    {
+      "label": "模組單元",
+      "value": "4 個 · 1 個還沒有 stage"
     },
     {
       "label": "還沒實作的 stage",
@@ -120,6 +127,113 @@ $ lawful status --json
       "columns": []
     }
   ],
+  "modules": {
+    "units": [
+      {
+        "unit": "App.Doc",
+        "responsibility": "文件與解析錯誤的型別",
+        "layers": [
+          "types"
+        ],
+        "layerState": [
+          {
+            "layer": "types",
+            "root": "src-types",
+            "empty": false,
+            "modules": []
+          }
+        ],
+        "emptyLayers": [],
+        "pipelines": [],
+        "stages": 0,
+        "todo": 0,
+        "mismatch": 0,
+        "achieved": false,
+        "idle": true
+      },
+      {
+        "unit": "App.Parse",
+        "responsibility": "把文字解析成文件",
+        "layers": [
+          "core"
+        ],
+        "layerState": [
+          {
+            "layer": "core",
+            "root": "src-core",
+            "empty": false,
+            "modules": []
+          }
+        ],
+        "emptyLayers": [],
+        "pipelines": [
+          "P-002-parse",
+          "P-003-normalize"
+        ],
+        "stages": 3,
+        "todo": 0,
+        "mismatch": 0,
+        "achieved": true,
+        "idle": false
+      },
+      {
+        "unit": "App.Normalize",
+        "responsibility": "文件的正規化",
+        "layers": [
+          "core"
+        ],
+        "layerState": [
+          {
+            "layer": "core",
+            "root": "src-core",
+            "empty": false,
+            "modules": []
+          }
+        ],
+        "emptyLayers": [],
+        "pipelines": [
+          "P-003-normalize"
+        ],
+        "stages": 1,
+        "todo": 0,
+        "mismatch": 0,
+        "achieved": true,
+        "idle": false
+      },
+      {
+        "unit": "App.Run",
+        "responsibility": "整條與命令列進入點",
+        "layers": [
+          "core",
+          "shell"
+        ],
+        "layerState": [
+          {
+            "layer": "core",
+            "root": "src-core",
+            "empty": false,
+            "modules": []
+          },
+          {
+            "layer": "shell",
+            "root": "src-shell",
+            "empty": false,
+            "modules": []
+          }
+        ],
+        "emptyLayers": [],
+        "pipelines": [
+          "P-001-run"
+        ],
+        "stages": 2,
+        "todo": 0,
+        "mismatch": 0,
+        "achieved": true,
+        "idle": false
+      }
+    ],
+    "unregistered": []
+  },
   "docs": [
     {
       "name": "P-001-run",
@@ -183,6 +297,9 @@ $ lawful status --json
       "modules": [
         "App.Run",
         "App.Run.Main"
+      ],
+      "units": [
+        "App.Run"
       ],
       "steps": [
         {
@@ -287,6 +404,9 @@ $ lawful status --json
         "App.Parse.Token",
         "App.Parse"
       ],
+      "units": [
+        "App.Parse"
+      ],
       "steps": [
         {
           "index": "1",
@@ -375,6 +495,10 @@ $ lawful status --json
         "App.Parse.Token",
         "App.Normalize"
       ],
+      "units": [
+        "App.Parse",
+        "App.Normalize"
+      ],
       "steps": [
         {
           "index": "1",
@@ -427,8 +551,8 @@ $ lawful status --json
       {
         "a": "P-002-parse",
         "b": "P-003-normalize",
-        "files": [
-          "App.Parse.Token"
+        "units": [
+          "App.Parse"
         ]
       }
     ]

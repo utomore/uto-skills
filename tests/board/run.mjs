@@ -176,6 +176,22 @@ const STATE = `(() => ({
   tx: Math.round(tx),
 }))()`;
 
+// 模組段:有 D.modules 的工具才出現,一個模組單元一列,列裡的 pipeline 連結點得進去
+const MODULES = `(() => {
+  const sec = document.getElementById('modules-section');
+  const rows = [...document.querySelectorAll('#modules .unit')];
+  const link = document.querySelector('#modules .unit a[data-go]');
+  const r = link && link.getBoundingClientRect();
+  return {
+    has: !!(D.modules && D.modules.units.length),
+    shown: !!sec && !sec.hidden,
+    rows: rows.length,
+    units: D.modules ? D.modules.units.length : 0,
+    layerChips: document.querySelectorAll('#modules .layer').length,
+    go: link ? { name: link.dataset.go, x: r.x + r.width / 2, y: r.y + r.height / 2 } : null,
+  };
+})()`;
+
 async function run(page, label) {
   const pick = await page.evaluate(PICK);
 
@@ -205,6 +221,24 @@ async function run(page, label) {
   await sleep(300);
   const atRest = await page.evaluate('getComputedStyle(world).willChange');
   check(`${label}:手一停就交還,字才會重畫成清的`, atRest === 'auto', `靜止時的 will-change 是 ${atRest}`);
+
+  // 模組段:一個模組單元一列,層是它在原始碼樹裡的落點;沒有模組資料的工具整段不出現
+  await page.click(pick.x, pick.y);
+  await page.click(pick.x, pick.y);
+  const mods = await page.evaluate(MODULES);
+  check(`${label}:模組段跟著資料出現或收起`, mods.shown === mods.has,
+    `有模組資料 ${mods.has},段落顯示 ${mods.shown}`);
+  if (mods.has) {
+    check(`${label}:一個模組單元一列`, mods.rows === mods.units, `畫了 ${mods.rows} 列,資料有 ${mods.units} 個單元`);
+    check(`${label}:每列標出它有哪幾層`, mods.layerChips > 0, `層的標籤 ${mods.layerChips} 個`);
+    if (mods.go) {
+      await page.click(mods.go.x, mods.go.y);
+      const after = await page.evaluate(STATE);
+      check(`${label}:點模組段裡的 pipeline 會選到它`, after.selected === mods.go.name && after.docOpen,
+        `selected 是 ${JSON.stringify(after.selected)},應該是 ${JSON.stringify(mods.go.name)}`);
+      await page.evaluate('select(null)');
+    }
+  }
 
   // 版面:每張卡片都比它自己的父卡片更右(沒有目標那一層的區塊,里程碑就直接掛在區塊底下)
   const askew = await page.evaluate(`(() => {

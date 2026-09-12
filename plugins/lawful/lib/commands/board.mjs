@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { analyze, docState, objectiveView, openLines, suggestRoutes, warnings } from './status.mjs';
+import { analyze, docState, moduleView, objectiveView, openLines, suggestRoutes, warnings } from './status.mjs';
 
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
 const TOKEN = '__STATUS_JSON__';
@@ -32,7 +32,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const ov = objectiveView(design, a);
   const warns = warnings(design, a, ov, source, adapter, stale);
   const route = suggestRoutes(design, a, ov, warns.length);
-  const { openable, inBuild, shared } = openLines(a, ov, building);
+  const { openable, inBuild, shared } = openLines(a, ov, building, design.modules ? design.modules.entries : []);
   const sys = design.system;
   const listed = sys ? sys.pipelines : [];
   const kindOf = (name) => {
@@ -42,6 +42,11 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const ioFaces = listed.filter((l) => l.kind === 'IO 介面').map((l) => l.fullName);
   const milestones = ov.objs.flatMap((o) => o.ms);
   const todo = [...a.info.values()].flatMap((x) => x.stages.filter((s) => s.state === '願望' || s.state === '找不到' || (s.hit && s.hit.stub)));
+  const mv = moduleView(design, source, a);
+  const unitNameOf = (module) => {
+    const u = mv.units.find((e) => module === e.unit || module.startsWith(`${e.unit}.`));
+    return u ? u.unit : null;
+  };
 
   const docs = [...a.info.values()].map((x) => {
     const at = ov.rank.get(x.p.fullName) || null;
@@ -67,6 +72,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       referrers: x.referrers,
       blockedBy: x.blockedBy,
       modules: [...new Set(x.stages.filter((s) => !s.ref).map((s) => s.module))],
+      units: [...new Set(x.stages.filter((s) => !s.ref).map((s) => unitNameOf(s.module)).filter(Boolean))],
       steps: x.stages.map((s) => ({
         index: s.index,
         name: s.name,
@@ -126,6 +132,9 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     docsAchieved: docs.filter((d) => d.achieved).length,
     todoSteps: todo.length,
     openGaps: a.openGaps.length,
+    moduleUnits: mv.units.length,
+    moduleUnitsIdle: mv.units.filter((u) => u.idle).length,
+    modulesUnregistered: mv.unregistered.length,
   };
 
   return {
@@ -140,6 +149,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       { label: '里程碑', value: `${summary.milestonesAchieved} / ${summary.milestones} 達成` },
       { label: 'IO 介面', value: `${summary.ioFacesAchieved} / ${summary.ioFaces} 達成` },
       { label: 'pipeline', value: `${summary.pipelinesAchieved} / ${summary.pipelines} 達成` },
+      { label: '模組單元', value: `${summary.moduleUnits} 個${summary.moduleUnitsIdle ? ` · ${summary.moduleUnitsIdle} 個還沒有 stage` : ''}` },
       { label: '還沒實作的 stage', value: `${summary.todoSteps} 個` },
       { label: '還開著的 GAP', value: `${summary.openGaps} 條` },
     ],
@@ -155,12 +165,28 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       milestones: o.ms.map((m) => ({ id: m.id, title: m.title, achieved: m.achieved, binds: m.binds })),
     })),
     bands,
+    modules: {
+      units: mv.units.map((u) => ({
+        unit: u.unit,
+        responsibility: u.responsibility || '',
+        layers: u.layers,
+        layerState: u.layerState.map((l) => ({ layer: l.layer, root: l.root, empty: l.empty, modules: l.modules })),
+        emptyLayers: u.emptyLayers,
+        pipelines: u.pipelines,
+        stages: u.stages.length,
+        todo: u.todo.length,
+        mismatch: u.mismatch.length,
+        achieved: u.achieved,
+        idle: u.idle,
+      })),
+      unregistered: mv.unregistered,
+    },
     docs,
     edges: docs.flatMap((d) => d.refs.map((r) => ({ from: d.name, to: r }))),
     lines: {
       openable: openable.map((x) => ({ name: x.p.fullName, tag: ov.tag(x.p.fullName) })),
       building: inBuild.map((x) => ({ name: x.p.fullName, tag: ov.tag(x.p.fullName) })),
-      shared: shared.map((s) => ({ a: s.a, b: s.b, files: s.modules })),
+      shared: shared.map((s) => ({ a: s.a, b: s.b, units: s.units })),
     },
     gaps: a.openGaps.map((g) => ({ id: g.id, target: g.target, role: g.role })),
     warnings: warns.map(([where, what, fix]) => ({ where, what, fix })),

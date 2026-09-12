@@ -1,7 +1,7 @@
 $ lawful status --tests test.log
 # lawful status
 願景:一段文字丟進來,字數統計與報表一次算對。
-目標 0 個,達成 0 個 · 里程碑 0 條,達成 0 條 · IO 介面 2 條,達成 1 條 · pipeline 3 條,達成 1 條 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
+目標 0 個,達成 0 個 · 里程碑 0 條,達成 0 條 · IO 介面 2 條,達成 1 條 · pipeline 3 條,達成 1 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 ## 目標
@@ -15,6 +15,14 @@ $ lawful status --tests test.log
 | P-002-count | frozen | 2 | 2 | 0 | 1 | 1/1 | 達成 |
 | P-003-tally | draft | 0 | 0 | 0 | 0 | 0/0 | 進行中 |
 
+## 模組
+| 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
+|---|---|---|---|---|---|---|
+| App.Token | 一個字 | types | - | - | 0 | 0 |
+| App.Count | 數一段文字裡的字數 | core | - | P-002-count | 2 | 0 |
+| App.Report | 報表與命令列進入點 | core、shell | - | P-001-report | 2 | 1 |
+- 還沒有任何 stage 住進去的單元:App.Token
+
 ## 1. 今天能開幾條線
 - P-001-report:lawful:build P-001-report(沒有綁到任何目標)
 
@@ -27,8 +35,9 @@ $ lawful status --tests test.log
 ## 4. 牽動誰
 - P-002-count ← P-001-report
 
-## 5. 待實作(按模組)
-- App.Report:P-001-report#report(骨架)
+## 5. 待實作(按模組單元)
+- App.Report
+  - App.Report:P-001-report#report(骨架)
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |

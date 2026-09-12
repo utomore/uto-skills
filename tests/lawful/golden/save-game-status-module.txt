@@ -1,7 +1,6 @@
-$ lawful status --module Save.Codec --tests test.log
-# Save.Codec  pure 層
+$ lawful status --module Game.Save.Core.Codec --tests test.log
+# Game.Save.Core.Codec  Game.Save
 · 測試結果來自 test.log
 
-- P-001-save-game#encode  骨架  掛在上面的 law 2 條,通過 1 條
-- P-001-save-game#decode  骨架  掛在上面的 law 2 條,通過 2 條
+- 沒有任何 pipeline 的 stage 住在這裡
 exit 0

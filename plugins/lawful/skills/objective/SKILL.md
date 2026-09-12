@@ -35,7 +35,7 @@ user-invocable: true
 
 ## 收尾
 
-回報目標幾個(各優先與完成度)、里程碑幾條、綁了哪些 pipeline、哪些 pipeline 沒有目標、有沒有與願景分歧的目標;附定錨區塊(`tooling.md`「收尾定錨」)。下一步一律是最高優先目標第一條沒達成的里程碑綁定的第一條 pipeline:`lawful:pipeline <全名>`(還是 draft)或 `lawful:build <全名>`(已 ready)。
+回報目標幾個(各優先與完成度)、里程碑幾條、綁了哪些 pipeline、哪些 pipeline 沒有目標、有沒有與願景分歧的目標;附定錨區塊(`tooling.md`「收尾定錨」)。下一步一律是最高優先目標第一條沒達成的里程碑綁定的第一條 pipeline:`lawful:pipeline <全名>`(還是 draft)或 `lawful:build <全名>`(已 ready);那條里程碑還沒有綁定的 pipeline 時,它要的模組單元模組表上沒有就先 `lawful:module`,有就 `lawful claim <slug> --milestone <M-n>`。
 
 ## 邊界
 

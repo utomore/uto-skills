@@ -1,0 +1,14 @@
+$ lawful module Audio --layers types,core --responsibility 音效 --facade types
+建了 .lawful/modules.md 的 Game.Audio:層 types、core
+開了 src-types/Game/Audio/
+開了 src-core/Game/Audio/
+建了 src-types/Game/Audio.hs(types 層的門面,模組 Game.Audio,匯出清單是空的)
+Game.Audio 的模組住這幾個資料夾底下,檔幾個、叫什麼由 pipeline 的 Stages 決定
+新檔要加進建置設定裡對應子函式庫的模組清單,編譯器才看得到它們
+下一步:lawful claim <slug> --milestone <M-n> 起一條走這個模組的 pipeline
+exit 0
+--- src-types/Game/Audio.hs
+module Game.Audio
+  (
+  ) where
+

@@ -9,7 +9,7 @@ import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { branchState, loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, milestoneAdd, modulesGen, objectiveAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
+import { claim, milestoneAdd, moduleAdd, modulesGen, objectiveAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
 import { migrateFromDevFlow } from '../lib/commands/migrate.mjs';
 
 const HELP = `lawful <子命令> [選項]
@@ -19,6 +19,10 @@ const HELP = `lawful <子命令> [選項]
   status --module <模組>               住在該模組的所有 stage 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
   status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
+  module <名稱> [--layers <types,effect,core,shell>] [--responsibility <句>] [--facade [層]] [--dry-run]
+                                       劃一個模組單元:modules.md 寫一列,它宣告的每一層在那棵原始碼樹裡開好資料夾,不放任何模組。
+                                       名稱沒有 . 就接上 system.md 的模組前綴;單元已經在表上就補上缺的層。層預設 types,core
+                                       --facade 另外建一個與單元同名的門面模組,沒指定層就開在最上層(只有它 import 得到底下每一層);要讓下層的消費者也用得到這個名字就指定層。門面只准一個
   claim <slug> [--description <句>] [--milestone <M-n>]
                                        鑄號建 pipeline 檔(status: draft),system.md Pipelines 表加一列,綁進 --milestone 那條里程碑
   objective add <一句話> --priority <1-4> [--criteria <句>]
@@ -29,7 +33,7 @@ const HELP = `lawful <子命令> [選項]
                                        boundary:import 圖、效果型別、匯出清單、*.Internal vs 模組表;sig:Stages 簽名 vs 程式碼,含 = / o / ! 列的層與匯出;
                                        laws:三行、種類、識別字、= 列有 law;trace:laws ↔ 測試歸屬;io:對外 I/O 表 vs IO 介面兩端與模組表
   sync                                 同層搬家的 stage,模組欄改成程式碼的模組
-  modules --gen                        從程式碼補模組表缺的模組,層欄留白
+  modules --gen                        從程式碼補模組表缺的模組單元,職責欄留白
   section <file> <節>… [--verify]      取 ## 節
   spike close <SPK-00x> [--dry-run]    檢查 verdict / feeds / sha 齊全,刪 spike/SPK-00x-<slug>/
   migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>] [--language <adapter>]
@@ -68,7 +72,7 @@ function loadProject(root) {
   if (!design.system) notes.push('缺 .lawful/system.md');
   else if (!language) notes.push('system.md 沒有 language 欄,簽名與邊界不對帳');
   else if (!adapter) notes.push(`此語言尚無 adapter(${language}),lint sig 與 lint boundary 跳過`);
-  const source = adapter ? readSource(root, adapter, design.system ? design.system.ignoreDirs : []) : null;
+  const source = adapter ? readSource(root, adapter, design.system ? design.system.ignoreDirs : [], design.system) : null;
   return { design, adapter, source, notes };
 }
 
@@ -145,6 +149,19 @@ function main() {
       report.text += `\n\n${b.text}`;
     }
     return emit(report);
+  }
+
+  if (cmd === 'module') {
+    if (!sub) {
+      console.error('用法:lawful module <名稱> [--layers <types,effect,core,shell>] [--responsibility <句>] [--dry-run]');
+      return 1;
+    }
+    return emit(moduleAdd(design, sub, adapter, {
+      layers: typeof args.flags.layers === 'string' ? args.flags.layers : undefined,
+      responsibility: typeof args.flags.responsibility === 'string' ? args.flags.responsibility : '',
+      facade: args.flags.facade === undefined ? false : args.flags.facade,
+      dryRun: !!args.flags['dry-run'],
+    }));
   }
 
   if (cmd === 'claim') {

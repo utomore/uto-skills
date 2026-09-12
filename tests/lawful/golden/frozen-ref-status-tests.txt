@@ -29,7 +29,7 @@ $ lawful status --tests test.log
 - P-002-count ← P-001-report
 
 ## 5. 待實作(按模組)
-- Report:P-001-report#report(骨架)
+- App.Report:P-001-report#report(骨架)
 
 ## 6. 警訊
 - 無

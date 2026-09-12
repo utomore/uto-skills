@@ -1,0 +1,21 @@
+$ lawful module Input --layers types
+建了 .lawful/modules.md 的 Game.Input:層 types
+職責欄是空的,lint boundary 會紅:一句話寫它負責什麼
+開了 src-types/Game/Input/
+Game.Input 的模組住這幾個資料夾底下,檔幾個、叫什麼由 pipeline 的 Stages 決定;要一個與單元同名的門面就加 --facade
+新檔要加進建置設定裡對應子函式庫的模組清單,編譯器才看得到它們
+下一步:lawful claim <slug> --milestone <M-n> 起一條走這個模組的 pipeline
+exit 0
+--- .lawful/modules.md
+# 模組表
+
+| 模組 | 層 | 職責 |
+|---|---|---|
+| `Game.World` | types | 遊戲世界的不可變值 |
+| `Game.Save` | types、effect、core、shell | 可存檔的投影、編解碼與存檔的進入點 |
+| `Game.Save.Extra` | core | 多出來的一列 |
+| `Game.FS` | shell |  |
+| `Game.Audio` | core、pure | 音效的混音 |
+| `Game.Legacy` | core | 搬遷中的舊存檔格式 |
+| `Game.Input` | types |  |
+

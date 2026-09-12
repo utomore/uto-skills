@@ -1,6 +1,6 @@
 ---
 name: revise
-description: lawful 的修訂 — 回答 GAP、開發者要改簽名或 law、解凍 frozen 的 pipeline:一律改原檔,一次修訂一條 REV(依 / 動到 / 保護 / 重委派),簽名變了程式碼同步回 stub,刪 GAP 條目,列出要重派的角色。觸發詞:修訂、回答 GAP、改 law、改簽名、解凍、改名、搬模組、收整、revise、lawful revise。Use when an existing pipeline's contract must change or a GAP has been answered.
+description: lawful 的修訂 — 回答 GAP、開發者要改簽名或 law、解凍 frozen 的 pipeline:一律改原檔,一次修訂一條 REV(依 / 動到 / 保護 / 重委派),簽名變了程式碼同步回 stub,刪 GAP 條目,列出要重派的角色。觸發詞:修訂、回答 GAP、改 law、改簽名、解凍、改名、搬模組、改模組職責、加一層、收整、revise、lawful revise。Use when an existing pipeline's contract must change or a GAP has been answered.
 user-invocable: true
 ---
 
@@ -21,7 +21,7 @@ user-invocable: true
 1. **frozen 先解凍**:「決定」節記一條「解凍:<為什麼要改>」,`status` 改 `ready`。
 2. **定動到與保護**:動到哪些 stage 與 law;其餘既有 law 全列進保護。要保護的行為還不是 LAW 的,先補成 LAW 再修訂。
 3. **改原檔**:簽名、law、層,直接改那一格;`## 修訂記錄` 加一條 REV,依欄帶提問原句或開發者的話;`updated` 改今天。
-4. **程式碼跟上**:簽名變了,程式碼那行同步改、本體回 stub;層變了,模組表同步改。
+4. **程式碼跟上**:簽名變了,程式碼那行同步改、本體回 stub;層變了,模組表同步改。模組單元的名字、職責或層要變也是修訂:改 `.lawful/modules.md` 那一列,補層走 `lawful module <單元> --layers <新的層>`,再把住在裡面的 stage 模組欄跟著改。
 5. **結 GAP**:被回答的條目整條刪掉,`gaps.md` 空了刪檔。
 6. **對帳**:`lawful lint laws`、`lawful lint sig`。
 7. **重委派清單**:law 變了 qa 重翻那幾條;簽名變了 impl 重填那幾個 stage。交給 `lawful:build`。

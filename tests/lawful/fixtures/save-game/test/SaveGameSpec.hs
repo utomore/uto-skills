@@ -2,14 +2,14 @@ module SaveGameSpec (spec) where
 
 import qualified Data.ByteString as BS
 import Data.List (nub)
-import Save (saveBytes)
-import Save.Codec (decode, encode)
-import Save.Project (toSave)
-import Save.Project.Internal (savedIds)
-import Save.State
+import Game.Save (saveBytes)
+import Game.Save.Codec (decode, encode)
+import Game.Save.Project (toSave)
+import Game.Save.Project.Internal (savedIds)
+import Game.Save.State
+import Game.World
 import Test.Hspec
 import Test.QuickCheck
-import World
 
 genEntity :: Gen Entity
 genEntity = Entity <$> (EntityId <$> choose (0, 10000)) <*> arbitrary <*> arbitrary

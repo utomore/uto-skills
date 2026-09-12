@@ -22,7 +22,7 @@ $ lawful status
 ## 1. 今天能開幾條線
 - P-002-parse:lawful:build P-002-parse(O-1 優先 1 · M-1 解析與正規化走通)
 - P-003-normalize:lawful:build P-003-normalize(O-1 優先 1 · M-1 解析與正規化走通)
-- P-002-parse 與 P-003-normalize 的 stage 都住 `Core.Token`:可以同時開,整合時這些模組的檔兩邊都動
+- P-002-parse 與 P-003-normalize 的 stage 都住 `App.Parse.Token`:可以同時開,整合時這些模組的檔兩邊都動
 
 ## 2. 卡住的
 - P-001-run 等 P-002-parse(未達成,先建它)

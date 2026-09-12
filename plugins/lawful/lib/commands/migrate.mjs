@@ -270,12 +270,13 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
   const prose = docs.reduce((n, d) => n + d.laws.filter((l) => !l.formal).length, 0);
   const asm = docs.reduce((n, d) => n + d.openAsm, 0);
   out.push('## 人要判的');
-  out.push(`1. 分組:${groups.size} 組要不要合、各叫什麼;哪幾組是同一條 IO 介面 pipeline 的 stage`);
-  out.push(`2. 目標與里程碑:${stages.length} 個階段各是不是一個目標(lawful objective add,優先 1 到 4)、它的里程碑綁哪幾條 pipeline`);
-  out.push(`3. law 形式化:${prose} 條 law 的觀察點是散文,要改寫成只引用 Stages 簽名與 types 匯出的 \`|-\` 行`);
-  out.push(`4. 簽名:${missing.length} 條找不到、${mismatched.length} 條不一致,誰對誰錯`);
-  out.push(`5. 待確認假設:${asm} 條還在檔上,決定了寫進「決定」,沒決定的開 GAP`);
-  out.push(`6. planned 的 ${docs.filter((d) => d.status === 'planned').length} 份:變 draft pipeline 還是變別條的願望 stage`);
+  out.push(`1. 模組單元:簽名現在住的模組要併成哪幾個單元、各自的職責與有哪幾層,一個單元一道 lawful module;每個檔照它的層搬進那一棵原始碼樹`);
+  out.push(`2. 分組:${groups.size} 組要不要合、各叫什麼;哪幾組是同一條 IO 介面 pipeline 的 stage`);
+  out.push(`3. 目標與里程碑:${stages.length} 個階段各是不是一個目標(lawful objective add,優先 1 到 4)、它的里程碑綁哪幾條 pipeline`);
+  out.push(`4. law 形式化:${prose} 條 law 的觀察點是散文,要改寫成只引用 Stages 簽名與 types 匯出的 \`|-\` 行`);
+  out.push(`5. 簽名:${missing.length} 條找不到、${mismatched.length} 條不一致,誰對誰錯`);
+  out.push(`6. 待確認假設:${asm} 條還在檔上,決定了寫進「決定」,沒決定的開 GAP`);
+  out.push(`7. planned 的 ${docs.filter((d) => d.status === 'planned').length} 份:變 draft pipeline 還是變別條的願望 stage`);
 
   const text = out.join('\n');
   if (write) {

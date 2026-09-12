@@ -1,0 +1,22 @@
+$ lawful module Audio --layers types,effect,shell --responsibility 音效的描述與播放 --facade
+建了 .lawful/modules.md 的 Game.Audio:層 types、effect、shell
+開了 src-types/Game/Audio/
+開了 src-effect/Game/Audio/
+開了 src-shell/Game/Audio/
+建了 src-shell/Game/Audio.hs(shell 層的門面,模組 Game.Audio,匯出清單是空的)
+Game.Audio 的模組住這幾個資料夾底下,檔幾個、叫什麼由 pipeline 的 Stages 決定
+新檔要加進建置設定裡對應子函式庫的模組清單,編譯器才看得到它們
+下一步:lawful claim <slug> --milestone <M-n> 起一條走這個模組的 pipeline
+exit 0
+--- .lawful/modules.md
+# 模組表
+
+| 模組 | 層 | 職責 |
+|---|---|---|
+| `Game.World` | types | 遊戲世界的不可變值與它的實體 |
+| `Game.Save` | types、core、shell | 可存檔的投影、編解碼與存檔的進入點 |
+| `Game.FS` | shell | 檔案系統:原子寫檔 |
+| `Game.Audio` | types、effect、shell | 音效的描述與播放 |
+
+--- src-effect/Game/Audio.hs
+(不存在)

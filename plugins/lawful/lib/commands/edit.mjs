@@ -1,8 +1,8 @@
-// 會寫檔的子命令:claim、objective add / milestone、sync、modules --gen、spike close。
+// 會寫檔的子命令:module、claim、objective add / milestone、sync、modules --gen、spike close。
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { matchModule, matchesPattern } from '../design.mjs';
+import { LAYERS, layerRoot } from '../design.mjs';
 import { findSignature } from '../source.mjs';
 import { splitRow } from '../markdown.mjs';
 
@@ -132,7 +132,6 @@ export function milestoneAdd(design, objId, title, { bind = '' } = {}) {
 // 同層搬家的 stage,把模組欄改成程式碼的模組。
 export function sync(design, source, adapter, { date = today() } = {}) {
   if (!source) return { text: '沒有 adapter,sync 不知道程式碼在哪', exitCode: 1 };
-  const entries = design.modules ? design.modules.entries : [];
   const out = [];
   let changed = 0;
   for (const p of design.pipelines) {
@@ -144,10 +143,10 @@ export function sync(design, source, adapter, { date = today() } = {}) {
       if (!hits.length) continue;
       const hit = hits.find((h) => h.module === s.module) || hits[0];
       if (hit.module === s.module || adapter.normalizeType(s.type) !== hit.type) continue;
-      const from = entries.length ? matchModule(entries, s.module) : null;
-      const to = entries.length ? matchModule(entries, hit.module) : null;
-      if (from && to && from.layer !== to.layer) {
-        out.push(`✗ ${p.fullName}#${s.name} 從 ${from.layer} 層跨到 ${to.layer} 層,sync 不動,走 REV`);
+      const fromLayer = source.modules.has(s.module) ? source.modules.get(s.module).layer : null;
+      const toLayer = source.modules.has(hit.module) ? source.modules.get(hit.module).layer : null;
+      if (fromLayer && toLayer && fromLayer !== toLayer) {
+        out.push(`✗ ${p.fullName}#${s.name} 從 ${fromLayer} 層跨到 ${toLayer} 層,sync 不動,走 REV`);
         continue;
       }
       const lines = text.split(/\r?\n/);
@@ -170,22 +169,108 @@ export function sync(design, source, adapter, { date = today() } = {}) {
   return { text: out.join('\n'), exitCode: out.some((l) => l.startsWith('✗')) ? 1 : 0 };
 }
 
-// 從程式碼生成模組表骨架;既有的列保留,只補新模組(層欄留白)。
+// module <名稱> --layers <types,effect,core,shell> [--responsibility <句>] [--dry-run]
+// 先劃好一個模組單元的邊界與範圍:模組表寫一列,它宣告的每一層在那棵原始碼樹裡開好資料夾。
+// 資料夾裡放幾個檔、叫什麼名字由 pipeline 決定,這裡不放任何模組。
+export function moduleAdd(design, name, adapter, { layers = 'types,core', responsibility = '', facade = false, dryRun = false } = {}) {
+  if (!name) return { text: '用法:lawful module <名稱> [--layers <types,effect,core,shell>] [--responsibility <句>]', exitCode: 1 };
+  const prefix = design.system ? design.system.modulePrefix : '';
+  const unit = name.includes('.') || !prefix ? name : `${prefix}.${name}`;
+  if (!/^[A-Z][A-Za-z0-9_']*(\.[A-Z][A-Za-z0-9_']*)*$/.test(unit)) return { text: `模組名要是大寫開頭、用 . 分段:${unit}`, exitCode: 1 };
+  if (prefix && unit !== prefix && !unit.startsWith(`${prefix}.`)) return { text: `system.md 的模組前綴是 ${prefix},${unit} 不在它底下`, exitCode: 1 };
+  const want = String(layers).split(/[、,]/).map((s) => s.trim()).filter(Boolean);
+  const bad = want.filter((l) => !LAYERS.includes(l));
+  if (bad.length) return { text: `層只有 types / effect / core / shell,沒有「${bad.join('、')}」`, exitCode: 1 };
+  if (!want.length) return { text: '--layers 至少一層', exitCode: 1 };
+
+  const entries = design.modules ? design.modules.entries : [];
+  const clash = entries.find((e) => !e.placeholder && e.unit !== unit && (unit.startsWith(`${e.unit}.`) || e.unit.startsWith(`${unit}.`)));
+  if (clash) return { text: `${unit} 與模組表上的 ${clash.unit} 互相包含;模組單元不巢狀`, exitCode: 1 };
+  const existing = entries.find((e) => e.unit === unit);
+  const layersNow = existing ? existing.layers.slice() : [];
+  const added = want.filter((l) => !layersNow.includes(l));
+  const all = LAYERS.filter((l) => layersNow.includes(l) || added.includes(l));
+
+  const out = [];
+  const file = path.join(design.lawfulDir, 'modules.md');
+  const row = `| \`${unit}\` | ${all.join('、')} | ${responsibility || (existing ? existing.responsibility : '')} |`;
+  if (!dryRun) {
+    let text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '# 模組表\n\n| 模組 | 層 | 職責 |\n|---|---|---|\n';
+    const lines = text.replace(/\s+$/, '').split(/\r?\n/);
+    if (existing) lines[existing.line - 1] = row;
+    else {
+      let last = lines.length - 1;
+      while (last >= 0 && !/^\s*\|/.test(lines[last])) last--;
+      if (last < 0) lines.push('', '| 模組 | 層 | 職責 |', '|---|---|---|', row);
+      else lines.splice(last + 1, 0, row);
+    }
+    fs.mkdirSync(design.lawfulDir, { recursive: true });
+    fs.writeFileSync(file, lines.join('\n') + '\n');
+  }
+  out.push(`${dryRun ? '會' : ''}${existing ? '改' : '建'}${dryRun ? '' : '了'} .lawful/modules.md 的 ${unit}:層 ${all.join('、')}`);
+  if (!responsibility && !(existing && existing.responsibility)) out.push('職責欄是空的,lint boundary 會紅:一句話寫它負責什麼');
+
+  const dirOf = (l) => `${layerRoot(design.system, l)}/${unit.split('.').join('/')}`;
+  for (const l of all) {
+    const rel = dirOf(l);
+    const abs = path.join(design.root, rel);
+    if (fs.existsSync(abs)) {
+      out.push(`· ${rel}/ 已經有了,不動`);
+      continue;
+    }
+    if (!dryRun) {
+      fs.mkdirSync(abs, { recursive: true });
+      fs.writeFileSync(path.join(abs, '.gitkeep'), '');
+    }
+    out.push(`${dryRun ? '會開' : '開了'} ${rel}/`);
+  }
+  // 門面是與單元同名的模組,只能有一個。預設開在最上層:只有它 import 得到底下每一層,重新匯出得了整個單元。
+  // 要讓底下幾層的消費者也用得到這個名字,--facade <層> 指定那一層,門面就只涵蓋那一層以下。
+  if (facade) {
+    const want = facade === true ? all[all.length - 1] : String(facade).trim();
+    if (!all.includes(want)) return { text: `--facade 要是 ${unit} 宣告過的層(${all.join('、')}),不是「${want}」`, exitCode: 1 };
+    const rel = `${layerRoot(design.system, want)}/${adapter && adapter.modulePath ? adapter.modulePath(unit) : `${unit.split('.').join('/')}`}`;
+    const other = all.filter((l) => l !== want).map((l) => `${layerRoot(design.system, l)}/${adapter && adapter.modulePath ? adapter.modulePath(unit) : ''}`).find((f) => fs.existsSync(path.join(design.root, f)));
+    if (other) return { text: `${other} 已經是 ${unit} 的門面;一個模組名只准一個檔,要換層先把那個檔搬走`, exitCode: 1 };
+    if (!adapter || !adapter.moduleFile) out.push('沒有 adapter,門面的檔要自己建');
+    else if (fs.existsSync(path.join(design.root, rel))) out.push(`· ${rel} 已經有了,不動`);
+    else {
+      if (!dryRun) fs.writeFileSync(path.join(design.root, rel), adapter.moduleFile(unit));
+      out.push(`${dryRun ? '會建' : '建了'} ${rel}(${want} 層的門面,模組 ${unit},匯出清單是空的)`);
+    }
+  }
+  out.push(`${unit} 的模組住這幾個資料夾底下,檔幾個、叫什麼由 pipeline 的 Stages 決定${facade ? '' : ';要一個與單元同名的門面就加 --facade'}`);
+  out.push('新檔要加進建置設定裡對應子函式庫的模組清單,編譯器才看得到它們');
+  out.push('下一步:lawful claim <slug> --milestone <M-n> 起一條走這個模組的 pipeline');
+  return { text: out.join('\n'), exitCode: 0, unit };
+}
+
+// 從程式碼生成模組表骨架;既有的列保留,只補新的模組單元(職責欄留白)。
+// 單元的猜法:模組名的第一段(有模組前綴就是前綴加下一段),層看檔案在哪一棵原始碼樹。
 export function modulesGen(design, source) {
   if (!source) return { text: '沒有 adapter,modules --gen 不知道程式碼在哪', exitCode: 1 };
   const file = path.join(design.lawfulDir, 'modules.md');
-  const entries = design.modules ? design.modules.entries : [];
-  const missing = [...source.modules.keys()].filter((m) => !entries.some((e) => matchesPattern(e.pattern, m))).sort();
-  let text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '# 模組表\n\n| 模組 | 層 |\n|---|---|\n';
-  if (!missing.length) return { text: '模組表已經涵蓋程式碼裡所有模組', exitCode: 0 };
+  const entries = (design.modules ? design.modules.entries : []).filter((e) => !e.placeholder);
+  const prefix = design.system ? design.system.modulePrefix : '';
+  const depth = prefix ? prefix.split('.').length + 1 : 1;
+  const units = new Map();
+  for (const m of source.modules.values()) {
+    const segs = m.module.split('.');
+    const unit = segs.slice(0, Math.min(depth, segs.length)).join('.');
+    if (!units.has(unit)) units.set(unit, new Set());
+    if (m.layer) units.get(unit).add(m.layer);
+  }
+  const missing = [...units.keys()].filter((u) => !entries.some((e) => u === e.unit || u.startsWith(`${e.unit}.`))).sort();
+  if (!missing.length) return { text: '模組表已經涵蓋程式碼裡所有模組單元', exitCode: 0 };
+  let text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '# 模組表\n\n| 模組 | 層 | 職責 |\n|---|---|---|\n';
   const lines = text.replace(/\s+$/, '').split(/\r?\n/);
   let last = lines.length - 1;
   while (last >= 0 && !/^\s*\|/.test(lines[last])) last--;
-  const rows = missing.map((m) => `| \`${m}\` |  |`);
-  if (last < 0) lines.push('', '| 模組 | 層 |', '|---|---|', ...rows);
+  const rows = missing.map((u) => `| \`${u}\` | ${LAYERS.filter((l) => units.get(u).has(l)).join('、')} |  |`);
+  if (last < 0) lines.push('', '| 模組 | 層 | 職責 |', '|---|---|---|', ...rows);
   else lines.splice(last + 1, 0, ...rows);
   fs.writeFileSync(file, lines.join('\n') + '\n');
-  return { text: [`modules.md 補了 ${missing.length} 個模組,層欄留白:`, ...missing.map((m) => `- ${m}`)].join('\n'), exitCode: 0 };
+  return { text: [`modules.md 補了 ${missing.length} 個模組單元,職責欄留白:`, ...missing.map((u) => `- ${u}`)].join('\n'), exitCode: 0 };
 }
 
 export function spikeClose(design, id, { dryRun = false } = {}) {

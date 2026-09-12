@@ -1,5 +1,5 @@
 $ lawful sync --date 2026-09-05
-✓ P-001-save-game#toSave 模組欄 Save.Project → Save.Codec
+✓ P-001-save-game#toSave 模組欄 Game.Save.Project → Game.Save.Codec
 exit 0
 --- .lawful/pipelines/P-001-save-game.md
 ---
@@ -16,18 +16,18 @@ updated: 2026-09-05
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `toSave :: World -> SaveState` | 去掉快取 | `Save.Codec` | pure |
-| 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Save.Codec` | pure |
-| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態 | `Save.Codec` | pure |
-| 4 | `compress :: ByteString -> ByteString` | 壓縮 | `Save.Zip`(願望,見 P-002-compression) | pure |
-| 5 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Host.FS` | shell |
-| 6 | `checksum :: ByteString -> Int` | 校驗 | `Host.FS` | pure |
-| 7 | `persistEncode :: a -> ByteString` | class 方法,要抓得到 | `Save.Class` | pure |
-| 8 | `(<+>) :: SaveState -> SaveState -> SaveState` | 運算子簽名 | `Save.Class` | pure |
-| 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數,不該抓到 | `Save.Class` | pure |
-| 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Save.State` | types |
-| o | `ghostView :: SaveState -> Int` | 觀察點,程式碼沒有,要紅 | `Save.State` | types |
-| = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Host.Save` | shell |
+| 1 | `toSave :: World -> SaveState` | 去掉快取 | `Game.Save.Codec` | core |
+| 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
+| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態 | `Game.Save.Codec` | core |
+| 4 | `compress :: ByteString -> ByteString` | 壓縮 | `Game.Save.Zip`(願望,見 P-002-compression) | core |
+| 5 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
+| 6 | `checksum :: ByteString -> Int` | 校驗 | `Game.FS` | core |
+| 7 | `persistEncode :: a -> ByteString` | class 方法,要抓得到 | `Game.Save.Class` | core |
+| 8 | `(<+>) :: SaveState -> SaveState -> SaveState` | 運算子簽名 | `Game.Save.Class` | core |
+| 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數,不該抓到 | `Game.Save.Class` | core |
+| 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Game.Save.State` | types |
+| o | `ghostView :: SaveState -> Int` | 觀察點,程式碼沒有,要紅 | `Game.Save.State` | types |
+| = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Game.Save.Host` | shell |
 
 ## Laws
 - LAW-1 [roundtrip] 存了再讀回到同一個狀態

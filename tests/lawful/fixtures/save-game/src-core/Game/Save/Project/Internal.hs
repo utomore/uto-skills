@@ -1,0 +1,10 @@
+-- core 層:P-001-save-game 的觀察點(o 列)。只給 law 看,沒有 production 消費者,所以住 Internal。
+module Game.Save.Project.Internal
+  ( savedIds
+  ) where
+
+import Game.Save.State (SaveState, SavedEntity (..), savedEntities)
+import Game.World (EntityId)
+
+savedIds :: SaveState -> [EntityId]
+savedIds = map savedId . savedEntities

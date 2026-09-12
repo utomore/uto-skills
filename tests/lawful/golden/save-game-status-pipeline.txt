@@ -4,13 +4,13 @@ $ lawful status --pipeline P-001-save-game --tests test.log
 · 測試結果來自 test.log
 
 ## Stages
-- 1  toSave :: World -> SaveState  Save.Project/pure  骨架
-- 2  encode :: SaveState -> ByteString  Save.Codec/pure  骨架
-- 3  decode :: ByteString -> Either DecodeError SaveState  Save.Codec/pure  骨架
-- 4  writeSave :: FilePath -> ByteString -> IO ()  Host.FS/shell  骨架
-- o  savedIds :: SaveState -> [EntityId]  Save.Project.Internal/pure  在
-- =  saveBytes :: World -> ByteString  Save/pure  在
-- !  saveGame :: FilePath -> World -> IO ()  Host.Save/shell  在
+- 1  toSave :: World -> SaveState  Game.Save.Project/core  骨架
+- 2  encode :: SaveState -> ByteString  Game.Save.Codec/core  骨架
+- 3  decode :: ByteString -> Either DecodeError SaveState  Game.Save.Codec/core  骨架
+- 4  writeSave :: FilePath -> ByteString -> IO ()  Game.FS/shell  骨架
+- o  savedIds :: SaveState -> [EntityId]  Game.Save.Project.Internal/core  在
+- =  saveBytes :: World -> ByteString  Game.Save/core  在
+- !  saveGame :: FilePath -> World -> IO ()  Game.Save.Host/shell  在
 
 ## Laws
 - LAW-1 [roundtrip] 存了再讀回到同一個狀態  green

@@ -1,8 +1,10 @@
 # 模組表
 
-| 模組 | 層 |
-|---|---|
-| `World`、`Save.State` | types |
-| `Save.*` | pure |
-| `Save.Legacy` | pure |
-| `Host.*` | shell |
+| 模組 | 層 | 職責 |
+|---|---|---|
+| `Game.World` | types | 遊戲世界的不可變值 |
+| `Game.Save` | types、effect、core、shell | 可存檔的投影、編解碼與存檔的進入點 |
+| `Game.Save.Extra` | core | 多出來的一列 |
+| `Game.FS` | shell |  |
+| `Game.Audio` | core、pure | 音效的混音 |
+| `Game.Legacy` | core | 搬遷中的舊存檔格式 |

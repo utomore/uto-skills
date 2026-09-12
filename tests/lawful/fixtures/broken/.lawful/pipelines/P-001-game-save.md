@@ -4,7 +4,7 @@ description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
 status: ready
 updated: 2026-09-05
 ---
-# P-001-save-game:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+# P-001-game-save:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
 
 ## Brief
 壞掉的版本,給 lint 的 golden 用。

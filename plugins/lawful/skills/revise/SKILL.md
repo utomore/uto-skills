@@ -32,4 +32,4 @@ user-invocable: true
 
 ## 邊界
 
-不寫測試、不寫實作;同層搬模組不走這裡,`lawful sync`;不做的 pipeline 直接刪檔,理由值得留就開 ADR。
+不寫測試、不寫實作;同層搬模組不走這裡,`lawful sync`;`=` 列搬到別的模組單元,REV 之外還要 `lawful rename <P-00x> <單元>-<動詞>` 讓 slug 的領域名詞跟上;不做的 pipeline 直接刪檔,理由值得留就開 ADR。

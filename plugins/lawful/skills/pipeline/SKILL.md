@@ -14,7 +14,7 @@ user-invocable: true
 
 | 輸入 | 產出 |
 |---|---|
-| 一條 pipeline 的全名(沒有就 `lawful claim <slug> --milestone <M-n>`)、開發者的意圖 | 該 pipeline 檔六節寫齊,`status: ready` |
+| 一條 pipeline 的全名(沒有就 `lawful claim <slug> --milestone <M-n>`,slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列會住的模組單元)、開發者的意圖 | 該 pipeline 檔六節寫齊,`status: ready` |
 
 ## 前置
 

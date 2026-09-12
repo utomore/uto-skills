@@ -9,7 +9,7 @@ import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { branchState, loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, milestoneAdd, moduleAdd, modulesGen, objectiveAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
+import { claim, milestoneAdd, moduleAdd, modulesGen, objectiveAdd, rename, spikeClose, sync } from '../lib/commands/edit.mjs';
 import { migrateFromDevFlow } from '../lib/commands/migrate.mjs';
 
 const HELP = `lawful <子命令> [選項]
@@ -24,7 +24,9 @@ const HELP = `lawful <子命令> [選項]
                                        名稱沒有 . 就接上 system.md 的模組前綴;單元已經在表上就補上缺的層。層預設 types,core
                                        --facade 另外建一個與單元同名的門面模組,沒指定層就開在最上層(只有它 import 得到底下每一層);要讓下層的消費者也用得到這個名字就指定層。門面只准一個
   claim <slug> [--description <句>] [--milestone <M-n>]
-                                       鑄號建 pipeline 檔(status: draft),system.md Pipelines 表加一列,綁進 --milestone 那條里程碑
+                                       鑄號建 pipeline 檔(status: draft),system.md Pipelines 表加一列,綁進 --milestone 那條里程碑。
+                                       slug 是 <領域名詞>-<動詞或動名詞>:領域名詞是 = 列住的模組單元(去掉模組前綴、大駝峰拆成 kebab),要在模組表上
+  rename <P-00x> <slug> [--dry-run]    換 slug,編號不動;檔改名,專案裡寫著舊全名的每一處(.lawful/、原始碼註解)一起改
   objective add <一句話> --priority <1-4> [--criteria <句>]
                                        鑄 O-n 寫進 objectives.md;優先 1 最高、4 最低
   objective milestone <O-n> <一句話> [--bind <全名,全名>]
@@ -43,6 +45,7 @@ const HELP = `lawful <子命令> [選項]
 選項
   --root <dir>                         專案根目錄(預設目前目錄)
   --date <YYYY-MM-DD>                  claim / sync 寫進檔的日期(預設今天)
+  --dry-run                            module / rename / spike close 只印會做什麼,不寫檔
 
 exit code:status 盤點 = 全部達成 0、否則 1;--pipeline / --module = 查得到 0;lint 通過 0、有不合規 1。
 adapter:${adapterNames.join(', ')};system.md 的 language 欄選。`;
@@ -170,6 +173,14 @@ function main() {
       return 1;
     }
     return emit(claim(design, sub, { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined, milestone: typeof args.flags.milestone === 'string' ? args.flags.milestone : '' }));
+  }
+
+  if (cmd === 'rename') {
+    if (!sub || !rest[0]) {
+      console.error('用法:lawful rename <P-00x | 全名> <slug> [--dry-run]');
+      return 1;
+    }
+    return emit(rename(design, sub, rest[0], { dryRun: !!args.flags['dry-run'] }));
   }
 
   if (cmd === 'objective') {

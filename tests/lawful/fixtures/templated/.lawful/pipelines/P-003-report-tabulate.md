@@ -4,7 +4,7 @@ description: 把計數彙整成表
 status: draft
 updated: 2026-09-05
 ---
-# P-003-tally:把計數彙整成表
+# P-003-report-tabulate:把計數彙整成表
 
 ## Brief
 <意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是 IO 介面。>

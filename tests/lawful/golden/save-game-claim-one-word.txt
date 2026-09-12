@@ -1,0 +1,3 @@
+$ lawful claim load
+slug 要是 <領域名詞>-<動詞或動名詞>,kebab-case 英文,至少兩段:load
+exit 1

@@ -1,5 +1,5 @@
-$ lawful objective milestone O-1 讀檔還原世界 --bind P-001-save-write
-M-3 寫進 O-1,綁定 P-001-save-write
+$ lawful objective milestone O-1 存檔壞了看得出來
+M-3 寫進 O-1,還沒綁定任何 pipeline:lawful claim <slug> --milestone M-3
 exit 0
 --- .lawful/objectives.md
 # 目標
@@ -14,5 +14,5 @@ exit 0
 |---|---|---|
 | M-1 | 存檔寫得出檔案 | P-001-save-write |
 | M-2 | 存檔壞了看得出來 | - |
-| M-3 | 讀檔還原世界 | P-001-save-write |
+| M-3 | 存檔壞了看得出來 | - |
 

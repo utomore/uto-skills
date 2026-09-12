@@ -1,4 +1,4 @@
--- core 層:P-001-save-game 的觀察點(o 列)。只給 law 看,沒有 production 消費者,所以住 Internal。
+-- core 層:P-001-save-write 的觀察點(o 列)。只給 law 看,沒有 production 消費者,所以住 Internal。
 module Game.Save.Project.Internal
   ( savedIds
   ) where

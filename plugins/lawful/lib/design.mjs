@@ -15,6 +15,23 @@ export function layerOfFile(system, file) {
   }
   return best;
 }
+// 一個模組單元的領域名詞:去掉模組前綴,大駝峰拆成 kebab(Weft.ActionSequence → action-sequence;Game.Save.Extra → save-extra)。
+export function unitSlug(system, unit) {
+  const prefix = system && system.modulePrefix;
+  let rest = unit;
+  if (prefix && (unit === prefix || unit.startsWith(prefix + '.'))) rest = unit.slice(prefix.length + 1);
+  return rest.split('.').filter(Boolean).map((seg) => seg.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()).join('-');
+}
+// slug 的領域名詞對到哪個模組單元:領域名詞是 slug 的前綴、後面還接著「-動詞」的那一列,最長的先算;對不到回 null。
+export function unitOfSlug(system, entries, slug) {
+  let best = null;
+  for (const e of entries) {
+    const d = unitSlug(system, e.unit);
+    if (!d || !slug.startsWith(d + '-')) continue;
+    if (!best || d.length > unitSlug(system, best.unit).length) best = e;
+  }
+  return best;
+}
 // 讀 .lawful/ 成一棵樹:system(含願景)、objectives(目標與里程碑)、modules、pipelines、gaps、spikes。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
@@ -95,9 +112,12 @@ export function readSystem(lawfulDir, root) {
   }
   // 願景:整節的文字;沒有這一節是 missing,還留著 <…> 是 template
   const visionSec = findSection(secs, '願景');
-  const vision = visionSec ? visionSec.lines.map((l) => l.trim()).filter(Boolean).join(' ') : '';
-  const visionState = !visionSec ? 'missing' : !vision || hasPlaceholder(vision) ? 'template' : 'ok';
-  return { file: rel(root, file), fm, language: fm.language || null, vision, visionState, ioExtra, effectExtra, ignoreDirs, modulePrefix, srcRoot: srcRoot || 'src-<層>', commands, io, pipelines, sections: secs };
+  // 願景:第一段是報告第一行印的那句;整節留給看板與 --json
+  const paragraphs = visionSec ? visionSec.lines.join('\n').split(/\n\s*\n/).map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean).join(' ')).filter(Boolean) : [];
+  const visionFull = paragraphs.join(' ');
+  const vision = paragraphs[0] || '';
+  const visionState = !visionSec ? 'missing' : !visionFull || hasPlaceholder(visionFull) ? 'template' : 'ok';
+  return { file: rel(root, file), fm, language: fm.language || null, vision, visionFull, visionState, ioExtra, effectExtra, ignoreDirs, modulePrefix, srcRoot: srcRoot || 'src-<層>', commands, io, pipelines, sections: secs };
 }
 
 // 目標:objectives.md 每個 ## O-n:<一句話> 一個目標;優先與判準是清單項,里程碑是節裡的表(里程碑 | 做到什麼 | 綁定)。
@@ -105,10 +125,15 @@ export function readSystem(lawfulDir, root) {
 export function readObjectives(lawfulDir, root) {
   const file = path.join(lawfulDir, 'objectives.md');
   const text = read(file);
-  if (text == null) return { file: rel(root, file), exists: false, objectives: [] };
+  if (text == null) return { file: rel(root, file), exists: false, objectives: [], priorityNote: '', priorityNoteState: 'missing' };
   const { body } = parseFrontmatter(text);
   const secs = sections(body);
   const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+  // 開頭(第一個 ## O-n 之前)一行「優先:1 = …;2 = …;3 = …;4 = …」,宣告優先各級在這個專案代表什麼
+  const head = secs.find((s) => s.level === 1) || secs[0];
+  const headLines = head && !/^O-\d+/.test(head.title) ? head.lines : [];
+  const noteLine = headLines.map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[::]/.test(l)) || '';
+  const priorityNote = noteLine.replace(/^優先[::]\s*/, '').trim();
   const objectives = [];
   for (const s of secs) {
     if (s.level !== 2) continue;
@@ -127,7 +152,7 @@ export function readObjectives(lawfulDir, root) {
       const id = (r[0] || '').trim();
       if (!id || hasPlaceholder(id)) return;
       const title = (r[1] || '').trim();
-      const binds = (r[2] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && x !== '-' && !hasPlaceholder(x));
+      const binds = (r[2] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
       milestones.push({ id, title, binds, line: s.start + offset + t.rowLines[i] + 2, placeholder: hasPlaceholder(title) });
     });
     objectives.push({
@@ -141,7 +166,7 @@ export function readObjectives(lawfulDir, root) {
       placeholder: hasPlaceholder(m[2]),
     });
   }
-  return { file: rel(root, file), exists: true, objectives };
+  return { file: rel(root, file), exists: true, objectives, priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok' };
 }
 
 // 模組表:一列一個模組單元 [{ unit, layers, responsibility, line }]。

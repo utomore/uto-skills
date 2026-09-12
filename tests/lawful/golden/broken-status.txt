@@ -8,20 +8,20 @@ $ lawful status
 | 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|
 | O-1 | 1 | 玩家存檔後能讀回同一個世界 | 2 | 0 | 0% |
-- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-save-game 卡 GAP-1、GAP-1)
+- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
 
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|
-| P-001-save-game | ready | 11 | 7 | 5 | 7 | nan/2 | 卡 GAP-1、GAP-1 |
+| P-001-game-save | ready | 11 | 7 | 5 | 7 | nan/2 | 卡 GAP-1、GAP-1 |
 
 ## 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
 |---|---|---|---|---|---|---|
 | Game.World | 遊戲世界的不可變值 | types | - | - | 0 | 0 |
-| Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、effect、core、shell | effect | P-001-save-game | 9 | 6 |
+| Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、effect、core、shell | effect | P-001-game-save | 9 | 6 |
 | Game.Save.Extra | 多出來的一列 | core | core | - | 0 | 0 |
-| Game.FS | (沒填) | shell | - | P-001-save-game | 2 | 2 |
+| Game.FS | (沒填) | shell | - | P-001-game-save | 2 | 2 |
 | Game.Audio | 音效的混音 | core、pure | pure | - | 0 | 0 |
 | Game.Legacy | 搬遷中的舊存檔格式 | core | core | - | 0 | 0 |
 - 還沒有任何 stage 住進去的單元:Game.World、Game.Save.Extra、Game.Audio、Game.Legacy
@@ -44,24 +44,25 @@ $ lawful status
 
 ## 5. 待實作(按模組單元)
 - Game.FS
-  - Game.FS:P-001-save-game#writeSave(骨架)、P-001-save-game#checksum
+  - Game.FS:P-001-game-save#writeSave(骨架)、P-001-game-save#checksum
 - Game.Save
-  - Game.Save.Class:P-001-save-game#(<+>)(骨架)、P-001-save-game#go
-  - Game.Save.Codec:P-001-save-game#encode(骨架)、P-001-save-game#decode(骨架)
-  - Game.Save.Project:P-001-save-game#toSave(骨架)
-  - Game.Save.State:P-001-save-game#ghostView(觀察點)
-  - Game.Save.Zip:P-001-save-game#compress(願望)
+  - Game.Save.Class:P-001-game-save#(<+>)(骨架)、P-001-game-save#go
+  - Game.Save.Codec:P-001-game-save#encode(骨架)、P-001-game-save#decode(骨架)
+  - Game.Save.Project:P-001-game-save#toSave(骨架)
+  - Game.Save.State:P-001-game-save#ghostView(觀察點)
+  - Game.Save.Zip:P-001-game-save#compress(願望)
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
+| objectives.md | 沒有宣告優先 1 到 4 各代表什麼 | lawful:objective 在開頭寫一行「優先:1 = …;2 = …;3 = …;4 = …」 |
 | M-2 | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
-| P-001-save-game#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
-| P-001-save-game#toSave | 程式碼在 Game.Save.Codec | lawful sync |
+| P-001-game-save#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |
 | GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
 | 模組表 | lint boundary 13 條不合規 | lawful lint boundary |
 
 ## 7. 建議路線
 1. 先回答 GAP-1、GAP-1(lawful:revise),卡住的 stage 才能重派
-2. lawful:build P-001-save-game(O-1 優先 1 · M-1 存檔寫得出檔案)
+2. lawful:build P-001-game-save(O-1 優先 1 · M-1 存檔寫得出檔案)
 exit 1

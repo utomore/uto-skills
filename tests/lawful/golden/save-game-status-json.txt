@@ -6,12 +6,14 @@ $ lawful status --json --tests test.log
     "steps": "Stages"
   },
   "vision": "玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。",
+  "visionFull": "玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。",
   "visionState": "ok",
+  "priorityNote": "1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具",
   "tests": "測試結果來自 test.log",
   "summary": {
     "objectives": 1,
     "objectivesAchieved": 0,
-    "milestones": 1,
+    "milestones": 2,
     "milestonesAchieved": 0,
     "ioFaces": 1,
     "ioFacesAchieved": 0,
@@ -32,7 +34,7 @@ $ lawful status --json --tests test.log
     },
     {
       "label": "里程碑",
-      "value": "0 / 1 達成"
+      "value": "0 / 2 達成"
     },
     {
       "label": "IO 介面",
@@ -71,8 +73,14 @@ $ lawful status --json --tests test.log
           "title": "存檔寫得出檔案",
           "achieved": false,
           "binds": [
-            "P-001-save-game"
+            "P-001-save-write"
           ]
+        },
+        {
+          "id": "M-2",
+          "title": "存檔壞了看得出來",
+          "achieved": false,
+          "binds": []
         }
       ]
     }
@@ -90,7 +98,7 @@ $ lawful status --json --tests test.log
           "achieved": false,
           "title": "O-1 玩家存檔後能讀回同一個世界",
           "notes": [
-            "里程碑 0/1 達成 · 完成度 0%",
+            "里程碑 0/2 達成 · 完成度 0%",
             "判準:任一 World 存檔再讀回,可存檔的投影一模一樣"
           ],
           "columns": [
@@ -98,8 +106,13 @@ $ lawful status --json --tests test.log
               "title": "M-1 存檔寫得出檔案",
               "achieved": false,
               "docs": [
-                "P-001-save-game"
+                "P-001-save-write"
               ]
+            },
+            {
+              "title": "M-2 存檔壞了看得出來",
+              "achieved": false,
+              "docs": []
             }
           ],
           "empty": null
@@ -173,7 +186,7 @@ $ lawful status --json --tests test.log
         ],
         "emptyLayers": [],
         "pipelines": [
-          "P-001-save-game"
+          "P-001-save-write"
         ],
         "stages": 6,
         "todo": 3,
@@ -199,7 +212,7 @@ $ lawful status --json --tests test.log
         ],
         "emptyLayers": [],
         "pipelines": [
-          "P-001-save-game"
+          "P-001-save-write"
         ],
         "stages": 1,
         "todo": 1,
@@ -212,7 +225,7 @@ $ lawful status --json --tests test.log
   },
   "docs": [
     {
-      "name": "P-001-save-game",
+      "name": "P-001-save-write",
       "id": "P-001",
       "kind": "IO 介面",
       "status": "ready",
@@ -408,7 +421,7 @@ $ lawful status --json --tests test.log
   "lines": {
     "openable": [
       {
-        "name": "P-001-save-game",
+        "name": "P-001-save-write",
         "tag": "O-1 優先 1 · M-1 存檔寫得出檔案"
       }
     ],
@@ -425,7 +438,7 @@ $ lawful status --json --tests test.log
   ],
   "route": {
     "steps": [
-      "lawful:build P-001-save-game(O-1 優先 1 · M-1 存檔寫得出檔案)"
+      "lawful:build P-001-save-write(O-1 優先 1 · M-1 存檔寫得出檔案)"
     ],
     "note": null,
     "allDone": false

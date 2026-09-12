@@ -17,11 +17,12 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `status --json` | 同一份報告的資料原樣輸出:願景、目標與里程碑、每條 pipeline(stage、law、example、GAP、引用與被引用、住哪些模組與哪幾個單元)、模組單元(職責、宣告的層、每一層在原始碼樹裡有哪些模組、住在裡面的 pipeline 與待實作)、未登記的模組、能開的線、警訊、建議路線。數字與文字都與報告同源,給別的工具讀 |
 | `status --html [檔名] [--open]` | **報告照印**,另外把同一份資料畫成看板,寫成一個自帶資料的單檔網頁,結尾附上它的 `file://` 網址;沒給檔名就寫進系統暫存區的 `lawful-board/<專案資料夾名>-status.html`,不在專案裡留檔。`--open` 直接用系統預設瀏覽器打開。可平移縮放的畫布上由上而下一棵樹:願景一張,往下一層是目標,再一層是里程碑,最底下一條 pipeline 一張便利貼、顏色是狀態。pipeline 之間的引用是另一種線,預設只在選取時出現。點便利貼看它的 stage 與 law 逐條、牽動誰、住哪幾個模組單元、警訊;點目標或里程碑縮放到那一叢。側欄的首頁另有一段**模組**:一個模組單元一列,層是它在原始碼樹裡的落點(還沒有程式碼的那一層淡的),列裡的 pipeline 點得進去。不連網、不起服務,瀏覽器打開就看 |
 | `module <名稱> [--layers <types,effect,core,shell>] [--responsibility <句>] [--dry-run]` | 劃一個模組單元(boundary.md「模組單元」):`modules.md` 寫一列,它宣告的每一層在那棵原始碼樹裡開好資料夾,不放任何模組。名稱沒有 `.` 就接上 `system.md` 的模組前綴;已經在表上的單元補上缺的層,已經有的資料夾不動。層預設 `types,core`;職責沒給就提醒 `lint boundary` 會紅。`--facade [層]` 另外建一個與單元同名的門面模組(只有 module 宣告與空匯出清單),沒指定層就開在最上層;門面只准一個,別層已經有就停下不建 |
-| `claim <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建 pipeline 檔(`status: draft`),`system.md` Pipelines 表加一列(類別欄由人填 IO 介面或子流),綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標 |
+| `claim <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建 pipeline 檔(`status: draft`),`system.md` Pipelines 表加一列(類別欄由人填 IO 介面或子流),綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標。slug 是 `<領域名詞>-<動詞或動名詞>`(pipelines.md「編號與引用」):領域名詞對不到模組表上任何單元就停 |
+| `rename <P-00x \| 全名> <slug> [--dry-run]` | 換 slug,編號不動:檔改名,專案裡寫著舊全名的每一處(`.lawful/` 全部、原始碼與測試的註解)一起改;測試歸屬字串只帶 `P-00x`,不受影響。slug 一樣過 claim 那道檢查 |
 | `objective add <一句話> --priority <1-4> [--criteria <句>]` | 鑄 `O-n` 寫進 `objectives.md`;優先 1 最高、4 最低;判準沒給就留佔位符並提醒 |
 | `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全檔唯一)加進該目標的表;綁定的全名要是 `pipelines/` 裡有的 pipeline |
 | `lint boundary` | import 與簽名 vs 模組表;types / effect / core 命中效果型別即紅;未登記模組、單元巢狀、檔不在任何一棵原始碼樹底下、所在那棵樹的層沒宣告、檔案位置對不上模組名、同一個模組名有兩個檔即紅;職責欄空的即紅;表上有而程式碼還沒有的單元或層列成訊息;非 shell 模組沒有匯出清單即紅;production 模組 import 別人的 `*.Internal` 即紅 |
-| `lint sig` | Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;願望 stage 列待實作不算紅;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
+| `lint sig` | slug 的領域名詞要是 `=` 列住的模組單元(`=` 列還對不到單元時,至少要是表上的一個單元);Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;願望 stage 列待實作不算紅;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
 | `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |
 | `lint laws` | 三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名、types 層匯出或 adapter 的標準函式庫清單(字串字面值不算識別字)、`=` 列至少被一條 law 引用、`!` 列不被引用、example 指得到 law |
 | `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅 |
@@ -36,9 +37,9 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 
 ## status 報告
 
-給開發者讀的派工報告,版面固定。第一行印願景(還是模板就不印,列警訊),第二行是數字(目標、里程碑、IO 介面、pipeline、模組單元、待實作 stage、open GAP);接著三張表:
+給開發者讀的派工報告,版面固定。第一行印願景的第一段(還是模板就不印,列警訊),第二行是數字(目標、里程碑、IO 介面、pipeline、模組單元、待實作 stage、open GAP);接著三張表:
 
-- **目標**:每個目標一列(優先、一句話、里程碑總數、里程碑達成、完成度),照優先排;每個沒達成的目標一行「下一個里程碑」,附綁定的 pipeline 各在什麼狀態;最後一行列沒有被任何里程碑綁定的 pipeline。**這一段答的是「我們有沒有朝向目標」**
+- **目標**:先一行 `objectives.md` 開頭宣告的優先各級,再每個目標一列(優先、一句話、里程碑總數、里程碑達成、完成度),照優先排;每個沒達成的目標一行「下一個里程碑」,附綁定的 pipeline 各在什麼狀態,還沒綁的寫成待 claim;最後一行列沒有被任何里程碑綁定的 pipeline。**這一段答的是「我們有沒有朝向目標」**
 - **pipelines**:每條 pipeline 一列
 - **模組**:每個模組單元一列(職責、宣告的層、還沒有程式碼的層、住在這裡的 pipeline、stage 幾個、待實作幾個),表下兩行列還沒有任何 stage 住進去的單元、以及程式碼有而模組表沒有的模組。**這一段答的是「東西住在哪」**
 
@@ -49,7 +50,7 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 3. 等決定:open 的 GAP、open 的 spike、`draft` 的 pipeline
 4. 牽動誰:誰引用了這條的簽名
 5. 待實作:按模組單元分組,單元底下再按模組列願望 stage、找不到的 stage、本體還是骨架的 stage
-6. 警訊:願景還是模板、沒有任何目標、優先不在 1 到 4、目標沒有判準或沒有里程碑、里程碑沒有綁定或綁到不存在的 pipeline、里程碑編號重複、pipeline 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、`build/<全名>` 分支已合進主線卻還在(整合開頭會清掉)、還是模板(claim 建出來的檔還留著 `<…>` 佔位符的 Stages / Laws / Examples 列;這些列不算 stage、law、example,不進任何數字)
+6. 警訊:願景還是模板、沒有任何目標、優先各級代表什麼沒有宣告、優先不在 1 到 4、目標沒有判準或沒有里程碑、里程碑綁到不存在的 pipeline、里程碑編號重複、pipeline 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、`build/<全名>` 分支已合進主線卻還在(整合開頭會清掉)、還是模板(claim 建出來的檔還留著 `<…>` 佔位符的 Stages / Laws / Examples 列;這些列不算 stage、law、example,不進任何數字)
 7. 建議路線:先回答 GAP、再 build 能開的線(照目標優先、里程碑順序排,每條附目標與里程碑)、`draft` 討論完改 `ready`。沒有可派的線時分兩種:全部達成寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾條沒達成、缺什麼輸入,不催加新功能
 
 分母是 `system.md`「Pipelines」表的 pipeline 數與其中 IO 介面的條數,`objectives.md` 的目標數與里程碑數,以及 `modules.md` 的模組單元數。

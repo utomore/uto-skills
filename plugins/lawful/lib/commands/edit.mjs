@@ -1,8 +1,8 @@
-// 會寫檔的子命令:module、claim、objective add / milestone、sync、modules --gen、spike close。
+// 會寫檔的子命令:module、claim、rename、objective add / milestone、sync、modules --gen、spike close。
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LAYERS, layerRoot } from '../design.mjs';
+import { LAYERS, layerRoot, unitOfSlug, unitSlug } from '../design.mjs';
 import { findSignature } from '../source.mjs';
 import { splitRow } from '../markdown.mjs';
 
@@ -13,8 +13,21 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// slug = <領域名詞>-<動詞或動名詞>:領域名詞是模組表上一個單元的 kebab 名(去掉模組前綴);模組表是空的就只查形狀。
+export function checkSlug(design, slug) {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)+$/.test(slug)) return `slug 要是 <領域名詞>-<動詞或動名詞>,kebab-case 英文,至少兩段:${slug}`;
+  const entries = design.modules ? design.modules.entries.filter((e) => !e.placeholder) : [];
+  if (!entries.length) return null;
+  if (!unitOfSlug(design.system, entries, slug)) {
+    const domains = entries.map((e) => unitSlug(design.system, e.unit)).filter(Boolean);
+    return `slug 的領域名詞對不到模組表上任何單元:${slug}。領域名詞是 = 列住的那個單元,去掉模組前綴、大駝峰拆成 kebab;表上有:${domains.join('、')}。要新單元就先 lawful module`;
+  }
+  return null;
+}
+
 export function claim(design, slug, { description = '', date = today(), milestone = '' } = {}) {
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return { text: `slug 要是 kebab-case 英文:${slug}`, exitCode: 1 };
+  const bad = checkSlug(design, slug);
+  if (bad) return { text: bad, exitCode: 1 };
   if (milestone && !design.objectives.objectives.some((o) => o.milestones.some((m) => m.id === milestone))) return { text: `objectives.md 沒有 ${milestone} 這條里程碑;先 lawful objective milestone <O-n> <一句話>`, exitCode: 1 };
   const nums = design.pipelines.map((p) => Number((p.id || '').slice(2)));
   if (design.system) for (const l of design.system.pipelines) {
@@ -53,7 +66,7 @@ export function claim(design, slug, { description = '', date = today(), mileston
   return { text: out.join('\n'), exitCode: 0, fullName };
 }
 
-const OBJECTIVES_HEAD = '# 目標\n';
+const OBJECTIVES_HEAD = '# 目標\n\n優先:<1 = 什麼;2 = 什麼;3 = 什麼;4 = 什麼>\n';
 const MILESTONE_TABLE = ['| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|'];
 
 function objectivesFile(design) {
@@ -88,7 +101,7 @@ function bindMilestone(design, milestoneId, fullName) {
   const i = lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === milestoneId);
   if (i < 0) return false;
   const cells = splitRow(lines[i]);
-  const have = (cells[2] || '').split(/[、,]/).map((x) => x.trim()).filter((x) => x && x !== '-' && !/<[^>]*>/.test(x));
+  const have = (cells[2] || '').split(/[、,]/).map((x) => x.trim()).filter((x) => x && !/^[-—–]$/.test(x) && !/<[^>]*>/.test(x));
   if (!have.includes(fullName)) have.push(fullName);
   cells[2] = have.join('、');
   lines[i] = `| ${cells.join(' | ')} |`;
@@ -127,6 +140,52 @@ export function milestoneAdd(design, objId, title, { bind = '' } = {}) {
   appendMilestoneRow(lines, range, `| ${id} | ${title} | ${binds.length ? binds.join('、') : '-'} |`);
   fs.writeFileSync(file, lines.join('\n'));
   return { text: [`${id} 寫進 ${objId}${binds.length ? `,綁定 ${binds.join('、')}` : ',還沒綁定任何 pipeline:lawful claim <slug> --milestone ' + id}`].join('\n'), exitCode: 0, id };
+}
+
+// rename <P-00x> <slug>:編號不動,換 slug;檔改名,專案裡每個寫著舊全名的地方(.lawful/ 全部、原始碼與測試的註解)一起改。
+const RENAME_EXTS = new Set(['.md', '.hs', '.cabal', '.txt', '.yaml', '.yml', '.json', '.toml', '.py', '.rs', '.go', '.ts', '.js', '.mjs']);
+const RENAME_SKIP = new Set(['.git', 'node_modules', 'dist-newstyle', 'dist', 'target', '.stack-work']);
+
+function walkText(dir, root, ignore, out) {
+  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const abs = path.join(dir, ent.name);
+    const relPath = path.relative(root, abs).split(path.sep).join('/');
+    if (ent.isDirectory()) {
+      if (RENAME_SKIP.has(ent.name) || ent.name.startsWith('dist-newstyle') || ignore.includes(relPath) || ignore.includes(ent.name)) continue;
+      walkText(abs, root, ignore, out);
+    } else if (RENAME_EXTS.has(path.extname(ent.name))) out.push(abs);
+  }
+  return out;
+}
+
+export function rename(design, idOrName, slug, { dryRun = false } = {}) {
+  const p = design.pipelines.find((q) => q.id === idOrName || q.fullName === idOrName);
+  if (!p) return { text: `pipelines/ 裡沒有 ${idOrName}`, exitCode: 1 };
+  const bad = checkSlug(design, slug);
+  if (bad) return { text: bad, exitCode: 1 };
+  const from = p.fullName;
+  const to = `${p.id}-${slug}`;
+  if (from === to) return { text: `${from} 已經叫這個名字`, exitCode: 0 };
+  const target = path.join(design.pipelinesDir, `${to}.md`);
+  if (fs.existsSync(target)) return { text: `${path.relative(design.root, target).split(path.sep).join('/')} 已存在`, exitCode: 1 };
+  const verb = dryRun ? '會改' : '改了';
+  const re = new RegExp(`(?<![A-Za-z0-9-])${from}(?![A-Za-z0-9-])`, 'g'); // 全名只有 P-00x 與 kebab,不用跳脫
+  const ignore = design.system ? design.system.ignoreDirs : [];
+  const out = [];
+  let files = 0;
+  for (const abs of walkText(design.root, design.root, ignore, [])) {
+    const text = fs.readFileSync(abs, 'utf8');
+    const hits = (text.match(re) || []).length;
+    if (!hits) continue;
+    files++;
+    if (!dryRun) fs.writeFileSync(abs, text.replace(re, to));
+    out.push(`${verb} ${path.relative(design.root, abs).split(path.sep).join('/')}(${hits} 處)`);
+  }
+  const oldFile = path.join(design.root, p.file);
+  if (!dryRun) fs.renameSync(oldFile, target);
+  out.unshift(`${from} → ${to}:${dryRun ? '會改名' : '改名'} ${p.file} → ${path.relative(design.root, target).split(path.sep).join('/')}`);
+  out.push(`${files} 個檔寫著舊全名${dryRun ? '' : ',都改了'};測試歸屬字串只帶 ${p.id},不受影響`);
+  return { text: out.join('\n'), exitCode: 0, fullName: to };
 }
 
 // 同層搬家的 stage,把模組欄改成程式碼的模組。

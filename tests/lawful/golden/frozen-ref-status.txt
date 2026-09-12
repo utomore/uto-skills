@@ -5,44 +5,45 @@ $ lawful status
 · 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
 
 ## 目標
+- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
 | 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|
 | O-1 | 1 | 一段文字進來,報表算對 | 2 | 0 | 0% |
-- O-1 下一個里程碑:M-1 字數算得對(P-002-count 進行中)
+- O-1 下一個里程碑:M-1 字數算得對(P-002-count-tally 進行中)
 
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|
-| P-001-report | ready | 3 | 3 | 1 | 1 | 0/0 | 等 P-002-count |
-| P-002-count | frozen | 2 | 2 | 0 | 1 | nan/1 | 進行中 |
+| P-001-report-render | ready | 3 | 3 | 1 | 1 | 0/0 | 等 P-002-count-tally |
+| P-002-count-tally | frozen | 2 | 2 | 0 | 1 | nan/1 | 進行中 |
 
 ## 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
 |---|---|---|---|---|---|---|
 | App.Token | 一個字 | types | - | - | 0 | 0 |
-| App.Count | 數一段文字裡的字數 | core | - | P-002-count | 2 | 0 |
-| App.Report | 報表與命令列進入點 | core、shell | - | P-001-report | 2 | 1 |
+| App.Count | 數一段文字裡的字數 | core | - | P-002-count-tally | 2 | 0 |
+| App.Report | 報表與命令列進入點 | core、shell | - | P-001-report-render | 2 | 1 |
 - 還沒有任何 stage 住進去的單元:App.Token
 
 ## 1. 今天能開幾條線
 - 無
 
 ## 2. 卡住的
-- P-001-report 等 P-002-count(達成與否未知,給測試輸出)
+- P-001-report-render 等 P-002-count-tally(達成與否未知,給測試輸出)
 
 ## 3. 等決定
 - 無
 
 ## 4. 牽動誰
-- P-002-count ← P-001-report
+- P-002-count-tally ← P-001-report-render
 
 ## 5. 待實作(按模組單元)
 - App.Report
-  - App.Report:P-001-report#report(骨架)
+  - App.Report:P-001-report-render#report(骨架)
 
 ## 6. 警訊
 - 無
 
 ## 7. 建議路線
-1. lawful:build P-001-report(O-1 優先 1 · M-2 報表印得出來)
+1. lawful:build P-001-report-render(O-1 優先 1 · M-2 報表印得出來)
 exit 1

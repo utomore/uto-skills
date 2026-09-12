@@ -8,7 +8,9 @@ $ lawful status --json
     "steps": "Stages"
   },
   "vision": "輸入檔解析、正規化後跑完整條。",
+  "visionFull": "輸入檔解析、正規化後跑完整條。",
   "visionState": "ok",
+  "priorityNote": "1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具",
   "tests": "此 adapter 不解析測試輸出",
   "summary": {
     "objectives": 1,
@@ -73,8 +75,8 @@ $ lawful status --json
           "title": "解析與正規化走通",
           "achieved": false,
           "binds": [
-            "P-002-parse",
-            "P-003-normalize"
+            "P-002-syntax-parse",
+            "P-003-canon-normalize"
           ]
         },
         {
@@ -82,7 +84,7 @@ $ lawful status --json
           "title": "整條跑完",
           "achieved": false,
           "binds": [
-            "P-001-run"
+            "P-001-cli-run"
           ]
         }
       ]
@@ -109,15 +111,15 @@ $ lawful status --json
               "title": "M-1 解析與正規化走通",
               "achieved": false,
               "docs": [
-                "P-002-parse",
-                "P-003-normalize"
+                "P-002-syntax-parse",
+                "P-003-canon-normalize"
               ]
             },
             {
               "title": "M-2 整條跑完",
               "achieved": false,
               "docs": [
-                "P-001-run"
+                "P-001-cli-run"
               ]
             }
           ],
@@ -152,7 +154,7 @@ $ lawful status --json
         "idle": true
       },
       {
-        "unit": "App.Parse",
+        "unit": "App.Syntax",
         "responsibility": "把文字解析成文件",
         "layers": [
           "core"
@@ -167,8 +169,8 @@ $ lawful status --json
         ],
         "emptyLayers": [],
         "pipelines": [
-          "P-002-parse",
-          "P-003-normalize"
+          "P-002-syntax-parse",
+          "P-003-canon-normalize"
         ],
         "stages": 3,
         "todo": 0,
@@ -177,7 +179,7 @@ $ lawful status --json
         "idle": false
       },
       {
-        "unit": "App.Normalize",
+        "unit": "App.Canon",
         "responsibility": "文件的正規化",
         "layers": [
           "core"
@@ -192,7 +194,7 @@ $ lawful status --json
         ],
         "emptyLayers": [],
         "pipelines": [
-          "P-003-normalize"
+          "P-003-canon-normalize"
         ],
         "stages": 1,
         "todo": 0,
@@ -201,7 +203,7 @@ $ lawful status --json
         "idle": false
       },
       {
-        "unit": "App.Run",
+        "unit": "App.Cli",
         "responsibility": "整條與命令列進入點",
         "layers": [
           "core",
@@ -223,7 +225,7 @@ $ lawful status --json
         ],
         "emptyLayers": [],
         "pipelines": [
-          "P-001-run"
+          "P-001-cli-run"
         ],
         "stages": 2,
         "todo": 0,
@@ -236,12 +238,12 @@ $ lawful status --json
   },
   "docs": [
     {
-      "name": "P-001-run",
+      "name": "P-001-cli-run",
       "id": "P-001",
       "kind": "IO 介面",
       "status": "ready",
       "description": "讀一段文字,解析後正規化",
-      "state": "等 P-002-parse",
+      "state": "等 P-002-syntax-parse",
       "achieved": false,
       "building": false,
       "objective": "O-1",
@@ -288,29 +290,29 @@ $ lawful status --json
       },
       "gaps": [],
       "refs": [
-        "P-002-parse"
+        "P-002-syntax-parse"
       ],
       "referrers": [],
       "blockedBy": [
-        "P-002-parse"
+        "P-002-syntax-parse"
       ],
       "modules": [
-        "App.Run",
-        "App.Run.Main"
+        "App.Cli",
+        "App.Cli.Main"
       ],
       "units": [
-        "App.Run"
+        "App.Cli"
       ],
       "steps": [
         {
           "index": "1",
           "name": "parse",
           "signature": "parse :: Text -> Either ParseError Doc",
-          "module": "App.Parse",
+          "module": "App.Syntax",
           "layer": "core",
           "state": "未查",
           "at": null,
-          "ref": "P-002-parse",
+          "ref": "P-002-syntax-parse",
           "observe": false,
           "entry": false,
           "wish": false
@@ -319,7 +321,7 @@ $ lawful status --json
           "index": "=",
           "name": "run",
           "signature": "run :: Text -> Either ParseError Doc",
-          "module": "App.Run",
+          "module": "App.Cli",
           "layer": "core",
           "state": "未查",
           "at": null,
@@ -332,7 +334,7 @@ $ lawful status --json
           "index": "!",
           "name": "main",
           "signature": "main :: IO ()",
-          "module": "App.Run.Main",
+          "module": "App.Cli.Main",
           "layer": "shell",
           "state": "未查",
           "at": null,
@@ -344,7 +346,7 @@ $ lawful status --json
       ]
     },
     {
-      "name": "P-002-parse",
+      "name": "P-002-syntax-parse",
       "id": "P-002",
       "kind": "子流",
       "status": "ready",
@@ -397,22 +399,22 @@ $ lawful status --json
       "gaps": [],
       "refs": [],
       "referrers": [
-        "P-001-run"
+        "P-001-cli-run"
       ],
       "blockedBy": [],
       "modules": [
-        "App.Parse.Token",
-        "App.Parse"
+        "App.Syntax.Token",
+        "App.Syntax"
       ],
       "units": [
-        "App.Parse"
+        "App.Syntax"
       ],
       "steps": [
         {
           "index": "1",
           "name": "shared",
           "signature": "shared :: Text -> [Token]",
-          "module": "App.Parse.Token",
+          "module": "App.Syntax.Token",
           "layer": "core",
           "state": "未查",
           "at": null,
@@ -425,7 +427,7 @@ $ lawful status --json
           "index": "=",
           "name": "parse",
           "signature": "parse :: Text -> Either ParseError Doc",
-          "module": "App.Parse",
+          "module": "App.Syntax",
           "layer": "core",
           "state": "未查",
           "at": null,
@@ -437,7 +439,7 @@ $ lawful status --json
       ]
     },
     {
-      "name": "P-003-normalize",
+      "name": "P-003-canon-normalize",
       "id": "P-003",
       "kind": "子流",
       "status": "ready",
@@ -492,19 +494,19 @@ $ lawful status --json
       "referrers": [],
       "blockedBy": [],
       "modules": [
-        "App.Parse.Token",
-        "App.Normalize"
+        "App.Syntax.Token",
+        "App.Canon"
       ],
       "units": [
-        "App.Parse",
-        "App.Normalize"
+        "App.Syntax",
+        "App.Canon"
       ],
       "steps": [
         {
           "index": "1",
           "name": "shared",
           "signature": "shared :: Text -> [Token]",
-          "module": "App.Parse.Token",
+          "module": "App.Syntax.Token",
           "layer": "core",
           "state": "未查",
           "at": null,
@@ -517,7 +519,7 @@ $ lawful status --json
           "index": "=",
           "name": "normalize",
           "signature": "normalize :: Doc -> Doc",
-          "module": "App.Normalize",
+          "module": "App.Canon",
           "layer": "core",
           "state": "未查",
           "at": null,
@@ -531,28 +533,28 @@ $ lawful status --json
   ],
   "edges": [
     {
-      "from": "P-001-run",
-      "to": "P-002-parse"
+      "from": "P-001-cli-run",
+      "to": "P-002-syntax-parse"
     }
   ],
   "lines": {
     "openable": [
       {
-        "name": "P-002-parse",
+        "name": "P-002-syntax-parse",
         "tag": "O-1 優先 1 · M-1 解析與正規化走通"
       },
       {
-        "name": "P-003-normalize",
+        "name": "P-003-canon-normalize",
         "tag": "O-1 優先 1 · M-1 解析與正規化走通"
       }
     ],
     "building": [],
     "shared": [
       {
-        "a": "P-002-parse",
-        "b": "P-003-normalize",
+        "a": "P-002-syntax-parse",
+        "b": "P-003-canon-normalize",
         "units": [
-          "App.Parse"
+          "App.Syntax"
         ]
       }
     ]
@@ -560,16 +562,16 @@ $ lawful status --json
   "gaps": [],
   "warnings": [
     {
-      "where": "P-002-parse#shared",
-      "what": "P-003-normalize 也把 shared 列成 stage,兩邊都沒註明「見」",
+      "where": "P-002-syntax-parse#shared",
+      "what": "P-003-canon-normalize 也把 shared 列成 stage,兩邊都沒註明「見」",
       "fix": "引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來"
     }
   ],
   "route": {
     "steps": [
-      "lawful:build P-002-parse(O-1 優先 1 · M-1 解析與正規化走通)",
-      "lawful:build P-003-normalize(O-1 優先 1 · M-1 解析與正規化走通)",
-      "lawful:build P-001-run(O-1 優先 1 · M-2 整條跑完)"
+      "lawful:build P-002-syntax-parse(O-1 優先 1 · M-1 解析與正規化走通)",
+      "lawful:build P-003-canon-normalize(O-1 優先 1 · M-1 解析與正規化走通)",
+      "lawful:build P-001-cli-run(O-1 優先 1 · M-2 整條跑完)"
     ],
     "note": null,
     "allDone": false

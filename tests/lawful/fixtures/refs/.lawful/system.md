@@ -13,6 +13,7 @@ updated: 2026-09-06
 - 建置:無
 - 測試(整套):無
 - 測試(子集):無
+- 模組前綴:`App`
 - IO 模組追加:無
 - 效果型別追加:無
 - 忽略目錄:無
@@ -20,17 +21,17 @@ updated: 2026-09-06
 ## 邊界
 - types:`App.Doc`
 - effect:無
-- core:`App.Parse`、`App.Normalize`、`App.Run`
-- shell:`App.Run.Main`
+- core:`App.Syntax`、`App.Canon`、`App.Cli`
+- shell:`App.Cli.Main`
 
 ## 對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
-| 輸入檔 | in | `Text` | `App.Run.Main` | P-001-run |
+| 輸入檔 | in | `Text` | `App.Cli.Main` | P-001-cli-run |
 
 ## Pipelines
 | 全名 | 類別 |
 |---|---|
-| P-001-run | IO 介面 |
-| P-002-parse | 子流 |
-| P-003-normalize | 子流 |
+| P-001-cli-run | IO 介面 |
+| P-002-syntax-parse | 子流 |
+| P-003-canon-normalize | 子流 |

@@ -1,5 +1,5 @@
-$ lawful status --pipeline P-001-save-game --tests test.log
-# P-001-save-game  ready
+$ lawful status --pipeline P-001-save-write --tests test.log
+# P-001-save-write  ready
 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
 · 測試結果來自 test.log
 

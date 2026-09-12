@@ -4,7 +4,7 @@ description: 數一段文字的字數
 status: frozen
 updated: 2026-09-06
 ---
-# P-002-count:數一段文字的字數
+# P-002-count-tally:數一段文字的字數
 
 ## Brief
 IO 介面。文字 → 切字 → 數個數。

@@ -1,30 +1,31 @@
 $ lawful status --tests test.log
 # lawful status
 願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-目標 1 個,達成 0 個 · 里程碑 1 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 4 個 · 還開著的 GAP 0 條
+目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 4 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 ## 目標
+- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
 | 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|
-| O-1 | 1 | 玩家存檔後能讀回同一個世界 | 1 | 0 | 0% |
-- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-save-game 進行中)
+| O-1 | 1 | 玩家存檔後能讀回同一個世界 | 2 | 0 | 0% |
+- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-save-write 進行中)
 
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|
-| P-001-save-game | ready | 6 | 6 | 4 | 5 | 4/5 | 進行中 |
+| P-001-save-write | ready | 6 | 6 | 4 | 5 | 4/5 | 進行中 |
 
 ## 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
 |---|---|---|---|---|---|---|
 | Game.World | 遊戲世界的不可變值與它的實體 | types | - | - | 0 | 0 |
-| Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、core、shell | - | P-001-save-game | 6 | 3 |
-| Game.FS | 檔案系統:原子寫檔 | shell | - | P-001-save-game | 1 | 1 |
+| Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、core、shell | - | P-001-save-write | 6 | 3 |
+| Game.FS | 檔案系統:原子寫檔 | shell | - | P-001-save-write | 1 | 1 |
 - 還沒有任何 stage 住進去的單元:Game.World
 
 ## 1. 今天能開幾條線
-- P-001-save-game:lawful:build P-001-save-game(O-1 優先 1 · M-1 存檔寫得出檔案)
+- P-001-save-write:lawful:build P-001-save-write(O-1 優先 1 · M-1 存檔寫得出檔案)
 
 ## 2. 卡住的
 - 無
@@ -37,10 +38,10 @@ $ lawful status --tests test.log
 
 ## 5. 待實作(按模組單元)
 - Game.FS
-  - Game.FS:P-001-save-game#writeSave(骨架)
+  - Game.FS:P-001-save-write#writeSave(骨架)
 - Game.Save
-  - Game.Save.Codec:P-001-save-game#encode(骨架)、P-001-save-game#decode(骨架)
-  - Game.Save.Project:P-001-save-game#toSave(骨架)
+  - Game.Save.Codec:P-001-save-write#encode(骨架)、P-001-save-write#decode(骨架)
+  - Game.Save.Project:P-001-save-write#toSave(骨架)
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
@@ -48,5 +49,5 @@ $ lawful status --tests test.log
 | P-001#EX-2 | 測試紅 | 仲裁:先歸因再改 |
 
 ## 7. 建議路線
-1. lawful:build P-001-save-game(O-1 優先 1 · M-1 存檔寫得出檔案)
+1. lawful:build P-001-save-write(O-1 優先 1 · M-1 存檔寫得出檔案)
 exit 1

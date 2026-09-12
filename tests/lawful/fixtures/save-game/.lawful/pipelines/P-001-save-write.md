@@ -4,7 +4,7 @@ description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
 status: ready
 updated: 2026-09-05
 ---
-# P-001-save-game:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+# P-001-save-write:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
 
 ## Brief
 玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。

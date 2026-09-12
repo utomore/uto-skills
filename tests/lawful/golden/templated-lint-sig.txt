@@ -1,5 +1,5 @@
 $ lawful lint sig
 ## lint sig:2 條不合規
-- ✗ .lawful/pipelines/P-002-count.md IO 介面要恰好一列 ! 列(shell 的進入點),現在 0 列
-- ✗ .lawful/pipelines/P-003-tally.md Stages 表還是模板(5 列佔位符);lawful:pipeline 寫成真的簽名
+- ✗ .lawful/pipelines/P-002-count-tally.md IO 介面要恰好一列 ! 列(shell 的進入點),現在 0 列
+- ✗ .lawful/pipelines/P-003-report-tabulate.md Stages 表還是模板(5 列佔位符);lawful:pipeline 寫成真的簽名
 exit 1

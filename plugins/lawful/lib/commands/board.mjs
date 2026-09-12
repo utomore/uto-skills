@@ -141,7 +141,9 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     tool: 'lawful',
     labels: { unit: 'pipeline', steps: 'Stages' },
     vision: sys && sys.visionState === 'ok' ? sys.vision : null,
+    visionFull: sys && sys.visionState === 'ok' ? sys.visionFull : null,
     visionState: sys ? sys.visionState : null,
+    priorityNote: design.objectives.priorityNoteState === 'ok' ? design.objectives.priorityNote : null,
     tests: resultNote,
     summary,
     headline: [

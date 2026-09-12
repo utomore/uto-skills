@@ -1,4 +1,4 @@
--- core 層:P-001-save-game stage 1。本體是 conductor 寫的骨架。
+-- core 層:P-001-save-write stage 1。本體是 conductor 寫的骨架。
 module Game.Save.Project
   ( toSave
   ) where

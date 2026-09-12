@@ -1,4 +1,4 @@
--- shell 層:P-001-save-game stage 4。
+-- shell 層:P-001-save-write stage 4。
 module Game.FS
   ( writeSave
   ) where

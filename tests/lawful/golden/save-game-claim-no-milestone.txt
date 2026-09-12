@@ -1,5 +1,5 @@
-$ lawful claim load-game --description 把存檔讀回 World --date 2026-09-05
-建了 .lawful/pipelines/P-002-load-game.md(status: draft)
+$ lawful claim save-load --description 把存檔讀回 World --date 2026-09-05
+建了 .lawful/pipelines/P-002-save-load.md(status: draft)
 system.md Pipelines 表加了一列,類別欄填 IO 介面或子流
 沒有 --milestone:這條 pipeline 還不朝向任何目標,lawful objective milestone 綁進去
 exit 0
@@ -35,11 +35,11 @@ updated: 2026-09-05
 ## 對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
-| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-game |
+| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-write |
 
 ## Pipelines
 | 全名 | 類別 |
 |---|---|
-| P-001-save-game | IO 介面 |
-| P-002-load-game | <IO 介面 或 子流> |
+| P-001-save-write | IO 介面 |
+| P-002-save-load | <IO 介面 或 子流> |
 

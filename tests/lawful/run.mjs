@@ -19,11 +19,11 @@ const CASES = [
   ['broken-lint-sig', 'broken', ['lint', 'sig']],
   ['broken-lint-laws', 'broken', ['lint', 'laws']],
   ['broken-lint-trace', 'broken', ['lint', 'trace']],
-  ['save-game-section', 'save-game', ['section', '.lawful/pipelines/P-001-save-game.md', 'Brief', 'Laws']],
-  ['save-game-section-verify', 'save-game', ['section', '.lawful/pipelines/P-001-save-game.md', 'Brief', '沒有的節', '--verify']],
+  ['save-game-section', 'save-game', ['section', '.lawful/pipelines/P-001-save-write.md', 'Brief', 'Laws']],
+  ['save-game-section-verify', 'save-game', ['section', '.lawful/pipelines/P-001-save-write.md', 'Brief', '沒有的節', '--verify']],
   ['save-game-status', 'save-game', ['status']],
   ['save-game-status-tests', 'save-game', ['status', '--tests', 'test.log']],
-  ['save-game-status-pipeline', 'save-game', ['status', '--pipeline', 'P-001-save-game', '--tests', 'test.log']],
+  ['save-game-status-pipeline', 'save-game', ['status', '--pipeline', 'P-001-save-write', '--tests', 'test.log']],
   ['save-game-status-module', 'save-game', ['status', '--module', 'Game.Save.Core.Codec', '--tests', 'test.log']],
   ['save-game-status-module-unit', 'save-game', ['status', '--module', 'Game.Save', '--tests', 'test.log']],
   ['save-game-status-json', 'save-game', ['status', '--json', '--tests', 'test.log']],
@@ -49,13 +49,20 @@ const CASES = [
   ['save-game-module-bad-layer', 'save-game', ['module', 'Audio', '--layers', 'pure']],
   ['save-game-module-nested', 'save-game', ['module', 'Game.Save.Extra', '--layers', 'core', '--responsibility', '多的']],
   ['broken-module-no-responsibility', 'broken', ['module', 'Input', '--layers', 'types'], ['.lawful/modules.md']],
-  ['save-game-claim', 'save-game', ['claim', 'load-game', '--description', '把存檔讀回 World', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-002-load-game.md', '.lawful/system.md', '.lawful/objectives.md']],
-  ['save-game-claim-no-milestone', 'save-game', ['claim', 'load-game', '--description', '把存檔讀回 World', '--date', DATE], ['.lawful/system.md']],
+  ['save-game-claim', 'save-game', ['claim', 'save-load', '--description', '把存檔讀回 World', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-002-save-load.md', '.lawful/system.md', '.lawful/objectives.md']],
+  ['save-game-claim-no-milestone', 'save-game', ['claim', 'save-load', '--description', '把存檔讀回 World', '--date', DATE], ['.lawful/system.md']],
+  ['save-game-claim-bad-domain', 'save-game', ['claim', 'game-load', '--description', '把存檔讀回 World']],
+  ['save-game-claim-one-word', 'save-game', ['claim', 'load']],
+  ['save-game-rename-dry', 'save-game', ['rename', 'P-001', 'save-store', '--dry-run']],
+  ['save-game-rename', 'save-game', ['rename', 'P-001-save-write', 'save-store'], ['.lawful/pipelines/P-001-save-write.md', '.lawful/pipelines/P-001-save-store.md', '.lawful/system.md', '.lawful/objectives.md', 'src-core/Game/Save.hs']],
+  ['save-game-rename-bad-domain', 'save-game', ['rename', 'P-001', 'game-store']],
+  ['save-game-rename-missing', 'save-game', ['rename', 'P-009', 'save-store']],
   ['save-game-objective-add', 'save-game', ['objective', 'add', '讀檔不會壞掉舊存檔', '--priority', '2', '--criteria', '舊版存檔讀得回來'], ['.lawful/objectives.md']],
-  ['save-game-objective-milestone', 'save-game', ['objective', 'milestone', 'O-1', '讀檔還原世界', '--bind', 'P-001-save-game'], ['.lawful/objectives.md']],
-  ['save-game-objective-milestone-missing', 'save-game', ['objective', 'milestone', 'O-1', '讀檔還原世界', '--bind', 'P-002-load-game']],
+  ['save-game-objective-milestone', 'save-game', ['objective', 'milestone', 'O-1', '讀檔還原世界', '--bind', 'P-001-save-write'], ['.lawful/objectives.md']],
+  ['save-game-objective-milestone-missing', 'save-game', ['objective', 'milestone', 'O-1', '讀檔還原世界', '--bind', 'P-002-save-load']],
+  ['save-game-objective-milestone-unbound', 'save-game', ['objective', 'milestone', 'O-1', '存檔壞了看得出來'], ['.lawful/objectives.md']],
   ['templated-objective-add', 'templated', ['objective', 'add', '報表印得出來', '--priority', '1'], ['.lawful/objectives.md']],
-  ['broken-sync', 'broken', ['sync', '--date', DATE], ['.lawful/pipelines/P-001-save-game.md']],
+  ['broken-sync', 'broken', ['sync', '--date', DATE], ['.lawful/pipelines/P-001-game-save.md']],
   ['broken-modules-gen', 'broken', ['modules', '--gen'], ['.lawful/modules.md']],
   ['broken-spike-close-dry', 'broken', ['spike', 'close', 'SPK-001', '--dry-run']],
   ['broken-spike-close', 'broken', ['spike', 'close', 'SPK-001'], ['spike/SPK-001-cbor-size/Main.hs']],
@@ -112,7 +119,7 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/status/.test(h.stdout
   // exit code 帶的是報告判定(有沒有全部達成),不是寫檔成敗;寫成功了就一定讀得到資料區塊。
   // 資料區塊裡一個生的 < 都不該有:全部逃成 <,文檔寫了什麼都關不掉這個標籤
   const ok = !html.includes('__STATUS_JSON__') && !!data
-    && /"tool": "lawful"/.test(data[1]) && /P-001-save-game/.test(data[1]) && !data[1].includes('<')
+    && /"tool": "lawful"/.test(data[1]) && /P-001-save-write/.test(data[1]) && !data[1].includes('<')
     && /^file:\/\/\/.*board\.html$/m.test(r.stdout)
     && r.stdout.includes('# lawful status');   // --html 是額外產出,報告照印
   fs.rmSync(tmp, { recursive: true, force: true });

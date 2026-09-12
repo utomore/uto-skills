@@ -1,4 +1,4 @@
--- core 層:P-001-save-game 的 = 列,純的整條。
+-- core 層:P-001-save-write 的 = 列,純的整條。
 module Game.Save
   ( saveBytes
   ) where

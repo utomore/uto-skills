@@ -1,4 +1,4 @@
--- core 層:P-001-save-game stage 2、3。
+-- core 層:P-001-save-write stage 2、3。
 module Game.Save.Codec
   ( encode
   , decode

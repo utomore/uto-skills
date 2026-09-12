@@ -7,40 +7,41 @@ $ lawful status
 · 此 adapter 不解析測試輸出
 
 ## 目標
+- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
 | 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|
 | O-1 | 1 | 輸入檔跑完整條 | 2 | 0 | 0% |
-- O-1 下一個里程碑:M-1 解析與正規化走通(P-002-parse 進行中、P-003-normalize 進行中)
+- O-1 下一個里程碑:M-1 解析與正規化走通(P-002-syntax-parse 進行中、P-003-canon-normalize 進行中)
 
 ## pipelines
 | pipeline | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|
-| P-001-run | ready | 3 | 0 | 0 | 1 | 0/0 | 等 P-002-parse |
-| P-002-parse | ready | 2 | 0 | 0 | 1 | 0/0 | 進行中 |
-| P-003-normalize | ready | 2 | 0 | 0 | 1 | 0/0 | 進行中 |
+| P-001-cli-run | ready | 3 | 0 | 0 | 1 | 0/0 | 等 P-002-syntax-parse |
+| P-002-syntax-parse | ready | 2 | 0 | 0 | 1 | 0/0 | 進行中 |
+| P-003-canon-normalize | ready | 2 | 0 | 0 | 1 | 0/0 | 進行中 |
 
 ## 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
 |---|---|---|---|---|---|---|
 | App.Doc | 文件與解析錯誤的型別 | types | - | - | 0 | 0 |
-| App.Parse | 把文字解析成文件 | core | - | P-002-parse、P-003-normalize | 3 | 0 |
-| App.Normalize | 文件的正規化 | core | - | P-003-normalize | 1 | 0 |
-| App.Run | 整條與命令列進入點 | core、shell | - | P-001-run | 2 | 0 |
+| App.Syntax | 把文字解析成文件 | core | - | P-002-syntax-parse、P-003-canon-normalize | 3 | 0 |
+| App.Canon | 文件的正規化 | core | - | P-003-canon-normalize | 1 | 0 |
+| App.Cli | 整條與命令列進入點 | core、shell | - | P-001-cli-run | 2 | 0 |
 - 還沒有任何 stage 住進去的單元:App.Doc
 
 ## 1. 今天能開幾條線
-- P-002-parse:lawful:build P-002-parse(O-1 優先 1 · M-1 解析與正規化走通)
-- P-003-normalize:lawful:build P-003-normalize(O-1 優先 1 · M-1 解析與正規化走通)
-- P-002-parse 與 P-003-normalize 的 stage 都住 `App.Parse`:可以同時開,整合時這幾個模組單元的檔兩邊都動
+- P-002-syntax-parse:lawful:build P-002-syntax-parse(O-1 優先 1 · M-1 解析與正規化走通)
+- P-003-canon-normalize:lawful:build P-003-canon-normalize(O-1 優先 1 · M-1 解析與正規化走通)
+- P-002-syntax-parse 與 P-003-canon-normalize 的 stage 都住 `App.Syntax`:可以同時開,整合時這幾個模組單元的檔兩邊都動
 
 ## 2. 卡住的
-- P-001-run 等 P-002-parse(未達成,先建它)
+- P-001-cli-run 等 P-002-syntax-parse(未達成,先建它)
 
 ## 3. 等決定
 - 無
 
 ## 4. 牽動誰
-- P-002-parse ← P-001-run
+- P-002-syntax-parse ← P-001-cli-run
 
 ## 5. 待實作(按模組單元)
 - 無
@@ -48,10 +49,10 @@ $ lawful status
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| P-002-parse#shared | P-003-normalize 也把 shared 列成 stage,兩邊都沒註明「見」 | 引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來 |
+| P-002-syntax-parse#shared | P-003-canon-normalize 也把 shared 列成 stage,兩邊都沒註明「見」 | 引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來 |
 
 ## 7. 建議路線
-1. lawful:build P-002-parse(O-1 優先 1 · M-1 解析與正規化走通)
-2. lawful:build P-003-normalize(O-1 優先 1 · M-1 解析與正規化走通)
-3. lawful:build P-001-run(O-1 優先 1 · M-2 整條跑完)
+1. lawful:build P-002-syntax-parse(O-1 優先 1 · M-1 解析與正規化走通)
+2. lawful:build P-003-canon-normalize(O-1 優先 1 · M-1 解析與正規化走通)
+3. lawful:build P-001-cli-run(O-1 優先 1 · M-2 整條跑完)
 exit 1

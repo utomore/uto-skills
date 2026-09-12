@@ -29,9 +29,9 @@ updated: 2026-09-05
 ## 對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
-| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-game |
+| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-write |
 
 ## Pipelines
 | 全名 | 類別 |
 |---|---|
-| P-001-save-game | IO 介面 |
+| P-001-save-write | IO 介面 |

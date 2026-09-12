@@ -14,6 +14,7 @@ updated: 2026-09-06
 - 建置:`cabal build`
 - 測試(整套):`node print-log.mjs`(在專案根目錄跑;反引號外這段是給人看的,不是指令)
 - 測試(子集):`cabal test --test-options='-m "P-002"'`
+- 模組前綴:`App`
 - IO 模組追加:無
 - 效果型別追加:無
 - 忽略目錄:無
@@ -27,10 +28,10 @@ updated: 2026-09-06
 ## 對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
-| 輸入文字 | in | `Text` | `App.Report.Main` | P-001-report |
+| 輸入文字 | in | `Text` | `App.Report.Main` | P-001-report-render |
 
 ## Pipelines
 | 全名 | 類別 |
 |---|---|
-| P-001-report | IO 介面 |
-| P-002-count | IO 介面 |
+| P-001-report-render | IO 介面 |
+| P-002-count-tally | IO 介面 |

@@ -1,4 +1,4 @@
--- shell 層:P-001-save-game 的 ! 列,把純的整條接到檔案系統。
+-- shell 層:P-001-save-write 的 ! 列,把純的整條接到檔案系統。
 module Game.Save.Host
   ( saveGame
   ) where

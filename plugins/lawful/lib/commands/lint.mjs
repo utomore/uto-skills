@@ -1,5 +1,5 @@
 // lint boundary / sig / laws / trace / io / all。每道回 { title, red: [], info: [] }。
-import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, layerRoot, matchesPattern, unitOf } from '../design.mjs';
+import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, layerRoot, matchesPattern, unitOf, unitOfSlug, unitSlug } from '../design.mjs';
 import { findSignature, findType } from '../source.mjs';
 
 function at(file, line) {
@@ -97,6 +97,14 @@ export function lintSig(design, source, adapter) {
     }
     const wholes = p.stages.filter((s) => s.whole);
     if (wholes.length !== 1) r.red.push(`${p.file} = 列要恰好一列,現在 ${wholes.length} 列`);
+    // slug = <領域名詞>-<動詞>:領域名詞是 = 列住的模組單元。= 列對不到單元時退而查它是不是表上任何一個單元
+    if (p.slug) {
+      const units = entries.filter((e) => !e.placeholder);
+      const wholeUnit = wholes.length === 1 && !wholes[0].ref ? unitOf(units, wholes[0].module) : null;
+      if (!/^[a-z0-9]+(-[a-z0-9]+)+$/.test(p.slug)) r.red.push(`${p.file} slug「${p.slug}」不是 <領域名詞>-<動詞或動名詞>;lawful rename ${p.id} <slug>`);
+      else if (wholeUnit && !p.slug.startsWith(`${unitSlug(design.system, wholeUnit.unit)}-`)) r.red.push(`${p.file} slug 的領域名詞不是 = 列住的單元:= 列 ${wholes[0].name} 住 ${wholeUnit.unit}(${unitSlug(design.system, wholeUnit.unit)}),slug 是「${p.slug}」;lawful rename ${p.id} ${unitSlug(design.system, wholeUnit.unit)}-<動詞>`);
+      else if (!wholeUnit && units.length && !unitOfSlug(design.system, units, p.slug)) r.red.push(`${p.file} slug「${p.slug}」的領域名詞對不到模組表上任何單元;lawful rename ${p.id} <單元>-<動詞>`);
+    }
     const runners = p.stages.filter((s) => s.runner);
     const kind = kindOf(design, p.fullName);
     if (kind === 'IO 介面' && runners.length !== 1) r.red.push(`${p.file} IO 介面要恰好一列 ! 列(shell 的進入點),現在 ${runners.length} 列`);

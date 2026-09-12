@@ -1,0 +1,137 @@
+$ lawful rename P-001-save-write save-store
+P-001-save-write → P-001-save-store:改名 .lawful/pipelines/P-001-save-write.md → .lawful/pipelines/P-001-save-store.md
+改了 .lawful/adr/ADR-001-save-format.md(2 處)
+改了 .lawful/objectives.md(1 處)
+改了 .lawful/pipelines/P-001-save-write.md(1 處)
+改了 .lawful/system.md(2 處)
+改了 src-core/Game/Save/Codec.hs(1 處)
+改了 src-core/Game/Save/Project/Internal.hs(1 處)
+改了 src-core/Game/Save/Project.hs(1 處)
+改了 src-core/Game/Save.hs(1 處)
+改了 src-shell/Game/FS.hs(1 處)
+改了 src-shell/Game/Save/Host.hs(1 處)
+10 個檔寫著舊全名,都改了;測試歸屬字串只帶 P-001,不受影響
+exit 0
+--- .lawful/pipelines/P-001-save-write.md
+(不存在)
+--- .lawful/pipelines/P-001-save-store.md
+---
+id: P-001
+description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+status: ready
+updated: 2026-09-05
+---
+# P-001-save-store:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+
+## Brief
+玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
+流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString;進入點把它接到檔案系統。它是 IO 介面,兩端碰到 shell。
+
+## Stages
+| # | 簽名 | 做什麼 | 模組 | 層 |
+|---|---|---|---|---|
+| 1 | `toSave :: World -> SaveState` | 去掉快取,留可存欄位 | `Game.Save.Project` | core |
+| 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
+| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態,壞檔回錯誤 | `Game.Save.Codec` | core |
+| 4 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
+| o | `savedIds :: SaveState -> [EntityId]` | 觀察:投影後的實體 id | `Game.Save.Project.Internal` | core |
+| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Game.Save` | core |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Game.Save.Host` | shell |
+
+## Laws
+- LAW-1 [roundtrip] 存了再讀回到同一個狀態
+  - forall s in SaveState
+  - |- decode (encode s) == Right s
+- LAW-2 [invariant] 投影不丟實體
+  - forall w in World
+  - |- length (savedEntities (toSave w)) == entityCount w
+- LAW-3 [bound] 檔案大小跟實體數線性
+  - forall s in SaveState
+  - |- length (encode s) <= 64 + 128 * length (savedEntities s)
+- LAW-4 [invariant] 投影後實體 id 不重複
+  - forall w in World
+  - |- nub (savedIds (toSave w)) == savedIds (toSave w)
+- LAW-5 [roundtrip] 整條存出去的位元組解回來就是投影
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
+
+## Examples
+| # | 輸入 | 輸出 | 覆蓋 |
+|---|---|---|---|
+| EX-1 | `decode ""` | `Left EmptyInput` | LAW-1 |
+| EX-2 | `toSave emptyWorld` | `emptySave` | LAW-2 |
+
+## 決定
+- **存 SaveState 不存 World。** 否決:直接編碼 World。渲染快取是衍生資料,存進去會讓 roundtrip 對不上。
+- **格式用 CBOR。** 否決:JSON。證據:ADR-001-save-format
+
+## 修訂記錄
+無
+
+--- .lawful/system.md
+---
+language: haskell
+updated: 2026-09-05
+---
+# save-game:把遊戲世界存成檔案再讀回來
+
+## 願景
+玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
+
+## 目的
+替一個小型 2D 遊戲提供存檔與讀檔。玩家按存檔,當前世界寫成一個檔案;讀檔把檔案還原成同一個世界。不處理雲端同步,不處理跨版本升級。
+
+## 語言與工具
+- 建置:`cabal build`
+- 測試(整套):`cabal test`
+- 測試(子集):`cabal test --test-options='-m "P-001"'`
+- 模組前綴:`Game`
+- 原始碼根目錄:`src-<層>`
+- IO 模組追加:無
+- 效果型別追加:無
+- 忽略目錄:`old`
+
+## 邊界
+- types:`Game.World`(遊戲世界的不可變值,含渲染快取)、`Game.Save.State`(可存檔的投影)
+- effect:無
+- core:`Game.Save.Core.*`(投影與編解碼)
+- shell:`Game.Save.Host`(存檔進入點)、`Game.FS`(檔案系統)
+
+## 對外 I/O
+| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
+|---|---|---|---|---|
+| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-store |
+
+## Pipelines
+| 全名 | 類別 |
+|---|---|
+| P-001-save-store | IO 介面 |
+
+--- .lawful/objectives.md
+# 目標
+
+優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+
+## O-1:玩家存檔後能讀回同一個世界
+- 優先:1
+- 判準:任一 World 存檔再讀回,可存檔的投影一模一樣
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 存檔寫得出檔案 | P-001-save-store |
+| M-2 | 存檔壞了看得出來 | - |
+
+--- src-core/Game/Save.hs
+-- core 層:P-001-save-store 的 = 列,純的整條。
+module Game.Save
+  ( saveBytes
+  ) where
+
+import Data.ByteString (ByteString)
+import Game.Save.Codec (encode)
+import Game.Save.Project (toSave)
+import Game.World (World)
+
+saveBytes :: World -> ByteString
+saveBytes = encode . toSave
+

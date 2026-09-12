@@ -1,4 +1,4 @@
--- core 層:P-001-report 的 = 列,本體還是 conductor 寫的骨架。
+-- core 層:P-001-report-render 的 = 列,本體還是 conductor 寫的骨架。
 module App.Report
   ( report
   ) where

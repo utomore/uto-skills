@@ -1,16 +1,16 @@
-$ lawful claim load-game --description 把存檔讀回 World --milestone M-1 --date 2026-09-05
-建了 .lawful/pipelines/P-002-load-game.md(status: draft)
+$ lawful claim save-load --description 把存檔讀回 World --milestone M-1 --date 2026-09-05
+建了 .lawful/pipelines/P-002-save-load.md(status: draft)
 system.md Pipelines 表加了一列,類別欄填 IO 介面或子流
 綁進 M-1
 exit 0
---- .lawful/pipelines/P-002-load-game.md
+--- .lawful/pipelines/P-002-save-load.md
 ---
 id: P-002
 description: 把存檔讀回 World
 status: draft
 updated: 2026-09-05
 ---
-# P-002-load-game:把存檔讀回 World
+# P-002-save-load:把存檔讀回 World
 
 ## Brief
 <意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是 IO 介面。>
@@ -72,16 +72,18 @@ updated: 2026-09-05
 ## 對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
 |---|---|---|---|---|
-| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-game |
+| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-write |
 
 ## Pipelines
 | 全名 | 類別 |
 |---|---|
-| P-001-save-game | IO 介面 |
-| P-002-load-game | <IO 介面 或 子流> |
+| P-001-save-write | IO 介面 |
+| P-002-save-load | <IO 介面 或 子流> |
 
 --- .lawful/objectives.md
 # 目標
+
+優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
 
 ## O-1:玩家存檔後能讀回同一個世界
 - 優先:1
@@ -89,5 +91,6 @@ updated: 2026-09-05
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| M-1 | 存檔寫得出檔案 | P-001-save-game、P-002-load-game |
+| M-1 | 存檔寫得出檔案 | P-001-save-write、P-002-save-load |
+| M-2 | 存檔壞了看得出來 | - |
 

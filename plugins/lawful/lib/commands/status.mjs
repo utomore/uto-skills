@@ -212,6 +212,7 @@ export function warnings(design, a, ov, source, adapter, stale = new Set()) {
   else if (sys.visionState === 'missing') warn('system.md', '沒有 ## 願景 節', 'lawful:design 訂願景');
   else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'lawful:design 訂願景');
   if (!ov.objs.length) warn(design.objectives.exists ? 'objectives.md' : '.lawful/', '沒有任何目標', 'lawful:objective 訂第一個目標(至少一個)');
+  else if (design.objectives.priorityNoteState !== 'ok') warn('objectives.md', design.objectives.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'lawful:objective 在開頭寫一行「優先:1 = …;2 = …;3 = …;4 = …」');
   const seenM = new Set();
   for (const o of ov.objs) {
     if (o.placeholder) warn(o.id, '目標還是模板', 'lawful:objective 寫成一句話');
@@ -222,7 +223,6 @@ export function warnings(design, a, ov, source, adapter, stale = new Set()) {
       if (seenM.has(m.id)) warn(m.id, '里程碑編號重複', '編號全檔唯一;配號只走 lawful objective milestone');
       seenM.add(m.id);
       if (m.placeholder) warn(m.id, '里程碑還是模板', 'lawful:objective 寫成一句話');
-      if (!m.binds.length) warn(m.id, '沒有綁定任何 pipeline', 'lawful claim <slug> --milestone ' + m.id + ',或在綁定欄填既有的 pipeline 全名');
       for (const d of m.docs) if (!d.x) warn(m.id, `綁定的 ${d.name} 不存在`, '改成 pipelines/ 裡有的全名,或刪這個綁定');
     }
   }
@@ -342,13 +342,14 @@ export function statusReport(design, source, adapter, results, resultNote, build
   out.push('## 目標');
   if (!ov.objs.length) out.push('- 沒有任何目標;lawful:objective 訂第一個');
   else {
+    if (design.objectives.priorityNoteState === 'ok') out.push(`- 優先:${design.objectives.priorityNote}`);
     out.push('| 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |', '|---|---|---|---|---|---|');
     for (const o of ov.objs) out.push(`| ${o.id} | ${o.priorityRaw || '(沒填)'} | ${o.title} | ${o.ms.length} | ${o.done} | ${o.pct == null ? '-' : `${o.pct}%`} |`);
     for (const o of ov.objs) {
       const next = o.ms.find((m) => !m.achieved);
       if (!next) continue;
       const state = (d) => (!d.x ? '不存在' : d.x.achieved ? '達成' : d.x.gaps.length ? `卡 ${d.x.gaps.map((g) => g.id).join('、')}` : d.x.p.status === 'draft' ? '還是 draft' : '進行中');
-      out.push(`- ${o.id} 下一個里程碑:${next.id} ${next.title}${next.docs.length ? `(${next.docs.map((d) => `${d.name} ${state(d)}`).join('、')})` : '(還沒綁定任何 pipeline)'}`);
+      out.push(`- ${o.id} 下一個里程碑:${next.id} ${next.title}${next.docs.length ? `(${next.docs.map((d) => `${d.name} ${state(d)}`).join('、')})` : `(待 claim:lawful claim <slug> --milestone ${next.id})`}`);
     }
   }
   const unbound = [...a.info.keys()].filter((n) => !ov.rank.has(n));

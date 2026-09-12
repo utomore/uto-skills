@@ -83,6 +83,8 @@ $ lawful status --json
   ],
   "lanes": [
     {
+      "id": "O-1",
+      "achieved": false,
       "title": "O-1 輸入檔跑完整條",
       "badge": "優先 1",
       "notes": [

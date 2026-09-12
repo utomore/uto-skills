@@ -3,78 +3,92 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>devflow 看板</title>
+<title>看板</title>
 <style>
 :root{
   color-scheme:light dark;
-  --bg:#f4f1ea; --panel:#fffdf7; --ink:#23201b; --faint:#6f6a60; --rule:#ddd6c8;
-  --paper:#fff8d8; --tape:rgba(0,0,0,.08);
+  --bg:#eeeae1; --panel:#fffdf7; --ink:#23201b; --faint:#6f6a60; --rule:#ddd6c8;
+  --paper:#fff8d8; --tape:rgba(0,0,0,.08); --grid:rgba(0,0,0,.055);
   --done:#2f8f5b; --stuck:#c2453c; --wait:#c98a1d; --going:#3a72c4; --idle:#8b8578;
   --wire:#a39c8c;
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --bg:#1b1a17; --panel:#232120; --ink:#eae6dd; --faint:#9d968a; --rule:#39352f;
-    --paper:#3a3526; --tape:rgba(255,255,255,.08); --wire:#6b6455;
+    --bg:#16151300; --bg:#161513; --panel:#232120; --ink:#eae6dd; --faint:#9d968a; --rule:#39352f;
+    --paper:#3a3526; --tape:rgba(255,255,255,.08); --grid:rgba(255,255,255,.05); --wire:#6b6455;
     --done:#5fbd85; --stuck:#e2706a; --wait:#e0ab4a; --going:#6ea3e8; --idle:#8b8578;
   }
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);overflow:hidden;
   font:14px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI",sans-serif;}
 h1,h2,h3{margin:0;font-weight:600}
-a{color:inherit}
 
-header{padding:18px 20px 12px;border-bottom:1px solid var(--rule);background:var(--panel)}
-header h1{font-size:17px;letter-spacing:.02em}
-.vision{margin-top:4px;color:var(--faint);font-size:13px;max-width:80ch}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{border:1px solid var(--rule);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--faint);white-space:nowrap}
+/* 上方:一行標頭 + 一行工具列,其餘全給畫布 */
+#top{position:relative;z-index:10;background:var(--panel);border-bottom:1px solid var(--rule)}
+#head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:10px 16px 0}
+#head h1{font-size:15px;letter-spacing:.02em;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--rule);border-radius:999px;padding:1px 10px;font-size:12px;color:var(--faint);white-space:nowrap}
 .chip b{color:var(--ink);font-weight:600}
-.tests{margin-top:8px;font-size:12px;color:var(--faint)}
-
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 20px;border-bottom:1px solid var(--rule);
-  position:sticky;top:0;z-index:5;background:var(--panel)}
-.bar button{font:inherit;font-size:12px;padding:4px 12px;border:1px solid var(--rule);border-radius:999px;
+#tests{font-size:12px;color:var(--faint);padding:2px 16px 0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 16px}
+.bar button,.bar select{font:inherit;font-size:12px;padding:4px 11px;border:1px solid var(--rule);border-radius:999px;
   background:transparent;color:var(--faint);cursor:pointer}
+.bar select{border-radius:6px;padding:4px 6px}
 .bar button[aria-pressed=true]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .bar input{font:inherit;font-size:12px;padding:5px 10px;border:1px solid var(--rule);border-radius:6px;
-  background:transparent;color:inherit;min-width:180px}
+  background:transparent;color:inherit;min-width:170px}
+.bar .sep{width:1px;height:18px;background:var(--rule)}
 .bar .spacer{flex:1}
-.legend{display:flex;gap:10px;font-size:12px;color:var(--faint);flex-wrap:wrap}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:baseline}
+.bar label{font-size:12px;color:var(--faint);display:flex;align-items:center;gap:5px}
+#zoom{font-size:12px;color:var(--faint);min-width:44px;text-align:center}
+.legend{display:flex;gap:9px;font-size:12px;color:var(--faint);flex-wrap:wrap}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
 
-main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0;align-items:start}
-#board{position:relative;padding:20px;min-width:0}
-#wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
-#wires path{fill:none;stroke:var(--wire);stroke-width:1.6}
-#wires g{opacity:.55}
-#wires g.blocking path{stroke:var(--wait)}
-#wires g.blocking path.line{stroke-dasharray:5 4}
-#wires g.lit{opacity:1}
-#wires g.lit path{stroke-width:2.6;stroke:var(--going)}
-body.focused #wires g:not(.lit){opacity:.1}
+/* 畫布:平移縮放的無限平面 */
+#stage{position:absolute;inset:0;top:var(--topH,108px);overflow:hidden;cursor:grab;
+  background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:26px 26px}
+#stage.grabbing{cursor:grabbing}
+#world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;user-select:none}
+#links{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+#links path{fill:none}
+#links .tree{stroke:var(--wire);stroke-width:1.6;opacity:.5}
+#links .ref{stroke:var(--wire);stroke-width:1.4;opacity:.3;stroke-dasharray:6 5}
+#links .ref.blocking{stroke:var(--wait);opacity:.5}
+#links .lit{stroke:var(--going);stroke-width:2.4;opacity:1;stroke-dasharray:none}
+#links.refs-off .ref{display:none}
+#links.refs-sel .ref:not(.lit){display:none}
 
-.lane{position:relative;z-index:1;margin-bottom:26px}
-.lane>h2{font-size:13px;letter-spacing:.04em;color:var(--faint);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
-  padding-bottom:6px;border-bottom:1px dashed var(--rule);margin-bottom:14px}
-.lane>h2 b{color:var(--ink);font-size:14px}
-.lane>h2 .pri{border:1px solid var(--rule);border-radius:4px;padding:0 6px;font-size:11px}
-.cols{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
-.col{min-width:230px}
-.col>h3{font-size:12px;color:var(--faint);margin-bottom:8px;font-weight:500}
-.col>h3 b{color:var(--ink);font-weight:600}
-.col>h3 .tick{color:var(--done)}
-.stack{display:flex;flex-wrap:wrap;gap:14px}
+.card{position:absolute;border-radius:3px;padding:12px 14px}
+.dim{opacity:.16}
+.card.sel{outline:2px solid var(--going);outline-offset:3px}
 
-.note{position:relative;z-index:1;width:232px;padding:12px 14px 10px;border-radius:2px;cursor:pointer;
-  background:var(--paper);box-shadow:0 5px 12px rgba(0,0,0,.16);
-  border-top:4px solid var(--edge);transition:transform .12s ease,box-shadow .12s ease,opacity .18s ease}
-.note::after{content:"";position:absolute;top:-7px;left:50%;width:52px;height:14px;transform:translateX(-50%) rotate(-2deg);
-  background:var(--tape)}
-.note:nth-child(odd){transform:rotate(-.5deg)}
-.note:nth-child(even){transform:rotate(.6deg)}
-.note:hover{transform:translateY(-3px) rotate(0);box-shadow:0 10px 20px rgba(0,0,0,.22)}
+/* 根:願景 */
+.vision{background:var(--panel);border:1px solid var(--rule);box-shadow:0 4px 14px rgba(0,0,0,.1)}
+.vision h2{font-size:13px;color:var(--faint);letter-spacing:.08em;font-weight:500}
+.vision p{margin:6px 0 0;font-size:13.5px;line-height:1.75}
+.vision p.none{color:var(--stuck)}
+
+/* 目標 / 里程碑 */
+.lane,.group{background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--edge, var(--rule));
+  box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.lane[data-done=y],.group[data-done=y]{--edge:var(--done)}
+.lane[data-done=n],.group[data-done=n]{--edge:var(--going)}
+.lane .t,.group .t{font-size:13.5px;font-weight:600;line-height:1.5}
+.lane .n,.group .n{font-size:12px;color:var(--faint);margin-top:4px}
+.lane .pri{display:inline-block;border:1px solid var(--rule);border-radius:4px;padding:0 6px;font-size:11px;
+  color:var(--faint);margin-bottom:5px}
+.group .t{font-size:13px}
+
+/* 便利貼 */
+.note{background:var(--paper);box-shadow:0 5px 12px rgba(0,0,0,.16);border-top:4px solid var(--edge);
+  cursor:pointer;padding:11px 13px 9px;transition:box-shadow .12s ease,opacity .18s ease}
+.note::after{content:"";position:absolute;top:-7px;left:50%;width:50px;height:13px;
+  transform:translateX(-50%) rotate(-2deg);background:var(--tape)}
+.note:hover{box-shadow:0 10px 22px rgba(0,0,0,.24)}
 .note[data-tone=done]{--edge:var(--done)}
 .note[data-tone=stuck]{--edge:var(--stuck)}
 .note[data-tone=wait]{--edge:var(--wait)}
@@ -83,90 +97,86 @@ body.focused #wires g:not(.lit){opacity:.1}
 .note .name{font-weight:600;font-size:13.5px;word-break:break-all}
 .note .desc{font-size:12px;color:var(--faint);margin-top:3px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.note .state{font-size:12px;margin-top:7px;color:var(--edge);font-weight:600}
-.note .meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.note .state{font-size:12px;margin-top:6px;color:var(--edge);font-weight:600}
+.note .meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
 .note .meta span{font-size:11px;border:1px solid var(--rule);border-radius:3px;padding:0 5px;color:var(--faint)}
 .note .meta span.bad{border-color:var(--stuck);color:var(--stuck)}
 .note.ghost{background:transparent;border:1px dashed var(--stuck);border-top-width:4px;color:var(--stuck);box-shadow:none}
 .note.ghost::after{display:none}
-.note.dim{opacity:.22}
-.note.sel{outline:2px solid var(--going);outline-offset:3px}
 
-aside{border-left:1px solid var(--rule);background:var(--panel);padding:18px 16px;position:sticky;top:49px;
-  max-height:calc(100vh - 49px);overflow:auto}
-aside section{margin-bottom:22px}
+/* 側欄與詳情 */
+aside{position:absolute;right:0;top:var(--topH,108px);bottom:0;width:310px;z-index:8;overflow:auto;
+  background:var(--panel);border-left:1px solid var(--rule);padding:16px 14px}
+aside[hidden]{display:none}
+aside section{margin-bottom:20px}
 aside h3{font-size:12px;letter-spacing:.06em;color:var(--faint);margin-bottom:8px}
 aside ol,aside ul{margin:0;padding-left:18px}
 aside li{font-size:12.5px;margin-bottom:5px}
-aside li code,.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
 .warn{border-top:1px solid var(--rule);padding:7px 0;font-size:12px}
 .warn b{display:block;color:var(--stuck);font-weight:600}
 .warn i{display:block;color:var(--faint);font-style:normal;margin-top:2px}
 .empty{color:var(--faint);font-size:12.5px}
 
-#detail{position:fixed;top:0;right:0;width:min(460px,92vw);height:100vh;z-index:20;overflow:auto;
-  background:var(--panel);border-left:1px solid var(--rule);box-shadow:-12px 0 30px rgba(0,0,0,.2);padding:18px 20px}
+#detail{position:absolute;top:var(--topH,108px);right:0;bottom:0;width:min(460px,94vw);z-index:12;overflow:auto;
+  background:var(--panel);border-left:1px solid var(--rule);box-shadow:-12px 0 30px rgba(0,0,0,.2);padding:16px 18px}
 #detail h2{font-size:15px}
 #detail .sub{color:var(--faint);font-size:12.5px;margin-top:3px}
-#detail .close{position:absolute;top:12px;right:14px;border:1px solid var(--rule);background:transparent;color:var(--faint);
-  border-radius:6px;font:inherit;font-size:12px;padding:2px 9px;cursor:pointer}
-#detail section{margin-top:18px}
+#detail .close{position:absolute;top:12px;right:14px;border:1px solid var(--rule);background:transparent;
+  color:var(--faint);border-radius:6px;font:inherit;font-size:12px;padding:2px 9px;cursor:pointer}
+#detail section{margin-top:16px}
 #detail table{width:100%;border-collapse:collapse;font-size:12px}
 #detail th{text-align:left;color:var(--faint);font-weight:500;border-bottom:1px solid var(--rule);padding:4px 6px 4px 0}
 #detail td{padding:4px 6px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
 #detail td.s{white-space:nowrap}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
-.g{background:var(--done)} .r{background:var(--stuck)} .y{background:var(--wait)} .n{background:var(--idle)}
-
-@media (max-width:960px){
-  main{grid-template-columns:1fr}
-  aside{border-left:0;border-top:1px solid var(--rule);position:static;max-height:none}
-  #wires{display:none}
-}
+.dot.g{background:var(--done)} .dot.r{background:var(--stuck)} .dot.y{background:var(--wait)} .dot.n{background:var(--idle)}
+#hint{position:absolute;left:14px;bottom:12px;z-index:8;font-size:12px;color:var(--faint);
+  background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:3px 12px;opacity:.9}
 </style>
 </head>
 <body>
-<header>
-  <h1 id="title">devflow 看板</h1>
-  <p class="vision" id="vision"></p>
-  <div class="chips" id="chips"></div>
-  <p class="tests" id="tests"></p>
-</header>
+<div id="top">
+  <div id="head"><h1 id="title">看板</h1><div class="chips" id="chips"></div></div>
+  <div id="tests"></div>
+  <div class="bar">
+    <button data-filter="all" aria-pressed="true">全部</button>
+    <button data-filter="open" aria-pressed="false">今天能開</button>
+    <button data-filter="stuck" aria-pressed="false">卡住</button>
+    <button data-filter="todo" aria-pressed="false">未達成</button>
+    <button data-filter="warn" aria-pressed="false">有警訊</button>
+    <input id="q" type="search" placeholder="找名字、簽名、模組">
+    <span class="sep"></span>
+    <label>引用連線
+      <select id="refmode">
+        <option value="sel">選取時</option>
+        <option value="all">全部</option>
+        <option value="off">關</option>
+      </select>
+    </label>
+    <span class="sep"></span>
+    <button id="zoomout">−</button><span id="zoom">100%</span><button id="zoomin">＋</button>
+    <button id="fit">符合畫面</button>
+    <button id="side" aria-pressed="true">側欄</button>
+    <span class="spacer"></span>
+    <span class="legend">
+      <span><i style="background:var(--done)"></i>達成</span>
+      <span><i style="background:var(--stuck)"></i>卡住</span>
+      <span><i style="background:var(--wait)"></i>等別人</span>
+      <span><i style="background:var(--going)"></i>進行中</span>
+      <span><i style="background:var(--idle)"></i>draft</span>
+    </span>
+  </div>
+</div>
 
-<nav class="bar">
-  <button data-filter="all" aria-pressed="true">全部</button>
-  <button data-filter="open" aria-pressed="false">今天能開</button>
-  <button data-filter="stuck" aria-pressed="false">卡住</button>
-  <button data-filter="todo" aria-pressed="false">未達成</button>
-  <button data-filter="warn" aria-pressed="false">有警訊</button>
-  <input id="q" type="search" placeholder="找名字、簽名、模組">
-  <span class="spacer"></span>
-  <span class="legend">
-    <span><i style="background:var(--done)"></i>達成</span>
-    <span><i style="background:var(--stuck)"></i>卡住</span>
-    <span><i style="background:var(--wait)"></i>等別人</span>
-    <span><i style="background:var(--going)"></i>進行中</span>
-    <span><i style="background:var(--idle)"></i>draft</span>
-  </span>
-</nav>
+<div id="stage"><div id="world"><svg id="links"></svg></div></div>
+<div id="hint">拖曳平移 · 滾輪上下、Ctrl 滾輪縮放 · 點便利貼看細節 · 點目標或里程碑縮放到那一叢 · 0 回到全景</div>
 
-<main>
-  <div id="board"><svg id="wires"></svg></div>
-  <aside>
-    <section>
-      <h3>建議路線</h3>
-      <ol id="route"></ol>
-    </section>
-    <section>
-      <h3>今天能開幾條線</h3>
-      <ul id="lines"></ul>
-    </section>
-    <section>
-      <h3>警訊</h3>
-      <div id="warnings"></div>
-    </section>
-  </aside>
-</main>
+<aside id="aside">
+  <section><h3>建議路線</h3><div id="route"></div></section>
+  <section><h3>今天能開幾條線</h3><ul id="lines"></ul></section>
+  <section><h3>警訊</h3><div id="warnings"></div></section>
+</aside>
 
 <div id="detail" hidden></div>
 
@@ -174,10 +184,11 @@ aside li code,.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace
 <script>
 const D = JSON.parse(document.getElementById('data').textContent);
 const byName = new Map(D.docs.map((d) => [d.name, d]));
-const board = document.getElementById('board');
-const wires = document.getElementById('wires');
+const stage = document.getElementById('stage');
+const world = document.getElementById('world');
+const links = document.getElementById('links');
 const detail = document.getElementById('detail');
-const anchors = new Map();   // 全名 → 第一張便利貼
+const asideEl = document.getElementById('aside');
 let selected = null;
 let filter = 'all';
 let query = '';
@@ -189,33 +200,37 @@ const dotOf = (r) => (r === 'green' ? 'g' : r === 'red' ? 'r' : r === '未跑' ?
 // 標頭
 document.title = `${D.tool} 看板`;
 document.getElementById('title').textContent = `${D.tool} 看板`;
-const vision = document.getElementById('vision');
-vision.textContent = D.vision ? `願景:${D.vision}` : '願景還沒訂,或還是模板';
 document.getElementById('chips').innerHTML = D.headline
   .map((c) => `<span class="chip">${esc(c.label)} <b>${esc(c.value)}</b></span>`).join('');
-document.getElementById('tests').textContent = `· ${D.tests}`;
+document.getElementById('tests').textContent = `${D.tests} ·`;
+const setTopHeight = () => document.body.style.setProperty('--topH', document.getElementById('top').offsetHeight + 'px');
 
 // 側欄
-const route = document.getElementById('route');
-if (D.route.steps.length) route.innerHTML = D.route.steps.map((t) => `<li>${esc(t)}</li>`).join('');
-else route.outerHTML = `<p class="empty" id="route">${esc(D.route.note || '')}</p>`;
-
-const lines = document.getElementById('lines');
+const routeEl = document.getElementById('route');
+routeEl.innerHTML = D.route.steps.length
+  ? `<ol>${D.route.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>`
+  : `<p class="empty">${esc(D.route.note || '')}</p>`;
 const lineItems = [
   ...D.lines.openable.map((x) => `<li><b>${esc(x.name)}</b><br><span class="empty">${esc(x.tag)}</span></li>`),
   ...D.lines.building.map((x) => `<li><b>${esc(x.name)}</b><br><span class="empty">建構中,分支 build/${esc(x.name)}</span></li>`),
   ...D.lines.shared.map((x) => `<li class="empty">${esc(x.a)} 與 ${esc(x.b)} 的 step 都住 ${x.files.map((f) => `<code>${esc(f)}</code>`).join('、')},可以同時開</li>`),
 ];
-lines.innerHTML = lineItems.length ? lineItems.join('') : '<li class="empty">一條都開不了</li>';
-
+document.getElementById('lines').innerHTML = lineItems.length ? lineItems.join('') : '<li class="empty">一條都開不了</li>';
 document.getElementById('warnings').innerHTML = D.warnings.length
   ? D.warnings.map((w) => `<div class="warn"><b>${esc(w.where)}</b>${esc(w.what)}<i>${esc(w.fix)}</i></div>`).join('')
   : '<p class="empty">無</p>';
 
-// 便利貼
+// ── 這棵樹:願景 → 目標 → 里程碑 → 一份文檔一張便利貼 ──
+const NOTE_W = 236, GROUP_W = 236, LANE_W = 320, VISION_W = 660;
+const SPINE = 18;            // 里程碑底下那條垂直骨幹到便利貼左緣的距離
+const GAP_NOTE = 14;         // 同一條里程碑底下,便利貼之間
+const GAP_GROUP = 30;        // 里程碑之間
+const GAP_LANE = 64;         // 目標之間
+const GAP_ROW = 62;          // 層與層之間
+
 function noteHtml(name) {
   const d = byName.get(name);
-  if (!d) return `<div class="note ghost" data-tone="stuck" data-name="${esc(name)}"><div class="name">${esc(name)}</div><div class="state">綁定了,features/ 沒有這個檔</div></div>`;
+  if (!d) return `<div class="card note ghost" data-kind="note" data-name="${esc(name)}" data-tone="stuck"><div class="name">${esc(name)}</div><div class="state">綁定了,${esc(D.labels.unit)}裡沒有這一份</div></div>`;
   const law = d.laws.total ? `law ${d.laws.green === null ? 'nan' : d.laws.green}/${d.laws.total}` : 'law 0 條';
   const meta = [
     `<span>${esc(d.status || '沒有 status')}</span>`,
@@ -225,78 +240,241 @@ function noteHtml(name) {
     d.revisions.count ? `<span>REV ${d.revisions.count}</span>` : '',
     d.building ? '<span>建構中</span>' : '',
   ].filter(Boolean).join('');
-  return `<div class="note" data-tone="${tone(d)}" data-name="${esc(d.name)}">
+  return `<div class="card note" data-kind="note" data-name="${esc(d.name)}" data-tone="${tone(d)}">
     <div class="name">${esc(d.name)}</div>
     <div class="desc">${esc(d.description)}</div>
     <div class="state">${esc(d.state)}</div>
-    <div class="meta">${meta}</div>
-  </div>`;
+    <div class="meta">${meta}</div></div>`;
 }
 
-const laneHtml = D.lanes.map((lane) => {
-  const cols = lane.columns.map((c) => `<div class="col">
-    <h3><b>${esc(c.title)}</b>${c.achieved ? ' <span class="tick">達成</span>' : ''}</h3>
-    <div class="stack">${c.docs.map(noteHtml).join('')}</div></div>`).join('');
-  return `<div class="lane">
-    <h2>${lane.badge ? `<span class="pri">${esc(lane.badge)}</span> ` : ''}<b>${esc(lane.title)}</b>
-      ${lane.notes.map((n) => `<span>${esc(n)}</span>`).join('')}</h2>
-    <div class="cols">${lane.empty ? `<p class="empty">${esc(lane.empty)}</p>` : cols}</div></div>`;
+// 先把每張牌放進畫布量高度,再算位置:內容多高就佔多高,不猜
+const html = [];
+html.push(`<div class="card vision" data-kind="vision" style="width:${VISION_W}px"><h2>願景</h2>${
+  D.vision ? `<p>${esc(D.vision)}</p>` : '<p class="none">還沒訂,或還是模板</p>'}</div>`);
+D.lanes.forEach((lane, li) => {
+  html.push(`<div class="card lane" data-kind="lane" data-lane="${li}" data-done="${lane.achieved ? 'y' : 'n'}" style="width:${LANE_W}px">
+    ${lane.badge ? `<div class="pri">${esc(lane.badge)}</div>` : ''}
+    <div class="t">${esc(lane.title)}</div>
+    ${lane.notes.map((n) => `<div class="n">${esc(n)}</div>`).join('')}
+    ${lane.empty ? `<div class="n">${esc(lane.empty)}</div>` : ''}</div>`);
+  lane.columns.forEach((col, ci) => {
+    html.push(`<div class="card group" data-kind="group" data-lane="${li}" data-col="${ci}" data-done="${col.achieved ? 'y' : 'n'}" style="width:${GROUP_W}px">
+      <div class="t">${esc(col.title)}</div>
+      <div class="n">${col.docs.length} ${esc(D.labels.unit)}${col.achieved ? ' · 達成' : ''}</div></div>`);
+    for (const name of col.docs) html.push(noteHtml(name));
+  });
 });
-if (!D.docs.length) laneHtml.push(`<p class="empty">還沒有任何${esc(D.labels.unit)}</p>`);
-board.insertAdjacentHTML('beforeend', laneHtml.join(''));
+if (!D.docs.length) html.push(`<div class="card lane" data-kind="lane" data-lane="-1" style="width:${LANE_W}px"><div class="t">還沒有任何${esc(D.labels.unit)}</div></div>`);
+world.insertAdjacentHTML('beforeend', html.join(''));
 
-for (const el of board.querySelectorAll('.note')) {
-  const n = el.dataset.name;
-  if (!anchors.has(n)) anchors.set(n, el);
-}
+const cards = [...world.querySelectorAll('.card')];
+for (const el of cards) el.style.width = el.style.width || NOTE_W + 'px';
+const H = new Map(cards.map((el) => [el, el.offsetHeight]));
+const noteEls = new Map();
+for (const el of cards) if (el.dataset.kind === 'note' && !noteEls.has(el.dataset.name)) noteEls.set(el.dataset.name, el);
+const box = new Map();       // 元素 → {x,y,w,h}
+const place = (el, x, y, w) => {
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  box.set(el, { x, y, w, h: H.get(el) });
+};
+const pick = (sel) => world.querySelector(sel);
 
-// 連線:誰引用誰,箭頭指向被引用的那一張
-function drawWires() {
-  const b = board.getBoundingClientRect();
-  wires.setAttribute('viewBox', `0 0 ${board.scrollWidth} ${board.scrollHeight}`);
-  wires.setAttribute('width', board.scrollWidth);
-  wires.setAttribute('height', board.scrollHeight);
-  const at = (name) => {
-    const el = anchors.get(name);
-    if (!el) return null;
-    const r = el.getBoundingClientRect();
-    const left = r.left - b.left; const top = r.top - b.top;
-    return { left, top, right: left + r.width, bottom: top + r.height, cx: left + r.width / 2, cy: top + r.height / 2 };
-  };
-  // 被引用的那張在下面就直接往下接,在上面就往上接,在同一排就從底下繞過去,不穿過中間的便利貼。
-  // 箭頭畫在終點,指的是「引用了誰」
-  const UP = [[-4, 7], [0, 0], [4, 7]];
-  const route = (f, t) => {
-    if (t.top - f.bottom > 8) return { x1: f.cx, y1: f.bottom, x2: t.cx, y2: t.top, head: [[-4, -7], [0, 0], [4, -7]] };
-    if (f.top - t.bottom > 8) return { x1: f.cx, y1: f.top, x2: t.cx, y2: t.bottom, head: UP };
-    const dip = Math.max(f.bottom, t.bottom) + 26;
-    return { x1: f.cx, y1: f.bottom, x2: t.cx, y2: t.bottom, dip, head: UP };
-  };
-  const out = [];
-  for (const e of D.edges) {
-    const f = at(e.from); const t = at(e.to);
-    if (!f || !t) continue;
-    const r = route(f, t);
-    const line = r.dip
-      ? `M ${r.x1} ${r.y1} C ${r.x1} ${r.dip}, ${r.x2} ${r.dip}, ${r.x2} ${r.y2}`
-      : `M ${r.x1} ${r.y1} C ${r.x1} ${(r.y1 + r.y2) / 2}, ${r.x2} ${(r.y1 + r.y2) / 2}, ${r.x2} ${r.y2}`;
-    const head = r.head.map(([dx, dy], i) => `${i ? 'L' : 'M'} ${r.x2 + dx} ${r.y2 + dy}`).join(' ');
-    const target = byName.get(e.to);
-    const cls = target && !target.achieved ? 'blocking' : '';
-    out.push(`<g class="${cls}" data-from="${e.from}" data-to="${e.to}">
-      <path class="line" d="${line}"></path><path class="head" d="${head}"></path></g>`);
+// 一層一層往下:根、目標、里程碑、便利貼。每層的 y 對齊,寬度由子樹決定
+const visionEl = pick('.vision');
+const laneEls = D.lanes.map((_, i) => pick(`.lane[data-lane="${i}"]`)).filter(Boolean);
+const groupEls = D.lanes.map((lane, i) => lane.columns.map((_, c) => pick(`.group[data-lane="${i}"][data-col="${c}"]`)));
+const yLane = (visionEl ? H.get(visionEl) : 0) + GAP_ROW;
+const laneRowH = Math.max(0, ...laneEls.map((el) => H.get(el)));
+const yGroup = yLane + laneRowH + GAP_ROW;
+const groupRowH = Math.max(0, ...groupEls.flat().map((el) => H.get(el)));
+const yNote = yGroup + groupRowH + GAP_ROW;
+
+let cursor = 0;
+const laneSpan = [];
+const subtree = new Map();   // 目標 / 里程碑的卡片 → 它那一叢的範圍
+const grow = (el, b) => {
+  const s = subtree.get(el);
+  if (!s) subtree.set(el, { x1: b.x, y1: b.y, x2: b.x + b.w, y2: b.y + b.h });
+  else { s.x1 = Math.min(s.x1, b.x); s.y1 = Math.min(s.y1, b.y); s.x2 = Math.max(s.x2, b.x + b.w); s.y2 = Math.max(s.y2, b.y + b.h); }
+};
+D.lanes.forEach((lane, li) => {
+  const cols = lane.columns;
+  const clusterW = SPINE + NOTE_W;
+  const kidsW = cols.length ? cols.length * clusterW + (cols.length - 1) * GAP_GROUP : 0;
+  const w = Math.max(LANE_W, kidsW);
+  const left = cursor;
+  let cx = left + (w - kidsW) / 2;
+  cols.forEach((col, ci) => {
+    const g = groupEls[li][ci];
+    place(g, cx + SPINE + (NOTE_W - GROUP_W) / 2, yGroup, GROUP_W);
+    let y = yNote;
+    for (const name of col.docs) {
+      const el = noteEls.get(name);
+      if (!el || box.has(el)) continue;
+      place(el, cx + SPINE, y, NOTE_W);
+      grow(g, box.get(el));
+      y += H.get(el) + GAP_NOTE;
+    }
+    grow(g, box.get(g));
+    cx += clusterW + GAP_GROUP;
+  });
+  const laneEl = laneEls[li];
+  if (laneEl) {
+    place(laneEl, left + (w - LANE_W) / 2, yLane, LANE_W);
+    grow(laneEl, box.get(laneEl));
+    for (const g of groupEls[li]) if (subtree.has(g)) { const s = subtree.get(g); grow(laneEl, { x: s.x1, y: s.y1, w: s.x2 - s.x1, h: s.y2 - s.y1 }); }
   }
-  wires.innerHTML = out.join('');
-  paint();
-}
+  laneSpan.push({ left, w });
+  cursor = left + w + GAP_LANE;
+});
+const totalW = Math.max(VISION_W, cursor - GAP_LANE);
+if (visionEl) place(visionEl, (totalW - VISION_W) / 2, 0, VISION_W);
+const empty = pick('.lane[data-lane="-1"]');
+if (empty) place(empty, (totalW - LANE_W) / 2, yLane, LANE_W);
 
-// 篩選與選取
+// 連線:樹的骨架恆亮;引用是另一種線,預設只在選取時出現
+const cx = (b) => b.x + b.w / 2;
+const elbow = (x1, y1, x2, y2) => {
+  const m = y1 + (y2 - y1) / 2;
+  return `M ${x1} ${y1} C ${x1} ${m}, ${x2} ${m}, ${x2} ${y2}`;
+};
+const paths = [];
+// 一個父節點對多個子節點:父底下一條豎線落到中間高度,一條橫幹接過去,再各自垂直落下
+function bus(parent, kids) {
+  if (!parent || !kids.length) return;
+  const py = parent.y + parent.h;
+  const ky = Math.min(...kids.map((b) => b.y));
+  const mid = py + (ky - py) / 2;
+  if (kids.length === 1 && Math.abs(cx(kids[0]) - cx(parent)) < 1) {
+    paths.push(`<path class="tree" d="M ${cx(parent)} ${py} V ${kids[0].y}"></path>`);
+    return;
+  }
+  const xs = kids.map(cx);
+  paths.push(`<path class="tree" d="M ${cx(parent)} ${py} V ${mid} M ${Math.min(...xs)} ${mid} H ${Math.max(...xs)}"></path>`);
+  for (const b of kids) paths.push(`<path class="tree" d="M ${cx(b)} ${mid} V ${b.y}"></path>`);
+}
+if (visionEl) bus(box.get(visionEl), laneEls.map((el) => box.get(el)).filter(Boolean));
+D.lanes.forEach((lane, li) => {
+  const lb = laneEls[li] && box.get(laneEls[li]);
+  if (lb) bus(lb, groupEls[li].map((el) => box.get(el)).filter(Boolean));
+  lane.columns.forEach((col, ci) => {
+    const g = groupEls[li][ci];
+    const gb = box.get(g);
+    // 里程碑底下一條垂直骨幹,每張便利貼從左緣接上去:它們並列,不是先後
+    const kids = col.docs.map((n) => noteEls.get(n)).filter((el) => el && box.get(el));
+    if (!kids.length || !gb) return;
+    const sx = box.get(kids[0]).x - SPINE / 2;
+    const last = box.get(kids[kids.length - 1]);
+    paths.push(`<path class="tree" d="M ${cx(gb)} ${gb.y + gb.h} V ${yNote - 14} H ${sx} V ${last.y + Math.min(28, last.h / 2)}"></path>`);
+    for (const el of kids) {
+      const b = box.get(el);
+      paths.push(`<path class="tree" d="M ${sx} ${b.y + Math.min(28, b.h / 2)} H ${b.x}"></path>`);
+    }
+  });
+});
+for (const e of D.edges) {
+  const a = noteEls.get(e.from); const b = noteEls.get(e.to);
+  if (!a || !b || !box.get(a) || !box.get(b)) continue;
+  const ba = box.get(a); const bb = box.get(b);
+  const t = byName.get(e.to);
+  const d = ba.y + ba.h < bb.y
+    ? elbow(cx(ba), ba.y + ba.h, cx(bb), bb.y)
+    : `M ${ba.x + ba.w} ${ba.y + ba.h / 2} C ${ba.x + ba.w + 90} ${ba.y + ba.h / 2}, ${bb.x + bb.w + 90} ${bb.y + bb.h / 2}, ${bb.x + bb.w} ${bb.y + bb.h / 2}`;
+  paths.push(`<path class="ref${t && !t.achieved ? ' blocking' : ''}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" d="${d}"></path>`);
+}
+let maxY = 0;
+for (const b of box.values()) maxY = Math.max(maxY, b.y + b.h);
+links.setAttribute('width', totalW + 200);
+links.setAttribute('height', maxY + 120);
+links.innerHTML = paths.join('');
+world.style.width = totalW + 'px';
+world.style.height = maxY + 'px';
+
+// ── 平移縮放 ──
+let k = 1, tx = 0, ty = 0;
+const apply = () => {
+  world.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
+  document.getElementById('zoom').textContent = Math.round(k * 100) + '%';
+};
+function fit() {
+  const r = stage.getBoundingClientRect();
+  const pad = 40;
+  const kw = (r.width - pad * 2 - (asideEl.hidden ? 0 : 310)) / (totalW || 1);
+  const kh = (r.height - pad * 2) / (maxY || 1);
+  k = Math.min(2, Math.max(0.06, Math.min(kw, kh)));
+  tx = pad + ((r.width - (asideEl.hidden ? 0 : 310)) - pad * 2 - totalW * k) / 2;
+  ty = pad;
+  apply();
+}
+function zoomTo(s) {
+  const r = stage.getBoundingClientRect();
+  const vw = r.width - (asideEl.hidden ? 0 : 310) - 60;
+  const vh = r.height - 60;
+  k = Math.min(1.15, Math.max(0.06, Math.min(vw / (s.x2 - s.x1), vh / (s.y2 - s.y1))));
+  tx = 30 + (vw - (s.x2 - s.x1) * k) / 2 - s.x1 * k;
+  ty = 30 + (vh - (s.y2 - s.y1) * k) / 2 - s.y1 * k;
+  apply();
+}
+function zoomAt(px, py, nk) {
+  const next = Math.min(2.5, Math.max(0.05, nk));
+  tx = px - (px - tx) * (next / k);
+  ty = py - (py - ty) * (next / k);
+  k = next;
+  apply();
+}
+stage.addEventListener('wheel', (ev) => {
+  ev.preventDefault();
+  const r = stage.getBoundingClientRect();
+  if (ev.ctrlKey || ev.metaKey) zoomAt(ev.clientX - r.left, ev.clientY - r.top, k * (ev.deltaY < 0 ? 1.12 : 0.89));
+  else { tx -= ev.deltaX; ty -= ev.deltaY; apply(); }
+}, { passive: false });
+
+let drag = null, moved = 0;
+// 這裡不擋預設行為:擋了瀏覽器就不發 click,點卡片會沒反應。選字交給 CSS,拖曳交給 dragstart
+stage.addEventListener('dragstart', (ev) => ev.preventDefault());
+stage.addEventListener('pointerdown', (ev) => {
+  if (ev.button !== 0) return;
+  drag = { x: ev.clientX, y: ev.clientY, tx, ty, moved: 0 };
+  stage.setPointerCapture(ev.pointerId);
+  stage.classList.add('grabbing');
+});
+stage.addEventListener('pointermove', (ev) => {
+  if (!drag) return;
+  const dx = ev.clientX - drag.x; const dy = ev.clientY - drag.y;
+  drag.moved = Math.max(drag.moved, Math.abs(dx) + Math.abs(dy));
+  tx = drag.tx + dx; ty = drag.ty + dy;
+  apply();
+});
+stage.addEventListener('pointerup', () => {
+  if (!drag) return;
+  stage.classList.remove('grabbing');
+  moved = drag.moved;
+  drag = null;
+});
+// 拖曳歸拖曳、點選歸點選:拖過的那一下不算點到
+stage.addEventListener('click', (ev) => {
+  if (moved >= 5) { moved = 0; return; }
+  const note = ev.target.closest('.note');
+  if (note) { select(note.dataset.name === selected ? null : note.dataset.name); return; }
+  const card = ev.target.closest('.lane, .group');
+  if (card && subtree.has(card)) { zoomTo(subtree.get(card)); return; }
+  select(null);
+});
+document.getElementById('zoomin').onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, k * 1.25); };
+document.getElementById('zoomout').onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, k * 0.8); };
+document.getElementById('fit').onclick = fit;
+document.getElementById('side').onclick = (ev) => {
+  asideEl.hidden = !asideEl.hidden;
+  ev.currentTarget.setAttribute('aria-pressed', String(!asideEl.hidden));
+};
+
+// ── 篩選與選取 ──
 function related(name) {
   const d = byName.get(name);
   if (!d) return new Set([name]);
   return new Set([name, ...d.refs, ...d.referrers, ...d.blockedBy]);
 }
-
 function passes(d) {
   if (!d) return true;
   if (query) {
@@ -309,19 +487,16 @@ function passes(d) {
   if (filter === 'warn') return D.warnings.some((w) => w.where === d.name || w.where.startsWith(d.name + '#'));
   return true;
 }
-
 function paint() {
   const rel = selected ? related(selected) : null;
-  document.body.classList.toggle('focused', !!selected);
-  for (const el of board.querySelectorAll('.note')) {
-    const n = el.dataset.name;
-    const d = byName.get(n);
-    const on = (rel ? rel.has(n) : true) && passes(d);
+  for (const [name, el] of noteEls) {
+    const d = byName.get(name);
+    const on = (rel ? rel.has(name) : true) && passes(d);
     el.classList.toggle('dim', !on);
-    el.classList.toggle('sel', n === selected);
+    el.classList.toggle('sel', name === selected);
   }
-  for (const g of wires.querySelectorAll('g')) {
-    g.classList.toggle('lit', !!selected && (g.dataset.from === selected || g.dataset.to === selected));
+  for (const p of links.querySelectorAll('.ref')) {
+    p.classList.toggle('lit', !!selected && (p.dataset.from === selected || p.dataset.to === selected));
   }
 }
 
@@ -332,7 +507,6 @@ function stepRows(d) {
     <td><code>${esc(x.signature)}</code><br><span class="empty">${esc(x.module)} · ${esc(x.layer)}${x.at && x.at !== x.module ? ` → 實際在 ${esc(x.at)}` : ''}</span></td>
     <td class="s">${esc(x.state)}</td></tr>`).join('');
 }
-
 function openDetail(name) {
   const d = byName.get(name);
   if (!d) return;
@@ -340,7 +514,7 @@ function openDetail(name) {
   detail.innerHTML = `
     <button class="close">關閉</button>
     <h2>${esc(d.name)}</h2>
-    <p class="sub">${esc(d.kind)} · ${esc(d.status || '沒有 status')} · ${esc(d.state)}${d.objective ? ` · ${esc(d.objective)} 優先 ${esc(d.priority ?? '?')} · ${esc(d.milestone)}` : ' · 沒有綁到任何目標'}</p>
+    <p class="sub">${esc(d.kind || '')} · ${esc(d.status || '沒有 status')} · ${esc(d.state)}${d.objective ? ` · ${esc(d.objective)} 優先 ${esc(d.priority ?? '?')} · ${esc(d.milestone)}` : ' · 沒有綁到任何目標'}</p>
     <p class="sub">${esc(d.description)}</p>
     <section><h3>${esc(D.labels.steps)}(簽名 ${d.signatures.matched}/${d.signatures.total} 對到,骨架 ${d.signatures.stub}${d.observations.total ? ` · 觀察點 ${d.observations.matched}/${d.observations.total}` : ''})</h3>
       <table><thead><tr><th>列</th><th>簽名 / 模組</th><th>狀態</th></tr></thead><tbody>${stepRows(d)}</tbody></table></section>
@@ -359,33 +533,34 @@ function openDetail(name) {
   detail.hidden = false;
   detail.scrollTop = 0;
 }
-
 function select(name) {
   selected = name;
   paint();
   if (name) openDetail(name); else detail.hidden = true;
 }
-
-board.addEventListener('click', (ev) => {
-  const el = ev.target.closest('.note');
-  if (!el) { select(null); return; }
-  select(el.dataset.name === selected ? null : el.dataset.name);
-});
 detail.addEventListener('click', (ev) => { if (ev.target.classList.contains('close')) select(null); });
-document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') select(null); });
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') select(null);
+  if (ev.key === '0') fit();
+});
 
-for (const b of document.querySelectorAll('.bar button')) {
+for (const b of document.querySelectorAll('.bar button[data-filter]')) {
   b.addEventListener('click', () => {
     filter = b.dataset.filter;
-    for (const o of document.querySelectorAll('.bar button')) o.setAttribute('aria-pressed', String(o === b));
+    for (const o of document.querySelectorAll('.bar button[data-filter]')) o.setAttribute('aria-pressed', String(o === b));
     paint();
   });
 }
 document.getElementById('q').addEventListener('input', (ev) => { query = ev.target.value.trim().toLowerCase(); paint(); });
+const refmode = document.getElementById('refmode');
+const setRefMode = () => { links.className.baseVal = `refs-${refmode.value}`; };
+refmode.addEventListener('change', setRefMode);
 
-drawWires();
-addEventListener('resize', drawWires);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawWires);
+setTopHeight();
+setRefMode();
+paint();
+fit();
+addEventListener('resize', () => { setTopHeight(); fit(); });
 </script>
 </body>
 </html>

@@ -72,6 +72,8 @@ $ lawful status --json --tests test.log
   ],
   "lanes": [
     {
+      "id": "O-1",
+      "achieved": false,
       "title": "O-1 玩家存檔後能讀回同一個世界",
       "badge": "優先 1",
       "notes": [

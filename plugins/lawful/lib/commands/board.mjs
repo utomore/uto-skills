@@ -83,6 +83,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   // 看板的分法:一個目標一條帶、一條里程碑一欄;沒被綁的 pipeline 自己成帶
   const bound = new Set(ov.objs.flatMap((o) => o.ms.flatMap((m) => m.binds)));
   const lanes = ov.objs.map((o) => ({
+    id: o.id,
+    achieved: o.achieved,
     title: `${o.id} ${o.title}`,
     badge: `優先 ${o.priorityRaw || '沒填'}`,
     notes: [`里程碑 ${o.done}/${o.ms.length} 達成 · 完成度 ${o.pct == null ? '-' : `${o.pct}%`}`, o.criteria ? `判準:${o.criteria}` : '沒有可觀察的判準'],
@@ -90,7 +92,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     empty: o.ms.length ? null : '沒有任何里程碑',
   }));
   const loose = docs.filter((d) => !bound.has(d.name)).map((d) => d.name);
-  if (loose.length) lanes.push({ title: '不朝向任何目標', badge: null, notes: ['沒有被任何里程碑綁定'], columns: [{ title: 'pipeline', achieved: false, docs: loose }], empty: null });
+  if (loose.length) lanes.push({ id: null, achieved: false, title: '不朝向任何目標', badge: null, notes: ['沒有被任何里程碑綁定'], columns: [{ title: 'pipeline', achieved: false, docs: loose }], empty: null });
 
   const summary = {
     objectives: ov.objs.length,

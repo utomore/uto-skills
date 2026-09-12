@@ -21,6 +21,7 @@ const CASES = [
   ['shop-status-doc', 'shop', ['status', '--doc', 'F-001-checkout', '--tests', 'test.log']],
   ['shop-status-abstract', 'shop', ['status', '--doc', 'A-001-settle', '--tests', 'test.log']],
   ['shop-status-module', 'shop', ['status', '--module', 'src/domain/**', '--tests', 'test.log']],
+  ['shop-status-json', 'shop', ['status', '--json', '--tests', 'test.log']],
   ['shop-section', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', 'Laws']],
   ['shop-section-verify', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', '沒有的節', '--verify']],
   ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--milestone', 'M-2', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md', '.design/objectives.md']],
@@ -49,6 +50,7 @@ const CASES = [
   ['shaky-lint-trace', 'shaky', ['lint', 'trace']],
   ['shaky-lint-io', 'shaky', ['lint', 'io']],
   ['shaky-status', 'shaky', ['status']],
+  ['shaky-status-json', 'shaky', ['status', '--json']],
   ['shaky-sync', 'shaky', ['sync', '--date', DATE], ['.design/features/F-001-score.md']],
   ['shaky-modules-gen', 'shaky', ['modules', '--gen'], ['.design/modules.md']],
   ['shaky-bad-lint', 'shaky', ['lint', 'nonsense']],
@@ -105,6 +107,34 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/claim feature/.test(h
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
+
+// --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事
+{
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'devflow-html-'));
+  const out = path.join(tmp, 'board.html');
+  const r = spawnSync(process.execPath, [bin, 'status', '--html', out, '--tests', 'test.log', '--root', path.join(here, 'fixtures', 'shop')], { encoding: 'utf8' });
+  const html = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';
+  const data = /<script id="data" type="application\/json">([\s\S]*?)<\/script>/.exec(html);
+  // exit code 帶的是報告判定(有沒有全部達成),不是寫檔成敗;寫成功了就一定讀得到資料區塊。
+  // 資料區塊裡一個生的 < 都不該有:全部逃成 <,文檔寫了什麼都關不掉這個標籤
+  const ok = !html.includes('__STATUS_JSON__') && !!data
+    && /"tool": "devflow"/.test(data[1]) && /F-001-checkout/.test(data[1]) && !data[1].includes('<');
+  fs.rmSync(tmp, { recursive: true, force: true });
+  if (!ok) {
+    failed++;
+    console.log('✗ status --html');
+  } else console.log('✓ status --html');
+}
+
+// 看板的頁面兩個 plugin 共用同一份,逐位元組相同;改了一邊就要複製到另一邊
+{
+  const mine = path.join(here, '..', '..', 'plugins', 'dev-flow', 'templates', 'status-board.html');
+  const other = path.join(here, '..', '..', 'plugins', 'lawful', 'templates', 'status-board.html');
+  if (!fs.existsSync(other) || fs.readFileSync(mine, 'utf8') !== fs.readFileSync(other, 'utf8')) {
+    failed++;
+    console.log('✗ status-board.html 與 lawful 的那份不一致');
+  } else console.log('✓ status-board.html 兩個 plugin 一致');
+}
 
 console.log(failed ? `\n${failed} 個不符` : '\n全部通過');
 process.exitCode = failed ? 1 : 0;

@@ -14,6 +14,8 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-f
 |---|---|
 | `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 在專案根目錄跑 `system.md` 的整套指令;兩者都沒給、或輸出裡一條 `F-00x#LAW-n` 標記都沒有,就列「未跑」並在開頭寫明。專案根目錄有 `.git` 時查分支,已有 `build/<全名>` 分支的線列成建構中 |
 | `status --doc <F-00x>` / `--module <路徑>` | 一份文檔的 step 與 law 逐條狀態 / 住在該檔案或目錄的所有 step 的狀態 |
+| `status --json` | 同一份報告的資料原樣輸出:願景、目標與里程碑、每份文檔(step、law、example、GAP、引用與被引用、模組)、能開的線、警訊、建議路線。數字與文字都與報告同源,給別的工具讀 |
+| `status --html [檔名]` | 同一份報告畫成看板,寫成一個自帶資料的單檔網頁(預設 `devflow-status.html`):一份文檔一張便利貼,顏色是狀態,連線是引用(箭頭指向被引用的那一份),點一張看它的 step 與 law 逐條、牽動誰、警訊。不連網、不起服務,瀏覽器打開就看 |
 | `claim feature\|abstract\|spike\|adr <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建檔(feature 與 abstract 是 `status: draft`);feature 另在 `system.md` Features 表加一列並綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標;spike 另建 `spike/SPK-00x-<slug>/` |
 | `objective add <一句話> --priority <1-4> [--criteria <句>]` | 鑄 `O-n` 寫進 `objectives.md`;優先 1 最高、4 最低;判準沒給就留佔位符並提醒 |
 | `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全檔唯一)加進該目標的表;綁定的全名要是 `features/` 裡有的 feature,abstract 或不存在的都拒絕 |

@@ -1,0 +1,739 @@
+$ devflow status --json
+{
+  "tool": "devflow",
+  "labels": {
+    "unit": "文檔",
+    "steps": "Steps"
+  },
+  "vision": null,
+  "visionState": "template",
+  "tests": "沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知",
+  "summary": {
+    "objectives": 3,
+    "objectivesAchieved": 0,
+    "milestones": 2,
+    "milestonesAchieved": 0,
+    "features": 2,
+    "featuresAchieved": 0,
+    "abstracts": 2,
+    "docs": 4,
+    "docsAchieved": 0,
+    "todoSteps": 4,
+    "openGaps": 2
+  },
+  "headline": [
+    {
+      "label": "目標",
+      "value": "0 / 3 達成"
+    },
+    {
+      "label": "里程碑",
+      "value": "0 / 2 達成"
+    },
+    {
+      "label": "feature",
+      "value": "0 / 2 達成"
+    },
+    {
+      "label": "abstract",
+      "value": "2 份"
+    },
+    {
+      "label": "還沒實作的 step",
+      "value": "4 個"
+    },
+    {
+      "label": "還開著的 GAP",
+      "value": "2 條"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "O-2",
+      "title": "沒有里程碑的目標",
+      "priority": 2,
+      "priorityRaw": "2",
+      "criteria": "看得到一個數字",
+      "achieved": false,
+      "milestonesAchieved": 0,
+      "percent": null,
+      "milestones": []
+    },
+    {
+      "id": "O-3",
+      "title": "編號撞到的目標",
+      "priority": 3,
+      "priorityRaw": "3",
+      "criteria": "看得到另一個數字",
+      "achieved": false,
+      "milestonesAchieved": 0,
+      "percent": 0,
+      "milestones": [
+        {
+          "id": "M-1",
+          "title": "<一句話>",
+          "achieved": false,
+          "binds": []
+        }
+      ]
+    },
+    {
+      "id": "O-1",
+      "title": "算分",
+      "priority": null,
+      "priorityRaw": "9",
+      "criteria": "",
+      "achieved": false,
+      "milestonesAchieved": 0,
+      "percent": 0,
+      "milestones": [
+        {
+          "id": "M-1",
+          "title": "分數算得出來",
+          "achieved": false,
+          "binds": [
+            "F-001-score",
+            "A-001-lonely",
+            "F-009-nope"
+          ]
+        }
+      ]
+    }
+  ],
+  "lanes": [
+    {
+      "title": "O-2 沒有里程碑的目標",
+      "badge": "優先 2",
+      "notes": [
+        "里程碑 0/0 達成 · 完成度 -",
+        "判準:看得到一個數字"
+      ],
+      "columns": [],
+      "empty": "沒有任何里程碑"
+    },
+    {
+      "title": "O-3 編號撞到的目標",
+      "badge": "優先 3",
+      "notes": [
+        "里程碑 0/1 達成 · 完成度 0%",
+        "判準:看得到另一個數字"
+      ],
+      "columns": [
+        {
+          "title": "M-1 <一句話>",
+          "achieved": false,
+          "docs": []
+        }
+      ],
+      "empty": null
+    },
+    {
+      "title": "O-1 算分",
+      "badge": "優先 9",
+      "notes": [
+        "里程碑 0/1 達成 · 完成度 0%",
+        "沒有可觀察的判準"
+      ],
+      "columns": [
+        {
+          "title": "M-1 分數算得出來",
+          "achieved": false,
+          "docs": [
+            "F-001-score",
+            "A-001-lonely",
+            "F-009-nope"
+          ]
+        }
+      ],
+      "empty": null
+    },
+    {
+      "title": "不朝向任何目標",
+      "badge": null,
+      "notes": [
+        "沒有被任何里程碑綁定"
+      ],
+      "columns": [
+        {
+          "title": "feature",
+          "achieved": false,
+          "docs": [
+            "F-002-other"
+          ]
+        }
+      ],
+      "empty": null
+    },
+    {
+      "title": "共用",
+      "badge": null,
+      "notes": [
+        "abstract 跟著引用它的 feature 達成"
+      ],
+      "columns": [
+        {
+          "title": "被 feature 引用",
+          "achieved": false,
+          "docs": [
+            "A-002-single"
+          ]
+        }
+      ],
+      "empty": null
+    }
+  ],
+  "docs": [
+    {
+      "name": "F-001-score",
+      "id": "F-001",
+      "kind": "feature",
+      "status": "frozen",
+      "description": "把一段輸入算成分數",
+      "state": "卡 GAP-1、GAP-1",
+      "achieved": false,
+      "building": false,
+      "objective": "O-1",
+      "priority": null,
+      "milestone": "M-1",
+      "signatures": {
+        "total": 5,
+        "matched": 2,
+        "stub": 1
+      },
+      "observations": {
+        "total": 1,
+        "matched": 0
+      },
+      "laws": {
+        "total": 2,
+        "green": null,
+        "traced": 1,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "invariant",
+            "title": "分數不為負",
+            "result": "未跑"
+          },
+          {
+            "id": "LAW-2",
+            "kind": "nonsense",
+            "title": "種類不合法,而且引用了不存在的東西",
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "examples": {
+        "total": 2,
+        "green": null,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "未翻譯"
+          },
+          {
+            "id": "EX-2",
+            "covers": [
+              "LAW-7"
+            ],
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 1,
+        "last": "REV-1(2026-09-07,依 開發者):改了但沒有解凍紀錄"
+      },
+      "gaps": [
+        "GAP-1",
+        "GAP-1"
+      ],
+      "refs": [
+        "F-002-other"
+      ],
+      "referrers": [],
+      "blockedBy": [
+        "F-002-other"
+      ],
+      "modules": [
+        "src/domain/rule.ts",
+        "src/app/store.ts",
+        "src/app/other.ts",
+        "src/entry/api.ts"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "weigh",
+          "signature": "weigh(Rule): string",
+          "module": "src/domain/rule.ts",
+          "layer": "domain",
+          "state": "不一致",
+          "at": "src/domain/rule.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "2",
+          "name": "missingStep",
+          "signature": "missingStep(Raw): number",
+          "module": "src/app/store.ts",
+          "layer": "application",
+          "state": "找不到",
+          "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "3",
+          "name": "helperOnly",
+          "signature": "helperOnly(Raw): number",
+          "module": "src/app/store.ts",
+          "layer": "application",
+          "state": "找不到",
+          "at": null,
+          "ref": "F-002-other",
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "weigh",
+          "signature": "weigh(Rule): string",
+          "module": "src/domain/rule.ts",
+          "layer": "domain",
+          "state": "不一致",
+          "at": "src/domain/rule.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "score",
+          "signature": "score(Raw): number",
+          "module": "src/app/other.ts",
+          "layer": "application",
+          "state": "搬家",
+          "at": "src/app/store.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "!",
+          "name": "scoreHandler",
+          "signature": "scoreHandler(Raw): number",
+          "module": "src/entry/api.ts",
+          "layer": "entry",
+          "state": "在",
+          "at": "src/entry/api.ts",
+          "ref": null,
+          "observe": false,
+          "entry": true,
+          "wish": false
+        }
+      ]
+    },
+    {
+      "name": "F-002-other",
+      "id": "F-002",
+      "kind": "feature",
+      "status": "draft",
+      "description": "另一份 feature,被 F-001 錯誤地引用",
+      "state": "等 A-002-single",
+      "achieved": false,
+      "building": false,
+      "objective": null,
+      "priority": null,
+      "milestone": null,
+      "signatures": {
+        "total": 2,
+        "matched": 1,
+        "stub": 0
+      },
+      "observations": {
+        "total": 0,
+        "matched": 0
+      },
+      "laws": {
+        "total": 1,
+        "green": 0,
+        "traced": 0,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "invariant",
+            "title": "恆為正",
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "examples": {
+        "total": 1,
+        "green": 0,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 0,
+        "last": null
+      },
+      "gaps": [],
+      "refs": [
+        "A-002-single"
+      ],
+      "referrers": [
+        "F-001-score"
+      ],
+      "blockedBy": [
+        "A-002-single"
+      ],
+      "modules": [
+        "src/app/store.ts"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "weigh",
+          "signature": "weigh(Rule): number",
+          "module": "src/domain/rule.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/rule.ts",
+          "ref": "A-002-single",
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "helperOnly",
+          "signature": "helperOnly(Raw): number",
+          "module": "src/app/store.ts",
+          "layer": "application",
+          "state": "找不到",
+          "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        }
+      ]
+    },
+    {
+      "name": "A-001-lonely",
+      "id": "A-001",
+      "kind": "abstract",
+      "status": "draft",
+      "description": "沒有任何人引用的抽象",
+      "state": "進行中",
+      "achieved": false,
+      "building": false,
+      "objective": "O-1",
+      "priority": null,
+      "milestone": "M-1",
+      "signatures": {
+        "total": 2,
+        "matched": 2,
+        "stub": 0
+      },
+      "observations": {
+        "total": 0,
+        "matched": 0
+      },
+      "laws": {
+        "total": 1,
+        "green": 0,
+        "traced": 0,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "invariant",
+            "title": "重讀不改名字",
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "examples": {
+        "total": 1,
+        "green": 0,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 0,
+        "last": null
+      },
+      "gaps": [],
+      "refs": [],
+      "referrers": [],
+      "blockedBy": [],
+      "modules": [
+        "src/domain/rule.ts",
+        "src/entry/api.ts"
+      ],
+      "steps": [
+        {
+          "index": "=",
+          "name": "reload",
+          "signature": "reload(string): Rule",
+          "module": "src/domain/rule.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/rule.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "!",
+          "name": "dumpHandler",
+          "signature": "dumpHandler(Raw): string",
+          "module": "src/entry/api.ts",
+          "layer": "entry",
+          "state": "在",
+          "at": "src/entry/api.ts",
+          "ref": null,
+          "observe": false,
+          "entry": true,
+          "wish": false
+        }
+      ]
+    },
+    {
+      "name": "A-002-single",
+      "id": "A-002",
+      "kind": "abstract",
+      "status": "draft",
+      "description": "只有一份 feature 用的抽象,收整沒有成立",
+      "state": "進行中",
+      "achieved": false,
+      "building": false,
+      "objective": null,
+      "priority": null,
+      "milestone": null,
+      "signatures": {
+        "total": 1,
+        "matched": 1,
+        "stub": 0
+      },
+      "observations": {
+        "total": 0,
+        "matched": 0
+      },
+      "laws": {
+        "total": 1,
+        "green": 0,
+        "traced": 0,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "bound",
+            "title": "權重不為負",
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "examples": {
+        "total": 1,
+        "green": 0,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "未翻譯"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 0,
+        "last": null
+      },
+      "gaps": [],
+      "refs": [],
+      "referrers": [
+        "F-002-other"
+      ],
+      "blockedBy": [],
+      "modules": [
+        "src/domain/rule.ts"
+      ],
+      "steps": [
+        {
+          "index": "=",
+          "name": "weigh",
+          "signature": "weigh(Rule): number",
+          "module": "src/domain/rule.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/rule.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "F-001-score",
+      "to": "F-002-other"
+    },
+    {
+      "from": "F-002-other",
+      "to": "A-002-single"
+    }
+  ],
+  "lines": {
+    "openable": [],
+    "building": [],
+    "shared": []
+  },
+  "gaps": [
+    {
+      "id": "GAP-1",
+      "target": "F-001-score#LAW-1",
+      "role": "qa"
+    },
+    {
+      "id": "GAP-1",
+      "target": "F-001-score#missingStep",
+      "role": "impl"
+    }
+  ],
+  "warnings": [
+    {
+      "where": "system.md",
+      "what": "願景還是模板",
+      "fix": "dev-flow:project 訂願景"
+    },
+    {
+      "where": "O-2",
+      "what": "沒有任何里程碑",
+      "fix": "dev-flow:objective 補里程碑並綁定文檔"
+    },
+    {
+      "where": "M-1",
+      "what": "里程碑還是模板",
+      "fix": "dev-flow:objective 寫成一句話"
+    },
+    {
+      "where": "M-1",
+      "what": "沒有綁定任何文檔",
+      "fix": "devflow claim feature <slug> --milestone M-1,或在綁定欄填既有的 feature 全名"
+    },
+    {
+      "where": "O-1",
+      "what": "優先「9」不是 1 到 4",
+      "fix": "改成 1(最高)到 4(最低)"
+    },
+    {
+      "where": "O-1",
+      "what": "沒有可觀察的判準",
+      "fix": "dev-flow:objective 補一句達成時看得到什麼"
+    },
+    {
+      "where": "M-1",
+      "what": "里程碑編號重複",
+      "fix": "編號全檔唯一;配號只走 devflow objective milestone"
+    },
+    {
+      "where": "M-1",
+      "what": "綁定的 A-001-lonely 是 abstract",
+      "fix": "改綁引用它的 feature;abstract 跟著 feature 達成"
+    },
+    {
+      "where": "M-1",
+      "what": "綁定的 F-009-nope 不存在",
+      "fix": "改成 features/ 裡有的全名,或刪這個綁定"
+    },
+    {
+      "where": "F-002-other",
+      "what": "沒有被任何里程碑綁定",
+      "fix": "不朝向任何目標:dev-flow:objective 綁進一條里程碑,或刪掉這份 feature"
+    },
+    {
+      "where": "A-002-single",
+      "what": "只有 F-002-other 用它",
+      "fix": "收整沒有成立;dev-flow:refactor 搬回去,或找出第二個消費者"
+    },
+    {
+      "where": "GAP-1",
+      "what": "gaps.md 裡出現 2 次",
+      "fix": "兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」)"
+    },
+    {
+      "where": "F-001-score",
+      "what": "frozen 而有 REV 卻沒有解凍紀錄",
+      "fix": "在「決定」補一條解凍"
+    },
+    {
+      "where": "F-001-score#weigh",
+      "what": "簽名與程式碼不一致",
+      "fix": "devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV"
+    },
+    {
+      "where": "F-001-score#weigh",
+      "what": "簽名與程式碼不一致",
+      "fix": "devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV"
+    },
+    {
+      "where": "F-001-score#score",
+      "what": "程式碼在 src/app/store.ts",
+      "fix": "devflow sync"
+    },
+    {
+      "where": "F-002-other",
+      "what": "不在 system.md 的 Features 表",
+      "fix": "補一列"
+    },
+    {
+      "where": "system.md",
+      "what": "列了 F-003-missing,features/ 沒有這個檔",
+      "fix": "刪那一列或 devflow claim"
+    },
+    {
+      "where": "模組表 / 層",
+      "what": "lint boundary 3 條不合規",
+      "fix": "devflow lint boundary"
+    }
+  ],
+  "route": {
+    "steps": [
+      "先回答 GAP-1、GAP-1(dev-flow:revise),卡住的 step 才能重派",
+      "F-002-other、A-001-lonely、A-002-single 討論完改 ready"
+    ],
+    "note": null,
+    "allDone": false
+  }
+}
+exit 1

@@ -1,6 +1,6 @@
 ---
 name: status
-description: dev-flow 的派工報告 — 跑 devflow status(接上最近一次測試輸出),用人話講今天能開幾條線、卡住的、等決定、牽動誰、待實作、修訂熱點、警訊、建議路線;--doc / --module 追問單份文檔或單一檔案。觸發詞:進度、狀態、status、今天做什麼、派工、還差什麼、哪些卡住、dev-flow status。Use when the developer asks where the project stands or what to do next.
+description: dev-flow 的派工報告 — 跑 devflow status(接上最近一次測試輸出),用人話講今天能開幾條線、卡住的、等決定、牽動誰、待實作、修訂熱點、警訊、建議路線;--doc / --module 追問單份文檔或單一檔案,--html 把同一份報告畫成便利貼看板。觸發詞:進度、狀態、status、今天做什麼、派工、還差什麼、哪些卡住、看板、畫成圖、便利貼、dev-flow status。Use when the developer asks where the project stands or what to do next.
 user-invocable: true
 ---
 
@@ -18,6 +18,7 @@ user-invocable: true
    - **願景與目標**(從報告開頭的願景行與目標表講):最高優先還沒達成的目標是哪一個、完成度幾 %、它的下一個里程碑卡在哪份文檔;有沒有 feature 不朝向任何目標(沒被綁定)、有沒有目標沒有任何里程碑;正在做的事是不是最高優先目標的里程碑,不是就明講「我們沒有朝向目標」;願景還是模板就先講這件事。
    - 第 6 段(修訂熱點)講的是穩定度:一直在改的地方是設計還沒收斂,被很多份引用的 abstract 是改動半徑最大的地方。
 4. **追問**:開發者問某份文檔或某個檔案,跑 `--doc <全名>` 或 `--module <路徑>`,逐 step 講在不在、law 綠不綠。
+5. **看板**:開發者要看圖、要一眼看清楚哪份牽動哪份,跑 `status --html <檔名>`(同樣接 `--tests`),回報寫出來的路徑叫他用瀏覽器打開;不改用講的取代第 3 步。
 
 ## 收尾
 

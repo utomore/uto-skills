@@ -1,0 +1,678 @@
+$ devflow status --json --tests test.log
+{
+  "tool": "devflow",
+  "labels": {
+    "unit": "文檔",
+    "steps": "Steps"
+  },
+  "vision": "小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。",
+  "visionState": "ok",
+  "tests": "測試結果來自 test.log",
+  "summary": {
+    "objectives": 1,
+    "objectivesAchieved": 1,
+    "milestones": 2,
+    "milestonesAchieved": 2,
+    "features": 2,
+    "featuresAchieved": 2,
+    "abstracts": 1,
+    "docs": 3,
+    "docsAchieved": 3,
+    "todoSteps": 0,
+    "openGaps": 0
+  },
+  "headline": [
+    {
+      "label": "目標",
+      "value": "1 / 1 達成"
+    },
+    {
+      "label": "里程碑",
+      "value": "2 / 2 達成"
+    },
+    {
+      "label": "feature",
+      "value": "2 / 2 達成"
+    },
+    {
+      "label": "abstract",
+      "value": "1 份"
+    },
+    {
+      "label": "還沒實作的 step",
+      "value": "0 個"
+    },
+    {
+      "label": "還開著的 GAP",
+      "value": "0 條"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "O-1",
+      "title": "每一筆結帳與退款的金額都算對",
+      "priority": 1,
+      "priorityRaw": "1",
+      "criteria": "任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分",
+      "achieved": true,
+      "milestonesAchieved": 2,
+      "percent": 100,
+      "milestones": [
+        {
+          "id": "M-1",
+          "title": "結帳走通",
+          "achieved": true,
+          "binds": [
+            "F-001-checkout"
+          ]
+        },
+        {
+          "id": "M-2",
+          "title": "退款走通",
+          "achieved": true,
+          "binds": [
+            "F-002-refund"
+          ]
+        }
+      ]
+    }
+  ],
+  "lanes": [
+    {
+      "title": "O-1 每一筆結帳與退款的金額都算對",
+      "badge": "優先 1",
+      "notes": [
+        "里程碑 2/2 達成 · 完成度 100%",
+        "判準:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分"
+      ],
+      "columns": [
+        {
+          "title": "M-1 結帳走通",
+          "achieved": true,
+          "docs": [
+            "F-001-checkout"
+          ]
+        },
+        {
+          "title": "M-2 退款走通",
+          "achieved": true,
+          "docs": [
+            "F-002-refund"
+          ]
+        }
+      ],
+      "empty": null
+    },
+    {
+      "title": "共用",
+      "badge": null,
+      "notes": [
+        "abstract 跟著引用它的 feature 達成"
+      ],
+      "columns": [
+        {
+          "title": "被 feature 引用",
+          "achieved": false,
+          "docs": [
+            "A-001-settle"
+          ]
+        }
+      ],
+      "empty": null
+    }
+  ],
+  "docs": [
+    {
+      "name": "F-001-checkout",
+      "id": "F-001",
+      "kind": "feature",
+      "status": "frozen",
+      "description": "使用者把購物車結成一張已付款的訂單",
+      "state": "達成",
+      "achieved": true,
+      "building": false,
+      "objective": "O-1",
+      "priority": 1,
+      "milestone": "M-1",
+      "signatures": {
+        "total": 5,
+        "matched": 5,
+        "stub": 0
+      },
+      "observations": {
+        "total": 3,
+        "matched": 3
+      },
+      "laws": {
+        "total": 3,
+        "green": 3,
+        "traced": 3,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "relation",
+            "title": "訂單付的錢就是這張購物車的結算金額",
+            "result": "green"
+          },
+          {
+            "id": "LAW-2",
+            "kind": "total",
+            "title": "任何一段請求文字都得到一個結果,不拋例外",
+            "result": "green"
+          },
+          {
+            "id": "LAW-3",
+            "kind": "bound",
+            "title": "成單時付款金額不為負",
+            "result": "green"
+          }
+        ]
+      },
+      "examples": {
+        "total": 3,
+        "green": 3,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1",
+              "LAW-3"
+            ],
+            "result": "green"
+          },
+          {
+            "id": "EX-2",
+            "covers": [
+              "LAW-1",
+              "LAW-2"
+            ],
+            "result": "green"
+          },
+          {
+            "id": "EX-3",
+            "covers": [
+              "LAW-2",
+              "LAW-3"
+            ],
+            "result": "green"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 1,
+        "last": "REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle"
+      },
+      "gaps": [],
+      "refs": [
+        "A-001-settle"
+      ],
+      "referrers": [],
+      "blockedBy": [],
+      "modules": [
+        "src/app/checkout.ts",
+        "src/entry/routes.ts"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "parseCheckout",
+          "signature": "parseCheckout(RawBody): CheckoutReq",
+          "module": "src/app/checkout.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/checkout.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "2",
+          "name": "settle",
+          "signature": "settle(MoneyList, Money): Settlement",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
+          "ref": "A-001-settle",
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "3",
+          "name": "toOrder",
+          "signature": "toOrder(CheckoutReq, Settlement): CheckoutResult",
+          "module": "src/app/checkout.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/checkout.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "reqLines",
+          "signature": "reqLines(CheckoutReq): MoneyList",
+          "module": "src/app/checkout.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/checkout.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "reqDiscount",
+          "signature": "reqDiscount(CheckoutReq): Money",
+          "module": "src/app/checkout.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/checkout.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "paidCents",
+          "signature": "paidCents(CheckoutResult): number",
+          "module": "src/app/checkout.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/checkout.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "checkout",
+          "signature": "checkout(RawBody): CheckoutResult",
+          "module": "src/app/checkout.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/checkout.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "!",
+          "name": "checkoutHandler",
+          "signature": "checkoutHandler(HttpReq): HttpRes",
+          "module": "src/entry/routes.ts",
+          "layer": "entry",
+          "state": "在",
+          "at": "src/entry/routes.ts",
+          "ref": null,
+          "observe": false,
+          "entry": true,
+          "wish": false
+        }
+      ]
+    },
+    {
+      "name": "F-002-refund",
+      "id": "F-002",
+      "kind": "feature",
+      "status": "frozen",
+      "description": "客服把一張訂單的部分品項退款給使用者",
+      "state": "達成",
+      "achieved": true,
+      "building": false,
+      "objective": "O-1",
+      "priority": 1,
+      "milestone": "M-2",
+      "signatures": {
+        "total": 5,
+        "matched": 5,
+        "stub": 0
+      },
+      "observations": {
+        "total": 3,
+        "matched": 3
+      },
+      "laws": {
+        "total": 2,
+        "green": 2,
+        "traced": 2,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "relation",
+            "title": "退回的錢就是這些品項扣掉手續費的結算金額",
+            "result": "green"
+          },
+          {
+            "id": "LAW-2",
+            "kind": "total",
+            "title": "任何一段請求文字都得到一個結果,不拋例外",
+            "result": "green"
+          }
+        ]
+      },
+      "examples": {
+        "total": 2,
+        "green": 2,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1"
+            ],
+            "result": "green"
+          },
+          {
+            "id": "EX-2",
+            "covers": [
+              "LAW-1",
+              "LAW-2"
+            ],
+            "result": "green"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 1,
+        "last": "REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle"
+      },
+      "gaps": [],
+      "refs": [
+        "A-001-settle"
+      ],
+      "referrers": [],
+      "blockedBy": [],
+      "modules": [
+        "src/app/refund.ts",
+        "src/entry/routes.ts"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "parseRefund",
+          "signature": "parseRefund(RawBody): RefundReq",
+          "module": "src/app/refund.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/refund.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "2",
+          "name": "settle",
+          "signature": "settle(MoneyList, Money): Settlement",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
+          "ref": "A-001-settle",
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "3",
+          "name": "toRefund",
+          "signature": "toRefund(RefundReq, Settlement): RefundResult",
+          "module": "src/app/refund.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/refund.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "refundLines",
+          "signature": "refundLines(RefundReq): MoneyList",
+          "module": "src/app/refund.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/refund.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "refundFee",
+          "signature": "refundFee(RefundReq): Money",
+          "module": "src/app/refund.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/refund.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "returnedCents",
+          "signature": "returnedCents(RefundResult): number",
+          "module": "src/app/refund.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/refund.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "refund",
+          "signature": "refund(RawBody): RefundResult",
+          "module": "src/app/refund.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/refund.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "!",
+          "name": "refundHandler",
+          "signature": "refundHandler(HttpReq): HttpRes",
+          "module": "src/entry/routes.ts",
+          "layer": "entry",
+          "state": "在",
+          "at": "src/entry/routes.ts",
+          "ref": null,
+          "observe": false,
+          "entry": true,
+          "wish": false
+        }
+      ]
+    },
+    {
+      "name": "A-001-settle",
+      "id": "A-001",
+      "kind": "abstract",
+      "status": "frozen",
+      "description": "一組品項金額扣掉折扣之後的應付金額",
+      "state": "達成",
+      "achieved": true,
+      "building": false,
+      "objective": null,
+      "priority": null,
+      "milestone": null,
+      "signatures": {
+        "total": 3,
+        "matched": 3,
+        "stub": 0
+      },
+      "observations": {
+        "total": 2,
+        "matched": 2
+      },
+      "laws": {
+        "total": 3,
+        "green": 3,
+        "traced": 3,
+        "items": [
+          {
+            "id": "LAW-1",
+            "kind": "invariant",
+            "title": "結算成功時金額不為負",
+            "result": "green"
+          },
+          {
+            "id": "LAW-2",
+            "kind": "identity",
+            "title": "折扣是零時,結算金額等於各品項相加",
+            "result": "green"
+          },
+          {
+            "id": "LAW-3",
+            "kind": "total",
+            "title": "任何品項清單與任何折扣都得到一個 Settlement,不拋例外",
+            "result": "green"
+          }
+        ]
+      },
+      "examples": {
+        "total": 2,
+        "green": 2,
+        "items": [
+          {
+            "id": "EX-1",
+            "covers": [
+              "LAW-1",
+              "LAW-2"
+            ],
+            "result": "green"
+          },
+          {
+            "id": "EX-2",
+            "covers": [
+              "LAW-1",
+              "LAW-3"
+            ],
+            "result": "green"
+          }
+        ]
+      },
+      "revisions": {
+        "count": 1,
+        "last": "REV-1(2026-09-07,依 dev-flow:refactor 收整):把 F-001-checkout 與 F-002-refund 各自寫的金額計算收整進本檔"
+      },
+      "gaps": [],
+      "refs": [],
+      "referrers": [
+        "F-001-checkout",
+        "F-002-refund"
+      ],
+      "blockedBy": [],
+      "modules": [
+        "src/domain/money.ts"
+      ],
+      "steps": [
+        {
+          "index": "1",
+          "name": "sumLines",
+          "signature": "sumLines(MoneyList): Settlement",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "2",
+          "name": "subtract",
+          "signature": "subtract(Settlement, Money): Settlement",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "cents",
+          "signature": "cents(Settlement): number",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "o",
+          "name": "settled",
+          "signature": "settled(Settlement): boolean",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false,
+          "wish": false
+        },
+        {
+          "index": "=",
+          "name": "settle",
+          "signature": "settle(MoneyList, Money): Settlement",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
+          "ref": null,
+          "observe": false,
+          "entry": false,
+          "wish": false
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "F-001-checkout",
+      "to": "A-001-settle"
+    },
+    {
+      "from": "F-002-refund",
+      "to": "A-001-settle"
+    }
+  ],
+  "lines": {
+    "openable": [],
+    "building": [],
+    "shared": []
+  },
+  "gaps": [],
+  "warnings": [],
+  "route": {
+    "steps": [],
+    "note": "目前功能全部正常運作:每份文檔達成、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:devflow claim feature <slug>",
+    "allDone": true
+  }
+}
+exit 0

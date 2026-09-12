@@ -191,19 +191,5 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/claim feature/.test(h
   } else console.log('✓ status-board.html 兩個 plugin 一致');
 }
 
-// 畫布上的點選不靠瀏覽器發的 click:拖曳要吃 pointermove,吃了就得指標鎖定,而指標鎖定
-// 會把 click 的 target 換成整個畫布,點便利貼就一點反應都沒有。點選只准認 pointerdown
-// 當下手指底下那張卡片,在 pointerup 沒拖動時才算數
-{
-  const tpl = fs.readFileSync(path.join(here, '..', '..', 'plugins', 'dev-flow', 'templates', 'status-board.html'), 'utf8');
-  const ok = !tpl.includes("stage.addEventListener('click'")
-    && tpl.includes('pressed = ev.target')
-    && tpl.includes('if (moved < 5 && pressed) hit(pressed)');
-  if (!ok) {
-    failed++;
-    console.log('✗ 看板的點選走 pointerdown / pointerup,不走 click');
-  } else console.log('✓ 看板的點選走 pointerdown / pointerup,不走 click');
-}
-
 console.log(failed ? `\n${failed} 個不符` : '\n全部通過');
 process.exitCode = failed ? 1 : 0;

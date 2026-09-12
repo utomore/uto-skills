@@ -28,6 +28,14 @@ bash tests/dev-flow/run.sh                # dev-flow:七個夾具的 golden 回�
 bash tests/lawful/run.sh                  # lawful:三個夾具的 golden 回歸 + --help;fixtures/save-game 同時是 .lawful 的完整範例
 ```
 
+改了 `templates/status-board.html` 還要多跑這一道:
+
+```
+bash tests/board/run.sh                   # 看板在真的 Chrome 裡點過一遍:點選、拖曳、縮排、走線
+```
+
+`tests/board/` 用 Node 內建的 WebSocket 直接講 CDP 開一個 headless Chrome,不裝套件;找不到 Chrome 就用 `CHROME_PATH` 指到執行檔。看板的行為只有這一道守得住 —— 另外兩道是 CLI 的文字比對,不會開頁面。
+
 行為是刻意改的才 `--update` 重產 golden,並在 PR 說明為什麼變。夾具本身也是規章的一部分:`shop` 示範一棵全綠的樹(兩份 feature 共用一份 abstract),`blank` 是剛從模板複製出來一個字都沒填的樹(佔位符列不准被當成真的),`shaky` 讓每一道紅與每一條警訊各出現一次,`py-svc` / `go-svc` / `rs-svc` 各證明一個 adapter,`legacy` 是舊 `subsystems/` 樹的遷移帳本輸入。
 
 ## 版本與 PR

@@ -103,12 +103,29 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/status/.test(h.stdout
   // 資料區塊裡一個生的 < 都不該有:全部逃成 <,文檔寫了什麼都關不掉這個標籤
   const ok = !html.includes('__STATUS_JSON__') && !!data
     && /"tool": "lawful"/.test(data[1]) && /P-001-save-game/.test(data[1]) && !data[1].includes('<')
-    && /^file:\/\/\/.*board\.html$/m.test(r.stdout);
+    && /^file:\/\/\/.*board\.html$/m.test(r.stdout)
+    && r.stdout.includes('# lawful status');   // --html 是額外產出,報告照印
   fs.rmSync(tmp, { recursive: true, force: true });
   if (!ok) {
     failed++;
     console.log('✗ status --html');
   } else console.log('✓ status --html');
+}
+
+// --html 不給檔名:寫進暫存區的 lawful-board/,專案資料夾裡一個字都不留
+{
+  const fixtureDir = path.join(here, 'fixtures', 'save-game');
+  const before = new Set(fs.readdirSync(fixtureDir));
+  const r = spawnSync(process.execPath, [bin, 'status', '--html', '--root', fixtureDir], { encoding: 'utf8' });
+  const m = /^file:\/\/\/(.*)$/m.exec(r.stdout);
+  const after = new Set(fs.readdirSync(fixtureDir));
+  const wrote = m ? decodeURIComponent(m[1]) : '';
+  const ok = !!m && /lawful-board/.test(wrote) && fs.existsSync(wrote)
+    && [...after].every((n) => before.has(n));
+  if (!ok) {
+    failed++;
+    console.log('✗ status --html 沒給檔名');
+  } else console.log('✓ status --html 沒給檔名');
 }
 
 // 看板的頁面兩個 plugin 共用同一份,逐位元組相同;改了一邊就要複製到另一邊

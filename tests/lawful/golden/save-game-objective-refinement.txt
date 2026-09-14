@@ -1,0 +1,25 @@
+$ lawful objective refinement O-1 寫檔改成串流 --touch P-001-save-write
+RF-2 寫進 R-1-O-1-save-roundtrip,動到 P-001-save-write
+下一步:lawful:revise P-001-save-write,REV 的依欄引用 RF-2;調整達成 = 動到的每條都有一條 REV 引用它、都達成,而且 R-1 的 Law 仍成立
+exit 0
+--- .lawful/objectives/R-1-O-1-save-roundtrip.md
+---
+id: O-1
+requirement: R-1
+priority: 1
+updated: 2026-09-05
+---
+# R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
+
+- Law:繼承 R-1
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 存檔寫得出檔案 | P-001-save-write |
+| M-2 | 存檔壞了看得出來 | - |
+
+| 調整 | 做到什麼 | 動到 |
+|---|---|---|
+| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+| RF-2 | 寫檔改成串流 | P-001-save-write |
+

@@ -1,5 +1,5 @@
 // lint boundary / sig / laws / trace / io / all。每道回 { title, red: [], info: [] }。
-import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, layerRoot, matchesPattern, unitOf } from '../design.mjs';
+import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, layerRoot, matchesPattern, unitOf, unitOfSlug, unitSlug } from '../design.mjs';
 import { findSignature, findType } from '../source.mjs';
 
 function at(file, line) {
@@ -28,8 +28,8 @@ export function lintBoundary(design, source, adapter) {
     if (inside) r.red.push(`${at(design.modules.file, e.line)} 模組單元 ${e.unit} 住在 ${inside.unit} 底下;單元不巢狀`);
   }
   if (!source) return r;
-  const ioPatterns = [...adapter.ioModules, ...(design.system ? design.system.ioExtra : [])];
-  const effectExtra = design.system ? design.system.effectExtra : [];
+  const ioPatterns = [...adapter.ioModules, ...(design.cone ? design.cone.ioExtra : [])];
+  const effectExtra = design.cone ? design.cone.effectExtra : [];
   for (const d of source.duplicates) r.red.push(`${d.files.join('、')} 都叫 ${d.module};一個模組名只准一個檔,編譯期會撞名`);
   for (const e of entries) {
     if (e.placeholder) continue;
@@ -40,7 +40,7 @@ export function lintBoundary(design, source, adapter) {
     }
     for (const l of e.layers) {
       if (!LAYERS.includes(l)) continue;
-      if (!mine.some((m) => m.layer === l)) r.info.push(`模組單元 ${e.unit} 的 ${l} 層還沒有程式碼(${layerRoot(design.system, l)}/ 底下是空的)`);
+      if (!mine.some((m) => m.layer === l)) r.info.push(`模組單元 ${e.unit} 的 ${l} 層還沒有程式碼(${layerRoot(design.cone, l)}/ 底下是空的)`);
     }
   }
   for (const m of source.modules.values()) {
@@ -54,9 +54,9 @@ export function lintBoundary(design, source, adapter) {
       continue;
     }
     const layer = m.layer;
-    if (!entry.layers.includes(layer)) r.red.push(`${m.file} 模組 ${m.module} 在 ${layerRoot(design.system, layer)}/ 底下,模組表的 ${entry.unit} 沒有宣告 ${layer} 層`);
+    if (!entry.layers.includes(layer)) r.red.push(`${m.file} 模組 ${m.module} 在 ${layerRoot(design.cone, layer)}/ 底下,模組表的 ${entry.unit} 沒有宣告 ${layer} 層`);
     if (adapter.modulePath) {
-      const want = `${layerRoot(design.system, layer)}/${adapter.modulePath(m.module)}`;
+      const want = `${layerRoot(design.cone, layer)}/${adapter.modulePath(m.module)}`;
       if (m.file !== want) r.red.push(`${m.file} 的模組叫 ${m.module},檔案位置要是 ${want}`);
     }
     const allowed = ALLOWED_IMPORTS[layer] || [];
@@ -79,13 +79,6 @@ export function lintBoundary(design, source, adapter) {
   return r;
 }
 
-// system.md「Pipelines」表的類別;沒列回 null。
-function kindOf(design, fullName) {
-  if (!design.system) return null;
-  const row = design.system.pipelines.find((l) => l.fullName === fullName);
-  return row ? row.kind : null;
-}
-
 export function lintSig(design, source, adapter) {
   const r = { title: 'lint sig', red: [], info: [] };
   const entries = design.modules ? design.modules.entries : [];
@@ -97,10 +90,17 @@ export function lintSig(design, source, adapter) {
     }
     const wholes = p.stages.filter((s) => s.whole);
     if (wholes.length !== 1) r.red.push(`${p.file} = 列要恰好一列,現在 ${wholes.length} 列`);
+    // slug = <領域名詞>-<動詞>:領域名詞是 = 列住的模組單元。= 列對不到單元時退而查它是不是表上任何一個單元
+    if (p.slug) {
+      const units = entries.filter((e) => !e.placeholder);
+      const wholeUnit = wholes.length === 1 && !wholes[0].ref ? unitOf(units, wholes[0].module) : null;
+      if (!/^[a-z0-9]+(-[a-z0-9]+)+$/.test(p.slug)) r.red.push(`${p.file} slug「${p.slug}」不是 <領域名詞>-<動詞或動名詞>;lawful rename ${p.id} <slug>`);
+      else if (wholeUnit && !p.slug.startsWith(`${unitSlug(design.cone, wholeUnit.unit)}-`)) r.red.push(`${p.file} slug 的領域名詞不是 = 列住的單元:= 列 ${wholes[0].name} 住 ${wholeUnit.unit}(${unitSlug(design.cone, wholeUnit.unit)}),slug 是「${p.slug}」;lawful rename ${p.id} ${unitSlug(design.cone, wholeUnit.unit)}-<動詞>`);
+      else if (!wholeUnit && units.length && !unitOfSlug(design.cone, units, p.slug)) r.red.push(`${p.file} slug「${p.slug}」的領域名詞對不到模組表上任何單元;lawful rename ${p.id} <單元>-<動詞>`);
+    }
     const runners = p.stages.filter((s) => s.runner);
-    const kind = kindOf(design, p.fullName);
-    if (kind === 'IO 介面' && runners.length !== 1) r.red.push(`${p.file} IO 介面要恰好一列 ! 列(shell 的進入點),現在 ${runners.length} 列`);
-    if (kind === '子流' && runners.length) r.red.push(`${p.file} 子流不碰 shell,不該有 ! 列`);
+    if (p.kind === 'IO 介面' && runners.length !== 1) r.red.push(`${p.file} IO 介面要恰好一列 ! 列(shell 的進入點),現在 ${runners.length} 列`);
+    if (p.kind === '子流' && runners.length) r.red.push(`${p.file} 子流不碰 shell,不該有 ! 列`);
     for (const s of p.stages) {
       if (!s.name || !s.type) {
         r.red.push(`${at(p.file, s.line)} 簽名欄不是 name :: Type:${s.sigText}`);
@@ -114,7 +114,7 @@ export function lintSig(design, source, adapter) {
       if (entries.length && !entry) r.red.push(`${at(p.file, s.line)} ${s.name} 的模組 ${s.module} 不在模組表`);
       else if (entry && LAYERS.includes(s.layer) && !entry.layers.includes(s.layer)) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,模組表的 ${entry.unit} 只宣告了 ${entry.layers.join('、')} 層`);
       const codeLayer = source && source.modules.has(s.module) ? source.modules.get(s.module).layer : null;
-      if (codeLayer && codeLayer !== s.layer) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,${s.module} 的檔在 ${layerRoot(design.system, codeLayer)}/ 底下`);
+      if (codeLayer && codeLayer !== s.layer) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,${s.module} 的檔在 ${layerRoot(design.cone, codeLayer)}/ 底下`);
       if (s.ref && !design.pipelines.some((q) => q.fullName === s.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 引用的 ${s.ref} 不存在`);
       if (!s.ref && s.name) {
         const owner = design.pipelines.find((q) => q !== p && q.stages.some((t) => t.name === s.name && t.whole));
@@ -184,6 +184,31 @@ function boundVars(forall) {
   return { vars, rhs };
 }
 
+// 三行式的檢查:forall / |- 齊全、純 ASCII、識別字對得到 names(Stages 簽名)、types 層匯出或標準函式庫。
+// 回這條 law 提到的 stage 名字(= 列至少被一條 law 引用要用)。
+function checkLawBody(r, where, law, names, typesExports, stdlib, scope) {
+  const mentioned = new Set();
+  if (!law.forall) r.red.push(`${where} 缺 forall 行`);
+  if (!law.conclusion) r.red.push(`${where} 缺 |- 行`);
+  if (!law.forall || !law.conclusion) return mentioned;
+  const { vars, rhs } = boundVars(law.forall);
+  const bound = new Set(vars);
+  const check = (text, label) => {
+    for (const id of identifiers(text)) {
+      if (names.has(id)) mentioned.add(id);
+      if (bound.has(id) || names.has(id) || typesExports.has(id) || stdlib.has(id)) continue;
+      r.red.push(`${where} ${label}的 ${id} 對不到 ${scope}、types 層匯出或標準函式庫`);
+    }
+  };
+  for (const [text, label] of [[law.forall, 'forall 行'], [law.conclusion, '|- 行'], ...law.given.map((g) => [g, 'given 行'])]) {
+    if (/[^\x20-\x7e]/.test(text)) r.red.push(`${where} ${label}含非 ASCII 字元,三行只准表達式,不准散文:${text}`);
+  }
+  check(law.conclusion.replace(/^\|-\s*/, ''), '|- 行');
+  for (const t of rhs) check(t, 'forall 行');
+  for (const g of law.given) check(g.replace(/^given\s*/, ''), 'given 行');
+  return mentioned;
+}
+
 export function lintLaws(design, source, adapter) {
   const r = { title: 'lint laws', red: [], info: [] };
   const typesExports = new Set();
@@ -208,24 +233,7 @@ export function lintLaws(design, source, adapter) {
       if (lawIds.has(l.id)) r.red.push(`${where} 編號重複`);
       lawIds.add(l.id);
       if (!LAW_KINDS.includes(l.kind)) r.red.push(`${where} 種類「${l.kind}」不在 ${LAW_KINDS.join(' / ')}`);
-      if (!l.forall) r.red.push(`${where} 缺 forall 行`);
-      if (!l.conclusion) r.red.push(`${where} 缺 |- 行`);
-      if (!l.forall || !l.conclusion) continue;
-      const { vars, rhs } = boundVars(l.forall);
-      const bound = new Set(vars);
-      const check = (text, label) => {
-        for (const id of identifiers(text)) {
-          if (stageNames.has(id)) mentioned.add(id);
-          if (bound.has(id) || stageNames.has(id) || typesExports.has(id) || stdlib.has(id)) continue;
-          r.red.push(`${where} ${label}的 ${id} 對不到 Stages 簽名、types 層匯出或標準函式庫`);
-        }
-      };
-      for (const [text, label] of [[l.forall, 'forall 行'], [l.conclusion, '|- 行'], ...l.given.map((g) => [g, 'given 行'])]) {
-        if (/[^\x20-\x7e]/.test(text)) r.red.push(`${where} ${label}含非 ASCII 字元,三行只准表達式,不准散文:${text}`);
-      }
-      check(l.conclusion.replace(/^\|-\s*/, ''), '|- 行');
-      for (const t of rhs) check(t, 'forall 行');
-      for (const g of l.given) check(g.replace(/^given\s*/, ''), 'given 行');
+      for (const n of checkLawBody(r, where, l, stageNames, typesExports, stdlib, 'Stages 簽名')) mentioned.add(n);
     }
     for (const s of p.stages) {
       if (s.whole && s.name && !mentioned.has(s.name)) r.red.push(`${at(p.file, s.line)} = 列 ${s.name} 沒有任何 law 引用;整條至少一條 law`);
@@ -239,6 +247,25 @@ export function lintLaws(design, source, adapter) {
       for (const c of ex.covers) if (!lawIds.has(c)) r.red.push(`${p.file} ${ex.id} 指到的 ${c} 不存在`);
     }
   }
+  // 需求與目標的 Law:一句話必填;寫了三行就照 pipeline law 的規矩查,識別字可以是任何一條 pipeline 的 Stages 簽名
+  const allStages = new Set(design.pipelines.flatMap((p) => p.stages.map((s) => s.name)));
+  const runners = new Set(design.pipelines.flatMap((p) => p.stages.filter((s) => s.runner).map((s) => s.name)));
+  const checkTop = (file, id, law, line) => {
+    const where = `${at(file, line)} ${id} Law`;
+    if (!law) return r.red.push(`${where} 沒有;一句可判定的話,寫成清單項「- Law:…」`);
+    if (law.placeholder) return r.red.push(`${where} 還是模板`);
+    if (!law.formal) return;
+    const mentioned = checkLawBody(r, where, law, allStages, typesExports, stdlib, 'Stages 簽名(任何一條 pipeline 的)');
+    for (const n of mentioned) if (runners.has(n)) r.red.push(`${where} 的 |- 行引用了進入點 ${n};law 只講純的量`);
+  };
+  if (design.cone) for (const q of design.cone.requirements) checkTop(design.cone.file, q.id, q.law, q.line);
+  for (const o of design.objectives.objectives) {
+    if (o.law && o.law.inherits) {
+      if (design.cone && !design.cone.requirements.some((q) => q.id === o.law.inherits)) r.red.push(`${at(design.objectives.file, o.line)} ${o.id} Law 繼承的 ${o.law.inherits} 不在 Cone.md 的需求裡`);
+      continue;
+    }
+    checkTop(design.objectives.file, o.id, o.law, o.line);
+  }
   return r;
 }
 
@@ -250,6 +277,15 @@ export function lintTrace(design, source) {
     for (const l of p.laws) if (l.id) declared.add(`${p.id}#${l.id}`);
     for (const e of p.examples) declared.add(`${p.id}#${e.id}`);
   }
+  // 需求與目標的 Law:寫了三行的只由驗收測試判,沒有測試即紅;一句話的沒有測試不算紅,由底下的 Law 或建置路線推
+  const formal = new Set();
+  const prose = new Set();
+  const top = (id, law) => {
+    if (!law || law.placeholder || law.inherits) return;
+    (law.formal ? formal : prose).add(`${id}#LAW`);
+  };
+  if (design.cone) for (const q of design.cone.requirements) top(q.id, q.law);
+  for (const o of design.objectives.objectives) top(o.id, o.law);
   const seen = new Map();
   for (const t of source.testFiles) {
     if (!t.markers.length) r.info.push(`${t.file} 沒有歸屬,當內部單元測試,不進 law 分母`);
@@ -259,23 +295,26 @@ export function lintTrace(design, source) {
     }
   }
   for (const d of declared) if (!seen.has(d)) r.red.push(`${d} 沒有測試承接(未翻譯)`);
-  for (const [m, files] of seen) if (!declared.has(m)) r.red.push(`${files.join(', ')} 引用的 ${m} 文檔裡沒有(幽靈引用)`);
+  for (const d of formal) if (!seen.has(d)) r.red.push(`${d} 寫了三行卻沒有驗收測試;三行式的 Law 只由測試判,沒有測試就是未知`);
+  for (const d of prose) if (!seen.has(d)) r.info.push(`${d} 沒有驗收測試,成立與否由它底下的 Law 或建置路線推`);
+  for (const [m, files] of seen) if (!declared.has(m) && !formal.has(m) && !prose.has(m)) r.red.push(`${files.join(', ')} 引用的 ${m} 文檔裡沒有(幽靈引用)`);
   return r;
 }
 
-// 對外 I/O 表 vs IO 介面兩端、模組表、程式碼。
+// modules.md「對外 I/O」表 vs IO 介面兩端、模組表、程式碼。
 export function lintIo(design, source) {
   const r = { title: 'lint io', red: [], info: [] };
-  if (!design.system) {
-    r.red.push('缺 .lawful/system.md,對外 I/O 沒有宣告');
+  if (!design.modules) {
+    r.red.push('缺 .lawful/modules.md,對外 I/O 沒有宣告');
     return r;
   }
-  const sys = design.system;
-  const entries = design.modules ? design.modules.entries : [];
-  const ioFaces = sys.pipelines.filter((l) => l.kind === 'IO 介面').map((l) => l.fullName);
+  const mods = design.modules;
+  const entries = mods.entries;
+  const ioFaces = design.pipelines.filter((p) => p.kind === 'IO 介面').map((p) => p.fullName);
+  if (mods.ioState === 'missing' && ioFaces.length) r.red.push(`${mods.file} 沒有 ## 對外 I/O 節;每條 IO 介面的兩端都要對得到這張表`);
   const covered = new Set();
-  for (const row of sys.io) {
-    const where = at(sys.file, row.line);
+  for (const row of mods.io) {
+    const where = at(mods.file, row.line);
     if (!['in', 'out'].includes(row.direction)) r.red.push(`${where} ${row.name} 的方向「${row.direction}」要是 in 或 out`);
     if (!row.pipeline) r.red.push(`${where} ${row.name} 沒寫進入哪條 pipeline`);
     else if (!design.pipelines.some((p) => p.fullName === row.pipeline)) r.red.push(`${where} ${row.name} 指到的 ${row.pipeline} 不存在`);
@@ -286,7 +325,7 @@ export function lintIo(design, source) {
       if (entries.length && !entry) r.red.push(`${where} ${row.name} 的 shell 模組 ${row.module} 不在模組表`);
       else if (entry && !entry.layers.includes('shell')) r.red.push(`${where} ${row.name} 的模組 ${row.module} 屬於 ${entry.unit},那一列沒有 shell 層;對外 I/O 只從 shell 進出`);
       if (source && !source.modules.has(row.module)) r.red.push(`${where} ${row.name} 的 shell 模組 ${row.module} 程式碼裡沒有`);
-      else if (source && source.modules.get(row.module).layer !== 'shell') r.red.push(`${where} ${row.name} 的模組 ${row.module} 的檔不在 ${layerRoot(design.system, 'shell')}/ 底下;對外 I/O 只從 shell 進出`);
+      else if (source && source.modules.get(row.module).layer !== 'shell') r.red.push(`${where} ${row.name} 的模組 ${row.module} 的檔不在 ${layerRoot(design.cone, 'shell')}/ 底下;對外 I/O 只從 shell 進出`);
     } else r.red.push(`${where} ${row.name} 沒寫 shell 模組`);
     const typeName = /(?<![\w.'])([A-Z][\w']*)/.exec(row.type);
     if (source && typeName) {
@@ -297,8 +336,7 @@ export function lintIo(design, source) {
     }
   }
   for (const m of ioFaces) {
-    if (!design.pipelines.some((p) => p.fullName === m)) continue;
-    if (!covered.has(m)) r.red.push(`${sys.file} IO 介面 ${m} 沒有任何對外 I/O 列;IO 介面的兩端都要對得到這張表`);
+    if (!covered.has(m)) r.red.push(`${mods.file} IO 介面 ${m} 沒有任何對外 I/O 列;IO 介面的兩端都要對得到這張表`);
   }
   return r;
 }

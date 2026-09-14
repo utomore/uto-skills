@@ -6,7 +6,7 @@
 
 | 階段 | 誰 | 在哪 | 產出 |
 |---|---|---|---|
-| **設計** | 開發者與 `lawful:design` / `lawful:objective` / `lawful:pipeline` 對談 | 主線 | `system.md`(含願景)、`objectives.md`、模組表、`draft` 的 pipeline;開發者拍板後 skill 改 `ready` |
+| **設計** | 開發者與 `lawful:design` / `lawful:objective` / `lawful:pipeline` 對談 | 主線 | `Cone.md`(願景、需求、專案約束)、`objectives/`、模組表、`draft` 的 pipeline;開發者拍板後 skill 改 `ready` |
 | **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 該 pipeline 自己的分支與工作樹 | 骨架、測試、實作、REV、開發日誌;達成後 conductor 改 `frozen` |
 | **整合** | `lawful:integrate` | 整合分支 | 幾條建構分支合成一條、整套綠、PR |
 
@@ -17,7 +17,7 @@
 - 一條 pipeline 一條分支 `build/<全名>`,從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這條 pipeline 有人在建,`lawful status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
 - 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP;它引用的每條子流都已達成並合進主線。引用的子流還沒合進主線就不開,等它;不替別條 pipeline 寫 stub。
 - 分支上准動的東西只有自己的:這條 pipeline 檔、自己 stage 的簽名與本體(模組表登記了但還沒有的模組檔可以建)、匯出清單裡自己的名字、以自己全名命名的測試模組、建置設定裡登記自己模組與測試模組的那幾行、`gaps.md` 追加、`journal/<全名>.md`。
-- 不動:`system.md`、`objectives.md`、`modules.md`、types 層、別條 pipeline 的檔與 stage 本體、別人的測試模組。非動不可就是 GAP。
+- 不動:`Cone.md`、`objectives/`、`modules.md`、types 層、別條 pipeline 的檔與 stage 本體、別人的測試模組。非動不可就是 GAP。
 - `gaps.md` 在分支上從主線最大號往上配。
 - 分支上的 commit 訊息帶 pipeline 全名;骨架、測試、實作、日誌各自成 commit,整合時才對得出誰動了什麼。
 
@@ -36,7 +36,7 @@ qa 與 impl 互不可見。qa 先、impl 後;開發者明說要平行才平行(�
 subagent 問不了人:
 
 1. 不提問、不等回覆。文檔裡讀不出唯一答案就寫 GAP 停該項(pipelines.md「提問(GAP)」);答案不會出現在簽名或 law 上的選擇(私有 helper、資料結構、演算法)自己決定,列進回報。
-2. 不寫共用檔(`system.md`、`modules.md`、`gaps.md`、spike 文檔、別人的 pipeline)。GAP 全文放回報,conductor 單線寫入配號。
+2. 不寫共用檔(`Cone.md`、`objectives/`、`modules.md`、`gaps.md`、spike 文檔、別人的 pipeline)。GAP 全文放回報,conductor 單線寫入配號。
 3. 編號與檔名由 conductor 給;提到 pipeline 寫全名。
 4. 機械查證不跳過:骨架與測試要編得過、laws 與 examples 的翻譯要對得上數。
 5. 如實回報:測試紅就貼輸出;做不完的標未完成。
@@ -89,7 +89,7 @@ qa 與 impl 只做歸因,裁決由 conductor。
 | 誰 | 範圍 | 次數 |
 |---|---|---|
 | qa | 自己寫的測試模組 | 1 |
-| impl | 本 pipeline 的子集(`system.md` 的子集指令) | 互動 1;委派 0 |
+| impl | 本 pipeline 的子集(`Cone.md`「專案約束」的子集指令) | 互動 1;委派 0 |
 | conductor 收到 qa | 骨架上跑 qa 的測試當基線 | 1 |
 | conductor 判定 | 本波子集 | 1 |
 | conductor 仲裁每輪 | 上一輪紅的那幾條 + 本波子集 | 每輪 1 |

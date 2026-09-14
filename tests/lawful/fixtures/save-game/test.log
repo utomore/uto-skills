@@ -2,6 +2,9 @@ Build profile: -w ghc-9.14.1 -O1
 Running 1 test suites...
 Test suite spec: RUNNING...
 
+R-1#LAW
+  decode (saveBytes w) == Right (toSave w) [✔]
+    +++ OK, passed 100 tests.
 P-001#LAW-1
   decode (encode s) == Right s [✔]
     +++ OK, passed 100 tests.

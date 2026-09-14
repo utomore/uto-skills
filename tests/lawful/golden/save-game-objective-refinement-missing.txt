@@ -1,0 +1,3 @@
+$ lawful objective refinement O-1 寫檔改成串流 --touch P-002-save-load
+動到的 P-002-save-load 不存在;只能是 pipelines/ 裡有的全名
+exit 1

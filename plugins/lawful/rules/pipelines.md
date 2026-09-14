@@ -6,9 +6,9 @@
 
 ```
 .lawful/
-├── system.md          願景、目的、語言與工具、邊界、對外 I/O、pipeline 清單
-├── objectives.md      目標與里程碑(「願景、目標與里程碑」)
-├── modules.md         模組表(boundary.md「模組表」)
+├── Cone.md            願景、需求(各有 Requirement Law)、專案約束
+├── objectives/R-x-O-y-<slug>.md   一個目標一個檔:對一條需求、有 Objective Law、建置路線的里程碑、優化路線的調整
+├── modules.md         邊界、模組單元表、對外 I/O(boundary.md「模組表」)
 ├── pipelines/P-00x-<slug>.md
 ├── gaps.md            只裝 open 的 GAP;空了刪檔
 ├── adr/ADR-00x-<slug>.md
@@ -16,47 +16,62 @@
 └── journal/<全名>.md          開發日誌,只存在於 build 分支;整合寫進 PR 後刪(roles.md「開發日誌」)
 ```
 
-## system.md
+只有 `system.md` 體系的樹、或目標還擠在一份 `objectives.md` 的樹 → `lawful migrate cone --write` 換成上面這棵。
 
-frontmatter:`language`(選 adapter)、`updated`。六節:
+## Cone.md
+
+frontmatter:`language`(選 adapter)、`updated`。標題一行 `# <專案名>:<一句話>`,三節:
 
 | 節 | 裝什麼 |
 |---|---|
-| `## 願景` | 一到三句:這個專案做完時世界長什麼樣、替誰改變了什麼。系統設計時訂,不隨里程碑變;`lawful status` 把它印在第一行,還是模板就列警訊 |
-| `## 目的` | 三到五句:替誰做什麼、明確不做什麼 |
-| `## 語言與工具` | 三道指令:建置、整套測試、**子集測試**;每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令(`cd weft && cabal test`)。IO 模組追加清單;效果型別追加清單(boundary.md「效果的判定」);忽略目錄(不掃的原始碼目錄,例如搬遷中的舊樹) |
-| `## 邊界` | 四層各一句(boundary.md「四層」) |
-| `## 對外 I/O` | 表:名稱、方向(in / out)、型別或效果 ADT、shell 模組、進入哪條 pipeline |
-| `## Pipelines` | 表:全名、類別(IO 介面 / 子流)。`lawful status` 的分母;交付順序不寫在這裡,由目標的優先與里程碑的順序推 |
+| `## 願景` | 北極星:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼。第一段一到三句,後面可以展開;系統設計時訂,不隨里程碑變;`lawful status` 把第一段印在第一行,還是模板就列警訊 |
+| `## 需求` | 每條 `### R-n:<一句話>`:誰在什麼情況下要得到什麼。底下 `- Law:<一句可判定的話>`,可以再接三行式(forall / given / `\|-`,識別字是任何一條 pipeline 的 Stages 簽名或 types 層匯出);一條需求有兩個以上目標時再加 `- 蘊含:<那幾個目標的 Law 都成立 ⟹ 本 Law 成立,因為 …>` |
+| `## 專案約束` | 使用者的硬性要求,清單:語言;三道指令:建置、整套測試、**子集測試**(每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令);模組前綴;原始碼根目錄(帶 `<層>` 的樣式,預設 `src-<層>`);IO 模組追加;效果型別追加(boundary.md「效果的判定」);忽略目錄(不掃的原始碼目錄,例如搬遷中的舊樹);套件與框架(硬性要求的套件、框架、版本);優先(一行 `1 = …;2 = …;3 = …;4 = …`,各級在這個專案代表什麼)。其餘的列給人看,工具不讀 |
 
-description 住各 pipeline 的 frontmatter,清單不重複。
+其他一切不寫在 Cone.md:邊界與對外 I/O 在 `modules.md`,pipeline 清單就是 `pipelines/` 裡的檔,類別在各 pipeline 的 frontmatter。
 
-## 願景、目標與里程碑
+## 願景、需求、目標與路線
 
-三層,每一層都回答「為什麼做這條 pipeline」:
+四層,每一層都回答「為什麼做這條 pipeline」:
 
 | 層 | 住哪 | 是什麼 |
 |---|---|---|
-| 願景 | `system.md`「願景」 | 專案的終極目標,做完時世界長什麼樣;只有一個,系統設計時訂 |
-| 目標 | `objectives.md` 的 `## O-n:<一句話>` | 通往願景的一步:使用者做得到什麼、或世界變成什麼樣;至少一個,可以多個。每個目標一個**優先**(1 到 4,1 最高)與一句**可觀察的判準**(達成時看得到什麼) |
-| 里程碑 | 目標底下的表 `里程碑 \| 做到什麼 \| 綁定` | 為了達成目標而切出來的階段,`M-n` 全檔唯一,表的順序就是先後;**綁定**欄是 pipeline 全名,「、」分隔,至少一條 |
+| 願景 | `Cone.md`「願景」 | 北極星:專案要交出的、世界上還沒有的東西;只有一個,系統設計時訂。它是方向,不是驗收清單:需求與目標不對它逐句對照,順序來自依賴與必要性,不來自離它多近 |
+| 需求 | `Cone.md`「需求」的 `### R-n:<一句話>` | 一件使用者要得到的事,各有一條 **Requirement Law**:可驗證、可判定的一句話,最好有一條歸屬 `R-n#LAW` 的驗收測試。至少一條 |
+| 目標 | `objectives/R-x-O-y-<slug>.md`,一個目標一個檔;frontmatter `id`、`requirement`、`priority`、`updated`,標題 `# <全名>:<一句話>` | 解決**恰好一條需求**的一個能力承諾(frontmatter 的 `requirement`,也是檔名的 `R-x`;一條需求可以有多個目標),由開發者答三問:**What** 做到什麼(一句話:使用者做得到什麼、或世界變成什麼樣)、**How** 怎麼看得出做到了(`- Law:…`,一句可判定的話;需求與目標一對一時寫 `- Law:繼承 R-n`,不另寫)、**Which** 落在哪一級**優先**(frontmatter `priority`,1 到 4,1 最高)。slug 是 kebab-case 英文,講這個目標做到什麼;目標換需求就改檔名。要哪幾條 pipeline 撐是之後路線的事 |
+| 優先各級 | `Cone.md`「專案約束」一行 `- 優先:1 = …;2 = …;3 = …;4 = …` | 各級在這個專案代表什麼,專案自己定(例:1 = 主軸與它的直接前提;2 = 地基;3 = 呈現與存取;4 = 工具與詞彙);`lawful status` 印它,沒宣告列警訊 |
+| 建置路線 | 目標檔裡的表 `里程碑 \| 做到什麼 \| 綁定` | 為了達成目標而切出來的階段,`M-n` 全資料夾唯一,表的順序就是先後;**綁定**欄是 pipeline 全名,「、」分隔;還沒有 pipeline 就填「-」,意思是**待 claim**。建置路線走完,需求的 Law 第一次成立 |
+| 優化路線 | 目標檔裡的表 `調整 \| 做到什麼 \| 動到` | 建置路線之後,改既有 pipeline 的實作或行為品質,`RF-n` 全資料夾唯一;**動到**欄是本目標里程碑綁定過的 pipeline 全名,「、」分隔。調整不引入新 feature:動到的 pipeline 不在本目標任何里程碑的綁定裡就是警訊,新能力開里程碑。每一次調整之後需求的 Law 仍要成立 |
 
 ```markdown
-## O-1:玩家存檔後能讀回同一個世界
-- 優先:1
-- 判準:任一 World 存檔再讀回,可存檔的投影一模一樣
+---
+id: O-1
+requirement: R-1
+priority: 1
+updated: 2026-09-05
+---
+# R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
+
+- Law:繼承 R-1
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| M-1 | 存檔寫得出檔案 | P-001-save-game |
-| M-2 | 讀檔還原世界 | P-002-load-game |
+| M-1 | 存檔寫得出檔案 | P-001-save-write |
+| M-2 | 讀檔還原世界 | P-002-save-load |
+| M-3 | 存檔壞了看得出來 | - |
+
+| 調整 | 做到什麼 | 動到 |
+|---|---|---|
+| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
 ```
 
 - 里程碑綁 pipeline,IO 介面與子流都可以;看得見的階段通常綁 IO 介面,底層能力的階段綁子流。綁定是里程碑對到 pipeline 的唯一寫法。
 - 每條 pipeline 至少被一條里程碑綁定;沒被綁的 pipeline 不朝向任何目標,`lawful status` 列警訊。要它就綁進一條里程碑,不要它就刪檔。
-- 每個目標要能說出它服務願景的哪一句;說不出來的目標是分歧,`lawful:objective` 對談時問,`lawful:audit` 人判。
-- 進度不是欄位:里程碑達成 = 綁定的每條 pipeline 都達成;目標完成度 = 達成的里程碑 / 里程碑數;都由 `lawful status` 算。
-- 配號只走 `lawful objective add` 與 `lawful objective milestone`;`lawful claim <slug> --milestone <M-n>` 把新 pipeline 綁進里程碑。刪掉的號永久空缺。
+- 里程碑可以先於 pipeline 存在:綁定欄「-」的里程碑是待 claim,`lawful status` 在該目標的「下一個里程碑」行寫明,不是警訊;`lawful claim <slug> --milestone <M-n>` 填進去。綁到不存在的全名才是警訊。
+- 調整走修訂:動到的每條 pipeline 各寫一條 REV,依欄引用 `RF-n`(「修訂(REV)」);調整的進度由那幾條 REV 與 pipeline 的達成推,表上不寫狀態。
+- 一條需求有兩個以上目標,Cone.md 的那條需求要有蘊含說明,每個目標要有自己的 Law(不繼承);`lawful status` 對帳。
+- 進度不是欄位:里程碑達成 = 綁定的每條 pipeline 都達成;目標完成度 = 達成的里程碑 / 里程碑數;Law 成立與否、調整達成與否照「完成度」;都由 `lawful status` 算。
+- 配號只走 `lawful requirement add`、`lawful objective add`、`lawful objective milestone`、`lawful objective refinement`;`lawful claim <slug> --milestone <M-n>` 把新 pipeline 綁進里程碑。刪掉的號永久空缺。
 - 建議路線與能開的線照目標優先、目標順序、里程碑順序排;沒被綁的排最後。
 
 ## pipeline
@@ -64,7 +79,7 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 一段 **input → 純轉換 → output** 的資料流,由 **stage** 組成;每個 stage 是一條住在程式碼裡的簽名。
 
 - 可以橫跨任意模組。模組是 stage 的屬性,不是文檔的歸屬。
-- 兩端碰到 shell 的是 **IO 介面**;只在純核心裡的是**子流**。底層能力(查詢、碰撞偵測)也是子流。類別講的是形狀,不是先後;先後由目標與里程碑定。
+- 兩端碰到 shell 的是 **IO 介面**;只在純核心裡的是**子流**。底層能力(查詢、碰撞偵測)也是子流。類別寫在 frontmatter 的 `kind`,講的是形狀,不是先後;先後由目標與里程碑定。
 - 值得端到端規格的才建檔。單一小函數的 laws 直接寫 property test;它以 stage 的身分出現在用到它的 pipeline 裡。
 - stage 順序是資料流的拓撲序。`=` 列(**純的整條**)是權威:它把純的步驟組合成一個值,住 core 或 effect,不住 shell;整條的 law 掛在它上面。
 - **進入點**:IO 介面另有恰好一列 `!` 列,shell 的函數,把 `=` 列接到解譯器與對外 I/O(讀檔、寫檔、跑效果描述)。它是程式碼裡的簽名,`lint sig` 照對帳、進簽名 m / n;不掛 law,它做的事由對外 I/O 表與 shell 的步驟承接。子流沒有 `!` 列。
@@ -75,6 +90,9 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 | 東西 | 編號 | 引用寫法 |
 |---|---|---|
+| 需求 | `R-1`,`Cone.md`「需求」的 `### R-1:<一句話>` | `R-1`;它的 Law 是 `R-1#LAW` |
+| 目標 | `O-1`,檔 `objectives/R-1-O-1-<slug>.md` | `O-1`;它的 Law 是 `O-1#LAW` |
+| 里程碑 / 調整 | `M-1` / `RF-1`,目標檔裡的表 | `M-1` / `RF-1` |
 | pipeline | `P-001`,檔 `pipelines/P-001-<slug>.md` | 全名 `P-001-<slug>` |
 | stage | 函數名 | `P-002#candidates` |
 | law / example / 修訂 | `LAW-1` / `EX-1` / `REV-1` | `P-002#LAW-1` |
@@ -83,11 +101,11 @@ description 住各 pipeline 的 frontmatter,清單不重複。
 
 - 配號只走 `lawful claim`;刪掉的號永久空缺。
 - pipeline、ADR、spike 一律寫全名。
-- slug 是 kebab-case 英文,講資料流做什麼,不講屬於誰。
+- slug 是 `<領域名詞>-<動詞或動名詞>`,kebab-case 英文,至少兩段。領域名詞是 `=` 列住的**模組單元**:去掉模組前綴、大駝峰拆成 kebab(`Weft.ActionSequence` → `action-sequence`);後面接這條資料流做什麼(`inventory-step`、`render-compose`、`snapshot-rewind`、`save-write`)。`lawful claim` 查領域名詞對得上模組表,`lint sig` 查它是 `=` 列住的單元;`=` 列搬到別的單元就 `lawful rename <P-00x> <slug>`,編號不動,專案裡寫著舊全名的每一處一起改。
 
 ## frontmatter 與 status
 
-`id`、`description`、`status`、`updated`。`status` 只放人才知道的決定:
+`id`、`description`、`kind`、`status`、`updated`。`kind` 是 `IO 介面` 或 `子流`(「pipeline」);`claim --kind` 填,沒填的還是佔位符,`lawful status` 列警訊。`status` 只放人才知道的決定:
 
 | status | 意思 |
 |---|---|
@@ -139,6 +157,7 @@ IO 介面多一列進入點,放在最後:
 - `forall` 行:變數與定義域;一個 stage 的回傳值要拆開用,寫成 `(w1, effs) in step dt w`,`in` 對單一值就是綁定;前提寫在集合限定裡,或再加一行 `given <表達式>`。
 - `given` 行也是純 ASCII 表達式,識別字規則同 `|-` 行。前提寫不成表達式,代表少一個觀察點(像 `emittedBy :: SystemId -> StepReport -> [SomeEvent]`):補 `o` 列,或開 GAP;不寫散文。
 - `|-` 行:結論;每個識別字必須是 Stages 表的簽名(步驟、純的整條或觀察點)、types 層匯出的函數,或 adapter 認得的標準函式庫函數(`length`、`fst`),`lint laws` 對帳,對不到不准 `ready`;運算子 `==`、`/=`、`<`、`<=`、`>`、`>=`、`in`、`=>`、`.`、`and`、`or`、`not`。字串與數字字面值(`"teleport"`、`0`)不是識別字,直接寫,不為它造常數。law 不定義型別,型別與函數一律住程式碼。`!` 列不准出現在 law 裡。
+- 需求與目標的 Law 三行式同一套規矩,只差識別字可以是任何一條 pipeline 的 Stages 簽名;寫了三行就承諾了驗收測試,沒有測試時這條 Law 是未知;寫不成三行就只留一句話,由底下的 Law 或建置路線推。
 - 種類與對談時的問法:
 
 | 種類 | 性質 | 問開發者什麼 |
@@ -173,11 +192,13 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
 
 不寫 law 的:常數與設定值、`!` 列(進入點只接線,由對外 I/O 表承接)、shell 層的 IO 函數(它們在對外 I/O 表)、只有型別層知識的東西。law 的條數不是進度,是自由度的數量。
 
+**需求與目標的 Law** 不掛在 stage 上,掛在「這件事成立了沒」上:一條需求一條、一個目標一條。它講的是使用者看得到的結果,不是某個函數的性質;能寫成三行、有驗收測試最好(歸屬 `R-n#LAW` / `O-n#LAW`),不能就一句可判定的話,由底下的 Law 或建置路線推(「完成度」)。
+
 **決定**:每條一句粗體結論、否決的替代方案、理由一句;有證據引用 SPK / ADR 全名。只裝只關這條 pipeline 的決定;跨 pipeline 的開 ADR。解凍紀錄也寫這裡。
 
 ## 修訂(REV)
 
-改既有 pipeline 的簽名、laws 或層,一律改原檔,一次修訂一條 REV。stage 在同一層內搬模組不是修訂:`lint sig` 報「搬家」,`lawful sync` 機械更新模組欄,不寫 REV。
+改既有 pipeline 的簽名、laws、層或效能承諾,一律改原檔,一次修訂一條 REV。stage 在同一層內搬模組不是修訂:`lint sig` 報「搬家」,`lawful sync` 機械更新模組欄,不寫 REV。
 
 ```markdown
 - REV-1(2026-09-12,依 qa 提問「零時間步進要不要清事件」):LAW-2 改成整組相等
@@ -186,7 +207,7 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
   - 重委派:qa(LAW-2)
 ```
 
-- 依:來源與那一句話(GAP 的提問原句、SPK / ADR 全名、開發者的話)。
+- 依:來源與那一句話(GAP 的提問原句、SPK / ADR 全名、`RF-n` 與它那一句、開發者的話)。優化路線的調整一律從這裡進來:動到的每條 pipeline 各一條 REV,依欄寫 `RF-n`,`lawful status` 靠它算調整的進度。
 - 保護:這次不准變的既有 law;要保護的行為還不是 LAW 的,先補成 LAW 再修訂。
 - 重委派:law 變了重派 qa,簽名變了重派 impl。簽名變了,程式碼簽名行同步改、本體回未實作;測試只重跑 REV 點名的。
 - 動到與保護只寫還在檔上的條目;`updated` 改成修訂日期。
@@ -223,7 +244,7 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
 
 ## 完成度
 
-`lawful status` 算,每條 pipeline 三個數字:
+`lawful status` 算。每條 pipeline 三個數字:
 
 | 數字 | 怎麼算 |
 |---|---|
@@ -231,8 +252,16 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
 | 骨架 s | m 條裡本體還是 `stub` 的 s 條;`lawful status` 列成待實作 |
 | laws g / k | 寫了 k 條;測試宣告歸屬 j 條;綠 g 條 |
 | 達成 | m = n、s = 0、觀察點全在、g = k、沒有 open GAP。pipeline 達成 = 它與它引用的每條子流都達成 |
+
+往上推:
+
+| 東西 | 怎麼判 |
+|---|---|
 | 里程碑達成 | 綁定的每條 pipeline 都達成 |
 | 目標完成度 | 達成的里程碑 / 里程碑數,印成百分比;沒有里程碑的目標印「-」並列警訊 |
+| 目標 Law 成立 | 有歸屬 `O-n#LAW` 的測試就以它綠 / 紅為準;Law 是繼承而需求有 `R-n#LAW` 測試就用那一條;寫了三行式卻沒有測試是「未知」;一句話的 Law 沒有測試 = 建置路線的里程碑全部達成(報告標「推得」)。測試在而沒跑是「未知」 |
+| 需求 Law 成立 | 有歸屬 `R-n#LAW` 的測試就以它為準;寫了三行式卻沒有測試是「未知」;一句話的 Law 沒有測試 = 它底下每個目標的 Law 都成立(報告標「推得」),一個目標都沒有就未成立。成立的需求分「測試」與「推得」兩種,報告分開數。建置路線全部達成而 Law 未成立是警訊:最低限度的 Law 沒達到 |
+| 調整達成 | 動到的每條 pipeline 都有一條依欄引用 `RF-n` 的 REV、都達成,而且需求 Law 仍成立。沒有任何 REV 引用它是「待修訂」;有 REV 而 pipeline 未達成或需求 Law 未成立是「進行中」。動到的 pipeline 達成而需求 Law 未成立是警訊:優化破壞了 Law |
 
 ## ADR
 

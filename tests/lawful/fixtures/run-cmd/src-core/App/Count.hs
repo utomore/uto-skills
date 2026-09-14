@@ -1,4 +1,4 @@
--- core 層:P-002-count 的 stage 1 與 = 列。
+-- core 層:P-002-count-tally 的 stage 1 與 = 列。
 module App.Count
   ( tokens
   , count

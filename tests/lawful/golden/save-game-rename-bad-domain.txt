@@ -1,0 +1,3 @@
+$ lawful rename P-001 game-store
+slug 的領域名詞對不到模組表上任何單元:game-store。領域名詞是 = 列住的那個單元,去掉模組前綴、大駝峰拆成 kebab;表上有:world、save、fs。要新單元就先 lawful module
+exit 1

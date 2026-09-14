@@ -1,22 +1,22 @@
-$ lawful objective add 讀檔不會壞掉舊存檔 --priority 2 --criteria 舊版存檔讀得回來
-O-2 寫進 .lawful/objectives.md(優先 2)
+$ lawful objective add save-repair 存檔壞了讀得出是哪裡壞 --requirement R-1 --priority 2 --law 任一壞掉的存檔,錯誤指得出位置 --date 2026-09-05
+建了 .lawful/objectives/R-1-O-2-save-repair.md(O-2,需求 R-1,優先 2,Law 自己的)
+R-1 現在有 O-1、O-2 兩個以上的目標:各目標要有自己的 Law,Cone.md 的 R-1 要補蘊含說明
 下一步:lawful objective milestone O-2 <一句話> --bind <P-00x-<slug>>
 exit 0
---- .lawful/objectives.md
-# 目標
+--- .lawful/objectives/R-1-O-2-save-repair.md
+---
+id: O-2
+requirement: R-1
+priority: 2
+updated: 2026-09-05
+---
+# R-1-O-2-save-repair:存檔壞了讀得出是哪裡壞
 
-## O-1:玩家存檔後能讀回同一個世界
-- 優先:1
-- 判準:任一 World 存檔再讀回,可存檔的投影一模一樣
+- Law:任一壞掉的存檔,錯誤指得出位置
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| M-1 | 存檔寫得出檔案 | P-001-save-game |
 
-## O-2:讀檔不會壞掉舊存檔
-- 優先:2
-- 判準:舊版存檔讀得回來
-
-| 里程碑 | 做到什麼 | 綁定 |
+| 調整 | 做到什麼 | 動到 |
 |---|---|---|
 

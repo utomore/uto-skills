@@ -27,7 +27,7 @@ user-invocable: true
 2. **順序與預報**:`lawful status` 的目標優先與里程碑順序排;被引用的子流排在消費者前。每條 `git diff --name-only <base>..<分支>`(`base` 從日誌抄),兩條以上都動的檔列成預報,對照各日誌「合併時要看」。
 3. **開整合分支**:`git switch -c integrate/<YYYY-MM-DD>-<slug>` 從主線。
 4. **逐條 merge**:`git merge --no-ff <分支>`。衝突照 `roles.md`「整合」三類處置:清單型與相鄰行兩邊都留;同一個簽名或本體兩邊都改,停下,回報哪條 stage、哪兩條分支。`gaps.md` 撞號,後合的往上移,一條 commit 記「移 GAP-n → GAP-m」。每條合完 commit 就是 merge commit 本身。
-5. **整套一次**:建置、`system.md` 的整套指令,輸出留檔;`lawful status --tests <log>`、`lawful lint all`。判準:每份日誌宣稱達成的 pipeline 仍達成、日誌預期的變化如期發生、沒有新的紅與新的警訊。
+5. **整套一次**:建置、`Cone.md`「專案約束」的整套指令,輸出留檔;`lawful status --tests <log>`、`lawful lint all`。判準:每份日誌宣稱達成的 pipeline 仍達成、日誌預期的變化如期發生、沒有新的紅與新的警訊。
 6. **合併後紅**:歸因不改碼(`roles.md`「整合」):law 屬於哪條 pipeline、它在自己的分支上綠不綠、哪幾條分支與它共用模組;寫成 GAP(角色 conductor)進 `.lawful/gaps.md`,commit,停下回報。候選分支超過一條才從主線另開臨時分支逐條重合、跑那條 pipeline 的子集,找出第一條讓它紅的,臨時分支刪掉。
 7. **發 PR**:全綠後把每份日誌的內容寫進 PR 內文,`git rm .lawful/journal/*.md` commit,push,`gh pr create` 直接送出:
    - **標題**:英文 conventional commit 風格加全名,例 `feat: save and load game (P-001-save-game, P-002-load-game)`

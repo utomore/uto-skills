@@ -1,0 +1,3 @@
+$ lawful objective refinement O-2 寫檔改成串流 --touch P-001-game-save
+P-001-game-save 不在 O-2 任何里程碑的綁定裡;優化路線不引入新 feature,新能力開里程碑(lawful objective milestone)
+exit 1

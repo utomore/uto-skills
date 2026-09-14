@@ -2,10 +2,10 @@ $ lawful status --module Game.Save --tests test.log
 # Game.Save  模組單元:types、core、shell 層
 · 測試結果來自 test.log
 
-- P-001-save-game#toSave  骨架  掛在上面的 law 3 條,通過 3 條
-- P-001-save-game#encode  骨架  掛在上面的 law 2 條,通過 1 條
-- P-001-save-game#decode  骨架  掛在上面的 law 2 條,通過 2 條
-- P-001-save-game#savedIds  在  掛在上面的 law 1 條,通過 1 條
-- P-001-save-game#saveBytes  在  掛在上面的 law 1 條,通過 1 條
-- P-001-save-game#saveGame  在  掛在上面的 law 0 條,通過 0 條
+- P-001-save-write#toSave  骨架  掛在上面的 law 3 條,通過 3 條
+- P-001-save-write#encode  骨架  掛在上面的 law 2 條,通過 1 條
+- P-001-save-write#decode  骨架  掛在上面的 law 2 條,通過 2 條
+- P-001-save-write#savedIds  在  掛在上面的 law 1 條,通過 1 條
+- P-001-save-write#saveBytes  在  掛在上面的 law 1 條,通過 1 條
+- P-001-save-write#saveGame  在  掛在上面的 law 0 條,通過 0 條
 exit 0

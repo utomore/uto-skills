@@ -1,6 +1,6 @@
 # lawful 規章
 
-`lawful` 替純函數式專案(functional core / imperative shell)做 spec 驅動開發,不限語言。文檔的單位是 **pipeline**:一段 input → 純轉換 → output 的資料流,兩端碰 shell 的是 IO 介面、只在純核心裡的是子流;stage 是住在程式碼裡的簽名,laws 是測試存在之前的性質。pipeline 之上是四層「為什麼」:`Cone.md` 的**願景**與**需求**(各有一條可判定的 Requirement Law)、`objectives.md` 的**目標**(每個解決恰好一條需求,各有 Objective Law 與優先 1 到 4)與目標底下的兩條路線:**建置路線**的里程碑綁定它要做到的 pipeline,走完需求 Law 第一次成立;**優化路線**的調整只改既有 pipeline 的品質,每一次之後需求 Law 仍要成立。
+`lawful` 替純函數式專案(functional core / imperative shell)做 spec 驅動開發,不限語言。文檔的單位是 **pipeline**:一段 input → 純轉換 → output 的資料流,兩端碰 shell 的是 IO 介面、只在純核心裡的是子流;stage 是住在程式碼裡的簽名,laws 是測試存在之前的性質。pipeline 之上是四層「為什麼」:`Cone.md` 的**願景**與**需求**(各有一條可判定的 Requirement Law)、`objectives/` 一檔一個的**目標**(每個解決恰好一條需求,各有 Objective Law 與優先 1 到 4)與目標底下的兩條路線:**建置路線**的里程碑綁定它要做到的 pipeline,走完需求 Law 第一次成立;**優化路線**的調整只改既有 pipeline 的品質,每一次之後需求 Law 仍要成立。
 
 目標與里程碑訂好之後有兩條路線走到一條 pipeline:
 

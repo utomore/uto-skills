@@ -92,9 +92,9 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     };
   });
 
-  // objectives.md 開頭那行「優先:1 = …;2 = …」拆成各級的意思,寫在目標卡上
+  // Cone.md「專案約束」那行「優先:1 = …;2 = …」拆成各級的意思,寫在目標卡上
   const tierMeaning = new Map();
-  if (design.objectives.priorityNoteState === 'ok') for (const part of design.objectives.priorityNote.split(/[;;]/)) {
+  if (cone && cone.priorityNoteState === 'ok') for (const part of cone.priorityNote.split(/[;;]/)) {
     const m = /^\s*([1-4])\s*[=＝::]\s*(.+?)[。.]?\s*$/.exec(part);
     if (m) tierMeaning.set(Number(m[1]), m[2].trim());
   }
@@ -134,6 +134,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const summary = {
     requirements: n.requirements,
     requirementsHolding: n.requirementsHolding,
+    requirementsTested: n.requirementsTested,
+    requirementsInferred: n.requirementsInferred,
     objectives: n.objectives,
     objectivesAchieved: n.objectivesAchieved,
     objectiveLawsHolding: n.objectiveLawsHolding,
@@ -160,11 +162,11 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     vision: cone && cone.visionState === 'ok' ? cone.vision : null,
     visionFull: cone && cone.visionState === 'ok' ? cone.visionFull : null,
     visionState: cone ? cone.visionState : null,
-    priorityNote: design.objectives.priorityNoteState === 'ok' ? design.objectives.priorityNote : null,
+    priorityNote: cone && cone.priorityNoteState === 'ok' ? cone.priorityNote : null,
     tests: resultNote,
     summary,
     headline: [
-      { label: '需求 Law', value: `${summary.requirementsHolding} / ${summary.requirements} 成立` },
+      { label: '需求 Law', value: `${summary.requirementsHolding} / ${summary.requirements} 成立(測試 ${summary.requirementsTested}、推得 ${summary.requirementsInferred})` },
       { label: '目標', value: `${summary.objectivesAchieved} / ${summary.objectives} 達成 · Law 成立 ${summary.objectiveLawsHolding}` },
       { label: '里程碑', value: `${summary.milestonesAchieved} / ${summary.milestones} 達成` },
       { label: '調整', value: `${summary.refinementsAchieved} / ${summary.refinements} 達成` },
@@ -188,6 +190,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     })),
     objectives: ov.objs.map((o) => ({
       id: o.id,
+      name: o.fullName,
+      file: o.file,
       title: o.title,
       requirement: o.requirement || null,
       priority: o.priority,

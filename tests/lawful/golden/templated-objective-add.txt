@@ -1,3 +1,3 @@
-$ lawful objective add 報表印得出來 --requirement R-1 --priority 1
+$ lawful objective add report-print 報表印得出來 --requirement R-1 --priority 1
 Cone.md 沒有 R-1;先 lawful requirement add <一句話> --law <句>
 exit 1

@@ -188,13 +188,17 @@ export function objectiveView(design, a) {
         green: docs.length > 0 && docs.every((d) => d.x && d.x.achieved),
       };
     });
+    // 三行式的 Law 只由測試判,沒有測試就是未知;一句話的 Law 才由建置路線推
     let law;
     const own = a.lawTest(`${o.id}#LAW`);
+    const inheritedLaw = o.law && o.law.inherits && design.cone ? (design.cone.requirements.find((q) => q.id === o.law.inherits) || {}).law : null;
     const inherited = o.law && o.law.inherits ? a.lawTest(`${o.law.inherits}#LAW`) : null;
     if (own) law = { holds: verdict(own.result), source: `測試 ${own.key} ${own.result}`, tested: true };
     else if (inherited) law = { holds: verdict(inherited.result), source: `繼承 ${o.law.inherits},測試 ${inherited.key} ${inherited.result}`, tested: true };
+    else if (o.law && o.law.formal) law = { holds: null, source: `寫了三行卻沒有 ${o.id}#LAW 測試`, tested: false };
+    else if (inheritedLaw && inheritedLaw.formal) law = { holds: null, source: `繼承 ${o.law.inherits},寫了三行卻沒有 ${o.law.inherits}#LAW 測試`, tested: false };
     else if (!ms.length) law = { holds: false, source: '沒有里程碑', tested: false };
-    else law = { holds: built, source: built ? '建置路線全部達成' : `里程碑 ${done}/${ms.length} 達成`, tested: false };
+    else law = { holds: built, source: built ? '推得:建置路線全部達成' : `里程碑 ${done}/${ms.length} 達成`, tested: false };
     return { ...o, ms, done, pct: ms.length ? Math.round((done / ms.length) * 100) : null, achieved: built, rfs, lawState: law };
   });
   const sorted = [...objs].sort((x, y) => (x.priority || 5) - (y.priority || 5) || x.line - y.line);
@@ -207,12 +211,15 @@ export function objectiveView(design, a) {
     if (test) {
       holds = verdict(test.result);
       source = `測試 ${test.key} ${test.result}`;
+    } else if (q.law && q.law.formal) {
+      holds = null;
+      source = `寫了三行卻沒有 ${q.id}#LAW 測試`;
     } else if (!os.length) {
       holds = false;
       source = '還沒有目標';
     } else if (os.every((o) => o.lawState.holds === true)) {
       holds = true;
-      source = `由 ${os.map((o) => o.id).join('、')} 的 Law 蘊含推得`;
+      source = `推得:${os.map((o) => o.id).join('、')} 的 Law 都成立`;
     } else if (os.some((o) => o.lawState.holds === null)) {
       holds = null;
       source = `${os.filter((o) => o.lawState.holds === null).map((o) => o.id).join('、')} 的 Law 未知`;
@@ -290,7 +297,7 @@ export function warnings(design, a, ov, source, adapter, stale = new Set()) {
     if (q.placeholder) warn(q.id, '需求還是模板', 'lawful:design 寫成一句話');
     if (!q.law) warn(q.id, '沒有 Law', 'lawful:design 補一句可判定的話,寫成「- Law:…」');
     else if (q.law.placeholder) warn(q.id, 'Law 還是模板', 'lawful:design 寫成可判定的一句');
-    else if (q.law.formal && !q.tested) warn(q.id, 'Law 寫了三行卻沒有驗收測試', `qa 寫一條歸屬 "${q.id}#LAW" 的測試;不能自動化就只留一句,由目標 Law 推`);
+    else if (q.law.formal && !q.tested) warn(q.id, 'Law 寫了三行卻沒有驗收測試,成立與否未知', `qa 寫一條歸屬 "${q.id}#LAW" 的測試;不能自動化就只留一句,由目標 Law 推`);
     if (!q.objectives.length) warn(q.id, '沒有任何目標', `lawful objective add <一句話> --requirement ${q.id} --priority <1-4>`);
     if (q.objectives.length > 1) {
       if (!q.implication) warn(q.id, `有 ${q.objectives.length} 個目標卻沒有蘊含說明`, `Cone.md 的 ${q.id} 補「- 蘊含:${q.objectives.map((o) => o.id).join('、')} 的 Law 都成立 ⟹ 本 Law 成立,因為 …」`);
@@ -299,13 +306,16 @@ export function warnings(design, a, ov, source, adapter, stale = new Set()) {
     if (q.built && q.holds === false) warn(q.id, `建置路線全部達成,Law 卻未成立(${q.source})`, '最低限度的 Law 沒達到:先查驗收測試與蘊含說明,再走 lawful:revise');
     for (const rf of q.rfs) if (rf.started && rf.cited && rf.green && q.holds === false) warn(rf.id, `優化後 ${q.id} 的 Law 不成立(${q.source})`, '優化不准破壞需求 Law:仲裁那條紅,或解凍再修');
   }
-  if (!ov.objs.length) warn(design.objectives.exists ? 'objectives.md' : '.lawful/', '沒有任何目標', 'lawful:objective 訂第一個目標(至少一個)');
-  else if (design.objectives.priorityNoteState !== 'ok') warn('objectives.md', design.objectives.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'lawful:objective 在開頭寫一行「優先:1 = …;2 = …;3 = …;4 = …」');
+  if (design.legacyObjectives) warn('objectives.md', '目標還擠在一份檔裡', 'lawful migrate cone --write 拆成 objectives/ 一個目標一個檔');
+  if (!ov.objs.length) warn(design.objectives.exists ? 'objectives/' : '.lawful/', '沒有任何目標', 'lawful:objective 訂第一個目標(至少一個)');
+  else if (cone && cone.priorityNoteState !== 'ok') warn('Cone.md', cone.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'lawful:objective 在「專案約束」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」');
   const seenM = new Set();
   const seenRf = new Set();
   for (const o of ov.objs) {
+    if (!o.hasFrontmatter) warn(o.file, '沒有 frontmatter', '照 templates/objective.md 補 id、requirement、priority、updated');
+    else if (o.fileId !== o.id || (o.requirement && o.fileRequirement !== o.requirement)) warn(o.file, `檔名與 frontmatter 對不上(frontmatter:${o.requirement || '?'} ${o.id})`, '檔名 R-x-O-y-<slug> 的 R-x 與 O-y 要等於 frontmatter 的 requirement 與 id;目標換需求就改檔名');
     if (o.placeholder) warn(o.id, '目標還是模板', 'lawful:objective 寫成一句話');
-    if (!o.requirement) warn(o.id, '沒有對到任何需求', 'lawful:objective 補「- 需求:R-n」;每個目標解決一條需求');
+    if (!o.requirement) warn(o.id, '沒有對到任何需求', 'lawful:objective 在 frontmatter 補 requirement: R-n;每個目標解決一條需求');
     else if (cone && !o.req) warn(o.id, `需求 ${o.requirement} 不在 Cone.md`, '改成 Cone.md 裡有的 R-n,或 lawful requirement add 先立需求');
     if (!o.priority) warn(o.id, `優先「${o.priorityRaw || '(沒填)'}」不是 1 到 4`, '改成 1(最高)到 4(最低)');
     if (!o.law) warn(o.id, '沒有 Law', 'lawful:objective 補「- Law:…」;一對一的需求寫「繼承 R-n」');
@@ -431,6 +441,8 @@ export function counts(design, a, ov, mv) {
   return {
     requirements: ov.reqs.length,
     requirementsHolding: ov.reqs.filter((q) => q.holds === true).length,
+    requirementsTested: ov.reqs.filter((q) => q.holds === true && q.tested).length,
+    requirementsInferred: ov.reqs.filter((q) => q.holds === true && !q.tested).length,
     objectives: ov.objs.length,
     objectivesAchieved: ov.objs.filter((o) => o.achieved).length,
     objectiveLawsHolding: ov.objs.filter((o) => o.lawState.holds === true).length,
@@ -462,7 +474,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
 
   out.push(`# lawful status`);
   if (cone && cone.visionState === 'ok') out.push(`願景:${cone.vision}`);
-  out.push(`需求 ${n.requirements} 條,Law 成立 ${n.requirementsHolding} 條 · 目標 ${n.objectives} 個,達成 ${n.objectivesAchieved} 個 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · 調整 ${n.refinements} 條,達成 ${n.refinementsAchieved} 條 · IO 介面 ${n.ioFaces} 條,達成 ${n.ioFacesAchieved} 條 · pipeline ${n.pipelines} 條,達成 ${n.pipelinesAchieved} 條 · 模組單元 ${n.moduleUnits} 個 · 還沒實作的 stage ${n.todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
+  out.push(`需求 ${n.requirements} 條,Law 成立 ${n.requirementsHolding} 條(測試 ${n.requirementsTested}、推得 ${n.requirementsInferred})· 目標 ${n.objectives} 個,達成 ${n.objectivesAchieved} 個 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · 調整 ${n.refinements} 條,達成 ${n.refinementsAchieved} 條 · IO 介面 ${n.ioFaces} 條,達成 ${n.ioFacesAchieved} 條 · pipeline ${n.pipelines} 條,達成 ${n.pipelinesAchieved} 條 · 模組單元 ${n.moduleUnits} 個 · 還沒實作的 stage ${n.todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## 需求');
@@ -476,7 +488,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
   out.push('## 目標');
   if (!ov.objs.length) out.push('- 沒有任何目標;lawful:objective 訂第一個');
   else {
-    if (design.objectives.priorityNoteState === 'ok') out.push(`- 優先:${design.objectives.priorityNote}`);
+    if (cone && cone.priorityNoteState === 'ok') out.push(`- 優先:${cone.priorityNote}`);
     out.push('| 目標 | 需求 | 優先 | 一句話 | Law | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |', '|---|---|---|---|---|---|---|---|---|');
     for (const o of ov.objs) out.push(`| ${o.id} | ${o.requirement || '(沒填)'} | ${o.priorityRaw || '(沒填)'} | ${o.title} | ${lawCell(o.lawState)} | ${o.ms.length} | ${o.done} | ${o.pct == null ? '-' : `${o.pct}%`} | ${o.rfs.length ? `${o.rfDone}/${o.rfs.length}` : '-'} |`);
     for (const o of ov.objs) {

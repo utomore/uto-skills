@@ -286,131 +286,189 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
   return { text, exitCode: 0 };
 }
 
-// migrate cone [--write]:只有 system.md 的 .lawful 樹換成 Cone.md 體系。先印帳本,--write 才落地。
-// system.md 的願景與目的 → Cone.md「願景」(目的接成第二段);語言與工具 → 「專案約束」;
-// 每個目標 → 一條需求(一句話照抄、判準當 Law),目標補「需求:R-n」、判準改成「Law:繼承 R-n」;
-// 邊界與對外 I/O 表 → modules.md 的兩節;Pipelines 表的類別 → 各 pipeline frontmatter 的 kind;最後刪 system.md。
+// migrate cone [--write]:兩種不合規的樹換成 Cone.md 與 objectives/ 體系。先印帳本,--write 才落地。
+// 只有 system.md 的樹:願景與目的 → Cone.md「願景」(目的接成第二段);語言與工具與優先各級 → 「專案約束」;
+// 每個目標 → 一條需求(一句話照抄、判準當 Law);邊界與對外 I/O 表 → modules.md 的兩節;Pipelines 表的類別 → 各 pipeline frontmatter 的 kind;刪 system.md。
+// 目標還擠在 objectives.md 的樹:每個 ## O-n 拆成 objectives/R-x-O-n-<slug>.md(需求、優先進 frontmatter,判準變成「Law:繼承 R-x」),
+// 開頭的優先各級那行搬進 Cone.md「專案約束」;刪 objectives.md。
 function sectionText(secs, title) {
   const s = secs.find((x) => x.level === 2 && x.title === title);
   return s ? s.lines.join('\n').replace(/^\s*\n+|\s+$/g, '') : '';
+}
+
+// objectives.md → 一個目標一份的內容。assignRequirements:目標沒寫需求時照順序配 R-n;不配就留 R-0 讓人補。
+function splitObjectives(text, { assignRequirements = false, date } = {}) {
+  const { body } = parseFrontmatter(text);
+  const secs = sections(body);
+  const head = secs.find((s) => s.level === 1) || secs[0];
+  const noteLine = (head && !/^O-\d+/.test(head.title) ? head.lines : []).map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[::]/.test(l)) || '';
+  const priorityNote = noteLine.replace(/^優先[::]\s*/, '').trim();
+  const objs = [];
+  for (let i = 0; i < secs.length; i++) {
+    const s = secs[i];
+    if (s.level !== 2) continue;
+    const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+    if (!m) continue;
+    const lines = [...s.lines];
+    for (let j = i + 1; j < secs.length && secs[j].level > 2; j++) lines.push(`${'#'.repeat(secs[j].level)} ${secs[j].title}`, ...secs[j].lines);
+    const field = (k) => {
+      const l = lines.find((x) => new RegExp(`^- ${k}[::]`).test(x));
+      return l ? l.replace(/^- [^::]*[::]\s*/, '').trim() : '';
+    };
+    const id = m[1];
+    const title = m[2].trim();
+    const criteria = field('判準');
+    const priority = field('優先') || '<1 到 4,1 最高>';
+    const requirement = field('需求') || (assignRequirements ? `R-${objs.length + 1}` : 'R-0');
+    const binds = lines.filter((l) => /^\s*\|/.test(l)).flatMap((l) => l.match(/P-\d{3}-[a-z0-9-]+/g) || []);
+    const slug = binds.length ? binds[0].replace(/^P-\d{3}-/, '') : 'unnamed';
+    const bodyLines = [];
+    for (const l of lines) {
+      if (/^- (需求|優先)[::]/.test(l)) continue;
+      if (/^- 判準[::]/.test(l)) {
+        bodyLines.push(`- Law:繼承 ${requirement}`);
+        continue;
+      }
+      bodyLines.push(l);
+    }
+    if (!bodyLines.some((l) => /^- Law[::]/.test(l))) bodyLines.unshift(`- Law:繼承 ${requirement}`);
+    while (bodyLines.length && !bodyLines[0].trim()) bodyLines.shift();
+    const fullName = `${requirement}-${id}-${slug}`;
+    const content = ['---', `id: ${id}`, `requirement: ${requirement}`, `priority: ${priority}`, `updated: ${date}`, '---', `# ${fullName}:${title}`, '', ...bodyLines].join('\n').replace(/\s+$/, '') + '\n';
+    objs.push({ id, title, requirement, assigned: !field('需求'), law: criteria, fullName, file: `${fullName}.md`, content, slug });
+  }
+  return { priorityNote, objs };
+}
+
+// Cone.md「專案約束」補一行「- 優先:…」;已經有就不動
+function withPriorityNote(coneText, priorityNote) {
+  if (!priorityNote || /^- 優先[::]/m.test(coneText)) return coneText;
+  const lines = coneText.split(/\r?\n/);
+  const h = lines.findIndex((l) => /^## 專案約束\s*$/.test(l));
+  if (h < 0) return coneText;
+  let end = h + 1;
+  while (end < lines.length && !/^## /.test(lines[end])) end++;
+  while (end > h + 1 && !lines[end - 1].trim()) end--;
+  lines.splice(end, 0, `- 優先:${priorityNote}`);
+  return lines.join('\n');
 }
 
 export function migrateCone(root, { write = false, date = new Date().toISOString().slice(0, 10) } = {}) {
   const lawfulDir = path.join(root, '.lawful');
   const sysFile = path.join(lawfulDir, 'system.md');
   const coneFile = path.join(lawfulDir, 'Cone.md');
-  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
-  if (fs.existsSync(coneFile)) return { text: `${rel(coneFile)} 已經存在,這棵樹不用換`, exitCode: 0 };
-  if (!fs.existsSync(sysFile)) return { text: `${rel(lawfulDir)} 裡沒有 system.md,也沒有 Cone.md;lawful:design 建 Cone.md`, exitCode: 1 };
-  const sysText = fs.readFileSync(sysFile, 'utf8');
-  const { fm, body } = parseFrontmatter(sysText);
-  const secs = sections(body);
-  const titleLine = (body.split(/\r?\n/).find((l) => /^# /.test(l)) || '# <專案名>:<一句話>').trim();
-  const language = fm.language || '';
-  const vision = sectionText(secs, '願景');
-  const purpose = sectionText(secs, '目的');
-  const tools = sectionText(secs, '語言與工具');
-  const boundary = sectionText(secs, '邊界');
-  const ioText = sectionText(secs, '對外 I/O');
-  const plSec = secs.find((x) => x.level === 2 && x.title === 'Pipelines');
-  const plTable = plSec ? parseTable(plSec.lines) : null;
-  const kindOf = new Map((plTable ? plTable.rows : []).map((r) => [stripTicks(r[0] || ''), (r[1] || '').trim()]));
-
-  // 目標:每個 ## O-n 一條需求;判準那一行變成需求的 Law,目標自己的 Law 繼承它
   const objFile = path.join(lawfulDir, 'objectives.md');
-  const objText = fs.existsSync(objFile) ? fs.readFileSync(objFile, 'utf8') : '';
-  const objLines = objText.split(/\r?\n/);
-  const reqs = [];
-  const newObjLines = [];
-  let cur = null;
-  for (const line of objLines) {
-    const h = /^## (O-\d+)\s*[::]\s*(.*)$/.exec(line);
-    if (h) {
-      cur = { id: h[1], rid: `R-${reqs.length + 1}`, title: h[2].trim(), law: '' };
-      reqs.push(cur);
-      newObjLines.push(line, `- 需求:${cur.rid}`);
-      continue;
-    }
-    if (cur && /^- 判準[::]/.test(line)) {
-      cur.law = line.replace(/^- 判準[::]\s*/, '').trim();
-      newObjLines.push(`- Law:繼承 ${cur.rid}`);
-      continue;
-    }
-    if (cur && /^- 需求[::]/.test(line)) continue;
-    newObjLines.push(line);
-  }
-
-  const cone = [
-    '---',
-    `language: ${language || '<haskell | …>'}`,
-    `updated: ${date}`,
-    '---',
-    titleLine,
-    '',
-    '## 願景',
-    [vision || '<北極星,第一段一到三句:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼。>', purpose].filter(Boolean).join('\n\n'),
-    '',
-    '## 需求',
-    ...(reqs.length
-      ? reqs.flatMap((r, i) => [...(i ? [''] : []), `### ${r.rid}:${r.title}`, `- Law:${r.law || '<一句可判定的話:這條需求成立時,什麼一定為真>'}`])
-      : ['### R-1:<一句話:誰在什麼情況下要得到什麼>', '- Law:<一句可判定的話:這條需求成立時,什麼一定為真>']),
-    '',
-    '## 專案約束',
-    `- 語言:${language || '<haskell | …>'}`,
-    ...tools.split(/\r?\n/).filter((l) => l.trim() && !/^- 語言[::]/.test(l)),
-    '- 套件與框架:無',
-    '',
-  ].join('\n');
-
-  // modules.md:邊界與對外 I/O 兩節接在模組單元表前後
-  const modFile = path.join(lawfulDir, 'modules.md');
-  const modText = fs.existsSync(modFile) ? fs.readFileSync(modFile, 'utf8') : '';
-  const modBody = parseFrontmatter(modText).body;
-  const modSecs = sections(modBody);
-  const hasUnitSec = modSecs.some((s) => s.level === 2 && s.title === '模組單元');
-  const unitTable = hasUnitSec ? '' : modBody.split(/\r?\n/).filter((l) => /^\s*\|/.test(l)).join('\n');
-  const modules = hasUnitSec ? modText : [
-    '# 模組表',
-    '',
-    '## 邊界',
-    boundary || '- types:<裝什麼,一句>\n- effect:<指令 ADT 叫什麼,一句;沒有 effect 層寫「無」>\n- core:<純轉換住哪,一句>\n- shell:<進入點,一句>',
-    '',
-    '## 模組單元',
-    unitTable || '| 模組 | 層 | 職責 |\n|---|---|---|',
-    '',
-    '## 對外 I/O',
-    ioText || '| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |\n|---|---|---|---|---|',
-    '',
-  ].join('\n');
-
-  // pipelines:frontmatter 補 kind
-  const pipelinesDir = path.join(lawfulDir, 'pipelines');
-  const pipelineFiles = fs.existsSync(pipelinesDir) ? fs.readdirSync(pipelinesDir).filter((f) => /^P-\d{3}-.+\.md$/.test(f)).sort() : [];
-  const kindEdits = [];
-  for (const f of pipelineFiles) {
-    const abs = path.join(pipelinesDir, f);
-    const text = fs.readFileSync(abs, 'utf8');
-    if (/^kind:/m.test(text)) continue;
-    const kind = kindOf.get(path.basename(f, '.md')) || '<IO 介面 | 子流>';
-    const next = text.replace(/^(description:.*\r?\n)/m, `$1kind: ${kind}\n`);
-    kindEdits.push({ abs, rel: rel(abs), kind, next, changed: next !== text });
-  }
-
+  const objDir = path.join(lawfulDir, 'objectives');
+  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
+  const hasCone = fs.existsSync(coneFile);
+  const hasSys = fs.existsSync(sysFile);
+  const hasObjFile = fs.existsSync(objFile);
+  if (hasCone && !hasObjFile) return { text: `${rel(coneFile)} 已經存在、目標也已經在 objectives/,這棵樹不用換`, exitCode: 0 };
+  if (!hasCone && !hasSys) return { text: `${rel(lawfulDir)} 裡沒有 system.md,也沒有 Cone.md;lawful:design 建 Cone.md`, exitCode: 1 };
   const out = ['# migrate cone 帳本', ''];
-  out.push(`- ${rel(coneFile)}:建,願景${purpose ? '(目的接成第二段)' : ''}、需求 ${reqs.length} 條(${reqs.map((r) => `${r.rid} ← ${r.id}${r.law ? '' : ',Law 留佔位符'}`).join('、') || '沒有目標,留一條模板'})、專案約束(語言與工具照搬)`);
-  out.push(`- ${rel(objFile)}:${reqs.length ? `每個目標補「需求:R-n」,判準改成「Law:繼承 R-n」` : '沒有目標,不動'}`);
-  out.push(`- ${rel(modFile)}:${hasUnitSec ? '已經是三節,不動' : `補「邊界」${boundary ? '' : '(模板)'}與「對外 I/O」${ioText ? '' : '(模板)'}兩節`}`);
-  for (const e of kindEdits) out.push(`- ${e.rel}:frontmatter 補 kind: ${e.kind}${e.changed ? '' : '(找不到 description 行,要自己補)'}`);
-  out.push(`- ${rel(sysFile)}:刪`);
+  const writes = [];   // [abs, text]
+  const objText = hasObjFile ? fs.readFileSync(objFile, 'utf8') : '';
+  let split;
+  if (!hasCone) {
+    const sysText = fs.readFileSync(sysFile, 'utf8');
+    const { fm, body } = parseFrontmatter(sysText);
+    const secs = sections(body);
+    const titleLine = (body.split(/\r?\n/).find((l) => /^# /.test(l)) || '# <專案名>:<一句話>').trim();
+    const language = fm.language || '';
+    const vision = sectionText(secs, '願景');
+    const purpose = sectionText(secs, '目的');
+    const tools = sectionText(secs, '語言與工具');
+    const boundary = sectionText(secs, '邊界');
+    const ioText = sectionText(secs, '對外 I/O');
+    const plSec = secs.find((x) => x.level === 2 && x.title === 'Pipelines');
+    const plTable = plSec ? parseTable(plSec.lines) : null;
+    const kindOf = new Map((plTable ? plTable.rows : []).map((r) => [stripTicks(r[0] || ''), (r[1] || '').trim()]));
+    split = splitObjectives(objText, { assignRequirements: true, date });
+    const reqs = split.objs;
+    const cone = [
+      '---',
+      `language: ${language || '<haskell | …>'}`,
+      `updated: ${date}`,
+      '---',
+      titleLine,
+      '',
+      '## 願景',
+      [vision || '<北極星,第一段一到三句:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼。>', purpose].filter(Boolean).join('\n\n'),
+      '',
+      '## 需求',
+      ...(reqs.length
+        ? reqs.flatMap((r, i) => [...(i ? [''] : []), `### ${r.requirement}:${r.title}`, `- Law:${r.law || '<一句可判定的話:這條需求成立時,什麼一定為真>'}`])
+        : ['### R-1:<一句話:誰在什麼情況下要得到什麼>', '- Law:<一句可判定的話:這條需求成立時,什麼一定為真>']),
+      '',
+      '## 專案約束',
+      `- 語言:${language || '<haskell | …>'}`,
+      ...tools.split(/\r?\n/).filter((l) => l.trim() && !/^- 語言[::]/.test(l)),
+      '- 套件與框架:無',
+      ...(split.priorityNote ? [`- 優先:${split.priorityNote}`] : []),
+      '',
+    ].join('\n');
+    const modFile = path.join(lawfulDir, 'modules.md');
+    const modText = fs.existsSync(modFile) ? fs.readFileSync(modFile, 'utf8') : '';
+    const modBody = parseFrontmatter(modText).body;
+    const hasUnitSec = sections(modBody).some((s) => s.level === 2 && s.title === '模組單元');
+    const unitTable = hasUnitSec ? '' : modBody.split(/\r?\n/).filter((l) => /^\s*\|/.test(l)).join('\n');
+    const modules = hasUnitSec ? null : [
+      '# 模組表',
+      '',
+      '## 邊界',
+      boundary || '- types:<裝什麼,一句>\n- effect:<指令 ADT 叫什麼,一句;沒有 effect 層寫「無」>\n- core:<純轉換住哪,一句>\n- shell:<進入點,一句>',
+      '',
+      '## 模組單元',
+      unitTable || '| 模組 | 層 | 職責 |\n|---|---|---|',
+      '',
+      '## 對外 I/O',
+      ioText || '| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |\n|---|---|---|---|---|',
+      '',
+    ].join('\n');
+    const pipelinesDir = path.join(lawfulDir, 'pipelines');
+    const pipelineFiles = fs.existsSync(pipelinesDir) ? fs.readdirSync(pipelinesDir).filter((f) => /^P-\d{3}-.+\.md$/.test(f)).sort() : [];
+    const kindEdits = [];
+    for (const f of pipelineFiles) {
+      const abs = path.join(pipelinesDir, f);
+      const text = fs.readFileSync(abs, 'utf8');
+      if (/^kind:/m.test(text)) continue;
+      const kind = kindOf.get(path.basename(f, '.md')) || '<IO 介面 | 子流>';
+      const next = text.replace(/^(description:.*\r?\n)/m, `$1kind: ${kind}\n`);
+      kindEdits.push({ abs, rel: rel(abs), kind, next, changed: next !== text });
+    }
+    out.push(`- ${rel(coneFile)}:建,願景${purpose ? '(目的接成第二段)' : ''}、需求 ${reqs.length} 條(${reqs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : ',Law 留佔位符'}`).join('、') || '沒有目標,留一條模板'})、專案約束(語言與工具照搬${split.priorityNote ? ',優先各級那行搬進來' : ''})`);
+    out.push(`- ${rel(modFile)}:${modules === null ? '已經是三節,不動' : `補「邊界」${boundary ? '' : '(模板)'}與「對外 I/O」${ioText ? '' : '(模板)'}兩節`}`);
+    for (const e of kindEdits) out.push(`- ${e.rel}:frontmatter 補 kind: ${e.kind}${e.changed ? '' : '(找不到 description 行,要自己補)'}`);
+    writes.push([coneFile, cone]);
+    if (modules !== null) writes.push([modFile, modules]);
+    for (const e of kindEdits) if (e.changed) writes.push([e.abs, e.next]);
+  } else {
+    split = splitObjectives(objText, { assignRequirements: false, date });
+    const cone = fs.readFileSync(coneFile, 'utf8');
+    const next = withPriorityNote(cone, split.priorityNote);
+    if (next !== cone) {
+      out.push(`- ${rel(coneFile)}:「專案約束」補一行「- 優先:${split.priorityNote}」`);
+      writes.push([coneFile, next]);
+    }
+  }
+  if (hasObjFile) {
+    for (const o of split.objs) {
+      const notes = [o.assigned ? `需求配 ${o.requirement}` : '', o.requirement === 'R-0' ? 'frontmatter 的 requirement 與檔名的 R-0 要換成真的 R-n' : '', o.slug === 'unnamed' ? 'slug 沒有綁定的 pipeline 可推,先叫 unnamed,改名要連檔名一起改' : 'slug 從第一條綁定的 pipeline 推,不對就改檔名'].filter(Boolean);
+      out.push(`- ${rel(path.join(objDir, o.file))}:建(${o.id};${notes.join(';')})`);
+      writes.push([path.join(objDir, o.file), o.content]);
+    }
+    if (!split.objs.length) out.push(`- ${rel(objFile)}:沒有任何目標`);
+    out.push(`- ${rel(objFile)}:刪`);
+  }
+  if (hasSys) out.push(`- ${rel(sysFile)}:刪`);
   if (!write) {
     out.push('', '以上只是帳本;lawful migrate cone --write 才落地');
     return { text: out.join('\n'), exitCode: 0 };
   }
-  fs.writeFileSync(coneFile, cone);
-  if (reqs.length) fs.writeFileSync(objFile, newObjLines.join('\n'));
-  fs.writeFileSync(modFile, modules);
-  for (const e of kindEdits) if (e.changed) fs.writeFileSync(e.abs, e.next);
-  fs.unlinkSync(sysFile);
-  out.push('', '都寫了;接著 lawful status 看警訊,需求的 Law 與蘊含說明由 lawful:design 對談補齊');
+  if (split.objs.length) fs.mkdirSync(objDir, { recursive: true });
+  for (const [abs, text] of writes) fs.writeFileSync(abs, text);
+  if (hasObjFile) fs.unlinkSync(objFile);
+  if (hasSys) fs.unlinkSync(sysFile);
+  out.push('', '都寫了;接著 lawful status 看警訊,需求的 Law 與蘊含說明由 lawful:design 對談補齊,目標檔的 slug 由 lawful:objective 定');
   return { text: out.join('\n'), exitCode: 0 };
 }

@@ -2,7 +2,7 @@ $ lawful rename P-001-save-write save-store
 P-001-save-write → P-001-save-store:改名 .lawful/pipelines/P-001-save-write.md → .lawful/pipelines/P-001-save-store.md
 改了 .lawful/adr/ADR-001-save-format.md(2 處)
 改了 .lawful/modules.md(1 處)
-改了 .lawful/objectives.md(2 處)
+改了 .lawful/objectives/R-1-O-1-save-roundtrip.md(2 處)
 改了 .lawful/pipelines/P-001-save-write.md(1 處)
 改了 src-core/Game/Save/Codec.hs(1 處)
 改了 src-core/Game/Save/Project/Internal.hs(1 處)
@@ -90,14 +90,15 @@ updated: 2026-09-05
 |---|---|---|---|---|
 | 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-store |
 
---- .lawful/objectives.md
-# 目標
+--- .lawful/objectives/R-1-O-1-save-roundtrip.md
+---
+id: O-1
+requirement: R-1
+priority: 1
+updated: 2026-09-05
+---
+# R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
 
-優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
-
-## O-1:玩家存檔後能讀回同一個世界
-- 需求:R-1
-- 優先:1
 - Law:繼承 R-1
 
 | 里程碑 | 做到什麼 | 綁定 |

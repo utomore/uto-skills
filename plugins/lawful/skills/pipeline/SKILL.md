@@ -18,7 +18,7 @@ user-invocable: true
 
 ## 前置
 
-- 願景還是模板、`Cone.md` 一條需求都沒有、或 `objectives.md` 一個目標都沒有 → 停,先跑 `lawful:design` 或 `lawful:objective`。
+- 願景還是模板、`Cone.md` 一條需求都沒有、或 `objectives/` 一個目標都沒有 → 停,先跑 `lawful:design` 或 `lawful:objective`。
 - 這條 pipeline 沒有被任何里程碑綁定 → 先問開發者它服務哪個目標的哪條里程碑,`lawful:objective` 綁進去;答不出來就是不該做的資料流,停。
 - Stages 要用的模組單元 `.lawful/modules.md` 上沒有 → 先 `lawful:module` 把它的名字、職責與層劃出來,再回來;既有單元裡加簽名不必經過那裡。
 

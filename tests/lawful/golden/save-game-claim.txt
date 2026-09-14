@@ -40,14 +40,15 @@ updated: 2026-09-05
 ## 修訂記錄
 無
 
---- .lawful/objectives.md
-# 目標
+--- .lawful/objectives/R-1-O-1-save-roundtrip.md
+---
+id: O-1
+requirement: R-1
+priority: 1
+updated: 2026-09-05
+---
+# R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
 
-優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
-
-## O-1:玩家存檔後能讀回同一個世界
-- 需求:R-1
-- 優先:1
 - Law:繼承 R-1
 
 | 里程碑 | 做到什麼 | 綁定 |

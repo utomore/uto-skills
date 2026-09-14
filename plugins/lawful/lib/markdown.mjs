@@ -41,17 +41,6 @@ export function findSection(secs, title, level = 2) {
   return secs.find((s) => s.level === level && s.title === title) || null;
 }
 
-// 一個節連同它底下更深的子節:從 sec 起,到下一個層級 <= sec.level 的節之前。
-// 回 { lines, start }:lines 把子節的標題行也放回去,行號才跟檔案對得上。
-export function sectionBlock(secs, sec) {
-  const i = secs.indexOf(sec);
-  const lines = [...sec.lines];
-  for (let j = i + 1; j < secs.length && secs[j].level > sec.level; j++) {
-    lines.push(`${'#'.repeat(secs[j].level)} ${secs[j].title}`, ...secs[j].lines);
-  }
-  return { lines, start: sec.start };
-}
-
 // 切一列表格:認 \| 跳脫,反引號裡的 | 不切。
 export function splitRow(line) {
   const cells = [];

@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.lawful/gaps.md`;做的是調整就再讀 `.lawful/objectives.md` 那一列與它的需求 Law。
+`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.lawful/gaps.md`;做的是調整就再讀那個目標檔(`.lawful/objectives/`)的那一列與它的需求 Law。
 
 ## 輸入 / 產出
 
@@ -18,7 +18,7 @@ user-invocable: true
 
 ## 前置
 
-- 做的是調整:那條 `RF-n` 要在 `objectives.md` 上、動到的 pipeline 要是它列的、該目標的建置路線要已經達成;不是就停,回 `lawful:objective`。調整只改實作或行為品質,要改簽名或加 stage 讓它做到新能力的,不是調整,是新里程碑。
+- 做的是調整:那條 `RF-n` 要在某個目標檔的調整表上、動到的 pipeline 要是它列的、該目標的建置路線要已經達成;不是就停,回 `lawful:objective`。調整只改實作或行為品質,要改簽名或加 stage 讓它做到新能力的,不是調整,是新里程碑。
 
 ## 步驟
 

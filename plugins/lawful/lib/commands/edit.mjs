@@ -1,4 +1,5 @@
 // 會寫檔的子命令:module、claim、rename、requirement add、objective add / milestone / refinement、sync、modules --gen、spike close。
+// 目標一個檔一個,住 objectives/R-x-O-y-<slug>.md。
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -52,40 +53,30 @@ export function claim(design, slug, { description = '', date = today(), mileston
   return { text: out.join('\n'), exitCode: 0, fullName };
 }
 
-const OBJECTIVES_HEAD = '# 目標\n\n優先:<1 = 什麼;2 = 什麼;3 = 什麼;4 = 什麼>\n';
 const MILESTONE_TABLE = ['| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|'];
 const REFINEMENT_TABLE = ['| 調整 | 做到什麼 | 動到 |', '|---|---|---|'];
 
-function objectivesFile(design) {
-  return path.join(design.lawfulDir, 'objectives.md');
-}
+const objectiveFile = (design, o) => path.join(design.root, o.file);
 
-// 找一個目標的節在檔案裡的行範圍 [from, to):from 是 ## 那一行,to 是下一個 ## 或檔尾
-function objectiveRange(lines, objId) {
-  const from = lines.findIndex((l) => new RegExp(`^## ${objId}\\s*[::]`).test(l));
-  if (from < 0) return null;
-  let to = from + 1;
-  while (to < lines.length && !/^## /.test(lines[to])) to++;
-  return { from, to };
-}
-
-// 在目標的節裡、表頭第一格是 head 的那張表尾端加一列;沒有那張表就在節尾補表頭
-function appendRow(lines, range, head, table, row) {
-  let i = range.from;
-  while (i < range.to && !(/^\s*\|/.test(lines[i]) && splitRow(lines[i])[0] === head)) i++;
-  if (i < range.to) {
+// 在目標檔裡、表頭第一格是 head 的那張表尾端加一列;沒有那張表就在檔尾補表頭
+function appendRow(lines, head, table, row) {
+  let i = 0;
+  while (i < lines.length && !(/^\s*\|/.test(lines[i]) && splitRow(lines[i])[0] === head)) i++;
+  if (i < lines.length) {
     let last = i;
-    while (last + 1 < range.to && /^\s*\|/.test(lines[last + 1])) last++;
+    while (last + 1 < lines.length && /^\s*\|/.test(lines[last + 1])) last++;
     lines.splice(last + 1, 0, row);
     return;
   }
-  let end = range.to;
-  while (end > range.from + 1 && !lines[end - 1].trim()) end--;
+  let end = lines.length;
+  while (end > 0 && !lines[end - 1].trim()) end--;
   lines.splice(end, 0, '', ...table, row);
 }
 
 function bindMilestone(design, milestoneId, fullName) {
-  const file = objectivesFile(design);
+  const obj = design.objectives.objectives.find((o) => o.milestones.some((m) => m.id === milestoneId));
+  if (!obj) return false;
+  const file = objectiveFile(design, obj);
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   const i = lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === milestoneId);
   if (i < 0) return false;
@@ -128,57 +119,65 @@ export function requirementAdd(design, title, { law = '' } = {}) {
   return { text: [`${id} 寫進 .lawful/Cone.md`, law ? '' : 'Law 還是佔位符,對談完填成可判定的一句', `下一步:lawful objective add <一句話> --requirement ${id} --priority <1-4>`].filter(Boolean).join('\n'), exitCode: 0, id };
 }
 
-// objective add <一句話> --requirement <R-n> --priority <1-4> [--law <句>]:鑄 O-n,在 objectives.md 末尾加一節。
+// objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]:鑄 O-n,建 objectives/R-n-O-n-<slug>.md。
 // 沒給 --law 就繼承需求的 Law;一條需求有兩個以上目標時各目標要有自己的 Law。
-export function objectiveAdd(design, title, { requirement = '', priority, law = '' } = {}) {
+export function objectiveAdd(design, slug, title, { requirement = '', priority, law = '', date = today() } = {}) {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) return { text: `slug 要是 kebab-case 英文:${slug || '(沒給)'}`, exitCode: 1 };
   if (!title || /<[^>]*>/.test(title)) return { text: '目標要一句話:使用者做得到什麼、或世界變成什麼樣', exitCode: 1 };
   if (!/^R-\d+$/.test(requirement)) return { text: '--requirement 要是 Cone.md 裡的一條需求 R-n;每個目標解決一條需求', exitCode: 1 };
   const reqs = design.cone ? design.cone.requirements.filter((q) => !q.placeholder) : [];
   if (!reqs.some((q) => q.id === requirement)) return { text: `Cone.md 沒有 ${requirement};先 lawful requirement add <一句話> --law <句>${reqs.length ? `(有:${reqs.map((q) => q.id).join('、')})` : ''}`, exitCode: 1 };
   if (!/^[1-4]$/.test(String(priority || ''))) return { text: '--priority 要是 1 到 4,1 最高', exitCode: 1 };
-  const file = objectivesFile(design);
   const nums = design.objectives.objectives.map((o) => Number(o.id.slice(2)));
   const id = `O-${(nums.length ? Math.max(...nums) : 0) + 1}`;
-  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : OBJECTIVES_HEAD;
-  const body = existing.replace(/\s+$/, '');
-  const block = [`## ${id}:${title}`, `- 需求:${requirement}`, `- 優先:${priority}`, `- Law:${law || `繼承 ${requirement}`}`, '', ...MILESTONE_TABLE];
-  fs.writeFileSync(file, `${body}\n\n${block.join('\n')}\n`);
+  const fullName = `${requirement}-${id}-${slug}`;
+  const dir = path.join(design.lawfulDir, 'objectives');
+  const file = path.join(dir, `${fullName}.md`);
+  if (fs.existsSync(file)) return { text: `${relOf(design, file)} 已存在`, exitCode: 1 };
+  // 模板的表只留表頭:里程碑與調整各自配號,佔位列不進檔
+  let tpl = fs.readFileSync(path.join(templatesDir, 'objective.md'), 'utf8');
+  tpl = tpl.replace(/R-x-O-y-<slug>/g, fullName).replace(/O-y/g, id).replace(/R-x/g, requirement)
+    .replace('<1 到 4,1 最高>', String(priority)).replace('<YYYY-MM-DD>', date)
+    .replace('<一句話:使用者做得到什麼、或世界變成什麼樣>', title)
+    .replace(`- Law:繼承 ${requirement}`, `- Law:${law || `繼承 ${requirement}`}`)
+    .split(/\r?\n/).filter((l) => !/^\|\s*(M|RF)-\d+\s*\|.*<[^>]*>/.test(l)).join('\n');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(file, tpl);
   const siblings = design.objectives.objectives.filter((o) => o.requirement === requirement).map((o) => o.id);
   return {
     text: [
-      `${id} 寫進 .lawful/objectives.md(需求 ${requirement},優先 ${priority},Law ${law ? '自己的' : `繼承 ${requirement}`})`,
+      `建了 ${relOf(design, file)}(${id},需求 ${requirement},優先 ${priority},Law ${law ? '自己的' : `繼承 ${requirement}`})`,
       siblings.length ? `${requirement} 現在有 ${[...siblings, id].join('、')} 兩個以上的目標:各目標要有自己的 Law,Cone.md 的 ${requirement} 要補蘊含說明${law ? '' : `;${id} 的 Law 改成自己的`}` : '',
       `下一步:lawful objective milestone ${id} <一句話> --bind <P-00x-<slug>>`,
     ].filter(Boolean).join('\n'),
     exitCode: 0,
     id,
+    fullName,
   };
 }
 
-// objective milestone <O-n> <一句話> [--bind <全名,全名>]:鑄 M-n(全檔唯一),加到該目標的建置路線表裡。
+// objective milestone <O-n> <一句話> [--bind <全名,全名>]:鑄 M-n(全資料夾唯一),加到該目標檔的建置路線表裡。
 export function milestoneAdd(design, objId, title, { bind = '' } = {}) {
   const obj = design.objectives.objectives.find((o) => o.id === objId);
-  if (!obj) return { text: `objectives.md 沒有 ${objId};先 lawful objective add`, exitCode: 1 };
+  if (!obj) return { text: `objectives/ 沒有 ${objId};先 lawful objective add`, exitCode: 1 };
   if (!title || /<[^>]*>/.test(title)) return { text: '里程碑要一句話:做到什麼', exitCode: 1 };
   const binds = bind.split(/[、,]/).map((x) => x.trim()).filter(Boolean);
   const bad = binds.filter((b) => !design.pipelines.some((p) => p.fullName === b));
   if (bad.length) return { text: `綁定的 ${bad.join('、')} 不存在;里程碑只綁 pipelines/ 裡有的全名`, exitCode: 1 };
   const nums = design.objectives.objectives.flatMap((o) => o.milestones.map((m) => Number((m.id.match(/^M-(\d+)$/) || [0, 0])[1])));
   const id = `M-${(nums.length ? Math.max(...nums) : 0) + 1}`;
-  const file = objectivesFile(design);
+  const file = objectiveFile(design, obj);
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
-  const range = objectiveRange(lines, objId);
-  if (!range) return { text: `objectives.md 找不到 ## ${objId} 這一節`, exitCode: 1 };
-  appendRow(lines, range, '里程碑', MILESTONE_TABLE, `| ${id} | ${title} | ${binds.length ? binds.join('、') : '-'} |`);
+  appendRow(lines, '里程碑', MILESTONE_TABLE, `| ${id} | ${title} | ${binds.length ? binds.join('、') : '-'} |`);
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${id} 寫進 ${objId}${binds.length ? `,綁定 ${binds.join('、')}` : ',還沒綁定任何 pipeline:lawful claim <slug> --milestone ' + id}`].join('\n'), exitCode: 0, id };
+  return { text: [`${id} 寫進 ${obj.fullName}${binds.length ? `,綁定 ${binds.join('、')}` : ',還沒綁定任何 pipeline:lawful claim <slug> --milestone ' + id}`].join('\n'), exitCode: 0, id };
 }
 
-// objective refinement <O-n> <一句話> --touch <全名,全名>:鑄 RF-n(全檔唯一),加到該目標的優化路線表裡。
+// objective refinement <O-n> <一句話> --touch <全名,全名>:鑄 RF-n(全資料夾唯一),加到該目標檔的優化路線表裡。
 // 動到的 pipeline 要是這個目標的里程碑綁定過的:優化路線不引入新 feature。
 export function refinementAdd(design, objId, title, { touch = '' } = {}) {
   const obj = design.objectives.objectives.find((o) => o.id === objId);
-  if (!obj) return { text: `objectives.md 沒有 ${objId};先 lawful objective add`, exitCode: 1 };
+  if (!obj) return { text: `objectives/ 沒有 ${objId};先 lawful objective add`, exitCode: 1 };
   if (!title || /<[^>]*>/.test(title)) return { text: '調整要一句話:改既有 pipeline 的哪一種品質', exitCode: 1 };
   const touches = touch.split(/[、,]/).map((x) => x.trim()).filter(Boolean);
   if (!touches.length) return { text: '--touch 至少一條 pipeline 全名;優化路線只改既有的 pipeline', exitCode: 1 };
@@ -189,13 +188,11 @@ export function refinementAdd(design, objId, title, { touch = '' } = {}) {
   if (outside.length) return { text: `${outside.join('、')} 不在 ${objId} 任何里程碑的綁定裡;優化路線不引入新 feature,新能力開里程碑(lawful objective milestone)`, exitCode: 1 };
   const nums = design.objectives.objectives.flatMap((o) => o.refinements.map((r) => Number((r.id.match(/^RF-(\d+)$/) || [0, 0])[1])));
   const id = `RF-${(nums.length ? Math.max(...nums) : 0) + 1}`;
-  const file = objectivesFile(design);
+  const file = objectiveFile(design, obj);
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
-  const range = objectiveRange(lines, objId);
-  if (!range) return { text: `objectives.md 找不到 ## ${objId} 這一節`, exitCode: 1 };
-  appendRow(lines, range, '調整', REFINEMENT_TABLE, `| ${id} | ${title} | ${touches.join('、')} |`);
+  appendRow(lines, '調整', REFINEMENT_TABLE, `| ${id} | ${title} | ${touches.join('、')} |`);
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${id} 寫進 ${objId},動到 ${touches.join('、')}`, `下一步:lawful:revise ${touches[0]},REV 的依欄引用 ${id};調整達成 = 動到的每條都有一條 REV 引用它、都達成,而且 ${obj.requirement || '需求'} 的 Law 仍成立`].join('\n'), exitCode: 0, id };
+  return { text: [`${id} 寫進 ${obj.fullName},動到 ${touches.join('、')}`, `下一步:lawful:revise ${touches[0]},REV 的依欄引用 ${id};調整達成 = 動到的每條都有一條 REV 引用它、都達成,而且 ${obj.requirement || '需求'} 的 Law 仍成立`].join('\n'), exitCode: 0, id };
 }
 
 // rename <P-00x> <slug>:編號不動,換 slug;檔改名,專案裡每個寫著舊全名的地方(.lawful/ 全部、原始碼與測試的註解)一起改。

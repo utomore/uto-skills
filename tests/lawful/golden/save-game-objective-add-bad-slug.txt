@@ -1,0 +1,3 @@
+$ lawful objective add Save_Repair 存檔壞了讀得出是哪裡壞 --requirement R-1 --priority 2
+slug 要是 kebab-case 英文:Save_Repair
+exit 1

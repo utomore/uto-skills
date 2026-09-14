@@ -1,5 +1,5 @@
 $ lawful lint trace
-## lint trace:8 條不合規
+## lint trace:9 條不合規
 - ✗ P-001#LAW-3 沒有測試承接(未翻譯)
 - ✗ P-001#LAW-4 沒有測試承接(未翻譯)
 - ✗ P-001#LAW-5 沒有測試承接(未翻譯)
@@ -7,8 +7,8 @@ $ lawful lint trace
 - ✗ P-001#LAW-8 沒有測試承接(未翻譯)
 - ✗ P-001#EX-2 沒有測試承接(未翻譯)
 - ✗ P-001#EX-3 沒有測試承接(未翻譯)
+- ✗ R-1#LAW 寫了三行卻沒有驗收測試;三行式的 Law 只由測試判,沒有測試就是未知
 - ✗ test/SaveGameSpec.hs 引用的 P-001#LAW-7 文檔裡沒有(幽靈引用)
 - · test/UtilSpec.hs 沒有歸屬,當內部單元測試,不進 law 分母
-- · R-1#LAW 沒有驗收測試,成立與否由它底下的 Law 或建置路線推
 - · O-2#LAW 沒有驗收測試,成立與否由它底下的 Law 或建置路線推
 exit 1

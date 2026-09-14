@@ -35,7 +35,7 @@ export function unitOfSlug(cone, entries, slug) {
 // 讀 .lawful/ 成一棵樹:cone(願景、需求、專案約束)、objectives(目標、里程碑、調整)、modules(邊界、模組單元、對外 I/O)、pipelines、gaps、spikes。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseFrontmatter, sections, findSection, sectionBlock, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
+import { parseFrontmatter, sections, findSection, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
 
 // 指令欄只取第一個反引號區段;反引號外的文字是給人看的說明,不是指令的一部分。沒有反引號就整段當指令。
 function codeSpan(s) {
@@ -84,7 +84,7 @@ function parseLawItem(items) {
   };
 }
 
-// 專案約束的清單項:指令、模組前綴、原始碼根目錄、追加清單、忽略目錄。其餘的列是給人看的硬性要求,不機械讀。
+// 專案約束的清單項:指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、優先各級代表什麼。其餘的列是給人看的硬性要求,不機械讀。
 function parseConstraints(lines) {
   const ioExtra = [];
   const effectExtra = [];
@@ -92,9 +92,10 @@ function parseConstraints(lines) {
   const commands = {};
   let modulePrefix = '';
   let srcRoot = '';
+  let priorityNote = '';
   const one = (v) => (!v || v === '無' || /^<[^>]*>$/.test(v) ? '' : v);
   for (const it of parseList(lines)) {
-    const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄)[::]\s*(.*)$/.exec(it.text);
+    const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄|優先)[::]\s*(.*)$/.exec(it.text);
     if (!m) continue;
     const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
     if (m[1] === 'IO 模組追加') ioExtra.push(...list());
@@ -102,9 +103,11 @@ function parseConstraints(lines) {
     else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
     else if (m[1] === '模組前綴') modulePrefix = one(codeSpan(m[2]));
     else if (m[1] === '原始碼根目錄') srcRoot = one(codeSpan(m[2])).replace(/[/]$/, '');
+    else if (m[1] === '優先') priorityNote = m[2].trim();
     else commands[m[1]] = codeSpan(m[2]);
   }
-  return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>' };
+  // 一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼
+  return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>', priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok' };
 }
 
 // Cone.md:frontmatter(language、updated)與三節:願景、需求、專案約束。
@@ -160,62 +163,63 @@ export function readCone(lawfulDir, root) {
   };
 }
 
-// 目標:objectives.md 每個 ## O-n:<一句話> 一個目標;需求、優先、Law 是清單項;
-// 建置路線是表(里程碑 | 做到什麼 | 綁定),優化路線是表(調整 | 做到什麼 | 動到),兩張表以表頭第一格分。
+// 目標:objectives/ 一個檔一個目標,檔名 R-x-O-y-<slug>.md;frontmatter id、requirement、priority、updated;
+// 標題 # <全名>:<一句話>;Law 是清單項;建置路線是表(里程碑 | 做到什麼 | 綁定),優化路線是表(調整 | 做到什麼 | 動到),兩張表以表頭第一格分。
 // 綁定欄是 pipeline 全名,「、」分隔;綁定是里程碑對到 pipeline 的唯一寫法,完成度從綁定的 pipeline 推。
 export function readObjectives(lawfulDir, root) {
-  const file = path.join(lawfulDir, 'objectives.md');
-  const text = read(file);
-  if (text == null) return { file: rel(root, file), exists: false, objectives: [], priorityNote: '', priorityNoteState: 'missing' };
-  const { body } = parseFrontmatter(text);
-  const secs = sections(body);
-  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
-  // 開頭(第一個 ## O-n 之前)一行「優先:1 = …;2 = …;3 = …;4 = …」,宣告優先各級在這個專案代表什麼
-  const head = secs.find((s) => s.level === 1) || secs[0];
-  const headLines = head && !/^O-\d+/.test(head.title) ? head.lines : [];
-  const noteLine = headLines.map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[::]/.test(l)) || '';
-  const priorityNote = noteLine.replace(/^優先[::]\s*/, '').trim();
+  const dir = path.join(lawfulDir, 'objectives');
+  if (!fs.existsSync(dir)) return { dir: rel(root, dir), exists: false, objectives: [] };
+  const num = (f) => Number((/-O-(\d+)-/.exec(f) || [0, 0])[1]);
+  const files = fs.readdirSync(dir).filter((f) => /^R-\d+-O-\d+-.+\.md$/.test(f)).sort((a, b) => num(a) - num(b) || a.localeCompare(b));
   const names = (cell) => (cell || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
-  const objectives = [];
-  for (const s of secs) {
-    if (s.level !== 2) continue;
-    const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
-    if (!m) continue;
-    const block = sectionBlock(secs, s);
-    const items = parseList(block.lines);
-    const field = (k) => {
-      const it = items.find((i) => new RegExp(`^${k}[::]`).test(i.text));
-      return it ? it.text.replace(/^[^::]*[::]\s*/, '').trim() : '';
-    };
-    const priorityRaw = field('優先');
-    const requirement = field('需求');
+  const objectives = files.map((f) => {
+    const file = path.join(dir, f);
+    const text = read(file);
+    const { fm, body, hasFrontmatter } = parseFrontmatter(text);
+    const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+    const lines = body.split(/\r?\n/);
+    const base = path.basename(f, '.md');
+    const m = /^(R-\d+)-(O-\d+)-(.+)$/.exec(base);
+    const heading = lines.find((l) => /^# /.test(l)) || '';
+    const tm = /^#\s+\S+\s*[::]\s*(.*)$/.exec(heading);
+    const title = (tm ? tm[1] : heading.replace(/^#\s*/, '')).trim();
+    const items = parseList(lines);
     const milestones = [];
     const refinements = [];
-    for (const t of parseTables(block.lines)) {
+    for (const t of parseTables(lines)) {
       const kind = (t.header[0] || '').trim();
       t.rows.forEach((r, i) => {
         const id = (r[0] || '').trim();
         if (!id || hasPlaceholder(id)) return;
-        const title = (r[1] || '').trim();
-        const row = { id, title, line: block.start + offset + t.rowLines[i] + 2, placeholder: hasPlaceholder(title) };
+        const rowTitle = (r[1] || '').trim();
+        const row = { id, title: rowTitle, line: offset + t.rowLines[i] + 1, placeholder: hasPlaceholder(rowTitle) };
         if (kind === '里程碑') milestones.push({ ...row, binds: names(r[2]) });
         else if (kind === '調整') refinements.push({ ...row, touches: names(r[2]) });
       });
     }
-    objectives.push({
-      id: m[1],
-      title: m[2].trim(),
+    const priorityRaw = fm.priority == null ? '' : String(fm.priority).trim();
+    const requirement = typeof fm.requirement === 'string' ? fm.requirement.trim() : '';
+    return {
+      file: rel(root, file),
+      fullName: base,
+      slug: m[3],
+      fileRequirement: m[1],
+      fileId: m[2],
+      fm,
+      hasFrontmatter,
+      id: fm.id || m[2],
+      title,
       requirement: hasPlaceholder(requirement) ? '' : requirement,
       priority: /^[1-4]$/.test(priorityRaw) ? Number(priorityRaw) : null,
-      priorityRaw,
+      priorityRaw: hasPlaceholder(priorityRaw) ? '' : priorityRaw,
       law: parseLawItem(items),
       milestones,
       refinements,
-      line: s.start + offset + 1,
-      placeholder: hasPlaceholder(m[2]),
-    });
-  }
-  return { file: rel(root, file), exists: true, objectives, priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok' };
+      line: 1,
+      placeholder: hasPlaceholder(title) || !title,
+    };
+  });
+  return { dir: rel(root, dir), exists: true, objectives };
 }
 
 // 模組表:三節。「邊界」四層各一句(給人看);「模組單元」一列一個單元 [{ unit, layers, responsibility, line }];
@@ -435,8 +439,9 @@ export function readDesign(root) {
     lawfulDir,
     pipelinesDir,
     cone: readCone(lawfulDir, root),
-    // 只有 system.md 體系的樹:lawful migrate cone 換過來
+    // 只有 system.md 體系的樹、或目標還擠在一份 objectives.md 裡:lawful migrate cone 換過來
     legacySystem: fs.existsSync(path.join(lawfulDir, 'system.md')),
+    legacyObjectives: fs.existsSync(path.join(lawfulDir, 'objectives.md')),
     objectives: readObjectives(lawfulDir, root),
     modules: readModules(lawfulDir, root),
     pipelines: files.map((f) => readPipeline(path.join(pipelinesDir, f), root)),

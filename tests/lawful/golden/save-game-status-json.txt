@@ -13,6 +13,8 @@ $ lawful status --json --tests test.log
   "summary": {
     "requirements": 1,
     "requirementsHolding": 1,
+    "requirementsTested": 1,
+    "requirementsInferred": 0,
     "objectives": 1,
     "objectivesAchieved": 0,
     "objectiveLawsHolding": 1,
@@ -35,7 +37,7 @@ $ lawful status --json --tests test.log
   "headline": [
     {
       "label": "需求 Law",
-      "value": "1 / 1 成立"
+      "value": "1 / 1 成立(測試 1、推得 0)"
     },
     {
       "label": "目標",
@@ -96,6 +98,8 @@ $ lawful status --json --tests test.log
   "objectives": [
     {
       "id": "O-1",
+      "name": "R-1-O-1-save-roundtrip",
+      "file": ".lawful/objectives/R-1-O-1-save-roundtrip.md",
       "title": "玩家存檔後能讀回同一個世界",
       "requirement": "R-1",
       "priority": 1,

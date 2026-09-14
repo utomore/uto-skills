@@ -32,8 +32,8 @@ const HELP = `lawful <子命令> [選項]
   rename <P-00x> <slug> [--dry-run]    換 slug,編號不動;檔改名,專案裡寫著舊全名的每一處(.lawful/、原始碼註解)一起改
   requirement add <一句話> [--law <句>]
                                        鑄 R-n 寫進 Cone.md「需求」;Law 是一句可判定的話
-  objective add <一句話> --requirement <R-n> --priority <1-4> [--law <句>]
-                                       鑄 O-n 寫進 objectives.md;每個目標解決一條需求;沒給 --law 就繼承需求的 Law;優先 1 最高、4 最低
+  objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]
+                                       鑄 O-n 建 objectives/R-n-O-n-<slug>.md;每個目標解決一條需求;沒給 --law 就繼承需求的 Law;優先 1 最高、4 最低
   objective milestone <O-n> <一句話> [--bind <全名,全名>]
                                        鑄 M-n(全檔唯一)加進該目標的建置路線表;綁定的全名要是 pipelines/ 裡有的 pipeline
   objective refinement <O-n> <一句話> --touch <全名,全名>
@@ -44,13 +44,13 @@ const HELP = `lawful <子命令> [選項]
   modules --gen                        從程式碼的模組名推出模組單元與層,補進模組表,職責欄留白
   section <file> <節>… [--verify]       取節
   spike close <SPK-00x> [--dry-run]    檢查 verdict / feeds / sha 齊全,刪 spike/SPK-00x-<slug>/
-  migrate cone [--write]               只有 system.md 的 .lawful 樹換成 Cone.md 體系:先印帳本,--write 才落地
+  migrate cone [--write]               只有 system.md 的樹、或目標還擠在 objectives.md 的樹,換成 Cone.md 與 objectives/ 體系:先印帳本,--write 才落地
   migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>]
                                        盤點 subsystems/ 體系的 .design,印一份帳本,不改任何檔
 
 選項
   --root <dir>                         專案根目錄(預設目前目錄)
-  --date <YYYY-MM-DD>                  claim / sync / migrate cone 寫進檔的日期(預設今天)
+  --date <YYYY-MM-DD>                  claim / objective add / sync / migrate cone 寫進檔的日期(預設今天)
   --dry-run                            module / rename / spike close 只印會做什麼,不寫檔
 
 exit code:status 盤點 = 全部達成且每條需求的 Law 成立 0、否則 1;--pipeline / --module = 查得到 0;lint 通過 0、有不合規 1。
@@ -79,6 +79,7 @@ function loadProject(root) {
   const adapter = pickAdapter(language);
   const notes = [];
   if (!design.cone) notes.push(design.legacySystem ? '缺 .lawful/Cone.md;這棵樹只有 system.md,lawful migrate cone --write 換過來' : '缺 .lawful/Cone.md');
+  else if (design.legacyObjectives) notes.push('目標還擠在 .lawful/objectives.md;lawful migrate cone --write 拆成 objectives/ 一個目標一個檔');
   else if (!language) notes.push('Cone.md 沒有 language 欄,簽名與邊界不對帳');
   else if (!adapter) notes.push(`此語言尚無 adapter(${language}),lint sig 與 lint boundary 跳過`);
   const source = adapter ? readSource(root, adapter, design.cone ? design.cone.ignoreDirs : [], design.cone) : null;
@@ -199,10 +200,10 @@ function main() {
   }
 
   if (cmd === 'objective') {
-    if (sub === 'add' && rest[0]) return emit(objectiveAdd(design, rest.join(' '), { requirement: str(args.flags.requirement), priority: args.flags.priority, law: str(args.flags.law) }));
+    if (sub === 'add' && rest[0] && rest[1]) return emit(objectiveAdd(design, rest[0], rest.slice(1).join(' '), { requirement: str(args.flags.requirement), priority: args.flags.priority, law: str(args.flags.law), date: str(args.flags.date) || undefined }));
     if (sub === 'milestone' && rest[0] && rest[1]) return emit(milestoneAdd(design, rest[0], rest.slice(1).join(' '), { bind: str(args.flags.bind) }));
     if (sub === 'refinement' && rest[0] && rest[1]) return emit(refinementAdd(design, rest[0], rest.slice(1).join(' '), { touch: str(args.flags.touch) }));
-    console.error('用法:lawful objective add <一句話> --requirement <R-n> --priority <1-4> [--law <句>]\n      lawful objective milestone <O-n> <一句話> [--bind <全名,全名>]\n      lawful objective refinement <O-n> <一句話> --touch <全名,全名>');
+    console.error('用法:lawful objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]\n      lawful objective milestone <O-n> <一句話> [--bind <全名,全名>]\n      lawful objective refinement <O-n> <一句話> --touch <全名,全名>');
     return 1;
   }
 

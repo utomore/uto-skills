@@ -15,6 +15,8 @@ $ lawful status --json
   "summary": {
     "requirements": 1,
     "requirementsHolding": 0,
+    "requirementsTested": 0,
+    "requirementsInferred": 0,
     "objectives": 1,
     "objectivesAchieved": 0,
     "objectiveLawsHolding": 0,
@@ -37,7 +39,7 @@ $ lawful status --json
   "headline": [
     {
       "label": "需求 Law",
-      "value": "0 / 1 成立"
+      "value": "0 / 1 成立(測試 0、推得 0)"
     },
     {
       "label": "目標",
@@ -98,6 +100,8 @@ $ lawful status --json
   "objectives": [
     {
       "id": "O-1",
+      "name": "R-1-O-1-cli-whole",
+      "file": ".lawful/objectives/R-1-O-1-cli-whole.md",
       "title": "輸入檔跑完整條",
       "requirement": "R-1",
       "priority": 1,

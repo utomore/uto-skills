@@ -277,10 +277,15 @@ export function lintTrace(design, source) {
     for (const l of p.laws) if (l.id) declared.add(`${p.id}#${l.id}`);
     for (const e of p.examples) declared.add(`${p.id}#${e.id}`);
   }
-  // 需求與目標的 Law 有測試最好,沒有也不算紅:沒有測試的由目標 Law 或建置路線推
-  const optional = new Set();
-  if (design.cone) for (const q of design.cone.requirements) if (q.law && !q.law.placeholder) optional.add(`${q.id}#LAW`);
-  for (const o of design.objectives.objectives) if (o.law && !o.law.placeholder && !o.law.inherits) optional.add(`${o.id}#LAW`);
+  // 需求與目標的 Law:寫了三行的只由驗收測試判,沒有測試即紅;一句話的沒有測試不算紅,由底下的 Law 或建置路線推
+  const formal = new Set();
+  const prose = new Set();
+  const top = (id, law) => {
+    if (!law || law.placeholder || law.inherits) return;
+    (law.formal ? formal : prose).add(`${id}#LAW`);
+  };
+  if (design.cone) for (const q of design.cone.requirements) top(q.id, q.law);
+  for (const o of design.objectives.objectives) top(o.id, o.law);
   const seen = new Map();
   for (const t of source.testFiles) {
     if (!t.markers.length) r.info.push(`${t.file} 沒有歸屬,當內部單元測試,不進 law 分母`);
@@ -290,8 +295,9 @@ export function lintTrace(design, source) {
     }
   }
   for (const d of declared) if (!seen.has(d)) r.red.push(`${d} 沒有測試承接(未翻譯)`);
-  for (const d of optional) if (!seen.has(d)) r.info.push(`${d} 沒有驗收測試,成立與否由它底下的 Law 或建置路線推`);
-  for (const [m, files] of seen) if (!declared.has(m) && !optional.has(m)) r.red.push(`${files.join(', ')} 引用的 ${m} 文檔裡沒有(幽靈引用)`);
+  for (const d of formal) if (!seen.has(d)) r.red.push(`${d} 寫了三行卻沒有驗收測試;三行式的 Law 只由測試判,沒有測試就是未知`);
+  for (const d of prose) if (!seen.has(d)) r.info.push(`${d} 沒有驗收測試,成立與否由它底下的 Law 或建置路線推`);
+  for (const [m, files] of seen) if (!declared.has(m) && !formal.has(m) && !prose.has(m)) r.red.push(`${files.join(', ')} 引用的 ${m} 文檔裡沒有(幽靈引用)`);
   return r;
 }
 

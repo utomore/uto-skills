@@ -1,6 +1,7 @@
 ---
 id: P-003
 description: 把計數彙整成表
+kind: <IO 介面 | 子流>
 status: draft
 updated: 2026-09-05
 ---

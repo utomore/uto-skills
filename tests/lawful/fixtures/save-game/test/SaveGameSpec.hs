@@ -27,6 +27,10 @@ limited = withMaxSuccess 100 . property
 
 spec :: Spec
 spec = do
+  describe "R-1#LAW" $
+    it "decode (saveBytes w) == Right (toSave w)" $
+      limited $ forAll genWorld $ w -> decode (saveBytes w) == Right (toSave w)
+
   describe "P-001#LAW-1" $
     it "decode (encode s) == Right s" $
       limited $ forAll genSaveState $ \s -> decode (encode s) == Right s

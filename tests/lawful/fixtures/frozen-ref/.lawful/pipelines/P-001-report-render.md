@@ -1,6 +1,7 @@
 ---
 id: P-001
 description: 把一段文字的字數寫成報告
+kind: IO 介面
 status: ready
 updated: 2026-09-06
 ---

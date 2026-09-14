@@ -21,8 +21,8 @@ function walk(dir, exts, out, root, ignore) {
 
 // { modules: Map<name, {module, file, layer, imports, signatures}>, testFiles: [{file, markers}], duplicates: [{module, files}] }
 // 層來自檔案住在哪一棵原始碼樹;同一個模組名出現在兩棵樹是 duplicates,編譯期會撞名。
-// ignore:system.md「忽略目錄」列的相對路徑或目錄名
-export function readSource(root, adapter, ignore = [], system = null) {
+// ignore:Cone.md「專案約束」的「忽略目錄」列的相對路徑或目錄名
+export function readSource(root, adapter, ignore = [], cone = null) {
   const files = [];
   walk(root, adapter.extensions, files, root, ignore);
   const modules = new Map();
@@ -45,7 +45,7 @@ export function readSource(root, adapter, ignore = [], system = null) {
     modules.set(name, {
       module: name,
       file: f.rel,
-      layer: layerOfFile(system, f.rel),
+      layer: layerOfFile(cone, f.rel),
       imports: adapter.imports(src),
       signatures: adapter.signatures(src, f.rel),
       exports: adapter.exports ? adapter.exports(src) : null,

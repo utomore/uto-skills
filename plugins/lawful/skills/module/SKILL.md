@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/boundary.md`「模組單元」「模組表」「四層」、`rules/tooling.md`「CLI」「收尾定錨」。再讀 `.lawful/modules.md` 與 `.lawful/system.md`「語言與工具」「邊界」。
+`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/boundary.md`「模組單元」「模組表」「四層」、`rules/tooling.md`「CLI」「收尾定錨」。再讀 `.lawful/modules.md`(含「邊界」)與 `.lawful/Cone.md`「專案約束」。
 
 ## 輸入 / 產出
 
@@ -18,8 +18,8 @@ user-invocable: true
 
 ## 前置
 
-- 沒有 `.lawful/system.md` → 停,先 `lawful:design`。
-- `system.md`「語言與工具」沒有模組前綴或原始碼根目錄 → 先問開發者這個專案的模組命名空間叫什麼、四層各自的原始碼根目錄怎麼命名(預設 `src-<層>`),寫進那一節。
+- 沒有 `.lawful/Cone.md` → 停,先 `lawful:design`。
+- `Cone.md`「專案約束」沒有模組前綴或原始碼根目錄 → 先問開發者這個專案的模組命名空間叫什麼、四層各自的原始碼根目錄怎麼命名(預設 `src-<層>`),寫進那一節。
 - 那四個根目錄還不是建置系統的子函式庫 → 先請開發者在建置設定裡各開一個、`build-depends` 照 types ← effect ← core ← shell 宣告;沒有這一步,層的相依方向只有 lint 擋得住,編譯器擋不住。
 - 要的東西在既有單元的範圍內 → 不建新單元,直接走 `lawful claim` 與 `lawful:pipeline`;單元裡加簽名不必經過這裡。
 

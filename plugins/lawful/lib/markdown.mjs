@@ -41,6 +41,17 @@ export function findSection(secs, title, level = 2) {
   return secs.find((s) => s.level === level && s.title === title) || null;
 }
 
+// 一個節連同它底下更深的子節:從 sec 起,到下一個層級 <= sec.level 的節之前。
+// 回 { lines, start }:lines 把子節的標題行也放回去,行號才跟檔案對得上。
+export function sectionBlock(secs, sec) {
+  const i = secs.indexOf(sec);
+  const lines = [...sec.lines];
+  for (let j = i + 1; j < secs.length && secs[j].level > sec.level; j++) {
+    lines.push(`${'#'.repeat(secs[j].level)} ${secs[j].title}`, ...secs[j].lines);
+  }
+  return { lines, start: sec.start };
+}
+
 // 切一列表格:認 \| 跳脫,反引號裡的 | 不切。
 export function splitRow(line) {
   const cells = [];
@@ -68,10 +79,11 @@ export function splitRow(line) {
   return cells;
 }
 
-// 第一張表:{ header, rows, rowLines }。沒有表回 null。
-export function parseTable(lines) {
-  let i = lines.findIndex((l) => /^\s*\|/.test(l));
+// 從第 from 行起的第一張表:{ header, rows, rowLines, headerLine };沒有表回 null。
+function tableFrom(lines, from) {
+  let i = lines.findIndex((l, k) => k >= from && /^\s*\|/.test(l));
   if (i < 0) return null;
+  const headerLine = i;
   const header = splitRow(lines[i]);
   i++;
   if (i < lines.length && /^\s*\|?\s*:?-{2,}/.test(lines[i])) i++;
@@ -81,7 +93,24 @@ export function parseTable(lines) {
     rows.push(splitRow(lines[i]));
     rowLines.push(i);
   }
-  return { header, rows, rowLines };
+  return { header, rows, rowLines, headerLine, end: i };
+}
+
+// 第一張表:{ header, rows, rowLines }。沒有表回 null。
+export function parseTable(lines) {
+  return tableFrom(lines, 0);
+}
+
+// 全部的表,照出現順序。
+export function parseTables(lines) {
+  const out = [];
+  let from = 0;
+  for (;;) {
+    const t = tableFrom(lines, from);
+    if (!t) return out;
+    out.push(t);
+    from = t.end;
+  }
 }
 
 export function stripTicks(s) {

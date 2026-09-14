@@ -262,15 +262,15 @@ export const haskell = {
     while ((m = re.exec(clean))) out.push(m[1]);
     return out;
   },
-  // extra:system.md「效果型別追加」。
+  // extra:Cone.md「專案約束」的「效果型別追加」。
   isEffectful(type, extra = []) {
     const names = [...EFFECT_TYPES, ...extra].map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     return new RegExp(`(?<![\\w.'])(?:${names.join('|')})(?![\\w'])`).test(type);
   },
-  // 測試檔裡字串字面值 "P-00x#LAW-n" / "P-00x#EX-n";只認字串,測試輸出才對得回來
+  // 測試檔裡字串字面值 "P-00x#LAW-n" / "P-00x#EX-n" / "R-n#LAW" / "O-n#LAW";只認字串,測試輸出才對得回來
   testMarkers(src) {
     const out = [];
-    const re = /"(P-\d{3}#(?:LAW|EX)-\d+)"/g;
+    const re = /"(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)"/g;
     let m;
     while ((m = re.exec(src))) out.push(m[1]);
     return out;
@@ -301,7 +301,7 @@ export const haskell = {
         continue;
       }
       const indent = line.search(/\S/);
-      const marked = /^\s*(P-\d{3}#(?:LAW|EX)-\d+)\b(.*)$/.exec(line);
+      const marked = /^\s*(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)\b(.*)$/.exec(line);
       if (marked) {
         const v = verdictOf(marked[2]);
         if (v) {
@@ -319,7 +319,7 @@ export const haskell = {
         continue;
       }
       if (indent >= 0 && indent <= currentIndent) current = null;
-      const fail = /^\s*\d+\)\s+(P-\d{3}#(?:LAW|EX)-\d+)/.exec(line);
+      const fail = /^\s*\d+\)\s+(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)/.exec(line);
       if (fail) set(fail[1], 'red');
     }
     return results;

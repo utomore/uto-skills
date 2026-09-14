@@ -1,17 +1,3 @@
-$ lawful objective add 報表印得出來 --priority 1
-O-1 寫進 .lawful/objectives.md(優先 1)
-判準還是佔位符,對談完填成可觀察的
-下一步:lawful objective milestone O-1 <一句話> --bind <P-00x-<slug>>
-exit 0
---- .lawful/objectives.md
-# 目標
-
-優先:<1 = 什麼;2 = 什麼;3 = 什麼;4 = 什麼>
-
-## O-1:報表印得出來
-- 優先:1
-- 判準:<可觀察的判準:達成時看得到什麼>
-
-| 里程碑 | 做到什麼 | 綁定 |
-|---|---|---|
-
+$ lawful objective add 報表印得出來 --requirement R-1 --priority 1
+Cone.md 沒有 R-1;先 lawful requirement add <一句話> --law <句>
+exit 1

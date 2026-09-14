@@ -1,6 +1,7 @@
 ---
 id: P-001
 description: 讀一段文字,解析後正規化
+kind: IO 介面
 status: ready
 updated: 2026-09-06
 ---

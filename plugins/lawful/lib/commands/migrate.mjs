@@ -285,3 +285,132 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
   }
   return { text, exitCode: 0 };
 }
+
+// migrate cone [--write]:只有 system.md 的 .lawful 樹換成 Cone.md 體系。先印帳本,--write 才落地。
+// system.md 的願景與目的 → Cone.md「願景」(目的接成第二段);語言與工具 → 「專案約束」;
+// 每個目標 → 一條需求(一句話照抄、判準當 Law),目標補「需求:R-n」、判準改成「Law:繼承 R-n」;
+// 邊界與對外 I/O 表 → modules.md 的兩節;Pipelines 表的類別 → 各 pipeline frontmatter 的 kind;最後刪 system.md。
+function sectionText(secs, title) {
+  const s = secs.find((x) => x.level === 2 && x.title === title);
+  return s ? s.lines.join('\n').replace(/^\s*\n+|\s+$/g, '') : '';
+}
+
+export function migrateCone(root, { write = false, date = new Date().toISOString().slice(0, 10) } = {}) {
+  const lawfulDir = path.join(root, '.lawful');
+  const sysFile = path.join(lawfulDir, 'system.md');
+  const coneFile = path.join(lawfulDir, 'Cone.md');
+  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
+  if (fs.existsSync(coneFile)) return { text: `${rel(coneFile)} 已經存在,這棵樹不用換`, exitCode: 0 };
+  if (!fs.existsSync(sysFile)) return { text: `${rel(lawfulDir)} 裡沒有 system.md,也沒有 Cone.md;lawful:design 建 Cone.md`, exitCode: 1 };
+  const sysText = fs.readFileSync(sysFile, 'utf8');
+  const { fm, body } = parseFrontmatter(sysText);
+  const secs = sections(body);
+  const titleLine = (body.split(/\r?\n/).find((l) => /^# /.test(l)) || '# <專案名>:<一句話>').trim();
+  const language = fm.language || '';
+  const vision = sectionText(secs, '願景');
+  const purpose = sectionText(secs, '目的');
+  const tools = sectionText(secs, '語言與工具');
+  const boundary = sectionText(secs, '邊界');
+  const ioText = sectionText(secs, '對外 I/O');
+  const plSec = secs.find((x) => x.level === 2 && x.title === 'Pipelines');
+  const plTable = plSec ? parseTable(plSec.lines) : null;
+  const kindOf = new Map((plTable ? plTable.rows : []).map((r) => [stripTicks(r[0] || ''), (r[1] || '').trim()]));
+
+  // 目標:每個 ## O-n 一條需求;判準那一行變成需求的 Law,目標自己的 Law 繼承它
+  const objFile = path.join(lawfulDir, 'objectives.md');
+  const objText = fs.existsSync(objFile) ? fs.readFileSync(objFile, 'utf8') : '';
+  const objLines = objText.split(/\r?\n/);
+  const reqs = [];
+  const newObjLines = [];
+  let cur = null;
+  for (const line of objLines) {
+    const h = /^## (O-\d+)\s*[::]\s*(.*)$/.exec(line);
+    if (h) {
+      cur = { id: h[1], rid: `R-${reqs.length + 1}`, title: h[2].trim(), law: '' };
+      reqs.push(cur);
+      newObjLines.push(line, `- 需求:${cur.rid}`);
+      continue;
+    }
+    if (cur && /^- 判準[::]/.test(line)) {
+      cur.law = line.replace(/^- 判準[::]\s*/, '').trim();
+      newObjLines.push(`- Law:繼承 ${cur.rid}`);
+      continue;
+    }
+    if (cur && /^- 需求[::]/.test(line)) continue;
+    newObjLines.push(line);
+  }
+
+  const cone = [
+    '---',
+    `language: ${language || '<haskell | …>'}`,
+    `updated: ${date}`,
+    '---',
+    titleLine,
+    '',
+    '## 願景',
+    [vision || '<北極星,第一段一到三句:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼。>', purpose].filter(Boolean).join('\n\n'),
+    '',
+    '## 需求',
+    ...(reqs.length
+      ? reqs.flatMap((r, i) => [...(i ? [''] : []), `### ${r.rid}:${r.title}`, `- Law:${r.law || '<一句可判定的話:這條需求成立時,什麼一定為真>'}`])
+      : ['### R-1:<一句話:誰在什麼情況下要得到什麼>', '- Law:<一句可判定的話:這條需求成立時,什麼一定為真>']),
+    '',
+    '## 專案約束',
+    `- 語言:${language || '<haskell | …>'}`,
+    ...tools.split(/\r?\n/).filter((l) => l.trim() && !/^- 語言[::]/.test(l)),
+    '- 套件與框架:無',
+    '',
+  ].join('\n');
+
+  // modules.md:邊界與對外 I/O 兩節接在模組單元表前後
+  const modFile = path.join(lawfulDir, 'modules.md');
+  const modText = fs.existsSync(modFile) ? fs.readFileSync(modFile, 'utf8') : '';
+  const modBody = parseFrontmatter(modText).body;
+  const modSecs = sections(modBody);
+  const hasUnitSec = modSecs.some((s) => s.level === 2 && s.title === '模組單元');
+  const unitTable = hasUnitSec ? '' : modBody.split(/\r?\n/).filter((l) => /^\s*\|/.test(l)).join('\n');
+  const modules = hasUnitSec ? modText : [
+    '# 模組表',
+    '',
+    '## 邊界',
+    boundary || '- types:<裝什麼,一句>\n- effect:<指令 ADT 叫什麼,一句;沒有 effect 層寫「無」>\n- core:<純轉換住哪,一句>\n- shell:<進入點,一句>',
+    '',
+    '## 模組單元',
+    unitTable || '| 模組 | 層 | 職責 |\n|---|---|---|',
+    '',
+    '## 對外 I/O',
+    ioText || '| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |\n|---|---|---|---|---|',
+    '',
+  ].join('\n');
+
+  // pipelines:frontmatter 補 kind
+  const pipelinesDir = path.join(lawfulDir, 'pipelines');
+  const pipelineFiles = fs.existsSync(pipelinesDir) ? fs.readdirSync(pipelinesDir).filter((f) => /^P-\d{3}-.+\.md$/.test(f)).sort() : [];
+  const kindEdits = [];
+  for (const f of pipelineFiles) {
+    const abs = path.join(pipelinesDir, f);
+    const text = fs.readFileSync(abs, 'utf8');
+    if (/^kind:/m.test(text)) continue;
+    const kind = kindOf.get(path.basename(f, '.md')) || '<IO 介面 | 子流>';
+    const next = text.replace(/^(description:.*\r?\n)/m, `$1kind: ${kind}\n`);
+    kindEdits.push({ abs, rel: rel(abs), kind, next, changed: next !== text });
+  }
+
+  const out = ['# migrate cone 帳本', ''];
+  out.push(`- ${rel(coneFile)}:建,願景${purpose ? '(目的接成第二段)' : ''}、需求 ${reqs.length} 條(${reqs.map((r) => `${r.rid} ← ${r.id}${r.law ? '' : ',Law 留佔位符'}`).join('、') || '沒有目標,留一條模板'})、專案約束(語言與工具照搬)`);
+  out.push(`- ${rel(objFile)}:${reqs.length ? `每個目標補「需求:R-n」,判準改成「Law:繼承 R-n」` : '沒有目標,不動'}`);
+  out.push(`- ${rel(modFile)}:${hasUnitSec ? '已經是三節,不動' : `補「邊界」${boundary ? '' : '(模板)'}與「對外 I/O」${ioText ? '' : '(模板)'}兩節`}`);
+  for (const e of kindEdits) out.push(`- ${e.rel}:frontmatter 補 kind: ${e.kind}${e.changed ? '' : '(找不到 description 行,要自己補)'}`);
+  out.push(`- ${rel(sysFile)}:刪`);
+  if (!write) {
+    out.push('', '以上只是帳本;lawful migrate cone --write 才落地');
+    return { text: out.join('\n'), exitCode: 0 };
+  }
+  fs.writeFileSync(coneFile, cone);
+  if (reqs.length) fs.writeFileSync(objFile, newObjLines.join('\n'));
+  fs.writeFileSync(modFile, modules);
+  for (const e of kindEdits) if (e.changed) fs.writeFileSync(e.abs, e.next);
+  fs.unlinkSync(sysFile);
+  out.push('', '都寫了;接著 lawful status 看警訊,需求的 Law 與蘊含說明由 lawful:design 對談補齊');
+  return { text: out.join('\n'), exitCode: 0 };
+}

@@ -1,6 +1,6 @@
 ---
 name: revise
-description: lawful 的修訂 — 回答 GAP、開發者要改簽名或 law、解凍 frozen 的 pipeline:一律改原檔,一次修訂一條 REV(依 / 動到 / 保護 / 重委派),簽名變了程式碼同步回 stub,刪 GAP 條目,列出要重派的角色。觸發詞:修訂、回答 GAP、改 law、改簽名、解凍、改名、搬模組、改模組職責、加一層、收整、revise、lawful revise。Use when an existing pipeline's contract must change or a GAP has been answered.
+description: lawful 的修訂 — 回答 GAP、開發者要改簽名或 law、解凍 frozen 的 pipeline、把優化路線的調整(RF-n)落到它動到的 pipeline:一律改原檔,一次修訂一條 REV(依 / 動到 / 保護 / 重委派;調整的 REV 依欄引用 RF-n),簽名變了程式碼同步回 stub,刪 GAP 條目,列出要重派的角色。觸發詞:修訂、回答 GAP、改 law、改簽名、解凍、改名、搬模組、改模組職責、加一層、收整、調整、優化、revise、lawful revise。Use when an existing pipeline's contract must change, a GAP has been answered, or a refinement must be applied to the pipelines it touches.
 user-invocable: true
 ---
 
@@ -8,19 +8,23 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.lawful/gaps.md`。
+`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.lawful/gaps.md`;做的是調整就再讀 `.lawful/objectives.md` 那一列與它的需求 Law。
 
 ## 輸入 / 產出
 
 | 輸入 | 產出 |
 |---|---|
-| 一條 GAP 與開發者的回答,或開發者要改的東西 | 原檔改好、REV 一條、GAP 條目刪掉、重委派清單 |
+| 一條 GAP 與開發者的回答、開發者要改的東西、或一條待修訂的調整 `RF-n` | 原檔改好、REV 一條(調整的依欄引用 `RF-n`)、GAP 條目刪掉、重委派清單 |
+
+## 前置
+
+- 做的是調整:那條 `RF-n` 要在 `objectives.md` 上、動到的 pipeline 要是它列的、該目標的建置路線要已經達成;不是就停,回 `lawful:objective`。調整只改實作或行為品質,要改簽名或加 stage 讓它做到新能力的,不是調整,是新里程碑。
 
 ## 步驟
 
-1. **frozen 先解凍**:「決定」節記一條「解凍:<為什麼要改>」,`status` 改 `ready`。
-2. **定動到與保護**:動到哪些 stage 與 law;其餘既有 law 全列進保護。要保護的行為還不是 LAW 的,先補成 LAW 再修訂。
-3. **改原檔**:簽名、law、層,直接改那一格;`## 修訂記錄` 加一條 REV,依欄帶提問原句或開發者的話;`updated` 改今天。
+1. **frozen 先解凍**:「決定」節記一條「解凍:<為什麼要改>」(調整就寫 `RF-n` 那一句),`status` 改 `ready`。
+2. **定動到與保護**:動到哪些 stage 與 law;其餘既有 law 全列進保護。要保護的行為還不是 LAW 的,先補成 LAW 再修訂。調整的保護一定含需求 Law 引用到的每條 law:優化不准破壞需求 Law。
+3. **改原檔**:簽名、law、層,直接改那一格;`## 修訂記錄` 加一條 REV,依欄帶提問原句、開發者的話、或 `RF-n` 與它那一句(`status` 靠這個算調整的進度);`updated` 改今天。
 4. **程式碼跟上**:簽名變了,程式碼那行同步改、本體回 stub;層變了,模組表同步改。模組單元的名字、職責或層要變也是修訂:改 `.lawful/modules.md` 那一列,補層走 `lawful module <單元> --layers <新的層>`,再把住在裡面的 stage 模組欄跟著改。
 5. **結 GAP**:被回答的條目整條刪掉,`gaps.md` 空了刪檔。
 6. **對帳**:`lawful lint laws`、`lawful lint sig`。
@@ -28,7 +32,7 @@ user-invocable: true
 
 ## 收尾
 
-回報 REV 編號、動到 / 保護 / 重委派三欄、刪了哪些 GAP;附定錨區塊。下一步:`lawful:build <全名>`。
+回報 REV 編號、動到 / 保護 / 重委派三欄、刪了哪些 GAP、對應的調整(有的話);附定錨區塊。下一步:`lawful:build <全名>`;調整動到多條 pipeline 時,每一條各一次修訂再各自 build。
 
 ## 邊界
 

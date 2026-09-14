@@ -1,0 +1,32 @@
+$ lawful objective add 存檔壞了讀得出是哪裡壞 --requirement R-1 --priority 2
+O-2 寫進 .lawful/objectives.md(需求 R-1,優先 2,Law 繼承 R-1)
+R-1 現在有 O-1、O-2 兩個以上的目標:各目標要有自己的 Law,Cone.md 的 R-1 要補蘊含說明;O-2 的 Law 改成自己的
+下一步:lawful objective milestone O-2 <一句話> --bind <P-00x-<slug>>
+exit 0
+--- .lawful/objectives.md
+# 目標
+
+優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+
+## O-1:玩家存檔後能讀回同一個世界
+- 需求:R-1
+- 優先:1
+- Law:繼承 R-1
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 存檔寫得出檔案 | P-001-save-write |
+| M-2 | 存檔壞了看得出來 | - |
+
+| 調整 | 做到什麼 | 動到 |
+|---|---|---|
+| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+
+## O-2:存檔壞了讀得出是哪裡壞
+- 需求:R-1
+- 優先:2
+- Law:繼承 R-1
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+

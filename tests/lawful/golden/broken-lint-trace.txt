@@ -9,4 +9,6 @@ $ lawful lint trace
 - ✗ P-001#EX-3 沒有測試承接(未翻譯)
 - ✗ test/SaveGameSpec.hs 引用的 P-001#LAW-7 文檔裡沒有(幽靈引用)
 - · test/UtilSpec.hs 沒有歸屬,當內部單元測試,不進 law 分母
+- · R-1#LAW 沒有驗收測試,成立與否由它底下的 Law 或建置路線推
+- · O-2#LAW 沒有驗收測試,成立與否由它底下的 Law 或建置路線推
 exit 1

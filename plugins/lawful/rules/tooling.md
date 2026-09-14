@@ -12,35 +12,39 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 
 | 子命令 | 做什麼 |
 |---|---|
-| `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 在專案根目錄跑 `system.md` 的整套指令;兩者都沒給、或輸出裡一條 `P-00x#LAW-n` 標記都沒有,就列「未跑」並在開頭寫明 |
+| `status [--tests <log> \| --run]` | 派工報告。laws 綠幾條要有測試輸出:`--tests` 給留檔的輸出,`--run` 在專案根目錄跑 `Cone.md`「專案約束」的整套指令;兩者都沒給、或輸出裡一條 `P-00x#LAW-n` 標記都沒有,就列「未跑」並在開頭寫明 |
 | `status --pipeline <P-00x>` / `--module <M>` | 一條 pipeline 的 stage 與 law 逐條狀態 / 住在該模組的所有 stage 的狀態 |
-| `status --json` | 同一份報告的資料原樣輸出:願景、目標與里程碑、每條 pipeline(stage、law、example、GAP、引用與被引用、住哪些模組與哪幾個單元)、模組單元(職責、宣告的層、每一層在原始碼樹裡有哪些模組、住在裡面的 pipeline 與待實作)、未登記的模組、能開的線、警訊、建議路線。數字與文字都與報告同源,給別的工具讀 |
-| `status --html [檔名] [--open]` | **報告照印**,另外把同一份資料畫成看板,寫成一個自帶資料的單檔網頁,結尾附上它的 `file://` 網址;沒給檔名就寫進系統暫存區的 `lawful-board/<專案資料夾名>-status.html`,不在專案裡留檔。`--open` 直接用系統預設瀏覽器打開。可平移縮放的畫布上由上而下一棵樹:願景一張(第一段),往下一層優先度一個區塊、副標寫這一級在這個專案代表什麼,再一層是目標,再一層是里程碑(還沒綁 pipeline 的標成待 claim),最底下一條 pipeline 一張便利貼、顏色是狀態。pipeline 之間的引用是另一種線,預設只在選取時出現。點便利貼看它的 stage 與 law 逐條、牽動誰、住哪幾個模組單元、警訊;點目標或里程碑縮放到那一叢。側欄的首頁另有一段**模組**:一個模組單元一列,層是它在原始碼樹裡的落點(還沒有程式碼的那一層淡的),列裡的 pipeline 點得進去。不連網、不起服務,瀏覽器打開就看 |
-| `module <名稱> [--layers <types,effect,core,shell>] [--responsibility <句>] [--dry-run]` | 劃一個模組單元(boundary.md「模組單元」):`modules.md` 寫一列,它宣告的每一層在那棵原始碼樹裡開好資料夾,不放任何模組。名稱沒有 `.` 就接上 `system.md` 的模組前綴;已經在表上的單元補上缺的層,已經有的資料夾不動。層預設 `types,core`;職責沒給就提醒 `lint boundary` 會紅。`--facade [層]` 另外建一個與單元同名的門面模組(只有 module 宣告與空匯出清單),沒指定層就開在最上層;門面只准一個,別層已經有就停下不建 |
-| `claim <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建 pipeline 檔(`status: draft`),`system.md` Pipelines 表加一列(類別欄由人填 IO 介面或子流),綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標。slug 是 `<領域名詞>-<動詞或動名詞>`(pipelines.md「編號與引用」):領域名詞對不到模組表上任何單元就停 |
+| `status --json` | 同一份報告的資料原樣輸出:願景、需求(Law 成立與否與來源、蘊含、底下的目標)、目標(需求、優先、Law、里程碑、調整)、每條 pipeline(類別、stage、law、example、GAP、引用與被引用、住哪些模組與哪幾個單元)、模組單元(職責、宣告的層、每一層在原始碼樹裡有哪些模組、住在裡面的 pipeline 與待實作)、未登記的模組、能開的線、警訊、建議路線。數字與文字都與報告同源,給別的工具讀 |
+| `status --html [檔名] [--open]` | **報告照印**,另外把同一份資料畫成看板,寫成一個自帶資料的單檔網頁,結尾附上它的 `file://` 網址;沒給檔名就寫進系統暫存區的 `lawful-board/<專案資料夾名>-status.html`,不在專案裡留檔。`--open` 直接用系統預設瀏覽器打開。可平移縮放的畫布上由上而下一棵樹:願景一張(第一段),往下一層一條需求一個區塊、副標寫 Law 成立與否與來源,再一層是目標(卡上寫優先與那一級代表什麼、Law、里程碑與調整的達成數),再一層是里程碑與調整(還沒綁 pipeline 的里程碑標成待 claim,調整標它的狀態),最底下一條 pipeline 一張便利貼、顏色是狀態。pipeline 之間的引用是另一種線,預設只在選取時出現。點便利貼看它的 stage 與 law 逐條、牽動誰、住哪幾個模組單元、警訊;點需求、目標或里程碑縮放到那一叢。側欄的首頁另有一段**模組**:一個模組單元一列,層是它在原始碼樹裡的落點(還沒有程式碼的那一層淡的),列裡的 pipeline 點得進去。不連網、不起服務,瀏覽器打開就看 |
+| `module <名稱> [--layers <types,effect,core,shell>] [--responsibility <句>] [--dry-run]` | 劃一個模組單元(boundary.md「模組單元」):`modules.md`「模組單元」寫一列,它宣告的每一層在那棵原始碼樹裡開好資料夾,不放任何模組。名稱沒有 `.` 就接上 `Cone.md` 的模組前綴;已經在表上的單元補上缺的層,已經有的資料夾不動。層預設 `types,core`;職責沒給就提醒 `lint boundary` 會紅。`--facade [層]` 另外建一個與單元同名的門面模組(只有 module 宣告與空匯出清單),沒指定層就開在最上層;門面只准一個,別層已經有就停下不建 |
+| `claim <slug> [--description <句>] [--kind <IO 介面 \| 子流>] [--milestone <M-n>]` | 鑄號建 pipeline 檔(`status: draft`),`--kind` 填進 frontmatter(沒給就還是佔位符,`status` 列警訊),綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標。slug 是 `<領域名詞>-<動詞或動名詞>`(pipelines.md「編號與引用」):領域名詞對不到模組表上任何單元就停 |
 | `rename <P-00x \| 全名> <slug> [--dry-run]` | 換 slug,編號不動:檔改名,專案裡寫著舊全名的每一處(`.lawful/` 全部、原始碼與測試的註解)一起改;測試歸屬字串只帶 `P-00x`,不受影響。slug 一樣過 claim 那道檢查 |
-| `objective add <一句話> --priority <1-4> [--criteria <句>]` | 鑄 `O-n` 寫進 `objectives.md`;優先 1 最高、4 最低;判準沒給就留佔位符並提醒 |
-| `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全檔唯一)加進該目標的表;綁定的全名要是 `pipelines/` 裡有的 pipeline |
+| `requirement add <一句話> [--law <句>]` | 鑄 `R-n` 寫進 `Cone.md`「需求」;Law 沒給就留佔位符並提醒。「需求」節裡還是模板的那一條會被換掉 |
+| `objective add <一句話> --requirement <R-n> --priority <1-4> [--law <句>]` | 鑄 `O-n` 寫進 `objectives.md`;需求要是 `Cone.md` 裡有的;優先 1 最高、4 最低;Law 沒給就寫「繼承 R-n」,那條需求已經有別的目標時提醒各目標要有自己的 Law 與蘊含說明 |
+| `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全檔唯一)加進該目標的建置路線表;綁定的全名要是 `pipelines/` 裡有的 pipeline |
+| `objective refinement <O-n> <一句話> --touch <全名,全名>` | 鑄 `RF-n`(全檔唯一)加進該目標的優化路線表;動到的全名要存在、而且是該目標某條里程碑綁定過的,否則停:優化路線不引入新 feature |
 | `lint boundary` | import 與簽名 vs 模組表;types / effect / core 命中效果型別即紅;未登記模組、單元巢狀、檔不在任何一棵原始碼樹底下、所在那棵樹的層沒宣告、檔案位置對不上模組名、同一個模組名有兩個檔即紅;職責欄空的即紅;表上有而程式碼還沒有的單元或層列成訊息;非 shell 模組沒有匯出清單即紅;production 模組 import 別人的 `*.Internal` 即紅 |
 | `lint sig` | slug 的領域名詞要是 `=` 列住的模組單元(`=` 列還對不到單元時,至少要是表上的一個單元);Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;願望 stage 列待實作不算紅;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
 | `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |
-| `lint laws` | 三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名、types 層匯出或 adapter 的標準函式庫清單(字串字面值不算識別字)、`=` 列至少被一條 law 引用、`!` 列不被引用、example 指得到 law |
-| `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅 |
-| `lint io` | `system.md`「對外 I/O」表:方向是 in / out、pipeline 存在且是 IO 介面、shell 模組在模組表是 shell 層且程式碼裡有、型別住 types 或 effect;每條 IO 介面至少一列 |
+| `lint laws` | pipeline 的 law:三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名、types 層匯出或 adapter 的標準函式庫清單(字串字面值不算識別字)、`=` 列至少被一條 law 引用、`!` 列不被引用、example 指得到 law。需求與目標的 Law:一句話必填、不是模板;寫了三行就照同一套查,識別字可以是任何一條 pipeline 的 Stages 簽名,不准引用 `!` 列;繼承的需求要存在 |
+| `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅。`R-n#LAW` / `O-n#LAW` 沒有測試列成訊息,不算紅 |
+| `lint io` | `modules.md`「對外 I/O」表:方向是 in / out、pipeline 存在且是 IO 介面、shell 模組在模組表是 shell 層且程式碼裡有、型別住 types 或 effect;每條 IO 介面至少一列 |
 | `lint all` | 以上全部 |
 | `modules --gen` | 從程式碼的模組名推出模組單元與它有哪幾層,補進模組表,職責欄留白;已有的列不動 |
 | `section <file> <節>…` | 取節 |
 | `spike close <SPK-00x>` | 檢查 verdict / feeds / sha 齊全,刪 `spike/SPK-00x-<slug>/` |
+| `migrate cone [--write]` | 只有 `system.md` 的 `.lawful` 樹換成 `Cone.md` 體系:先印帳本,`--write` 才落地。願景與目的併成「願景」、語言與工具變「專案約束」、每個目標生一條需求(判準當 Law)並讓目標繼承它、邊界與對外 I/O 搬進 `modules.md`、Pipelines 表的類別寫進各 pipeline 的 `kind`,最後刪 `system.md` |
 | `migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>]` | 盤點 `subsystems/<slug>/` 體系的 `.design`,印一份帳本,不改任何檔:每份 F / E / G-* 的介面簽名在程式碼裡對到幾條、四格 law 翻成三行草稿(散文的標「需形式化」)、按簽名所在模組分組並建議 `claim` 的 slug、開發階段表列成目標與里程碑候選、退場清單、人要判的清單。分組、目標與里程碑怎麼綁、law 形式化由人做 |
 
-exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pipeline` / `--module` = 查得到 0、查不到 1;`lint` 一律 0 / 1。
+exit code:`status` 盤點 = 驗收(有未達成的 pipeline、open GAP、或需求 Law 未成立即 1),`status --pipeline` / `--module` = 查得到 0、查不到 1;`lint` 一律 0 / 1。
 
 ## status 報告
 
-給開發者讀的派工報告,版面固定。第一行印願景的第一段(還是模板就不印,列警訊),第二行是數字(目標、里程碑、IO 介面、pipeline、模組單元、待實作 stage、open GAP);接著三張表:
+給開發者讀的派工報告,版面固定。第一行印願景的第一段(還是模板就不印,列警訊),第二行是數字(需求與 Law 成立數、目標、里程碑、調整、IO 介面、pipeline、模組單元、待實作 stage、open GAP);接著四張表:
 
-- **目標**:先一行 `objectives.md` 開頭宣告的優先各級,再每個目標一列(優先、一句話、里程碑總數、里程碑達成、完成度),照優先排;每個沒達成的目標一行「下一個里程碑」,附綁定的 pipeline 各在什麼狀態,還沒綁的寫成待 claim;最後一行列沒有被任何里程碑綁定的 pipeline。**這一段答的是「我們有沒有朝向目標」**
-- **pipelines**:每條 pipeline 一列
+- **需求**:每條需求一列(一句話、Law 成立 / 未成立 / 未知與判定來源、底下的目標、目標 Law 成立幾個、里程碑達成幾條、調整達成幾條),照它最高優先的目標排。**這一段答的是「需求成立了沒」**
+- **目標**:先一行 `objectives.md` 開頭宣告的優先各級,再每個目標一列(需求、優先、一句話、Law 成立與否與來源、里程碑總數、里程碑達成、完成度、調整達成),照優先排;每個沒達成的目標一行「下一個里程碑」,附綁定的 pipeline 各在什麼狀態,還沒綁的寫成待 claim;建置路線達成的目標改寫下一個沒達成的調整與它的狀態;最後一行列沒有被任何里程碑綁定的 pipeline。**這一段答的是「我們有沒有朝向目標」**
+- **pipelines**:每條 pipeline 一列(類別、status、簽名、骨架、law、狀態)
 - **模組**:每個模組單元一列(職責、宣告的層、還沒有程式碼的層、住在這裡的 pipeline、stage 幾個、待實作幾個),表下兩行列還沒有任何 stage 住進去的單元、以及程式碼有而模組表沒有的模組。**這一段答的是「東西住在哪」**
 
 然後七段:
@@ -50,14 +54,14 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 3. 等決定:open 的 GAP、open 的 spike、`draft` 的 pipeline
 4. 牽動誰:誰引用了這條的簽名
 5. 待實作:按模組單元分組,單元底下再按模組列願望 stage、找不到的 stage、本體還是骨架的 stage
-6. 警訊:願景還是模板、沒有任何目標、優先各級代表什麼沒有宣告、優先不在 1 到 4、目標沒有判準或沒有里程碑、里程碑綁到不存在的 pipeline、里程碑編號重複、pipeline 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、`build/<全名>` 分支已合進主線卻還在(整合開頭會清掉)、還是模板(claim 建出來的檔還留著 `<…>` 佔位符的 Stages / Laws / Examples 列;這些列不算 stage、law、example,不進任何數字)
-7. 建議路線:先回答 GAP、再 build 能開的線(照目標優先、里程碑順序排,每條附目標與里程碑)、`draft` 討論完改 `ready`。沒有可派的線時分兩種:全部達成寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾條沒達成、缺什麼輸入,不催加新功能
+6. 警訊:`Cone.md` 不存在(只有 `system.md` 的樹提示 `migrate cone`)、願景還是模板、沒有需求、需求或它的 Law 還是模板、需求 Law 寫了三行卻沒有驗收測試、需求沒有目標、一條需求有兩個以上目標卻沒有蘊含說明或有目標仍在繼承、建置路線全部達成而需求 Law 未成立、優化後需求 Law 不成立、沒有任何目標、優先各級代表什麼沒有宣告、優先不在 1 到 4、目標沒有需求或需求不存在、目標沒有 Law 或沒有里程碑、里程碑綁到不存在的 pipeline、里程碑或調整編號重複、調整動到不存在的或本目標里程碑沒綁過的 pipeline、pipeline 沒有被任何里程碑綁定、`kind` 缺或還是模板或不合法、`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、`build/<全名>` 分支已合進主線卻還在(整合開頭會清掉)、還是模板(claim 建出來的檔還留著 `<…>` 佔位符的 Stages / Laws / Examples 列;這些列不算 stage、law、example,不進任何數字)
+7. 建議路線:先回答 GAP、再 build 能開的線(照目標優先、里程碑順序排,每條附目標與里程碑)、`draft` 討論完改 `ready`、建置路線達成的目標底下待修訂的調整走 `lawful:revise`。沒有可派的線時分三種:pipeline 全部達成而某條需求 Law 未成立,寫哪一條與判定來源,先讓 Law 成立;全部達成且每條需求 Law 成立寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾條沒達成、缺什麼輸入,不催加新功能
 
-分母是 `system.md`「Pipelines」表的 pipeline 數與其中 IO 介面的條數,`objectives.md` 的目標數與里程碑數,以及 `modules.md` 的模組單元數。
+分母是 `pipelines/` 的檔數與其中 `kind: IO 介面` 的條數,`Cone.md` 的需求數,`objectives.md` 的目標、里程碑與調整數,以及 `modules.md` 的模組單元數。
 
 ## language adapter
 
-`system.md` 的 `language` 選 adapter;語言相關的事全部走 adapter,讀取層不認識任何語言:
+`Cone.md` 的 `language` 選 adapter;語言相關的事全部走 adapter,讀取層不認識任何語言:
 
 | adapter 提供 | 用在 |
 |---|---|
@@ -66,16 +70,16 @@ exit code:`status` 盤點 = 驗收(有未達成或 open GAP 即 1),`status --pip
 | `typeNames(file)`:宣告的型別名 | `lint io` |
 | `stubs(file)`:本體還是 `stub` 的名字 | `status` |
 | `imports(file)`:import 的模組 | `lint boundary` |
-| `isEffectful(signature, extra)`:簽名是否碰到效果;`extra` 是 `system.md` 追加的效果型別 | `lint boundary` |
+| `isEffectful(signature, extra)`:簽名是否碰到效果;`extra` 是 `Cone.md` 追加的效果型別 | `lint boundary` |
 | `effectTypes`、`ioModules`:預設效果型別、預設 IO 模組黑名單 | `lint boundary` |
-| `testMarkers(file)`:測試檔裡的 `P-00x#LAW-n` / `P-00x#EX-n` 歸屬 | `lint trace` |
+| `testMarkers(file)`:測試檔裡的 `P-00x#LAW-n` / `P-00x#EX-n` / `R-n#LAW` / `O-n#LAW` 歸屬 | `lint trace` |
 | `testResults(log)`:測試輸出 → 每個歸屬標記綠 / 紅 / pending | `status` |
 | `stdlib`:law 裡可直接用的標準函式庫函數 | `lint laws` |
 | `stub(marker)`:帶 `P-00x#name` 的未實作本體 | conductor 寫骨架 |
 | `modulePath(module)`:模組名 → 它在自己那棵原始碼樹底下的相對路徑 | `lint boundary`、`module --facade` |
 | `moduleFile(module)`:一個只有 module 宣告與空匯出清單的新檔 | `module --facade` |
 
-Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;匯出清單認 `Foo (..)`、`Foo (a, b)`、`(<+>)`、`module X`;型別名認 `data` / `newtype` / `type` / `class`;`import` 行;效果型別 `IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`、`TMVar`、`Chan` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `error "P-00x#name stub"`,`undefined` 也算骨架;模組名的每一段是一層資料夾、最後一段加 `.hs`,前面接它那一層的原始碼根目錄;四棵樹在 `.cabal` 裡各是一個 sub-library,`build-depends` 只往下一層宣告。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
+Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;匯出清單認 `Foo (..)`、`Foo (a, b)`、`(<+>)`、`module X`;型別名認 `data` / `newtype` / `type` / `class`;`import` 行;效果型別 `IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`、`TMVar`、`Chan` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`、`"R-n#LAW"`、`"O-n#LAW"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `error "P-00x#name stub"`,`undefined` 也算骨架;模組名的每一段是一層資料夾、最後一段加 `.hs`,前面接它那一層的原始碼根目錄;四棵樹在 `.cabal` 裡各是一個 sub-library,`build-depends` 只往下一層宣告。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
 
 ## 跑東西的紀律
 
@@ -89,12 +93,12 @@ Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)�
 
 每個 skill 的收尾,回報最後附這四段,不超過一個畫面。委派模式的 subagent 不輸出。
 
-1. **位置樹**:願景一行 → 每個目標一行(優先、完成度)→ 每條里程碑一行(達成 / 進行中 / 未開工)→ 綁定的 pipeline → 目前 pipeline 展開到 stage 與 law,各標簽名在不在、law 綠不綠;沒被任何里程碑綁定的 pipeline 掛在最後的「沒有目標」底下。目前節點標 `◀ 目前`。全部寫全名。
-2. **完成度**三行:目標(最高優先還沒達成的目標 O-n 完成度 x% · 里程碑達成 n / m)、產品(IO 介面達成 n / m · pipeline 達成 n / m · 待實作 stage n)、本次(目前 pipeline 簽名 m / n · laws g / k)。數字只來自 `lawful status` 與實際跑過的測試;沒跑寫「沿用 <哪一次>」或「未跑」。
-3. **主軸檢查**:本次對應哪個目標的哪條里程碑、哪條 pipeline 的哪個 stage 或 law;偏離清單(做的事不在任何里程碑的綁定裡、比最高優先目標的里程碑先做了低優先的、簽名與 Stages 不符、import 越層、測試後門、未登記模組、open GAP、動了文檔沒寫的東西),每條附位置與建議;沒有寫「無」。
+1. **位置樹**:願景一行 → 每條需求一行(Law 成立 / 未成立 / 未知)→ 每個目標一行(優先、Law、完成度)→ 每條里程碑一行(達成 / 進行中 / 未開工)與每條調整一行(達成 / 進行中 / 待修訂)→ 綁定的 pipeline → 目前 pipeline 展開到 stage 與 law,各標簽名在不在、law 綠不綠;沒被任何里程碑綁定的 pipeline 掛在最後的「沒有目標」底下。目前節點標 `◀ 目前`。全部寫全名。
+2. **完成度**三行:需求與目標(最高優先還沒達成的目標 O-n 完成度 x% · 里程碑達成 n / m · 它的需求 R-n Law 成立與否)、產品(IO 介面達成 n / m · pipeline 達成 n / m · 待實作 stage n)、本次(目前 pipeline 簽名 m / n · laws g / k)。數字只來自 `lawful status` 與實際跑過的測試;沒跑寫「沿用 <哪一次>」或「未跑」。
+3. **主軸檢查**:本次對應哪條需求、哪個目標的哪條里程碑或調整、哪條 pipeline 的哪個 stage 或 law;偏離清單(做的事不在任何里程碑的綁定裡、調整動到了里程碑沒綁過的 pipeline、比最高優先目標的里程碑先做了低優先的、簽名與 Stages 不符、import 越層、測試後門、未登記模組、open GAP、動了文檔沒寫的東西),每條附位置與建議;沒有寫「無」。
 4. **下一步**:一條具體命令(參數寫全名),附下面四題的答案;最多兩條替代,各附同四題,外加一句為什麼不是第一。下一步必須從樹上推得出來。
-   - **必要性**:不做它,樹上哪個目標的哪條里程碑停在哪條 pipeline 的哪個 stage 或 law、哪條功能因此無法正常運作。答不出具體的一條與一格,它就不是下一步,也排不進替代。
+   - **必要性**:不做它,樹上哪條需求的哪個目標停在哪條里程碑、哪條 pipeline 的哪個 stage 或 law、哪條功能因此無法正常運作。答不出具體的一條與一格,它就不是下一步,也排不進替代。
    - **替代為什麼排後面**:目標優先較低、等一個決定、等子流先達成、只是清警訊;寫明是哪一個。
-   - **需求來源**:這條命令對到位置樹的哪個目標與里程碑、警訊表的哪一列、`gaps.md` 的哪一條、或開發者的哪一句話。都對不到的是自己長出來的需求,不列。
+   - **需求來源**:這條命令對到位置樹的哪條需求與哪個目標、警訊表的哪一列、`gaps.md` 的哪一條、或開發者的哪一句話。都對不到的是自己長出來的需求,不列。
    - **架構缺口**:重切 pipeline、改層、換效果型別或外部系統這類架構級動作,只能因為現在的架構解決不了一個具體問題才提;寫出那個問題。寫不出來就不提。
-   - **全部正常時**:每條 pipeline 達成、測試全綠、沒有 open GAP、警訊為空,明寫「目前功能全部正常運作,沒有非做不可的事,可以加新功能」,下一步是 `lawful:objective`(訂下一個目標或里程碑)再走兩條路線的其中一條(README.md 的路線表):只動既有模組單元的 `lawful claim <slug> --milestone <M-n>`,要新單元的先 `lawful:module`;不另造下一步。
+   - **全部正常時**:每條 pipeline 達成、每條需求 Law 成立、測試全綠、沒有 open GAP、警訊為空,明寫「目前功能全部正常運作,沒有非做不可的事,可以加新功能」,下一步是 `lawful requirement add`(新需求)或 `lawful:objective`(既有需求底下的新目標、里程碑或調整)再走兩條路線的其中一條(README.md 的路線表):只動既有模組單元的 `lawful claim <slug> --milestone <M-n>`,要新單元的先 `lawful:module`;不另造下一步。

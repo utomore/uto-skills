@@ -1,6 +1,7 @@
 ---
 id: P-002
 description: 文字解析成 Doc
+kind: 子流
 status: ready
 updated: 2026-09-06
 ---

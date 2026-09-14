@@ -6,15 +6,20 @@ $ lawful status --json --tests test.log
     "steps": "Stages"
   },
   "vision": "玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。",
-  "visionFull": "玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。",
+  "visionFull": "玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。 替一個小型 2D 遊戲提供存檔與讀檔。玩家按存檔,當前世界寫成一個檔案;讀檔把檔案還原成同一個世界。不處理雲端同步,不處理跨版本升級。",
   "visionState": "ok",
   "priorityNote": "1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具",
   "tests": "測試結果來自 test.log",
   "summary": {
+    "requirements": 1,
+    "requirementsHolding": 1,
     "objectives": 1,
     "objectivesAchieved": 0,
+    "objectiveLawsHolding": 1,
     "milestones": 2,
     "milestonesAchieved": 0,
+    "refinements": 1,
+    "refinementsAchieved": 0,
     "ioFaces": 1,
     "ioFacesAchieved": 0,
     "pipelines": 1,
@@ -29,12 +34,20 @@ $ lawful status --json --tests test.log
   },
   "headline": [
     {
+      "label": "需求 Law",
+      "value": "1 / 1 成立"
+    },
+    {
       "label": "目標",
-      "value": "0 / 1 達成"
+      "value": "0 / 1 達成 · Law 成立 1"
     },
     {
       "label": "里程碑",
       "value": "0 / 2 達成"
+    },
+    {
+      "label": "調整",
+      "value": "0 / 1 達成"
     },
     {
       "label": "IO 介面",
@@ -57,13 +70,44 @@ $ lawful status --json --tests test.log
       "value": "0 條"
     }
   ],
+  "requirements": [
+    {
+      "id": "R-1",
+      "title": "玩家存檔後能讀回同一個世界",
+      "law": {
+        "title": "任一 World 存檔再讀回,可存檔的投影一模一樣",
+        "formal": true,
+        "inherits": null,
+        "holds": true,
+        "source": "測試 R-1#LAW green",
+        "tested": true
+      },
+      "implication": "",
+      "objectives": [
+        "O-1"
+      ],
+      "built": false,
+      "milestonesAchieved": 0,
+      "milestones": 2,
+      "refinementsAchieved": 0,
+      "refinements": 1
+    }
+  ],
   "objectives": [
     {
       "id": "O-1",
       "title": "玩家存檔後能讀回同一個世界",
+      "requirement": "R-1",
       "priority": 1,
       "priorityRaw": "1",
-      "criteria": "任一 World 存檔再讀回,可存檔的投影一模一樣",
+      "law": {
+        "title": "繼承 R-1",
+        "formal": false,
+        "inherits": "R-1",
+        "holds": true,
+        "source": "繼承 R-1,測試 R-1#LAW green",
+        "tested": true
+      },
       "achieved": false,
       "milestonesAchieved": 0,
       "percent": 0,
@@ -82,15 +126,26 @@ $ lawful status --json --tests test.log
           "achieved": false,
           "binds": []
         }
+      ],
+      "refinements": [
+        {
+          "id": "RF-1",
+          "title": "存檔檔案壓縮後不超過 1 MB",
+          "touches": [
+            "P-001-save-write"
+          ],
+          "state": "待修訂",
+          "achieved": false
+        }
       ]
     }
   ],
   "bands": [
     {
-      "id": "p1",
-      "title": "優先 1(最高)",
-      "note": "讀寫的正確性 · 1 個目標,達成 0 個 · 1 條 pipeline",
-      "achieved": false,
+      "id": "R-1",
+      "title": "R-1 玩家存檔後能讀回同一個世界",
+      "note": "Law 成立 · 測試 R-1#LAW green · 1 個目標,達成 0 個 · 里程碑 0/2 達成",
+      "achieved": true,
       "bare": false,
       "lanes": [
         {
@@ -98,8 +153,9 @@ $ lawful status --json --tests test.log
           "achieved": false,
           "title": "O-1 玩家存檔後能讀回同一個世界",
           "notes": [
-            "里程碑 0/2 達成 · 完成度 0%",
-            "判準:任一 World 存檔再讀回,可存檔的投影一模一樣"
+            "優先 1:讀寫的正確性",
+            "Law 成立 · 繼承 R-1,測試 R-1#LAW green",
+            "里程碑 0/2 達成 · 完成度 0% · 調整 0/1 達成"
           ],
           "columns": [
             {
@@ -113,6 +169,13 @@ $ lawful status --json --tests test.log
               "title": "M-2 存檔壞了看得出來(待 claim)",
               "achieved": false,
               "docs": []
+            },
+            {
+              "title": "RF-1 存檔檔案壓縮後不超過 1 MB(調整,待修訂)",
+              "achieved": false,
+              "docs": [
+                "P-001-save-write"
+              ]
             }
           ],
           "empty": null
@@ -233,6 +296,7 @@ $ lawful status --json --tests test.log
       "state": "進行中",
       "achieved": false,
       "building": false,
+      "requirement": "R-1",
       "objective": "O-1",
       "priority": 1,
       "milestone": "M-1",

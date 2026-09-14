@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/roles.md` 全份、`rules/pipelines.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀目標 pipeline 檔、`.lawful/modules.md`、`.lawful/system.md` 的「語言與工具」。
+`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/roles.md` 全份、`rules/pipelines.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀目標 pipeline 檔、`.lawful/modules.md`、`.lawful/Cone.md` 的「專案約束」。
 
 ## 前置
 

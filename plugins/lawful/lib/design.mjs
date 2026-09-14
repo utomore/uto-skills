@@ -1,41 +1,41 @@
-// 一層一棵原始碼樹;system.md 的「原始碼根目錄」是帶 <層> 的樣式,預設 src-<層>。
-export function layerRoot(system, layer) {
-  const pattern = (system && system.srcRoot) || 'src-<層>';
+// 一層一棵原始碼樹;Cone.md「專案約束」的「原始碼根目錄」是帶 <層> 的樣式,預設 src-<層>。
+export function layerRoot(cone, layer) {
+  const pattern = (cone && cone.srcRoot) || 'src-<層>';
   return pattern.split('<層>').join(layer);
 }
 
 // 一個檔住在哪一層:看它在哪棵原始碼樹底下;都不在回 null。最長的根目錄先算,樹互相包含也對。
-export function layerOfFile(system, file) {
+export function layerOfFile(cone, file) {
   let best = null;
   for (const layer of LAYERS) {
-    const root = layerRoot(system, layer);
+    const root = layerRoot(cone, layer);
     if (file === root || file.startsWith(`${root}/`)) {
-      if (!best || root.length > layerRoot(system, best).length) best = layer;
+      if (!best || root.length > layerRoot(cone, best).length) best = layer;
     }
   }
   return best;
 }
 // 一個模組單元的領域名詞:去掉模組前綴,大駝峰拆成 kebab(Weft.ActionSequence → action-sequence;Game.Save.Extra → save-extra)。
-export function unitSlug(system, unit) {
-  const prefix = system && system.modulePrefix;
+export function unitSlug(cone, unit) {
+  const prefix = cone && cone.modulePrefix;
   let rest = unit;
   if (prefix && (unit === prefix || unit.startsWith(prefix + '.'))) rest = unit.slice(prefix.length + 1);
   return rest.split('.').filter(Boolean).map((seg) => seg.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()).join('-');
 }
 // slug 的領域名詞對到哪個模組單元:領域名詞是 slug 的前綴、後面還接著「-動詞」的那一列,最長的先算;對不到回 null。
-export function unitOfSlug(system, entries, slug) {
+export function unitOfSlug(cone, entries, slug) {
   let best = null;
   for (const e of entries) {
-    const d = unitSlug(system, e.unit);
+    const d = unitSlug(cone, e.unit);
     if (!d || !slug.startsWith(d + '-')) continue;
-    if (!best || d.length > unitSlug(system, best.unit).length) best = e;
+    if (!best || d.length > unitSlug(cone, best.unit).length) best = e;
   }
   return best;
 }
-// 讀 .lawful/ 成一棵樹:system(含願景)、objectives(目標與里程碑)、modules、pipelines、gaps、spikes。只讀不判;判在 commands/。
+// 讀 .lawful/ 成一棵樹:cone(願景、需求、專案約束)、objectives(目標、里程碑、調整)、modules(邊界、模組單元、對外 I/O)、pipelines、gaps、spikes。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks } from './markdown.mjs';
+import { parseFrontmatter, sections, findSection, sectionBlock, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
 
 // 指令欄只取第一個反引號區段;反引號外的文字是給人看的說明,不是指令的一部分。沒有反引號就整段當指令。
 function codeSpan(s) {
@@ -45,7 +45,7 @@ function codeSpan(s) {
 
 // 模板的佔位符:整格是 <…>。claim 建出來還沒寫的列不算 stage / law / example,另計成「還是模板」。
 const isPlaceholder = (s) => /^<[^>]*>?$/.test((s || '').trim());
-// 願景、目標、里程碑的文字裡永遠不會有角括號,所以出現 <…> 就是還沒填。
+// 願景、需求、目標、里程碑的文字裡永遠不會有角括號,所以出現 <…> 就是還沒填。
 const hasPlaceholder = (s) => /<[^>]*>/.test(s || '');
 
 export const LAYERS = ['types', 'effect', 'core', 'shell'];
@@ -57,6 +57,7 @@ export const ALLOWED_IMPORTS = {
 };
 export const LAW_KINDS = ['invariant', 'identity', 'roundtrip', 'relation', 'bound', 'equiv', 'total', 'commute'];
 export const STATUSES = ['draft', 'ready', 'frozen'];
+export const KINDS = ['IO 介面', '子流'];
 
 function read(p) {
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
@@ -66,8 +67,49 @@ function rel(root, p) {
   return path.relative(root, p).split(path.sep).join('/');
 }
 
-export function readSystem(lawfulDir, root) {
-  const file = path.join(lawfulDir, 'system.md');
+// 一個節裡的「Law」:清單項 `- Law:<一句話>`,子項可以是三行式(forall / given / |-)。
+// 沒有這一項回 null;有一句話但沒有三行是散文 law,由測試或蘊含承接。
+function parseLawItem(items) {
+  const it = items.find((i) => /^Law[::]/.test(i.text));
+  if (!it) return null;
+  const title = it.text.replace(/^Law[::]\s*/, '').trim();
+  return {
+    title,
+    forall: it.children.find((c) => /^forall\b/.test(c)) || null,
+    given: it.children.filter((c) => /^given\b/.test(c)),
+    conclusion: it.children.find((c) => /^\|-/.test(c)) || null,
+    formal: it.children.some((c) => /^(forall\b|\|-)/.test(c)),
+    placeholder: hasPlaceholder(title),
+    inherits: (/^繼承\s*(R-\d+)/.exec(title) || [])[1] || null,
+  };
+}
+
+// 專案約束的清單項:指令、模組前綴、原始碼根目錄、追加清單、忽略目錄。其餘的列是給人看的硬性要求,不機械讀。
+function parseConstraints(lines) {
+  const ioExtra = [];
+  const effectExtra = [];
+  const ignoreDirs = [];
+  const commands = {};
+  let modulePrefix = '';
+  let srcRoot = '';
+  const one = (v) => (!v || v === '無' || /^<[^>]*>$/.test(v) ? '' : v);
+  for (const it of parseList(lines)) {
+    const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄)[::]\s*(.*)$/.exec(it.text);
+    if (!m) continue;
+    const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
+    if (m[1] === 'IO 模組追加') ioExtra.push(...list());
+    else if (m[1] === '效果型別追加') effectExtra.push(...list());
+    else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
+    else if (m[1] === '模組前綴') modulePrefix = one(codeSpan(m[2]));
+    else if (m[1] === '原始碼根目錄') srcRoot = one(codeSpan(m[2])).replace(/[/]$/, '');
+    else commands[m[1]] = codeSpan(m[2]);
+  }
+  return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>' };
+}
+
+// Cone.md:frontmatter(language、updated)與三節:願景、需求、專案約束。
+export function readCone(lawfulDir, root) {
+  const file = path.join(lawfulDir, 'Cone.md');
   const text = read(file);
   if (text == null) return null;
   const { fm, body } = parseFrontmatter(text);
@@ -75,52 +117,51 @@ export function readSystem(lawfulDir, root) {
   // 節的 start 是 body 內的行號;加回 frontmatter 佔的行數,訊息才指到檔案的真實行
   const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
   for (const s of secs) s.start += offset;
-  const tools = findSection(secs, '語言與工具');
-  const ioExtra = [];
-  const effectExtra = [];
-  const ignoreDirs = [];
-  const commands = {};
-  let modulePrefix = '';
-  let srcRoot = '';
-  // 反引號區段以外的文字是給人看的說明;「無」與還沒填的佔位符都當沒給
-  const one = (v) => (!v || v === '無' || /^<[^>]*>$/.test(v) ? '' : v);
-  if (tools) {
-    for (const it of parseList(tools.lines)) {
-      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄)[::]\s*(.*)$/.exec(it.text);
-      if (!m) continue;
-      const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
-      if (m[1] === 'IO 模組追加') ioExtra.push(...list());
-      else if (m[1] === '效果型別追加') effectExtra.push(...list());
-      else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
-      else if (m[1] === '模組前綴') modulePrefix = one(codeSpan(m[2]));
-      else if (m[1] === '原始碼根目錄') srcRoot = one(codeSpan(m[2])).replace(/[/]$/, '');
-      else commands[m[1]] = codeSpan(m[2]);
-    }
-  }
-  // 對外 I/O 表:[{ name, direction, type, module, pipeline, line }]
-  const ioSec = findSection(secs, '對外 I/O');
-  const io = [];
-  if (ioSec) {
-    const t = parseTable(ioSec.lines);
-    if (t) t.rows.forEach((r, i) => io.push({ name: (r[0] || '').trim(), direction: (r[1] || '').trim(), type: stripTicks(r[2] || ''), module: stripTicks(r[3] || ''), pipeline: stripTicks(r[4] || ''), line: ioSec.start + t.rowLines[i] + 2 }));
-  }
-  const pl = findSection(secs, 'Pipelines');
-  const pipelines = [];
-  if (pl) {
-    const t = parseTable(pl.lines);
-    if (t) for (const r of t.rows) pipelines.push({ fullName: stripTicks(r[0] || ''), kind: (r[1] || '').trim() });
-  }
-  // 願景:整節的文字;沒有這一節是 missing,還留著 <…> 是 template
-  const visionSec = findSection(secs, '願景');
+  const constraintsSec = findSection(secs, '專案約束');
+  const constraints = parseConstraints(constraintsSec ? constraintsSec.lines : []);
   // 願景:第一段是報告第一行印的那句;整節留給看板與 --json
+  const visionSec = findSection(secs, '願景');
   const paragraphs = visionSec ? visionSec.lines.join('\n').split(/\n\s*\n/).map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean).join(' ')).filter(Boolean) : [];
   const visionFull = paragraphs.join(' ');
   const vision = paragraphs[0] || '';
   const visionState = !visionSec ? 'missing' : !visionFull || hasPlaceholder(visionFull) ? 'template' : 'ok';
-  return { file: rel(root, file), fm, language: fm.language || null, vision, visionFull, visionState, ioExtra, effectExtra, ignoreDirs, modulePrefix, srcRoot: srcRoot || 'src-<層>', commands, io, pipelines, sections: secs };
+  // 需求:「## 需求」底下每個 ### R-n:<一句話> 一條;Law 是清單項,蘊含是清單項(一條需求有兩個以上目標時要有)
+  const reqSec = findSection(secs, '需求');
+  const requirements = [];
+  if (reqSec) {
+    const from = secs.indexOf(reqSec);
+    for (let i = from + 1; i < secs.length && secs[i].level > 2; i++) {
+      const s = secs[i];
+      const m = /^(R-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+      if (!m) continue;
+      const items = parseList(s.lines);
+      const imp = items.find((it) => /^蘊含[::]/.test(it.text));
+      requirements.push({
+        id: m[1],
+        title: m[2].trim(),
+        law: parseLawItem(items),
+        implication: imp ? imp.text.replace(/^蘊含[::]\s*/, '').trim() : '',
+        line: s.start + 1,
+        placeholder: hasPlaceholder(m[2]),
+      });
+    }
+  }
+  return {
+    file: rel(root, file),
+    fm,
+    language: fm.language || null,
+    vision,
+    visionFull,
+    visionState,
+    requirements,
+    requirementsState: !reqSec ? 'missing' : 'ok',
+    ...constraints,
+    sections: secs,
+  };
 }
 
-// 目標:objectives.md 每個 ## O-n:<一句話> 一個目標;優先與判準是清單項,里程碑是節裡的表(里程碑 | 做到什麼 | 綁定)。
+// 目標:objectives.md 每個 ## O-n:<一句話> 一個目標;需求、優先、Law 是清單項;
+// 建置路線是表(里程碑 | 做到什麼 | 綁定),優化路線是表(調整 | 做到什麼 | 動到),兩張表以表頭第一格分。
 // 綁定欄是 pipeline 全名,「、」分隔;綁定是里程碑對到 pipeline 的唯一寫法,完成度從綁定的 pipeline 推。
 export function readObjectives(lawfulDir, root) {
   const file = path.join(lawfulDir, 'objectives.md');
@@ -134,34 +175,42 @@ export function readObjectives(lawfulDir, root) {
   const headLines = head && !/^O-\d+/.test(head.title) ? head.lines : [];
   const noteLine = headLines.map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[::]/.test(l)) || '';
   const priorityNote = noteLine.replace(/^優先[::]\s*/, '').trim();
+  const names = (cell) => (cell || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
   const objectives = [];
   for (const s of secs) {
     if (s.level !== 2) continue;
     const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
     if (!m) continue;
-    const items = parseList(s.lines);
+    const block = sectionBlock(secs, s);
+    const items = parseList(block.lines);
     const field = (k) => {
       const it = items.find((i) => new RegExp(`^${k}[::]`).test(i.text));
       return it ? it.text.replace(/^[^::]*[::]\s*/, '').trim() : '';
     };
     const priorityRaw = field('優先');
-    const criteria = field('判準');
-    const t = parseTable(s.lines);
+    const requirement = field('需求');
     const milestones = [];
-    if (t) t.rows.forEach((r, i) => {
-      const id = (r[0] || '').trim();
-      if (!id || hasPlaceholder(id)) return;
-      const title = (r[1] || '').trim();
-      const binds = (r[2] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
-      milestones.push({ id, title, binds, line: s.start + offset + t.rowLines[i] + 2, placeholder: hasPlaceholder(title) });
-    });
+    const refinements = [];
+    for (const t of parseTables(block.lines)) {
+      const kind = (t.header[0] || '').trim();
+      t.rows.forEach((r, i) => {
+        const id = (r[0] || '').trim();
+        if (!id || hasPlaceholder(id)) return;
+        const title = (r[1] || '').trim();
+        const row = { id, title, line: block.start + offset + t.rowLines[i] + 2, placeholder: hasPlaceholder(title) };
+        if (kind === '里程碑') milestones.push({ ...row, binds: names(r[2]) });
+        else if (kind === '調整') refinements.push({ ...row, touches: names(r[2]) });
+      });
+    }
     objectives.push({
       id: m[1],
       title: m[2].trim(),
+      requirement: hasPlaceholder(requirement) ? '' : requirement,
       priority: /^[1-4]$/.test(priorityRaw) ? Number(priorityRaw) : null,
       priorityRaw,
-      criteria: hasPlaceholder(criteria) ? '' : criteria,
+      law: parseLawItem(items),
       milestones,
+      refinements,
       line: s.start + offset + 1,
       placeholder: hasPlaceholder(m[2]),
     });
@@ -169,13 +218,20 @@ export function readObjectives(lawfulDir, root) {
   return { file: rel(root, file), exists: true, objectives, priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok' };
 }
 
-// 模組表:一列一個模組單元 [{ unit, layers, responsibility, line }]。
+// 模組表:三節。「邊界」四層各一句(給人看);「模組單元」一列一個單元 [{ unit, layers, responsibility, line }];
+// 「對外 I/O」一列一個跨過 shell 的入口或出口 [{ name, direction, type, module, pipeline, line }]。
+// 沒有「模組單元」節時,檔裡第一張表就是模組單元表。
 export function readModules(lawfulDir, root) {
   const file = path.join(lawfulDir, 'modules.md');
   const text = read(file);
   if (text == null) return null;
   const { body } = parseFrontmatter(text);
-  const t = parseTable(body.split(/\r?\n/));
+  const secs = sections(body);
+  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+  const unitSec = findSection(secs, '模組單元');
+  const lines = body.split(/\r?\n/);
+  const t = unitSec ? parseTable(unitSec.lines) : parseTable(lines);
+  const base = unitSec ? unitSec.start + offset + 1 : offset;
   const entries = [];
   if (t) {
     t.rows.forEach((r, i) => {
@@ -183,10 +239,17 @@ export function readModules(lawfulDir, root) {
       if (!unit) return;
       const layers = (r[1] || '').split(/[、,]/).map((s) => stripTicks(s.trim())).filter(Boolean);
       const responsibility = (r[2] || '').trim();
-      entries.push({ unit, layers, responsibility, line: t.rowLines[i] + 1, placeholder: isPlaceholder(unit) || hasPlaceholder(responsibility) });
+      entries.push({ unit, layers, responsibility, line: base + t.rowLines[i] + 1, placeholder: isPlaceholder(unit) || hasPlaceholder(responsibility) });
     });
   }
-  return { file: rel(root, file), entries };
+  const ioSec = findSection(secs, '對外 I/O');
+  const io = [];
+  if (ioSec) {
+    const it = parseTable(ioSec.lines);
+    if (it) it.rows.forEach((r, i) => io.push({ name: (r[0] || '').trim(), direction: (r[1] || '').trim(), type: stripTicks(r[2] || ''), module: stripTicks(r[3] || ''), pipeline: stripTicks(r[4] || ''), line: ioSec.start + offset + it.rowLines[i] + 2, placeholder: hasPlaceholder(r[0]) || hasPlaceholder(r[4]) }));
+  }
+  const boundarySec = findSection(secs, '邊界');
+  return { file: rel(root, file), entries, io: io.filter((r) => !r.placeholder), ioState: ioSec ? 'ok' : 'missing', boundaryState: boundarySec ? 'ok' : 'missing', sections: secs };
 }
 
 // 一個模組名屬於哪個模組單元:模組表上名字是它最長前綴的那一列;對不到回 null。
@@ -292,6 +355,7 @@ export function readPipeline(file, root) {
   const laws = parseLaws(findSection(secs, 'Laws'));
   const examples = parseExamples(findSection(secs, 'Examples'));
   const template = { stages: stages.filter((s) => s.placeholder).length, laws: laws.filter((l) => l.placeholder).length, examples: examples.filter((e) => e.placeholder).length };
+  const kindRaw = typeof fm.kind === 'string' ? fm.kind.trim() : '';
   return {
     file: rel(root, file),
     fullName: base,
@@ -300,6 +364,10 @@ export function readPipeline(file, root) {
     fm,
     hasFrontmatter,
     status: fm.status || null,
+    // kind:IO 介面或子流;還是 <…> 佔位符算模板,沒寫算缺
+    kind: KINDS.includes(kindRaw) ? kindRaw : null,
+    kindRaw,
+    kindState: !kindRaw ? 'missing' : hasPlaceholder(kindRaw) ? 'template' : KINDS.includes(kindRaw) ? 'ok' : 'invalid',
     description: fm.description || '',
     sections: secs,
     brief: findSection(secs, 'Brief'),
@@ -309,7 +377,8 @@ export function readPipeline(file, root) {
     template,
     decisions,
     thawed: decisions ? decisions.lines.some((l) => /解凍/.test(l)) : false,
-    revs: revItems,
+    // 每條 REV 的第一行:依欄寫的來源(GAP、SPK / ADR、RF-n、開發者的話)都在這一行
+    revs: revItems.map((it) => ({ ...it, cites: [...new Set((it.text.match(/RF-\d+/g) || []))] })),
   };
 }
 
@@ -365,7 +434,9 @@ export function readDesign(root) {
     root,
     lawfulDir,
     pipelinesDir,
-    system: readSystem(lawfulDir, root),
+    cone: readCone(lawfulDir, root),
+    // 只有 system.md 體系的樹:lawful migrate cone 換過來
+    legacySystem: fs.existsSync(path.join(lawfulDir, 'system.md')),
     objectives: readObjectives(lawfulDir, root),
     modules: readModules(lawfulDir, root),
     pipelines: files.map((f) => readPipeline(path.join(pipelinesDir, f), root)),

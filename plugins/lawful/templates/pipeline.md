@@ -1,6 +1,7 @@
 ---
 id: P-00x
 description: <一句話:input 到 output>
+kind: <IO 介面 | 子流>
 status: draft
 updated: <YYYY-MM-DD>
 ---

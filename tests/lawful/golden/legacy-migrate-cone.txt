@@ -1,0 +1,11 @@
+$ lawful migrate cone
+# migrate cone 帳本
+
+- .lawful/Cone.md:建,願景(目的接成第二段)、需求 1 條(R-1 ← O-1)、專案約束(語言與工具照搬)
+- .lawful/objectives.md:每個目標補「需求:R-n」,判準改成「Law:繼承 R-n」
+- .lawful/modules.md:補「邊界」與「對外 I/O」兩節
+- .lawful/pipelines/P-001-save-write.md:frontmatter 補 kind: IO 介面
+- .lawful/system.md:刪
+
+以上只是帳本;lawful migrate cone --write 才落地
+exit 0

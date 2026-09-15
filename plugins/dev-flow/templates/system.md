@@ -1,5 +1,5 @@
 ---
-language: <typescript | javascript | python | go | rust>
+language: <typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>
 updated: <YYYY-MM-DD>
 ---
 # <專案名>:<一句話>
@@ -18,6 +18,7 @@ updated: <YYYY-MM-DD>
 - 建置:`<指令>`
 - 測試(整套):`<指令>`
 - 測試(子集):`<指令,以一份文檔選>`
+<多語言專案上面三道每側一段:- 測試(整套):web = `npx jest`;api = `pytest`>
 - IO 模組追加:<這個專案自己的 IO 模組或客戶端,無則「無」>
 - Laws 詞彙追加:<law 會用到、但不是 Steps 簽名也不是型別名的字,無則「無」>
 - 忽略目錄:<不掃的原始碼目錄,無則「無」>

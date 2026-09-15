@@ -1,0 +1,28 @@
+$ devflow status --doc F-003-basket --tests web=web.log,api=api.log
+# F-003-basket  feature  ready
+把一串品項加進購物籃並算出總金額
+· 測試結果來自 web.log 與 api.log
+
+## Steps
+- 1  add_item(list[Item], Item): list[Item]  api/cart/basket.py/domain  在
+- o  Basket.size(): int  api/cart/basket.py/domain  在
+- =  total_cents(list[Item]): int  api/cart/basket.py/domain  在
+- !  handle(str): str  api/cart/api.py/entry  在
+
+## Laws
+- LAW-1 [invariant] 加一項之後品項數多一  green
+- LAW-2 [bound] 總金額不為負  green
+- EX-1 覆蓋 LAW-2  green
+
+## GAP
+- 無
+
+## 引用
+- 引用了:無
+- 被引用:無
+
+## 修訂
+- 無
+
+文檔寫了 3 條簽名,程式碼裡有 3 條,還是骨架的 0 條 · 觀察點 1 個,程式碼裡有 1 個 · 寫了 2 條 law,通過 2 條 · 達成
+exit 0

@@ -115,24 +115,50 @@ function checked(results, note) {
   return { results: null, note: `${note};輸出裡沒有任何 F-00x#LAW-n 標記,幾條 law 通過測試未知(指令跑錯目錄、跑失敗、或測試名沒帶歸屬)` };
 }
 
+// 一份輸出交給哪幾個 adapter 解析:指名了目錄就是那一側的;沒指名就每一側都掃一遍,歸屬字串各語言都認得同一套,合併不衝突。
+function parseWith(sides, dir, log, into) {
+  const chosen = dir ? sides.filter((s) => s.dir === dir) : sides;
+  for (const s of chosen) for (const [k, v] of s.adapter.testResults(log)) into.set(k, v);
+}
+
+function runCommand(cmd, root) {
+  try {
+    return { out: execSync(cmd, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }), exit: 0 };
+  } catch (e) {
+    return { out: (e.stdout || '') + (e.stderr || ''), exit: e.status == null ? 1 : e.status };
+  }
+}
+
 export function loadResults(design, adapter, flags, root) {
-  if (!adapter || !adapter.testResults) return { results: null, note: '此 adapter 不解析測試輸出' };
+  const sides = Array.isArray(adapter) ? adapter : adapter ? [{ dir: '', adapter }] : [];
+  if (!sides.length || sides.some((s) => !s.adapter || !s.adapter.testResults)) return { results: null, note: '此 adapter 不解析測試輸出' };
+  const merged = new Map();
   if (flags.tests) {
-    if (!fs.existsSync(flags.tests)) return { results: null, note: `找不到測試輸出 ${flags.tests}` };
-    return checked(adapter.testResults(fs.readFileSync(flags.tests, 'utf8')), `測試結果來自 ${flags.tests}`);
+    // --tests <log>:一份輸出;--tests <目錄>=<log>,<目錄>=<log>:多語言專案每側一份,目錄是 language 欄宣告的
+    const specs = String(flags.tests).split(',').map((s) => { const i = s.indexOf('='); return i < 0 ? { dir: '', file: s } : { dir: s.slice(0, i).trim().replace(/\/$/, ''), file: s.slice(i + 1).trim() }; });
+    const notes = [];
+    for (const sp of specs) {
+      if (sp.dir && !sides.some((s) => s.dir === sp.dir)) return { results: null, note: `--tests 指到的 ${sp.dir} 不是 system.md language 欄裡的目錄(${sides.map((s) => s.dir || '.').join('、')})` };
+      const file = path.resolve(root, sp.file);
+      if (!fs.existsSync(file)) return { results: null, note: `找不到測試輸出 ${sp.file}` };
+      parseWith(sides, sp.dir, fs.readFileSync(file, 'utf8'), merged);
+      notes.push(sp.file);
+    }
+    return checked(merged, `測試結果來自 ${notes.join(' 與 ')}`);
   }
   if (flags.run) {
     const cmd = design.system && design.system.commands['測試(整套)'];
     if (!cmd) return { results: null, note: 'system.md「語言與工具」沒有整套測試指令,--run 不知道跑什麼' };
-    let out = '';
-    let exit = 0;
-    try {
-      out = execSync(cmd, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-    } catch (e) {
-      out = (e.stdout || '') + (e.stderr || '');
-      exit = e.status == null ? 1 : e.status;
+    // 字串:一道指令跑全部,每一側都掃它的輸出;物件:每側一道,各在專案根目錄跑、各用自己的 adapter 掃
+    const jobs = typeof cmd === 'string' ? [{ dir: '', cmd }] : Object.entries(cmd).map(([dir, c]) => ({ dir, cmd: c }));
+    const notes = [];
+    for (const job of jobs) {
+      if (job.dir && !sides.some((s) => s.dir === job.dir)) return { results: null, note: `system.md 整套指令指到的 ${job.dir} 不是 language 欄裡的目錄` };
+      const { out, exit } = runCommand(job.cmd, root);
+      parseWith(sides, job.dir, out, merged);
+      notes.push(`${job.cmd}${exit ? `(指令 exit ${exit})` : ''}`);
     }
-    return checked(adapter.testResults(out), `測試結果來自 --run:${cmd}${exit ? `(指令 exit ${exit})` : ''}`);
+    return checked(merged, `測試結果來自 --run:${notes.join(' 與 ')}`);
   }
   return { results: null, note: '沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知' };
 }

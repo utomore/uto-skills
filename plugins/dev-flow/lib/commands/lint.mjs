@@ -30,7 +30,7 @@ export function lintBoundary(design, source, adapter) {
   }
   if (!source) return r;
 
-  const ioPatterns = [...adapter.ioModules, ...sys.ioExtra];
+  const ioOf = (m) => [...m.adapter.ioModules, ...sys.ioExtra];
   const paths = [...source.files.keys()];
   for (const e of design.modules.entries) {
     if (!paths.some((p) => matchesPattern(e.pattern, p))) r.red.push(`${at(design.modules.file, e.line)} 模組表有 ${e.pattern},程式碼裡沒有檔案對得到(幽靈)`);
@@ -50,7 +50,7 @@ export function lintBoundary(design, source, adapter) {
         if (!te) continue;
         const ti = layerIndex(sys, te.layer);
         if (ti > li) r.red.push(`${m.file} ${entry.layer} 層 import 了更外面的 ${te.layer} 層:${target}`);
-      } else if (entry.layer !== sys.outermost && ioPatterns.some((p) => imp === p || imp.startsWith(p + '/') || imp.startsWith(p + '.') || imp.startsWith(p + '::'))) {
+      } else if (entry.layer !== sys.outermost && ioOf(m).some((p) => imp === p || imp.startsWith(p + '/') || imp.startsWith(p + '.') || imp.startsWith(p + '::'))) {
         r.red.push(`${m.file} ${entry.layer} 層 import 了 IO 模組 ${m.rawImports[i]};對外 I/O 只准住最外層(${sys.outermost})`);
       }
     }
@@ -184,7 +184,7 @@ export function lintLaws(design, source, adapter) {
       if (e && e.layer === innermost) for (const s of m.signatures) innerExports.add(s.name);
     }
   }
-  const stdlib = new Set(adapter ? adapter.stdlib : []);
+  const stdlib = new Set((Array.isArray(adapter) ? adapter : adapter ? [adapter] : []).flatMap((a) => (a.adapter || a).stdlib));
   const vocab = new Set(sys ? sys.vocab : []);
   // 三行式的檢查:forall / |- 齊全、純 ASCII、識別字對得到 names(Steps 簽名)、最內層匯出、型別名、標準函式庫或詞彙追加。
   // 回這條 law 提到的 step 名字(= 列至少被一條 law 引用要用)。
@@ -356,8 +356,8 @@ export function lintIo(design, source, adapter) {
   }
   // 最外層裡碰了 IO 模組、卻沒有登記在對外 I/O 表的檔案
   if (source && adapter && sys.outermost && entries.length) {
-    const ioPatterns = [...adapter.ioModules, ...sys.ioExtra];
     for (const m of source.files.values()) {
+      const ioPatterns = [...m.adapter.ioModules, ...sys.ioExtra];
       const entry = matchModule(entries, m.file);
       if (!entry || entry.layer !== sys.outermost || declaredModules.has(m.file)) continue;
       const hit = m.rawImports.find((imp) => ioPatterns.some((p) => imp === p || imp.startsWith(p + '/') || imp.startsWith(p + '.') || imp.startsWith(p + '::')));

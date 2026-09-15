@@ -9,6 +9,14 @@ function codeSpan(s) {
   return m ? m[1].trim() : s.trim();
 }
 
+// 一道指令:單一 `指令` → 字串;多語言專案每側一段「<目錄> = `指令`」以 ; 分隔 → { 目錄: 指令 }
+function sidedCommand(s) {
+  const parts = s.split(/;|;/).map((p) => p.trim()).filter(Boolean);
+  const sided = parts.map((p) => /^([^=`]+?)\s*=\s*`([^`]+)`/.exec(p)).filter(Boolean);
+  if (parts.length && sided.length === parts.length) return Object.fromEntries(sided.map((m) => [m[1].trim().replace(/\/$/, ''), m[2].trim()]));
+  return codeSpan(s);
+}
+
 // 模板的佔位符:整格是 <…>。claim 建出來還沒寫的列不算 step / law / example,另計成「還是模板」。
 // 簽名欄不能用「含有 <」判定——泛型 Result<Money, Error> 是合法簽名。
 const isPlaceholder = (s) => /^<[^>]*>?$/.test((s || '').trim());
@@ -142,7 +150,7 @@ export function readSystem(designDir, root) {
       else if (m[1] === 'Laws 詞彙追加') vocab.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
       else if (m[1] === '優先') priorityNote = m[2].trim();   // 一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼
-      else commands[m[1]] = codeSpan(m[2]);
+      else commands[m[1]] = sidedCommand(m[2]);
     }
   }
 
@@ -220,6 +228,7 @@ export function readSystem(designDir, root) {
     file: rel(root, file),
     fm,
     language: fm.language || null,
+    languages: parseLanguages(fm.language),
     vision,
     visionFull,
     visionState,
@@ -520,4 +529,15 @@ export function readDesign(root) {
     gaps: readGaps(designDir, root),
     spikes: readSpikes(designDir, root),
   };
+}
+
+// language 欄:單一語言 → [{ dir: '', name }];清單「dir = adapter」→ 每個目錄一個 adapter。
+export function parseLanguages(v) {
+  if (!v) return [];
+  const items = Array.isArray(v) ? v : String(v).split(',').map((x) => x.trim()).filter(Boolean);
+  return items.map((it) => {
+    const m = /^(?:(.+?)\s*=\s*)?([A-Za-z]+)$/.exec(String(it).trim());
+    if (!m) return { dir: '', name: String(it).trim() };
+    return { dir: (m[1] || '').replace(/\/$/, ''), name: m[2] };
+  });
 }

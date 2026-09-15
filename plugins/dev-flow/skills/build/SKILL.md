@@ -23,7 +23,7 @@ user-invocable: true
 2. **記快照**:發任何委派之前記下骨架那個 commit 的 sha,`git worktree add --detach <路徑> <sha>` 建好快照工作樹(建構工作樹之外的第二棵)。先建好再用,不要等發現骨架被動過才建。
 3. **派 qa**(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板):給全名、文檔路徑、建構工作樹路徑、最內層的檔案清單、子集測試指令。測試檔以全名命名。
 4. **基線**:qa 交付後把測試檔複製進快照工作樹跑一次,輸出留檔。打到骨架標記的要紅、打到型別事實的要綠、REV 保護的要綠。該紅卻綠退回 qa;該綠卻紅寫成 GAP。驗完移除快照 worktree;環境帶不過去就明寫「本波 qa 紅綠未驗證」,不得默認通過。回報裡的 GAP 由你寫進 `.design/gaps.md` 配號,從主線最大號往上。commit。
-5. **派 impl**(`dev-flow:impl`,`model: "sonnet"`):給全名、文檔路徑、建構工作樹路徑、骨架檔路徑、子集指令;**不給測試檔**。
+5. **派 impl**(`dev-flow:impl`,`model: "sonnet"`):給全名、文檔路徑、建構工作樹路徑、骨架檔路徑、子集指令;**不給測試檔**。多語言專案的子集指令取這份文檔那一側的(Steps 模組路徑的目錄),派 qa 時同樣。
 6. **判定**:跑本波子集。有紅走仲裁(`roles.md`「仲裁」):每條紅先歸因到哪條 law 或 example,再照四分流處置;每輪只跑上一輪紅的加子集;同一份三輪仍紅停止並升級。commit。
 7. **驗收測試**(`roles.md`「驗收測試」):本波全綠後 `devflow status --tests <log>`;這份文檔讓某個目標的建置路線全部達成,而該目標的 Law(繼承時是需求的 Law)有三行式卻沒有 `O-n#LAW` / `R-n#LAW` 測試 → 同一條分支再派一次 qa(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板,「文檔」那行改成「Law:R-n / O-n,三行原文」並列出它引用到的簽名所在的每份文檔路徑),測試檔以 `R-n` / `O-n` 命名。紅不歸因到 impl:開 GAP(角色 conductor,目標 `R-n#LAW`)停下,回 `dev-flow:objective` 或 `dev-flow:revise`。沒有這種目標就跳過。
 8. **整套一次**:跑整套,輸出留檔,`devflow status --tests <log>`。

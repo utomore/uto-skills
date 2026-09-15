@@ -6,13 +6,22 @@ $ devflow status --json
     "steps": "Steps"
   },
   "vision": null,
+  "visionFull": null,
   "visionState": "template",
+  "priorityNote": null,
   "tests": "沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知",
   "summary": {
-    "objectives": 3,
+    "requirements": 5,
+    "requirementsHolding": 0,
+    "requirementsTested": 0,
+    "requirementsInferred": 0,
+    "objectives": 6,
     "objectivesAchieved": 0,
-    "milestones": 2,
+    "objectiveLawsHolding": 0,
+    "milestones": 4,
     "milestonesAchieved": 0,
+    "refinements": 4,
+    "refinementsAchieved": 0,
     "features": 2,
     "featuresAchieved": 0,
     "abstracts": 2,
@@ -23,12 +32,20 @@ $ devflow status --json
   },
   "headline": [
     {
+      "label": "需求 Law",
+      "value": "0 / 5 成立(測試 0、推得 0)"
+    },
+    {
       "label": "目標",
-      "value": "0 / 3 達成"
+      "value": "0 / 6 達成 · Law 成立 0"
     },
     {
       "label": "里程碑",
-      "value": "0 / 2 達成"
+      "value": "0 / 4 達成"
+    },
+    {
+      "label": "調整",
+      "value": "0 / 4 達成"
     },
     {
       "label": "feature",
@@ -47,24 +64,179 @@ $ devflow status --json
       "value": "2 條"
     }
   ],
+  "requirements": [
+    {
+      "id": "R-3",
+      "title": "兩個目標卻沒有蘊含說明",
+      "law": {
+        "title": "看得到兩個數字",
+        "formal": false,
+        "inherits": null,
+        "holds": false,
+        "source": "O-2、O-3 的 Law 未成立",
+        "tested": false
+      },
+      "implication": "",
+      "objectives": [
+        "O-2",
+        "O-3"
+      ],
+      "built": false,
+      "milestonesAchieved": 0,
+      "milestones": 1,
+      "refinementsAchieved": 0,
+      "refinements": 0
+    },
+    {
+      "id": "R-1",
+      "title": "分數算得出來",
+      "law": {
+        "title": "<一句可判定的話:這條需求成立時,什麼一定為真>",
+        "formal": false,
+        "inherits": null,
+        "holds": false,
+        "source": "Law 還是模板",
+        "tested": false
+      },
+      "implication": "",
+      "objectives": [
+        "O-7",
+        "O-1"
+      ],
+      "built": false,
+      "milestonesAchieved": 0,
+      "milestones": 2,
+      "refinementsAchieved": 0,
+      "refinements": 4
+    },
+    {
+      "id": "R-2",
+      "title": "寫了三行卻沒有驗收測試",
+      "law": {
+        "title": "任何輸入分數不為負",
+        "formal": true,
+        "inherits": null,
+        "holds": null,
+        "source": "寫了三行卻沒有 R-2#LAW 測試",
+        "tested": false
+      },
+      "implication": "",
+      "objectives": [],
+      "built": false,
+      "milestonesAchieved": 0,
+      "milestones": 0,
+      "refinementsAchieved": 0,
+      "refinements": 0
+    },
+    {
+      "id": "R-4",
+      "title": "沒有任何目標的需求",
+      "law": {
+        "title": "看得到第三個數字",
+        "formal": false,
+        "inherits": null,
+        "holds": false,
+        "source": "還沒有目標",
+        "tested": false
+      },
+      "implication": "",
+      "objectives": [],
+      "built": false,
+      "milestonesAchieved": 0,
+      "milestones": 0,
+      "refinementsAchieved": 0,
+      "refinements": 0
+    },
+    {
+      "id": "R-5",
+      "title": "Law 引用了進入點與不存在的東西",
+      "law": {
+        "title": "進入點回的就是分數",
+        "formal": true,
+        "inherits": null,
+        "holds": null,
+        "source": "寫了三行卻沒有 R-5#LAW 測試",
+        "tested": false
+      },
+      "implication": "",
+      "objectives": [],
+      "built": false,
+      "milestonesAchieved": 0,
+      "milestones": 0,
+      "refinementsAchieved": 0,
+      "refinements": 0
+    }
+  ],
   "objectives": [
     {
+      "id": "O-4",
+      "name": "R-9-O-4-orphan",
+      "file": ".design/objectives/R-9-O-4-orphan.md",
+      "title": "需求不在 system.md、也沒有 Law 的目標",
+      "requirement": "R-9",
+      "priority": 1,
+      "priorityRaw": "1",
+      "law": {
+        "title": "",
+        "formal": false,
+        "inherits": null,
+        "holds": false,
+        "source": "里程碑 0/1 達成",
+        "tested": false
+      },
+      "achieved": false,
+      "milestonesAchieved": 0,
+      "percent": 0,
+      "milestones": [
+        {
+          "id": "M-2",
+          "title": "分數也算得出來",
+          "achieved": false,
+          "binds": [
+            "F-001-score"
+          ]
+        }
+      ],
+      "refinements": []
+    },
+    {
       "id": "O-2",
+      "name": "R-3-O-2-two-numbers",
+      "file": ".design/objectives/R-3-O-2-two-numbers.md",
       "title": "沒有里程碑的目標",
+      "requirement": "R-3",
       "priority": 2,
       "priorityRaw": "2",
-      "criteria": "看得到一個數字",
+      "law": {
+        "title": "繼承 R-3",
+        "formal": false,
+        "inherits": "R-3",
+        "holds": false,
+        "source": "沒有里程碑",
+        "tested": false
+      },
       "achieved": false,
       "milestonesAchieved": 0,
       "percent": null,
-      "milestones": []
+      "milestones": [],
+      "refinements": []
     },
     {
       "id": "O-3",
+      "name": "R-3-O-3-other-number",
+      "file": ".design/objectives/R-3-O-3-other-number.md",
       "title": "編號撞到的目標",
+      "requirement": "R-3",
       "priority": 3,
       "priorityRaw": "3",
-      "criteria": "看得到另一個數字",
+      "law": {
+        "title": "繼承 R-3",
+        "formal": false,
+        "inherits": "R-3",
+        "holds": false,
+        "source": "里程碑 0/1 達成",
+        "tested": false
+      },
       "achieved": false,
       "milestonesAchieved": 0,
       "percent": 0,
@@ -75,14 +247,56 @@ $ devflow status --json
           "achieved": false,
           "binds": []
         }
-      ]
+      ],
+      "refinements": []
+    },
+    {
+      "id": "O-7",
+      "name": "R-1-O-6-mismatch",
+      "file": ".design/objectives/R-1-O-6-mismatch.md",
+      "title": "檔名與 frontmatter 對不上的目標",
+      "requirement": "R-1",
+      "priority": 4,
+      "priorityRaw": "4",
+      "law": {
+        "title": "引用了不存在的東西",
+        "formal": true,
+        "inherits": null,
+        "holds": null,
+        "source": "寫了三行卻沒有 O-7#LAW 測試",
+        "tested": false
+      },
+      "achieved": false,
+      "milestonesAchieved": 0,
+      "percent": 0,
+      "milestones": [
+        {
+          "id": "M-3",
+          "title": "一條普通的里程碑",
+          "achieved": false,
+          "binds": [
+            "F-001-score"
+          ]
+        }
+      ],
+      "refinements": []
     },
     {
       "id": "O-1",
+      "name": "R-1-O-1-score",
+      "file": ".design/objectives/R-1-O-1-score.md",
       "title": "算分",
+      "requirement": "R-1",
       "priority": null,
       "priorityRaw": "9",
-      "criteria": "",
+      "law": {
+        "title": "繼承 R-1",
+        "formal": false,
+        "inherits": "R-1",
+        "holds": false,
+        "source": "里程碑 0/1 達成",
+        "tested": false
+      },
       "achieved": false,
       "milestonesAchieved": 0,
       "percent": 0,
@@ -97,14 +311,72 @@ $ devflow status --json
             "F-009-nope"
           ]
         }
+      ],
+      "refinements": [
+        {
+          "id": "RF-1",
+          "title": "動到了里程碑沒綁過的 feature",
+          "touches": [
+            "F-002-other"
+          ],
+          "state": "待修訂",
+          "achieved": false
+        },
+        {
+          "id": "RF-2",
+          "title": "動到了不存在的 feature",
+          "touches": [
+            "F-009-nope"
+          ],
+          "state": "待修訂",
+          "achieved": false
+        },
+        {
+          "id": "RF-3",
+          "title": "<一句話:改既有 feature 的哪一種品質>",
+          "touches": [
+            "F-001-score"
+          ],
+          "state": "待修訂",
+          "achieved": false
+        },
+        {
+          "id": "RF-3",
+          "title": "編號撞到的調整,而且沒動到任何東西",
+          "touches": [],
+          "state": "待修訂",
+          "achieved": false
+        }
       ]
+    },
+    {
+      "id": "O-5",
+      "name": "R-1-O-5-bare",
+      "file": ".design/objectives/R-1-O-5-bare.md",
+      "title": "沒有 frontmatter 的目標",
+      "requirement": null,
+      "priority": null,
+      "priorityRaw": null,
+      "law": {
+        "title": "<一句可判定的話>",
+        "formal": false,
+        "inherits": null,
+        "holds": false,
+        "source": "Law 還是模板",
+        "tested": false
+      },
+      "achieved": false,
+      "milestonesAchieved": 0,
+      "percent": null,
+      "milestones": [],
+      "refinements": []
     }
   ],
   "bands": [
     {
-      "id": "p2",
-      "title": "優先 2",
-      "note": "1 個目標,達成 0 個 · 0 份文檔",
+      "id": "R-3",
+      "title": "R-3 兩個目標卻沒有蘊含說明",
+      "note": "Law 未成立 · O-2、O-3 的 Law 未成立 · 2 個目標,達成 0 個 · 里程碑 0/1 達成",
       "achieved": false,
       "bare": false,
       "lanes": [
@@ -113,33 +385,25 @@ $ devflow status --json
           "achieved": false,
           "title": "O-2 沒有里程碑的目標",
           "notes": [
-            "里程碑 0/0 達成 · 完成度 -",
-            "判準:看得到一個數字"
+            "優先 2",
+            "Law 未成立 · 沒有里程碑",
+            "里程碑 0/0 達成 · 完成度 -"
           ],
           "columns": [],
           "empty": "沒有任何里程碑"
-        }
-      ],
-      "columns": []
-    },
-    {
-      "id": "p3",
-      "title": "優先 3",
-      "note": "1 個目標,達成 0 個 · 0 份文檔",
-      "achieved": false,
-      "bare": false,
-      "lanes": [
+        },
         {
           "id": "O-3",
           "achieved": false,
           "title": "O-3 編號撞到的目標",
           "notes": [
-            "里程碑 0/1 達成 · 完成度 0%",
-            "判準:看得到另一個數字"
+            "優先 3",
+            "Law 未成立 · 里程碑 0/1 達成",
+            "里程碑 0/1 達成 · 完成度 0%"
           ],
           "columns": [
             {
-              "title": "M-1 <一句話>",
+              "title": "M-1 <一句話>(待 claim)",
               "achieved": false,
               "docs": []
             }
@@ -150,19 +414,40 @@ $ devflow status --json
       "columns": []
     },
     {
-      "id": "p-none",
-      "title": "沒填優先",
-      "note": "1 個目標,達成 0 個 · 3 份文檔",
+      "id": "R-1",
+      "title": "R-1 分數算得出來",
+      "note": "Law 未成立 · Law 還是模板 · 2 個目標,達成 0 個 · 里程碑 0/2 達成",
       "achieved": false,
       "bare": false,
       "lanes": [
+        {
+          "id": "O-7",
+          "achieved": false,
+          "title": "O-7 檔名與 frontmatter 對不上的目標",
+          "notes": [
+            "優先 4",
+            "Law 未知 · 寫了三行卻沒有 O-7#LAW 測試",
+            "里程碑 0/1 達成 · 完成度 0%"
+          ],
+          "columns": [
+            {
+              "title": "M-3 一條普通的里程碑",
+              "achieved": false,
+              "docs": [
+                "F-001-score"
+              ]
+            }
+          ],
+          "empty": null
+        },
         {
           "id": "O-1",
           "achieved": false,
           "title": "O-1 算分",
           "notes": [
-            "里程碑 0/1 達成 · 完成度 0%",
-            "沒有可觀察的判準"
+            "優先 9",
+            "Law 未成立 · 里程碑 0/1 達成",
+            "里程碑 0/1 達成 · 完成度 0% · 調整 0/4 達成"
           ],
           "columns": [
             {
@@ -173,9 +458,104 @@ $ devflow status --json
                 "A-001-lonely",
                 "F-009-nope"
               ]
+            },
+            {
+              "title": "RF-1 動到了里程碑沒綁過的 feature(調整,待修訂)",
+              "achieved": false,
+              "docs": [
+                "F-002-other"
+              ]
+            },
+            {
+              "title": "RF-2 動到了不存在的 feature(調整,待修訂)",
+              "achieved": false,
+              "docs": [
+                "F-009-nope"
+              ]
+            },
+            {
+              "title": "RF-3 <一句話:改既有 feature 的哪一種品質>(調整,待修訂)",
+              "achieved": false,
+              "docs": [
+                "F-001-score"
+              ]
+            },
+            {
+              "title": "RF-3 編號撞到的調整,而且沒動到任何東西(調整,待修訂)",
+              "achieved": false,
+              "docs": []
             }
           ],
           "empty": null
+        }
+      ],
+      "columns": []
+    },
+    {
+      "id": "R-2",
+      "title": "R-2 寫了三行卻沒有驗收測試",
+      "note": "Law 未知 · 寫了三行卻沒有 R-2#LAW 測試 · 0 個目標,達成 0 個 · 里程碑 0/0 達成",
+      "achieved": false,
+      "bare": false,
+      "lanes": [],
+      "columns": []
+    },
+    {
+      "id": "R-4",
+      "title": "R-4 沒有任何目標的需求",
+      "note": "Law 未成立 · 還沒有目標 · 0 個目標,達成 0 個 · 里程碑 0/0 達成",
+      "achieved": false,
+      "bare": false,
+      "lanes": [],
+      "columns": []
+    },
+    {
+      "id": "R-5",
+      "title": "R-5 Law 引用了進入點與不存在的東西",
+      "note": "Law 未知 · 寫了三行卻沒有 R-5#LAW 測試 · 0 個目標,達成 0 個 · 里程碑 0/0 達成",
+      "achieved": false,
+      "bare": false,
+      "lanes": [],
+      "columns": []
+    },
+    {
+      "id": "no-req",
+      "title": "沒有對到需求",
+      "note": "2 個目標的需求欄對不到 system.md 的任何 R-n",
+      "achieved": false,
+      "bare": false,
+      "lanes": [
+        {
+          "id": "O-4",
+          "achieved": false,
+          "title": "O-4 需求不在 system.md、也沒有 Law 的目標",
+          "notes": [
+            "優先 1",
+            "Law 未成立 · 里程碑 0/1 達成",
+            "里程碑 0/1 達成 · 完成度 0%"
+          ],
+          "columns": [
+            {
+              "title": "M-2 分數也算得出來",
+              "achieved": false,
+              "docs": [
+                "F-001-score"
+              ]
+            }
+          ],
+          "empty": null
+        },
+        {
+          "id": "O-5",
+          "achieved": false,
+          "title": "O-5 沒有 frontmatter 的目標",
+          "notes": [
+            "優先 (沒填)",
+            "Law 未成立 · Law 還是模板",
+            "里程碑 0/0 達成 · 完成度 -"
+          ],
+          "columns": [],
+          "empty": "沒有任何里程碑"
         }
       ],
       "columns": []
@@ -225,9 +605,10 @@ $ devflow status --json
       "state": "卡 GAP-1、GAP-1",
       "achieved": false,
       "building": false,
-      "objective": "O-1",
-      "priority": null,
-      "milestone": "M-1",
+      "requirement": null,
+      "objective": "O-4",
+      "priority": 1,
+      "milestone": "M-2",
       "signatures": {
         "total": 5,
         "matched": 2,
@@ -387,6 +768,7 @@ $ devflow status --json
       "state": "等 A-002-single",
       "achieved": false,
       "building": false,
+      "requirement": null,
       "objective": null,
       "priority": null,
       "milestone": null,
@@ -480,6 +862,7 @@ $ devflow status --json
       "state": "進行中",
       "achieved": false,
       "building": false,
+      "requirement": "R-1",
       "objective": "O-1",
       "priority": null,
       "milestone": "M-1",
@@ -568,6 +951,7 @@ $ devflow status --json
       "state": "進行中",
       "achieved": false,
       "building": false,
+      "requirement": null,
       "objective": null,
       "priority": null,
       "milestone": null,
@@ -670,9 +1054,79 @@ $ devflow status --json
       "fix": "dev-flow:project 訂願景"
     },
     {
+      "where": "R-3",
+      "what": "有 2 個目標卻沒有蘊含說明",
+      "fix": "system.md 的 R-3 補「- 蘊含:O-2、O-3 的 Law 都成立 ⟹ 本 Law 成立,因為 …」"
+    },
+    {
+      "where": "O-2",
+      "what": "R-3 有 2 個目標,這一個的 Law 卻是繼承",
+      "fix": "dev-flow:objective 給它自己的 Law;繼承只給一對一的需求"
+    },
+    {
+      "where": "O-3",
+      "what": "R-3 有 2 個目標,這一個的 Law 卻是繼承",
+      "fix": "dev-flow:objective 給它自己的 Law;繼承只給一對一的需求"
+    },
+    {
+      "where": "R-1",
+      "what": "Law 還是模板",
+      "fix": "dev-flow:project 寫成可判定的一句"
+    },
+    {
+      "where": "R-1",
+      "what": "有 2 個目標卻沒有蘊含說明",
+      "fix": "system.md 的 R-1 補「- 蘊含:O-7、O-1 的 Law 都成立 ⟹ 本 Law 成立,因為 …」"
+    },
+    {
+      "where": "O-1",
+      "what": "R-1 有 2 個目標,這一個的 Law 卻是繼承",
+      "fix": "dev-flow:objective 給它自己的 Law;繼承只給一對一的需求"
+    },
+    {
+      "where": "R-2",
+      "what": "Law 寫了三行卻沒有驗收測試,成立與否未知",
+      "fix": "dev-flow:build R-2(只派 qa 寫一條歸屬 \"R-2#LAW\" 的測試);不能自動化就只留一句,由目標 Law 推"
+    },
+    {
+      "where": "R-2",
+      "what": "沒有任何目標",
+      "fix": "devflow objective add <slug> <一句話> --requirement R-2 --priority <1-4>"
+    },
+    {
+      "where": "R-4",
+      "what": "沒有任何目標",
+      "fix": "devflow objective add <slug> <一句話> --requirement R-4 --priority <1-4>"
+    },
+    {
+      "where": "R-5",
+      "what": "Law 寫了三行卻沒有驗收測試,成立與否未知",
+      "fix": "dev-flow:build R-5(只派 qa 寫一條歸屬 \"R-5#LAW\" 的測試);不能自動化就只留一句,由目標 Law 推"
+    },
+    {
+      "where": "R-5",
+      "what": "沒有任何目標",
+      "fix": "devflow objective add <slug> <一句話> --requirement R-5 --priority <1-4>"
+    },
+    {
+      "where": "system.md",
+      "what": "沒有宣告優先 1 到 4 各代表什麼",
+      "fix": "dev-flow:objective 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」"
+    },
+    {
+      "where": "O-4",
+      "what": "需求 R-9 不在 system.md",
+      "fix": "改成 system.md 裡有的 R-n,或 devflow requirement add 先立需求"
+    },
+    {
+      "where": "O-4",
+      "what": "沒有 Law",
+      "fix": "dev-flow:objective 補「- Law:…」;一對一的需求寫「繼承 R-n」"
+    },
+    {
       "where": "O-2",
       "what": "沒有任何里程碑",
-      "fix": "dev-flow:objective 補里程碑並綁定文檔"
+      "fix": "dev-flow:objective 補里程碑並綁定 feature"
     },
     {
       "where": "M-1",
@@ -680,9 +1134,9 @@ $ devflow status --json
       "fix": "dev-flow:objective 寫成一句話"
     },
     {
-      "where": "M-1",
-      "what": "沒有綁定任何文檔",
-      "fix": "devflow claim feature <slug> --milestone M-1,或在綁定欄填既有的 feature 全名"
+      "where": ".design/objectives/R-1-O-6-mismatch.md",
+      "what": "檔名與 frontmatter 對不上(frontmatter:R-1 O-7)",
+      "fix": "檔名 R-x-O-y-<slug> 的 R-x 與 O-y 要等於 frontmatter 的 requirement 與 id;目標換需求就改檔名"
     },
     {
       "where": "O-1",
@@ -690,14 +1144,9 @@ $ devflow status --json
       "fix": "改成 1(最高)到 4(最低)"
     },
     {
-      "where": "O-1",
-      "what": "沒有可觀察的判準",
-      "fix": "dev-flow:objective 補一句達成時看得到什麼"
-    },
-    {
       "where": "M-1",
       "what": "里程碑編號重複",
-      "fix": "編號全檔唯一;配號只走 devflow objective milestone"
+      "fix": "編號全資料夾唯一;配號只走 devflow objective milestone"
     },
     {
       "where": "M-1",
@@ -708,6 +1157,56 @@ $ devflow status --json
       "where": "M-1",
       "what": "綁定的 F-009-nope 不存在",
       "fix": "改成 features/ 裡有的全名,或刪這個綁定"
+    },
+    {
+      "where": "RF-1",
+      "what": "動到的 F-002-other 不在 O-1 任何里程碑的綁定裡",
+      "fix": "優化路線不引入新 feature:只動本目標建置路線做出來的 feature;新能力開里程碑"
+    },
+    {
+      "where": "RF-2",
+      "what": "動到的 F-009-nope 不存在",
+      "fix": "改成 features/ 裡有的全名"
+    },
+    {
+      "where": "RF-3",
+      "what": "調整還是模板",
+      "fix": "dev-flow:objective 寫成一句話"
+    },
+    {
+      "where": "RF-3",
+      "what": "調整編號重複",
+      "fix": "編號全資料夾唯一;配號只走 devflow objective refinement"
+    },
+    {
+      "where": "RF-3",
+      "what": "沒有動到任何文檔",
+      "fix": "動到欄填本目標里程碑綁定過的 feature 全名"
+    },
+    {
+      "where": ".design/objectives/R-1-O-5-bare.md",
+      "what": "沒有 frontmatter",
+      "fix": "照 templates/objective.md 補 id、requirement、priority、updated"
+    },
+    {
+      "where": "O-5",
+      "what": "沒有對到任何需求",
+      "fix": "dev-flow:objective 在 frontmatter 補 requirement: R-n;每個目標解決一條需求"
+    },
+    {
+      "where": "O-5",
+      "what": "優先「(沒填)」不是 1 到 4",
+      "fix": "改成 1(最高)到 4(最低)"
+    },
+    {
+      "where": "O-5",
+      "what": "Law 還是模板",
+      "fix": "dev-flow:objective 寫成可判定的一句"
+    },
+    {
+      "where": "O-5",
+      "what": "沒有任何里程碑",
+      "fix": "dev-flow:objective 補里程碑並綁定 feature"
     },
     {
       "where": "F-002-other",

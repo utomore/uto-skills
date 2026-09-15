@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const bin = path.join(here, '..', '..', 'plugins', 'dev-flow', 'bin', 'devflow.mjs');
@@ -24,12 +24,22 @@ const CASES = [
   ['shop-status-json', 'shop', ['status', '--json', '--tests', 'test.log']],
   ['shop-section', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', 'Laws']],
   ['shop-section-verify', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', '沒有的節', '--verify']],
-  ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--milestone', 'M-2', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md', '.design/objectives.md']],
+  ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--milestone', 'M-2', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md', '.design/objectives/R-1-O-1-money-correct.md']],
   ['shop-claim-feature-no-milestone', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--date', DATE], ['.design/system.md']],
   ['shop-claim-feature-bad-milestone', 'shop', ['claim', 'feature', 'ship', '--milestone', 'M-9', '--date', DATE]],
-  ['shop-objective-add', 'shop', ['objective', 'add', '退款也算對錢', '--priority', '2', '--criteria', '退款金額等於原訂單可退部分'], ['.design/objectives.md']],
-  ['shop-objective-add-bad-priority', 'shop', ['objective', 'add', '退款也算對錢', '--priority', '7']],
-  ['shop-objective-milestone', 'shop', ['objective', 'milestone', 'O-1', '出貨走通', '--bind', 'F-002-refund'], ['.design/objectives.md']],
+  ['shop-requirement-add', 'shop', ['requirement', 'add', '每一筆錢都查得到來源', '--law', '任一筆訂單都查得到它的每一筆金額從哪一列品項來'], ['.design/system.md']],
+  ['shop-requirement-add-no-law', 'shop', ['requirement', 'add', '每一筆錢都查得到來源'], ['.design/system.md']],
+  ['shop-objective-add', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--requirement', 'R-1', '--priority', '2', '--law', '任一筆退款的金額等於原訂單可退的部分', '--date', DATE], ['.design/objectives/R-1-O-2-refund-correct.md']],
+  ['shop-objective-add-inherit', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--requirement', 'R-1', '--priority', '2', '--date', DATE], ['.design/objectives/R-1-O-2-refund-correct.md']],
+  ['shop-objective-add-bad-priority', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--requirement', 'R-1', '--priority', '7']],
+  ['shop-objective-add-bad-slug', 'shop', ['objective', 'add', 'Refund_Correct', '退款也算對錢', '--requirement', 'R-1', '--priority', '2']],
+  ['shop-objective-add-no-requirement', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--priority', '2']],
+  ['shop-objective-add-missing-requirement', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--requirement', 'R-9', '--priority', '2']],
+  ['shop-objective-milestone', 'shop', ['objective', 'milestone', 'O-1', '出貨走通', '--bind', 'F-002-refund'], ['.design/objectives/R-1-O-1-money-correct.md']],
+  ['shop-objective-milestone-unbound', 'shop', ['objective', 'milestone', 'O-1', '出貨走通'], ['.design/objectives/R-1-O-1-money-correct.md']],
+  ['shop-objective-refinement', 'shop', ['objective', 'refinement', 'O-1', '結帳一次走完不重算', '--touch', 'F-001-checkout'], ['.design/objectives/R-1-O-1-money-correct.md']],
+  ['shop-objective-refinement-outside', 'shop', ['objective', 'refinement', 'O-1', '結算改成串流', '--touch', 'A-001-settle']],
+  ['shop-objective-refinement-missing', 'shop', ['objective', 'refinement', 'O-1', '出貨改成批次', '--touch', 'F-009-nope']],
   ['shop-objective-milestone-abstract', 'shop', ['objective', 'milestone', 'O-1', '結算共用', '--bind', 'A-001-settle']],
   ['shop-objective-milestone-missing', 'shop', ['objective', 'milestone', 'O-1', '出貨走通', '--bind', 'F-009-nope']],
   ['shop-claim-abstract', 'shop', ['claim', 'abstract', 'audit-log', '--description', '共用的稽核紀錄', '--date', DATE], ['.design/abstracts/A-002-audit-log.md']],
@@ -41,7 +51,8 @@ const CASES = [
   ['blank-status', 'blank', ['status']],
   ['blank-lint-all', 'blank', ['lint', 'all']],
   ['blank-claim', 'blank', ['claim', 'feature', 'login', '--description', '使用者以憑證換取工作階段', '--date', DATE], ['.design/features/F-001-login.md', '.design/system.md']],
-  ['blank-objective-add', 'blank', ['objective', 'add', '使用者登入後看得到自己的東西', '--priority', '1'], ['.design/objectives.md']],
+  ['blank-requirement-add', 'blank', ['requirement', 'add', '使用者登入後看得到自己的東西', '--law', '任一使用者登入後列出的東西都是自己的'], ['.design/system.md']],
+  ['blank-objective-add', 'blank', ['objective', 'add', 'login-sees-own', '使用者登入後看得到自己的東西', '--requirement', 'R-1', '--priority', '1']],
 
   // shaky:每一種紅與警訊各出現一次
   ['shaky-lint-boundary', 'shaky', ['lint', 'boundary']],
@@ -63,7 +74,13 @@ const CASES = [
   ['rs-lint-all', 'rs-svc', ['lint', 'all']],
   ['rs-status', 'rs-svc', ['status', '--tests', 'test.log']],
 
-  // 舊樹的遷移帳本
+  // 目標還擠在一份 objectives.md 的樹:migrate objectives 拆檔、補需求節、目的併進願景
+  ['flat-status', 'flat', ['status']],
+  ['flat-migrate-objectives', 'flat', ['migrate', 'objectives']],
+  ['flat-migrate-objectives-write', 'flat', ['migrate', 'objectives', '--write', '--date', DATE], ['.design/system.md', '.design/objectives/R-1-O-1-checkout.md', '.design/objectives.md']],
+  ['flat-requirement-add', 'flat', ['requirement', 'add', '每一筆錢都查得到來源']],
+
+  // subsystems/ 體系的遷移帳本
   ['legacy-migrate', 'legacy', ['migrate', '.design', '--language', 'typescript']],
   ['legacy-migrate-no-lang', 'legacy', ['migrate', '.design']],
 ];
@@ -103,7 +120,7 @@ for (const [name, fixture, argv, files] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/claim feature/.test(h.stdout)) {
+if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/objective refinement/.test(h.stdout) || !/migrate objectives/.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
@@ -133,9 +150,9 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/claim feature/.test(h
   const fixtureDir = path.join(here, 'fixtures', 'shop');
   const before = new Set(fs.readdirSync(fixtureDir));
   const r = spawnSync(process.execPath, [bin, 'status', '--html', '--root', fixtureDir], { encoding: 'utf8' });
-  const m = /^file:\/\/\/(.*)$/m.exec(r.stdout);
+  const m = /^(file:\/\/\/.*)$/m.exec(r.stdout);
   const after = new Set(fs.readdirSync(fixtureDir));
-  const wrote = m ? decodeURIComponent(m[1]) : '';
+  const wrote = m ? fileURLToPath(m[1]) : '';
   const ok = !!m && /devflow-board/.test(wrote) && fs.existsSync(wrote)
     && [...after].every((n) => before.has(n));
   if (!ok) {

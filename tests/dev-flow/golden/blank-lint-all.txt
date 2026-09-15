@@ -4,7 +4,8 @@ $ devflow lint all
 ## lint boundary:1 條不合規
 - ✗ system.md 的「層」表還是模板,依賴方向沒有宣告
 ## lint sig:通過
-## lint laws:通過
+## lint laws:1 條不合規
+- ✗ .design/system.md:11 R-1 Law 還是模板
 ## lint trace:通過
 ## lint io:通過
 exit 1

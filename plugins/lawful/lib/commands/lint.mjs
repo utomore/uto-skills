@@ -261,10 +261,10 @@ export function lintLaws(design, source, adapter) {
   if (design.cone) for (const q of design.cone.requirements) checkTop(design.cone.file, q.id, q.law, q.line);
   for (const o of design.objectives.objectives) {
     if (o.law && o.law.inherits) {
-      if (design.cone && !design.cone.requirements.some((q) => q.id === o.law.inherits)) r.red.push(`${at(design.objectives.file, o.line)} ${o.id} Law 繼承的 ${o.law.inherits} 不在 Cone.md 的需求裡`);
+      if (design.cone && !design.cone.requirements.some((q) => q.id === o.law.inherits)) r.red.push(`${at(o.file, o.line)} ${o.id} Law 繼承的 ${o.law.inherits} 不在 Cone.md 的需求裡`);
       continue;
     }
-    checkTop(design.objectives.file, o.id, o.law, o.line);
+    checkTop(o.file, o.id, o.law, o.line);
   }
   return r;
 }

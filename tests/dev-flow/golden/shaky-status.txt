@@ -1,15 +1,29 @@
 $ devflow status
 # devflow status
-目標 3 個,達成 0 個 · 里程碑 2 條,達成 0 條 · feature 2 份,達成 0 份 · abstract 2 份 · 文檔共 4 份,達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 2 條
+需求 5 條,Law 成立 0 條(測試 0、推得 0)· 目標 6 個,達成 0 個 · 里程碑 4 條,達成 0 條 · 調整 4 條,達成 0 條 · feature 2 份,達成 0 份 · abstract 2 份 · 文檔共 4 份,達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 2 條
 · 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
 
+## 需求
+| 需求 | 一句話 | Law | 目標 | 目標 Law 成立 | 里程碑達成 | 調整達成 |
+|---|---|---|---|---|---|---|
+| R-3 | 兩個目標卻沒有蘊含說明 | 未成立(O-2、O-3 的 Law 未成立) | O-2、O-3 | 0/2 | 0/1 | 0/0 |
+| R-1 | 分數算得出來 | 未成立(Law 還是模板) | O-7、O-1 | 0/2 | 0/2 | 0/4 |
+| R-2 | 寫了三行卻沒有驗收測試 | 未知(寫了三行卻沒有 R-2#LAW 測試) | - | 0/0 | 0/0 | 0/0 |
+| R-4 | 沒有任何目標的需求 | 未成立(還沒有目標) | - | 0/0 | 0/0 | 0/0 |
+| R-5 | Law 引用了進入點與不存在的東西 | 未知(寫了三行卻沒有 R-5#LAW 測試) | - | 0/0 | 0/0 | 0/0 |
+
 ## 目標
-| 目標 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 |
-|---|---|---|---|---|---|
-| O-2 | 2 | 沒有里程碑的目標 | 0 | 0 | - |
-| O-3 | 3 | 編號撞到的目標 | 1 | 0 | 0% |
-| O-1 | 9 | 算分 | 1 | 0 | 0% |
-- O-3 下一個里程碑:M-1 <一句話>(還沒綁定任何文檔)
+| 目標 | 需求 | 優先 | 一句話 | Law | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
+|---|---|---|---|---|---|---|---|---|
+| O-4 | R-9 | 1 | 需求不在 system.md、也沒有 Law 的目標 | 未成立(里程碑 0/1 達成) | 1 | 0 | 0% | - |
+| O-2 | R-3 | 2 | 沒有里程碑的目標 | 未成立(沒有里程碑) | 0 | 0 | - | - |
+| O-3 | R-3 | 3 | 編號撞到的目標 | 未成立(里程碑 0/1 達成) | 1 | 0 | 0% | - |
+| O-7 | R-1 | 4 | 檔名與 frontmatter 對不上的目標 | 未知(寫了三行卻沒有 O-7#LAW 測試) | 1 | 0 | 0% | - |
+| O-1 | R-1 | 9 | 算分 | 未成立(里程碑 0/1 達成) | 1 | 0 | 0% | 0/4 |
+| O-5 | (沒填) | (沒填) | 沒有 frontmatter 的目標 | 未成立(Law 還是模板) | 0 | 0 | - | - |
+- O-4 下一個里程碑:M-2 分數也算得出來(F-001-score 卡 GAP-1、GAP-1)
+- O-3 下一個里程碑:M-1 <一句話>(待 claim:devflow claim feature <slug> --milestone M-1)
+- O-7 下一個里程碑:M-3 一條普通的里程碑(F-001-score 卡 GAP-1、GAP-1)
 - O-1 下一個里程碑:M-1 分數算得出來(F-001-score 卡 GAP-1、GAP-1、A-001-lonely 還是 draft、F-009-nope 不存在)
 - 沒有被任何里程碑綁定的 feature:F-002-other;它們不朝向任何目標
 
@@ -52,14 +66,37 @@ $ devflow status
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | system.md | 願景還是模板 | dev-flow:project 訂願景 |
-| O-2 | 沒有任何里程碑 | dev-flow:objective 補里程碑並綁定文檔 |
+| R-3 | 有 2 個目標卻沒有蘊含說明 | system.md 的 R-3 補「- 蘊含:O-2、O-3 的 Law 都成立 ⟹ 本 Law 成立,因為 …」 |
+| O-2 | R-3 有 2 個目標,這一個的 Law 卻是繼承 | dev-flow:objective 給它自己的 Law;繼承只給一對一的需求 |
+| O-3 | R-3 有 2 個目標,這一個的 Law 卻是繼承 | dev-flow:objective 給它自己的 Law;繼承只給一對一的需求 |
+| R-1 | Law 還是模板 | dev-flow:project 寫成可判定的一句 |
+| R-1 | 有 2 個目標卻沒有蘊含說明 | system.md 的 R-1 補「- 蘊含:O-7、O-1 的 Law 都成立 ⟹ 本 Law 成立,因為 …」 |
+| O-1 | R-1 有 2 個目標,這一個的 Law 卻是繼承 | dev-flow:objective 給它自己的 Law;繼承只給一對一的需求 |
+| R-2 | Law 寫了三行卻沒有驗收測試,成立與否未知 | dev-flow:build R-2(只派 qa 寫一條歸屬 "R-2#LAW" 的測試);不能自動化就只留一句,由目標 Law 推 |
+| R-2 | 沒有任何目標 | devflow objective add <slug> <一句話> --requirement R-2 --priority <1-4> |
+| R-4 | 沒有任何目標 | devflow objective add <slug> <一句話> --requirement R-4 --priority <1-4> |
+| R-5 | Law 寫了三行卻沒有驗收測試,成立與否未知 | dev-flow:build R-5(只派 qa 寫一條歸屬 "R-5#LAW" 的測試);不能自動化就只留一句,由目標 Law 推 |
+| R-5 | 沒有任何目標 | devflow objective add <slug> <一句話> --requirement R-5 --priority <1-4> |
+| system.md | 沒有宣告優先 1 到 4 各代表什麼 | dev-flow:objective 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
+| O-4 | 需求 R-9 不在 system.md | 改成 system.md 裡有的 R-n,或 devflow requirement add 先立需求 |
+| O-4 | 沒有 Law | dev-flow:objective 補「- Law:…」;一對一的需求寫「繼承 R-n」 |
+| O-2 | 沒有任何里程碑 | dev-flow:objective 補里程碑並綁定 feature |
 | M-1 | 里程碑還是模板 | dev-flow:objective 寫成一句話 |
-| M-1 | 沒有綁定任何文檔 | devflow claim feature <slug> --milestone M-1,或在綁定欄填既有的 feature 全名 |
+| .design/objectives/R-1-O-6-mismatch.md | 檔名與 frontmatter 對不上(frontmatter:R-1 O-7) | 檔名 R-x-O-y-<slug> 的 R-x 與 O-y 要等於 frontmatter 的 requirement 與 id;目標換需求就改檔名 |
 | O-1 | 優先「9」不是 1 到 4 | 改成 1(最高)到 4(最低) |
-| O-1 | 沒有可觀察的判準 | dev-flow:objective 補一句達成時看得到什麼 |
-| M-1 | 里程碑編號重複 | 編號全檔唯一;配號只走 devflow objective milestone |
+| M-1 | 里程碑編號重複 | 編號全資料夾唯一;配號只走 devflow objective milestone |
 | M-1 | 綁定的 A-001-lonely 是 abstract | 改綁引用它的 feature;abstract 跟著 feature 達成 |
 | M-1 | 綁定的 F-009-nope 不存在 | 改成 features/ 裡有的全名,或刪這個綁定 |
+| RF-1 | 動到的 F-002-other 不在 O-1 任何里程碑的綁定裡 | 優化路線不引入新 feature:只動本目標建置路線做出來的 feature;新能力開里程碑 |
+| RF-2 | 動到的 F-009-nope 不存在 | 改成 features/ 裡有的全名 |
+| RF-3 | 調整還是模板 | dev-flow:objective 寫成一句話 |
+| RF-3 | 調整編號重複 | 編號全資料夾唯一;配號只走 devflow objective refinement |
+| RF-3 | 沒有動到任何文檔 | 動到欄填本目標里程碑綁定過的 feature 全名 |
+| .design/objectives/R-1-O-5-bare.md | 沒有 frontmatter | 照 templates/objective.md 補 id、requirement、priority、updated |
+| O-5 | 沒有對到任何需求 | dev-flow:objective 在 frontmatter 補 requirement: R-n;每個目標解決一條需求 |
+| O-5 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
+| O-5 | Law 還是模板 | dev-flow:objective 寫成可判定的一句 |
+| O-5 | 沒有任何里程碑 | dev-flow:objective 補里程碑並綁定 feature |
 | F-002-other | 沒有被任何里程碑綁定 | 不朝向任何目標:dev-flow:objective 綁進一條里程碑,或刪掉這份 feature |
 | A-002-single | 只有 F-002-other 用它 | 收整沒有成立;dev-flow:refactor 搬回去,或找出第二個消費者 |
 | GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |

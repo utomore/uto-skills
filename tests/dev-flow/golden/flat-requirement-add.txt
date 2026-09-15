@@ -1,0 +1,3 @@
+$ devflow requirement add 每一筆錢都查得到來源
+system.md 沒有 ## 需求 節;devflow migrate objectives --write 補上
+exit 1

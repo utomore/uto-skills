@@ -1,23 +1,22 @@
-$ devflow objective add 退款也算對錢 --priority 2 --criteria 退款金額等於原訂單可退部分
-O-2 寫進 .design/objectives.md(優先 2)
+$ devflow objective add refund-correct 退款也算對錢 --requirement R-1 --priority 2 --law 任一筆退款的金額等於原訂單可退的部分 --date 2026-09-07
+建了 .design/objectives/R-1-O-2-refund-correct.md(O-2,需求 R-1,優先 2,Law 自己的)
+R-1 現在有 O-1、O-2 兩個以上的目標:各目標要有自己的 Law,system.md 的 R-1 要補蘊含說明
 下一步:devflow objective milestone O-2 <一句話> --bind <F-00x-<slug>>
 exit 0
---- .design/objectives.md
-# 目標
+--- .design/objectives/R-1-O-2-refund-correct.md
+---
+id: O-2
+requirement: R-1
+priority: 2
+updated: 2026-09-07
+---
+# R-1-O-2-refund-correct:退款也算對錢
 
-## O-1:每一筆結帳與退款的金額都算對
-- 優先:1
-- 判準:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分
+- Law:任一筆退款的金額等於原訂單可退的部分
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| M-1 | 結帳走通 | F-001-checkout |
-| M-2 | 退款走通 | F-002-refund |
 
-## O-2:退款也算對錢
-- 優先:2
-- 判準:退款金額等於原訂單可退部分
-
-| 里程碑 | 做到什麼 | 綁定 |
+| 調整 | 做到什麼 | 動到 |
 |---|---|---|
 

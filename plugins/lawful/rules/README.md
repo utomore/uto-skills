@@ -17,7 +17,7 @@
 |---|---|
 | `pipelines.md` | `.lawful/` 樹、Cone.md、願景、需求、目標與兩條路線、pipeline 文檔的節、laws、REV、GAP、願望 stage、完成度、ADR、spike |
 | `boundary.md` | 四層、模組表(邊界、模組單元、對外 I/O)、效果的判定、測試與邊界 |
-| `roles.md` | 三個階段、分支與所有權、conductor / qa / impl、委派、收尾、仲裁、測試跑幾次、開發日誌、整合 |
+| `roles.md` | 三個階段、分支與所有權、conductor / qa / impl、委派、骨架與基線、驗收測試、收尾、仲裁、測試跑幾次、開發日誌、整合 |
 | `tooling.md` | CLI 子命令與 exit code、status 報告版面、language adapter、跑東西的紀律、收尾定錨 |
 
 ## 名詞
@@ -52,6 +52,7 @@
 | 開發日誌、`journal/<全名>.md` | roles.md「開發日誌」 |
 | 整合分支、清單型衝突、合併後紅、清理 | roles.md「整合」 |
 | 骨架、`stub`、基線 | roles.md「骨架與基線」 |
+| 驗收測試、`build/R-n` | roles.md「驗收測試」 |
 | 產生器、shrink、覆蓋率、案例數上限 | roles.md「qa 的交付」 |
 | 波末收尾 | roles.md「收尾」 |
 | 仲裁四分流 | roles.md「仲裁」 |

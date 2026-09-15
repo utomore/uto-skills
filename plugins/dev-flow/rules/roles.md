@@ -6,18 +6,18 @@
 
 | 階段 | 誰 | 在哪 | 產出 |
 |---|---|---|---|
-| **設計** | 開發者與 `dev-flow:project` / `dev-flow:objective` / `dev-flow:feature` / `dev-flow:refactor` 對談 | 主線 | `system.md`、`objectives.md`、模組表、`draft` 的 feature 與 abstract;開發者拍板後 skill 改 `ready` |
-| **建構** | `dev-flow:build` 的 conductor 帶 qa 與 impl | 該份文檔自己的分支與工作樹 | 骨架、測試、實作、REV、開發日誌;達成後 conductor 改 `frozen` |
+| **設計** | 開發者與 `dev-flow:project` / `dev-flow:objective` / `dev-flow:feature` / `dev-flow:refactor` 對談 | 主線 | `system.md`(願景、需求)、`objectives/`、模組表、`draft` 的 feature 與 abstract;開發者拍板後 skill 改 `ready` |
+| **建構** | `dev-flow:build` 的 conductor 帶 qa 與 impl | 該份文檔自己的分支與工作樹 | 骨架、測試、實作、REV、開發日誌;達成後 conductor 改 `frozen`。目標是一條需求或目標的 Law 時只派 qa(「驗收測試」) |
 | **整合** | `dev-flow:integrate` | 整合分支 | 幾條建構分支合成一條、整套綠、PR |
 
-`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:開分支 → 骨架 → qa → 基線 → impl → 仲裁 → 收尾。互不引用的文檔可以同時各開一波;主線只透過整合 PR 前進。
+`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:開分支 → 骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的文檔可以同時各開一波;主線只透過整合 PR 前進。
 
 ## 分支與所有權
 
-- 一份文檔一條分支 `build/<全名>`,從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這份文檔有人在建,`devflow status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
+- 一份文檔一條分支 `build/<全名>`(目標是需求或目標的 Law 時 `build/R-n` / `build/O-n`),從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這份文檔有人在建,`devflow status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
 - 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP;它引用的每份 abstract 都已達成並合進主線。引用的 abstract 還沒合進主線就不開,等它;不替別份文檔寫骨架。
-- 分支上准動的東西只有自己的:這份文檔、自己 step 的簽名與本體(模組表登記了但還沒有的檔案可以建)、匯出裡自己的名字、以自己全名命名的測試檔、建置設定裡登記自己那幾行、`gaps.md` 追加、`journal/<全名>.md`。
-- 不動:`system.md`、`objectives.md`、`modules.md`、最內層的型別、別份文檔與它的 step 本體、別人的測試檔。非動不可就是 GAP。
+- 分支上准動的東西只有自己的:這份文檔、自己 step 的簽名與本體(模組表登記了但還沒有的檔案可以建)、匯出裡自己的名字、以自己全名命名的測試檔、本波要寫的驗收測試(以 `R-n` / `O-n` 命名的測試檔)、建置設定裡登記自己那幾行、`gaps.md` 追加、`journal/<全名>.md`。
+- 不動:`system.md`、`objectives/`、`modules.md`、最內層的型別、別份文檔與它的 step 本體、別人的測試檔。非動不可就是 GAP。
 - `gaps.md` 在分支上從主線最大號往上配。
 - 分支上的 commit 訊息帶文檔全名;骨架、測試、實作、日誌各自成 commit,整合時才對得出誰動了什麼。
 
@@ -26,7 +26,7 @@
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
 | **conductor** | 目標文檔、模組表、測試結果 | 把 Steps 寫進程式碼(本體是 adapter 的骨架標記)、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
-| **qa** | 目標文檔、最內層的匯出、骨架的簽名 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器 | 讀任何實作本體(含 `spike/`);讀別份文檔;改骨架;要求後門 |
+| **qa** | 目標文檔、最內層的匯出、骨架的簽名;寫驗收測試時是那條 Law 與它引用到的簽名所在的每份文檔 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器;需求或目標的 Law 一條驗收測試(「驗收測試」) | 讀任何實作本體(含 `spike/`);讀 Law 沒引用到的別份文檔;改骨架;要求後門 |
 | **impl** | 目標文檔、骨架 | 把骨架標記換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
 
 qa 與 impl 互不可見。qa 先、impl 後;開發者明說要平行才平行(平行時 conductor 在委派前對骨架的 commit `git worktree add --detach` 留一棵快照,qa 的測試在快照上跑基線)。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。
@@ -59,6 +59,19 @@ subagent 問不了人:
 - 該紅卻綠退回 qa 重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。基線過了才派 impl。
 - **委派模式下基線由 conductor 驗,不由 qa 保證**:impl 一旦填完本體,假綠與真綠在測試輸出裡同形,判準不是被違反,是被靜默停用。發委派之前記下骨架那個 commit 的 sha 並 `git worktree add --detach <路徑> <sha>` 建好快照工作樹(建構工作樹之外的第二棵,驗完移除),收到測試檔就複製進去跑。環境帶不過去、驗不成 → 在回報明寫「本波 qa 紅綠未驗證」,不得默認通過。
 
+## 驗收測試
+
+需求與目標的 Law 寫了三行,就承諾了一條歸屬 `R-n#LAW` / `O-n#LAW` 的驗收測試(features.md「願景、需求、目標與路線」);沒有測試時那條 Law 是未知,`devflow status` 列警訊。它由 qa 寫、由 conductor 派,時機只有兩個:
+
+| 時機 | 誰派、在哪 |
+|---|---|
+| 一份文檔的 build 本波全綠後,`devflow status` 顯示它讓某個目標的建置路線全部達成,而該目標的 Law(繼承時是需求的 Law)有三行式卻沒有測試 | 同一條 build 分支上再派一次 qa,目標是那條 Law;綠了才收尾。一條需求有多個目標時,需求自己的三行式在最後一個目標達成的那波寫 |
+| 建置路線早就達成、Law 還沒有測試(`status` 的警訊與建議路線列 `dev-flow:build R-n` / `O-n`) | `dev-flow:build` 的目標直接是 `R-n` / `O-n`:開 `build/R-n` 分支,不寫骨架、不派 impl,只派 qa 寫那一條,跑整套一次,寫日誌,交給 `dev-flow:integrate` |
+
+- qa 讀的是那條 Law 的三行、它引用到的每個簽名所在文檔的 Steps 表與最內層的匯出;產生器與斷言照「qa 的交付」,`|-` 行逐字翻。測試檔以 `R-n` / `O-n` 命名,歸屬字串只放一個。
+- 驗收測試紅的歸因不是某個 step 的 impl:建置路線全部達成而 Law 未成立,代表里程碑切漏了、蘊含說明站不住、或 Law 寫錯。conductor 開 GAP(角色 conductor,目標寫 `R-n#LAW`)停下,回 `dev-flow:objective` 或 `dev-flow:revise`;不讓 qa 放寬斷言、不派 impl 改碼。
+- 一句話的 Law(沒有三行)沒有驗收測試,由底下的 Law 或建置路線推;不派 qa。
+
 ## qa 的交付
 
 - 產生器由 qa 寫,只用公開的建構子組合法值;組不出來就是 GAP,指出缺的建構子。產生器要能縮小(shrink),反例才讀得懂。
@@ -78,7 +91,7 @@ subagent 問不了人:
 - 寫開發日誌(「開發日誌」),連同所有改動 commit 在分支上;不合併、不發 PR,那是 `dev-flow:integrate` 的事。
 - 定錨區塊(tooling.md「收尾定錨」)。
 
-開發者的決定只在三個地方發生:設計對談(`dev-flow:project` / `feature` / `refactor`)、回答 GAP(`dev-flow:revise`)、驗收。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
+開發者的決定只在三個地方發生:設計對談(`dev-flow:project` / `objective` / `feature` / `refactor`)、回答 GAP(`dev-flow:revise`)、驗收。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
 
 ## 仲裁
 
@@ -103,6 +116,7 @@ qa 與 impl 只做歸因,裁決由 conductor。
 | conductor 判定 | 本波子集 | 1 |
 | conductor 仲裁每輪 | 上一輪紅的那幾條 + 本波子集 | 每輪 1 |
 | conductor 本波全綠後 | 整套,整條迴圈只這一次 | 1 |
+| conductor 派驗收測試 | 那條 `R-n#LAW` / `O-n#LAW` 加整套 | 1 |
 | 修訂目標(有 REV) | 委派前先跑整套當基準線 | 1 |
 
 整套回答「有沒有連累別人」,只在自己這一塊全綠之後問一次;在自己的分支上,「別人」是主線合進來時的狀態。
@@ -115,8 +129,8 @@ qa 與 impl 只做歸因,裁決由 conductor。
 
 | 節 | 裝什麼 |
 |---|---|
-| frontmatter | `doc`、`branch`、`base`(開分支時主線的 sha)、`updated` |
-| 做了什麼 | 骨架幾條、測試檔哪些、簽名 m / n、觀察點 j / k、laws g / k;達成,或停在哪幾條 GAP |
+| frontmatter | `doc`(文檔全名,或驗收測試那波的 `R-n` / `O-n`)、`branch`、`base`(開分支時主線的 sha)、`updated` |
+| 做了什麼 | 骨架幾條、測試檔哪些、簽名 m / n、觀察點 j / k、laws g / k;寫了哪條驗收測試、綠不綠;達成,或停在哪幾條 GAP |
 | 動到的檔 | 分兩組:自己的(文檔、程式碼檔、測試檔)與共用的(建置設定改了哪幾行、共用檔案裡新增了哪些名字) |
 | 決定 | qa 與 impl 自己決定的事,一條一句:產生器的分佈與尺寸、資料結構、演算法、私有 helper。契約級決定不在這裡,它們在文檔的「決定」與 REV |
 | GAP | 本分支開的號與「需要回答什麼」 |
@@ -127,7 +141,7 @@ qa 與 impl 只做歸因,裁決由 conductor。
 
 `dev-flow:integrate` 把分支合成一條整合分支 `integrate/<YYYY-MM-DD>-<slug>`,整套綠了才發 PR;它是唯一發 PR 的出口,主線只透過它前進。整合者是 conductor 的身分:不寫實作、不寫測試、不補 law。
 
-- **候選**:沒合進主線的分支,開發者指定就只合那些。`build/<全名>` 要有 `journal/<全名>.md` 才收,沒有代表還沒收尾;不是 `build/` 的分支(手動改的、專案沒有 `.design/`)照分支名或 commit 訊息對到文檔全名,對不到就寫分支名。當前分支是主線而且有未提交的變更或領先的 commit,先開一條分支把它帶走,不從主線發 PR。
+- **候選**:沒合進主線的分支,開發者指定就只合那些。`build/<全名>`(含驗收測試那波的 `build/R-n` / `build/O-n`)要有 `journal/<全名>.md` 才收,沒有代表還沒收尾;不是 `build/` 的分支(手動改的、專案沒有 `.design/`)照分支名或 commit 訊息對到文檔全名,對不到就寫分支名。當前分支是主線而且有未提交的變更或領先的 commit,先開一條分支把它帶走,不從主線發 PR。
 - **順序**:有日誌的照目標優先 → 里程碑順序 → 分支名,被引用的 abstract 在消費者之前(照規則它已經先合進主線,這條只是保險);其餘照開發者指定的順序。
 - **衝突三類**:清單型(建置設定的檔案清單、匯出清單、`gaps.md`)兩邊都留;相鄰行的加法兩邊都留;同一個簽名或本體兩邊都改 = 所有權被違反,停下,列出是哪條 step、哪兩條分支,不猜。GAP 撞號,後合進來的往上移;GAP 的號只住 `gaps.md`,移號不牽動別處。
 - **判準**:合完跑建置與整套一次,`devflow status --tests <log>`、`devflow lint all`。每份日誌宣稱達成的文檔合併後仍達成;日誌「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。

@@ -29,7 +29,7 @@ user-invocable: true
 
 1. **清理**:`git branch --merged <主線>` 裡的 `build/*` 分支,連同 `git worktree list` 裡對應的工作樹,`git worktree remove` 後 `git branch -d`。
 2. **候選**:`git branch -a --no-merged <主線>`;開發者指定就只收那些。每條標出它是哪一種:
-   - **建構分支** `build/<全名>`:`git show <分支>:.design/journal/<全名>.md` 讀日誌。讀不到代表還沒收尾,不收,回報。
+   - **建構分支** `build/<全名>`(含驗收測試那波的 `build/R-n` / `build/O-n`):`git show <分支>:.design/journal/<全名>.md` 讀日誌。讀不到代表還沒收尾,不收,回報。
    - **其餘分支**:從分支名或 commit 訊息推出對應的**文檔全名**(寫 `F-001-checkout`、`A-001-settle`,不要只寫 `F-001`——PR 描述會被沒讀過這份文檔的人讀到);對不到文檔就寫分支名。
 3. **順序**:有日誌的照 `devflow status` 的目標優先與里程碑順序排,被引用的 abstract 排在消費者之前;其餘照開發者指定的順序,沒指定且推不出取捨才用 AskUserQuestion 問。
 4. **預報**:每條 `git diff --name-only <base>..<分支>`(有日誌的 `base` 從日誌抄,其餘用 `git merge-base`),兩條以上都動到的檔列成預報,對照各日誌的「合併時要看」。
@@ -56,10 +56,10 @@ user-invocable: true
 
      ```markdown
      ## 摘要
-     (兩句話:這批合了什麼、讓哪個目標的哪條里程碑往前;沒有 .design/ 的專案寫改了系統的哪個部分、為什麼)
+     (兩句話:這批合了什麼、讓哪條需求的哪個目標的哪條里程碑往前、哪條需求 Law 因此成立;沒有 .design/ 的專案寫改了系統的哪個部分、為什麼)
 
      ## 包含什麼
-     | 全名 | 類別 | 分支 | 目標 · 里程碑 | 達成 |
+     | 全名 | 類別 | 分支 | 需求 · 目標 · 里程碑 | 達成 |
      |---|---|---|---|---|
      (對不到文檔的分支:全名欄寫分支名,其餘欄寫「-」)
 
@@ -75,7 +75,7 @@ user-invocable: true
      - `.design/features/F-001-checkout.md`;專案沒有 .design/ 寫「無」
 
      ## 測試結果
-     (實際跑的指令與結果;有 .design/ 時附 devflow status 的達成數字)
+     (實際跑的指令與結果;有 .design/ 時附 devflow status 的達成數字與需求 Law 成立數)
 
      ## open GAP
      (各附「需要回答什麼」;無則「無」)
@@ -86,7 +86,7 @@ user-invocable: true
      🤖 Generated with [Claude Code](https://claude.com/claude-code)
      ```
 
-   - **Labels**(英文):新的 feature → `feature`、abstract 收整 → `refactor`、含 REV 或修訂既有文檔 → `revision`;混合就都打上。Label 不存在先 `gh label create <name>`。
+   - **Labels**(英文):新的 feature → `feature`、abstract 收整 → `refactor`、含 REV 或修訂既有文檔 → `revision`、只有驗收測試的 `build/R-n` → `test`;混合就都打上。Label 不存在先 `gh label create <name>`。
 
 ## 5. 收尾
 

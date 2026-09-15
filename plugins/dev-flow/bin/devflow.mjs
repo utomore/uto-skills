@@ -9,8 +9,8 @@ import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, milestoneAdd, modulesGen, objectiveAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
-import { migrate } from '../lib/commands/migrate.mjs';
+import { claim, milestoneAdd, modulesGen, objectiveAdd, refinementAdd, requirementAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
+import { migrate, migrateObjectives } from '../lib/commands/migrate.mjs';
 
 const HELP = `devflow <子命令> [選項]
 
@@ -21,10 +21,14 @@ const HELP = `devflow <子命令> [選項]
   status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
   claim feature|abstract|spike|adr <slug> [--description <句>] [--milestone <M-n>]
                                        鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑,spike 另建 spike/ 資料夾
-  objective add <一句話> --priority <1-4> [--criteria <句>]
-                                       鑄 O-n 寫進 objectives.md;優先 1 最高、4 最低
+  requirement add <一句話> [--law <句>]
+                                       鑄 R-n 寫進 system.md「需求」;Law 沒給就留佔位符
+  objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]
+                                       鑄 O-n 建 objectives/R-n-O-n-<slug>.md;需求要是 system.md 裡有的;優先 1 最高、4 最低;Law 沒給就繼承需求
   objective milestone <O-n> <一句話> [--bind <全名,全名>]
-                                       鑄 M-n 加進該目標;綁定的全名要是 features/ 裡有的 feature
+                                       鑄 M-n 加進該目標檔的建置路線表;綁定的全名要是 features/ 裡有的 feature
+  objective refinement <O-n> <一句話> --touch <全名,全名>
+                                       鑄 RF-n 加進該目標檔的優化路線表;動到的要是該目標里程碑綁定過的 feature
   lint boundary | sig | laws | trace | io | all
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與 abstract 的消費者;
                                        laws:三行、種類、識別字、= 列有 law;trace:laws ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、秘密字面值
@@ -32,13 +36,15 @@ const HELP = `devflow <子命令> [選項]
   modules --gen                        從程式碼補模組表缺的檔案,層欄留白
   section <file> <節>… [--verify]      取 ## 節
   spike close <SPK-00x> [--dry-run]    檢查 verdict / feeds / sha 齊全,刪 spike/SPK-00x-<slug>/
+  migrate objectives [--write]         目標還擠在一份 objectives.md 的樹:每個目標生一條需求寫進 system.md「需求」、拆成 objectives/ 一個目標一個檔、
+                                       目的併進願景第二段;先印帳本,--write 才落地
   migrate <.design> [--language <adapter>] [--ignore <dir,dir>]
                                        盤點 subsystems/ 體系的 .design:每份舊文檔的介面在程式碼裡對到幾條、
                                        四格 law 翻成三行草稿、共用簽名列成 abstract 候選、退場清單;只印帳本,不改任何檔
 
 選項
   --root <dir>                         專案根目錄(預設目前目錄)
-  --date <YYYY-MM-DD>                  claim / sync 寫進檔的日期(預設今天)
+  --date <YYYY-MM-DD>                  claim / objective add / sync / migrate objectives 寫進檔的日期(預設今天)
 
 exit code:status 盤點 = 全部達成 0、否則 1;status --doc / --module = 查得到 0;lint 通過 0、有不合規 1。
 adapter:${adapterNames.join(', ')};system.md 的 language 欄選。`;
@@ -96,6 +102,7 @@ function main() {
     return emit(sectionCommand(path.resolve(root, sub), rest, { verify: !!args.flags.verify, display: sub }));
   }
 
+  if (cmd === 'migrate' && sub === 'objectives') return emit(migrateObjectives(root, { write: !!args.flags.write, date: args.flags.date || undefined }));
   if (cmd === 'migrate') {
     if (!sub) {
       console.error('用法:devflow migrate <.design 路徑> [--language <adapter>] [--ignore <dir,dir>]');
@@ -155,10 +162,17 @@ function main() {
     return emit(claim(design, sub, rest[0], { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined, milestone: typeof args.flags.milestone === 'string' ? args.flags.milestone : '' }));
   }
 
+  if (cmd === 'requirement') {
+    if (sub === 'add' && rest[0]) return emit(requirementAdd(design, rest.join(' '), { law: typeof args.flags.law === 'string' ? args.flags.law : '' }));
+    console.error('用法:devflow requirement add <一句話> [--law <句>]');
+    return 1;
+  }
+
   if (cmd === 'objective') {
-    if (sub === 'add' && rest[0]) return emit(objectiveAdd(design, rest.join(' '), { priority: args.flags.priority, criteria: typeof args.flags.criteria === 'string' ? args.flags.criteria : '' }));
+    if (sub === 'add' && rest[0] && rest[1]) return emit(objectiveAdd(design, rest[0], rest.slice(1).join(' '), { requirement: typeof args.flags.requirement === 'string' ? args.flags.requirement : '', priority: args.flags.priority, law: typeof args.flags.law === 'string' ? args.flags.law : '', date: args.flags.date || undefined }));
     if (sub === 'milestone' && rest[0] && rest[1]) return emit(milestoneAdd(design, rest[0], rest.slice(1).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
-    console.error('用法:devflow objective add <一句話> --priority <1-4> [--criteria <句>]\n      devflow objective milestone <O-n> <一句話> [--bind <全名,全名>]');
+    if (sub === 'refinement' && rest[0] && rest[1]) return emit(refinementAdd(design, rest[0], rest.slice(1).join(' '), { touch: typeof args.flags.touch === 'string' ? args.flags.touch : '' }));
+    console.error('用法:devflow objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]\n      devflow objective milestone <O-n> <一句話> [--bind <全名,全名>]\n      devflow objective refinement <O-n> <一句話> --touch <全名,全名>');
     return 1;
   }
 

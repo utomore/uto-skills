@@ -7,8 +7,13 @@ updated: 2026-09-07
 ## 願景
 任何一組區間都能合併成不重疊的最少區間。
 
-## 目的
-夾具:證明 Rust adapter 的簽名(含 impl 方法與泛型回傳)、pub 匯出、cfg(test) 的排除與內嵌測試歸屬對得上。
+夾具:證明 Rust adapter 的簽名(含 impl 方法與泛型回傳)、pub 匯出、cfg(test) 的排除與內嵌測試歸屬(含需求 Law 的識別字形式)對得上。
+
+## 需求
+### R-1:合併出來的區間蓋住原本每一個
+- Law:合併之後的寬度不小於任一邊
+  - forall a in Span, b in Span
+  - |- width(merge(a, b)) >= width(a) and width(merge(a, b)) >= width(b)
 
 ## 語言與工具
 - 建置:`cargo build`
@@ -17,6 +22,7 @@ updated: 2026-09-07
 - IO 模組追加:無
 - Laws 詞彙追加:無
 - 忽略目錄:無
+- 優先:1 = 合併正確;2 = 進入點;3 = 呈現;4 = 工具
 
 ## 層
 | 層 | 裝什麼 |

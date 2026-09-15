@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const bin = path.join(here, '..', '..', 'plugins', 'lawful', 'bin', 'lawful.mjs');
@@ -148,9 +148,9 @@ if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/status/.test(h.stdout
   const fixtureDir = path.join(here, 'fixtures', 'save-game');
   const before = new Set(fs.readdirSync(fixtureDir));
   const r = spawnSync(process.execPath, [bin, 'status', '--html', '--root', fixtureDir], { encoding: 'utf8' });
-  const m = /^file:\/\/\/(.*)$/m.exec(r.stdout);
+  const m = /^(file:\/\/\/.*)$/m.exec(r.stdout);
   const after = new Set(fs.readdirSync(fixtureDir));
-  const wrote = m ? decodeURIComponent(m[1]) : '';
+  const wrote = m ? fileURLToPath(m[1]) : '';
   const ok = !!m && /lawful-board/.test(wrote) && fs.existsSync(wrote)
     && [...after].every((n) => before.has(n));
   if (!ok) {

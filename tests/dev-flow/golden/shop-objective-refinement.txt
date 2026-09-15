@@ -1,0 +1,24 @@
+$ devflow objective refinement O-1 結帳一次走完不重算 --touch F-001-checkout
+RF-1 寫進 R-1-O-1-money-correct,動到 F-001-checkout
+下一步:dev-flow:revise F-001-checkout,REV 的依欄引用 RF-1;調整達成 = 動到的每份都有一條 REV 引用它、都達成,而且 R-1 的 Law 仍成立
+exit 0
+--- .design/objectives/R-1-O-1-money-correct.md
+---
+id: O-1
+requirement: R-1
+priority: 1
+updated: 2026-09-07
+---
+# R-1-O-1-money-correct:每一筆結帳與退款的金額都算對
+
+- Law:繼承 R-1
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1 | 結帳走通 | F-001-checkout |
+| M-2 | 退款走通 | F-002-refund |
+
+| 調整 | 做到什麼 | 動到 |
+|---|---|---|
+| RF-1 | 結帳一次走完不重算 | F-001-checkout |
+

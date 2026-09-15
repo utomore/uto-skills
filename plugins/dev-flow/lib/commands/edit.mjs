@@ -1,4 +1,5 @@
-// 會寫檔的子命令:claim、objective add / milestone、sync、modules --gen、spike close。
+// 會寫檔的子命令:claim、requirement add、objective add / milestone / refinement、sync、modules --gen、spike close。
+// 目標一個檔一個,住 objectives/R-x-O-y-<slug>.md。
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,7 +26,7 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
   if (!spec) return { text: `claim 的類別只有 feature / abstract / spike / adr,沒有「${kind}」`, exitCode: 1 };
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) return { text: `slug 要是 kebab-case 英文:${slug}`, exitCode: 1 };
   if (milestone && kind !== 'feature') return { text: '--milestone 只給 feature:里程碑綁的是 feature', exitCode: 1 };
-  if (milestone && !design.objectives.objectives.some((o) => o.milestones.some((m) => m.id === milestone))) return { text: `objectives.md 沒有 ${milestone} 這條里程碑;先 devflow objective milestone <O-n> <一句話>`, exitCode: 1 };
+  if (milestone && !design.objectives.objectives.some((o) => o.milestones.some((m) => m.id === milestone))) return { text: `objectives/ 沒有 ${milestone} 這條里程碑;先 devflow objective milestone <O-n> <一句話>`, exitCode: 1 };
   const dir = path.join(design.designDir, spec.dir);
   const nums = [];
   const scan = (d) => {
@@ -80,42 +81,36 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
   return { text: out.join('\n'), exitCode: 0, fullName };
 }
 
-const OBJECTIVES_HEAD = '# 目標\n';
 const MILESTONE_TABLE = ['| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|'];
+const REFINEMENT_TABLE = ['| 調整 | 做到什麼 | 動到 |', '|---|---|---|'];
 
-function objectivesFile(design) {
-  return path.join(design.designDir, 'objectives.md');
-}
+const relOf = (design, abs) => path.relative(design.root, abs).split(path.sep).join('/');
+const objectiveFile = (design, o) => path.join(design.root, o.file);
 
-// 找一個目標的節在檔案裡的行範圍 [from, to):from 是 ## 那一行,to 是下一個 ## 或檔尾
-function objectiveRange(lines, objId) {
-  const from = lines.findIndex((l) => new RegExp(`^## ${objId}\\s*[::]`).test(l));
-  if (from < 0) return null;
-  let to = from + 1;
-  while (to < lines.length && !/^## /.test(lines[to])) to++;
-  return { from, to };
-}
-
-// 在目標的節裡加一列里程碑;沒有表就先補表頭
-function appendMilestoneRow(lines, range, row) {
-  let last = -1;
-  for (let i = range.from; i < range.to; i++) if (/^\s*\|/.test(lines[i])) last = i;
-  if (last >= 0) {
+// 在目標檔裡、表頭第一格是 head 的那張表尾端加一列;沒有那張表就在檔尾補表頭
+function appendRow(lines, head, table, row) {
+  let i = 0;
+  while (i < lines.length && !(/^\s*\|/.test(lines[i]) && splitRow(lines[i])[0] === head)) i++;
+  if (i < lines.length) {
+    let last = i;
+    while (last + 1 < lines.length && /^\s*\|/.test(lines[last + 1])) last++;
     lines.splice(last + 1, 0, row);
     return;
   }
-  let end = range.to;
-  while (end > range.from + 1 && !lines[end - 1].trim()) end--;
-  lines.splice(end, 0, '', ...MILESTONE_TABLE, row);
+  let end = lines.length;
+  while (end > 0 && !lines[end - 1].trim()) end--;
+  lines.splice(end, 0, '', ...table, row);
 }
 
 function bindMilestone(design, milestoneId, fullName) {
-  const file = objectivesFile(design);
+  const obj = design.objectives.objectives.find((o) => o.milestones.some((m) => m.id === milestoneId));
+  if (!obj) return false;
+  const file = objectiveFile(design, obj);
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   const i = lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === milestoneId);
   if (i < 0) return false;
   const cells = splitRow(lines[i]);
-  const have = (cells[2] || '').split(/[、,]/).map((x) => x.trim()).filter((x) => x && x !== '-' && !/<[^>]*>/.test(x));
+  const have = (cells[2] || '').split(/[、,]/).map((x) => x.trim()).filter((x) => x && !/^[-—–]$/.test(x) && !/<[^>]*>/.test(x));
   if (!have.includes(fullName)) have.push(fullName);
   cells[2] = have.join('、');
   lines[i] = `| ${cells.join(' | ')} |`;
@@ -123,24 +118,77 @@ function bindMilestone(design, milestoneId, fullName) {
   return true;
 }
 
-// objective add <一句話> --priority <1-4> [--criteria <句>]:鑄 O-n,在 objectives.md 末尾加一節。
-export function objectiveAdd(design, title, { priority, criteria = '' } = {}) {
-  if (!title || /<[^>]*>/.test(title)) return { text: '目標要一句話:使用者做得到什麼、或世界變成什麼樣', exitCode: 1 };
-  if (!/^[1-4]$/.test(String(priority || ''))) return { text: '--priority 要是 1 到 4,1 最高', exitCode: 1 };
-  const file = objectivesFile(design);
-  const nums = design.objectives.objectives.map((o) => Number(o.id.slice(2)));
-  const id = `O-${(nums.length ? Math.max(...nums) : 0) + 1}`;
-  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : OBJECTIVES_HEAD;
-  const body = existing.replace(/\s+$/, '');
-  const block = [`## ${id}:${title}`, `- 優先:${priority}`, `- 判準:${criteria || '<可觀察的判準:達成時看得到什麼>'}`, '', ...MILESTONE_TABLE];
-  fs.writeFileSync(file, `${body}\n\n${block.join('\n')}\n`);
-  return { text: [`${id} 寫進 .design/objectives.md(優先 ${priority})`, criteria ? '' : '判準還是佔位符,對談完填成可觀察的', `下一步:devflow objective milestone ${id} <一句話> --bind <F-00x-<slug>>`].filter(Boolean).join('\n'), exitCode: 0, id };
+// requirement add <一句話> [--law <句>]:鑄 R-n,寫進 system.md「需求」節的尾端。
+export function requirementAdd(design, title, { law = '' } = {}) {
+  if (!title || /<[^>]*>/.test(title)) return { text: '需求要一句話:誰在什麼情況下要得到什麼', exitCode: 1 };
+  if (!design.system) return { text: '沒有 .design/system.md;dev-flow:project 先建它', exitCode: 1 };
+  const file = path.join(design.designDir, 'system.md');
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  const from = lines.findIndex((l) => /^## 需求\s*$/.test(l));
+  if (from < 0) return { text: `system.md 沒有 ## 需求 節;${design.legacyObjectives ? 'devflow migrate objectives --write 補上' : '照 templates/system.md 補'}`, exitCode: 1 };
+  let to = from + 1;
+  while (to < lines.length && !/^## /.test(lines[to])) to++;
+  // 節裡還是模板的 ### R-n 整段換掉;真的需求接在最後一條後面
+  const heads = [];
+  for (let i = from + 1; i < to; i++) if (/^### R-\d+/.test(lines[i])) heads.push(i);
+  const nums = design.system.requirements.filter((q) => !q.placeholder).map((q) => Number(q.id.slice(2)));
+  const id = `R-${(nums.length ? Math.max(...nums) : 0) + 1}`;
+  const block = [`### ${id}:${title}`, `- Law:${law || '<一句可判定的話:這條需求成立時,什麼一定為真>'}`];
+  const tpl = heads.filter((i) => /<[^>]*>/.test(lines[i]));
+  let end = to;
+  while (end > from + 1 && !lines[end - 1].trim()) end--;
+  if (tpl.length) {
+    const start = tpl[0];
+    let stop = start + 1;
+    while (stop < to && !/^### /.test(lines[stop])) stop++;
+    while (stop > start + 1 && !lines[stop - 1].trim()) stop--;
+    lines.splice(start, stop - start, ...block);
+  } else lines.splice(end, 0, ...(heads.length ? [''] : []), ...block);
+  fs.writeFileSync(file, lines.join('\n'));
+  return { text: [`${id} 寫進 .design/system.md`, law ? '' : 'Law 還是佔位符,對談完填成可判定的一句', `下一步:devflow objective add <slug> <一句話> --requirement ${id} --priority <1-4>`].filter(Boolean).join('\n'), exitCode: 0, id };
 }
 
-// objective milestone <O-n> <一句話> [--bind <全名,全名>]:鑄 M-n(全檔唯一),加到該目標的表裡。
+// objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]:鑄 O-n,建 objectives/R-n-O-n-<slug>.md。
+// 沒給 --law 就繼承需求的 Law;一條需求有兩個以上目標時各目標要有自己的 Law。
+export function objectiveAdd(design, slug, title, { requirement = '', priority, law = '', date = today() } = {}) {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) return { text: `slug 要是 kebab-case 英文:${slug || '(沒給)'}`, exitCode: 1 };
+  if (!title || /<[^>]*>/.test(title)) return { text: '目標要一句話:使用者做得到什麼、或世界變成什麼樣', exitCode: 1 };
+  if (!/^R-\d+$/.test(requirement)) return { text: '--requirement 要是 system.md 裡的一條需求 R-n;每個目標解決一條需求', exitCode: 1 };
+  const reqs = design.system ? design.system.requirements.filter((q) => !q.placeholder) : [];
+  if (!reqs.some((q) => q.id === requirement)) return { text: `system.md 沒有 ${requirement};先 devflow requirement add <一句話> --law <句>${reqs.length ? `(有:${reqs.map((q) => q.id).join('、')})` : ''}`, exitCode: 1 };
+  if (!/^[1-4]$/.test(String(priority || ''))) return { text: '--priority 要是 1 到 4,1 最高', exitCode: 1 };
+  const nums = design.objectives.objectives.map((o) => Number(o.id.slice(2)));
+  const id = `O-${(nums.length ? Math.max(...nums) : 0) + 1}`;
+  const fullName = `${requirement}-${id}-${slug}`;
+  const dir = path.join(design.designDir, 'objectives');
+  const file = path.join(dir, `${fullName}.md`);
+  if (fs.existsSync(file)) return { text: `${relOf(design, file)} 已存在`, exitCode: 1 };
+  // 模板的表只留表頭:里程碑與調整各自配號,佔位列不進檔
+  let tpl = fs.readFileSync(path.join(templatesDir, 'objective.md'), 'utf8');
+  tpl = tpl.replace(/R-x-O-y-<slug>/g, fullName).replace(/O-y/g, id).replace(/R-x/g, requirement)
+    .replace('<1 到 4,1 最高>', String(priority)).replace('<YYYY-MM-DD>', date)
+    .replace('<一句話:使用者做得到什麼、或世界變成什麼樣>', title)
+    .replace(`- Law:繼承 ${requirement}`, `- Law:${law || `繼承 ${requirement}`}`)
+    .split(/\r?\n/).filter((l) => !/^\|\s*(M|RF)-\d+\s*\|.*<[^>]*>/.test(l)).join('\n');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(file, tpl);
+  const siblings = design.objectives.objectives.filter((o) => o.requirement === requirement).map((o) => o.id);
+  return {
+    text: [
+      `建了 ${relOf(design, file)}(${id},需求 ${requirement},優先 ${priority},Law ${law ? '自己的' : `繼承 ${requirement}`})`,
+      siblings.length ? `${requirement} 現在有 ${[...siblings, id].join('、')} 兩個以上的目標:各目標要有自己的 Law,system.md 的 ${requirement} 要補蘊含說明${law ? '' : `;${id} 的 Law 改成自己的`}` : '',
+      `下一步:devflow objective milestone ${id} <一句話> --bind <F-00x-<slug>>`,
+    ].filter(Boolean).join('\n'),
+    exitCode: 0,
+    id,
+    fullName,
+  };
+}
+
+// objective milestone <O-n> <一句話> [--bind <全名,全名>]:鑄 M-n(全資料夾唯一),加到該目標檔的建置路線表裡。
 export function milestoneAdd(design, objId, title, { bind = '' } = {}) {
   const obj = design.objectives.objectives.find((o) => o.id === objId);
-  if (!obj) return { text: `objectives.md 沒有 ${objId};先 devflow objective add`, exitCode: 1 };
+  if (!obj) return { text: `objectives/ 沒有 ${objId};先 devflow objective add`, exitCode: 1 };
   if (!title || /<[^>]*>/.test(title)) return { text: '里程碑要一句話:做到什麼', exitCode: 1 };
   const binds = bind.split(/[、,]/).map((x) => x.trim()).filter(Boolean);
   const bad = binds.filter((b) => !design.docs.some((d) => d.fullName === b));
@@ -149,13 +197,33 @@ export function milestoneAdd(design, objId, title, { bind = '' } = {}) {
   if (abstracts.length) return { text: `${abstracts.join('、')} 是 abstract;里程碑綁 feature,abstract 跟著引用它的 feature 達成`, exitCode: 1 };
   const nums = design.objectives.objectives.flatMap((o) => o.milestones.map((m) => Number((m.id.match(/^M-(\d+)$/) || [0, 0])[1])));
   const id = `M-${(nums.length ? Math.max(...nums) : 0) + 1}`;
-  const file = objectivesFile(design);
+  const file = objectiveFile(design, obj);
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
-  const range = objectiveRange(lines, objId);
-  if (!range) return { text: `objectives.md 找不到 ## ${objId} 這一節`, exitCode: 1 };
-  appendMilestoneRow(lines, range, `| ${id} | ${title} | ${binds.length ? binds.join('、') : '-'} |`);
+  appendRow(lines, '里程碑', MILESTONE_TABLE, `| ${id} | ${title} | ${binds.length ? binds.join('、') : '-'} |`);
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${id} 寫進 ${objId}${binds.length ? `,綁定 ${binds.join('、')}` : ',還沒綁定任何文檔:devflow claim feature <slug> --milestone ' + id}`].join('\n'), exitCode: 0, id };
+  return { text: [`${id} 寫進 ${obj.fullName}${binds.length ? `,綁定 ${binds.join('、')}` : ',還沒綁定任何 feature:devflow claim feature <slug> --milestone ' + id}`].join('\n'), exitCode: 0, id };
+}
+
+// objective refinement <O-n> <一句話> --touch <全名,全名>:鑄 RF-n(全資料夾唯一),加到該目標檔的優化路線表裡。
+// 動到的 feature 要是這個目標的里程碑綁定過的:優化路線不引入新 feature。
+export function refinementAdd(design, objId, title, { touch = '' } = {}) {
+  const obj = design.objectives.objectives.find((o) => o.id === objId);
+  if (!obj) return { text: `objectives/ 沒有 ${objId};先 devflow objective add`, exitCode: 1 };
+  if (!title || /<[^>]*>/.test(title)) return { text: '調整要一句話:改既有 feature 的哪一種品質', exitCode: 1 };
+  const touches = touch.split(/[、,]/).map((x) => x.trim()).filter(Boolean);
+  if (!touches.length) return { text: '--touch 至少一份 feature 全名;優化路線只改既有的 feature', exitCode: 1 };
+  const missing = touches.filter((b) => !design.docs.some((d) => d.fullName === b));
+  if (missing.length) return { text: `動到的 ${missing.join('、')} 不存在;只能是 features/ 裡有的全名`, exitCode: 1 };
+  const bound = new Set(obj.milestones.flatMap((m) => m.binds));
+  const outside = touches.filter((b) => !bound.has(b));
+  if (outside.length) return { text: `${outside.join('、')} 不在 ${objId} 任何里程碑的綁定裡;優化路線不引入新 feature,新能力開里程碑(devflow objective milestone)`, exitCode: 1 };
+  const nums = design.objectives.objectives.flatMap((o) => o.refinements.map((r) => Number((r.id.match(/^RF-(\d+)$/) || [0, 0])[1])));
+  const id = `RF-${(nums.length ? Math.max(...nums) : 0) + 1}`;
+  const file = objectiveFile(design, obj);
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  appendRow(lines, '調整', REFINEMENT_TABLE, `| ${id} | ${title} | ${touches.join('、')} |`);
+  fs.writeFileSync(file, lines.join('\n'));
+  return { text: [`${id} 寫進 ${obj.fullName},動到 ${touches.join('、')}`, `下一步:dev-flow:revise ${touches[0]},REV 的依欄引用 ${id};調整達成 = 動到的每份都有一條 REV 引用它、都達成,而且 ${obj.requirement || '需求'} 的 Law 仍成立`].join('\n'), exitCode: 0, id };
 }
 
 // 同層搬家的 step,把模組欄改成程式碼裡的實際檔案。

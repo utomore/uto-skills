@@ -24,7 +24,7 @@ grep -rn -E '2\.[0-9]\.[0-9]|以前|舊制|舊格式|舊文檔|舊專案|舊版|
 改了 `plugins/dev-flow/{bin,lib,templates}/` 或 `plugins/lawful/{bin,lib}/` 之後:
 
 ```
-bash tests/dev-flow/run.sh                # dev-flow:八個夾具的 golden 回歸 + --help;fixtures/shop 同時是 .design 的完整範例
+bash tests/dev-flow/run.sh                # dev-flow:九個夾具的 golden 回歸 + --help;fixtures/shop 同時是 .design 的完整範例
 bash tests/lawful/run.sh                  # lawful:八個夾具的 golden 回歸 + --help;fixtures/save-game 同時是 .lawful 的完整範例
 ```
 
@@ -36,7 +36,7 @@ bash tests/board/run.sh                   # 看板在真的 Chrome 裡點過一�
 
 `tests/board/` 用 Node 內建的 WebSocket 直接講 CDP 開一個 headless Chrome,不裝套件;找不到 Chrome 就用 `CHROME_PATH` 指到執行檔。看板的行為只有這一道守得住 —— 另外兩道是 CLI 的文字比對,不會開頁面。
 
-行為是刻意改的才 `--update` 重產 golden,並在 PR 說明為什麼變。夾具本身也是規章的一部分。dev-flow:`shop` 示範一棵全綠的樹(需求有三行式 Law 與 `R-1#LAW` 驗收測試、目標繼承它,兩份 feature 共用一份 abstract),`blank` 是剛從模板複製出來一個字都沒填的樹(佔位符列不准被當成真的),`shaky` 讓每一道紅與每一條警訊各出現一次(含需求 Law 還是模板、寫了三行沒測試、多目標沒蘊含、目標對不到需求、調整動到里程碑沒綁過的 feature、Law 引用進入點),`py-svc` / `go-svc` / `rs-svc` 各證明一個 adapter(含需求 Law 歸屬的字串與識別字兩種寫法),`flat` 是目標還擠在一份 `objectives.md` 的樹,給 `migrate objectives` 當輸入,`legacy` 是 `subsystems/` 體系的遷移帳本輸入。lawful:`save-game` 是完整範例(需求有三行式 Law 與 `R-1#LAW` 驗收測試、目標繼承它、一條待修訂的調整),`broken` 讓每一道紅與每一條警訊各出現一次(含多目標沒蘊含、調整動到里程碑沒綁過的 pipeline、需求 Law 引用不存在的簽名),`frozen-ref` / `run-cmd` / `refs` / `templated` 各證明一件事(引用排在後面的 frozen 子流與進行中的調整、指令欄帶說明、沒有 adapter 的引用圖、剛 claim 的模板),`legacy` 是只有 `system.md` 的樹,給 `migrate cone` 當輸入。
+行為是刻意改的才 `--update` 重產 golden,並在 PR 說明為什麼變。夾具本身也是規章的一部分。dev-flow:`shop` 示範一棵全綠的樹(需求有三行式 Law 與 `R-1#LAW` 驗收測試、目標繼承它,兩份 feature 共用一份 abstract),`blank` 是剛從模板複製出來一個字都沒填的樹(佔位符列不准被當成真的),`shaky` 讓每一道紅與每一條警訊各出現一次(含需求 Law 還是模板、寫了三行沒測試、多目標沒蘊含、目標對不到需求、調整動到里程碑沒綁過的 feature、Law 引用進入點),`py-svc` / `go-svc` / `rs-svc` 各證明一個 adapter(含需求 Law 歸屬的字串與識別字兩種寫法),`fullstack` 是前端 TypeScript 加後端 Python 住同一棵樹(language 欄是「目錄 = adapter」清單、三道指令每側一組、兩份測試輸出各用自己的 adapter 解析後合併),`flat` 是目標還擠在一份 `objectives.md` 的樹,給 `migrate objectives` 當輸入,`legacy` 是 `subsystems/` 體系的遷移帳本輸入。lawful:`save-game` 是完整範例(需求有三行式 Law 與 `R-1#LAW` 驗收測試、目標繼承它、一條待修訂的調整),`broken` 讓每一道紅與每一條警訊各出現一次(含多目標沒蘊含、調整動到里程碑沒綁過的 pipeline、需求 Law 引用不存在的簽名),`frozen-ref` / `run-cmd` / `refs` / `templated` 各證明一件事(引用排在後面的 frozen 子流與進行中的調整、指令欄帶說明、沒有 adapter 的引用圖、剛 claim 的模板),`legacy` 是只有 `system.md` 的樹,給 `migrate cone` 當輸入。
 
 ## 版本與 PR
 

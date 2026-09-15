@@ -74,6 +74,14 @@ const CASES = [
   ['rs-lint-all', 'rs-svc', ['lint', 'all']],
   ['rs-status', 'rs-svc', ['status', '--tests', 'test.log']],
 
+  // fullstack:前端 TypeScript 加後端 Python 住同一棵樹,language 欄是「目錄 = adapter」清單,三道指令每側一組
+  ['fullstack-lint-all', 'fullstack', ['lint', 'all']],
+  ['fullstack-status', 'fullstack', ['status', '--tests', 'web=web.log,api=api.log']],
+  ['fullstack-status-one-log', 'fullstack', ['status', '--tests', 'api.log']],
+  ['fullstack-status-bad-side', 'fullstack', ['status', '--tests', 'mobile=api.log']],
+  ['fullstack-status-doc', 'fullstack', ['status', '--doc', 'F-003-basket', '--tests', 'web=web.log,api=api.log']],
+  ['fullstack-status-module', 'fullstack', ['status', '--module', 'api/cart/basket.py', '--tests', 'web=web.log,api=api.log']],
+
   // 目標還擠在一份 objectives.md 的樹:migrate objectives 拆檔、補需求節、目的併進願景
   ['flat-status', 'flat', ['status']],
   ['flat-migrate-objectives', 'flat', ['migrate', 'objectives']],

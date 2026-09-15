@@ -44,9 +44,24 @@ function makeResolver(known, dirs, exts) {
 }
 
 // { files: Map<relPath, {...}>, dirs: Set<relPath>, testFiles: [{file, markers}] }
-export function readSource(root, adapter, ignore = []) {
+export function readSource(root, sides, ignore = []) {
+  if (!Array.isArray(sides)) sides = [{ dir: '', adapter: sides }];
+  const merged = { files: new Map(), dirs: new Set(), testFiles: [], sides };
+  for (const side of sides) {
+    const part = readSide(root, side, ignore);
+    for (const [k, v] of part.files) merged.files.set(k, v);
+    for (const d of part.dirs) merged.dirs.add(d);
+    merged.testFiles.push(...part.testFiles);
+  }
+  return merged;
+}
+
+function readSide(root, side, ignore) {
+  const adapter = side.adapter;
+  const base = side.dir ? path.join(root, side.dir) : root;
+  if (!fs.existsSync(base)) return { files: new Map(), dirs: new Set(), testFiles: [] };
   const found = [];
-  walk(root, adapter.extensions, found, root, ignore);
+  walk(base, adapter.extensions, found, root, ignore);
   const known = new Set(found.map((f) => f.rel));
   const dirs = new Set();
   for (const f of found) {
@@ -76,6 +91,8 @@ export function readSource(root, adapter, ignore = []) {
       exports: adapter.exports ? adapter.exports(src, f.rel) : null,
       typeNames: adapter.typeNames ? adapter.typeNames(src) : [],
       stubs: new Set(adapter.stubs ? adapter.stubs(src) : []),
+      adapter,
+      side: side.dir,
     });
   }
   return { files, dirs, testFiles };

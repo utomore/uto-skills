@@ -4,7 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { readDesign } from '../lib/design.mjs';
 import { readSource } from '../lib/source.mjs';
-import { pickAdapter, adapterNames } from '../lib/adapters/index.mjs';
+import { pickAdapter, pickSides, adapterNames } from '../lib/adapters/index.mjs';
 import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, statusReport } from '../lib/commands/status.mjs';
@@ -15,6 +15,7 @@ import { migrate, migrateObjectives } from '../lib/commands/migrate.mjs';
 const HELP = `devflow <子命令> [選項]
 
   status [--tests <log> | --run]       派工報告;law 綠幾條要給測試輸出,或 --run 跑 system.md 的整套指令;有 .git 時把有 build/<全名> 分支、而且它還沒合進主線的線列成建構中
+                                       多語言專案每側一份輸出:--tests <目錄>=<log>,<目錄>=<log>,目錄是 system.md language 欄宣告的;--run 照整套指令每側各跑一道
   status --doc <F-00x | 全名>          一份文檔的 step 與 law 逐條狀態
   status --module <路徑或 目錄/**>     住在該檔案或目錄的所有 step 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
@@ -47,7 +48,7 @@ const HELP = `devflow <子命令> [選項]
   --date <YYYY-MM-DD>                  claim / objective add / sync / migrate objectives 寫進檔的日期(預設今天)
 
 exit code:status 盤點 = 全部達成 0、否則 1;status --doc / --module = 查得到 0;lint 通過 0、有不合規 1。
-adapter:${adapterNames.join(', ')};system.md 的 language 欄選。`;
+adapter:${adapterNames.join(', ')};system.md 的 language 欄選,一種語言寫它的名字,前後端各一種語言的專案寫 [<目錄> = <adapter>, <目錄> = <adapter>]。`;
 
 function parseArgs(argv) {
   const args = { _: [], flags: {} };
@@ -69,13 +70,16 @@ function loadProject(root) {
   const design = readDesign(root);
   if (!design) return { error: `${root} 底下沒有 .design/` };
   const language = design.system ? design.system.language : null;
-  const adapter = pickAdapter(language);
+  const sides = pickSides(design.system ? design.system.languages : []);
   const notes = [];
   if (!design.system) notes.push('缺 .design/system.md');
   else if (!language) notes.push('system.md 沒有 language 欄,簽名與邊界不對帳');
-  else if (/[<>]/.test(language)) notes.push(`system.md 的 language 還是模板(${language}),填成 ${adapterNames.join(' / ')} 其中一個`);
-  else if (!adapter) notes.push(`此語言尚無 adapter(${language}),lint sig 與 lint boundary 跳過`);
-  const source = adapter ? readSource(root, adapter, design.system ? design.system.ignoreDirs : []) : null;
+  else if (/[<>]/.test(String(language))) notes.push(`system.md 的 language 還是模板(${language}),填成 ${adapterNames.join(' / ')} 其中一個`);
+  else for (const s of sides) if (!s.adapter) notes.push(`此語言尚無 adapter(${s.dir ? s.dir + ' = ' : ''}${s.name}),lint sig 與 lint boundary 跳過`);
+  const ok = sides.length && sides.every((s) => s.adapter);
+  // 單一語言時 adapter 還是那一個物件;多語言時 adapter 是 sides 陣列,下游只拿它當「有沒有 adapter」與 stdlib / testResults 用
+  const adapter = !ok ? null : sides.length === 1 ? sides[0].adapter : sides;
+  const source = ok ? readSource(root, sides, design.system ? design.system.ignoreDirs : []) : null;
   return { design, adapter, source, notes };
 }
 
@@ -134,7 +138,7 @@ function main() {
   }
 
   if (cmd === 'status') {
-    const testsFlag = args.flags.tests ? path.resolve(root, args.flags.tests) : null;
+    const testsFlag = !args.flags.tests ? null : String(args.flags.tests).includes('=') ? String(args.flags.tests) : path.resolve(root, args.flags.tests);
     const { results, note: rawNote } = loadResults(design, adapter, { tests: testsFlag, run: !!args.flags.run }, root);
     const note = testsFlag ? rawNote.replace(testsFlag, args.flags.tests) : rawNote;
     if (args.flags.doc) return emit(docDetail(design, source, adapter, results, note, args.flags.doc));

@@ -42,7 +42,7 @@ user-invocable: true
 
 ## 3. 驗收
 
-1. 跑建置與整套測試(有 `.design/` 就是 `system.md`「語言與工具」的那兩道),輸出留檔;有 `.design/` 再跑 `devflow status --tests <log>` 與 `devflow lint all`。
+1. 跑建置與整套測試(有 `.design/` 就是 `system.md`「語言與工具」的那兩道),輸出留檔;有 `.design/` 再跑 `devflow status --tests <log>`(多語言專案每側一份:`--tests <目錄>=<log>,<目錄>=<log>`)與 `devflow lint all`。
 2. 判準:每份日誌宣稱達成的文檔合併後仍達成;日誌「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。**帶著紅燈不發 PR。**
 3. **合併後紅**:歸因不改碼(`roles.md`「整合」):那條 law 屬於哪份文檔、它在自己的分支上綠不綠(看日誌的「測試」)、哪幾條分支與它共用檔案(看日誌的「合併時要看」)。寫成 GAP(角色 conductor)進 `.design/gaps.md`,commit,停下回報。候選超過一條才從主線另開臨時分支逐條重合、跑那份文檔的子集,找出第一條讓它紅的,臨時分支刪掉。
 

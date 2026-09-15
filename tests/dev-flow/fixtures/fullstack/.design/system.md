@@ -1,0 +1,56 @@
+---
+language: [web = typescript, api = python]
+updated: 2026-09-07
+---
+# fullstack:購物車前端與購物籃後端
+
+## 願景
+同一個 repo 裡前端算錢、後端算籃子,兩邊各用自己的語言,一張看板看得到兩邊。
+
+前端 TypeScript 做結帳與退款,後端 Python 做購物籃。
+
+夾具:證明多語言專案的 language 欄「目錄 = adapter」清單、每側一組指令、兩側各自的簽名與 import 對帳、兩份測試輸出各用自己的 adapter 解析後合併。
+
+## 需求
+### R-1:每一筆結帳與退款的金額都算對
+- Law:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+  - forall raw in RawBody
+  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
+### R-2:任何一籃子都算得出不為負的總金額
+- Law:任一品項清單的總金額不為負
+  - forall items in list
+  - |- total_cents(items) >= 0
+
+## 語言與工具
+- 建置:web = `npx tsc --noEmit -p web`;api = `python -m compileall api/cart`
+- 測試(整套):web = `npx jest --rootDir web`;api = `pytest -v api`
+- 測試(子集):web = `npx jest --rootDir web test/<檔名>`;api = `pytest -v api/tests/<檔名>`(以一份文檔選)
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+
+## 層
+| 層 | 裝什麼 |
+|---|---|
+| domain | 金額與購物籃的型別與規則 |
+| application | 把 domain 串成一條結帳或退款 |
+| entry | HTTP 路由 |
+
+## 對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
+|---|---|---|---|---|---|---|
+| POST /checkout | in | `RawBody` | `web/src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` |
+| 結帳結果 | out | `HttpRes` | `web/src/entry/routes.ts` | F-001-checkout | trusted | - |
+| POST /refund | in | `RawBody` | `web/src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` |
+| 退款結果 | out | `HttpRes` | `web/src/entry/routes.ts` | F-002-refund | trusted | - |
+| POST /basket | in | `str` | `api/cart/api.py` | F-003-basket | untrusted | `add_item` |
+| 總金額 | out | `str` | `api/cart/api.py` | F-003-basket | trusted | - |
+
+## Features
+| 全名 | 類別 |
+|---|---|
+| F-001-checkout | feature |
+| F-002-refund | feature |
+| A-001-settle | abstract |
+| F-003-basket | feature |

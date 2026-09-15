@@ -1,0 +1,9 @@
+$ devflow migrate objectives
+# migrate objectives 帳本
+
+- .design/system.md:「目的」併成「願景」第二段、需求 1 條(R-1 ← O-1)、優先各級那行搬進「語言與工具」
+- .design/objectives/R-1-O-1-checkout.md:建(O-1;需求配 R-1;slug 從第一條綁定的 feature 推,不對就改檔名)
+- .design/objectives.md:刪
+
+以上只是帳本;devflow migrate objectives --write 才落地
+exit 0

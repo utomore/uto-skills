@@ -186,11 +186,33 @@ export function lintLaws(design, source, adapter) {
   }
   const stdlib = new Set(adapter ? adapter.stdlib : []);
   const vocab = new Set(sys ? sys.vocab : []);
+  // 三行式的檢查:forall / |- 齊全、純 ASCII、識別字對得到 names(Steps 簽名)、最內層匯出、型別名、標準函式庫或詞彙追加。
+  // 回這條 law 提到的 step 名字(= 列至少被一條 law 引用要用)。
+  const checkLawBody = (where, law, names, scope) => {
+    const mentioned = new Set();
+    if (!law.forall) r.red.push(`${where} 缺 forall 行`);
+    if (!law.conclusion) r.red.push(`${where} 缺 |- 行`);
+    if (!law.forall || !law.conclusion) return mentioned;
+    const { vars, rhs } = boundVars(law.forall);
+    const bound = new Set(vars);
+    const check = (text, label) => {
+      for (const id of identifiers(text)) {
+        if (names.has(id)) mentioned.add(id);
+        if (bound.has(id) || names.has(id) || innerExports.has(id) || stdlib.has(id) || types.has(id) || vocab.has(id) || types.has(id.split('.')[0])) continue;
+        r.red.push(`${where} ${label}的 ${id} 對不到 ${scope}、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」`);
+      }
+    };
+    for (const [text, label] of [[law.forall, 'forall 行'], [law.conclusion, '|- 行'], ...law.given.map((g) => [g, 'given 行'])]) {
+      if (/[^\x20-\x7e]/.test(text)) r.red.push(`${where} ${label}含非 ASCII 字元,三行只准表達式,不准散文:${text}`);
+    }
+    check(law.conclusion.replace(/^\|-\s*/, ''), '|- 行');
+    for (const t of rhs) check(t, 'forall 行');
+    for (const g of law.given) check(g.replace(/^given\s*/, ''), 'given 行');
+    return mentioned;
+  };
 
   for (const p of design.docs) {
     const stepNames = new Set(p.steps.map((s) => s.name));
-    const refNames = new Set();
-    for (const s of p.steps) if (s.ref) refNames.add(s.name);
     const lawIds = new Set();
     const mentioned = new Set();
     if (p.template.laws) r.red.push(`${p.file} Laws 還是模板(${p.template.laws} 條佔位符);寫成真的 law`);
@@ -201,24 +223,7 @@ export function lintLaws(design, source, adapter) {
       if (lawIds.has(l.id)) r.red.push(`${where} 編號重複`);
       lawIds.add(l.id);
       if (!LAW_KINDS.includes(l.kind)) r.red.push(`${where} 種類「${l.kind}」不在 ${LAW_KINDS.join(' / ')}`);
-      if (!l.forall) r.red.push(`${where} 缺 forall 行`);
-      if (!l.conclusion) r.red.push(`${where} 缺 |- 行`);
-      if (!l.forall || !l.conclusion) continue;
-      const { vars, rhs } = boundVars(l.forall);
-      const bound = new Set(vars);
-      const check = (text, label) => {
-        for (const id of identifiers(text)) {
-          if (stepNames.has(id)) mentioned.add(id);
-          if (bound.has(id) || stepNames.has(id) || innerExports.has(id) || stdlib.has(id) || types.has(id) || vocab.has(id) || types.has(id.split('.')[0])) continue;
-          r.red.push(`${where} ${label}的 ${id} 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」`);
-        }
-      };
-      for (const [text, label] of [[l.forall, 'forall 行'], [l.conclusion, '|- 行'], ...l.given.map((g) => [g, 'given 行'])]) {
-        if (/[^\x20-\x7e]/.test(text)) r.red.push(`${where} ${label}含非 ASCII 字元,三行只准表達式,不准散文:${text}`);
-      }
-      check(l.conclusion.replace(/^\|-\s*/, ''), '|- 行');
-      for (const t of rhs) check(t, 'forall 行');
-      for (const g of l.given) check(g.replace(/^given\s*/, ''), 'given 行');
+      for (const n of checkLawBody(where, l, stepNames, 'Steps 簽名')) mentioned.add(n);
     }
     for (const s of p.steps) {
       if (s.whole && s.name && !mentioned.has(s.name)) r.red.push(`${at(p.file, s.line)} = 列 ${s.name} 沒有任何 law 引用;整條至少一條端到端的 law`);
@@ -232,6 +237,25 @@ export function lintLaws(design, source, adapter) {
       for (const c of ex.covers) if (!lawIds.has(c)) r.red.push(`${p.file} ${ex.id} 指到的 ${c} 不存在`);
     }
   }
+  // 需求與目標的 Law:一句話必填;寫了三行就照 feature law 的規矩查,識別字可以是任何一份文檔的 Steps 簽名
+  const allSteps = new Set(design.docs.flatMap((p) => p.steps.map((s) => s.name)));
+  const entries = new Set(design.docs.flatMap((p) => p.steps.filter((s) => s.entry).map((s) => s.name)));
+  const checkTop = (file, id, law, line) => {
+    const where = `${at(file, line)} ${id} Law`;
+    if (!law) return r.red.push(`${where} 沒有;一句可判定的話,寫成清單項「- Law:…」`);
+    if (law.placeholder) return r.red.push(`${where} 還是模板`);
+    if (!law.formal) return;
+    const mentioned = checkLawBody(where, law, allSteps, 'Steps 簽名(任何一份文檔的)');
+    for (const n of mentioned) if (entries.has(n)) r.red.push(`${where} 的 |- 行引用了進入點 ${n};進入點只接線,它做的事由對外 I/O 表承接`);
+  };
+  if (sys) for (const q of sys.requirements) checkTop(sys.file, q.id, q.law, q.line);
+  for (const o of design.objectives.objectives) {
+    if (o.law && o.law.inherits) {
+      if (sys && !sys.requirements.some((q) => q.id === o.law.inherits)) r.red.push(`${at(o.file, o.line)} ${o.id} Law 繼承的 ${o.law.inherits} 不在 system.md 的需求裡`);
+      continue;
+    }
+    checkTop(o.file, o.id, o.law, o.line);
+  }
   return r;
 }
 
@@ -243,6 +267,15 @@ export function lintTrace(design, source) {
     for (const l of p.laws) declared.add(`${p.id}#${l.id}`);
     for (const e of p.examples) declared.add(`${p.id}#${e.id}`);
   }
+  // 需求與目標的 Law:寫了三行的只由驗收測試判,沒有測試即紅;一句話的沒有測試不算紅,由底下的 Law 或建置路線推
+  const formal = new Set();
+  const prose = new Set();
+  const top = (id, law) => {
+    if (!law || law.placeholder || law.inherits) return;
+    (law.formal ? formal : prose).add(`${id}#LAW`);
+  };
+  if (design.system) for (const q of design.system.requirements) top(q.id, q.law);
+  for (const o of design.objectives.objectives) top(o.id, o.law);
   const seen = new Map();
   for (const t of source.testFiles) {
     if (!t.markers.length) r.info.push(`${t.file} 沒有歸屬,當內部單元測試,不進 law 分母`);
@@ -252,7 +285,9 @@ export function lintTrace(design, source) {
     }
   }
   for (const d of [...declared].sort()) if (!seen.has(d)) r.red.push(`${d} 沒有測試承接(未翻譯)`);
-  for (const [m, files] of seen) if (!declared.has(m)) r.red.push(`${files.join(', ')} 引用的 ${m} 文檔裡沒有(幽靈引用);刪掉的編號永久空缺,不重用`);
+  for (const d of [...formal].sort()) if (!seen.has(d)) r.red.push(`${d} 寫了三行卻沒有驗收測試;三行式的 Law 只由測試判,沒有測試就是未知`);
+  for (const d of [...prose].sort()) if (!seen.has(d)) r.info.push(`${d} 沒有驗收測試,成立與否由它底下的 Law 或建置路線推`);
+  for (const [m, files] of seen) if (!declared.has(m) && !formal.has(m) && !prose.has(m)) r.red.push(`${files.join(', ')} 引用的 ${m} 文檔裡沒有(幽靈引用);刪掉的編號永久空缺,不重用`);
   return r;
 }
 

@@ -31,7 +31,7 @@ export function claim(design, slug, { description = '', date = today(), mileston
   const bad = checkSlug(design, slug);
   if (bad) return { text: bad, exitCode: 1 };
   if (kind && !KINDS.includes(kind)) return { text: `--kind 要是 ${KINDS.join(' 或 ')},不是「${kind}」`, exitCode: 1 };
-  if (milestone && !design.objectives.objectives.some((o) => o.milestones.some((m) => m.id === milestone))) return { text: `objectives.md 沒有 ${milestone} 這條里程碑;先 lawful objective milestone <O-n> <一句話>`, exitCode: 1 };
+  if (milestone && !design.objectives.objectives.some((o) => o.milestones.some((m) => m.id === milestone))) return { text: `objectives/ 沒有 ${milestone} 這條里程碑;先 lawful objective milestone <O-n> <一句話>`, exitCode: 1 };
   const nums = design.pipelines.map((p) => Number((p.id || '').slice(2)));
   const next = (nums.length ? Math.max(...nums) : 0) + 1;
   const id = `P-${String(next).padStart(3, '0')}`;

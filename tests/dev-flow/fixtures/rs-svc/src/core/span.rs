@@ -57,4 +57,11 @@ mod tests {
     fn f_001__ex_1() {
         assert_eq!(width(merge(make(0, 5).unwrap(), make(3, 9).unwrap())), 9);
     }
+
+    #[test]
+    fn r_1__law_merge_covers_each() {
+        let a = make(0, 5).unwrap();
+        let b = make(3, 9).unwrap();
+        assert!(width(merge(a, b)) >= width(a) && width(merge(a, b)) >= width(b));
+    }
 }

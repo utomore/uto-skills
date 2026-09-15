@@ -7,8 +7,13 @@ updated: 2026-09-07
 ## 願景
 購物籃的總金額永遠等於品項加總。
 
-## 目的
-夾具:證明 Python adapter 的簽名、匯出、import 與測試歸屬對得上。
+夾具:證明 Python adapter 的簽名、匯出、import 與測試歸屬(含需求 Law 的識別字形式)對得上。
+
+## 需求
+### R-1:任何一籃子都算得出不為負的總金額
+- Law:任一品項清單的總金額不為負
+  - forall items in list
+  - |- total_cents(items) >= 0
 
 ## 語言與工具
 - 建置:`python -m compileall cart`
@@ -17,6 +22,7 @@ updated: 2026-09-07
 - IO 模組追加:無
 - Laws 詞彙追加:無
 - 忽略目錄:無
+- 優先:1 = 算得對;2 = 進入點;3 = 呈現;4 = 工具
 
 ## 層
 | 層 | 裝什麼 |

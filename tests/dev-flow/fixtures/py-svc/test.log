@@ -1,8 +1,9 @@
 ============================= test session starts ==============================
-collected 3 items
+collected 4 items
 
-tests/test_basket.py::test_f_001__law_1_add_grows PASSED                 [ 33%]
-tests/test_basket.py::test_f_001__law_2_total_nonneg PASSED              [ 66%]
-tests/test_basket.py::test_f_001__ex_1 PASSED                            [100%]
+tests/test_basket.py::test_f_001__law_1_add_grows PASSED                 [ 25%]
+tests/test_basket.py::test_f_001__law_2_total_nonneg PASSED              [ 50%]
+tests/test_basket.py::test_f_001__ex_1 PASSED                            [ 75%]
+tests/test_basket.py::test_r_1__law_total_nonneg PASSED                  [100%]
 
-============================== 3 passed in 0.03s ===============================
+============================== 4 passed in 0.03s ===============================

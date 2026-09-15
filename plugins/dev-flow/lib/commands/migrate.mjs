@@ -171,3 +171,129 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
   out.push('4. 層怎麼切:`system.md` 的層表由內而外,再用 `devflow modules --gen` 把檔案填進模組表');
   return { text: out.join('\n'), exitCode: 0 };
 }
+
+// migrate objectives [--write]:目標還擠在一份 objectives.md 的樹,換成 system.md「需求」與 objectives/ 體系。先印帳本,--write 才落地。
+// 每個 ## O-n → 一條需求(一句話照抄、判準當 Law)寫進 system.md「需求」,並拆成 objectives/R-x-O-n-<slug>.md(需求、優先進 frontmatter,
+// Law 寫「繼承 R-x」;slug 從第一條綁定的 feature 推);開頭的優先各級那行搬進「語言與工具」;「目的」併成「願景」第二段;刪 objectives.md。
+function sectionRange(lines, title) {
+  const from = lines.findIndex((l) => new RegExp(`^## ${title}\\s*$`).test(l));
+  if (from < 0) return null;
+  let to = from + 1;
+  while (to < lines.length && !/^## /.test(lines[to])) to++;
+  return { from, to };
+}
+
+function splitObjectives(text, { assignRequirements = false, date } = {}) {
+  const { body } = parseFrontmatter(text);
+  const secs = sections(body);
+  const head = secs.find((s) => s.level === 1) || secs[0];
+  const noteLine = (head && !/^O-\d+/.test(head.title) ? head.lines : []).map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[::]/.test(l)) || '';
+  const priorityNote = noteLine.replace(/^優先[::]\s*/, '').trim();
+  const objs = [];
+  for (let i = 0; i < secs.length; i++) {
+    const s = secs[i];
+    if (s.level !== 2) continue;
+    const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+    if (!m) continue;
+    const lines = [...s.lines];
+    for (let j = i + 1; j < secs.length && secs[j].level > 2; j++) lines.push(`${'#'.repeat(secs[j].level)} ${secs[j].title}`, ...secs[j].lines);
+    const field = (k) => {
+      const l = lines.find((x) => new RegExp(`^- ${k}[::]`).test(x));
+      return l ? l.replace(/^- [^::]*[::]\s*/, '').trim() : '';
+    };
+    const id = m[1];
+    const title = m[2].trim();
+    const criteria = field('判準');
+    const priority = field('優先') || '<1 到 4,1 最高>';
+    const requirement = field('需求') || (assignRequirements ? `R-${objs.length + 1}` : 'R-0');
+    const binds = lines.filter((l) => /^\s*\|/.test(l)).flatMap((l) => l.match(/F-\d{3}-[a-z0-9-]+/g) || []);
+    const slug = binds.length ? binds[0].replace(/^F-\d{3}-/, '') : 'unnamed';
+    const bodyLines = [];
+    for (const l of lines) {
+      if (/^- (需求|優先)[::]/.test(l)) continue;
+      if (/^- 判準[::]/.test(l)) {
+        bodyLines.push(`- Law:繼承 ${requirement}`);
+        continue;
+      }
+      bodyLines.push(l);
+    }
+    if (!bodyLines.some((l) => /^- Law[::]/.test(l))) bodyLines.unshift(`- Law:繼承 ${requirement}`);
+    while (bodyLines.length && !bodyLines[0].trim()) bodyLines.shift();
+    const fullName = `${requirement}-${id}-${slug}`;
+    const content = ['---', `id: ${id}`, `requirement: ${requirement}`, `priority: ${priority}`, `updated: ${date}`, '---', `# ${fullName}:${title}`, '', ...bodyLines].join('\n').replace(/\s+$/, '') + '\n';
+    objs.push({ id, title, requirement, assigned: !field('需求'), law: /<[^>]*>/.test(criteria) ? '' : criteria, fullName, file: `${fullName}.md`, content, slug });
+  }
+  return { priorityNote, objs };
+}
+
+export function migrateObjectives(root, { write = false, date = new Date().toISOString().slice(0, 10) } = {}) {
+  const designDir = path.join(root, '.design');
+  const sysFile = path.join(designDir, 'system.md');
+  const objFile = path.join(designDir, 'objectives.md');
+  const objDir = path.join(designDir, 'objectives');
+  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
+  if (!fs.existsSync(sysFile)) return { text: `${rel(designDir)} 裡沒有 system.md;dev-flow:project 建它`, exitCode: 1 };
+  if (!fs.existsSync(objFile)) return { text: `${rel(objFile)} 不存在、目標已經在 objectives/,這棵樹不用換`, exitCode: 0 };
+  const out = ['# migrate objectives 帳本', ''];
+  const sysText = fs.readFileSync(sysFile, 'utf8');
+  const lines = sysText.split(/\r?\n/);
+  const reqRange = sectionRange(lines, '需求');
+  const hasReal = !!reqRange && lines.slice(reqRange.from + 1, reqRange.to).some((l) => /^### R-\d+/.test(l) && !/<[^>]*>/.test(l));
+  const split = splitObjectives(fs.readFileSync(objFile, 'utf8'), { assignRequirements: !hasReal, date });
+  const notes = [];
+  // 「目的」併成「願景」第二段
+  const purpose = sectionRange(lines, '目的');
+  const vision = sectionRange(lines, '願景');
+  if (purpose && vision) {
+    const text = lines.slice(purpose.from + 1, purpose.to).map((l) => l.trim()).filter(Boolean);
+    const removed = lines.splice(purpose.from, purpose.to - purpose.from);
+    const v = sectionRange(lines, '願景');
+    let end = v.to;
+    while (end > v.from + 1 && !lines[end - 1].trim()) end--;
+    if (text.length && !text.every((l) => /<[^>]*>/.test(l))) lines.splice(end, 0, '', ...text, '');
+    else if (removed.length) lines.splice(end, 0, '');
+    notes.push('「目的」併成「願景」第二段');
+  }
+  // 「需求」節:沒有就在願景後面補;每個目標一條
+  if (!hasReal) {
+    const block = split.objs.length
+      ? split.objs.flatMap((r, i) => [...(i ? [''] : []), `### ${r.requirement}:${r.title}`, `- Law:${r.law || '<一句可判定的話:這條需求成立時,什麼一定為真>'}`])
+      : ['### R-1:<一句話:誰在什麼情況下要得到什麼>', '- Law:<一句可判定的話:這條需求成立時,什麼一定為真>'];
+    const r = sectionRange(lines, '需求');
+    if (r) lines.splice(r.from + 1, r.to - r.from - 1, ...block, '');
+    else {
+      const v = sectionRange(lines, '願景');
+      const at = v ? v.to : lines.length;
+      lines.splice(at, 0, '## 需求', ...block, '');
+    }
+    notes.push(`需求 ${split.objs.length} 條(${split.objs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : ',Law 留佔位符'}`).join('、') || '沒有目標,留一條模板'})`);
+  }
+  // 「語言與工具」補一行優先
+  if (split.priorityNote && !/^- 優先[::]/m.test(lines.join('\n'))) {
+    const t = sectionRange(lines, '語言與工具');
+    if (t) {
+      let end = t.to;
+      while (end > t.from + 1 && !lines[end - 1].trim()) end--;
+      lines.splice(end, 0, `- 優先:${split.priorityNote}`);
+      notes.push('優先各級那行搬進「語言與工具」');
+    }
+  }
+  const next = lines.join('\n').replace(/\n{3,}/g, '\n\n');
+  out.push(`- ${rel(sysFile)}:${notes.length ? notes.join('、') : '不動'}`);
+  for (const o of split.objs) {
+    const n = [o.assigned ? `需求配 ${o.requirement}` : '', o.requirement === 'R-0' ? 'frontmatter 的 requirement 與檔名的 R-0 要換成真的 R-n' : '', o.slug === 'unnamed' ? 'slug 沒有綁定的 feature 可推,先叫 unnamed,改名要連檔名一起改' : 'slug 從第一條綁定的 feature 推,不對就改檔名'].filter(Boolean);
+    out.push(`- ${rel(path.join(objDir, o.file))}:建(${o.id};${n.join(';')})`);
+  }
+  if (!split.objs.length) out.push(`- ${rel(objFile)}:沒有任何目標`);
+  out.push(`- ${rel(objFile)}:刪`);
+  if (!write) {
+    out.push('', '以上只是帳本;devflow migrate objectives --write 才落地');
+    return { text: out.join('\n'), exitCode: 0 };
+  }
+  if (next !== sysText) fs.writeFileSync(sysFile, next);
+  if (split.objs.length) fs.mkdirSync(objDir, { recursive: true });
+  for (const o of split.objs) fs.writeFileSync(path.join(objDir, o.file), o.content);
+  fs.unlinkSync(objFile);
+  out.push('', '都寫了;接著 devflow status 看警訊,需求的 Law 與蘊含說明由 dev-flow:project 對談補齊,目標檔的 slug 由 dev-flow:objective 定');
+  return { text: out.join('\n'), exitCode: 0 };
+}

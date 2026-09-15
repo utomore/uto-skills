@@ -113,11 +113,11 @@ function mainRef(root) {
 export function branchState(root) {
   const none = { building: new Set(), stale: new Set() };
   if (!root || !fs.existsSync(path.join(root, '.git'))) return none;
-  const all = gitLines(root, 'git branch --list "build/*" --format=%(refname:short)');
+  const all = gitLines(root, 'git branch --list "build/*" --format="%(refname:short)"');
   if (!all) return none;
   const name = (s) => s.replace(/^build\//, '');
   const ref = mainRef(root);
-  const merged = ref ? gitLines(root, `git branch --list "build/*" --merged ${ref} --format=%(refname:short)`) : null;
+  const merged = ref ? gitLines(root, `git branch --list "build/*" --merged ${ref} --format="%(refname:short)"`) : null;
   const stale = new Set((merged || []).map(name));
   return { building: new Set(all.map(name).filter((n) => !stale.has(n))), stale };
 }
@@ -193,7 +193,8 @@ export function objectiveView(design, a) {
     const own = a.lawTest(`${o.id}#LAW`);
     const inheritedLaw = o.law && o.law.inherits && design.cone ? (design.cone.requirements.find((q) => q.id === o.law.inherits) || {}).law : null;
     const inherited = o.law && o.law.inherits ? a.lawTest(`${o.law.inherits}#LAW`) : null;
-    if (own) law = { holds: verdict(own.result), source: `測試 ${own.key} ${own.result}`, tested: true };
+    if (o.law && o.law.placeholder) law = { holds: false, source: 'Law 還是模板', tested: false };
+    else if (own) law = { holds: verdict(own.result), source: `測試 ${own.key} ${own.result}`, tested: true };
     else if (inherited) law = { holds: verdict(inherited.result), source: `繼承 ${o.law.inherits},測試 ${inherited.key} ${inherited.result}`, tested: true };
     else if (o.law && o.law.formal) law = { holds: null, source: `寫了三行卻沒有 ${o.id}#LAW 測試`, tested: false };
     else if (inheritedLaw && inheritedLaw.formal) law = { holds: null, source: `繼承 ${o.law.inherits},寫了三行卻沒有 ${o.law.inherits}#LAW 測試`, tested: false };
@@ -208,7 +209,10 @@ export function objectiveView(design, a) {
     const test = a.lawTest(`${q.id}#LAW`);
     let holds;
     let source;
-    if (test) {
+    if (q.law && q.law.placeholder) {
+      holds = false;
+      source = 'Law 還是模板';
+    } else if (test) {
       holds = verdict(test.result);
       source = `測試 ${test.key} ${test.result}`;
     } else if (q.law && q.law.formal) {
@@ -297,7 +301,7 @@ export function warnings(design, a, ov, source, adapter, stale = new Set()) {
     if (q.placeholder) warn(q.id, '需求還是模板', 'lawful:design 寫成一句話');
     if (!q.law) warn(q.id, '沒有 Law', 'lawful:design 補一句可判定的話,寫成「- Law:…」');
     else if (q.law.placeholder) warn(q.id, 'Law 還是模板', 'lawful:design 寫成可判定的一句');
-    else if (q.law.formal && !q.tested) warn(q.id, 'Law 寫了三行卻沒有驗收測試,成立與否未知', `qa 寫一條歸屬 "${q.id}#LAW" 的測試;不能自動化就只留一句,由目標 Law 推`);
+    else if (q.law.formal && !q.tested) warn(q.id, 'Law 寫了三行卻沒有驗收測試,成立與否未知', `lawful:build ${q.id}(只派 qa 寫一條歸屬 "${q.id}#LAW" 的測試);不能自動化就只留一句,由目標 Law 推`);
     if (!q.objectives.length) warn(q.id, '沒有任何目標', `lawful objective add <一句話> --requirement ${q.id} --priority <1-4>`);
     if (q.objectives.length > 1) {
       if (!q.implication) warn(q.id, `有 ${q.objectives.length} 個目標卻沒有蘊含說明`, `Cone.md 的 ${q.id} 補「- 蘊含:${q.objectives.map((o) => o.id).join('、')} 的 Law 都成立 ⟹ 本 Law 成立,因為 …」`);
@@ -373,6 +377,9 @@ export function suggestRoutes(design, a, ov, warnCount) {
   for (const x of order) steps.push(`lawful:build ${x.p.fullName}(${ov.tag(x.p.fullName)})`);
   const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
   if (drafts.length) steps.push(`${drafts.map((x) => x.p.fullName).join('、')} 討論完改 ready`);
+  // 建置路線達成、Law 寫了三行卻沒有驗收測試的需求與目標:build 只派 qa 寫那一條
+  for (const q of ov.reqs) if (q.built && q.law && q.law.formal && !q.tested) steps.push(`lawful:build ${q.id}(建置路線達成,只派 qa 寫 ${q.id}#LAW 的驗收測試)`);
+  for (const o of ov.objs) if (o.achieved && o.law && o.law.formal && !o.lawState.tested) steps.push(`lawful:build ${o.id}(建置路線達成,只派 qa 寫 ${o.id}#LAW 的驗收測試)`);
   // 優化路線:建置路線達成後才開,動到的 pipeline 先走 REV(依欄引用 RF-n),再 build
   for (const o of ov.objs) if (o.achieved) for (const rf of o.rfs) if (rf.state === '待修訂' && !rf.missing.length) steps.push(`${rf.id} ${rf.title}:lawful:revise ${rf.touches.join('、')}(REV 的依欄引用 ${rf.id}),再 lawful:build`);
   const allDone = [...a.info.values()].every((x) => x.achieved) && !a.openGaps.length;

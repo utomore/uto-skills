@@ -1,23 +1,27 @@
 # dev-flow 規章
 
-`dev-flow` 替一般程式語言的專案做 spec 驅動開發。文檔的單位是 **feature**:一段從對外邊界進、從對外邊界出的資料流,直接掛在 `system.md` 底下,沒有子系統這一層。feature 之上是三層「為什麼」:`system.md` 的**願景**、`objectives.md` 的**目標**(優先 1 到 4)與目標底下的**里程碑**,每條里程碑綁定它要做到的 feature。feature 之間長出來的共同部分由 `dev-flow:refactor` 收整成 **abstract**,被收整的每一份 feature 記一條 REV。進度不是欄位,由 `devflow status` 從程式碼與測試推導。
+`dev-flow` 替一般程式語言的專案做 spec 驅動開發。文檔的單位是 **feature**:一段從對外邊界進、從對外邊界出的資料流,直接掛在 `system.md` 底下,沒有子系統這一層。feature 之上是四層「為什麼」:`system.md` 的**願景**(北極星)與**需求**(各有一條可判定的 Requirement Law)、`objectives/` 一檔一個的**目標**(每個解決恰好一條需求,各有 Objective Law 與優先 1 到 4)與目標底下的兩條路線:**建置路線**的里程碑綁定它要做到的 feature,走完需求 Law 第一次成立;**優化路線**的調整只改既有 feature 的品質,每一次之後需求 Law 仍要成立。feature 之間長出來的共同部分由 `dev-flow:refactor` 收整成 **abstract**,被收整的每一份 feature 記一條 REV。進度不是欄位,由 `devflow status` 從程式碼與測試推導。
 
 `rules/` 四份主題規章是每條規則唯一的住處;skill 只寫步驟並用檔名加節名引用,不重述。
 
 | 檔 | 主題 |
 |---|---|
-| `features.md` | `.design/` 樹、system.md、願景、目標與里程碑、feature 與 abstract、簽名寫法、節、laws、REV、收整、GAP、願望 step、完成度、ADR、spike |
+| `features.md` | `.design/` 樹、system.md、願景、需求、目標與兩條路線、feature 與 abstract、簽名寫法、節、laws、REV、收整、GAP、願望 step、完成度、ADR、spike |
 | `boundary.md` | 層、模組表、IO 模組、匯出、對外 I/O 與安全三條、測試與邊界 |
-| `roles.md` | 三個階段、分支與所有權、conductor / qa / impl、委派、骨架與基線、收尾、仲裁、測試跑幾次、開發日誌、整合、委派模型 |
+| `roles.md` | 三個階段、分支與所有權、conductor / qa / impl、委派、骨架與基線、驗收測試、收尾、仲裁、測試跑幾次、開發日誌、整合、委派模型 |
 | `tooling.md` | CLI 子命令與 exit code、status 報告版面、測試歸屬、language adapter、跑東西的紀律、收尾定錨 |
 
 ## 名詞
 
 | 名詞 | 在哪 |
 |---|---|
-| 願景、目標、`O-n`、優先、判準、里程碑、`M-n`、綁定、完成度 | features.md「願景、目標與里程碑」 |
+| 願景、需求、`R-n`、Requirement Law、蘊含、優先各級 | features.md「system.md」「願景、需求、目標與路線」 |
+| 目標、`O-n`、需求欄、優先、Objective Law、繼承 | features.md「願景、需求、目標與路線」 |
+| 建置路線、里程碑、`M-n`、綁定、待 claim | features.md「願景、需求、目標與路線」 |
+| 優化路線、調整、`RF-n`、動到、待修訂 | features.md「願景、需求、目標與路線」「修訂(REV)」 |
+| Law 成立、完成度、調整達成 | features.md「完成度」 |
 | feature、abstract、step、`=` 列 / 整條、`!` 列 / 進入點、`o` 列 / 觀察點 | features.md「feature 與 abstract」 |
-| 全名、`F-00x#name`、`F-00x#LAW-n` | features.md「編號與引用」 |
+| 全名、`F-00x#name`、`F-00x#LAW-n`、`R-n#LAW`、`O-n#LAW` | features.md「編號與引用」 |
 | 正規式簽名、`型別.方法`、型別註記可省 | features.md「簽名怎麼寫」;tooling.md「language adapter」 |
 | `draft` / `ready` / `frozen`、解凍 | features.md「frontmatter 與 status」 |
 | Brief、Steps、Laws、law 種類、`given` 的時序、Examples、決定 | features.md「節」 |
@@ -39,6 +43,7 @@
 | 開發日誌、`journal/<全名>.md` | roles.md「開發日誌」 |
 | 整合分支、清單型衝突、合併後紅、清理 | roles.md「整合」 |
 | 骨架標記、基線、骨架快照 | roles.md「骨架與基線」 |
+| 驗收測試、`build/R-n` | roles.md「驗收測試」 |
 | 產生器、shrink、覆蓋率、案例數上限 | roles.md「qa 的交付」 |
 | 仲裁四分流 | roles.md「仲裁」 |
 | `<D>`、子命令、exit code | tooling.md「CLI」 |
@@ -54,17 +59,17 @@
 
 | skill | 必讀 |
 |---|---|
-| `dev-flow:project` | features.md「`.design/`」「system.md」「願景、目標與里程碑」「ADR」;boundary.md 全份;tooling.md「language adapter」「收尾定錨」 |
-| `dev-flow:objective` | features.md「願景、目標與里程碑」「完成度」;tooling.md「CLI」「status 報告」「收尾定錨」 |
+| `dev-flow:project` | features.md「`.design/`」「system.md」「願景、需求、目標與路線」「ADR」;boundary.md 全份;tooling.md「language adapter」「收尾定錨」 |
+| `dev-flow:objective` | features.md「願景、需求、目標與路線」「完成度」;tooling.md「CLI」「status 報告」「收尾定錨」 |
 | `dev-flow:feature` | features.md「feature 與 abstract」「編號與引用」「簽名怎麼寫」「frontmatter 與 status」「節」「什麼要有 law」「願望 step」;boundary.md「模組表」「對外 I/O」;tooling.md「收尾定錨」 |
 | `dev-flow:refactor` | features.md「收整(refactor)」「feature 與 abstract」「修訂(REV)」「節」;boundary.md「層」「模組表」;tooling.md「CLI」「收尾定錨」 |
 | `dev-flow:build` | roles.md 全份;features.md「提問(GAP)」「修訂(REV)」「完成度」;tooling.md「CLI」「測試歸屬」「跑東西的紀律」「收尾定錨」 |
 | `dev-flow:integrate` | roles.md「分支與所有權」「開發日誌」「整合」「仲裁」;features.md「提問(GAP)」「完成度」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
 | `dev-flow:qa` | roles.md「三角色」「委派」「qa 的交付」;features.md「節」「什麼要有 law」「提問(GAP)」;boundary.md「測試與邊界」;tooling.md「測試歸屬」 |
 | `dev-flow:impl` | roles.md「三角色」「委派」;features.md「節」「提問(GAP)」;boundary.md「層」「匯出」 |
-| `dev-flow:revise` | features.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」;tooling.md「收尾定錨」 |
-| `dev-flow:status` | tooling.md「CLI」「status 報告」「收尾定錨」;features.md「願景、目標與里程碑」「完成度」 |
-| `dev-flow:audit` | tooling.md「CLI」「status 報告」;boundary.md 全份;features.md「願景、目標與里程碑」「節」「什麼要有 law」「完成度」「收整(refactor)」 |
+| `dev-flow:revise` | features.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」;tooling.md「收尾定錨」 |
+| `dev-flow:status` | tooling.md「CLI」「status 報告」「收尾定錨」;features.md「願景、需求、目標與路線」「完成度」 |
+| `dev-flow:audit` | tooling.md「CLI」「status 報告」;boundary.md 全份;features.md「願景、需求、目標與路線」「節」「什麼要有 law」「完成度」「收整(refactor)」 |
 | `dev-flow:spike` | features.md「spike」;roles.md「委派」「spike」;tooling.md「跑東西的紀律」 |
 
 prompt 標明委派模式的執行另讀 roles.md「委派」,不讀「收尾定錨」。

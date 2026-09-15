@@ -34,5 +34,9 @@
   F-002#EX-2
     ✓ holds
 
-Test Suites: 3 passed, 3 total
-Tests:       15 passed, 15 total
+ PASS  test/requirements.test.ts
+  R-1#LAW 結帳與退款都照同一條結算
+    ✓ holds (1 ms)
+
+Test Suites: 4 passed, 4 total
+Tests:       16 passed, 16 total

@@ -68,10 +68,11 @@ export function splitRow(line) {
   return cells;
 }
 
-// 第一張表:{ header, rows, rowLines }。沒有表回 null。
-export function parseTable(lines) {
-  let i = lines.findIndex((l) => /^\s*\|/.test(l));
+// 從第 from 行起的第一張表:{ header, rows, rowLines, headerLine };沒有表回 null。
+function tableFrom(lines, from) {
+  let i = lines.findIndex((l, k) => k >= from && /^\s*\|/.test(l));
   if (i < 0) return null;
+  const headerLine = i;
   const header = splitRow(lines[i]);
   i++;
   if (i < lines.length && /^\s*\|?\s*:?-{2,}/.test(lines[i])) i++;
@@ -81,7 +82,24 @@ export function parseTable(lines) {
     rows.push(splitRow(lines[i]));
     rowLines.push(i);
   }
-  return { header, rows, rowLines };
+  return { header, rows, rowLines, headerLine, end: i };
+}
+
+// 第一張表:{ header, rows, rowLines }。沒有表回 null。
+export function parseTable(lines) {
+  return tableFrom(lines, 0);
+}
+
+// 全部的表,照出現順序。
+export function parseTables(lines) {
+  const out = [];
+  let from = 0;
+  for (;;) {
+    const t = tableFrom(lines, from);
+    if (!t) return out;
+    out.push(t);
+    from = t.end;
+  }
 }
 
 export function stripTicks(s) {

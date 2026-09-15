@@ -1,7 +1,7 @@
-// 讀 .design/ 成一棵樹:system(含願景)、objectives(目標與里程碑)、modules、features、abstracts、gaps、spikes。只讀不判;判在 commands/。
+// 讀 .design/ 成一棵樹:system(願景、需求、語言與工具、層、對外 I/O、Features)、objectives(目標、里程碑、調整)、modules、features、abstracts、gaps、spikes。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks } from './markdown.mjs';
+import { parseFrontmatter, sections, findSection, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
 
 // 指令欄只取第一個反引號區段;反引號外的文字是給人看的說明,不是指令的一部分。沒有反引號就整段當指令。
 function codeSpan(s) {
@@ -22,6 +22,23 @@ export const KINDS = { feature: 'F', abstract: 'A' };
 
 function read(p) {
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
+}
+
+// 一個節裡的「Law」:清單項 `- Law:<一句話>`,子項可以是三行式(forall / given / |-)。
+// 沒有這一項回 null;有一句話但沒有三行是一句話的 law,由測試或蘊含承接。
+function parseLawItem(items) {
+  const it = items.find((i) => /^Law[::]/.test(i.text));
+  if (!it) return null;
+  const title = it.text.replace(/^Law[::]\s*/, '').trim();
+  return {
+    title,
+    forall: it.children.find((c) => /^forall\b/.test(c)) || null,
+    given: it.children.filter((c) => /^given\b/.test(c)),
+    conclusion: it.children.find((c) => /^\|-/.test(c)) || null,
+    formal: it.children.some((c) => /^(forall\b|\|-)/.test(c)),
+    placeholder: hasPlaceholder(title),
+    inherits: (/^繼承\s*(R-\d+)/.exec(title) || [])[1] || null,
+  };
 }
 
 function rel(root, p) {
@@ -115,14 +132,16 @@ export function readSystem(designDir, root) {
   const ioExtra = [];
   const vocab = [];
   const ignoreDirs = [];
+  let priorityNote = '';
   if (tools) {
     for (const it of parseList(tools.lines)) {
-      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|Laws 詞彙追加|忽略目錄)[::]\s*(.*)$/.exec(it.text);
+      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|Laws 詞彙追加|忽略目錄|優先)[::]\s*(.*)$/.exec(it.text);
       if (!m) continue;
       const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
       if (m[1] === 'IO 模組追加') ioExtra.push(...list());
       else if (m[1] === 'Laws 詞彙追加') vocab.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
+      else if (m[1] === '優先') priorityNote = m[2].trim();   // 一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼
       else commands[m[1]] = codeSpan(m[2]);
     }
   }
@@ -168,17 +187,46 @@ export function readSystem(designDir, root) {
     }
   }
 
-  // 願景:整節的文字;沒有這一節是 missing,還留著 <…> 是 template
+  // 願景:第一段是報告第一行印的那句;整節留給看板與 --json。沒有這一節是 missing,還留著 <…> 是 template
   const visionSec = findSection(secs, '願景');
-  const vision = visionSec ? visionSec.lines.map((l) => l.trim()).filter(Boolean).join(' ') : '';
-  const visionState = !visionSec ? 'missing' : !vision || hasPlaceholder(vision) ? 'template' : 'ok';
+  const paragraphs = visionSec ? visionSec.lines.join('\n').split(/\n\s*\n/).map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean).join(' ')).filter(Boolean) : [];
+  const visionFull = paragraphs.join(' ');
+  const vision = paragraphs[0] || '';
+  const visionState = !visionSec ? 'missing' : !visionFull || hasPlaceholder(visionFull) ? 'template' : 'ok';
+
+  // 需求:「## 需求」底下每個 ### R-n:<一句話> 一條;Law 是清單項,蘊含是清單項(一條需求有兩個以上目標時要有)
+  const reqSec = findSection(secs, '需求');
+  const requirements = [];
+  if (reqSec) {
+    const from = secs.indexOf(reqSec);
+    for (let i = from + 1; i < secs.length && secs[i].level > 2; i++) {
+      const s = secs[i];
+      const m = /^(R-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+      if (!m) continue;
+      const items = parseList(s.lines);
+      const imp = items.find((it) => /^蘊含[::]/.test(it.text));
+      requirements.push({
+        id: m[1],
+        title: m[2].trim(),
+        law: parseLawItem(items),
+        implication: imp ? imp.text.replace(/^蘊含[::]\s*/, '').trim() : '',
+        line: s.start + 1,
+        placeholder: hasPlaceholder(m[2]),
+      });
+    }
+  }
 
   return {
     file: rel(root, file),
     fm,
     language: fm.language || null,
     vision,
+    visionFull,
     visionState,
+    requirements,
+    requirementsState: !reqSec ? 'missing' : 'ok',
+    priorityNote,
+    priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok',
     commands,
     ioExtra,
     vocab,
@@ -191,48 +239,64 @@ export function readSystem(designDir, root) {
   };
 }
 
-// 目標:objectives.md 每個 ## O-n:<一句話> 一個目標;優先與判準是清單項,里程碑是節裡的表(里程碑 | 做到什麼 | 綁定)。
-// 綁定欄是文檔全名,「、」分隔;綁定是里程碑對到文檔的唯一寫法,完成度從綁定的文檔推。
+// 目標:objectives/ 一個檔一個目標,檔名 R-x-O-y-<slug>.md;frontmatter id、requirement、priority、updated;
+// 標題 # <全名>:<一句話>;Law 是清單項;建置路線是表(里程碑 | 做到什麼 | 綁定),優化路線是表(調整 | 做到什麼 | 動到),兩張表以表頭第一格分。
+// 綁定欄是 feature 全名,「、」分隔;綁定是里程碑對到文檔的唯一寫法,完成度從綁定的文檔推。
 export function readObjectives(designDir, root) {
-  const file = path.join(designDir, 'objectives.md');
-  const text = read(file);
-  if (text == null) return { file: rel(root, file), exists: false, objectives: [] };
-  const { body } = parseFrontmatter(text);
-  const secs = sections(body);
-  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
-  const objectives = [];
-  for (const s of secs) {
-    if (s.level !== 2) continue;
-    const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
-    if (!m) continue;
-    const items = parseList(s.lines);
-    const field = (k) => {
-      const it = items.find((i) => new RegExp(`^${k}[::]`).test(i.text));
-      return it ? it.text.replace(/^[^::]*[::]\s*/, '').trim() : '';
-    };
-    const priorityRaw = field('優先');
-    const criteria = field('判準');
-    const t = parseTable(s.lines);
+  const dir = path.join(designDir, 'objectives');
+  if (!fs.existsSync(dir)) return { dir: rel(root, dir), exists: false, objectives: [] };
+  const num = (f) => Number((/-O-(\d+)-/.exec(f) || [0, 0])[1]);
+  const files = fs.readdirSync(dir).filter((f) => /^R-\d+-O-\d+-.+\.md$/.test(f)).sort((a, b) => num(a) - num(b) || a.localeCompare(b));
+  const names = (cell) => (cell || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
+  const objectives = files.map((f) => {
+    const file = path.join(dir, f);
+    const text = read(file);
+    const { fm, body, hasFrontmatter } = parseFrontmatter(text);
+    const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+    const lines = body.split(/\r?\n/);
+    const base = path.basename(f, '.md');
+    const m = /^(R-\d+)-(O-\d+)-(.+)$/.exec(base);
+    const heading = lines.find((l) => /^# /.test(l)) || '';
+    const tm = /^#\s+\S+\s*[::]\s*(.*)$/.exec(heading);
+    const title = (tm ? tm[1] : heading.replace(/^#\s*/, '')).trim();
+    const items = parseList(lines);
     const milestones = [];
-    if (t) t.rows.forEach((r, i) => {
-      const id = (r[0] || '').trim();
-      if (!id || hasPlaceholder(id)) return;
-      const title = (r[1] || '').trim();
-      const binds = (r[2] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && x !== '-' && !hasPlaceholder(x));
-      milestones.push({ id, title, binds, line: s.start + offset + t.rowLines[i] + 2, placeholder: hasPlaceholder(title) });
-    });
-    objectives.push({
-      id: m[1],
-      title: m[2].trim(),
+    const refinements = [];
+    for (const t of parseTables(lines)) {
+      const kind = (t.header[0] || '').trim();
+      t.rows.forEach((r, i) => {
+        const id = (r[0] || '').trim();
+        if (!id || hasPlaceholder(id)) return;
+        const rowTitle = (r[1] || '').trim();
+        const row = { id, title: rowTitle, line: offset + t.rowLines[i] + 1, placeholder: hasPlaceholder(rowTitle) };
+        if (kind === '里程碑') milestones.push({ ...row, binds: names(r[2]) });
+        else if (kind === '調整') refinements.push({ ...row, touches: names(r[2]) });
+      });
+    }
+    const priorityRaw = fm.priority == null ? '' : String(fm.priority).trim();
+    const requirement = typeof fm.requirement === 'string' ? fm.requirement.trim() : '';
+    return {
+      file: rel(root, file),
+      abs: file,
+      fullName: base,
+      slug: m[3],
+      fileRequirement: m[1],
+      fileId: m[2],
+      fm,
+      hasFrontmatter,
+      id: fm.id || m[2],
+      title,
+      requirement: hasPlaceholder(requirement) ? '' : requirement,
       priority: /^[1-4]$/.test(priorityRaw) ? Number(priorityRaw) : null,
-      priorityRaw,
-      criteria: hasPlaceholder(criteria) ? '' : criteria,
+      priorityRaw: hasPlaceholder(priorityRaw) ? '' : priorityRaw,
+      law: parseLawItem(items),
       milestones,
-      line: s.start + offset + 1,
-      placeholder: hasPlaceholder(m[2]),
-    });
-  }
-  return { file: rel(root, file), exists: true, objectives };
+      refinements,
+      line: 1,
+      placeholder: hasPlaceholder(title) || !title,
+    };
+  });
+  return { dir: rel(root, dir), exists: true, objectives };
 }
 
 // 模組表:[{ pattern, layer, line }];pattern 是相對路徑,可用 ** 結尾通配。
@@ -381,7 +445,8 @@ export function readDoc(file, root) {
     template,
     decisions,
     thawed: decisions ? decisions.lines.some((l) => /解凍/.test(l)) : false,
-    revs: revItems,
+    // 每條 REV 的第一行:依欄寫的來源(GAP、SPK / ADR、RF-n、開發者的話)都在這一行
+    revs: revItems.map((it) => ({ ...it, cites: [...new Set((it.text.match(/RF-\d+/g) || []))] })),
     lastRev: revItems.length ? revItems[revItems.length - 1].text : null,
   };
 }
@@ -445,6 +510,8 @@ export function readDesign(root) {
     featuresDir,
     abstractsDir,
     system: readSystem(designDir, root),
+    // 目標還擠在一份 objectives.md 裡:devflow migrate objectives 拆成 objectives/
+    legacyObjectives: fs.existsSync(path.join(designDir, 'objectives.md')),
     objectives: readObjectives(designDir, root),
     modules: readModules(designDir, root),
     features,

@@ -18,7 +18,7 @@ user-invocable: true
 
 ## 前置
 
-- 沒有 `.design/system.md`、願景還是模板、或 `objectives.md` 一個目標都沒有 → 停,先跑 `dev-flow:project` 或 `dev-flow:objective`。
+- 沒有 `.design/system.md`、願景還是模板、一條需求都沒有、或 `objectives/` 一個目標都沒有 → 停,先跑 `dev-flow:project` 或 `dev-flow:objective`。
 - 這份 feature 沒有被任何里程碑綁定 → 先問開發者它服務哪個目標的哪條里程碑,`dev-flow:objective` 綁進去;答不出來就是不該做的功能,停。
 - 目標是**既有**功能的改動 → 這裡不是入口,走 `dev-flow:revise`(它會寫 REV)。
 - 目標是**兩份以上 feature 的共同部分** → 走 `dev-flow:refactor`。

@@ -13,8 +13,13 @@ updated: 2026-09-07
 ## 願景
 小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
 
-## 目的
 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。
+
+## 需求
+### R-1:每一筆結帳與退款的金額都算對
+- Law:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+  - forall raw in RawBody
+  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
 ## 語言與工具
 - 建置:`npx tsc --noEmit`
@@ -23,6 +28,7 @@ updated: 2026-09-07
 - IO 模組追加:無
 - Laws 詞彙追加:無
 - 忽略目錄:無
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
 
 ## 層
 由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。

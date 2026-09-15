@@ -1,0 +1,3 @@
+$ devflow objective add refund-correct 退款也算對錢 --priority 2
+--requirement 要是 system.md 裡的一條需求 R-n;每個目標解決一條需求
+exit 1

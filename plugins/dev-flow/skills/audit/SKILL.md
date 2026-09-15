@@ -1,14 +1,14 @@
 ---
 name: audit
-description: dev-flow 的稽核 — 四段:對帳(devflow lint all 與 status 的機械紅逐條分類成文檔錯還是程式碼錯)、目標貼合度(每個目標服務願景的哪一句、工作是不是集中在最高優先目標、有沒有 feature 不朝向任何目標)、穩定度(修訂熱點、改動半徑、收整沒成立的 abstract、卡住多久)、安全度(對外 I/O 的信任與驗證、秘密字面值、沒登記的出入口、內層碰 IO);產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、架構檢測、檢查文檔、對帳、專案健檢、目標貼合、穩定度、安全檢查、文檔與程式碼對不上。Use when checking that .design and the code still agree, that the work still heads toward the vision and objectives, and how stable and how safe the project currently is.
+description: dev-flow 的稽核 — 四段:對帳(devflow lint all 與 status 的機械紅逐條分類成文檔錯還是程式碼錯)、需求與目標(每條需求的 Law 判得出來嗎、蘊含說明站得住嗎、工作是不是集中在最高優先目標、有沒有 feature 不朝向任何目標、達成的里程碑是不是真的涵蓋它那句、調整有沒有偷渡新 feature)、穩定度(修訂熱點、改動半徑、收整沒成立的 abstract、卡住多久)、安全度(對外 I/O 的信任與驗證、秘密字面值、沒登記的出入口、內層碰 IO);產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、架構檢測、檢查文檔、對帳、專案健檢、目標貼合、穩定度、安全檢查、文檔與程式碼對不上。Use when checking that .design and the code still agree, that the work still heads toward the vision and objectives, and how stable and how safe the project currently is.
 user-invocable: true
 ---
 
-# dev-flow:audit — 對帳、目標貼合度、穩定度、安全度
+# dev-flow:audit — 對帳、需求與目標、穩定度、安全度
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/tooling.md`「CLI」「status 報告」、`rules/boundary.md` 全份、`rules/features.md`「願景、目標與里程碑」「節」「什麼要有 law」「完成度」「收整(refactor)」。
+`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/tooling.md`「CLI」「status 報告」、`rules/boundary.md` 全份、`rules/features.md`「願景、需求、目標與路線」「節」「什麼要有 law」「完成度」「收整(refactor)」。
 
 ## 步驟
 
@@ -25,19 +25,21 @@ user-invocable: true
 | law 的識別字對不到 | 少一個觀察點 → 補 `o` 列走 `revise`;真的是專案詞彙 → `system.md`「Laws 詞彙追加」 |
 | 幽靈引用 | 測試還在守一條已經不存在的 law,刪測試 |
 | 未翻譯 | 那條 law 沒有測試,下一波 build 派 qa |
+| 需求或目標的 Law 寫了三行卻沒有驗收測試 | `dev-flow:build R-n` / `O-n`,只派 qa(`roles.md`「驗收測試」) |
 
 `sync` 與 `modules --gen` 是你可以直接做的兩個機械動作,其餘一律回報。
 
-### 2. 目標貼合度(我們還在朝向願景嗎)
+### 2. 需求與目標(我們做的是需求要的東西嗎)
 
-從 `status` 開頭的願景行與目標表讀,四題:
+從 `status` 的需求表與目標表讀,五題:
 
-1. **每個目標服務願景的哪一句**:逐個目標寫出來;寫不出來的是分歧,列成提議「改目標或改願景,由開發者決定」。
+1. **每條需求的 Law 判得出來嗎**:一句話讀得出成立時什麼為真;寫了三行卻沒有驗收測試的列出來;判定來源是測試還是由目標 Law 推得。一條需求有多個目標時蘊含說明站不站得住:那幾個目標的 Law 都成立真的推得出需求 Law 嗎,漏了哪一塊。建置路線全部達成而 Law 未成立、優化後 Law 不成立的,明寫「最低限度沒達到」。
 2. **工作集中在哪個優先**:進行中與最近 REV 的文檔各綁在哪個目標;比最高優先目標的里程碑先做了低優先的,寫明是哪幾份。
-3. **誰不朝向任何目標**:沒被任何里程碑綁定的 feature、沒有里程碑的目標、綁到不存在的檔或 abstract 的里程碑(`status` 的警訊)。
+3. **誰不朝向任何目標**:沒被任何里程碑綁定的 feature、沒有目標的需求、沒有里程碑的目標、綁到不存在的檔或 abstract 的里程碑(`status` 的警訊)。
 4. **完成度說的是實話嗎**:每條達成的里程碑,它綁定的 feature 是不是真的涵蓋「做到什麼」那一句;綁得太少的里程碑完成度是假的。
+5. **調整有沒有偷渡新 feature**:每條調整動到的都是本目標里程碑綁定過的 feature 嗎、它的 REV 有沒有把需求 Law 引用的 law 列進保護。
 
-三句話回答「最高優先的目標離達成還差什麼、有沒有東西在往別的方向走、願景與目標有沒有分歧」。
+三句話回答「最高優先的目標離達成還差什麼、有沒有東西在往別的方向走、哪條需求的 Law 還立不住」。
 
 ### 3. 穩定度(哪裡還沒收斂)
 
@@ -65,7 +67,7 @@ user-invocable: true
 
 ### 6. 報告
 
-一張表:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`dev-flow:revise F-00x-<slug>`、`dev-flow:refactor`、`dev-flow:objective`、`devflow sync`)。每列先答 `tooling.md`「收尾定錨」下一步的四題:答得出必要性(不做它哪個目標的哪條里程碑、哪條功能無法正常運作)的列成「必要」,答不出的列成「提議」,兩段分開;架構級的列要寫出現在的架構解決不了的那個具體問題。前面加四句話的結論:對帳幾條紅、最高優先的目標差什麼、最不穩的是哪裡、安全上最值得動的是哪一條。必要段是空的,結論第一句明寫「目前功能全部正常運作,可以加新功能」。
+一張表:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`dev-flow:revise F-00x-<slug>`、`dev-flow:refactor`、`dev-flow:objective`、`dev-flow:project`、`devflow sync`)。每列先答 `tooling.md`「收尾定錨」下一步的四題:答得出必要性(不做它哪條需求的哪個目標停在哪條里程碑、哪條功能無法正常運作)的列成「必要」,答不出的列成「提議」,兩段分開;架構級的列要寫出現在的架構解決不了的那個具體問題。前面加四句話的結論:對帳幾條紅、最高優先的目標差什麼、最不穩的是哪裡、安全上最值得動的是哪一條。必要段是空的,結論第一句明寫「目前功能全部正常運作,可以加新功能」。
 
 ## 收尾
 
@@ -73,4 +75,4 @@ user-invocable: true
 
 ## 邊界
 
-只有 `sync` 與 `modules --gen` 可以直接做;契約(簽名、law、層、對外 I/O)一律走 `dev-flow:revise` 或 `dev-flow:refactor`,願景、目標與里程碑一律走 `dev-flow:objective`;不寫測試、不寫實作、不自己補 law。
+只有 `sync` 與 `modules --gen` 可以直接做;契約(簽名、law、層、對外 I/O)一律走 `dev-flow:revise` 或 `dev-flow:refactor`,願景與需求走 `dev-flow:project`,目標、里程碑與調整一律走 `dev-flow:objective`;不寫測試、不寫實作、不自己補 law。

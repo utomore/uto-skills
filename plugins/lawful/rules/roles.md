@@ -7,16 +7,16 @@
 | 階段 | 誰 | 在哪 | 產出 |
 |---|---|---|---|
 | **設計** | 開發者與 `lawful:design` / `lawful:objective` / `lawful:pipeline` 對談 | 主線 | `Cone.md`(願景、需求、專案約束)、`objectives/`、模組表、`draft` 的 pipeline;開發者拍板後 skill 改 `ready` |
-| **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 該 pipeline 自己的分支與工作樹 | 骨架、測試、實作、REV、開發日誌;達成後 conductor 改 `frozen` |
+| **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 該 pipeline 自己的分支與工作樹 | 骨架、測試、實作、REV、開發日誌;達成後 conductor 改 `frozen`。目標是一條需求或目標的 Law 時只派 qa(「驗收測試」) |
 | **整合** | `lawful:integrate` | 整合分支 | 幾條建構分支合成一條、整套綠、PR |
 
-`lawful:build` 只收 `ready` 且沒有 open GAP 的 pipeline。一條 pipeline 一波,順序:開分支 → 骨架 → qa → 基線 → impl → 仲裁 → 收尾。互不引用的 pipeline 可以同時各開一波;主線只透過整合 PR 前進。
+`lawful:build` 只收 `ready` 且沒有 open GAP 的 pipeline。一條 pipeline 一波,順序:開分支 → 骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的 pipeline 可以同時各開一波;主線只透過整合 PR 前進。
 
 ## 分支與所有權
 
-- 一條 pipeline 一條分支 `build/<全名>`,從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這條 pipeline 有人在建,`lawful status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
+- 一條 pipeline 一條分支 `build/<全名>`(目標是需求或目標的 Law 時 `build/R-n` / `build/O-n`),從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這條 pipeline 有人在建,`lawful status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
 - 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP;它引用的每條子流都已達成並合進主線。引用的子流還沒合進主線就不開,等它;不替別條 pipeline 寫 stub。
-- 分支上准動的東西只有自己的:這條 pipeline 檔、自己 stage 的簽名與本體(模組表登記了但還沒有的模組檔可以建)、匯出清單裡自己的名字、以自己全名命名的測試模組、建置設定裡登記自己模組與測試模組的那幾行、`gaps.md` 追加、`journal/<全名>.md`。
+- 分支上准動的東西只有自己的:這條 pipeline 檔、自己 stage 的簽名與本體(模組表登記了但還沒有的模組檔可以建)、匯出清單裡自己的名字、以自己全名命名的測試模組、本波要寫的驗收測試(以 `R-n` / `O-n` 命名的測試模組)、建置設定裡登記自己模組與測試模組的那幾行、`gaps.md` 追加、`journal/<全名>.md`。
 - 不動:`Cone.md`、`objectives/`、`modules.md`、types 層、別條 pipeline 的檔與 stage 本體、別人的測試模組。非動不可就是 GAP。
 - `gaps.md` 在分支上從主線最大號往上配。
 - 分支上的 commit 訊息帶 pipeline 全名;骨架、測試、實作、日誌各自成 commit,整合時才對得出誰動了什麼。
@@ -26,7 +26,7 @@
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
 | **conductor** | pipeline 文檔、模組表、測試結果 | 把 Stages 寫進程式碼(本體是 adapter 的 `stub`)、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
-| **qa** | pipeline 文檔、types 層、骨架的簽名 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器 | 讀 core 與 shell 的本體(含 `spike/`);讀別條 pipeline;改骨架;要求後門 |
+| **qa** | pipeline 文檔、types 層、骨架的簽名;寫驗收測試時是那條 Law 與它引用到的簽名所在的每條 pipeline | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器;需求或目標的 Law 一條驗收測試(「驗收測試」) | 讀 core 與 shell 的本體(含 `spike/`);讀 Law 沒引用到的別條 pipeline;改骨架;要求後門 |
 | **impl** | pipeline 文檔、骨架 | 把 `stub` 換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
 
 qa 與 impl 互不可見。qa 先、impl 後;開發者明說要平行才平行(平行時 conductor 在委派前對骨架的 commit `git worktree add --detach` 留一棵快照,qa 的測試在快照上跑基線)。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。
@@ -48,6 +48,19 @@ subagent 問不了人:
 - 骨架 = Stages 表的每條簽名(步驟、`=` 列、`!` 列與 `o` 列的觀察點)寫進對應模組並匯出,本體是 adapter 的 `stub`,訊息帶 `P-00x#name`(Haskell:`error "P-00x#name stub"`),基線的紅燈才看得出打到哪個 stage;程式碼已經有的照舊。骨架要編得過,`lawful status` 把還是 `stub` 的列成骨架。
 - qa 交付後,conductor 在骨架上跑一次 qa 的測試當基線:打到 `stub` 的要紅、打到型別本身承載的事實(建構子、欄位、instance)的要綠、REV 保護的既有 law 要綠。
 - 該紅卻綠退回 qa 重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。基線過了才派 impl。
+
+## 驗收測試
+
+需求與目標的 Law 寫了三行,就承諾了一條歸屬 `R-n#LAW` / `O-n#LAW` 的驗收測試(pipelines.md「願景、需求、目標與路線」);沒有測試時那條 Law 是未知,`lawful status` 列警訊。它由 qa 寫、由 conductor 派,時機只有兩個:
+
+| 時機 | 誰派、在哪 |
+|---|---|
+| 一條 pipeline 的 build 本波全綠後,`lawful status` 顯示它讓某個目標的建置路線全部達成,而該目標的 Law(繼承時是需求的 Law)有三行式卻沒有測試 | 同一條 build 分支上再派一次 qa,目標是那條 Law;綠了才收尾。一條需求有多個目標時,需求自己的三行式在最後一個目標達成的那波寫 |
+| 建置路線早就達成、Law 還沒有測試(`status` 的警訊與建議路線列 `lawful:build R-n` / `O-n`) | `lawful:build` 的目標直接是 `R-n` / `O-n`:開 `build/R-n` 分支,不寫骨架、不派 impl,只派 qa 寫那一條,跑整套一次,寫日誌,交給 `lawful:integrate` |
+
+- qa 讀的是那條 Law 的三行、它引用到的每個簽名所在 pipeline 的 Stages 表與 types 層;產生器與斷言照「qa 的交付」,`|-` 行逐字翻,拿純的整條與觀察點跑,不碰 IO。測試模組以 `R-n` / `O-n` 命名,歸屬字串只放一個。
+- 驗收測試紅的歸因不是某個 stage 的 impl:建置路線全部達成而 Law 未成立,代表里程碑切漏了、蘊含說明站不住、或 Law 寫錯。conductor 開 GAP(角色 conductor,目標寫 `R-n#LAW`)停下,回 `lawful:objective` 或 `lawful:revise`;不讓 qa 放寬斷言、不派 impl 改碼。
+- 一句話的 Law(沒有三行)沒有驗收測試,由底下的 Law 或建置路線推;不派 qa。
 
 ## qa 的交付
 
@@ -94,6 +107,7 @@ qa 與 impl 只做歸因,裁決由 conductor。
 | conductor 判定 | 本波子集 | 1 |
 | conductor 仲裁每輪 | 上一輪紅的那幾條 + 本波子集 | 每輪 1 |
 | conductor 本波全綠後 | 整套,整條迴圈只這一次 | 1 |
+| conductor 派驗收測試 | 那條 `R-n#LAW` / `O-n#LAW` 加整套 | 1 |
 | 修訂目標(有 REV) | 委派前先跑整套當基準線 | 1 |
 
 整套回答「有沒有連累別人」,只在自己這一塊全綠之後問一次;在自己的分支上,「別人」是主線合進來時的狀態。
@@ -106,8 +120,8 @@ qa 與 impl 只做歸因,裁決由 conductor。
 
 | 節 | 裝什麼 |
 |---|---|
-| frontmatter | `pipeline`、`branch`、`base`(開分支時主線的 sha)、`updated` |
-| 做了什麼 | 骨架幾條、測試模組哪些、簽名 m / n、laws g / k;達成,或停在哪幾條 GAP |
+| frontmatter | `pipeline`(全名,或驗收測試那波的 `R-n` / `O-n`)、`branch`、`base`(開分支時主線的 sha)、`updated` |
+| 做了什麼 | 骨架幾條、測試模組哪些、簽名 m / n、laws g / k;寫了哪條驗收測試、綠不綠;達成,或停在哪幾條 GAP |
 | 動到的檔 | 分兩組:自己的(pipeline 檔、模組、測試)與共用的(建置設定改了哪幾行、共用模組裡新增了哪些名字) |
 | 決定 | qa 與 impl 自己決定的事,一條一句:產生器的分佈與尺寸、資料結構、演算法、私有 helper。契約級決定不在這裡,它們在 pipeline 檔的「決定」與 REV |
 | GAP | 本分支開的號與「需要回答什麼」 |
@@ -118,7 +132,7 @@ qa 與 impl 只做歸因,裁決由 conductor。
 
 `lawful:integrate` 把幾條 build 分支合成一條整合分支 `integrate/<YYYY-MM-DD>-<slug>`,整套綠了才發 PR。整合者是 conductor 的身分:不寫實作、不寫測試、不補 law。
 
-- **候選**:有 `journal/<全名>.md` 的 `build/*` 分支。開發者指定就只合那些;沒指定全收。
+- **候選**:有 `journal/<全名>.md` 的 `build/*` 分支(含驗收測試那波的 `build/R-n` / `build/O-n`)。開發者指定就只合那些;沒指定全收。
 - **順序**:目標優先 → 里程碑順序 → 分支名;被引用的子流在消費者之前(照規則它已經先合進主線,這條只是保險)。
 - **衝突三類**:清單型(建置設定的模組清單、匯出清單、`gaps.md`)兩邊都留;相鄰行的加法兩邊都留;同一個簽名或本體兩邊都改 = 所有權被違反,停下,列出是哪條 stage、哪兩條分支,不猜。GAP 撞號,後合進來的往上移;GAP 的號只住 `gaps.md`,移號不牽動別處。
 - **判準**:合完跑建置與整套一次,`lawful status --tests <log>`、`lawful lint all`。每份日誌宣稱達成的 pipeline 合併後仍達成;日誌「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。

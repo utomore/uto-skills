@@ -6,8 +6,8 @@
 
 ```
 .design/
-├── system.md          願景、目的、語言與工具、層、對外 I/O、Features 清單
-├── objectives.md      目標與里程碑(「願景、目標與里程碑」)
+├── system.md          願景、需求、語言與工具、層、對外 I/O、Features 清單
+├── objectives/R-x-O-y-<slug>.md   一個目標一個檔(「願景、需求、目標與路線」)
 ├── modules.md         模組表(boundary.md「模組表」)
 ├── features/F-00x-<slug>.md
 ├── abstracts/A-00x-<slug>.md
@@ -23,41 +23,64 @@ frontmatter:`language`(選 adapter)、`updated`。六節:
 
 | 節 | 裝什麼 |
 |---|---|
-| `## 願景` | 一到三句:這個專案做完時世界長什麼樣、替誰改變了什麼。立案時訂,不隨里程碑變;`devflow status` 把它印在第一行,還是模板就列警訊 |
-| `## 目的` | 三到五句:替誰做什麼、明確不做什麼 |
-| `## 語言與工具` | 三道指令:建置、整套測試、**子集測試**;每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令。IO 模組追加、Laws 詞彙追加(law 會用到但不是簽名也不是型別名的字)、忽略目錄 |
+| `## 願景` | 北極星。第一段一到三句:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼;後面可以展開替誰做什麼、明確不做什麼。立案時訂,不隨里程碑變;`devflow status` 把第一段印在第一行,還是模板就列警訊 |
+| `## 需求` | `### R-n:<一句話>` 一條需求一節,各有一條 **Requirement Law**(「願景、需求、目標與路線」);至少一條 |
+| `## 語言與工具` | 三道指令:建置、整套測試、**子集測試**;每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令。IO 模組追加、Laws 詞彙追加(law 會用到但不是簽名也不是型別名的字)、忽略目錄;一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼 |
 | `## 層` | 表,由內而外(boundary.md「層」) |
 | `## 對外 I/O` | 表:名稱、方向(in / out)、型別、模組、進入哪份 feature、信任(trusted / untrusted)、驗證(boundary.md「對外 I/O」) |
 | `## Features` | 表:全名、類別(feature / abstract)。`devflow status` 的分母;交付順序不寫在這裡,由目標的優先與里程碑的順序推 |
 
 description 住各文檔的 frontmatter,清單不重複。
 
-## 願景、目標與里程碑
+## 願景、需求、目標與路線
 
-三層,每一層都回答「為什麼做這份 feature」:
+四層,每一層都回答「為什麼做這份 feature」:
 
 | 層 | 住哪 | 是什麼 |
 |---|---|---|
-| 願景 | `system.md`「願景」 | 專案的終極目標,做完時世界長什麼樣;只有一個,立案時訂 |
-| 目標 | `objectives.md` 的 `## O-n:<一句話>` | 通往願景的一步:使用者做得到什麼、或世界變成什麼樣;至少一個,可以多個。每個目標一個**優先**(1 到 4,1 最高)與一句**可觀察的判準**(達成時看得到什麼) |
-| 里程碑 | 目標底下的表 `里程碑 \| 做到什麼 \| 綁定` | 為了達成目標而切出來的階段,`M-n` 全檔唯一,表的順序就是先後;**綁定**欄是 feature 全名,「、」分隔,至少一份 |
+| 願景 | `system.md`「願景」 | 北極星:專案要交出的、世界上還沒有的東西;只有一個,立案時訂。它是方向,不是驗收清單:需求與目標不對它逐句對照,順序來自依賴與必要性,不來自離它多近 |
+| 需求 | `system.md`「需求」的 `### R-n:<一句話>` | 一件使用者要得到的事,各有一條 **Requirement Law**:可驗證、可判定的一句話,最好有一條歸屬 `R-n#LAW` 的驗收測試(roles.md「驗收測試」)。至少一條 |
+| 目標 | `objectives/R-x-O-y-<slug>.md`,一個目標一個檔;frontmatter `id`、`requirement`、`priority`、`updated`,標題 `# <全名>:<一句話>` | 解決**恰好一條需求**的一個能力承諾(frontmatter 的 `requirement`,也是檔名的 `R-x`;一條需求可以有多個目標),由開發者答三問:**What** 做到什麼(一句話:使用者做得到什麼、或世界變成什麼樣)、**How** 怎麼看得出做到了(`- Law:…`,一句可判定的話;需求與目標一對一時寫 `- Law:繼承 R-n`,不另寫)、**Which** 落在哪一級**優先**(frontmatter `priority`,1 到 4,1 最高)。slug 是 kebab-case 英文,講這個目標做到什麼;目標換需求就改檔名。要哪幾份 feature 撐是之後路線的事 |
+| 優先各級 | `system.md`「語言與工具」一行 `- 優先:1 = …;2 = …;3 = …;4 = …` | 各級在這個專案代表什麼,專案自己定(例:1 = 主軸與它的直接前提;2 = 地基;3 = 呈現與存取;4 = 工具與詞彙);`devflow status` 印它,沒宣告列警訊 |
+| 建置路線 | 目標檔裡的表 `里程碑 \| 做到什麼 \| 綁定` | 為了達成目標而切出來的階段,`M-n` 全資料夾唯一,表的順序就是先後;**綁定**欄是 feature 全名,「、」分隔;還沒有 feature 就填「-」,意思是**待 claim**。建置路線走完,需求的 Law 第一次成立 |
+| 優化路線 | 目標檔裡的表 `調整 \| 做到什麼 \| 動到` | 建置路線之後,改既有 feature 的實作或行為品質(效能、大小、訊息、演算法),`RF-n` 全資料夾唯一;**動到**欄是本目標里程碑綁定過的 feature 全名,「、」分隔。調整不引入新 feature:動到的 feature 不在本目標任何里程碑的綁定裡就是警訊,新能力開里程碑。每一次調整之後需求的 Law 仍要成立 |
 
 ```markdown
-## O-1:每一筆結帳與退款的金額都算對
-- 優先:1
-- 判準:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分
+### R-1:每一筆結帳與退款的金額都算對
+- Law:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+  - forall raw in RawBody
+  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw))))
+```
+
+```markdown
+---
+id: O-1
+requirement: R-1
+priority: 1
+updated: 2026-09-07
+---
+# R-1-O-1-money-correct:每一筆結帳與退款的金額都算對
+
+- Law:繼承 R-1
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
 | M-1 | 結帳走通 | F-001-checkout |
 | M-2 | 退款走通 | F-002-refund |
+| M-3 | 出貨走通 | - |
+
+| 調整 | 做到什麼 | 動到 |
+|---|---|---|
+| RF-1 | 結帳一次走完不重算 | F-001-checkout |
 ```
 
 - 里程碑綁的是 feature;abstract 跟著引用它的 feature 達成,不綁。綁定是里程碑對到文檔的唯一寫法。
 - 每份 feature 至少被一條里程碑綁定;沒被綁的 feature 不朝向任何目標,`devflow status` 列警訊。要它就綁進一條里程碑,不要它就刪檔。
-- 每個目標要能說出它服務願景的哪一句;說不出來的目標是分歧,`dev-flow:objective` 對談時問,`dev-flow:audit` 人判。
-- 進度不是欄位:里程碑達成 = 綁定的每份 feature 都達成;目標完成度 = 達成的里程碑 / 里程碑數;都由 `devflow status` 算。
-- 配號只走 `devflow objective add` 與 `devflow objective milestone`;`devflow claim feature --milestone <M-n>` 把新 feature 綁進里程碑。刪掉的號永久空缺。
+- 里程碑可以先於 feature 存在:綁定欄「-」的里程碑是待 claim,`devflow status` 在該目標的「下一個里程碑」行寫明,不是警訊;`devflow claim feature <slug> --milestone <M-n>` 填進去。綁到不存在的全名才是警訊。
+- 調整走修訂:動到的每份 feature 各寫一條 REV,依欄引用 `RF-n`(「修訂(REV)」);調整的進度由那幾條 REV 與 feature 的達成推,表上不寫狀態。
+- 一條需求有兩個以上目標,`system.md` 的那條需求要有蘊含說明(`- 蘊含:O-a、O-b 的 Law 都成立 ⟹ 本 Law 成立,因為 …`),每個目標要有自己的 Law(不繼承);`devflow status` 對帳。
+- 進度不是欄位:里程碑達成 = 綁定的每份 feature 都達成;目標完成度 = 達成的里程碑 / 里程碑數;Law 成立與否、調整達成與否照「完成度」;都由 `devflow status` 算。
+- 配號只走 `devflow requirement add`、`devflow objective add`、`devflow objective milestone`、`devflow objective refinement`;`devflow claim feature --milestone <M-n>` 把新 feature 綁進里程碑。刪掉的號永久空缺。
 - 建議路線與能開的線照目標優先、目標順序、里程碑順序排;沒被綁的排最後。
 
 ## feature 與 abstract
@@ -86,6 +109,9 @@ feature 之間**不互相引用**:兩份 feature 需要同一段東西,那一段
 
 | 東西 | 編號 | 引用寫法 |
 |---|---|---|
+| 需求 | `R-1`,`system.md`「需求」的 `### R-1:<一句話>` | `R-1`;它的 Law 是 `R-1#LAW` |
+| 目標 | `O-1`,檔 `objectives/R-1-O-1-<slug>.md` | `O-1`;它的 Law 是 `O-1#LAW` |
+| 里程碑 / 調整 | `M-1` / `RF-1`,目標檔裡的表 | `M-1` / `RF-1` |
 | feature | `F-001`,檔 `features/F-001-<slug>.md` | 全名 `F-001-<slug>` |
 | abstract | `A-001`,檔 `abstracts/A-001-<slug>.md` | 全名 `A-001-<slug>` |
 | step | 函數名 | `F-002#refresh` |
@@ -93,7 +119,7 @@ feature 之間**不互相引用**:兩份 feature 需要同一段東西,那一段
 | 提問 | `GAP-1`(`gaps.md` 內遞增) | `GAP-1` |
 | ADR / spike | `ADR-001` / `SPK-001` | 全名 |
 
-- 配號只走 `devflow claim`;刪掉的號永久空缺。
+- 配號只走 `devflow claim`、`devflow requirement add`、`devflow objective add / milestone / refinement`;刪掉的號永久空缺。
 - feature、abstract、ADR、spike 一律寫全名。
 - slug 是 kebab-case 英文,講資料流做什麼。
 
@@ -176,6 +202,7 @@ name(型別, 型別): 回傳型別
 - 每條 law 至少一條 property test,測試宣告歸屬 `F-002#LAW-1`(寫法見 tooling.md「測試歸屬」),歸屬字串只放這一個。`devflow lint trace` 對帳。
 - `=` 列至少被一條 law 引用:整條的端到端性質,不是各 step law 的加總。`lint laws` 對帳。
 - 觀察點必須是這份文檔自己的簽名;要觀察別份的內部,law 屬於那一份。
+- 需求與目標的 Law 三行式同一套規矩,只差識別字可以是任何一份文檔的 Steps 簽名;寫了三行就承諾了驗收測試(roles.md「驗收測試」),沒有測試時這條 Law 是未知;寫不成三行就只留一句話,由底下的 Law 或建置路線推。
 - bug = 某條 law 在現況下不成立:law 已存在就修碼;沒寫到就補 law(走修訂)。**沒有 bug 文檔。**
 
 ## 什麼要有 law
@@ -190,6 +217,8 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 介面 / trait / 抽象類別照同一套:給全專案實作或呼叫的抽象是 step,它的性質寫成 law,**一條 law、每個實作一條測試**,歸屬都標同一個 `F-00x#LAW-n`;個別實作不另寫 law。只在一個檔案裡用的不是 step。
 
 不寫 law 的:常數與設定值、`!` 列、最外層的 I/O 函數(它們在對外 I/O 表)、只有型別層知識的東西。law 的條數不是進度,是自由度的數量。
+
+**需求與目標的 Law** 不掛在 step 上,掛在「這件事成立了沒」上:一條需求一條、一個目標一條。它講的是使用者看得到的結果,不是某個函數的性質;能寫成三行、有驗收測試最好(歸屬 `R-n#LAW` / `O-n#LAW`,誰寫、什麼時候寫見 roles.md「驗收測試」),不能就一句可判定的話,由底下的 Law 或建置路線推(「完成度」)。
 
 **Examples**:表 `# | 輸入 | 輸出 | 覆蓋`,每列指到它覆蓋的 law;指不到就先補 law。每個 example 一條 example test,歸屬 `F-002#EX-1`。輸入輸出裡**不准出現真的密碼、金鑰或 token**(`lint io` 擋)。
 
@@ -207,7 +236,7 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
   - 連動:F-003-invoice 的 Steps 表引用了 `refresh`,同步改
 ```
 
-- 依:來源與那一句話(GAP 的提問原句、SPK / ADR 全名、開發者的話、`dev-flow:refactor` 抽出了哪份 abstract)。
+- 依:來源與那一句話(GAP 的提問原句、SPK / ADR 全名、`RF-n` 與它那一句、開發者的話、`dev-flow:refactor` 抽出了哪份 abstract)。優化路線的調整一律從這裡進來:動到的每份 feature 各一條 REV,依欄寫 `RF-n`,`devflow status` 靠它算調整的進度;調整的保護一定含需求 Law 引用到的每條 law,優化不准破壞需求 Law。
 - 保護:這次不准變的既有 law;要保護的行為還不是 LAW 的,先補成 LAW 再修訂。**沒有 law 守著的「行為不變」等於沒有保護。**
 - 重委派:law 變了重派 qa,簽名變了重派 impl。簽名變了,程式碼簽名同步改、本體回骨架;測試只重跑 REV 點名的。
 - 動到與保護只寫還在檔上的條目;`updated` 改成修訂日期。
@@ -265,8 +294,16 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 | 骨架 s | m 條裡本體還是骨架標記的 s 條;`devflow status` 列成待實作 |
 | laws g / k | 寫了 k 條;測試宣告歸屬 j 條;綠 g 條 |
 | 達成 | m = n、s = 0、觀察點全在、g = k、examples 全綠、沒有 open GAP。feature 達成 = 它與它引用的每份 abstract 都達成 |
+
+往上推:
+
+| 東西 | 怎麼判 |
+|---|---|
 | 里程碑達成 | 綁定的每份 feature 都達成 |
 | 目標完成度 | 達成的里程碑 / 里程碑數,印成百分比;沒有里程碑的目標印「-」並列警訊 |
+| 目標 Law 成立 | 有歸屬 `O-n#LAW` 的測試就以它綠 / 紅為準;Law 是繼承而需求有 `R-n#LAW` 測試就用那一條;寫了三行式卻沒有測試是「未知」;一句話的 Law 沒有測試 = 建置路線的里程碑全部達成(報告標「推得」)。測試在而沒跑是「未知」;Law 還是模板是「未成立」 |
+| 需求 Law 成立 | 有歸屬 `R-n#LAW` 的測試就以它為準;寫了三行式卻沒有測試是「未知」;一句話的 Law 沒有測試 = 它底下每個目標的 Law 都成立(報告標「推得」),一個目標都沒有就未成立。成立的需求分「測試」與「推得」兩種,報告分開數。建置路線全部達成而 Law 未成立是警訊:最低限度的 Law 沒達到 |
+| 調整達成 | 動到的每份 feature 都有一條依欄引用 `RF-n` 的 REV、都達成,而且需求 Law 仍成立。沒有任何 REV 引用它是「待修訂」;有 REV 而 feature 未達成或需求 Law 未成立是「進行中」。動到的 feature 達成而需求 Law 未成立是警訊:優化破壞了 Law |
 
 ## ADR
 

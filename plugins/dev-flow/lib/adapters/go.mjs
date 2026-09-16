@@ -13,6 +13,8 @@ const STDLIB = [
   'error', 'string', 'int', 'int64', 'float64', 'bool', 'byte', 'rune',
   'Error', 'String', 'Len', 'Less', 'Swap',
 ];
+// 沒有形狀的型別:鍵名沒地方寫
+const SHAPELESS = /^(?:any|interface\{\})$|^map\[string\](?:any|interface\{\})$/;
 
 function stripComments(src) {
   return src
@@ -108,6 +110,7 @@ export const go = {
   extensions: ['.go'],
   ioModules: IO_MODULES,
   stdlib: STDLIB,
+  shapeless: SHAPELESS,
   stub: (marker) => `panic("${marker} not implemented")`,
 
   isTestFile(rel) {

@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/features.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/tooling.md`「收尾定錨」。再讀目標文檔與 `.design/gaps.md`;做的是調整就再讀那個目標檔(`.design/objectives/`)的那一列與它的需求 Law。
+`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/features.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/roles.md`「骨架與基線」、`rules/tooling.md`「收尾定錨」。再讀目標文檔與 `.design/gaps.md`;做的是調整就再讀那個目標檔(`.design/objectives/`)的那一列與它的需求 Law。
 
 ## 前置
 
@@ -26,7 +26,7 @@ user-invocable: true
 5. **寫 REV**:`## 修訂記錄` 加一條,五欄齊全(依 / 動到 / 保護 / 重委派 / 連動)。`updated` 改成今天。
 6. **連動**:`devflow status --doc <全名>` 看「被引用」;引用了本檔簽名的每一份,逐份同步並寫進「連動」欄。**責任在改的人**:簽名改了編譯器會告訴下游,語意改了什麼都不會抓。
 7. **結案 GAP**:寫 REV 的同一個動作把條目**整條刪掉**,不留 resolved。`gaps.md` 空了刪檔。
-8. **程式碼跟著**:簽名變了就同步改簽名行、本體回骨架標記。`devflow lint all`。
+8. **程式碼跟著**(`roles.md`「骨架與基線」):簽名變了就同步改簽名行、本體回骨架標記;新的 step 與型別寫成骨架。編得過,`devflow lint all`。文檔與骨架同一個 commit。
 
 ## 收尾
 

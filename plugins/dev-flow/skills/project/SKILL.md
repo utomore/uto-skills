@@ -35,7 +35,7 @@ user-invocable: true
 3. **切層與模組表**:有程式碼就 `devflow modules --gen` 生成一個檔一列,人填層欄再把同層合併成 `目錄/**`;沒有程式碼就先列預期的目錄。
 4. **寫檔**:`system.md` 照 `templates/system.md` 六節;`modules.md` 一張表。層怎麼切、選了什麼外部系統這種跨文檔決定,`devflow claim adr <slug>` 建 ADR。
 5. **訂目標與里程碑**:每條需求至少一個目標 `devflow objective add <slug> <一句話> --requirement <R-n> --priority <1-4>`(slug 是 kebab-case 英文,講這個目標做到什麼;一對一的目標 Law 繼承需求,不給 `--law`),每個目標 `devflow objective milestone <O-n> <一句話>` 至少一條,還沒有 feature 的不綁;一條需求要拆成多個目標、或要細談的,走 `dev-flow:objective`。
-6. **建 feature 骨架**:每條要交付的能力 `devflow claim feature <slug> --description <句> --milestone <M-n>`,得到 `draft` 的檔、Features 表的一列與里程碑的綁定。內容交給 `dev-flow:feature`。
+6. **建 feature 檔**:每條要交付的能力 `devflow claim feature <slug> --description <句> --milestone <M-n>`,得到 `draft` 的檔、Features 表的一列與里程碑的綁定。內容交給 `dev-flow:feature`。
 7. `devflow lint boundary`、`devflow lint io`、`devflow lint laws`、`devflow status`:層、模組表、對外 I/O 表與程式碼對得上,願景、需求與目標的警訊為空,才收。
 
 ## 收尾

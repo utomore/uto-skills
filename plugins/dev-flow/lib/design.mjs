@@ -357,7 +357,6 @@ function parseSteps(sec) {
     const paren = /^(.*?)\s*[((](.*)[))]\s*$/.exec(modCell);
     const module = stripTicks(paren ? paren[1] : modCell);
     const note = paren ? paren[2] : '';
-    const wish = /願望/.test(note);
     const refM = /((?:F|A)-\d{3}-[a-z0-9-]+)/.exec(note);
     const index = (r[0] || '').trim();
     const sig = parseSignature(sigText);
@@ -371,7 +370,6 @@ function parseSteps(sec) {
       sigText,
       what: (r[2] || '').trim(),
       module,
-      wish,
       ref: refM ? refM[1] : null,
       layer: (r[4] || '').trim(),
       line: sec.start + t.rowLines[i] + 2,

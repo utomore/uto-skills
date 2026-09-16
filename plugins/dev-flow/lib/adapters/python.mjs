@@ -15,7 +15,11 @@ const STDLIB = [
   'enumerate', 'range', 'list', 'dict', 'set', 'tuple', 'str', 'int', 'float', 'bool', 'bytes',
   'isinstance', 'type', 'repr', 'round', 'divmod', 'pow', 'None', 'True', 'False',
   'keys', 'values', 'items', 'get', 'append', 'startswith', 'endswith', 'strip', 'split', 'join',
+  'Any', 'Optional', 'Union', 'List', 'Dict', 'Set', 'Tuple', 'Callable', 'Iterable', 'Iterator', 'Sequence', 'Mapping',
+  'Literal', 'Protocol', 'TypedDict', 'Awaitable', 'Coroutine', 'Generator', 'Type', 'Path', 'Decimal', 'UUID',
 ];
+// 沒有形狀的型別:鍵名沒地方寫
+const SHAPELESS = /^(?:Any|object|dict|Dict|Mapping)$|^(?:dict|Dict|Mapping)\[.*\b(?:Any|object)\b.*\]$/;
 
 function stripStrings(src) {
   return src
@@ -88,6 +92,7 @@ export const python = {
   extensions: ['.py'],
   ioModules: IO_MODULES,
   stdlib: STDLIB,
+  shapeless: SHAPELESS,
   stub: (marker) => `raise NotImplementedError("${marker}")`,
 
   isTestFile(rel) {

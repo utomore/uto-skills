@@ -1,6 +1,6 @@
 ---
 name: build
-description: dev-flow 的建構指揮(conductor)— 對一份 ready 的文檔:開 build/<全名> 分支與工作樹、把 Steps 寫成骨架、先派 qa 拿測試在骨架快照上跑基線、再派 impl、跑子集、仲裁四分流、全綠後跑整套一次、這份讓某個目標的建置路線全部達成而它的 Law 有三行式卻沒有驗收測試就再派一次 qa 寫 R-n#LAW / O-n#LAW、寫 GAP、達成後改 frozen、寫開發日誌 commit 在分支上;目標也可以直接是 R-n / O-n(只派 qa 寫那條驗收測試);互不引用的文檔可以同時各開一波,合併交給 dev-flow:integrate;不寫測試、不寫實作、不補 law。觸發詞:build、建構、開工、實作這份、跑 feature、驗收測試、dev-flow build、委派開發、批次開發。Use when a ready feature or abstract should be turned into tests and code by delegated qa and impl roles on its own branch, or when a requirement or objective Law needs its acceptance test.
+description: dev-flow 的建構指揮(conductor)— 對一份 ready 的文檔:開 build/<全名> 分支與工作樹、對帳設計階段寫好的骨架、先派 qa 拿測試在骨架快照上跑基線、再派 impl、跑子集、仲裁四分流、全綠後跑整套一次、這份讓某個目標的建置路線全部達成而它的 Law 有三行式卻沒有驗收測試就再派一次 qa 寫 R-n#LAW / O-n#LAW、寫 GAP、達成後改 frozen、寫開發日誌 commit 在分支上;目標也可以直接是 R-n / O-n(只派 qa 寫那條驗收測試);互不引用的文檔可以同時各開一波,合併交給 dev-flow:integrate;不寫測試、不寫實作、不寫骨架、不補 law。觸發詞:build、建構、開工、實作這份、跑 feature、驗收測試、dev-flow build、委派開發、批次開發。Use when a ready feature or abstract should be turned into tests and code by delegated qa and impl roles on its own branch, or when a requirement or objective Law needs its acceptance test.
 user-invocable: true
 ---
 
@@ -12,15 +12,15 @@ user-invocable: true
 
 ## 前置
 
-在主線、工作樹乾淨(`git status --porcelain` 空)。`devflow status`:目標是 `ready`、沒有 open GAP、不是建構中、引用的每份 abstract 都已達成並在主線上。不是就停,回報該先做什麼;abstract 還沒合進主線就等它,不替它寫骨架(`roles.md`「分支與所有權」)。
+在主線、工作樹乾淨(`git status --porcelain` 空)。`devflow status`:目標是 `ready`、沒有 open GAP、不是建構中、引用的每份 abstract 都已達成並在主線上。不是就停,回報該先做什麼;abstract 還沒合進主線就等它(`roles.md`「分支與所有權」)。
 
 目標是 `R-n` / `O-n`(`roles.md`「驗收測試」):`status` 的需求表或目標表要顯示它的建置路線全部達成、Law 有三行式而沒有測試。是就走「驗收測試那波」:`git worktree add -b build/R-n ../<repo>.worktrees/R-n HEAD`,跳過第 1 到 6 步,直接第 7 步派 qa,再第 8 步整套、第 9 步收尾(日誌的 `doc` 寫 `R-n`)。建置路線沒達成就停,回報還差哪條里程碑。
 
 ## 步驟
 
 0. **開分支**:`git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,記下 HEAD 的 sha(日誌的 `base`)。之後每道指令的工作目錄都是這棵工作樹,委派 prompt 也給它。有 REV 的目標在這棵樹上先跑整套當基準線,輸出留檔。
-1. **骨架**:每條 step 的簽名寫進它的檔案並匯出,本體是該語言的骨架標記(`roles.md`「骨架與基線」的表),訊息帶 `F-00x#name`;`=` 列照 Steps 組裝整條,`!` 列把它接到最外層。**不得回傳假值。** 編譯過、`devflow lint sig` 全在、`devflow status --doc <全名>` 每列是「骨架」或「在」。commit(訊息帶全名)。
-2. **記快照**:發任何委派之前記下骨架那個 commit 的 sha,`git worktree add --detach <路徑> <sha>` 建好快照工作樹(建構工作樹之外的第二棵)。先建好再用,不要等發現骨架被動過才建。
+1. **對帳骨架**(`roles.md`「骨架與基線」):跑建置指令編得過、`devflow lint sig` 沒有紅、`devflow status --doc <全名>` 每列是「骨架」或「在」。有一列「找不到」「不一致」、或簽名裡的型別沒宣告過,就停:回報缺什麼,回 `dev-flow:feature` 或 `dev-flow:revise`;不在分支上補簽名或型別。
+2. **記快照**:發任何委派之前 `git worktree add --detach <路徑> <base 的 sha>` 建好快照工作樹(建構工作樹之外的第二棵)。先建好再用,不要等發現骨架被動過才建。
 3. **派 qa**(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板):給全名、文檔路徑、建構工作樹路徑、最內層的檔案清單、子集測試指令。測試檔以全名命名。
 4. **基線**:qa 交付後把測試檔複製進快照工作樹跑一次,輸出留檔。打到骨架標記的要紅、打到型別事實的要綠、REV 保護的要綠。該紅卻綠退回 qa;該綠卻紅寫成 GAP。驗完移除快照 worktree;環境帶不過去就明寫「本波 qa 紅綠未驗證」,不得默認通過。回報裡的 GAP 由你寫進 `.design/gaps.md` 配號,從主線最大號往上。commit。
 5. **派 impl**(`dev-flow:impl`,`model: "sonnet"`):給全名、文檔路徑、建構工作樹路徑、骨架檔路徑、子集指令;**不給測試檔**。多語言專案的子集指令取這份文檔那一側的(Steps 模組路徑的目錄),派 qa 時同樣。
@@ -50,4 +50,4 @@ impl 的 prompt 另加:禁止讀寫任何測試檔、禁止改簽名與型別、
 
 ## 邊界
 
-不寫測試、不寫實作、不補 law、不替開發者做契約級決定、不事後追認。qa 與 impl 互不可見;開發者明說要平行才平行。只動自己這份文檔的東西與本波的驗收測試(`roles.md`「分支與所有權」);驗收測試紅不派 impl、不放寬斷言;不合併、不發 PR。
+不寫測試、不寫實作、不寫骨架、不補 law、不替開發者做契約級決定、不事後追認。簽名或型別缺了是設計沒做完,回設計,不在分支上補。qa 與 impl 互不可見;開發者明說要平行才平行。只動自己這份文檔的東西與本波的驗收測試(`roles.md`「分支與所有權」);驗收測試紅不派 impl、不放寬斷言;不合併、不發 PR。

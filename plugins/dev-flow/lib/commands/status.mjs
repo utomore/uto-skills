@@ -18,7 +18,7 @@ export function analyze(design, source, adapter, results) {
       const hit = hits.find((h) => h.file === s.module) || hits[0] || null;
       let state;
       if (!source) state = '未查';
-      else if (!hit) state = s.wish ? '願望' : '找不到';
+      else if (!hit) state = '找不到';
       else if (!cmpSig(s.sig, hit).ok) state = '不一致';
       else if (hit.file !== s.module) state = '搬家';
       else if (hit.stub) state = '骨架';
@@ -417,7 +417,7 @@ export function counts(design, a, ov) {
   const features = design.features.map((f) => f.fullName);
   const milestones = ov.objs.flatMap((o) => o.ms);
   const rfs = ov.objs.flatMap((o) => o.rfs);
-  const todo = [...a.info.values()].flatMap((x) => x.steps.filter((s) => s.state === '願望' || s.state === '找不到' || (s.hit && s.hit.stub)).map((s) => ({ ...s, doc: x.p.fullName })));
+  const todo = [...a.info.values()].flatMap((x) => x.steps.filter((s) => s.state === '找不到' || (s.hit && s.hit.stub)).map((s) => ({ ...s, doc: x.p.fullName })));
   return {
     requirements: ov.reqs.length,
     requirementsHolding: ov.reqs.filter((q) => q.holds === true).length,
@@ -546,7 +546,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
     byModule.get(s.module).push(s);
   }
   if (!byModule.size) out.push('- 無');
-  for (const [m, list] of [...byModule].sort()) out.push(`- ${m}:${list.map((s) => `${s.doc}#${s.name}${s.state === '願望' ? '(願望)' : s.hit && s.hit.stub ? '(骨架)' : s.observe ? '(觀察點)' : ''}`).join('、')}`);
+  for (const [m, list] of [...byModule].sort()) out.push(`- ${m}:${list.map((s) => `${s.doc}#${s.name}${s.hit && s.hit.stub ? '(骨架)' : s.observe ? '(觀察點)' : ''}`).join('、')}`);
 
   out.push('', '## 6. 修訂熱點');
   const hot = [...a.info.values()].filter((x) => x.p.revs.length).sort((x, y) => y.p.revs.length - x.p.revs.length).slice(0, 3);

@@ -13,7 +13,7 @@ updated: 2026-09-07
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
 | 1 | `weigh(Rule): string` | 取出權重(簽名故意與程式碼不一致) | `src/domain/rule.ts` | domain |
-| 2 | `missingStep(Raw): number` | 程式碼裡沒有這條 | `src/app/store.ts` | application |
+| 2 | `missingStep(Ghost): any` | 程式碼裡沒有這條;Ghost 沒宣告過、any 沒有名字 | `src/app/store.ts` | application |
 | 3 | `helperOnly(Raw): number` | 引用了一份 feature | `src/app/store.ts`(見 F-002-other) | application |
 | o | `weigh(Rule): string` | 觀察 | `src/domain/rule.ts` | domain |
 | = | `score(Raw): number` | 整條(模組欄指到別的檔,sync 該把它搬回來) | `src/app/other.ts` | application |

@@ -1,6 +1,6 @@
 # feature 文檔
 
-文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過對外邊界的資料流。型別、簽名、匯出住程式碼;文檔引用,工具對帳。
+文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過對外邊界的資料流。型別、簽名、匯出住程式碼;文檔引用,工具對帳。它們在設計階段就住進去:一份文檔拍板 `ready` 之前,它的型別與每條簽名的骨架已經在主線的程式碼裡(roles.md「骨架與基線」)。
 
 ## `.design/`
 
@@ -135,6 +135,8 @@ name(型別, 型別): 回傳型別
 - 方法與關聯函數寫 `型別.方法`(`TokenStore.rotate(TokenId): TokenPair`);接收者 / `self` / `cls` 不算參數。
 - 回傳型別可以省略(`name(T): ` 寫成 `name(T)`);程式碼那一側也沒有註記時,`lint sig` 只比名字與參數個數,並列 info 說明只對到這兩樣。
 - 泛型與命名空間照抄程式碼的寫法,空白正規化後逐字比。
+- **簽名裡的每個型別都在程式碼裡宣告過**:自訂的(大寫開頭)要找得到,標準函式庫的 adapter 認得,真的少一個字就加進 `system.md`「Laws 詞彙追加」;帶命名空間的不查。`lint sig` 對帳。
+- **step 之間傳遞的值用有名字的型別。** `dict`、`Any`、`any`、`unknown`、`object`、`interface{}`、`serde_json::Value` 這類無名容器沒有地方寫形狀,qa 與 impl 會各猜一套鍵名;`lint sig` 紅。`!` 列接的是對外的東西,不查。
 
 ## frontmatter 與 status
 
@@ -143,7 +145,7 @@ name(型別, 型別): 回傳型別
 | status | 意思 |
 |---|---|
 | `draft` | 還在討論;`dev-flow:build` 拒收 |
-| `ready` | 開發者口頭拍板,skill 改欄位;可以委派 |
+| `ready` | 開發者口頭拍板、型別與簽名的骨架已在程式碼裡,skill 改欄位;可以委派 |
 | `frozen` | `devflow status` 顯示達成,conductor 在 build 收尾直接改,不問;不准修訂。解凍 = `dev-flow:revise` 在「決定」記一條為什麼,改回 `ready` |
 
 開發者不親自改任何 `.design/` 檔;開發者說,skill 寫。`frozen` 而測試紅、或有 REV 卻沒有解凍紀錄,是不一致。不做的 feature 直接刪檔;值得記住為什麼,開 ADR。
@@ -271,18 +273,6 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 - 結案 = 開發者口頭回答,`dev-flow:revise` 寫 REV 並刪條目,依欄帶模糊點原句。檔空了刪檔。**不留 resolved**:定案後的問題不需要被找回。
 - open 的 GAP 擋:那份文檔不算達成、`dev-flow:build` 前置不放行、`devflow status` exit 1。
 - impl 測試全綠也不得把有 open GAP 的 step 當完成。
-
-## 願望 step
-
-需要底層還沒有的能力,在 Steps 表直接寫理想簽名,模組欄註明「願望」(已經有目標 abstract 就寫「願望,見 A-00x-<slug>」)。程式碼找不到這列,`devflow status` 列成待實作,`lint sig` 不算紅。
-
-底層的維護者三選一:
-
-| 判準 | 落點 |
-|---|---|
-| 兩份以上 feature 要 | 走 `dev-flow:refactor` 抽成 abstract,laws 寫在 abstract,原願望列改成引用 |
-| 只有這份要,且用既有匯出寫得出來 | 留本地:step 住這份 feature 自己的檔案 |
-| 會破壞既有的不變量 | 不做;改需求,記進「決定」 |
 
 ## 完成度
 

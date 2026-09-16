@@ -12,7 +12,11 @@ const STDLIB = [
   'len', 'is_empty', 'contains', 'iter', 'map', 'filter', 'collect', 'unwrap', 'clone',
   'Some', 'None', 'Ok', 'Err', 'Option', 'Result', 'Vec', 'String', 'str', 'bool',
   'is_some', 'is_none', 'is_ok', 'is_err', 'min', 'max', 'abs', 'true', 'false',
+  'Box', 'Rc', 'Arc', 'Cow', 'HashMap', 'HashSet', 'BTreeMap', 'BTreeSet', 'VecDeque', 'PathBuf', 'Path', 'Duration', 'Instant',
+  'Error', 'Iterator', 'IntoIterator', 'Self', 'Default', 'Clone', 'Debug', 'Display', 'Fn', 'FnMut', 'FnOnce', 'Mutex', 'RwLock',
 ];
+// 沒有形狀的型別:鍵名沒地方寫
+const SHAPELESS = /^(?:Value|serde_json::Value)$|^HashMap<\s*String\s*,\s*(?:Value|serde_json::Value)\s*>$/;
 
 function stripComments(src) {
   return src
@@ -114,6 +118,7 @@ export const rust = {
   extensions: ['.rs'],
   ioModules: IO_MODULES,
   stdlib: STDLIB,
+  shapeless: SHAPELESS,
   stub: (marker) => `todo!("${marker}")`,
 
   isTestFile(rel) {

@@ -6,18 +6,20 @@
 
 | 階段 | 誰 | 在哪 | 產出 |
 |---|---|---|---|
-| **設計** | 開發者與 `dev-flow:project` / `dev-flow:objective` / `dev-flow:feature` / `dev-flow:refactor` 對談 | 主線 | `system.md`(願景、需求)、`objectives/`、模組表、`draft` 的 feature 與 abstract;開發者拍板後 skill 改 `ready` |
-| **建構** | `dev-flow:build` 的 conductor 帶 qa 與 impl | 該份文檔自己的分支與工作樹 | 骨架、測試、實作、REV、開發日誌;達成後 conductor 改 `frozen`。目標是一條需求或目標的 Law 時只派 qa(「驗收測試」) |
+| **設計** | 開發者與 `dev-flow:project` / `dev-flow:objective` / `dev-flow:feature` / `dev-flow:refactor` 對談 | 主線 | `system.md`(願景、需求)、`objectives/`、模組表、`draft` 的 feature 與 abstract,以及它們的**骨架**:型別與每條簽名寫進程式碼(「骨架與基線」);開發者拍板後 skill 改 `ready` |
+| **建構** | `dev-flow:build` 的 conductor 帶 qa 與 impl | 該份文檔自己的分支與工作樹 | 測試、實作、REV、開發日誌;達成後 conductor 改 `frozen`。目標是一條需求或目標的 Law 時只派 qa(「驗收測試」) |
 | **整合** | `dev-flow:integrate` | 整合分支 | 幾條建構分支合成一條、整套綠、PR |
 
-`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:開分支 → 骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的文檔可以同時各開一波;主線只透過整合 PR 前進。
+`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:開分支 → 對帳骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的文檔可以同時各開一波;主線只透過整合 PR 前進。
+
+設計階段寫的程式碼只有宣告:型別、列舉成員、簽名、匯出,本體一律是骨架標記。契約在對談裡拍板的當下就住進程式碼,qa 與 impl 讀到的是同一份;型別還定不下來的文檔留在 `draft`。
 
 ## 分支與所有權
 
 - 一份文檔一條分支 `build/<全名>`(目標是需求或目標的 Law 時 `build/R-n` / `build/O-n`),從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這份文檔有人在建,`devflow status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
-- 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP;它引用的每份 abstract 都已達成並合進主線。引用的 abstract 還沒合進主線就不開,等它;不替別份文檔寫骨架。
-- 分支上准動的東西只有自己的:這份文檔、自己 step 的簽名與本體(模組表登記了但還沒有的檔案可以建)、匯出裡自己的名字、以自己全名命名的測試檔、本波要寫的驗收測試(以 `R-n` / `O-n` 命名的測試檔)、建置設定裡登記自己那幾行、`gaps.md` 追加、`journal/<全名>.md`。
-- 不動:`system.md`、`objectives/`、`modules.md`、最內層的型別、別份文檔與它的 step 本體、別人的測試檔。非動不可就是 GAP。
+- 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP、骨架齊全(「骨架與基線」);它引用的每份 abstract 都已達成並合進主線。引用的 abstract 還沒合進主線就不開,等它。
+- 分支上准動的東西只有自己的:這份文檔、自己 step 的本體、以自己全名命名的測試檔、本波要寫的驗收測試(以 `R-n` / `O-n` 命名的測試檔)、建置設定裡登記自己那幾行、`gaps.md` 追加、`journal/<全名>.md`。
+- 不動:`system.md`、`objectives/`、`modules.md`、任何型別、任何簽名、別份文檔與它的 step 本體、別人的測試檔。非動不可就是 GAP:型別與簽名是設計階段的東西,回 `dev-flow:revise`。
 - `gaps.md` 在分支上從主線最大號往上配。
 - 分支上的 commit 訊息帶文檔全名;骨架、測試、實作、日誌各自成 commit,整合時才對得出誰動了什麼。
 
@@ -25,7 +27,7 @@
 
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
-| **conductor** | 目標文檔、模組表、測試結果 | 把 Steps 寫進程式碼(本體是 adapter 的骨架標記)、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
+| **conductor** | 目標文檔、模組表、測試結果 | 對帳骨架、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、寫骨架、讀 qa 與 impl 的產出來替他們決定 |
 | **qa** | 目標文檔、最內層的匯出、骨架的簽名;寫驗收測試時是那條 Law 與它引用到的簽名所在的每份文檔 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器;需求或目標的 Law 一條驗收測試(「驗收測試」) | 讀任何實作本體(含 `spike/`);讀 Law 沒引用到的別份文檔;改骨架;要求後門 |
 | **impl** | 目標文檔、骨架 | 把骨架標記換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
 
@@ -45,8 +47,10 @@ subagent 問不了人:
 
 ## 骨架與基線
 
-- 骨架 = Steps 表的每條簽名(步驟、`=` 列、`!` 列與 `o` 列的觀察點)寫進對應檔案並匯出,本體是 adapter 的骨架標記,訊息帶 `F-00x#name`,基線的紅燈才看得出打到哪個 step;程式碼已經有的照舊。
-- 骨架要編得過,`devflow status` 把還是骨架標記的列成骨架。**骨架不得回傳假值**(回 `0`、`[]`、`null` 會讓測試假綠,比沒寫還糟)。
+- 骨架 = Steps 表的每條簽名(步驟、`=` 列、`!` 列與 `o` 列的觀察點)寫進模組欄指的檔案並匯出,本體是 adapter 的骨架標記,訊息帶 `F-00x#name`,基線的紅燈才看得出打到哪個 step;`=` 列照 Steps 組裝整條,`!` 列把它接到最外層;程式碼已經有的照舊。簽名裡用到的型別一起宣告:自訂的住最內層或那條 step 的檔案,欄位寫全;別份文檔已經宣告過的直接用。
+- 骨架由設計階段寫,在主線上:`dev-flow:feature` 與 `dev-flow:refactor` 在文檔拍板 `ready` 之前寫齊,`dev-flow:revise` 改了簽名就同步改簽名行、本體回骨架標記。它是文檔與程式碼的同一次 commit。
+- 骨架要編得過,`devflow lint sig` 沒有紅(每列找得到、簽名一致、型別都宣告過),`devflow status --doc <全名>` 每列是「骨架」或「在」。**骨架不得回傳假值**(回 `0`、`[]`、`null` 會讓測試假綠,比沒寫還糟)。
+- conductor 開分支後只**對帳**:上面三樣不成立就停,回報缺什麼,回 `dev-flow:feature` 或 `dev-flow:revise`;不在分支上補簽名或型別。
 
 | 語言 | 骨架標記 |
 |---|---|

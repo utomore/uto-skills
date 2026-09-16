@@ -22,7 +22,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-f
 | `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全資料夾唯一)加進該目標檔的建置路線表;綁定的全名要是 `features/` 裡有的 feature,abstract 或不存在的都拒絕 |
 | `objective refinement <O-n> <一句話> --touch <全名,全名>` | 鑄 `RF-n`(全資料夾唯一)加進該目標檔的優化路線表;動到的全名要存在、而且是該目標某條里程碑綁定過的,否則停:優化路線不引入新 feature |
 | `lint boundary` | import 方向 vs 層表;內層 import 外層即紅;非最外層 import IO 模組即紅;未登記與幽靈檔案即紅 |
-| `lint sig` | Steps 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,而且要匯出;`=` 列與 `o` 列不在最外層、`!` 列在最外層、feature 恰好一列 `!`、abstract 沒有;abstract 沒有消費者即紅;feature 引用 feature 即紅;同名簽名在兩份文檔都沒註明「見」即紅;願望 step 列待實作不算紅;簽名一致但檔案不同列「搬家」 |
+| `lint sig` | Steps 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,而且要匯出;`=` 列與 `o` 列不在最外層、`!` 列在最外層、feature 恰好一列 `!`、abstract 沒有;abstract 沒有消費者即紅;feature 引用 feature 即紅;同名簽名在兩份文檔都沒註明「見」即紅;找不到的簽名即紅;簽名裡的型別在程式碼與標準函式庫都找不到即紅;step 之間傳遞的值用了無名容器(`dict`、`any`、`interface{}` …)即紅,`!` 列不查;簽名一致但檔案不同列「搬家」 |
 | `sync` | 把「搬家」的 step 模組欄改成程式碼裡的實際檔案(同層才改,跨層列紅要走 REV) |
 | `lint laws` | 文檔的 law:三行齊全、種類合法、`\|-` 的識別字對得到 Steps 簽名 / 最內層匯出 / 型別名 / 標準函式庫 / `system.md` 的詞彙追加、`=` 列至少被一條 law 引用、`!` 列不被引用、example 指得到 law。需求與目標的 Law:一句話必填、不是模板;寫了三行就照同一套查,識別字可以是任何一份文檔的 Steps 簽名,不准引用 `!` 列;繼承的需求要存在 |
 | `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅。需求與目標的 Law 寫了三行式卻沒有 `R-n#LAW` / `O-n#LAW` 測試即紅;一句話的沒有測試列成訊息 |
@@ -50,7 +50,7 @@ exit code:`status` 盤點 = 驗收(有未達成的文檔、open GAP、或需求 
 2. 卡住的:停在 GAP 的 step、等重派、等 abstract(abstract 還是 `draft`、卡 GAP、建構中、或還沒建)
 3. 等決定:open 的 GAP、open 的 spike、`draft` 的文檔
 4. 牽動誰:誰引用了這份的簽名
-5. 待實作:按檔案列願望 step、找不到的 step、本體還是骨架的 step
+5. 待實作:按檔案列找不到的 step、本體還是骨架的 step
 6. 修訂熱點:REV 條數最多的三份與最後一條、被兩份以上引用的 abstract。**這一段答的是穩定度**:一直在改的地方就是設計還沒收斂的地方
 7. 警訊:願景還是模板、沒有「需求」節(目標還擠在一份 `objectives.md` 的樹提示 `migrate objectives`)、沒有需求、需求或它的 Law 還是模板、需求 Law 寫了三行卻沒有驗收測試(成立與否未知)、需求沒有目標、一條需求有兩個以上目標卻沒有蘊含說明或有目標仍在繼承、建置路線全部達成而需求 Law 未成立、優化後需求 Law 不成立、沒有任何目標、優先各級代表什麼沒有宣告、目標檔沒有 frontmatter 或檔名與 frontmatter 對不上、目標沒有需求或需求不存在、優先不在 1 到 4、目標沒有 Law 或沒有里程碑、里程碑綁到不存在的檔或 abstract、里程碑或調整編號重複、調整動到不存在的或本目標里程碑沒綁過的 feature、feature 沒有被任何里程碑綁定、`frozen` 而紅、REV 沒解凍紀錄、只有一個消費者的 abstract、未登記檔案、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、`build/<全名>` 分支已合進主線卻還在(整合開頭會清掉)、還是模板
 8. 建議路線:先回答 GAP、再 build 能開的線(照目標優先、里程碑順序排,每條附目標與里程碑)、`draft` 討論完改 `ready`、建置路線達成而 Law 寫了三行卻沒有驗收測試的需求與目標走 `dev-flow:build R-n` / `O-n`(只派 qa)、建置路線達成的目標底下待修訂的調整走 `dev-flow:revise`。沒有可派的線時分三種:文檔全部達成而某條需求 Law 未成立,寫哪一條與判定來源,先讓 Law 成立;全部達成且每條需求 Law 成立寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾份沒達成、缺什麼輸入,不催加新功能
@@ -83,7 +83,7 @@ exit code:`status` 盤點 = 驗收(有未達成的文檔、open GAP、或需求 
 | `testMarkers(file)`:測試檔裡的 `F-00x#LAW-n` / `F-00x#EX-n` / `R-n#LAW` / `O-n#LAW` 歸屬 | `lint trace` |
 | `testResults(log)`:測試輸出 → 每個歸屬綠 / 紅 / pending | `status` |
 | `stdlib`:law 裡可直接用的標準函式庫名 | `lint laws` |
-| `stub(marker)`:帶 `F-00x#name` 的骨架本體 | conductor 寫骨架 |
+| `stub(marker)`:帶 `F-00x#name` 的骨架本體 | 設計階段寫骨架 |
 
 現有 adapter:
 

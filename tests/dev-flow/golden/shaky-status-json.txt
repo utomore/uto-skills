@@ -689,21 +689,19 @@ $ devflow status --json
           "at": "src/domain/rule.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "2",
           "name": "missingStep",
-          "signature": "missingStep(Raw): number",
+          "signature": "missingStep(Ghost): any",
           "module": "src/app/store.ts",
           "layer": "application",
           "state": "找不到",
           "at": null,
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "3",
@@ -715,8 +713,7 @@ $ devflow status --json
           "at": null,
           "ref": "F-002-other",
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -728,8 +725,7 @@ $ devflow status --json
           "at": "src/domain/rule.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -741,8 +737,7 @@ $ devflow status --json
           "at": "src/app/store.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "!",
@@ -754,8 +749,7 @@ $ devflow status --json
           "at": "src/entry/api.ts",
           "ref": null,
           "observe": false,
-          "entry": true,
-          "wish": false
+          "entry": true
         }
       ]
     },
@@ -835,8 +829,7 @@ $ devflow status --json
           "at": "src/domain/rule.ts",
           "ref": "A-002-single",
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -848,8 +841,7 @@ $ devflow status --json
           "at": null,
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         }
       ]
     },
@@ -924,8 +916,7 @@ $ devflow status --json
           "at": "src/domain/rule.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "!",
@@ -937,8 +928,7 @@ $ devflow status --json
           "at": "src/entry/api.ts",
           "ref": null,
           "observe": false,
-          "entry": true,
-          "wish": false
+          "entry": true
         }
       ]
     },
@@ -1014,8 +1004,7 @@ $ devflow status --json
           "at": "src/domain/rule.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         }
       ]
     }

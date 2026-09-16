@@ -82,6 +82,41 @@ export function lintBoundary(design, source, adapter) {
 export function lintSig(design, source, adapter) {
   const r = { title: 'lint sig', red: [], info: [] };
   const entries = design.modules ? design.modules.entries : [];
+  // 簽名裡的型別:自訂的(大寫開頭)要在程式碼裡宣告過,標準函式庫的 adapter 認得;帶模組前綴的與型別變數不查。
+  // 無名容器(aeson 的 Value …)沒有地方寫形狀,stage 之間傳遞的值不准用;! 列接的是對外的東西,不查。
+  const stdlib = new Set(adapter ? adapter.stdlib : []);
+  const types = new Set();
+  if (source) for (const m of source.modules.values()) for (const t of m.typeNames) types.add(t);
+  const typeIds = (t) => [...String(t).matchAll(/[A-Za-z_][\w']*(?:\.[A-Za-z_][\w']*)*/g)].map((m) => m[0]);
+  const typeKnown = (id) => id.includes('.') || !/^[A-Z]/.test(id) || types.has(id) || stdlib.has(id);
+  // 最外層的 -> 切開,每一段是一個參數或回傳
+  const arrowParts = (t) => {
+    const out = [];
+    let depth = 0;
+    let cur = '';
+    for (let i = 0; i < t.length; i++) {
+      const c = t[i];
+      if (c === '(' || c === '[' || c === '{') depth++;
+      else if (c === ')' || c === ']' || c === '}') depth--;
+      if (depth === 0 && c === '-' && t[i + 1] === '>') {
+        out.push(cur.trim());
+        cur = '';
+        i++;
+        continue;
+      }
+      cur += c;
+    }
+    out.push(cur.trim());
+    return out;
+  };
+  const shapeless = (t) => adapter && adapter.shapeless && adapter.shapeless.test(t) && !types.has(t);
+  const checkTypes = (p, s) => {
+    const parts = arrowParts(s.type).map((t) => t.replace(/^\((.*)\)$/, '$1').trim());
+    if (source) for (const id of new Set(typeIds(s.type))) if (!typeKnown(id)) r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} 簽名裡的型別 ${id} 在程式碼與標準函式庫都找不到;型別住程式碼,拍板前先宣告`);
+    if (!s.runner) parts.forEach((t, i) => {
+      if (shapeless(t)) r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} ${i === parts.length - 1 ? '回傳' : `第 ${i + 1} 個參數`}的型別 ${t} 沒有名字;stage 之間傳遞的值用有名字的型別,形狀才有地方住`);
+    });
+  };
   for (const p of design.pipelines) {
     if (p.template.stages) r.red.push(`${p.file} Stages 表還是模板(${p.template.stages} 列佔位符);lawful:pipeline 寫成真的簽名`);
     if (!p.stages.length) {
@@ -121,11 +156,11 @@ export function lintSig(design, source, adapter) {
         if (owner) r.red.push(`${at(p.file, s.line)} ${s.name} 是 ${owner.fullName} 的 = 列;引用別條的 stage 要在模組欄註明「見 ${owner.fullName}」`);
         else for (const q of design.pipelines) if (q !== p && q.fullName > p.fullName && q.stages.some((t) => t.name === s.name && !t.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 也是 ${q.fullName} 的 stage,兩邊都沒註明「見」;引用的那一邊補「見 P-00x-<slug>」`);
       }
+      checkTypes(p, s);
       if (!source) continue;
       const hits = findSignature(source, s.name);
       if (!hits.length) {
-        if (s.wish) r.info.push(`${p.fullName}#${s.name} 願望,待實作(目標 ${s.module})`);
-        else r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} 程式碼裡找不到`);
+        r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} 程式碼裡找不到;骨架在設計階段就要寫進程式碼`);
         continue;
       }
       const same = hits.find((h) => h.module === s.module) || hits[0];

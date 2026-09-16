@@ -365,8 +365,7 @@ $ lawful status --json
           "at": null,
           "ref": "P-002-syntax-parse",
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -378,8 +377,7 @@ $ lawful status --json
           "at": null,
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "!",
@@ -391,8 +389,7 @@ $ lawful status --json
           "at": null,
           "ref": null,
           "observe": false,
-          "entry": true,
-          "wish": false
+          "entry": true
         }
       ]
     },
@@ -472,8 +469,7 @@ $ lawful status --json
           "at": null,
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -485,8 +481,7 @@ $ lawful status --json
           "at": null,
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         }
       ]
     },
@@ -565,8 +560,7 @@ $ lawful status --json
           "at": null,
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -578,8 +572,7 @@ $ lawful status --json
           "at": null,
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         }
       ]
     }

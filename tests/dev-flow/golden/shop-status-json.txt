@@ -287,8 +287,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/checkout.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "2",
@@ -300,8 +299,7 @@ $ devflow status --json --tests test.log
           "at": "src/domain/money.ts",
           "ref": "A-001-settle",
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "3",
@@ -313,8 +311,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/checkout.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -326,8 +323,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/checkout.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -339,8 +335,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/checkout.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -352,8 +347,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/checkout.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -365,8 +359,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/checkout.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "!",
@@ -378,8 +371,7 @@ $ devflow status --json --tests test.log
           "at": "src/entry/routes.ts",
           "ref": null,
           "observe": false,
-          "entry": true,
-          "wish": false
+          "entry": true
         }
       ]
     },
@@ -470,8 +462,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/refund.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "2",
@@ -483,8 +474,7 @@ $ devflow status --json --tests test.log
           "at": "src/domain/money.ts",
           "ref": "A-001-settle",
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "3",
@@ -496,8 +486,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/refund.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -509,8 +498,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/refund.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -522,8 +510,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/refund.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -535,8 +522,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/refund.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -548,8 +534,7 @@ $ devflow status --json --tests test.log
           "at": "src/app/refund.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "!",
@@ -561,8 +546,7 @@ $ devflow status --json --tests test.log
           "at": "src/entry/routes.ts",
           "ref": null,
           "observe": false,
-          "entry": true,
-          "wish": false
+          "entry": true
         }
       ]
     },
@@ -660,8 +644,7 @@ $ devflow status --json --tests test.log
           "at": "src/domain/money.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "2",
@@ -673,8 +656,7 @@ $ devflow status --json --tests test.log
           "at": "src/domain/money.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -686,8 +668,7 @@ $ devflow status --json --tests test.log
           "at": "src/domain/money.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -699,8 +680,7 @@ $ devflow status --json --tests test.log
           "at": "src/domain/money.ts",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -712,8 +692,7 @@ $ devflow status --json --tests test.log
           "at": "src/domain/money.ts",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         }
       ]
     }

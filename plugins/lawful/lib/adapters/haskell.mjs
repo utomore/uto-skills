@@ -26,7 +26,16 @@ const STDLIB = [
   'isJust', 'isNothing', 'fromMaybe', 'catMaybes', 'mapMaybe', 'isLeft', 'isRight', 'lefts', 'rights',
   'partition', 'span', 'splitAt', 'takeWhile', 'dropWhile', 'elemIndex', 'find', 'isPrefixOf', 'isSuffixOf', 'isInfixOf',
   'on', 'fix', 'force', 'total',
+  'Int', 'Integer', 'Double', 'Float', 'Bool', 'Char', 'String', 'Word', 'Word8', 'Word16', 'Word32', 'Word64', 'Natural', 'Ordering',
+  'Maybe', 'Either', 'IO', 'FilePath', 'Text', 'ByteString', 'Map', 'Set', 'Seq', 'Vector', 'NonEmpty', 'IntMap', 'HashMap', 'HashSet',
+  'Proxy', 'Void', 'Identity', 'Sum', 'Product', 'First', 'Last', 'Min', 'Max', 'Any', 'All', 'Const', 'Compose',
+  'Eq', 'Ord', 'Show', 'Read', 'Enum', 'Bounded', 'Num', 'Integral', 'Fractional', 'Floating', 'Real', 'RealFrac',
+  'Functor', 'Applicative', 'Monad', 'Foldable', 'Traversable', 'Semigroup', 'Monoid', 'Generic', 'Typeable', 'NFData',
+  'Handle', 'IORef', 'STM', 'TVar', 'MVar', 'ExceptT', 'StateT', 'ReaderT', 'WriterT', 'MaybeT', 'ST', 'STRef',
+  'Value', 'Object', 'Dynamic',
 ];
+// 沒有形狀的型別:鍵名沒地方寫(aeson 的 Value / Object、Dynamic,與以它們為值的 Map)
+const SHAPELESS = /^(?:Value|Object|Dynamic)$|^(?:Map|HashMap)\s+\S+\s+(?:Value|Object)$/;
 
 // module 行的匯出清單:null = 沒寫匯出清單(整個模組都匯出);否則是名字的清單。
 // `Foo (..)` 收 Foo;`(<+>)` 收 <+>;`module X` 收 module:X。
@@ -125,6 +134,7 @@ export const haskell = {
   ioModules: IO_MODULES,
   effectTypes: EFFECT_TYPES,
   stdlib: STDLIB,
+  shapeless: SHAPELESS,
   // 匯出清單:null = 沒寫(全部匯出);否則名字清單(型別、函數、運算子、module:X)。
   exports(src) {
     return exportList(stripComments(src));

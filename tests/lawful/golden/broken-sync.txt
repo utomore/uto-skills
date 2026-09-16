@@ -20,7 +20,7 @@ updated: 2026-09-05
 | 1 | `toSave :: World -> SaveState` | 去掉快取 | `Game.Save.Codec` | core |
 | 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
 | 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態 | `Game.Save.Codec` | core |
-| 4 | `compress :: ByteString -> ByteString` | 壓縮 | `Game.Save.Zip`(願望,見 P-002-compression) | core |
+| 4 | `compress :: Ghost -> Value` | 壓縮;Ghost 沒宣告過、Value 沒有名字 | `Game.Save.Zip`(見 P-002-compression) | core |
 | 5 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
 | 6 | `checksum :: ByteString -> Int` | 校驗 | `Game.FS` | core |
 | 7 | `persistEncode :: a -> ByteString` | class 方法,要抓得到 | `Game.Save.Class` | core |

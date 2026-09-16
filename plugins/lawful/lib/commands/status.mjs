@@ -21,7 +21,7 @@ export function analyze(design, source, adapter, results) {
       const hit = hits.find((h) => h.module === s.module) || hits[0] || null;
       let state;
       if (!source) state = '未查';
-      else if (!hit) state = s.wish ? '願望' : '找不到';
+      else if (!hit) state = '找不到';
       else if (adapter.normalizeType(s.type) !== hit.type) state = '不一致';
       else if (hit.module !== s.module) state = '搬家';
       else if (hit.stub) state = '骨架';
@@ -418,8 +418,8 @@ export function moduleView(design, source, a) {
       const modules = source ? [...source.modules.values()].filter((m) => m.layer === layer && (m.module === e.unit || m.module.startsWith(`${e.unit}.`))).map((m) => m.module).sort() : [];
       return { layer, modules, empty: !!source && !modules.length, root: layerRoot(design.cone, layer) };
     });
-    // 待實作與報告第 5 段同一套判準:願望、找不到、本體還是骨架,一個 stage 只算一次
-    const todo = stages.filter((s) => s.state === '願望' || s.state === '找不到' || s.state === '骨架' || s.stub);
+    // 待實作與報告第 5 段同一套判準:找不到、本體還是骨架,一個 stage 只算一次
+    const todo = stages.filter((s) => s.state === '找不到' || s.state === '骨架' || s.stub);
     const mismatch = stages.filter((s) => s.state === '不一致');
     return {
       unit: e.unit,
@@ -444,7 +444,7 @@ export function counts(design, a, ov, mv) {
   const ioFaces = design.pipelines.filter((p) => p.kind === 'IO 介面').map((p) => p.fullName);
   const milestones = ov.objs.flatMap((o) => o.ms);
   const rfs = ov.objs.flatMap((o) => o.rfs);
-  const todo = [...a.info.values()].flatMap((x) => x.stages.filter((s) => s.state === '願望' || s.state === '找不到' || (s.hit && s.hit.stub)).map((s) => ({ ...s, pipeline: x.p.fullName })));
+  const todo = [...a.info.values()].flatMap((x) => x.stages.filter((s) => s.state === '找不到' || (s.hit && s.hit.stub)).map((s) => ({ ...s, pipeline: x.p.fullName })));
   return {
     requirements: ov.reqs.length,
     requirementsHolding: ov.reqs.filter((q) => q.holds === true).length,
@@ -597,7 +597,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
     }
     for (const [unit, mods] of [...byUnit].sort()) {
       out.push(`- ${unit}`);
-      for (const m of mods.sort()) out.push(`  - ${m}:${byModule.get(m).map((s) => `${s.pipeline}#${s.name}${s.state === '願望' ? '(願望)' : s.hit && s.hit.stub ? '(骨架)' : s.observe ? '(觀察點)' : ''}`).join('、')}`);
+      for (const m of mods.sort()) out.push(`  - ${m}:${byModule.get(m).map((s) => `${s.pipeline}#${s.name}${s.hit && s.hit.stub ? '(骨架)' : s.observe ? '(觀察點)' : ''}`).join('、')}`);
     }
   }
 

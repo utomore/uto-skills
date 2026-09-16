@@ -81,7 +81,6 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
         ref: s.ref || null,
         observe: !!s.observe,
         entry: !!s.entry,
-        wish: !!s.wish,
       })),
     };
   });

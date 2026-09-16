@@ -59,7 +59,7 @@ $ lawful status
   - Game.Save.Codec:P-001-game-save#encode(骨架)、P-001-game-save#decode(骨架)
   - Game.Save.Project:P-001-game-save#toSave(骨架)
   - Game.Save.State:P-001-game-save#ghostView(觀察點)
-  - Game.Save.Zip:P-001-game-save#compress(願望)
+  - Game.Save.Zip:P-001-game-save#compress
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |

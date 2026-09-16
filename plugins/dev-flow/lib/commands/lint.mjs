@@ -70,6 +70,23 @@ export function lintSig(design, source, adapter) {
   const layerNames = sys ? sys.layers.map((l) => l.name) : [];
   const consumers = new Map(design.abstracts.map((a) => [a.fullName, new Set()]));
   for (const d of design.docs) for (const s of d.steps) if (s.ref && consumers.has(s.ref)) consumers.get(s.ref).add(d.fullName);
+  // 簽名裡的型別:自訂的(大寫開頭)要在程式碼裡宣告過,標準函式庫與詞彙追加的 adapter 認得;帶命名空間的不查。
+  // 無名容器(dict、any、interface{} …)沒有地方寫形狀,step 之間傳遞的值不准用;! 列接的是對外的東西,不查。
+  const adapters = (Array.isArray(adapter) ? adapter : adapter ? [adapter] : []).map((a) => a.adapter || a);
+  const stdlib = new Set(adapters.flatMap((a) => a.stdlib));
+  const vocab = new Set(sys ? sys.vocab : []);
+  const types = source ? allTypeNames(source) : new Set();
+  const typeIds = (t) => [...String(t).matchAll(/[A-Za-z_]\w*(?:(?:\.|::)[A-Za-z_]\w*)*/g)].map((m) => m[0]);
+  const typeKnown = (id) => /[.:]/.test(id) || !/^[A-Z]/.test(id) || types.has(id) || stdlib.has(id) || vocab.has(id);
+  const shapeless = (t) => adapters.some((a) => a.shapeless && a.shapeless.test(String(t).trim()));
+  const checkTypes = (p, s) => {
+    const slots = [...(s.sig.params || []).map((t, i) => [t, `第 ${i + 1} 個參數`]), [s.sig.ret, '回傳']];
+    for (const [t, where] of slots) {
+      if (t == null) continue;
+      if (source) for (const id of new Set(typeIds(t))) if (!typeKnown(id)) r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} ${where}的型別 ${id} 在程式碼與標準函式庫都找不到;型別住程式碼,拍板前先宣告`);
+      if (!s.entry && shapeless(t)) r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} ${where}的型別 ${t} 沒有名字;step 之間傳遞的值用有名字的型別,形狀才有地方住`);
+    }
+  };
 
   for (const p of design.docs) {
     if (p.template.steps) r.red.push(`${p.file} Steps 表還是模板(${p.template.steps} 列佔位符);dev-flow:feature 寫成真的簽名`);
@@ -102,11 +119,11 @@ export function lintSig(design, source, adapter) {
         if (owner) r.red.push(`${at(p.file, s.line)} ${s.name} 是 ${owner.fullName} 的 = 列;引用別份的 step 要在模組欄註明「見 ${owner.fullName}」`);
         else for (const q of design.docs) if (q !== p && q.fullName > p.fullName && q.steps.some((t) => t.name === s.name && !t.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 也是 ${q.fullName} 的 step,兩邊都沒註明「見」;共用就走 dev-flow:refactor`);
       }
+      checkTypes(p, s);
       if (!source) continue;
       const hits = findSignature(source, s.name);
       if (!hits.length) {
-        if (s.wish) r.info.push(`${p.fullName}#${s.name} 願望,待實作(目標 ${s.module})`);
-        else r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} 程式碼裡找不到`);
+        r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} 程式碼裡找不到;骨架在設計階段就要寫進程式碼`);
         continue;
       }
       const same = hits.find((h) => h.file === s.module) || hits[0];

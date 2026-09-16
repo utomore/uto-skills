@@ -17,7 +17,11 @@ const STDLIB = [
   'Object', 'Array', 'String', 'Number', 'Boolean', 'Set', 'Map', 'Date',
   'isArray', 'isNaN', 'isFinite', 'toString', 'valueOf', 'trim', 'toLowerCase', 'toUpperCase',
   'null', 'undefined', 'true', 'false', 'NaN', 'Infinity',
+  'Promise', 'Record', 'Partial', 'Required', 'Readonly', 'Pick', 'Omit', 'Exclude', 'Extract', 'NonNullable', 'ReturnType', 'Awaited',
+  'ReadonlyArray', 'Iterable', 'AsyncIterable', 'Error', 'RegExp', 'Function', 'Buffer', 'Uint8Array', 'URL', 'Request', 'Response',
 ];
+// 沒有形狀的型別:鍵名沒地方寫
+const SHAPELESS = /^(?:any|unknown|object|Object|JSON)$|^Record<\s*string\s*,\s*(?:any|unknown)\s*>$|^\{\s*\[\w+:\s*string\]:\s*(?:any|unknown);?\s*\}$/;
 
 function stripComments(src) {
   return src
@@ -127,6 +131,7 @@ export const typescript = {
   extensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'],
   ioModules: IO_MODULES,
   stdlib: STDLIB,
+  shapeless: SHAPELESS,
   stub: (marker) => `throw new Error("${marker} not implemented");`,
 
   isTestFile(rel) {

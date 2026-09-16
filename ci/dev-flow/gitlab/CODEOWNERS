@@ -1,0 +1,11 @@
+# 共用檔的守門人(GitLab)
+# 複製到你的專案:.gitlab/CODEOWNERS,把 @architect 換成架構負責人的 GitLab 帳號。
+#
+# Settings → Repository → Protected branches,對主線勾「Require approval from code owners」後,
+# 動到這些路徑的 MR 沒有 owner 的 approve 就合不進主線。
+# features/ 與 abstracts/ 的檔不在這裡:它們由 claim 的人負責,隊友互相 review 即可。
+
+[design]
+.design/system.md        @architect
+.design/objectives/      @architect
+.design/modules.md       @architect

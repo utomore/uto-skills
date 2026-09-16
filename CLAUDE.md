@@ -28,6 +28,14 @@ bash tests/dev-flow/run.sh                # dev-flow:九個夾具的 golden 回�
 bash tests/lawful/run.sh                  # lawful:八個夾具的 golden 回歸 + --help;fixtures/save-game 同時是 .lawful 的完整範例
 ```
 
+改了 `ci/dev-flow/contract.mjs` 或 `ci/lawful/contract.mjs`:
+
+```
+bash tests/ci/run.sh                      # 契約檢查腳本:--lint-only 對兩邊的夾具各跑一次,看 exit code 與關鍵訊息
+```
+
+`ci/dev-flow/` 與 `ci/lawful/` 是給使用者複製到自己專案的 CI 範本,兩套各自獨立(各有 `contract.mjs`、GitHub Actions、GitLab CI、CODEOWNERS、README);它們不裝進 plugin,但腳本的使用者可見訊息與 README 一樣是規章。
+
 改了 `templates/status-board.html` 還要多跑這一道:
 
 ```

@@ -1,0 +1,48 @@
+# lawful 專案的契約檢查(GitHub Actions)
+# 複製到你的專案:.github/workflows/contract.yml
+#
+# 每條 PR 跑:lint ids / boundary / sig / laws / io → 建置 → 整套測試 → 派工報告。
+# 任一紅就失敗;在 branch protection 把這個 job 設成 required status check,紅的 PR 就合不進主線。
+name: contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # uto-skills 抓進專案底下的 .uto-skills/;ref 固定一個 commit 或 tag,更新時自己改
+      - uses: actions/checkout@v4
+        with:
+          repository: utomore/uto-skills
+          ref: main
+          path: .uto-skills
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Haskell 工具鏈;版本照專案的 cabal.project
+      - uses: haskell-actions/setup@v2
+        id: haskell
+        with:
+          ghc-version: "9.6"
+          cabal-version: "3.10"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.haskell.outputs.cabal-store }}
+            dist-newstyle
+          key: cabal-${{ runner.os }}-${{ hashFiles('**/*.cabal', 'cabal.project', 'cabal.project.freeze') }}
+          restore-keys: cabal-${{ runner.os }}-
+
+      - run: cabal update
+
+      # 建置與整套測試的指令從 .lawful/Cone.md「專案約束」讀,不用在這裡重寫一次
+      - run: node .uto-skills/ci/lawful/contract.mjs

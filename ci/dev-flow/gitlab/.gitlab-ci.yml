@@ -1,0 +1,32 @@
+# dev-flow 專案的契約檢查(GitLab CI)
+# 複製到你的專案:.gitlab-ci.yml(已經有的話把 contract job 貼進去,或用 include 引入)
+#
+# 每條 merge request 跑:lint ids / boundary / sig / laws / io → 建置 → 整套測試 → 派工報告。
+# 任一紅就失敗;在 Settings → Merge requests 勾「Pipelines must succeed」,紅的 MR 就合不進主線。
+
+stages: [contract]
+
+contract:
+  stage: contract
+  # ── 專案自己的工具鏈:照你的語言換 image ──
+  # TypeScript / JavaScript:node:20
+  # Python:python:3.12(再裝 node,見下)
+  # Go:golang:1.22(再裝 node)
+  # Rust:rust:1.79(再裝 node)
+  image: node:20
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    # 固定一個 commit 或 tag,更新時自己改
+    UTO_SKILLS_REF: main
+  before_script:
+    # image 沒有 node 時打開這行
+    # - curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
+    # uto-skills 抓進專案底下的 .uto-skills/
+    - git clone --depth 1 --branch "$UTO_SKILLS_REF" https://github.com/utomore/uto-skills.git .uto-skills
+    # 專案自己的依賴
+    - npm ci
+  script:
+    # 建置與整套測試的指令從 .design/system.md「語言與工具」讀,不用在這裡重寫一次
+    - node .uto-skills/ci/dev-flow/contract.mjs

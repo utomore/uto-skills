@@ -6,18 +6,20 @@
 
 | 階段 | 誰 | 在哪 | 產出 |
 |---|---|---|---|
-| **設計** | 開發者與 `lawful:design` / `lawful:objective` / `lawful:pipeline` 對談 | 主線 | `Cone.md`(願景、需求、專案約束)、`objectives/`、模組表、`draft` 的 pipeline;開發者拍板後 skill 改 `ready` |
-| **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 該 pipeline 自己的分支與工作樹 | 骨架、測試、實作、REV、開發日誌;達成後 conductor 改 `frozen`。目標是一條需求或目標的 Law 時只派 qa(「驗收測試」) |
+| **設計** | 開發者與 `lawful:design` / `lawful:objective` / `lawful:pipeline` 對談 | 主線 | `Cone.md`(願景、需求、專案約束)、`objectives/`、模組表、`draft` 的 pipeline,以及它的**骨架**:型別與每條簽名寫進程式碼(「骨架與基線」);開發者拍板後 skill 改 `ready` |
+| **建構** | `lawful:build` 的 conductor 帶 qa 與 impl | 該 pipeline 自己的分支與工作樹 | 測試、實作、REV、開發日誌;達成後 conductor 改 `frozen`。目標是一條需求或目標的 Law 時只派 qa(「驗收測試」) |
 | **整合** | `lawful:integrate` | 整合分支 | 幾條建構分支合成一條、整套綠、PR |
 
-`lawful:build` 只收 `ready` 且沒有 open GAP 的 pipeline。一條 pipeline 一波,順序:開分支 → 骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的 pipeline 可以同時各開一波;主線只透過整合 PR 前進。
+`lawful:build` 只收 `ready` 且沒有 open GAP 的 pipeline。一條 pipeline 一波,順序:開分支 → 對帳骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的 pipeline 可以同時各開一波;主線只透過整合 PR 前進。
+
+設計階段寫的程式碼只有宣告:型別、建構子、簽名、匯出清單,本體一律是 `stub`。契約在對談裡拍板的當下就住進程式碼,qa 與 impl 讀到的是同一份;型別還定不下來的 pipeline 留在 `draft`。
 
 ## 分支與所有權
 
 - 一條 pipeline 一條分支 `build/<全名>`(目標是需求或目標的 Law 時 `build/R-n` / `build/O-n`),從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這條 pipeline 有人在建,`lawful status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
-- 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP;它引用的每條子流都已達成並合進主線。引用的子流還沒合進主線就不開,等它;不替別條 pipeline 寫 stub。
-- 分支上准動的東西只有自己的:這條 pipeline 檔、自己 stage 的簽名與本體(模組表登記了但還沒有的模組檔可以建)、匯出清單裡自己的名字、以自己全名命名的測試模組、本波要寫的驗收測試(以 `R-n` / `O-n` 命名的測試模組)、建置設定裡登記自己模組與測試模組的那幾行、`gaps.md` 追加、`journal/<全名>.md`。
-- 不動:`Cone.md`、`objectives/`、`modules.md`、types 層、別條 pipeline 的檔與 stage 本體、別人的測試模組。非動不可就是 GAP。
+- 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP、骨架齊全(「骨架與基線」);它引用的每條子流都已達成並合進主線。引用的子流還沒合進主線就不開,等它。
+- 分支上准動的東西只有自己的:這條 pipeline 檔、自己 stage 的本體、以自己全名命名的測試模組、本波要寫的驗收測試(以 `R-n` / `O-n` 命名的測試模組)、建置設定裡登記自己模組與測試模組的那幾行、`gaps.md` 追加、`journal/<全名>.md`。
+- 不動:`Cone.md`、`objectives/`、`modules.md`、types 層、任何型別、任何簽名、別條 pipeline 的檔與 stage 本體、別人的測試模組。非動不可就是 GAP:型別與簽名是設計階段的東西,回 `lawful:revise`。
 - `gaps.md` 在分支上從主線最大號往上配。
 - 分支上的 commit 訊息帶 pipeline 全名;骨架、測試、實作、日誌各自成 commit,整合時才對得出誰動了什麼。
 
@@ -25,7 +27,7 @@
 
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
-| **conductor** | pipeline 文檔、模組表、測試結果 | 把 Stages 寫進程式碼(本體是 adapter 的 `stub`)、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、讀 qa 與 impl 的產出來替他們決定 |
+| **conductor** | pipeline 文檔、模組表、測試結果 | 對帳骨架、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、寫骨架、讀 qa 與 impl 的產出來替他們決定 |
 | **qa** | pipeline 文檔、types 層、骨架的簽名;寫驗收測試時是那條 Law 與它引用到的簽名所在的每條 pipeline | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器;需求或目標的 Law 一條驗收測試(「驗收測試」) | 讀 core 與 shell 的本體(含 `spike/`);讀 Law 沒引用到的別條 pipeline;改骨架;要求後門 |
 | **impl** | pipeline 文檔、骨架 | 把 `stub` 換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
 
@@ -45,7 +47,10 @@ subagent 問不了人:
 
 ## 骨架與基線
 
-- 骨架 = Stages 表的每條簽名(步驟、`=` 列、`!` 列與 `o` 列的觀察點)寫進對應模組並匯出,本體是 adapter 的 `stub`,訊息帶 `P-00x#name`(Haskell:`error "P-00x#name stub"`),基線的紅燈才看得出打到哪個 stage;程式碼已經有的照舊。骨架要編得過,`lawful status` 把還是 `stub` 的列成骨架。
+- 骨架 = Stages 表的每條簽名(步驟、`=` 列、`!` 列與 `o` 列的觀察點)寫進模組欄指的模組並匯出,本體是 adapter 的 `stub`,訊息帶 `P-00x#name`(Haskell:`error "P-00x#name stub"`),基線的紅燈才看得出打到哪個 stage;`=` 列照 Stages 組裝純的整條,`!` 列把它接到 shell;程式碼已經有的照舊。簽名裡用到的型別一起宣告:自訂的住 types 層,建構子與欄位寫全;別條 pipeline 已經宣告過的直接用。
+- 骨架由設計階段寫,在主線上:`lawful:pipeline` 在文檔拍板 `ready` 之前寫齊,`lawful:revise` 改了簽名就同步改簽名行、本體回 `stub`。它是文檔與程式碼的同一次 commit。
+- 骨架要編得過,`lawful lint sig` 沒有紅(每列找得到、簽名一致、型別都宣告過),`lawful status --pipeline <全名>` 每列是「骨架」或「在」。
+- conductor 開分支後只**對帳**:上面三樣不成立就停,回報缺什麼,回 `lawful:pipeline` 或 `lawful:revise`;不在分支上補簽名或型別。
 - qa 交付後,conductor 在骨架上跑一次 qa 的測試當基線:打到 `stub` 的要紅、打到型別本身承載的事實(建構子、欄位、instance)的要綠、REV 保護的既有 law 要綠。
 - 該紅卻綠退回 qa 重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。基線過了才派 impl。
 

@@ -1,6 +1,6 @@
 # pipeline 文檔
 
-文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過純 / IO 邊界的資料流。型別、簽名、模組匯出住程式碼;文檔引用,工具對帳。
+文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過純 / IO 邊界的資料流。型別、簽名、模組匯出住程式碼;文檔引用,工具對帳。它們在設計階段就住進去:一條 pipeline 拍板 `ready` 之前,它的型別與每條簽名的骨架已經在主線的程式碼裡(roles.md「骨架與基線」)。
 
 ## `.lawful/`
 
@@ -110,7 +110,7 @@ updated: 2026-09-05
 | status | 意思 |
 |---|---|
 | `draft` | 還在討論;`lawful:build` 拒收 |
-| `ready` | 開發者口頭拍板,`lawful:pipeline` 改欄位;可以委派 |
+| `ready` | 開發者口頭拍板、型別與簽名的骨架已在程式碼裡,`lawful:pipeline` 改欄位;可以委派 |
 | `frozen` | `lawful status` 顯示達成,conductor 在 build 收尾直接改,不問;不准修訂。解凍 = `lawful:revise` 在「決定」記一條為什麼,改回 `ready` |
 
 開發者不親自改任何 `.lawful/` 檔;開發者說,skill 寫。`frozen` 而測試紅、或有 REV 卻沒有解凍紀錄,是不一致。進度不是欄位,由 `lawful status` 推導。不做的 pipeline 直接刪檔;值得記住為什麼,開 ADR。
@@ -127,7 +127,7 @@ updated: 2026-09-05
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
 | 1 | `candidates :: World -> [(EntityId, EntityId)]` | 粗篩可能碰撞的對 | `Weft.Physics.Broadphase` | core |
-| 2 | `queryDynamic :: World -> [(EntityId, RigidBody)]` | 取非靜態剛體 | `Weft.ECS.Query`(願望,見 P-003-ecs-query) | core |
+| 2 | `queryDynamic :: World -> [(EntityId, RigidBody)]` | 取非靜態剛體 | `Weft.ECS.Query`(見 P-003-ecs-query) | core |
 | o | `overlaps :: EntityId -> EntityId -> World -> Bool` | 觀察:兩實體是否相交 | `Weft.Physics.Broadphase.Internal` | core |
 | = | `step :: Time -> World -> (World, [CollisionEvent])` | 純的整條 | `Weft.Physics` | core |
 ```
@@ -141,6 +141,8 @@ IO 介面多一列進入點,放在最後:
 
 - 簽名欄逐字等於程式碼的型別簽名行(多行合併、空白正規化),而且是該模組匯出的名字。`lawful lint sig` 對帳。
 - 模組欄與層欄與模組表一致。引用別條 pipeline 的 stage:簽名照抄,模組欄註明「見 P-00x-<slug>」。
+- **簽名裡的每個型別都在程式碼裡宣告過**:自訂的(大寫開頭)要找得到,標準函式庫的 adapter 認得;帶模組前綴的與型別變數不查。`lint sig` 對帳。
+- **stage 之間傳遞的值用有名字的型別。** aeson 的 `Value` / `Object`、`Dynamic`、以它們為值的 `Map` 這類無名容器沒有地方寫形狀,qa 與 impl 會各猜一套鍵名;`lint sig` 紅。`!` 列接的是對外的東西,不查。
 - `#` 欄:數字是步驟,`=` 是純的整條,`o` 是觀察點,`!` 是進入點。`=` 列恰好一列,不在 shell;`o` 列幾列都可以,不在 shell,放在 `=` 列之前;`!` 列 IO 介面恰好一列、子流沒有,在 shell,放在最後。步驟可以在 shell(寫檔、讀檔),它們沒有 law。列號只在本檔內有意義,引用用函數名。
 
 **Laws**:純 ASCII 三行。
@@ -229,18 +231,6 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
 - 結案 = 開發者口頭回答,`lawful:revise` 寫 REV 並刪條目,依欄帶模糊點原句。檔空了刪檔。
 - open 的 GAP 擋:那條 pipeline 不算達成、`lawful:build` 前置不放行、`lawful status` exit 1。
 - impl 測試全綠也不得把有 open GAP 的 stage 當完成。
-
-## 願望 stage
-
-需要底層還沒有的能力,在 Stages 表直接寫理想簽名,模組欄註明「願望,見 P-00x-<slug>」(還沒有子流就寫目標模組與「願望」)。程式碼找不到這列,`lawful status` 列成該模組的待實作,`lint sig` 不算紅。
-
-底層維護者三選一:
-
-| 判準 | 落點 |
-|---|---|
-| 兩條以上 pipeline 要,或需要該模組的內部表示 / 不變量 / 效能保證 | 進底層:在該模組的子流加 stage(沒有就 `claim` 一條),laws 寫在子流;原願望列改成引用 |
-| 只有這條要,且用既有匯出寫得出來 | 留本地:stage 住這條 pipeline 自己的模組 |
-| 會破壞底層的不變量 | 不做;改需求,記進「決定」 |
 
 ## 完成度
 

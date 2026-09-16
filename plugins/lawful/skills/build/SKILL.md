@@ -1,6 +1,6 @@
 ---
 name: build
-description: lawful 的建構指揮(conductor)— 對一條 ready 的 pipeline:開 build/<全名> 分支與工作樹、把 Stages 寫成骨架、先派 qa 拿測試在骨架上跑基線、再派 impl、跑子集、仲裁四分流、全綠後跑整套一次、這條讓某個目標的建置路線全部達成而它的 Law 有三行式卻沒有驗收測試就再派一次 qa 寫 R-n#LAW / O-n#LAW、寫 GAP、達成改 frozen、寫開發日誌 commit 在分支上;目標也可以直接是 R-n / O-n(只派 qa 寫那條驗收測試);互不引用的 pipeline 可以同時各開一波,合併交給 lawful:integrate;不寫測試、不寫實作、不補 law。觸發詞:build、建構、開工、實作這條 pipeline、驗收測試、lawful build、委派。Use when a ready pipeline should be turned into tests and code by delegated qa and impl roles on its own branch, or when a requirement or objective Law needs its acceptance test.
+description: lawful 的建構指揮(conductor)— 對一條 ready 的 pipeline:開 build/<全名> 分支與工作樹、對帳設計階段寫好的骨架、先派 qa 拿測試在骨架上跑基線、再派 impl、跑子集、仲裁四分流、全綠後跑整套一次、這條讓某個目標的建置路線全部達成而它的 Law 有三行式卻沒有驗收測試就再派一次 qa 寫 R-n#LAW / O-n#LAW、寫 GAP、達成改 frozen、寫開發日誌 commit 在分支上;目標也可以直接是 R-n / O-n(只派 qa 寫那條驗收測試);互不引用的 pipeline 可以同時各開一波,合併交給 lawful:integrate;不寫測試、不寫實作、不寫骨架、不補 law。觸發詞:build、建構、開工、實作這條 pipeline、驗收測試、lawful build、委派。Use when a ready pipeline should be turned into tests and code by delegated qa and impl roles on its own branch, or when a requirement or objective Law needs its acceptance test.
 user-invocable: true
 ---
 
@@ -12,14 +12,14 @@ user-invocable: true
 
 ## 前置
 
-在主線、工作樹乾淨(`git status --porcelain` 空)。`lawful status`:目標是 `ready`、沒有 open GAP、不是建構中、引用的每條子流都已達成並在主線上。不是就停,回報該先做什麼;子流還沒合進主線就等它,不替它寫 stub(`roles.md`「分支與所有權」)。
+在主線、工作樹乾淨(`git status --porcelain` 空)。`lawful status`:目標是 `ready`、沒有 open GAP、不是建構中、引用的每條子流都已達成並在主線上。不是就停,回報該先做什麼;子流還沒合進主線就等它(`roles.md`「分支與所有權」)。
 
 目標是 `R-n` / `O-n`(`roles.md`「驗收測試」):`status` 的需求表或目標表要顯示它的建置路線全部達成、Law 有三行式而沒有測試。是就走「驗收測試那波」:`git worktree add -b build/R-n ../<repo>.worktrees/R-n HEAD`,跳過第 1 到 5 步,直接第 6 步派 qa,再第 7 步整套、第 8 步收尾(日誌的 `pipeline` 寫 `R-n`)。建置路線沒達成就停,回報還差哪條里程碑。
 
 ## 步驟
 
 0. **開分支**:`git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,記下 HEAD 的 sha(日誌的 `base`)。之後每道指令的工作目錄都是這棵工作樹,委派 prompt 也給它。有 REV 的目標在這棵樹上先跑整套當基準線,輸出留檔。
-1. **骨架**:每條 stage 的簽名寫進它的模組並匯出,本體是 adapter 的 `stub`(Haskell `error "P-00x#name stub"`);`=` 列照 Stages 組裝純的整條,`!` 列把它接到 shell。編譯過、`lawful lint sig` 全在、`lawful status --pipeline <全名>` 每列是「骨架」或「在」。commit(訊息帶全名)。
+1. **對帳骨架**(`roles.md`「骨架與基線」):跑建置指令編得過、`lawful lint sig` 沒有紅、`lawful status --pipeline <全名>` 每列是「骨架」或「在」。有一列「找不到」「不一致」、或簽名裡的型別沒宣告過,就停:回報缺什麼,回 `lawful:pipeline` 或 `lawful:revise`;不在分支上補簽名或型別。
 2. **派 qa**(`lawful:qa`,委派模式,prompt 用下面的模板):給全名、pipeline 檔路徑、工作樹路徑、types 層模組清單、子集測試指令。測試模組以全名命名。
 3. **基線**:qa 交付後在骨架上跑 qa 的測試模組,輸出留檔。打到 stub 的要紅、打到型別事實的要綠、REV 保護的要綠(`roles.md`「骨架與基線」)。該紅卻綠退回 qa;該綠卻紅寫成 GAP。回報裡的 GAP 由你寫進 `.lawful/gaps.md` 配號,從主線最大號往上。commit。
 4. **派 impl**(`lawful:impl`,委派模式):給全名、pipeline 檔路徑、工作樹路徑、骨架檔路徑、子集指令;不給測試檔。
@@ -46,4 +46,4 @@ types 層模組:<清單>(qa 可讀;impl 另給骨架檔路徑)
 
 ## 邊界
 
-不寫測試、不寫實作、不補 law、不替開發者做契約級決定、不事後追認。qa 與 impl 互不可見;開發者明說要平行才平行。只動自己 pipeline 的東西與本波的驗收測試(`roles.md`「分支與所有權」);驗收測試紅不派 impl、不放寬斷言;不合併、不發 PR。
+不寫測試、不寫實作、不寫骨架、不補 law、不替開發者做契約級決定、不事後追認。簽名或型別缺了是設計沒做完,回設計,不在分支上補。qa 與 impl 互不可見;開發者明說要平行才平行。只動自己 pipeline 的東西與本波的驗收測試(`roles.md`「分支與所有權」);驗收測試紅不派 impl、不放寬斷言;不合併、不發 PR。

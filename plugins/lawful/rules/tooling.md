@@ -24,7 +24,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全資料夾唯一)加進該目標檔的建置路線表;綁定的全名要是 `pipelines/` 裡有的 pipeline |
 | `objective refinement <O-n> <一句話> --touch <全名,全名>` | 鑄 `RF-n`(全資料夾唯一)加進該目標檔的優化路線表;動到的全名要存在、而且是該目標某條里程碑綁定過的,否則停:優化路線不引入新 feature |
 | `lint boundary` | import 與簽名 vs 模組表;types / effect / core 命中效果型別即紅;未登記模組、單元巢狀、檔不在任何一棵原始碼樹底下、所在那棵樹的層沒宣告、檔案位置對不上模組名、同一個模組名有兩個檔即紅;職責欄空的即紅;表上有而程式碼還沒有的單元或層列成訊息;非 shell 模組沒有匯出清單即紅;production 模組 import 別人的 `*.Internal` 即紅 |
-| `lint sig` | slug 的領域名詞要是 `=` 列住的模組單元(`=` 列還對不到單元時,至少要是表上的一個單元);Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;願望 stage 列待實作不算紅;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
+| `lint sig` | slug 的領域名詞要是 `=` 列住的模組單元(`=` 列還對不到單元時,至少要是表上的一個單元);Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;找不到的簽名即紅;簽名裡的型別在程式碼與標準函式庫都找不到即紅;stage 之間傳遞的值用了無名容器(aeson 的 `Value` …)即紅,`!` 列不查;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
 | `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |
 | `lint laws` | pipeline 的 law:三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名、types 層匯出或 adapter 的標準函式庫清單(字串字面值不算識別字)、`=` 列至少被一條 law 引用、`!` 列不被引用、example 指得到 law。需求與目標的 Law:一句話必填、不是模板;寫了三行就照同一套查,識別字可以是任何一條 pipeline 的 Stages 簽名,不准引用 `!` 列;繼承的需求要存在 |
 | `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅。需求與目標的 Law 寫了三行式卻沒有 `R-n#LAW` / `O-n#LAW` 測試即紅;一句話的沒有測試列成訊息 |
@@ -53,7 +53,7 @@ exit code:`status` 盤點 = 驗收(有未達成的 pipeline、open GAP、或需�
 2. 卡住的:停在 GAP 的 stage、等重派、等子流(子流還是 `draft`、卡 GAP、建構中、或還沒建)
 3. 等決定:open 的 GAP、open 的 spike、`draft` 的 pipeline
 4. 牽動誰:誰引用了這條的簽名
-5. 待實作:按模組單元分組,單元底下再按模組列願望 stage、找不到的 stage、本體還是骨架的 stage
+5. 待實作:按模組單元分組,單元底下再按模組列找不到的 stage、本體還是骨架的 stage
 6. 警訊:`Cone.md` 不存在(只有 `system.md` 的樹提示 `migrate cone`)、目標還擠在一份 `objectives.md`、願景還是模板、沒有需求、需求或它的 Law 還是模板、需求 Law 寫了三行卻沒有驗收測試(成立與否未知)、目標檔沒有 frontmatter 或檔名與 frontmatter 對不上、需求沒有目標、一條需求有兩個以上目標卻沒有蘊含說明或有目標仍在繼承、建置路線全部達成而需求 Law 未成立、優化後需求 Law 不成立、沒有任何目標、優先各級代表什麼沒有宣告、優先不在 1 到 4、目標沒有需求或需求不存在、目標沒有 Law 或沒有里程碑、里程碑綁到不存在的 pipeline、里程碑或調整編號重複、調整動到不存在的或本目標里程碑沒綁過的 pipeline、pipeline 沒有被任何里程碑綁定、`kind` 缺或還是模板或不合法、`frozen` 而紅、REV 沒解凍紀錄、未登記模組、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、`build/<全名>` 分支已合進主線卻還在(整合開頭會清掉)、還是模板(claim 建出來的檔還留著 `<…>` 佔位符的 Stages / Laws / Examples 列;這些列不算 stage、law、example,不進任何數字)
 7. 建議路線:先回答 GAP、再 build 能開的線(照目標優先、里程碑順序排,每條附目標與里程碑)、`draft` 討論完改 `ready`、建置路線達成而 Law 寫了三行卻沒有驗收測試的需求與目標走 `lawful:build R-n` / `O-n`(只派 qa)、建置路線達成的目標底下待修訂的調整走 `lawful:revise`。沒有可派的線時分三種:pipeline 全部達成而某條需求 Law 未成立,寫哪一條與判定來源,先讓 Law 成立;全部達成且每條需求 Law 成立寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾條沒達成、缺什麼輸入,不催加新功能
 
@@ -75,7 +75,7 @@ exit code:`status` 盤點 = 驗收(有未達成的 pipeline、open GAP、或需�
 | `testMarkers(file)`:測試檔裡的 `P-00x#LAW-n` / `P-00x#EX-n` / `R-n#LAW` / `O-n#LAW` 歸屬 | `lint trace` |
 | `testResults(log)`:測試輸出 → 每個歸屬標記綠 / 紅 / pending | `status` |
 | `stdlib`:law 裡可直接用的標準函式庫函數 | `lint laws` |
-| `stub(marker)`:帶 `P-00x#name` 的未實作本體 | conductor 寫骨架 |
+| `stub(marker)`:帶 `P-00x#name` 的未實作本體 | 設計階段寫骨架 |
 | `modulePath(module)`:模組名 → 它在自己那棵原始碼樹底下的相對路徑 | `lint boundary`、`module --facade` |
 | `moduleFile(module)`:一個只有 module 宣告與空匯出清單的新檔 | `module --facade` |
 

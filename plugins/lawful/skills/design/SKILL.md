@@ -30,7 +30,7 @@ user-invocable: true
 6. **列對外 I/O**:跨過 shell 的每個入口與出口叫什麼、帶什麼型別、從哪個 shell 模組進出,寫進 `modules.md`「對外 I/O」。兩端碰到 shell 的資料流各是一條 IO 介面;先後不在這裡,在目標與里程碑。
 7. **寫檔**:`Cone.md` 照 `templates/Cone.md` 三節;`modules.md` 照 `templates/modules.md` 三節。層怎麼切、效果 ADT 的形狀這種跨 pipeline 決定,寫 `adr/ADR-00x-<slug>.md`(`templates/adr.md`)。
 8. **訂目標與里程碑**:先跟開發者訂優先 1 到 4 在這個專案各代表什麼,寫成 `Cone.md`「專案約束」一行「- 優先:1 = …;2 = …;3 = …;4 = …」;再每條需求至少一個目標 `lawful objective add <slug> <一句話> --requirement <R-n> --priority <1-4>`(slug 是 kebab-case 英文,講這個目標做到什麼)(What / How / Which 三問,`lawful:objective`;一對一的目標 Law 繼承需求,不給 `--law`),每個目標 `lawful objective milestone <O-n> <一句話>` 至少一條,還沒有 pipeline 的不綁;一條需求要拆成多個目標、或要細談的,走 `lawful:objective`。
-9. **建 pipeline 骨架**:每條 IO 介面 `lawful claim <slug> --description <句> --kind "IO 介面" --milestone <M-n>`(slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列會住的那個單元,pipelines.md「編號與引用」),得到 `draft` 的檔與里程碑的綁定。內容交給 `lawful:pipeline`。
+9. **建 pipeline 檔**:每條 IO 介面 `lawful claim <slug> --description <句> --kind "IO 介面" --milestone <M-n>`(slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列會住的那個單元,pipelines.md「編號與引用」),得到 `draft` 的檔與里程碑的綁定。內容交給 `lawful:pipeline`。
 10. `lawful lint boundary`、`lawful lint io`、`lawful lint laws`、`lawful status`:模組表、對外 I/O 表與程式碼對得上,願景、需求與目標的警訊為空,才收。
 
 ## 收尾

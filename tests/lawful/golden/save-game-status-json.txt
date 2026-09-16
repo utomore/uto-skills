@@ -401,8 +401,7 @@ $ lawful status --json --tests test.log
           "at": "Game.Save.Project",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "2",
@@ -414,8 +413,7 @@ $ lawful status --json --tests test.log
           "at": "Game.Save.Codec",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "3",
@@ -427,8 +425,7 @@ $ lawful status --json --tests test.log
           "at": "Game.Save.Codec",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "4",
@@ -440,8 +437,7 @@ $ lawful status --json --tests test.log
           "at": "Game.FS",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "o",
@@ -453,8 +449,7 @@ $ lawful status --json --tests test.log
           "at": "Game.Save.Project.Internal",
           "ref": null,
           "observe": true,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "=",
@@ -466,8 +461,7 @@ $ lawful status --json --tests test.log
           "at": "Game.Save",
           "ref": null,
           "observe": false,
-          "entry": false,
-          "wish": false
+          "entry": false
         },
         {
           "index": "!",
@@ -479,8 +473,7 @@ $ lawful status --json --tests test.log
           "at": "Game.Save.Host",
           "ref": null,
           "observe": false,
-          "entry": true,
-          "wish": false
+          "entry": true
         }
       ]
     }

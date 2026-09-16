@@ -62,6 +62,31 @@ h1,h2,h3{margin:0;font-weight:600}
 #links .lit{stroke:var(--going);stroke-width:2.4;opacity:1;stroke-dasharray:none;marker-end:url(#arrowLit)}
 #links.refs-off .ref{display:none}
 #links.refs-sel .ref:not(.lit){display:none}
+#world2{position:absolute;top:0;left:0;transform-origin:0 0;user-select:none}
+#links2{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+#links2 path{fill:none}
+#links2 .dep{stroke:var(--wire);stroke-width:1.8;opacity:.7;marker-end:url(#arrow2)}
+#links2 .dep.inverted{stroke:var(--stuck);opacity:.85;marker-end:url(#arrowStuck2)}
+#links2 .dep.cycle{stroke-dasharray:5 5}
+#links2 .dep.lit{stroke:var(--going);stroke-width:2.6;opacity:1;marker-end:url(#arrowLit2)}
+#links2 .dep.faded{opacity:.12}
+body.view-dag .tree-only{display:none}
+body:not(.view-dag) .dag-only{display:none}
+
+/* 相依:目標或需求一張卡,左邊先做、右邊後做 */
+.dnode{background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--edge, var(--rule));
+  box-shadow:0 3px 10px rgba(0,0,0,.1);cursor:pointer;padding:10px 13px 9px}
+.dnode[data-tone=done]{--edge:var(--done)}
+.dnode[data-tone=stuck]{--edge:var(--stuck)}
+.dnode[data-tone=wait]{--edge:var(--wait)}
+.dnode[data-tone=going]{--edge:var(--going)}
+.dnode[data-tone=idle]{--edge:var(--idle)}
+.dnode[data-kind-of=requirement]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.dnode[data-kind-of=shared]{background:var(--paper)}
+.dnode .k{font-size:11px;letter-spacing:.05em;opacity:.7}
+.dnode .name{font-weight:600;font-size:13.5px;margin-top:2px;line-height:1.45;word-break:break-all}
+.dnode .n{font-size:12px;margin-top:5px;opacity:.75}
+.dnode .n b{color:var(--stuck)}
 
 .card{position:absolute;border-radius:3px;padding:12px 14px}
 .dim{opacity:.13}
@@ -172,21 +197,30 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
   <div id="head"><h1 id="title">看板</h1><div class="chips" id="chips"></div></div>
   <div id="tests"></div>
   <div class="bar">
-    <button data-filter="all" aria-pressed="true">全部</button>
-    <button data-filter="open" aria-pressed="false">今天能開</button>
-    <button data-filter="stuck" aria-pressed="false">卡住</button>
-    <button data-filter="todo" aria-pressed="false">未達成</button>
-    <button data-filter="warn" aria-pressed="false">有警訊</button>
+    <button data-view="tree" aria-pressed="true">樹</button>
+    <button data-view="dag" aria-pressed="false">相依</button>
+    <span class="sep"></span>
+    <button class="tree-only" data-filter="all" aria-pressed="true">全部</button>
+    <button class="tree-only" data-filter="open" aria-pressed="false">今天能開</button>
+    <button class="tree-only" data-filter="stuck" aria-pressed="false">卡住</button>
+    <button class="tree-only" data-filter="todo" aria-pressed="false">未達成</button>
+    <button class="tree-only" data-filter="warn" aria-pressed="false">有警訊</button>
+    <label class="dag-only">粒度
+      <select id="grain">
+        <option value="objective" selected>目標</option>
+        <option value="requirement">需求</option>
+      </select>
+    </label>
     <input id="q" type="search" placeholder="找名字、簽名、模組">
     <span class="sep"></span>
-    <label>引用連線
+    <label class="tree-only">引用連線
       <select id="refmode">
         <option value="sel" selected>只有選取的</option>
         <option value="all">全部顯示</option>
         <option value="off">不顯示</option>
       </select>
     </label>
-    <span class="sep"></span>
+    <span class="sep tree-only"></span>
     <button id="zoomout">−</button><span id="zoom">100%</span><button id="zoomin">＋</button>
     <button id="fit">符合畫面</button>
     <button id="minitoggle" aria-pressed="true">小地圖</button>
@@ -197,7 +231,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
   </div>
 </div>
 
-<div id="stage"><div id="world"><svg id="links"></svg></div></div>
+<div id="stage"><div id="world"><svg id="links"></svg></div><div id="world2"><svg id="links2"></svg></div></div>
 
 <div id="mini">
   <div id="minihead"><b>小地圖</b><select id="jump"></select></div>
@@ -210,6 +244,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
     <section><h3>建議路線</h3><div id="route"></div></section>
     <section><h3>今天能開幾條線</h3><ul id="lines"></ul></section>
     <section id="modules-section" hidden><h3 id="modules-title">模組</h3><div id="modules"></div></section>
+    <section id="dep-section" hidden><h3>相依</h3><div id="deps"></div></section>
     <section><h3>警訊</h3><div id="warnings"></div></section>
   </div>
   <div id="doc" hidden></div>
@@ -257,7 +292,8 @@ document.getElementById('legend').innerHTML = TERMS
   + '<span title="虛線箭頭:箭頭那一端是被引用的那一份"><i style="background:var(--wire)"></i>引用</span>';
 helpEl.innerHTML = `<button class="close">關閉</button><h3>便利貼的顏色</h3><dl>${
   TERMS.map(([t, name, why]) => `<dt><i style="background:var(--${t})"></i>${esc(name)}</dt><dd>${esc(why)}</dd>`).join('')
-}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,一條弧線從右邊繞過去。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 優先度區塊 → 目標 → 里程碑 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd></dl>`;
+}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,一條弧線從右邊繞過去。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 優先度區塊 → 目標 → 里程碑 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd>
+<dt><i style="background:var(--wire)"></i>相依頁籤</dt><dd>目標(或需求)排成先後:左邊那一個達成了,右邊那一個才做得到。邊不是人寫的,是從${esc(D.labels.unit)}的引用推出來的:綁在目標甲底下的一份引用了綁在目標乙底下的一份,甲就依賴乙;沒被任何里程碑綁的那份自成一張「共用」卡。紅色的邊是優先倒掛:高優先的目標依賴低優先的目標。虛線的邊是互相依賴</dd></dl>`;
 const setTopHeight = () => document.body.style.setProperty('--topH', document.getElementById('top').offsetHeight + 'px');
 
 // 側欄的首頁:派工
@@ -523,6 +559,206 @@ links.innerHTML = paths.join('');
 world.style.width = totalW + 'px';
 world.style.height = maxY + 'px';
 
+// ── 相依:目標(或需求)排成先後順序的圖 ──
+// 邊全部從引用推出來:綁在目標甲底下的一份引用了綁在目標乙底下的一份,甲就依賴乙。
+// 沒被任何里程碑綁的那份(通常是 abstract)自成一張共用卡,不然那條依賴就沒地方落。
+const world2 = document.getElementById('world2');
+const links2 = document.getElementById('links2');
+const DN_W = 300, DAG_LEFT = 40, DAG_TOP = 40, DAG_COL_GAP = 120, DAG_ROW_GAP = 22;
+const objById = new Map(D.objectives.map((o) => [o.id, o]));
+const reqById = new Map(D.requirements.map((q) => [q.id, q]));
+const ownersOf = new Map();   // 文檔 → 綁它的目標
+for (const o of D.objectives) for (const m of o.milestones) for (const n of m.binds) {
+  if (!ownersOf.has(n)) ownersOf.set(n, new Set());
+  ownersOf.get(n).add(o.id);
+}
+const reqOf = (oid) => { const o = objById.get(oid); return o && o.requirement && reqById.has(o.requirement) ? o.requirement : 'no-req'; };
+const reqKey = (rid) => Math.min(5, ...(reqById.has(rid) ? reqById.get(rid).objectives : D.objectives.filter((o) => reqOf(o.id) === 'no-req').map((o) => o.id)).map((oid) => (objById.get(oid) || {}).priority || 5));
+
+function deriveGraph(grain) {
+  const byReq = grain === 'requirement';
+  const lift = (oid) => (byReq ? reqOf(oid) : oid);
+  const nodes = new Map();
+  const node = (id) => {
+    if (nodes.has(id)) return nodes.get(id);
+    let n;
+    if (objById.has(id)) {
+      const o = objById.get(id);
+      n = { id, kind: 'objective', title: o.title, sub: `${reqOf(id) === 'no-req' ? '沒有對到需求' : reqOf(id)} · 優先 ${o.priorityRaw || '(沒填)'}`,
+        note: `里程碑 ${o.milestonesAchieved}/${o.milestones.length} 達成 · Law ${o.law.holds === true ? '成立' : o.law.holds === false ? '未成立' : '未知'}`,
+        priority: o.priority || null, tone: o.achieved ? 'done' : o.law.holds === false ? 'stuck' : o.milestones.length ? 'going' : 'idle', achieved: o.achieved };
+    } else if (reqById.has(id)) {
+      const q = reqById.get(id); const key = reqKey(id);
+      n = { id, kind: 'requirement', title: q.title, sub: `需求 · 目標最高優先 ${key === 5 ? '(沒填)' : key}`,
+        note: `Law ${q.law.holds === true ? '成立' : q.law.holds === false ? '未成立' : '未知'} · ${q.objectives.length} 個目標 · 里程碑 ${q.milestonesAchieved}/${q.milestones} 達成`,
+        priority: key === 5 ? null : key, tone: q.law.holds === true ? 'done' : q.law.holds === false ? 'stuck' : q.objectives.length ? 'going' : 'idle', achieved: q.law.holds === true };
+    } else if (id === 'no-req') {
+      const os = D.objectives.filter((o) => reqOf(o.id) === 'no-req'); const key = reqKey(id);
+      n = { id, kind: 'requirement', title: '沒有對到需求', sub: `目標的需求欄對不到任何 R-n · 目標最高優先 ${key === 5 ? '(沒填)' : key}`, note: `${os.length} 個目標`,
+        priority: key === 5 ? null : key, tone: 'stuck', achieved: false };
+    } else {
+      const d = byName.get(id);
+      n = { id, kind: 'shared', title: d ? d.description : '', sub: `共用 · 沒有綁到任何里程碑`, note: d ? d.state : '', priority: null, tone: d ? tone(d) : 'stuck', achieved: !!(d && d.achieved) };
+    }
+    n.deps = []; n.dependents = [];
+    nodes.set(id, n);
+    return n;
+  };
+  if (byReq) { for (const q of D.requirements) node(q.id); if (D.objectives.some((o) => reqOf(o.id) === 'no-req')) node('no-req'); }
+  else for (const o of D.objectives) node(o.id);
+  const edges = new Map();
+  for (const d of D.docs) {
+    const owners = ownersOf.get(d.name);
+    if (!owners) continue;
+    for (const r of d.refs) {
+      const tOwners = ownersOf.get(r);
+      const targets = tOwners ? [...new Set([...tOwners].map(lift))] : byName.has(r) ? [r] : [];
+      for (const o of owners) for (const t of targets) {
+        const a = lift(o);
+        if (a === t) continue;
+        node(t);
+        const key = `${a}>${t}`;
+        if (!edges.has(key)) edges.set(key, { from: a, to: t, via: [], inverted: false, cycle: false });
+        edges.get(key).via.push(`${d.name} 見 ${r}`);
+      }
+    }
+  }
+  for (const e of edges.values()) {
+    const a = nodes.get(e.from); const b = nodes.get(e.to);
+    e.inverted = a.priority != null && b.priority != null && a.priority < b.priority;
+    a.deps.push(e); b.dependents.push(e);
+  }
+  // 互相依賴:深度優先走一遍,回到還在走的那一個就是繞回去了;那條邊不算進分層,畫成虛線
+  const seen = new Map();
+  const walk = (id) => {
+    seen.set(id, 1);
+    for (const e of nodes.get(id).deps) {
+      const s = seen.get(e.to);
+      if (s === 1) e.cycle = true;
+      else if (!s) walk(e.to);
+    }
+    seen.set(id, 2);
+  };
+  for (const id of [...nodes.keys()].sort()) if (!seen.has(id)) walk(id);
+  return { nodes, edges: [...edges.values()] };
+}
+
+const dagBox = new Map();
+let views = null;
+let dagGraph = deriveGraph('objective');
+const dagNodeEls = new Map();
+let dagSelected = null;
+let dagTotalW = 0, dagMaxY = 0;
+
+function buildDag(grain) {
+  dagGraph = deriveGraph(grain);
+  dagSelected = null;
+  dagNodeEls.clear();
+  dagBox.clear();
+  const { nodes, edges } = dagGraph;
+  world2.querySelectorAll('.dnode').forEach((el) => el.remove());
+  world2.insertAdjacentHTML('beforeend', [...nodes.values()].map((n) => `<div class="card dnode" data-kind="dnode" data-kind-of="${n.kind}" data-id="${esc(n.id)}" data-tone="${n.tone}" style="width:${DN_W}px">
+    <div class="k">${esc(n.sub)}</div><div class="name">${esc(n.id)}${n.title ? ` ${esc(n.title)}` : ''}</div>
+    <div class="n">${esc(n.note)}${n.deps.some((e) => e.inverted) ? ' · <b>優先倒掛</b>' : ''}</div></div>`).join(''));
+  for (const el of world2.querySelectorAll('.dnode')) dagNodeEls.set(el.dataset.id, el);
+
+  // 分層:沒有依賴的排第 0 欄,其餘排在它所有依賴的右邊一欄;繞回去的邊不算
+  const layer = new Map();
+  const depth = (id, trail = new Set()) => {
+    if (layer.has(id)) return layer.get(id);
+    trail.add(id);
+    const ds = nodes.get(id).deps.filter((e) => !e.cycle && !trail.has(e.to));
+    const l = ds.length ? 1 + Math.max(...ds.map((e) => depth(e.to, trail))) : 0;
+    trail.delete(id);
+    layer.set(id, l);
+    return l;
+  };
+  for (const id of nodes.keys()) depth(id);
+  const cols = [];
+  for (const [id, l] of layer) (cols[l] = cols[l] || []).push(id);
+  const byPrio = (a, b) => ((nodes.get(a).priority || 5) - (nodes.get(b).priority || 5)) || a.localeCompare(b);
+  for (const c of cols) c.sort(byPrio);
+  // 同一欄的順序照它鄰居的重心排幾輪,線才不會交叉成一團
+  const pos = new Map();
+  const rank = () => cols.forEach((c) => c.forEach((id, i) => pos.set(id, i)));
+  const center = (id, side) => {
+    const ns = nodes.get(id)[side].map((e) => (side === 'deps' ? e.to : e.from)).filter((n) => pos.has(n));
+    return ns.length ? ns.reduce((s, n) => s + pos.get(n), 0) / ns.length : null;
+  };
+  for (let round = 0; round < 3; round++) {
+    for (const side of ['deps', 'dependents']) {
+      rank();
+      for (const c of cols) {
+        const w = new Map(c.map((id, i) => [id, center(id, side) ?? i]));
+        c.sort((a, b) => (w.get(a) - w.get(b)) || byPrio(a, b));
+      }
+    }
+  }
+  rank();
+
+  const H2 = new Map([...dagNodeEls].map(([id, el]) => [id, el.offsetHeight]));
+  const colH = cols.map((c) => c.reduce((s, id) => s + H2.get(id), 0) + Math.max(0, c.length - 1) * DAG_ROW_GAP);
+  const tallest = Math.max(0, ...colH);
+  cols.forEach((c, ci) => {
+    const x = DAG_LEFT + ci * (DN_W + DAG_COL_GAP);
+    let y = DAG_TOP + (tallest - colH[ci]) / 2;
+    for (const id of c) {
+      const el = dagNodeEls.get(id);
+      el.style.left = x + 'px'; el.style.top = Math.round(y) + 'px';
+      dagBox.set(el, { x, y: Math.round(y), w: DN_W, h: H2.get(id) });
+      y += H2.get(id) + DAG_ROW_GAP;
+    }
+  });
+
+  // 邊:從依賴那一張的右緣出去,接進依賴它那一張的左緣;箭頭指向後做的那一個
+  const outs = new Map(); const used = new Map();
+  for (const e of edges) outs.set(e.to, (outs.get(e.to) || 0) + 1);
+  const ps = [`<defs>
+    <marker id="arrow2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--wire)"></path></marker>
+    <marker id="arrowStuck2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--stuck)"></path></marker>
+    <marker id="arrowLit2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--going)"></path></marker>
+  </defs>`];
+  for (const e of edges) {
+    const a = dagBox.get(dagNodeEls.get(e.to)); const b = dagBox.get(dagNodeEls.get(e.from));
+    const i = used.get(e.to) || 0; used.set(e.to, i + 1);
+    const y1 = Math.round(a.y + a.h / 2 + (i - (outs.get(e.to) - 1) / 2) * 9);
+    const y2 = Math.round(b.y + b.h / 2);
+    const x1 = a.x + a.w; const x2 = b.x;
+    const bend = Math.max(40, Math.abs(x2 - x1) / 2);
+    ps.push(`<path class="dep${e.inverted ? ' inverted' : ''}${e.cycle ? ' cycle' : ''}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" d="M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}"></path>`);
+  }
+  dagTotalW = Math.max(0, ...[...dagBox.values()].map((b) => b.x + b.w)) + 60;
+  dagMaxY = Math.max(0, ...[...dagBox.values()].map((b) => b.y + b.h)) + 60;
+  links2.setAttribute('viewBox', `0 0 ${dagTotalW} ${dagMaxY}`);
+  links2.setAttribute('width', dagTotalW);
+  links2.setAttribute('height', dagMaxY);
+  links2.innerHTML = ps.join('');
+  world2.style.width = dagTotalW + 'px';
+  world2.style.height = dagMaxY + 'px';
+  if (views) { views.dag.box = dagBox; views.dag.totalW = dagTotalW; views.dag.maxY = dagMaxY; }
+}
+buildDag('objective');
+
+// 側欄首頁的相依段:優先倒掛與互相依賴,照目標那一層算;一條都沒有就整段不出現
+{
+  const g = deriveGraph('objective');
+  const bad = g.edges.filter((e) => e.inverted || e.cycle);
+  if (bad.length) {
+    document.getElementById('dep-section').hidden = false;
+    document.getElementById('deps').innerHTML = bad.map((e) => `<div class="warn"><b>${e.inverted ? '優先倒掛' : '互相依賴'}:${esc(e.from)} → ${esc(e.to)}</b>${
+      e.inverted ? `${esc(e.from)}(優先 ${esc(g.nodes.get(e.from).priority)})要先有 ${esc(e.to)}(優先 ${esc(g.nodes.get(e.to).priority)})` : `${esc(e.from)} 與 ${esc(e.to)} 互相引用對方底下的${esc(D.labels.unit)}`
+    }<i>經由 ${esc(e.via.join('、'))}</i></div>`).join('');
+  }
+}
+
+// 兩個視圖共用同一片畫布與同一套平移縮放;切換時各自記住自己的鏡頭
+views = {
+  tree: { world, links, box, totalW, maxY, zones, cam: null, hint: '拖曳平移 · 滾輪上下、Ctrl 滾輪縮放 · 點便利貼看細節 · 點區塊、目標或里程碑縮放到那一叢 · 0 回到全景' },
+  dag: { world: world2, links: links2, box: dagBox, totalW: dagTotalW, maxY: dagMaxY, zones: [], cam: null, hint: '左邊先做,右邊後做 · 點卡片看它依賴誰、誰等它 · 粒度切換目標或需求 · 0 回到全景' },
+};
+let cur = views.tree;
+world2.hidden = true;
+
 // ── 小地圖 ──
 const canvas = document.getElementById('minimap');
 const ctx = canvas.getContext('2d');
@@ -531,18 +767,19 @@ const cvar = (n) => CS.getPropertyValue(n).trim() || '#888';
 const MW = 246, MH = 158;
 let ms = 1, mox = 0, moy = 0;
 const base = document.createElement('canvas');
+let miniDirty = true;
 function drawBase(dpr) {
   base.width = MW * dpr; base.height = MH * dpr;
   const b = base.getContext('2d');
   b.setTransform(dpr, 0, 0, dpr, 0, 0);
   b.clearRect(0, 0, MW, MH);
-  ms = Math.min((MW - 8) / (totalW || 1), (MH - 8) / (maxY || 1));
-  mox = (MW - totalW * ms) / 2;
-  moy = (MH - maxY * ms) / 2;
-  for (const [el, r] of box) {
+  ms = Math.min((MW - 8) / (cur.totalW || 1), (MH - 8) / (cur.maxY || 1));
+  mox = (MW - cur.totalW * ms) / 2;
+  moy = (MH - cur.maxY * ms) / 2;
+  for (const [el, r] of cur.box) {
     const kind = el.dataset.kind;
-    b.fillStyle = kind === 'note' ? cvar('--' + el.dataset.tone) : kind === 'band' ? cvar('--ink') : cvar('--wire');
-    b.globalAlpha = kind === 'note' ? 0.95 : 0.55;
+    b.fillStyle = kind === 'note' || kind === 'dnode' ? cvar('--' + el.dataset.tone) : kind === 'band' ? cvar('--ink') : cvar('--wire');
+    b.globalAlpha = kind === 'note' || kind === 'dnode' ? 0.95 : 0.55;
     b.fillRect(mox + r.x * ms, moy + r.y * ms, Math.max(1.5, r.w * ms), Math.max(1.5, r.h * ms));
   }
   b.globalAlpha = 1;
@@ -550,7 +787,7 @@ function drawBase(dpr) {
 function drawMini() {
   if (miniEl.hidden) return;
   const dpr = Math.min(2, devicePixelRatio || 1);
-  if (canvas.width !== MW * dpr) { canvas.width = MW * dpr; canvas.height = MH * dpr; drawBase(dpr); }
+  if (canvas.width !== MW * dpr || miniDirty) { canvas.width = MW * dpr; canvas.height = MH * dpr; drawBase(dpr); miniDirty = false; }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, MW, MH);
   ctx.drawImage(base, 0, 0, MW, MH);
@@ -570,11 +807,12 @@ canvas.addEventListener('pointermove', (ev) => { if (miniDrag) miniGo(ev); });
 canvas.addEventListener('pointerup', () => { miniDrag = false; });
 
 const jump = document.getElementById('jump');
-jump.innerHTML = `<option value="">跳到…</option><option value="fit">全景</option>${
-  zones.map((z, i) => `<option value="${i}">${esc(z.label)}</option>`).join('')}`;
+const fillJump = () => { jump.innerHTML = `<option value="">跳到…</option><option value="fit">全景</option>${
+  cur.zones.map((z, i) => `<option value="${i}">${esc(z.label)}</option>`).join('')}`; };
+fillJump();
 jump.addEventListener('change', () => {
   if (jump.value === 'fit') fit();
-  else if (jump.value !== '') zoomTo(zones[+jump.value].zone);
+  else if (jump.value !== '') zoomTo(cur.zones[+jump.value].zone);
   jump.value = '';
 });
 
@@ -583,15 +821,15 @@ let k = 1, tx = 0, ty = 0;
 const sideW = () => (asideEl.hidden ? 0 : asideEl.offsetWidth);
 // 手在動的時候把畫布交給合成器,手一停就交還:交還了瀏覽器才會用現在這個倍率重畫,字才是清的
 let restT = 0;
-function moving() { world.style.willChange = 'transform'; clearTimeout(restT); }
+function moving() { cur.world.style.willChange = 'transform'; clearTimeout(restT); }
 function resting() {
   clearTimeout(restT);
-  restT = setTimeout(() => { if (!drag) world.style.willChange = 'auto'; }, 140);
+  restT = setTimeout(() => { if (!drag) cur.world.style.willChange = 'auto'; }, 140);
 }
 function apply() {
   document.body.style.setProperty('--sideNow', sideW() + 'px');
   document.body.style.setProperty('--miniH', (miniEl.hidden ? 0 : miniEl.offsetHeight + 12) + 'px');
-  world.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
+  cur.world.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
   document.getElementById('zoom').textContent = Math.round(k * 100) + '%';
   drawMini();
   resting();
@@ -599,8 +837,8 @@ function apply() {
 function fit() {
   const r = stage.getBoundingClientRect();
   const pad = 40;
-  k = Math.min(2, Math.max(0.04, Math.min((r.width - pad * 2 - sideW()) / (totalW || 1), (r.height - pad * 2) / (maxY || 1))));
-  tx = pad + ((r.width - sideW()) - pad * 2 - totalW * k) / 2;
+  k = Math.min(2, Math.max(0.04, Math.min((r.width - pad * 2 - sideW()) / (cur.totalW || 1), (r.height - pad * 2) / (cur.maxY || 1))));
+  tx = pad + ((r.width - sideW()) - pad * 2 - cur.totalW * k) / 2;
   ty = pad;
   apply();
 }
@@ -608,7 +846,7 @@ function fit() {
 function home() {
   const r = stage.getBoundingClientRect();
   const pad = 32;
-  k = Math.min(1, Math.max(0.04, (r.width - pad * 2 - sideW()) / (totalW || 1)));
+  k = Math.min(1, Math.max(0.04, (r.width - pad * 2 - sideW()) / (cur.totalW || 1)));
   tx = pad;
   ty = pad;
   apply();
@@ -680,6 +918,9 @@ stage.addEventListener('pointercancel', letGo);
 addEventListener('pointerup', letGo);
 addEventListener('blur', letGo);
 function hit(t) {
+  const dn = t.closest && t.closest('.dnode');
+  if (dn) { dagSelect(dn.dataset.id === dagSelected ? null : dn.dataset.id); return; }
+  if (cur === views.dag) { dagSelect(null); return; }
   const note = t.closest && t.closest('.note');
   if (note) { select(note.dataset.name === selected ? null : note.dataset.name); return; }
   const card = t.closest && t.closest('.band, .lane, .group');
@@ -791,14 +1032,93 @@ function select(name) {
   else { docEl.hidden = true; homeEl.hidden = false; }
 }
 docEl.addEventListener('click', (ev) => {
-  if (ev.target.classList.contains('back')) { select(null); return; }
+  if (ev.target.classList.contains('back')) { if (cur === views.dag) dagSelect(null); else select(null); return; }
+  const dg = ev.target.closest('[data-dag]');
+  if (dg) { dagSelect(dg.dataset.dag); const el = dagNodeEls.get(dg.dataset.dag); const b = el && dagBox.get(el); if (b) zoomTo({ x1: b.x - 200, y1: b.y - 200, x2: b.x + b.w + 200, y2: b.y + b.h + 200 }); return; }
   const go = ev.target.closest('[data-go]');
-  if (go) { select(go.dataset.go); const el = noteEls.get(go.dataset.go); if (el && box.get(el)) zoomTo(zoneOf.get(el) || { x1: box.get(el).x - 200, y1: box.get(el).y - 200, x2: box.get(el).x + box.get(el).w + 200, y2: box.get(el).y + box.get(el).h + 200 }); }
+  if (go) { if (cur !== views.tree) setView('tree'); select(go.dataset.go); const el = noteEls.get(go.dataset.go); if (el && box.get(el)) zoomTo(zoneOf.get(el) || { x1: box.get(el).x - 200, y1: box.get(el).y - 200, x2: box.get(el).x + box.get(el).w + 200, y2: box.get(el).y + box.get(el).h + 200 }); }
 });
 document.addEventListener('keydown', (ev) => {
   if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'SELECT') return;
-  if (ev.key === 'Escape') { helpEl.hidden = true; select(null); }
+  if (ev.key === 'Escape') { helpEl.hidden = true; if (cur === views.dag) dagSelect(null); else select(null); }
   if (ev.key === '0') fit();
+});
+
+// ── 相依視圖的選取與切換 ──
+function dagPaint() {
+  const g = dagGraph;
+  const n = dagSelected ? g.nodes.get(dagSelected) : null;
+  const near = new Set(n ? [dagSelected, ...n.deps.map((e) => e.to), ...n.dependents.map((e) => e.from)] : []);
+  // 上下游全部點亮:選一條需求,看得到它牽動整條鏈
+  const far = new Set();
+  if (n) {
+    const go = (id, side) => { for (const e of g.nodes.get(id)[side]) { const t = side === 'deps' ? e.to : e.from; if (!far.has(t)) { far.add(t); go(t, side); } } };
+    go(dagSelected, 'deps'); go(dagSelected, 'dependents');
+  }
+  for (const [id, el] of dagNodeEls) {
+    const nd = g.nodes.get(id);
+    const hay = `${id} ${nd.title} ${nd.sub}`.toLowerCase();
+    el.classList.remove('sel', 'rel', 'path');
+    el.classList.toggle('dim', (query && !hay.includes(query)) || (!!n && !near.has(id) && !far.has(id)));
+    if (id === dagSelected) el.classList.add('sel');
+    else if (near.has(id)) el.classList.add('rel');
+    else if (far.has(id)) el.classList.add('path');
+  }
+  for (const p of links2.querySelectorAll('.dep')) {
+    const on = !!n && (p.dataset.from === dagSelected || p.dataset.to === dagSelected);
+    p.classList.toggle('lit', on);
+    p.classList.toggle('faded', !!n && !on && !(far.has(p.dataset.from) && far.has(p.dataset.to)));
+  }
+}
+const dagLink = (id) => `<button class="jump" data-dag="${esc(id)}">${esc(id)}</button>`;
+function openDagNode(id) {
+  const n = dagGraph.nodes.get(id);
+  homeEl.hidden = true; docEl.hidden = false; asideEl.hidden = false;
+  document.getElementById('side').setAttribute('aria-pressed', 'true');
+  docEl.scrollTop = 0; asideEl.scrollTop = 0;
+  const edgeRow = (e, other) => `<li>${e.inverted ? '<b style="color:var(--stuck)">優先倒掛</b> · ' : ''}${e.cycle ? '互相依賴 · ' : ''}${dagLink(other)}<br><span class="empty">經由 ${esc(e.via.join('、'))}</span></li>`;
+  const o = objById.get(id);
+  docEl.innerHTML = `
+    <button class="back">返回</button>
+    <h2>${esc(id)}${n.title ? ` ${esc(n.title)}` : ''}</h2>
+    <p class="sub">${esc(n.sub)}</p>
+    <p class="sub"><span class="dot" style="background:var(--${n.tone})"></span>${esc(n.note)}</p>
+    <section><h3>先要有(它依賴 ${n.deps.length} 個)</h3>${n.deps.length ? `<ul>${n.deps.map((e) => edgeRow(e, e.to)).join('')}</ul>` : '<p class="empty">不依賴任何一個,可以先做</p>'}</section>
+    <section><h3>誰等它(${n.dependents.length} 個)</h3>${n.dependents.length ? `<ul>${n.dependents.map((e) => edgeRow(e, e.from)).join('')}</ul>` : '<p class="empty">沒有人等它</p>'}</section>
+    ${o ? `<section><h3>里程碑</h3><ul>${o.milestones.map((m) => `<li><span class="dot ${m.achieved ? 'g' : 'n'}"></span>${esc(m.id)} ${esc(m.title)}${m.binds.length ? ` — ${m.binds.map(linkTo).join('、')}` : '(待 claim)'}</li>`).join('')}</ul></section>` : ''}
+    ${n.kind === 'requirement' && reqById.has(id) ? `<section><h3>目標</h3><ul>${reqById.get(id).objectives.map((oid) => `<li>${esc(oid)} ${esc((objById.get(oid) || {}).title || '')}</li>`).join('')}</ul></section>` : ''}
+    ${n.kind === 'shared' ? `<section><h3>${esc(D.labels.unit)}</h3><p class="sub">${linkTo(id)}</p></section>` : ''}`;
+}
+function dagSelect(id) {
+  dagSelected = id;
+  dagPaint();
+  if (id) openDagNode(id);
+  else { docEl.hidden = true; homeEl.hidden = false; }
+}
+function setView(name) {
+  const next = views[name];
+  if (next === cur) return;
+  cur.cam = { k, tx, ty };
+  cur.world.hidden = true;
+  cur = next;
+  cur.world.hidden = false;
+  document.body.classList.toggle('view-dag', cur === views.dag);
+  for (const b of document.querySelectorAll('.bar button[data-view]')) b.setAttribute('aria-pressed', String(b.dataset.view === name));
+  document.getElementById('hint').textContent = cur.hint;
+  docEl.hidden = true; homeEl.hidden = false;
+  fillJump();
+  miniDirty = true;
+  if (cur.cam) { ({ k, tx, ty } = cur.cam); apply(); }
+  else if (cur === views.dag) fit();
+  else home();
+}
+for (const b of document.querySelectorAll('.bar button[data-view]')) b.addEventListener('click', () => setView(b.dataset.view));
+document.getElementById('grain').addEventListener('change', (ev) => {
+  buildDag(ev.target.value);
+  dagPaint();
+  docEl.hidden = true; homeEl.hidden = false;
+  miniDirty = true;
+  fit();
 });
 
 for (const b of document.querySelectorAll('.bar button[data-filter]')) {
@@ -808,7 +1128,7 @@ for (const b of document.querySelectorAll('.bar button[data-filter]')) {
     paint();
   });
 }
-document.getElementById('q').addEventListener('input', (ev) => { query = ev.target.value.trim().toLowerCase(); paint(); });
+document.getElementById('q').addEventListener('input', (ev) => { query = ev.target.value.trim().toLowerCase(); paint(); dagPaint(); });
 const refmode = document.getElementById('refmode');
 const setRefMode = () => { links.setAttribute('class', `refs-${refmode.value}`); };
 refmode.addEventListener('change', setRefMode);

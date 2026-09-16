@@ -12,8 +12,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.join(here, '..', '..');
 
 const BOARDS = [
-  { name: 'lawful', bin: ['plugins', 'lawful', 'bin', 'lawful.mjs'], root: ['tests', 'lawful', 'fixtures', 'refs'] },
-  { name: 'dev-flow', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'shop'] },
+  { name: 'lawful', bin: ['plugins', 'lawful', 'bin', 'lawful.mjs'], root: ['tests', 'lawful', 'fixtures', 'refs'],
+    expect: { nodes: ['O-1'], edges: [] } },   // 三條 pipeline 都綁在同一個目標底下,互相引用不算目標之間的相依
+  { name: 'dev-flow', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'shop'],
+    expect: { nodes: ['O-1', 'A-001-settle'], edges: ['A-001-settle>O-1'] } },   // 兩份 feature 都見 A-001,A-001 沒被綁:共用卡在左,O-1 在右
 ];
 
 let failed = 0;
@@ -192,7 +194,34 @@ const MODULES = `(() => {
   };
 })()`;
 
-async function run(page, label) {
+// 相依頁籤的狀態:兩頁哪一頁在畫面上、卡與邊的數目、有沒有方向反了或接到沒畫的卡的邊
+const DAG = `(() => {
+  const vis = (el) => !el.hidden && getComputedStyle(el).display !== 'none';
+  const left = (id) => { const el = dagNodeEls.get(id); return el ? parseFloat(el.style.left) : null; };
+  let backwards = 0, dangling = 0;
+  for (const e of dagGraph.edges) {
+    const a = left(e.to), b = left(e.from);
+    if (a == null || b == null) dangling++;
+    else if (!e.cycle && !(a < b)) backwards++;
+  }
+  const grain = document.getElementById('grain').value;
+  const shared = [...dagGraph.nodes.values()].filter((n) => n.kind === 'shared').length;
+  const orphan = dagGraph.nodes.has('no-req') ? 1 : 0;
+  const first = [...dagNodeEls.entries()].map(([id, el]) => ({ id, el, degree: dagGraph.nodes.get(id).deps.length + dagGraph.nodes.get(id).dependents.length }))
+    .sort((p, q) => q.degree - p.degree)[0];
+  const r = first && first.el.getBoundingClientRect();
+  return {
+    on: document.body.classList.contains('view-dag'),
+    treeShown: vis(world), dagShown: vis(world2),
+    filterShown: vis(document.querySelector('.bar button[data-filter]')),
+    nodes: dagNodeEls.size, edges: dagGraph.edges.length, backwards, dangling, shared,
+    objectives: D.objectives.length, requirements: D.requirements.length + orphan,
+    expectNodes: (grain === 'objective' ? D.objectives.length : D.requirements.length + orphan) + shared,
+    first: first ? { id: first.id, degree: first.degree, x: r.x + r.width / 2, y: r.y + r.height / 2 } : null,
+  };
+})()`;
+
+async function run(page, label, expect) {
   const pick = await page.evaluate(PICK);
 
   // 點便利貼:側欄換成那一份、頭上那一串亮起來、它的引用線亮起來
@@ -276,6 +305,41 @@ async function run(page, label) {
     return Math.round(worst);
   })()`);
   check(`${label}:骨架線沒有橫貫整張圖的橫幹`, widest <= 40, `最長的一條橫線 ${widest}px`);
+
+  // 相依頁籤:目標排成先後,每條邊的依賴在左、依賴它的在右;點卡片側欄換成它依賴誰、誰等它
+  const tab = await page.evaluate(`(() => { const r = document.querySelector('.bar button[data-view="dag"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+  await page.click(tab.x, tab.y);
+  const dag = await page.evaluate(DAG);
+  check(`${label}:切到相依頁籤只看得到相依圖`, dag.on && !dag.treeShown && dag.dagShown, JSON.stringify(dag));
+  check(`${label}:每個目標一張卡,共用的那份自成一張`, dag.nodes === dag.expectNodes, `畫了 ${dag.nodes} 張,目標 ${dag.objectives} 個加共用 ${dag.shared} 份`);
+  check(`${label}:邊的兩端都是畫出來的卡`, dag.dangling === 0, `${dag.dangling} 條邊接到沒畫的卡`);
+  check(`${label}:依賴在左、依賴它的在右`, dag.backwards === 0, `${dag.backwards} 條邊的方向反了`);
+  check(`${label}:樹那一頁的篩選在相依頁收起來`, !dag.filterShown);
+  if (expect) {
+    const nodes = await page.evaluate('[...dagNodeEls.keys()].sort()');
+    const edges = await page.evaluate("dagGraph.edges.map((e) => e.to + '>' + e.from).sort()");
+    check(`${label}:相依圖的卡對得上夾具`, JSON.stringify(nodes) === JSON.stringify([...expect.nodes].sort()), `${nodes.join('、')} ≠ ${expect.nodes.join('、')}`);
+    check(`${label}:相依圖的邊對得上夾具`, JSON.stringify(edges) === JSON.stringify([...expect.edges].sort()), `${edges.join('、')} ≠ ${expect.edges.join('、')}`);
+  }
+  if (dag.first) {
+    await page.click(dag.first.x, dag.first.y);
+    const sel = await page.evaluate(`(() => ({ dagSelected, docOpen: !docEl.hidden, lit: document.querySelectorAll('#links2 .dep.lit').length, rows: docEl.querySelectorAll('section').length }))()`);
+    check(`${label}:點相依圖的卡會選到它`, sel.dagSelected === dag.first.id && sel.docOpen, JSON.stringify(sel));
+    check(`${label}:選了卡它的邊會亮`, sel.lit === dag.first.degree, `亮了 ${sel.lit} 條,這張卡有 ${dag.first.degree} 條邊`);
+    await page.click(dag.first.x, dag.first.y);
+    const un = await page.evaluate('({ dagSelected, homeOpen: !homeEl.hidden })');
+    check(`${label}:再點一次會取消選取`, un.dagSelected === null && un.homeOpen);
+  }
+  // 粒度切成需求:一條需求一張卡
+  await page.evaluate(`(() => { const g = document.getElementById('grain'); g.value = 'requirement'; g.dispatchEvent(new Event('change')); })()`);
+  const byReq = await page.evaluate(DAG);
+  check(`${label}:粒度切成需求後一條需求一張卡`, byReq.nodes === byReq.requirements + byReq.shared && byReq.backwards === 0 && byReq.dangling === 0,
+    `畫了 ${byReq.nodes} 張,需求 ${byReq.requirements} 條加共用 ${byReq.shared} 份,反向 ${byReq.backwards},懸空 ${byReq.dangling}`);
+  // 切回樹:便利貼回來,相依圖收起來
+  const treeTab = await page.evaluate(`(() => { const r = document.querySelector('.bar button[data-view="tree"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+  await page.click(treeTab.x, treeTab.y);
+  const back = await page.evaluate(DAG);
+  check(`${label}:切回樹那一頁便利貼回來`, !back.on && back.treeShown && !back.dagShown && back.filterShown, JSON.stringify(back));
 }
 
 const chrome = findChrome();
@@ -298,7 +362,7 @@ if (!chrome) {
       }
       const page = await openPage(browser, pathToFileURL(out).href);
       try {
-        await run(page, b.name);
+        await run(page, b.name, b.expect);
       } finally {
         await page.close();
       }

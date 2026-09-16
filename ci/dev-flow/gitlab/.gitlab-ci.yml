@@ -24,7 +24,10 @@ contract:
     # image 沒有 node 時打開這行
     # - curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
     # uto-skills 抓進專案底下的 .uto-skills/
-    - git clone --depth 1 --branch "$UTO_SKILLS_REF" https://github.com/utomore/uto-skills.git .uto-skills
+    # 分支、tag、commit SHA 都能填(git clone --branch 不接受 SHA,所以用 fetch + checkout)
+    - git init -q .uto-skills
+    - git -C .uto-skills fetch -q --depth 1 https://github.com/utomore/uto-skills.git "$UTO_SKILLS_REF"
+    - git -C .uto-skills checkout -q FETCH_HEAD
     # 專案自己的依賴
     - npm ci
   script:

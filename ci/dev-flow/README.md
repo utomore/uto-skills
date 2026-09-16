@@ -22,8 +22,9 @@ node ci/dev-flow/contract.mjs [--root <專案根目錄>] [--lint-only]
 | 步驟 | 做什麼 | 紅了擋不擋 |
 |---|---|---|
 | 1 契約對帳 | `devflow lint ids`、`boundary`、`sig`、`laws`、`io` | 擋 |
-| 1 契約對帳 | `lint trace`(law 有沒有測試承接) | 只印:設計 PR 的 law 還沒有測試,它一定紅 |
-| 1 契約對帳 | `status: draft` 文檔的紅 | 只印:draft 是還在討論的文檔,改成 `ready` 的那條 PR 起才擋 |
+| 1 契約對帳 | `lint trace` 的幽靈引用(測試引用的編號文檔裡沒有)與 `status: frozen` 文檔沒有測試承接的 law | 擋:幽靈引用什麼時候都是錯;frozen 是建置全綠後才改的,它的 law 理應都有測試 |
+| 1 契約對帳 | `lint trace` 其餘(`ready` 文檔的 law 還沒翻譯、需求與目標的 Law 還沒有驗收測試) | 只印:設計 PR 的 law 還沒有測試,它一定紅 |
+| 1 契約對帳 | `status: draft` 文檔的紅 | 只印:draft 是還在討論的文檔,改成 `ready` 的那條 PR 起才擋;`lint ids` 查的是檔案本身,兩份 draft 同號照擋 |
 | 2 建置 | `system.md`「語言與工具」的建置指令 | 擋 |
 | 3 整套測試 | 宣告的整套測試指令,輸出留檔;多語言專案每側一道 | 擋 |
 | 4 派工報告 | 拿測試輸出跑 `devflow status` | 只印:它答的是「全部達成了沒」,不是「這條 PR 對不對」 |
@@ -52,7 +53,7 @@ node <uto-skills>/ci/dev-flow/contract.mjs --lint-only   # 只對帳,不建置�
 ## GitLab
 
 1. 複製 `gitlab/.gitlab-ci.yml` 到專案根目錄;已經有 `.gitlab-ci.yml` 就把 `contract` job 貼進去,或用 `include` 引入。
-2. 改 `UTO_SKILLS_REF` 固定一個 commit 或 tag;`image` 照你的語言換,image 沒有 node 就打開裝 node 那行。
+2. 改 `UTO_SKILLS_REF` 固定一個 commit 或 tag(分支、tag、commit SHA 都能填);`image` 照你的語言換,image 沒有 node 就打開裝 node 那行。
 3. 複製 `gitlab/CODEOWNERS` 到 `.gitlab/CODEOWNERS`,換帳號。
 4. Settings → Merge requests 勾 **Pipelines must succeed**;Settings → Repository → Protected branches 對主線勾 **Require approval from code owners**。
 
@@ -62,7 +63,7 @@ GitLab 的 merge trains 對應 GitHub 的 merge queue,同樣等到需要再開�
 
 **PR 只有一份新的 draft 文檔,CI 會紅嗎?** 不會。draft 文檔的紅只印不擋。改成 `ready` 的那條 PR 起,它的每一列都要對得上程式碼。
 
-**設計 PR(文檔加骨架、本體是骨架標記)會紅嗎?** 不會。骨架編得過,既有測試不打它,`lint trace` 只印不擋。修訂(REV)把本體退回骨架標記時,被點名重委派的 law 的測試會紅,那條 PR 由 `dev-flow:integrate` 的判準決定放不放行。
+**設計 PR(文檔加骨架、本體是骨架標記)會紅嗎?** 不會。骨架編得過,既有測試不打它,`lint trace` 對 `ready` 文檔只印不擋。修訂(REV)把本體退回骨架標記時,被點名重委派的 law 的測試會紅,那條 PR 由 `dev-flow:integrate` 的判準決定放不放行。
 
 **多語言專案?** `system.md` 的 `language` 欄寫 `[web = typescript, api = python]`、三道指令每側一組,腳本每側各跑一道、報告合併。CI 的工具鏈兩種都要裝。
 

@@ -4,8 +4,10 @@
 //   node ci/dev-flow/contract.mjs [--root <專案根目錄>] [--lint-only]
 //
 // 做四件事,前三件任一紅就 exit 1:
-//   1. lint ids / boundary / sig / laws / io(lint trace 只印不擋:設計 PR 的 law 還沒有測試,它一定紅;
-//      status: draft 文檔的紅只印不擋:draft 是還在討論的文檔,改成 ready 的那條 PR 起才擋)
+//   1. lint ids / boundary / sig / laws / io;lint trace 只擋幽靈引用(測試引用的編號文檔裡沒有)與 frozen 文檔沒有測試承接的 law,
+//      其餘的 trace 紅只印不擋:設計 PR 的 law 還沒有測試,它一定紅;
+//      status: draft 文檔的紅只印不擋:draft 是還在討論的文檔,改成 ready 的那條 PR 起才擋;
+//      lint ids 查的是檔案本身,不看 status,兩份 draft 同號照擋)
 //   2. 跑 system.md「語言與工具」的建置指令
 //   3. 跑整套測試指令,輸出留檔(多語言專案每側一道)
 //   4. 拿測試輸出跑 devflow status 印一份派工報告(只印,exit code 不看:它答的是「全部達成了沒」,不是「這條 PR 對不對」)
@@ -73,13 +75,14 @@ async function main() {
   heading('契約對帳');
   const drafts = design.docs.filter((d) => d.status === 'draft').flatMap((d) => [d.file, d.fullName]);
   const aboutDraft = (msg) => drafts.some((k) => msg.includes(k));
-  const results = [
-    lint.lintIds(design),
+  // lint ids 查的是檔案本身(兩份同號、號不在 owner 的區間),跟文檔寫完沒有無關,不套 draft 過濾:claim 出來的新文檔一定是 draft
+  const content = [
     lint.lintBoundary(design, source, adapter),
     lint.lintSig(design, source, adapter),
     lint.lintLaws(design, source, adapter),
     lint.lintIo(design, source, adapter),
   ].map((r) => ({ ...r, red: r.red.filter((m) => !aboutDraft(m)), draft: r.red.filter(aboutDraft) }));
+  const results = [{ ...lint.lintIds(design), draft: [] }, ...content];
   const gated = lint.renderLint(results);
   console.log(gated.text);
   if (gated.exitCode) failed = true;
@@ -88,9 +91,18 @@ async function main() {
     console.log(`## draft 文檔的紅(只印不擋):${draftReds.length} 條`);
     for (const x of draftReds) console.log(`- · ${x}`);
   }
+  // lint trace 拆兩段:幽靈引用(測試還在守一條文檔裡沒有的編號)什麼時候都是錯,擋;
+  // frozen 文檔的 law 沒有測試承接也擋 —— frozen 是建置全綠後才改的,它的 law 理應都有測試;
+  // 其餘(ready 文檔的 law 還沒翻譯、需求與目標的 Law 還沒有驗收測試)只印:設計 PR 的 law 還沒有測試,它一定紅
   const trace = lint.lintTrace(design, source);
-  console.log(`## lint trace(只印不擋):${trace.red.length ? `${trace.red.length} 條還沒有測試承接` : '全部有測試承接'}`);
-  for (const x of trace.red) console.log(`- · ${x}`);
+  const frozen = design.docs.filter((d) => d.status === 'frozen' && d.id).map((d) => `${d.id}#`);
+  const gatedTrace = trace.red.filter((m) => m.includes('幽靈引用') || frozen.some((p) => m.startsWith(p)));
+  const openTrace = trace.red.filter((m) => !gatedTrace.includes(m));
+  const traced = lint.renderLint([{ title: 'lint trace(幽靈引用、frozen 文檔的 law)', red: gatedTrace, info: [] }]);
+  console.log(traced.text);
+  if (traced.exitCode) failed = true;
+  console.log(`## lint trace 其餘(只印不擋):${openTrace.length ? `${openTrace.length} 條還沒有測試承接` : '全部有測試承接'}`);
+  for (const x of openTrace) console.log(`- · ${x}`);
 
   if (flags['lint-only']) {
     console.log(failed ? '\n✗ 契約對帳有紅' : '\n✓ 契約對帳通過');

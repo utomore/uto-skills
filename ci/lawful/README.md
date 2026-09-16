@@ -41,7 +41,7 @@ node <uto-skills>/ci/lawful/contract.mjs --lint-only   # 只對帳,不建置不�
 ## GitHub
 
 1. 複製 `github/contract.yml` 到專案的 `.github/workflows/contract.yml`。
-2. 改兩處:`ref` 固定 uto-skills 的一個 commit 或 tag;`ghc-version` 與 `cabal-version` 照專案的 `cabal.project`。
+2. `ref` 釘在 uto-skills 的一個 tag(範本寫的是目前的 tag,要升級就換);`ghc-version` 與 `cabal-version` 照專案的 `cabal.project`。
 3. 複製 `github/CODEOWNERS` 到 `.github/CODEOWNERS`,把 `@architect` 換成架構負責人的帳號。
 4. Settings → Branches → 主線的 branch protection 勾三項:
    - **Require status checks to pass**,選 `contract`
@@ -53,7 +53,7 @@ node <uto-skills>/ci/lawful/contract.mjs --lint-only   # 只對帳,不建置不�
 ## GitLab
 
 1. 複製 `gitlab/.gitlab-ci.yml` 到專案根目錄;已經有 `.gitlab-ci.yml` 就把 `contract` job 貼進去,或用 `include` 引入。
-2. 改 `UTO_SKILLS_REF` 固定一個 commit 或 tag(分支、tag、commit SHA 都能填);`image` 的 GHC 版本照專案。
+2. `UTO_SKILLS_REF` 釘在 uto-skills 的一個 tag(範本寫的是目前的 tag,要升級就換;分支與 commit SHA 也能填);`image` 的 GHC 版本照專案。
 3. 複製 `gitlab/CODEOWNERS` 到 `.gitlab/CODEOWNERS`,換帳號。
 4. Settings → Merge requests 勾 **Pipelines must succeed**;Settings → Repository → Protected branches 對主線勾 **Require approval from code owners**。
 

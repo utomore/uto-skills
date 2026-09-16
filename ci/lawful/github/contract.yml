@@ -16,11 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # uto-skills 抓進專案底下的 .uto-skills/;ref 固定一個 commit 或 tag,更新時自己改
+      # uto-skills 抓進專案底下的 .uto-skills/;ref 釘在一個 tag,要升級就換 tag
       - uses: actions/checkout@v4
         with:
           repository: utomore/uto-skills
-          ref: main
+          ref: v0.1.0
           path: .uto-skills
 
       - uses: actions/setup-node@v4

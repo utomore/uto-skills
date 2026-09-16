@@ -14,8 +14,8 @@ contract:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:
-    # 固定一個 commit 或 tag,更新時自己改
-    UTO_SKILLS_REF: main
+    # 釘在一個 tag,要升級就換 tag
+    UTO_SKILLS_REF: v0.1.0
   cache:
     key: cabal-$CI_COMMIT_REF_SLUG
     paths:

@@ -1,13 +1,8 @@
-$ lawful requirement add 舊版存檔在新版讀得回來 --law 任一舊版存檔,新版讀回的投影與舊版一樣
-R-2 寫進 .lawful/Cone.md
-下一步:lawful objective add <一句話> --requirement R-2 --priority <1-4>
-exit 0
---- .lawful/Cone.md
 ---
 language: haskell
 updated: 2026-09-05
 ---
-# save-game:把遊戲世界存成檔案再讀回來
+# team:把遊戲世界存成檔案再讀回來
 
 ## 願景
 玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
@@ -20,9 +15,6 @@ updated: 2026-09-05
   - forall w in World
   - |- decode (saveBytes w) == Right (toSave w)
 
-### R-2:舊版存檔在新版讀得回來
-- Law:任一舊版存檔,新版讀回的投影與舊版一樣
-
 ## 專案約束
 - 語言:haskell
 - 建置:`cabal build`
@@ -33,7 +25,6 @@ updated: 2026-09-05
 - IO 模組追加:無
 - 效果型別追加:無
 - 忽略目錄:`old`
-- 號段:無
+- 號段:amy@corp.com = 100-199;bob@corp.com = 200-299
 - 套件與框架:cborg(CBOR 編解碼);不引入其他序列化套件
 - 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
-

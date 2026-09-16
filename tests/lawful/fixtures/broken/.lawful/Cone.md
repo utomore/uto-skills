@@ -23,4 +23,5 @@ updated: 2026-09-05
 - 模組前綴:`Game`
 - 原始碼根目錄:`src-<層>`
 - IO 模組追加:無
+- 號段:amy@corp.com = 000-099;bob@corp.com = 050-149;carol@corp.com = 1x0-199
 - 套件與框架:無

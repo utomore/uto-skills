@@ -84,8 +84,24 @@ function parseLawItem(items) {
   };
 }
 
-// 專案約束的清單項:指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、優先各級代表什麼。其餘的列是給人看的硬性要求,不機械讀。
-function parseConstraints(lines) {
+// 號段行:「a@x.com = 000-099;b@x.com = 100-199」,以 git 的 user.email 為鍵。佔位符或「無」是沒有號段;讀不懂的段落進 errors,由 lint ids 報。
+export function parseRanges(raw) {
+  const text = (raw || '').trim();
+  const out = { ranges: [], errors: [] };
+  if (!text || text === '無' || hasPlaceholder(text)) return out;
+  for (const part of text.split(/[;;]/).map((s) => s.trim()).filter(Boolean)) {
+    const m = /^(\S+@\S+)\s*=\s*(\d{3})\s*[-–~]\s*(\d{3})$/.exec(part);
+    if (!m || Number(m[2]) > Number(m[3])) {
+      out.errors.push(part);
+      continue;
+    }
+    out.ranges.push({ email: m[1], lo: Number(m[2]), hi: Number(m[3]), text: `${m[2]}-${m[3]}` });
+  }
+  return out;
+}
+
+// 專案約束的清單項:指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先各級代表什麼。其餘的列是給人看的硬性要求,不機械讀。
+function parseConstraints(lines, start) {
   const ioExtra = [];
   const effectExtra = [];
   const ignoreDirs = [];
@@ -93,9 +109,10 @@ function parseConstraints(lines) {
   let modulePrefix = '';
   let srcRoot = '';
   let priorityNote = '';
+  let ranges = { ranges: [], errors: [], line: 0 };
   const one = (v) => (!v || v === '無' || /^<[^>]*>$/.test(v) ? '' : v);
   for (const it of parseList(lines)) {
-    const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄|優先)[::]\s*(.*)$/.exec(it.text);
+    const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄|優先|號段)[::]\s*(.*)$/.exec(it.text);
     if (!m) continue;
     const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
     if (m[1] === 'IO 模組追加') ioExtra.push(...list());
@@ -104,10 +121,12 @@ function parseConstraints(lines) {
     else if (m[1] === '模組前綴') modulePrefix = one(codeSpan(m[2]));
     else if (m[1] === '原始碼根目錄') srcRoot = one(codeSpan(m[2])).replace(/[/]$/, '');
     else if (m[1] === '優先') priorityNote = m[2].trim();
+    else if (m[1] === '號段') ranges = { ...parseRanges(m[2]), line: start + lines.findIndex((l) => /^- 號段/.test(l)) + 2 };
     else commands[m[1]] = codeSpan(m[2]);
   }
   // 一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼
-  return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>', priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok' };
+  // 號段:多人平行 claim 時每人一段;沒有這一行就是空陣列,claim 從全部 pipeline 的最大號往上配
+  return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>', priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok', ranges: ranges.ranges, rangesErrors: ranges.errors, rangesLine: ranges.line };
 }
 
 // Cone.md:frontmatter(language、updated)與三節:願景、需求、專案約束。
@@ -121,7 +140,7 @@ export function readCone(lawfulDir, root) {
   const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
   for (const s of secs) s.start += offset;
   const constraintsSec = findSection(secs, '專案約束');
-  const constraints = parseConstraints(constraintsSec ? constraintsSec.lines : []);
+  const constraints = parseConstraints(constraintsSec ? constraintsSec.lines : [], constraintsSec ? constraintsSec.start : 0);
   // 願景:第一段是報告第一行印的那句;整節留給看板與 --json
   const visionSec = findSection(secs, '願景');
   const paragraphs = visionSec ? visionSec.lines.join('\n').split(/\n\s*\n/).map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean).join(' ')).filter(Boolean) : [];
@@ -371,6 +390,7 @@ export function readPipeline(file, root) {
     kindRaw,
     kindState: !kindRaw ? 'missing' : hasPlaceholder(kindRaw) ? 'template' : KINDS.includes(kindRaw) ? 'ok' : 'invalid',
     description: fm.description || '',
+    owner: typeof fm.owner === 'string' ? fm.owner.trim() : '',
     sections: secs,
     brief: findSection(secs, 'Brief'),
     stages: stages.filter((s) => !s.placeholder),
@@ -425,6 +445,27 @@ export function readSpikes(lawfulDir, root) {
   });
 }
 
+// 一檔一號的東西:pipeline、spike、ADR、目標。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
+export function readNumbered(lawfulDir, root) {
+  const out = [];
+  const scan = (sub, re) => {
+    const dir = path.join(lawfulDir, sub);
+    if (!fs.existsSync(dir)) return;
+    for (const f of fs.readdirSync(dir).sort()) {
+      const m = re.exec(f);
+      if (!m) continue;
+      const { fm } = parseFrontmatter(fs.readFileSync(path.join(dir, f), 'utf8'));
+      const id = m[1];
+      out.push({ file: rel(root, path.join(dir, f)), id, prefix: id.replace(/-\d+$/, ''), num: Number(id.replace(/^.*-/, '')), owner: typeof fm.owner === 'string' ? fm.owner.trim() : '' });
+    }
+  };
+  scan('pipelines', /^(P-\d{3})-.+\.md$/);
+  scan('spikes', /^(SPK-\d{3})-.+\.md$/);
+  scan('adr', /^(ADR-\d{3})-.+\.md$/);
+  scan('objectives', /^R-\d+-(O-\d+)-.+\.md$/);
+  return out;
+}
+
 export function readDesign(root) {
   const lawfulDir = path.join(root, '.lawful');
   if (!fs.existsSync(lawfulDir)) return null;
@@ -445,5 +486,6 @@ export function readDesign(root) {
     pipelines: files.map((f) => readPipeline(path.join(pipelinesDir, f), root)),
     gaps: readGaps(lawfulDir, root),
     spikes: readSpikes(lawfulDir, root),
+    numbered: readNumbered(lawfulDir, root),
   };
 }

@@ -12,9 +12,15 @@ const goldenDir = path.join(here, 'golden');
 const update = process.argv.includes('--update');
 const DATE = '2026-09-05';
 
-// [名字, 夾具, argv, 寫檔後要收進 golden 的檔(相對夾具)]
+// [名字, 夾具, argv, 寫檔後要收進 golden 的檔(相對夾具), 環境變數]
 const CASES = [
   ['save-game-lint-all', 'save-game', ['lint', 'all']],
+  // team:Cone.md 有號段行的樹;claim 從自己的區間配號並寫 owner,email 不在號段行上就停
+  ['team-lint-ids', 'team', ['lint', 'ids']],
+  ['team-claim', 'team', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', '子流', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-101-save-load.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md'], { GIT_AUTHOR_EMAIL: 'amy@corp.com' }],
+  ['team-claim-other', 'team', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', '子流', '--date', DATE], ['.lawful/pipelines/P-200-save-load.md'], { GIT_AUTHOR_EMAIL: 'bob@corp.com' }],
+  ['team-claim-unknown', 'team', ['claim', 'save-load', '--date', DATE], ['.lawful/pipelines/P-101-save-load.md'], { GIT_AUTHOR_EMAIL: 'carol@corp.com' }],
+  ['broken-lint-ids', 'broken', ['lint', 'ids']],
   ['broken-lint-boundary', 'broken', ['lint', 'boundary']],
   ['broken-lint-sig', 'broken', ['lint', 'sig']],
   ['broken-lint-laws', 'broken', ['lint', 'laws']],
@@ -91,7 +97,7 @@ function snapshot(root, files) {
 }
 
 let failed = 0;
-for (const [name, fixture, argv, files] of CASES) {
+for (const [name, fixture, argv, files, env] of CASES) {
   let root = path.join(here, 'fixtures', fixture);
   let tmp = null;
   if (files) {
@@ -99,8 +105,10 @@ for (const [name, fixture, argv, files] of CASES) {
     fs.cpSync(root, tmp, { recursive: true });
     root = tmp;
   }
-  const r = spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8' });
-  let actual = `$ lawful ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
+  // GIT_AUTHOR_EMAIL 預設清空:沒指定 env 的案例不受這台機器的 git 設定影響
+  const r = spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '', ...env } });
+  const envText = env ? Object.entries(env).map(([k, v]) => `${k}=${v} `).join('') : '';
+  let actual = `$ ${envText}lawful ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
   if (files) actual += snapshot(root, files) + '\n';
   if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
   const file = path.join(goldenDir, `${name}.txt`);
@@ -118,7 +126,7 @@ for (const [name, fixture, argv, files] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/status/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');

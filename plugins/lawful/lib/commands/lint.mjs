@@ -1,9 +1,37 @@
-// lint boundary / sig / laws / trace / io / all。每道回 { title, red: [], info: [] }。
+// lint ids / boundary / sig / laws / trace / io / all。每道回 { title, red: [], info: [] }。
 import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, layerRoot, matchesPattern, unitOf, unitOfSlug, unitSlug } from '../design.mjs';
 import { findSignature, findType } from '../source.mjs';
 
 function at(file, line) {
   return line ? `${file}:${line}` : file;
+}
+
+// 一檔一號:兩個檔案同號即紅;號段行讀不懂或兩段重疊即紅;有號段行時,寫了 owner 的 pipeline / spike / ADR 的號要落在 owner 的區間內。
+export function lintIds(design) {
+  const r = { title: 'lint ids', red: [], info: [] };
+  const cone = design.cone;
+  const ranges = cone ? cone.ranges : [];
+  if (cone) {
+    for (const e of cone.rangesErrors) r.red.push(`${at(cone.file, cone.rangesLine)} 號段行讀不懂「${e}」;每段是 <email> = <三位數>-<三位數>,起點不大於終點,段與段用「;」隔開`);
+    for (let i = 0; i < ranges.length; i++) for (let j = i + 1; j < ranges.length; j++) {
+      const a = ranges[i];
+      const b = ranges[j];
+      if (a.lo <= b.hi && b.lo <= a.hi) r.red.push(`${at(cone.file, cone.rangesLine)} 號段重疊:${a.email} = ${a.text} 與 ${b.email} = ${b.text}`);
+    }
+  }
+  const byId = new Map();
+  for (const n of design.numbered) {
+    if (!byId.has(n.id)) byId.set(n.id, []);
+    byId.get(n.id).push(n.file);
+  }
+  for (const [id, files] of byId) if (files.length > 1) r.red.push(`${id} 同號:${files.join('、')};刪掉的號永久空缺,後 claim 的那條改號`);
+  if (ranges.length) for (const n of design.numbered) {
+    if (!n.owner || !['P', 'SPK', 'ADR'].includes(n.prefix)) continue;
+    const mine = ranges.filter((x) => x.email === n.owner);
+    if (!mine.length) r.info.push(`${n.file} 的 owner ${n.owner} 不在號段行上`);
+    else if (!mine.some((x) => n.num >= x.lo && n.num <= x.hi)) r.red.push(`${n.file} 的 ${n.id} 不在 owner ${n.owner} 的號段 ${mine.map((x) => x.text).join('、')} 內`);
+  }
+  return r;
 }
 
 // M 可以 import X.Internal 的條件:M 就是 X,或 M 住在 X.Internal 底下。測試不在模組圖裡。
@@ -377,7 +405,7 @@ export function lintIo(design, source) {
 }
 
 export function lintAll(design, source, adapter) {
-  return [lintBoundary(design, source, adapter), lintSig(design, source, adapter), lintLaws(design, source, adapter), lintTrace(design, source), lintIo(design, source)];
+  return [lintIds(design), lintBoundary(design, source, adapter), lintSig(design, source, adapter), lintLaws(design, source, adapter), lintTrace(design, source), lintIo(design, source)];
 }
 
 export function renderLint(results) {

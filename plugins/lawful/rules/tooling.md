@@ -23,6 +23,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]` | 鑄 `O-n` 建 `objectives/R-n-O-n-<slug>.md`(slug 是 kebab-case 英文);需求要是 `Cone.md` 裡有的;優先 1 最高、4 最低;Law 沒給就寫「繼承 R-n」,那條需求已經有別的目標時提醒各目標要有自己的 Law 與蘊含說明 |
 | `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全資料夾唯一)加進該目標檔的建置路線表;綁定的全名要是 `pipelines/` 裡有的 pipeline |
 | `objective refinement <O-n> <一句話> --touch <全名,全名>` | 鑄 `RF-n`(全資料夾唯一)加進該目標檔的優化路線表;動到的全名要存在、而且是該目標某條里程碑綁定過的,否則停:優化路線不引入新 feature |
+| `lint ids` | 一檔一號:兩個檔案同號即紅;號段行讀不懂或兩段重疊即紅;有號段行時,寫了 `owner` 的 pipeline / spike / ADR 的號要在 owner 的區間內 |
 | `lint boundary` | import 與簽名 vs 模組表;types / effect / core 命中效果型別即紅;未登記模組、單元巢狀、檔不在任何一棵原始碼樹底下、所在那棵樹的層沒宣告、檔案位置對不上模組名、同一個模組名有兩個檔即紅;職責欄空的即紅;表上有而程式碼還沒有的單元或層列成訊息;非 shell 模組沒有匯出清單即紅;production 模組 import 別人的 `*.Internal` 即紅 |
 | `lint sig` | slug 的領域名詞要是 `=` 列住的模組單元(`=` 列還對不到單元時,至少要是表上的一個單元);Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;找不到的簽名即紅;簽名裡的型別在程式碼與標準函式庫都找不到即紅;stage 之間傳遞的值用了無名容器(aeson 的 `Value` …)即紅,`!` 列不查;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
 | `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |

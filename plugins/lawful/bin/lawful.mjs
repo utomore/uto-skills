@@ -5,7 +5,7 @@ import process from 'node:process';
 import { readDesign } from '../lib/design.mjs';
 import { readSource } from '../lib/source.mjs';
 import { pickAdapter, adapterNames } from '../lib/adapters/index.mjs';
-import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
+import { lintAll, lintBoundary, lintIds, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { branchState, loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
@@ -29,6 +29,7 @@ const HELP = `lawful <子命令> [選項]
   claim <slug> [--description <句>] [--kind <IO 介面 | 子流>] [--milestone <M-n>]
                                        鑄號建 pipeline 檔(status: draft),綁進 --milestone 那條里程碑。
                                        slug 是 <領域名詞>-<動詞或動名詞>:領域名詞是 = 列住的模組單元(去掉模組前綴、大駝峰拆成 kebab),要在模組表上
+                                       Cone.md「專案約束」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部 pipeline 的最大號往上配
   rename <P-00x> <slug> [--dry-run]    換 slug,編號不動;檔改名,專案裡寫著舊全名的每一處(.lawful/、原始碼註解)一起改
   requirement add <一句話> [--law <句>]
                                        鑄 R-n 寫進 Cone.md「需求」;Law 是一句可判定的話
@@ -38,8 +39,8 @@ const HELP = `lawful <子命令> [選項]
                                        鑄 M-n(全檔唯一)加進該目標的建置路線表;綁定的全名要是 pipelines/ 裡有的 pipeline
   objective refinement <O-n> <一句話> --touch <全名,全名>
                                        鑄 RF-n(全檔唯一)加進該目標的優化路線表;動到的 pipeline 要是這個目標的里程碑綁定過的
-  lint boundary | sig | laws | trace | io | all
-                                       邊界 / 簽名 / laws / 測試歸屬 / 對外 I/O 的對帳
+  lint ids | boundary | sig | laws | trace | io | all
+                                       一檔一號與號段 / 邊界 / 簽名 / laws / 測試歸屬 / 對外 I/O 的對帳
   sync [--date <YYYY-MM-DD>]            把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改)
   modules --gen                        從程式碼的模組名推出模組單元與層,補進模組表,職責欄留白
   section <file> <節>… [--verify]       取節
@@ -132,12 +133,12 @@ function main() {
 
   if (cmd === 'lint') {
     const which = sub || 'all';
-    const one = { boundary: lintBoundary, sig: lintSig, laws: lintLaws, trace: lintTrace, io: lintIo };
+    const one = { ids: lintIds, boundary: lintBoundary, sig: lintSig, laws: lintLaws, trace: lintTrace, io: lintIo };
     let results;
     if (which === 'all') results = lintAll(design, source, adapter);
     else if (one[which]) results = [one[which](design, source, adapter)];
     else {
-      console.error(`lint 只有 boundary / sig / laws / trace / io / all,沒有「${which}」`);
+      console.error(`lint 只有 ids / boundary / sig / laws / trace / io / all,沒有「${which}」`);
       return 1;
     }
     return emit(renderLint(results));

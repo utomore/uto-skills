@@ -1,0 +1,3 @@
+$ lawful lint ids
+## lint ids:通過
+exit 0

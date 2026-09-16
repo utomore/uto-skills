@@ -1,4 +1,5 @@
 $ lawful lint all
+## lint ids:通過
 ## lint boundary:通過
 ## lint sig:通過
 ## lint laws:通過

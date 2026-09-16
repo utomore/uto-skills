@@ -30,7 +30,7 @@
 | 優化路線、調整、`RF-n`、動到、待修訂 | pipelines.md「願景、需求、目標與路線」「修訂(REV)」 |
 | Law 成立、完成度、調整達成 | pipelines.md「完成度」 |
 | pipeline、stage、`=` 列 / 純的整條、`!` 列 / 進入點、`o` 列 / 觀察點、IO 介面、子流、`kind` | pipelines.md「pipeline」「frontmatter 與 status」 |
-| 全名、`P-00x#name`、`P-00x#LAW-n`、`R-n#LAW`、`O-n#LAW` | pipelines.md「編號與引用」 |
+| 全名、`P-00x#name`、`P-00x#LAW-n`、`R-n#LAW`、`O-n#LAW`、號段、`owner`、`lint ids` | pipelines.md「編號與引用」 |
 | `draft` / `ready` / `frozen`、解凍 | pipelines.md「frontmatter 與 status」 |
 | Brief、Stages、Laws、law 種類、Examples、決定 | pipelines.md「節」 |
 | 什麼要有 law、自由度、內部支架 | pipelines.md「什麼要有 law」 |

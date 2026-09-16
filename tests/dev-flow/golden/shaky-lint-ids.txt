@@ -1,0 +1,8 @@
+$ devflow lint ids
+## lint ids:4 條不合規
+- ✗ .design/system.md:37 號段行讀不懂「carol@corp.com = 1x0-199」;每段是 <email> = <三位數>-<三位數>,起點不大於終點,段與段用「;」隔開
+- ✗ .design/system.md:37 號段重疊:amy@corp.com = 000-099 與 bob@corp.com = 050-149
+- ✗ ADR-001 同號:.design/adr/ADR-001-cbor.md、.design/adr/ADR-001-json.md;刪掉的號永久空缺,後 claim 的那份改號
+- ✗ .design/features/F-001-score.md 的 F-001 不在 owner bob@corp.com 的號段 050-149 內
+- · .design/features/F-002-other.md 的 owner dave@corp.com 不在號段行上
+exit 1

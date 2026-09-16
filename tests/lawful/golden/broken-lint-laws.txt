@@ -4,7 +4,7 @@ $ lawful lint laws
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-4 |- 行的 crc32 對不到 Stages 簽名、types 層匯出或標準函式庫
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-5 缺 |- 行
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-6 given 行含非 ASCII 字元,三行只准表達式,不准散文:given s 這一步有發出至少一個事件
-- ✗ .lawful/pipelines/P-001-game-save.md:27 = 列 saveGame 沒有任何 law 引用;整條至少一條 law
+- ✗ .lawful/pipelines/P-001-game-save.md:28 = 列 saveGame 沒有任何 law 引用;整條至少一條 law
 - ✗ .lawful/pipelines/P-001-game-save.md EX-2 指到的 LAW-9 不存在
 - ✗ .lawful/pipelines/P-001-game-save.md EX-3 沒有指到任何 law
 - ✗ .lawful/Cone.md:13 R-1 Law |- 行的 restore 對不到 Stages 簽名(任何一條 pipeline 的)、types 層匯出或標準函式庫

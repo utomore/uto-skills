@@ -120,6 +120,8 @@ feature 之間**不互相引用**:兩份 feature 需要同一段東西,那一段
 | ADR / spike | `ADR-001` / `SPK-001` | 全名 |
 
 - 配號只走 `devflow claim`、`devflow requirement add`、`devflow objective add / milestone / refinement`;刪掉的號永久空缺。
+- `system.md`「語言與工具」沒有號段行時,`devflow claim` 從該類別全部文檔的最大號往上配。有號段行時(每人一段,以 git 的 `user.email` 為鍵:`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),從自己區間內的最大號往上配,frontmatter 多一欄 `owner: <email>`;email 對不到任何區間、或區間用完,claim 停下,由架構負責人改號段行。號段只管一檔一號的 feature、abstract、spike、ADR;需求、目標、里程碑、調整住共用檔、經設計 review,一律從最大號往上配。
+- `lint ids`:兩個檔案同號、號段行讀不懂或兩段重疊、`owner` 的號不在自己的區間內即紅。分支上各自 claim 時彼此看不到,同號在合進主線時才浮現,這條在 PR 的 CI 上跑。
 - feature、abstract、ADR、spike 一律寫全名。
 - slug 是 kebab-case 英文,講資料流做什麼。
 
@@ -140,7 +142,7 @@ name(型別, 型別): 回傳型別
 
 ## frontmatter 與 status
 
-`id`、`description`、`status`、`updated`。`status` 只放**人才知道的決定**,進度不是欄位:
+`id`、`description`、`status`、`updated`;`system.md` 有號段行的專案多一欄 `owner`(`devflow claim` 寫,是 GAP 分派的依據)。`status` 只放**人才知道的決定**,進度不是欄位:
 
 | status | 意思 |
 |---|---|

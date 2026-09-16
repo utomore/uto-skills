@@ -1,5 +1,6 @@
 ---
 id: F-001
+owner: bob@corp.com
 description: 把一段輸入算成分數
 status: frozen
 updated: 2026-09-07

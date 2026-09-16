@@ -100,12 +100,14 @@ updated: 2026-09-05
 | ADR / spike | `ADR-001` / `SPK-001` | 全名 |
 
 - 配號只走 `lawful claim`;刪掉的號永久空缺。
+- `Cone.md`「專案約束」沒有號段行時,`lawful claim` 從全部 pipeline 的最大號往上配。有號段行時(每人一段,以 git 的 `user.email` 為鍵:`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),從自己區間內的最大號往上配,frontmatter 多一欄 `owner: <email>`;email 對不到任何區間、或區間用完,claim 停下,由架構負責人改號段行。號段只管一檔一號的 pipeline、spike、ADR;需求、目標、里程碑、調整住共用檔、經設計 review,一律從最大號往上配。
+- `lint ids`:兩個檔案同號、號段行讀不懂或兩段重疊、`owner` 的號不在自己的區間內即紅。分支上各自 claim 時彼此看不到,同號在合進主線時才浮現,這條在 PR 的 CI 上跑。
 - pipeline、ADR、spike 一律寫全名。
 - slug 是 `<領域名詞>-<動詞或動名詞>`,kebab-case 英文,至少兩段。領域名詞是 `=` 列住的**模組單元**:去掉模組前綴、大駝峰拆成 kebab(`Weft.ActionSequence` → `action-sequence`);後面接這條資料流做什麼(`inventory-step`、`render-compose`、`snapshot-rewind`、`save-write`)。`lawful claim` 查領域名詞對得上模組表,`lint sig` 查它是 `=` 列住的單元;`=` 列搬到別的單元就 `lawful rename <P-00x> <slug>`,編號不動,專案裡寫著舊全名的每一處一起改。
 
 ## frontmatter 與 status
 
-`id`、`description`、`kind`、`status`、`updated`。`kind` 是 `IO 介面` 或 `子流`(「pipeline」);`claim --kind` 填,沒填的還是佔位符,`lawful status` 列警訊。`status` 只放人才知道的決定:
+`id`、`description`、`kind`、`status`、`updated`;`Cone.md` 有號段行的專案多一欄 `owner`(`lawful claim` 寫,是 GAP 分派的依據)。`kind` 是 `IO 介面` 或 `子流`(「pipeline」);`claim --kind` 填,沒填的還是佔位符,`lawful status` 列警訊。`status` 只放人才知道的決定:
 
 | status | 意思 |
 |---|---|

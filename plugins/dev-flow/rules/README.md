@@ -21,7 +21,7 @@
 | 優化路線、調整、`RF-n`、動到、待修訂 | features.md「願景、需求、目標與路線」「修訂(REV)」 |
 | Law 成立、完成度、調整達成 | features.md「完成度」 |
 | feature、abstract、step、`=` 列 / 整條、`!` 列 / 進入點、`o` 列 / 觀察點 | features.md「feature 與 abstract」 |
-| 全名、`F-00x#name`、`F-00x#LAW-n`、`R-n#LAW`、`O-n#LAW` | features.md「編號與引用」 |
+| 全名、`F-00x#name`、`F-00x#LAW-n`、`R-n#LAW`、`O-n#LAW`、號段、`owner`、`lint ids` | features.md「編號與引用」 |
 | 正規式簽名、`型別.方法`、型別註記可省 | features.md「簽名怎麼寫」;tooling.md「language adapter」 |
 | `draft` / `ready` / `frozen`、解凍 | features.md「frontmatter 與 status」 |
 | Brief、Steps、Laws、law 種類、`given` 的時序、Examples、決定 | features.md「節」 |

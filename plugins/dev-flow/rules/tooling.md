@@ -16,11 +16,12 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-f
 | `status --doc <F-00x>` / `--module <路徑>` | 一份文檔的 step 與 law 逐條狀態 / 住在該檔案或目錄的所有 step 的狀態 |
 | `status --json` | 同一份報告的資料原樣輸出:願景、需求(Law 成立與否與來源、蘊含、底下的目標)、目標(需求、優先、Law、里程碑、調整)、每份文檔(step、law、example、GAP、引用與被引用、模組)、能開的線、警訊、建議路線。數字與文字都與報告同源,給別的工具讀 |
 | `status --html [檔名] [--open]` | **報告照印**,另外把同一份資料畫成看板,寫成一個自帶資料的單檔網頁,結尾附上它的 `file://` 網址;沒給檔名就寫進系統暫存區的 `devflow-board/<專案資料夾名>-status.html`,不在專案裡留檔。`--open` 直接用系統預設瀏覽器打開。可平移縮放的畫布上由上而下一棵樹:願景一張(第一段),往下一層一條需求一個區塊、副標寫 Law 成立與否與來源,再一層是目標(卡上寫優先與那一級代表什麼、Law、里程碑與調整的達成數),再一層是里程碑與調整(還沒綁 feature 的里程碑標成待 claim,調整標它的狀態),最底下一份文檔一張便利貼、顏色是狀態。文檔之間的引用是另一種線,預設只在選取時出現。點便利貼看它的 step 與 law 逐條、牽動誰、警訊;點需求、目標或里程碑縮放到那一叢。不連網、不起服務,瀏覽器打開就看 |
-| `claim feature\|abstract\|spike\|adr <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建檔(feature 與 abstract 是 `status: draft`);feature 另在 `system.md` Features 表加一列並綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標;spike 另建 `spike/SPK-00x-<slug>/` |
+| `claim feature\|abstract\|spike\|adr <slug> [--description <句>] [--milestone <M-n>]` | 鑄號建檔(feature 與 abstract 是 `status: draft`);feature 另在 `system.md` Features 表加一列並綁進 `--milestone` 那條里程碑,沒給就提醒它還不朝向任何目標;spike 另建 `spike/SPK-00x-<slug>/`。`system.md` 有號段行時,號從 git `user.email` 對到的區間內配並寫 `owner`(features.md「編號與引用」) |
 | `requirement add <一句話> [--law <句>]` | 鑄 `R-n` 寫進 `system.md`「需求」;Law 沒給就留佔位符並提醒。「需求」節裡還是模板的那一條會被換掉 |
 | `objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]` | 鑄 `O-n` 建 `objectives/R-n-O-n-<slug>.md`(slug 是 kebab-case 英文);需求要是 `system.md` 裡有的;優先 1 最高、4 最低;Law 沒給就寫「繼承 R-n」,那條需求已經有別的目標時提醒各目標要有自己的 Law 與蘊含說明 |
 | `objective milestone <O-n> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全資料夾唯一)加進該目標檔的建置路線表;綁定的全名要是 `features/` 裡有的 feature,abstract 或不存在的都拒絕 |
 | `objective refinement <O-n> <一句話> --touch <全名,全名>` | 鑄 `RF-n`(全資料夾唯一)加進該目標檔的優化路線表;動到的全名要存在、而且是該目標某條里程碑綁定過的,否則停:優化路線不引入新 feature |
+| `lint ids` | 一檔一號:兩個檔案同號即紅;號段行讀不懂或兩段重疊即紅;有號段行時,寫了 `owner` 的 feature / abstract / spike / ADR 的號要在 owner 的區間內 |
 | `lint boundary` | import 方向 vs 層表;內層 import 外層即紅;非最外層 import IO 模組即紅;未登記與幽靈檔案即紅 |
 | `lint sig` | Steps 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,而且要匯出;`=` 列與 `o` 列不在最外層、`!` 列在最外層、feature 恰好一列 `!`、abstract 沒有;abstract 沒有消費者即紅;feature 引用 feature 即紅;同名簽名在兩份文檔都沒註明「見」即紅;找不到的簽名即紅;簽名裡的型別在程式碼與標準函式庫都找不到即紅;step 之間傳遞的值用了無名容器(`dict`、`any`、`interface{}` …)即紅,`!` 列不查;簽名一致但檔案不同列「搬家」 |
 | `sync` | 把「搬家」的 step 模組欄改成程式碼裡的實際檔案(同層才改,跨層列紅要走 REV) |

@@ -34,6 +34,7 @@ updated: 2026-09-07
 - IO 模組追加:無
 - Laws 詞彙追加:無
 - 忽略目錄:無
+- 號段:amy@corp.com = 000-099;bob@corp.com = 050-149;carol@corp.com = 1x0-199
 
 ## 層
 | 層 | 裝什麼 |

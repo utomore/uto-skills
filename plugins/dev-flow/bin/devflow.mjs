@@ -5,7 +5,7 @@ import process from 'node:process';
 import { readDesign } from '../lib/design.mjs';
 import { readSource } from '../lib/source.mjs';
 import { pickAdapter, pickSides, adapterNames } from '../lib/adapters/index.mjs';
-import { lintAll, lintBoundary, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
+import { lintAll, lintBoundary, lintIds, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
@@ -22,6 +22,7 @@ const HELP = `devflow <子命令> [選項]
   status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
   claim feature|abstract|spike|adr <slug> [--description <句>] [--milestone <M-n>]
                                        鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑,spike 另建 spike/ 資料夾
+                                       system.md「語言與工具」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
   requirement add <一句話> [--law <句>]
                                        鑄 R-n 寫進 system.md「需求」;Law 沒給就留佔位符
   objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]
@@ -30,7 +31,8 @@ const HELP = `devflow <子命令> [選項]
                                        鑄 M-n 加進該目標檔的建置路線表;綁定的全名要是 features/ 裡有的 feature
   objective refinement <O-n> <一句話> --touch <全名,全名>
                                        鑄 RF-n 加進該目標檔的優化路線表;動到的要是該目標里程碑綁定過的 feature
-  lint boundary | sig | laws | trace | io | all
+  lint ids | boundary | sig | laws | trace | io | all
+                                       ids:兩個檔案同號、號段行讀不懂或重疊、owner 的號不在自己的號段內;
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與 abstract 的消費者;
                                        laws:三行、種類、識別字、= 列有 law;trace:laws ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、秘密字面值
   sync                                 同層搬家的 step,模組欄改成程式碼裡的實際檔案
@@ -126,12 +128,12 @@ function main() {
 
   if (cmd === 'lint') {
     const which = sub || 'all';
-    const one = { boundary: lintBoundary, sig: lintSig, laws: lintLaws, trace: lintTrace, io: lintIo };
+    const one = { ids: lintIds, boundary: lintBoundary, sig: lintSig, laws: lintLaws, trace: lintTrace, io: lintIo };
     let results;
     if (which === 'all') results = lintAll(design, source, adapter);
     else if (one[which]) results = [one[which](design, source, adapter)];
     else {
-      console.error(`lint 只有 boundary / sig / laws / trace / io / all,沒有「${which}」`);
+      console.error(`lint 只有 ids / boundary / sig / laws / trace / io / all,沒有「${which}」`);
       return 1;
     }
     return emit(renderLint(results));

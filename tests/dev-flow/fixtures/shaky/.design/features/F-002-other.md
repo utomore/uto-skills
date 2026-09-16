@@ -1,5 +1,6 @@
 ---
 id: F-002
+owner: dave@corp.com
 description: 另一份 feature,被 F-001 錯誤地引用
 status: draft
 updated: 2026-09-07

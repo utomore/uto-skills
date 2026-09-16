@@ -125,6 +125,22 @@ export function compareSignature(doc, code) {
   return { ok: true, partial };
 }
 
+// 號段行:「a@x.com = 000-099;b@x.com = 100-199」,以 git 的 user.email 為鍵。佔位符或「無」是沒有號段;讀不懂的段落進 errors,由 lint ids 報。
+export function parseRanges(raw) {
+  const text = (raw || '').trim();
+  const out = { ranges: [], errors: [] };
+  if (!text || text === '無' || hasPlaceholder(text)) return out;
+  for (const part of text.split(/[;;]/).map((s) => s.trim()).filter(Boolean)) {
+    const m = /^(\S+@\S+)\s*=\s*(\d{3})\s*[-–~]\s*(\d{3})$/.exec(part);
+    if (!m || Number(m[2]) > Number(m[3])) {
+      out.errors.push(part);
+      continue;
+    }
+    out.ranges.push({ email: m[1], lo: Number(m[2]), hi: Number(m[3]), text: `${m[2]}-${m[3]}` });
+  }
+  return out;
+}
+
 export function readSystem(designDir, root) {
   const file = path.join(designDir, 'system.md');
   const text = read(file);
@@ -141,15 +157,17 @@ export function readSystem(designDir, root) {
   const vocab = [];
   const ignoreDirs = [];
   let priorityNote = '';
+  let ranges = { ranges: [], errors: [], line: 0 };
   if (tools) {
     for (const it of parseList(tools.lines)) {
-      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|Laws 詞彙追加|忽略目錄|優先)[::]\s*(.*)$/.exec(it.text);
+      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|Laws 詞彙追加|忽略目錄|優先|號段)[::]\s*(.*)$/.exec(it.text);
       if (!m) continue;
       const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
       if (m[1] === 'IO 模組追加') ioExtra.push(...list());
       else if (m[1] === 'Laws 詞彙追加') vocab.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
       else if (m[1] === '優先') priorityNote = m[2].trim();   // 一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼
+      else if (m[1] === '號段') ranges = { ...parseRanges(m[2]), line: tools.start + tools.lines.findIndex((l) => /^- 號段/.test(l)) + 2 };
       else commands[m[1]] = sidedCommand(m[2]);
     }
   }
@@ -240,6 +258,10 @@ export function readSystem(designDir, root) {
     ioExtra,
     vocab,
     ignoreDirs,
+    // 號段:多人平行 claim 時每人一段;沒有這一行就是空陣列,claim 從全部文檔的最大號往上配
+    ranges: ranges.ranges,
+    rangesErrors: ranges.errors,
+    rangesLine: ranges.line,
     layers,
     outermost: layers.length ? layers[layers.length - 1].name : null,
     io,
@@ -443,6 +465,7 @@ export function readDoc(file, root) {
     hasFrontmatter,
     status: fm.status || null,
     description: fm.description || '',
+    owner: typeof fm.owner === 'string' ? fm.owner.trim() : '',
     sections: secs,
     brief: findSection(secs, 'Brief'),
     steps: steps.filter((s) => !s.placeholder),
@@ -499,6 +522,28 @@ export function readSpikes(designDir, root) {
   });
 }
 
+// 一檔一號的東西:feature、abstract、spike、ADR、目標。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
+export function readNumbered(designDir, root) {
+  const out = [];
+  const scan = (sub, re) => {
+    const dir = path.join(designDir, sub);
+    if (!fs.existsSync(dir)) return;
+    for (const f of fs.readdirSync(dir).sort()) {
+      const m = re.exec(f);
+      if (!m) continue;
+      const { fm } = parseFrontmatter(fs.readFileSync(path.join(dir, f), 'utf8'));
+      const id = m[1];
+      out.push({ file: rel(root, path.join(dir, f)), id, prefix: id.replace(/-\d+$/, ''), num: Number(id.replace(/^.*-/, '')), owner: typeof fm.owner === 'string' ? fm.owner.trim() : '' });
+    }
+  };
+  scan('features', /^(F-\d{3})-.+\.md$/);
+  scan('abstracts', /^(A-\d{3})-.+\.md$/);
+  scan('spikes', /^(SPK-\d{3})-.+\.md$/);
+  scan('adr', /^(ADR-\d{3})-.+\.md$/);
+  scan('objectives', /^R-\d+-(O-\d+)-.+\.md$/);
+  return out;
+}
+
 function readDir(dir, re, root) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => re.test(f)).sort().map((f) => readDoc(path.join(dir, f), root));
@@ -526,6 +571,7 @@ export function readDesign(root) {
     docs: [...features, ...abstracts],
     gaps: readGaps(designDir, root),
     spikes: readSpikes(designDir, root),
+    numbered: readNumbered(designDir, root),
   };
 }
 

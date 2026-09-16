@@ -12,7 +12,7 @@ const goldenDir = path.join(here, 'golden');
 const update = process.argv.includes('--update');
 const DATE = '2026-09-07';
 
-// [名字, 夾具, argv, 寫檔後要收進 golden 的檔(相對夾具)]
+// [名字, 夾具, argv, 寫檔後要收進 golden 的檔(相對夾具), 環境變數]
 const CASES = [
   // shop:一份健康的樹,兩份 feature 共用一份 abstract
   ['shop-lint-all', 'shop', ['lint', 'all']],
@@ -47,6 +47,12 @@ const CASES = [
   ['shop-claim-bad-kind', 'shop', ['claim', 'bugfix', 'oops']],
   ['shop-modules-gen', 'shop', ['modules', '--gen']],
 
+  // team:system.md 有號段行的樹;claim 從自己的區間配號並寫 owner,email 不在號段行上就停
+  ['team-lint-ids', 'team', ['lint', 'ids']],
+  ['team-claim-feature', 'team', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--milestone', 'M-2', '--date', DATE], ['.design/features/F-101-ship.md', '.design/system.md'], { GIT_AUTHOR_EMAIL: 'amy@corp.com' }],
+  ['team-claim-spike', 'team', ['claim', 'spike', 'cbor', '--description', 'CBOR 夠不夠快', '--date', DATE], ['.design/spikes/SPK-200-cbor.md'], { GIT_AUTHOR_EMAIL: 'bob@corp.com' }],
+  ['team-claim-unknown', 'team', ['claim', 'feature', 'ship', '--date', DATE], ['.design/system.md'], { GIT_AUTHOR_EMAIL: 'carol@corp.com' }],
+
   // blank:剛從模板複製出來、一個字都還沒填的樹;佔位符列不准被當成真的
   ['blank-status', 'blank', ['status']],
   ['blank-lint-all', 'blank', ['lint', 'all']],
@@ -60,6 +66,7 @@ const CASES = [
   ['shaky-lint-laws', 'shaky', ['lint', 'laws']],
   ['shaky-lint-trace', 'shaky', ['lint', 'trace']],
   ['shaky-lint-io', 'shaky', ['lint', 'io']],
+  ['shaky-lint-ids', 'shaky', ['lint', 'ids']],
   ['shaky-status', 'shaky', ['status']],
   ['shaky-status-json', 'shaky', ['status', '--json']],
   ['shaky-sync', 'shaky', ['sync', '--date', DATE], ['.design/features/F-001-score.md']],
@@ -101,7 +108,7 @@ function snapshot(root, files) {
 }
 
 let failed = 0;
-for (const [name, fixture, argv, files] of CASES) {
+for (const [name, fixture, argv, files, env] of CASES) {
   let root = path.join(here, 'fixtures', fixture);
   let tmp = null;
   if (files) {
@@ -109,8 +116,10 @@ for (const [name, fixture, argv, files] of CASES) {
     fs.cpSync(root, tmp, { recursive: true });
     root = tmp;
   }
-  const r = spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8' });
-  let actual = `$ devflow ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
+  // GIT_AUTHOR_EMAIL 預設清空:沒指定 env 的案例不受這台機器的 git 設定影響
+  const r = spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '', ...env } });
+  const envText = env ? Object.entries(env).map(([k, v]) => `${k}=${v} `).join('') : '';
+  let actual = `$ ${envText}devflow ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
   if (files) actual += snapshot(root, files) + '\n';
   if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
   const file = path.join(goldenDir, `${name}.txt`);
@@ -128,7 +137,7 @@ for (const [name, fixture, argv, files] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/objective refinement/.test(h.stdout) || !/migrate objectives/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/objective refinement/.test(h.stdout) || !/migrate objectives/.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');

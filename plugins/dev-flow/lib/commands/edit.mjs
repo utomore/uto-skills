@@ -2,6 +2,7 @@
 // 目標一個檔一個,住 objectives/R-x-O-y-<slug>.md。
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { matchModule, matchesPattern, compareSignature } from '../design.mjs';
 import { findSignature } from '../source.mjs';
@@ -20,6 +21,31 @@ const SPEC = {
   spike: { prefix: 'SPK', dir: 'spikes', tpl: 'spike.md' },
   adr: { prefix: 'ADR', dir: 'adr', tpl: 'adr.md' },
 };
+
+// 誰在 claim:和 git 自己一樣,GIT_AUTHOR_EMAIL 優先,其次專案裡的 user.email。
+export function currentEmail(root) {
+  if (process.env.GIT_AUTHOR_EMAIL) return process.env.GIT_AUTHOR_EMAIL.trim();
+  const r = spawnSync('git', ['config', 'user.email'], { cwd: root, encoding: 'utf8' });
+  return r.status === 0 ? (r.stdout || '').trim() : '';
+}
+
+// 下一個號:system.md 沒有號段行就從全部文檔的最大號往上配;有號段行就從自己的區間內往上配,區間起點是 000 時從 001 起。
+// 回 { num, owner } 或 { error }。
+export function nextNumber(design, nums, prefix) {
+  const ranges = design.system ? design.system.ranges : [];
+  if (!ranges.length) return { num: (nums.length ? Math.max(...nums) : 0) + 1, owner: '' };
+  const email = currentEmail(design.root);
+  if (!email) return { error: 'system.md 有號段行,但 git 的 user.email 是空的;先 git config user.email <你的 email>,號段行要有這個 email 的區間' };
+  const mine = ranges.filter((r) => r.email === email);
+  if (!mine.length) return { error: `system.md 的號段行沒有 ${email} 的區間;請架構負責人在「語言與工具」的號段行加上一段,再 claim` };
+  for (const r of mine) {
+    const lo = Math.max(r.lo, 1);
+    const used = nums.filter((n) => n >= lo && n <= r.hi);
+    const num = used.length ? Math.max(...used) + 1 : lo;
+    if (num <= r.hi) return { num, owner: email, range: r.text };
+  }
+  return { error: `${email} 的號段 ${mine.map((r) => r.text).join('、')} 的 ${prefix} 用完了;請架構負責人在號段行再配一段` };
+}
 
 export function claim(design, kind, slug, { description = '', date = today(), milestone = '' } = {}) {
   const spec = SPEC[kind];
@@ -41,7 +67,9 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
     const m = /^F-(\d{3})/.exec(l.fullName);
     if (m) nums.push(Number(m[1]));
   }
-  const id = `${spec.prefix}-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3, '0')}`;
+  const next = nextNumber(design, nums, spec.prefix);
+  if (next.error) return { text: next.error, exitCode: 1 };
+  const id = `${spec.prefix}-${String(next.num).padStart(3, '0')}`;
   const fullName = `${id}-${slug}`;
   const file = path.join(dir, `${fullName}.md`);
   if (fs.existsSync(file)) return { text: `${file} 已存在`, exitCode: 1 };
@@ -50,9 +78,11 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
     .replace(new RegExp(`${spec.prefix}-00x`, 'g'), id)
     .replace(/<YYYY-MM-DD>/g, date);
   if (description) tpl = tpl.replace(/<一句話[^>]*>/, description).replace('<同 description>', description);
+  if (next.owner) tpl = tpl.replace(/^(id: .*)$/m, `$1\nowner: ${next.owner}`);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, tpl);
   const out = [`建了 ${path.relative(design.root, file).split(path.sep).join('/')}${kind === 'feature' || kind === 'abstract' ? '(status: draft)' : ''}`];
+  if (next.owner) out.push(`${id} 配自 ${next.owner} 的號段 ${next.range},owner 寫進 frontmatter`);
 
   if (kind === 'spike') {
     const code = path.join(design.root, 'spike', fullName);

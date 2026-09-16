@@ -1,0 +1,10 @@
+# 共用檔的守門人(GitHub)
+# 複製到你的專案:.github/CODEOWNERS,把 @architect 換成架構負責人的 GitHub 帳號。
+#
+# 動到這些路徑的 PR,GitHub 自動把 owner 加成 reviewer;
+# branch protection 勾「Require review from Code Owners」後,沒有 owner 的 approve 就合不進主線。
+# features/ 與 abstracts/ 的檔不在這裡:它們由 claim 的人負責,隊友互相 review 即可。
+
+.design/system.md        @architect
+.design/objectives/      @architect
+.design/modules.md       @architect

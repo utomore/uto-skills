@@ -1,0 +1,33 @@
+# lawful 專案的契約檢查(GitLab CI)
+# 複製到你的專案:.gitlab-ci.yml(已經有的話把 contract job 貼進去,或用 include 引入)
+#
+# 每條 merge request 跑:lint ids / boundary / sig / laws / io → 建置 → 整套測試 → 派工報告。
+# 任一紅就失敗;在 Settings → Merge requests 勾「Pipelines must succeed」,紅的 MR 就合不進主線。
+
+stages: [contract]
+
+contract:
+  stage: contract
+  # Haskell 官方 image 附 ghc 與 cabal;版本照專案的 cabal.project
+  image: haskell:9.6
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    # 固定一個 commit 或 tag,更新時自己改
+    UTO_SKILLS_REF: main
+  cache:
+    key: cabal-$CI_COMMIT_REF_SLUG
+    paths:
+      - .cabal-store
+      - dist-newstyle
+  before_script:
+    - export CABAL_DIR="$CI_PROJECT_DIR/.cabal-store"
+    # 這個 image 沒有 node,裝一個給 contract.mjs 用
+    - curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
+    # uto-skills 抓進專案底下的 .uto-skills/
+    - git clone --depth 1 --branch "$UTO_SKILLS_REF" https://github.com/utomore/uto-skills.git .uto-skills
+    - cabal update
+  script:
+    # 建置與整套測試的指令從 .lawful/Cone.md「專案約束」讀,不用在這裡重寫一次
+    - node .uto-skills/ci/lawful/contract.mjs

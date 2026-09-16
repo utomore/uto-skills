@@ -267,6 +267,7 @@ export function statusBoard(design, source, adapter, results, resultNote, buildi
       `看板寫到 ${shown}` + (opened ? ',已經叫瀏覽器打開' : ',點這個網址打開'),
       url,
       '樹從左上往下長,每深一層往右縮排一格:願景 → 需求 → 目標 → 里程碑與調整 → 便利貼;便利貼是 pipeline,虛線箭頭是引用,預設只畫選取那一份的',
+      '「相依」頁籤把目標(或需求)排成先後:左邊先做、右邊後做,邊從 pipeline 的引用推出來,紅色的邊是高優先依賴低優先',
     ].join('\n'),
     exitCode: data.route.allDone && data.summary.docs ? 0 : 1,
   };

@@ -31,7 +31,7 @@ bash tests/lawful/run.sh                  # lawful:八個夾具的 golden 回歸
 改了 `templates/status-board.html` 還要多跑這一道:
 
 ```
-bash tests/board/run.sh                   # 看板在真的 Chrome 裡點過一遍:點選、拖曳、縮排、走線
+bash tests/board/run.sh                   # 看板在真的 Chrome 裡點過一遍:點選、拖曳、縮排、走線、相依頁籤
 ```
 
 `tests/board/` 用 Node 內建的 WebSocket 直接講 CDP 開一個 headless Chrome,不裝套件;找不到 Chrome 就用 `CHROME_PATH` 指到執行檔。看板的行為只有這一道守得住 —— 另外兩道是 CLI 的文字比對,不會開頁面。

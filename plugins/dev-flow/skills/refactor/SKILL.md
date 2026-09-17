@@ -28,6 +28,8 @@ user-invocable: true
 
 **只有一份 feature 用的不抽。** `status` 的警訊列出只有一個消費者的既有 abstract,那是反過來要搬回去的訊號,也走本 skill。
 
+從與 origin 同步、工作樹乾淨的主線開 `design/<全名>`(全名是新 abstract 的;搬回去的用被搬回的那份 feature 的),之後每一步都在這條分支上(`roles.md`「分支與所有權」)。
+
 ## 步驟
 
 1. **界定那一段**:攤開兩邊的 Steps,逐列問「這一列的輸入輸出在兩邊是不是同一件事」。是同一件事但簽名不同 → 先跟開發者敲定統一後的簽名。只是名字像 → 不抽,收工。
@@ -41,11 +43,11 @@ user-invocable: true
    - `## 修訂記錄` 加一條 REV:依欄寫「收整進 A-00x-<slug>」,動到欄列出改成引用的那幾列與搬走的 law,保護欄列這次不准變的既有 law,重委派欄寫要重跑的測試
    - `frozen` 的先解凍(`status` 改 `ready`,在「決定」記一條為什麼)
 5. **程式碼**:實際把那一段搬到 abstract 的檔案並匯出,原本兩邊的呼叫改成呼叫它;abstract 新出現的簽名與型別寫成骨架(`roles.md`「骨架與基線」)。搬走的測試跟著搬,歸屬字串改成 `A-00x#LAW-n`。
-6. `devflow lint all`:`lint sig` 不該再報同名未註明;`lint trace` 不該有幽靈引用。跑一次整套測試,輸出留檔。
+6. `devflow lint all`:`lint sig` 不該再報同名未註明;`lint trace` 不該有幽靈引用。跑一次整套測試,輸出留檔。文檔、REV 與程式碼 commit 在 `design/<全名>` 上,訊息帶全名。
 
 ## 收尾
 
-回報抽了哪一段、影響哪幾份 feature(各一條 REV)、程式碼搬了哪些檔、整套測試紅綠;附定錨區塊。下一步一律是 `dev-flow:build <第一份被 REV 的 feature 全名>`(只重做 REV 點名的)。
+回報抽了哪一段、影響哪幾份 feature(各一條 REV)、程式碼搬了哪些檔、整套測試紅綠;附定錨區塊。下一步一律是 `dev-flow:integrate`(發設計 PR);合進主線後 `dev-flow:build <第一份被 REV 的 feature 全名>`(只重做 REV 點名的)。
 
 ## 邊界
 

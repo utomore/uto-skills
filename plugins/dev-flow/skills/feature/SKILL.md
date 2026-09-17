@@ -23,6 +23,7 @@ user-invocable: true
 - 目標是**既有**功能的改動 → 這裡不是入口,走 `dev-flow:revise`(它會寫 REV)。
 - 目標是**兩份以上 feature 的共同部分** → 走 `dev-flow:refactor`。
 - 檔還不存在 → `devflow claim feature <slug> --description <句> --milestone <M-n>`。
+- 從與 origin 同步、工作樹乾淨的主線開 `design/<全名>`(`git switch -c`;剛 claim 的新檔跟著過去),之後每一步都在這條分支上(`roles.md`「分支與所有權」)。
 
 ## 步驟
 
@@ -39,11 +40,11 @@ user-invocable: true
 5. **Examples**:3–5 個具體輸入輸出,覆蓋邊界(空的、單一、極值、失敗路徑),每列指到它覆蓋的 law。**不准出現真的密碼、金鑰或 token。**
 6. **決定**:這份檔自己的取捨,一句結論 + 否決的替代方案 + 理由。跨文檔的開 ADR。要跑了才知道的,派 `dev-flow:spike`,結論回來再寫。
 7. **骨架**(`roles.md`「骨架與基線」):第 3 步定下的型別宣告與每條簽名寫進 Steps 表模組欄指的檔案並匯出,本體是該語言的骨架標記,訊息帶 `F-00x#name`;`=` 列照 Steps 組裝整條,`!` 列把它接到最外層。**不得回傳假值。** 程式碼已經有的照舊。跑 `system.md` 的建置指令,編得過。
-8. `devflow lint sig`、`devflow lint laws`、`devflow lint io`:三道過了(`lint sig` 沒有紅:每列找得到、簽名一致、型別都宣告過),`devflow status --doc <全名>` 每列是「骨架」或「在」,跟開發者確認一次,改 `status: ready`。文檔與骨架同一個 commit,訊息帶全名。
+8. `devflow lint sig`、`devflow lint laws`、`devflow lint io`:三道過了(`lint sig` 沒有紅:每列找得到、簽名一致、型別都宣告過),`devflow status --doc <全名>` 每列是「骨架」或「在」,跟開發者確認一次,改 `status: ready`。文檔與骨架同一個 commit,訊息帶全名,在 `design/<全名>` 上。
 
 ## 收尾
 
-回報 step 幾條、law 幾條、骨架寫了幾條簽名與幾個型別;附定錨區塊。下一步一律是 `dev-flow:build <全名>`。
+回報 step 幾條、law 幾條、骨架寫了幾條簽名與幾個型別;附定錨區塊。下一步一律是 `dev-flow:integrate`(發設計 PR);合進主線後 `dev-flow:build <全名>`。
 
 ## 邊界
 

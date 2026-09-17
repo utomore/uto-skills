@@ -12,7 +12,7 @@ user-invocable: true
 
 ## 前置
 
-在主線、工作樹乾淨(`git status --porcelain` 空)。`lawful status`:目標是 `ready`、沒有 open GAP、不是建構中、引用的每條子流都已達成並在主線上。不是就停,回報該先做什麼;子流還沒合進主線就等它(`roles.md`「分支與所有權」)。
+在主線、與 origin 同步(`git fetch` 後 `git status -sb` 沒有 ahead / behind)、工作樹乾淨(`git status --porcelain` 空);目標 pipeline 與它的骨架因此都已合進主線,設計還在 `design/<全名>` 上就先 `lawful:integrate`。`lawful status`:目標是 `ready`、沒有 open GAP、不是建構中、引用的每條子流都已達成並在主線上。不是就停,回報該先做什麼;子流還沒合進主線就等它(`roles.md`「分支與所有權」)。
 
 目標是 `R-n` / `O-n`(`roles.md`「驗收測試」):`status` 的需求表或目標表要顯示它的建置路線全部達成、Law 有三行式而沒有測試。是就走「驗收測試那波」:`git worktree add -b build/R-n ../<repo>.worktrees/R-n HEAD`,跳過第 1 到 5 步,直接第 6 步派 qa,再第 7 步整套、第 8 步收尾(日誌的 `pipeline` 寫 `R-n`)。建置路線沒達成就停,回報還差哪條里程碑。
 

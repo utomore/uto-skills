@@ -19,20 +19,21 @@ user-invocable: true
 ## 前置
 
 - 做的是調整:那條 `RF-n` 要在某個目標檔的調整表上、動到的 pipeline 要是它列的、該目標的建置路線要已經達成;不是就停,回 `lawful:objective`。調整只改實作或行為品質,要改簽名或加 stage 讓它做到新能力的,不是調整,是新里程碑。
+- 從與 origin 同步、工作樹乾淨的主線開 `design/<全名>`,修訂在這條分支上做(`roles.md`「分支與所有權」)。
 
 ## 步驟
 
 1. **frozen 先解凍**:「決定」節記一條「解凍:<為什麼要改>」(調整就寫 `RF-n` 那一句),`status` 改 `ready`。
 2. **定動到與保護**:動到哪些 stage 與 law;其餘既有 law 全列進保護。要保護的行為還不是 LAW 的,先補成 LAW 再修訂。調整的保護一定含需求 Law 引用到的每條 law:優化不准破壞需求 Law。
 3. **改原檔**:簽名、law、層,直接改那一格;`## 修訂記錄` 加一條 REV,依欄帶提問原句、開發者的話、或 `RF-n` 與它那一句(`status` 靠這個算調整的進度);`updated` 改今天。
-4. **程式碼跟上**(`roles.md`「骨架與基線」):簽名變了,程式碼那行同步改、本體回 stub;新的 stage 與型別寫成骨架,編得過;層變了,模組表同步改。pipeline 檔與骨架同一個 commit。模組單元的名字、職責或層要變也是修訂:改 `.lawful/modules.md` 那一列,補層走 `lawful module <單元> --layers <新的層>`,再把住在裡面的 stage 模組欄跟著改。
+4. **程式碼跟上**(`roles.md`「骨架與基線」):簽名變了,程式碼那行同步改、本體回 stub;新的 stage 與型別寫成骨架,編得過;層變了,模組表同步改。pipeline 檔與骨架同一個 commit,在 `design/<全名>` 上。模組單元的名字、職責或層要變也是修訂:改 `.lawful/modules.md` 那一列,補層走 `lawful module <單元> --layers <新的層>`,再把住在裡面的 stage 模組欄跟著改。
 5. **結 GAP**:被回答的條目整條刪掉,`gaps.md` 空了刪檔。
 6. **對帳**:`lawful lint laws`、`lawful lint sig`。
 7. **重委派清單**:law 變了 qa 重翻那幾條;簽名變了 impl 重填那幾個 stage。交給 `lawful:build`。
 
 ## 收尾
 
-回報 REV 編號、動到 / 保護 / 重委派三欄、刪了哪些 GAP、對應的調整(有的話);附定錨區塊。下一步:`lawful:build <全名>`;調整動到多條 pipeline 時,每一條各一次修訂再各自 build。
+回報 REV 編號、動到 / 保護 / 重委派三欄、刪了哪些 GAP、對應的調整(有的話);附定錨區塊。下一步:`lawful:integrate`(發設計 PR),合進主線後 `lawful:build <全名>`;調整動到多條 pipeline 時,每一條各一次修訂再各自 build。
 
 ## 邊界
 

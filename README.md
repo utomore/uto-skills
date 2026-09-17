@@ -57,7 +57,7 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 ### 核心概念
 
 - **feature 是文檔單位**:一段從對外邊界進、從對外邊界出的資料流,一份 `F-00x-<slug>.md` 就是它的唯一真相,從搖籃到墳墓。沒有子系統這一層,沒有 bug 文檔:bug 就是某條 law 在現況下不成立。
-- **簽名住在程式碼裡**:Steps 表每一列是一條正規式簽名 `name(T1, T2): R`,型別與簽名的骨架在設計階段就寫進主線,`lint sig` 全綠才能拍板 `ready`。`=` 列是整條、`o` 列是觀察點、`!` 列是進入點。
+- **簽名住在程式碼裡**:Steps 表每一列是一條正規式簽名 `name(T1, T2): R`,型別與簽名的骨架在設計階段就與文檔一起寫進 `design/<全名>` 分支,`lint sig` 全綠才能拍板 `ready`,經 PR 合進主線後才 `build`。`=` 列是整條、`o` 列是觀察點、`!` 列是進入點。
 - **law 是純 ASCII 三行**:`forall` / `given` / `|-`,識別字只能是 Steps 的簽名、最內層的匯出或型別名;`given` 的呼叫先發生,命令式的時序也寫得出來。每條 law 由一條 property test 承接,測試以 `F-00x#LAW-n` 宣告歸屬。
 - **四層「為什麼」**:`system.md` 的願景(北極星)與需求(每條一個可判定的 Requirement Law);`objectives/` 一檔一個目標(解決恰好一條需求,有 Objective Law 與優先 1 到 4);目標底下的建置路線(里程碑綁定 feature)與優化路線(調整只動既有 feature 的品質)。
 - **邊界由專案宣告**:層由內而外,內層不准 import 外層,最外層是唯一能做對外 I/O 的層;對外 I/O 表帶信任與驗證兩欄,`untrusted` 的入口必須指名驗證 step。
@@ -67,13 +67,13 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 ### 工作流程
 
 ```
-/project ──▶ /objective ──▶ /feature ──▶ /build ──▶ /integrate
- 立案         目標與里程碑     一份文檔      qa + impl    合成一條 PR
-                                  ▲            │
-                                  └── /revise ◀┘  GAP 答完、契約要改
+/project ──▶ /objective ──▶ /feature ──▶ /integrate ──▶ /build ──▶ /integrate
+ 立案         目標與里程碑     一份文檔      設計 PR        qa + impl    合成一條 PR
+                                  ▲                          │
+                                  └──────── /revise ◀────────┘  GAP 答完、契約要改
 ```
 
-- 設計階段(`project` / `objective` / `feature` / `refactor`)由開發者與 skill 對談,產出文檔與骨架。
+- 設計階段(`project` / `objective` / `feature` / `refactor`)由開發者與 skill 對談,在 `design/<全名>` 分支上產出文檔與骨架,經 `integrate` 發 PR 合進主線後才能 `build`。
 - 建構階段(`build`)由 conductor 在 `build/<全名>` 分支與工作樹上帶兩個互不可見的角色:`qa` 只讀文檔寫測試,`impl` 只讀骨架填本體;先在骨架快照上跑基線,再仲裁每一條紅。互不引用的文檔同時各開一波。
 - 整合階段(`integrate`)是唯一發 PR 的出口:依開發日誌定順序、逐條 merge、整套綠了才 `gh pr create`。
 - 隨時可跑:`status` 派工報告、`audit` 稽核、`spike` 可行性驗證、`study` 專案導讀。
@@ -94,7 +94,7 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 | `/audit` | 四段稽核:對帳、需求與目標、穩定度、安全度,產出「哪裡 / 什麼事 / 怎麼辦」表 |
 | `/spike` | 讀原始碼答不出的問題:問題 / 判準 / timebox,拋棄式程式碼寫在 `spike/`,結案即刪、sha 留在文檔 |
 | `/study` | 六層縮放的專案導讀:全景 → 架構 → 理念 → 資料結構 → trace → 細讀,每個結論附 `檔案:行號` |
-| `/integrate` | 唯一發 PR 的出口:清理已合的分支、盤點候選、逐條 merge、建置與整套綠了才發,標題英文、內文繁中 |
+| `/integrate` | 唯一發 PR 的出口:設計分支單獨一條直接發;建構分支清理已合的、盤點候選、逐條 merge、建置與整套綠了才發,標題英文、內文繁中 |
 
 ### `.design/` 結構
 

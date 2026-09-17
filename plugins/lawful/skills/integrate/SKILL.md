@@ -1,6 +1,6 @@
 ---
 name: integrate
-description: lawful 的整合 — 把幾條 build/<全名> 分支依開發日誌合成一條 integrate/<日期>-<slug> 分支:先清掉已合進主線的 build 分支與工作樹,讀每份日誌定順序與衝突預報,逐條 merge(清單型衝突兩邊都留、同一本體兩邊改就停)、GAP 撞號後合的往上移、整套跑一次、每份日誌宣稱達成的 pipeline 合併後仍要達成、合併後紅只歸因寫 GAP 不改碼,綠了把日誌寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)。觸發詞:整合、integrate、合併分支、merge build、發 PR、lawful integrate。Use when finished build branches should be merged into one integration branch, verified together, and sent as a pull request.
+description: lawful 的整合 — 唯一發 PR 的出口。設計分支 design/<全名> 單獨一條直接發;幾條 build/<全名> 分支依開發日誌合成一條 integrate/<日期>-<slug> 分支:先清掉已合進主線的 build 分支與工作樹,讀每份日誌定順序與衝突預報,逐條 merge(清單型衝突兩邊都留、同一本體兩邊改就停)、GAP 撞號後合的往上移、整套跑一次、每份日誌宣稱達成的 pipeline 合併後仍要達成、合併後紅只歸因寫 GAP 不改碼,綠了把日誌寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)。觸發詞:整合、integrate、合併分支、merge build、發 PR、lawful integrate。Use when finished build branches should be merged into one integration branch, verified together, and sent as a pull request.
 user-invocable: true
 ---
 
@@ -14,11 +14,11 @@ user-invocable: true
 
 | 輸入 | 產出 |
 |---|---|
-| 要合的 build 分支(寫全名;沒指定就全部有日誌的) | 一條整合分支、整套綠、PR 一條;日誌內容在 PR 裡 |
+| 要合的分支(寫全名;沒指定就全部有日誌的 build 分支) | 一條整合分支、整套綠、PR 一條;日誌內容在 PR 裡。設計分支單獨一條,直接以它發 PR |
 
 ## 前置
 
-在主線、工作樹乾淨、`git fetch --all --prune` 過,`gh repo view --json defaultBranchRef` 確認主線名。
+工作樹乾淨、`git fetch --all --prune` 過,`gh repo view --json defaultBranchRef` 確認主線名。當前分支是 `design/<全名>`:pipeline `status` 要是 `ready`、`lawful lint sig` 沒有紅,不是就停,回報「設計還沒拍板」;是就跳過第 0 到 4 步與第 6 步,第 5 步的判準換成建置編得過、`lawful lint all` 沒有紅、整套的紅只落在這條 pipeline REV「重委派」欄點名的 law 上(別的紅就停,回報),再第 7 步以這條分支發 PR,標題 `design: <一句> (<全名>)`,label `design`,內文「各條做了什麼與決定」抄 pipeline 檔的 Brief 與「決定」,達成欄寫「ready」。當前分支是主線:要與 origin 同步,收 build 分支。
 
 ## 步驟
 

@@ -21,6 +21,7 @@ user-invocable: true
 - 願景還是模板、`Cone.md` 一條需求都沒有、或 `objectives/` 一個目標都沒有 → 停,先跑 `lawful:design` 或 `lawful:objective`。
 - 這條 pipeline 沒有被任何里程碑綁定 → 先問開發者它服務哪個目標的哪條里程碑,`lawful:objective` 綁進去;答不出來就是不該做的資料流,停。
 - Stages 要用的模組單元 `.lawful/modules.md` 上沒有 → 先 `lawful:module` 把它的名字、職責與層劃出來,再回來;既有單元裡加簽名不必經過那裡。
+- 從與 origin 同步、工作樹乾淨的主線開 `design/<全名>`(`git switch -c`;剛 claim 的新檔跟著過去),之後每一步都在這條分支上(`roles.md`「分支與所有權」)。
 
 ## 步驟
 
@@ -31,11 +32,11 @@ user-invocable: true
 5. **決定**:對談中否決掉的替代方案,一句結論、一句理由;要證據的派 `lawful:spike`,結論回來再寫。
 6. **骨架**(`roles.md`「骨架與基線」):第 2 步定下的型別宣告與每條簽名寫進 Stages 表模組欄指的模組並匯出,本體是 `stub`(Haskell `error "P-00x#name stub"`);`=` 列照 Stages 組裝純的整條,`!` 列把它接到 shell。程式碼已經有的照舊。跑 `Cone.md`「專案約束」的建置指令,編得過。
 7. **對帳**:`lawful lint laws`、`lawful lint sig`(沒有紅:每列找得到、簽名一致、型別都宣告過),`lawful status --pipeline <全名>` 每列是「骨架」或「在」。紅的回到對應步驟。
-8. **拍板**:把 Stages 與 Laws 唸給開發者聽,開發者說好,改 `status: ready`;frontmatter 的 `kind` 還是佔位符就填 IO 介面或子流。pipeline 檔與骨架同一個 commit,訊息帶全名。
+8. **拍板**:把 Stages 與 Laws 唸給開發者聽,開發者說好,改 `status: ready`;frontmatter 的 `kind` 還是佔位符就填 IO 介面或子流。pipeline 檔與骨架同一個 commit,訊息帶全名,在 `design/<全名>` 上。
 
 ## 收尾
 
-回報 stage 幾條、觀察點幾個、law 幾條、example 幾條、決定幾條、骨架寫了幾條簽名與幾個型別;附定錨區塊。下一步:`lawful:build <全名>`,或引用的子流還沒有就先 `lawful:pipeline` 那一條。
+回報 stage 幾條、觀察點幾個、law 幾條、example 幾條、決定幾條、骨架寫了幾條簽名與幾個型別;附定錨區塊。下一步:`lawful:integrate`(發設計 PR),合進主線後 `lawful:build <全名>`;引用的子流還沒有就先 `lawful:pipeline` 那一條。
 
 ## 邊界
 

@@ -6,18 +6,19 @@
 
 | 階段 | 誰 | 在哪 | 產出 |
 |---|---|---|---|
-| **設計** | 開發者與 `dev-flow:project` / `dev-flow:objective` / `dev-flow:feature` / `dev-flow:refactor` 對談 | 主線 | `system.md`(願景、需求)、`objectives/`、模組表、`draft` 的 feature 與 abstract,以及它們的**骨架**:型別與每條簽名寫進程式碼(「骨架與基線」);開發者拍板後 skill 改 `ready` |
+| **設計** | 開發者與 `dev-flow:project` / `dev-flow:objective` / `dev-flow:feature` / `dev-flow:refactor` 對談 | `design/<全名>` 分支,經 PR 合進主線 | `system.md`(願景、需求)、`objectives/`、模組表、`draft` 的 feature 與 abstract,以及它們的**骨架**:型別與每條簽名寫進程式碼(「骨架與基線」);開發者拍板後 skill 改 `ready` |
 | **建構** | `dev-flow:build` 的 conductor 帶 qa 與 impl | 該份文檔自己的分支與工作樹 | 測試、實作、REV、開發日誌;達成後 conductor 改 `frozen`。目標是一條需求或目標的 Law 時只派 qa(「驗收測試」) |
-| **整合** | `dev-flow:integrate` | 整合分支 | 幾條建構分支合成一條、整套綠、PR |
+| **整合** | `dev-flow:integrate` | 整合分支 | 設計分支各自一條 PR;幾條建構分支合成一條、整套綠、PR |
 
-`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:開分支 → 對帳骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的文檔可以同時各開一波;主線只透過整合 PR 前進。
+`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:開分支 → 對帳骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的文檔可以同時各開一波。主線指 origin 的主線,只透過整合 PR 前進:設計分支與建構分支都經它合入,本地主線不領先它。
 
 設計階段寫的程式碼只有宣告:型別、列舉成員、簽名、匯出,本體一律是骨架標記。契約在對談裡拍板的當下就住進程式碼,qa 與 impl 讀到的是同一份;型別還定不下來的文檔留在 `draft`。
 
 ## 分支與所有權
 
-- 一份文檔一條分支 `build/<全名>`(目標是需求或目標的 Law 時 `build/R-n` / `build/O-n`),從主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這份文檔有人在建,`devflow status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
-- 開分支的前提:主線工作樹乾淨;目標 `ready`、沒有 open GAP、骨架齊全(「骨架與基線」);它引用的每份 abstract 都已達成並合進主線。引用的 abstract 還沒合進主線就不開,等它。
+- 設計階段一份文檔一條分支 `design/<全名>`(動的是 `system.md`、`objectives/`、`modules.md` 這些共用檔時 `design/<slug>`),從與 origin 同步的主線 HEAD 開;文檔與骨架在上面 commit,拍板 `ready` 後交給 `dev-flow:integrate` 發 PR。合進主線之前不開它的 `build/`。`devflow claim` 只看當前工作樹,兩條設計分支各自配號會配到同一個號:一次開一條,開第二條之前先把第一條合進主線。
+- 建構階段一份文檔一條分支 `build/<全名>`(目標是需求或目標的 Law 時 `build/R-n` / `build/O-n`),從與 origin 同步的主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這份文檔有人在建,`devflow status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
+- 開 `build/` 的前提:本地主線與 origin 同步、工作樹乾淨;目標 `ready`、沒有 open GAP、骨架齊全(「骨架與基線」),三者都已合進主線;它引用的每份 abstract 都已達成並合進主線。引用的 abstract 還沒合進主線就不開,等它。
 - 分支上准動的東西只有自己的:這份文檔、自己 step 的本體、以自己全名命名的測試檔、本波要寫的驗收測試(以 `R-n` / `O-n` 命名的測試檔)、建置設定裡登記自己那幾行、`gaps.md` 追加、`journal/<全名>.md`。
 - 不動:`system.md`、`objectives/`、`modules.md`、任何型別、任何簽名、別份文檔與它的 step 本體、別人的測試檔。非動不可就是 GAP:型別與簽名是設計階段的東西,回 `dev-flow:revise`。
 - `gaps.md` 在分支上從主線最大號往上配。
@@ -48,7 +49,7 @@ subagent 問不了人:
 ## 骨架與基線
 
 - 骨架 = Steps 表的每條簽名(步驟、`=` 列、`!` 列與 `o` 列的觀察點)寫進模組欄指的檔案並匯出,本體是 adapter 的骨架標記,訊息帶 `F-00x#name`,基線的紅燈才看得出打到哪個 step;`=` 列照 Steps 組裝整條,`!` 列把它接到最外層;程式碼已經有的照舊。簽名裡用到的型別一起宣告:自訂的住最內層或那條 step 的檔案,欄位寫全;別份文檔已經宣告過的直接用。
-- 骨架由設計階段寫,在主線上:`dev-flow:feature` 與 `dev-flow:refactor` 在文檔拍板 `ready` 之前寫齊,`dev-flow:revise` 改了簽名就同步改簽名行、本體回骨架標記。它是文檔與程式碼的同一次 commit。
+- 骨架由設計階段寫,在設計分支上,與文檔一起經 PR 合進主線:`dev-flow:feature` 與 `dev-flow:refactor` 在文檔拍板 `ready` 之前寫齊,`dev-flow:revise` 改了簽名就同步改簽名行、本體回骨架標記。它是文檔與程式碼的同一次 commit。
 - 骨架要編得過,`devflow lint sig` 沒有紅(每列找得到、簽名一致、型別都宣告過),`devflow status --doc <全名>` 每列是「骨架」或「在」。**骨架不得回傳假值**(回 `0`、`[]`、`null` 會讓測試假綠,比沒寫還糟)。
 - conductor 開分支後只**對帳**:上面三樣不成立就停,回報缺什麼,回 `dev-flow:feature` 或 `dev-flow:revise`;不在分支上補簽名或型別。
 
@@ -143,9 +144,9 @@ qa 與 impl 只做歸因,裁決由 conductor。
 
 ## 整合
 
-`dev-flow:integrate` 把分支合成一條整合分支 `integrate/<YYYY-MM-DD>-<slug>`,整套綠了才發 PR;它是唯一發 PR 的出口,主線只透過它前進。整合者是 conductor 的身分:不寫實作、不寫測試、不補 law。
+`dev-flow:integrate` 把分支合成一條整合分支 `integrate/<YYYY-MM-DD>-<slug>`,整套綠了才發 PR;設計分支單獨一條,直接以它發。它是唯一發 PR 的出口,主線只透過它前進。整合者是 conductor 的身分:不寫實作、不寫測試、不補 law。
 
-- **候選**:沒合進主線的分支,開發者指定就只合那些。`build/<全名>`(含驗收測試那波的 `build/R-n` / `build/O-n`)要有 `journal/<全名>.md` 才收,沒有代表還沒收尾;不是 `build/` 的分支(手動改的、專案沒有 `.design/`)照分支名或 commit 訊息對到文檔全名,對不到就寫分支名。當前分支是主線而且有未提交的變更或領先的 commit,先開一條分支把它帶走,不從主線發 PR。
+- **候選**:沒合進主線的分支,開發者指定就只合那些。`build/<全名>`(含驗收測試那波的 `build/R-n` / `build/O-n`)要有 `journal/<全名>.md` 才收,沒有代表還沒收尾;`design/<全名>` 要文檔 `ready`、`devflow lint sig` 沒有紅才收,沒有代表設計還沒拍板;其餘分支(手動改的、專案沒有 `.design/`)照分支名或 commit 訊息對到文檔全名,對不到就寫分支名。當前分支是主線而且有未提交的變更或領先的 commit,先開一條分支把它帶走,不從主線發 PR。
 - **順序**:有日誌的照目標優先 → 里程碑順序 → 分支名,被引用的 abstract 在消費者之前(照規則它已經先合進主線,這條只是保險);其餘照開發者指定的順序。
 - **衝突三類**:清單型(建置設定的檔案清單、匯出清單、`gaps.md`)兩邊都留;相鄰行的加法兩邊都留;同一個簽名或本體兩邊都改 = 所有權被違反,停下,列出是哪條 step、哪兩條分支,不猜。GAP 撞號,後合進來的往上移;GAP 的號只住 `gaps.md`,移號不牽動別處。
 - **判準**:合完跑建置與整套一次,`devflow status --tests <log>`、`devflow lint all`。每份日誌宣稱達成的文檔合併後仍達成;日誌「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。

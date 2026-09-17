@@ -1,6 +1,6 @@
 ---
 name: integrate
-description: dev-flow 的整合 — 把分支合成一條整合分支、驗過再發 PR,是唯一發 PR 的出口。先確認當前分支(在主 branch 上有變更就先開新分支把它帶走,禁止從主 branch 直接發 PR)、清掉已合進主線的 build 分支與工作樹、盤點候選(build/<全名> 分支讀它的開發日誌定順序與衝突預報,其餘分支對到文檔全名)、逐條 merge(清單型衝突兩邊都留、同一本體兩邊改就停)、GAP 撞號後合的往上移、跑建置與整套一次、合併後紅只歸因寫 GAP 不改碼,綠了把日誌寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)並打上 labels,不需使用者確認內容。觸發詞:發 PR、pull request、整合、integrate、整合分支、合併分支、merge branch、合 build 分支、dev-flow integrate。Use when finished branches should be merged, verified together, and sent as a pull request.
+description: dev-flow 的整合 — 把分支合成一條整合分支、驗過再發 PR,是唯一發 PR 的出口;設計分支 design/<全名> 單獨一條直接發。先確認當前分支(在主 branch 上有變更就先開新分支把它帶走,禁止從主 branch 直接發 PR)、清掉已合進主線的 build 分支與工作樹、盤點候選(build/<全名> 分支讀它的開發日誌定順序與衝突預報,其餘分支對到文檔全名)、逐條 merge(清單型衝突兩邊都留、同一本體兩邊改就停)、GAP 撞號後合的往上移、跑建置與整套一次、合併後紅只歸因寫 GAP 不改碼,綠了把日誌寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)並打上 labels,不需使用者確認內容。觸發詞:發 PR、pull request、整合、integrate、整合分支、合併分支、merge branch、合 build 分支、dev-flow integrate。Use when finished branches should be merged, verified together, and sent as a pull request.
 user-invocable: true
 ---
 
@@ -14,7 +14,7 @@ user-invocable: true
 
 | 輸入 | 產出 |
 |---|---|
-| 要合的分支(寫全名或分支名;沒指定就全部沒合進主線的) | 一條整合分支、建置與整套綠、PR 一條;日誌內容在 PR 裡 |
+| 要合的分支(寫全名或分支名;沒指定就全部沒合進主線的) | 一條整合分支、建置與整套綠、PR 一條;日誌內容在 PR 裡。設計分支單獨一條,直接以它發 PR |
 
 ## 0. 確認當前分支(必做,不得跳過)
 
@@ -22,7 +22,7 @@ user-invocable: true
 2. 當前分支不是主線 → 進 §1,它自己也是候選。
 3. 當前分支是主線:**禁止從主線發 PR**。`git status --porcelain` 與 `git log origin/<主線>..HEAD --oneline` 盤點未提交的變更與領先 origin 的本地 commit。
    - 兩者都空 → 主線乾淨,進 §1 收別的分支。
-   - 有東西 → 先開新分支把它帶走:從變更內容推斷是哪一份文檔與哪個 type,`git switch -c <type>/<slug>`(如 `feat/F-001-checkout`、`fix/F-002-refund`、`refactor/A-001-settle`);推斷不出來才用 AskUserQuestion 問分支名。未提交變更與領先的 commit 都跟著過去;接著 `git branch -f <主線> origin/<主線>` 把本地主線還原,避免主線留著沒發 PR 的 commit。未提交的變更在新分支上 commit(conventional commit 風格,訊息帶**文檔全名**)。這條新分支進 §1。
+   - 有東西 → 先開新分支把它帶走:從變更內容推斷是哪一份文檔與哪個 type:只有文檔與骨架 → `design/<全名>`;其餘 `git switch -c <type>/<slug>`(如 `fix/F-002-refund`、`refactor/A-001-settle`);推斷不出來才用 AskUserQuestion 問分支名。未提交變更與領先的 commit 都跟著過去;接著 `git branch -f <主線> origin/<主線>` 把本地主線還原,避免主線留著沒發 PR 的 commit。未提交的變更在新分支上 commit(conventional commit 風格,訊息帶**文檔全名**)。這條新分支進 §1。
    - 主線乾淨,又沒有任何候選分支 → 沒有東西可發,回報後停止。
 
 ## 1. 清理與盤點
@@ -30,6 +30,7 @@ user-invocable: true
 1. **清理**:`git branch --merged <主線>` 裡的 `build/*` 分支,連同 `git worktree list` 裡對應的工作樹,`git worktree remove` 後 `git branch -d`。
 2. **候選**:`git branch -a --no-merged <主線>`;開發者指定就只收那些。每條標出它是哪一種:
    - **建構分支** `build/<全名>`(含驗收測試那波的 `build/R-n` / `build/O-n`):`git show <分支>:.design/journal/<全名>.md` 讀日誌。讀不到代表還沒收尾,不收,回報。
+   - **設計分支** `design/<全名>`:`git show <分支>:.design/<路徑>` 讀文檔,`status` 要是 `ready`,而且在那條分支上 `devflow lint sig` 沒有紅;不是就不收,回報「設計還沒拍板」。它單獨發一條 PR,不與建構分支合在一起。
    - **其餘分支**:從分支名或 commit 訊息推出對應的**文檔全名**(寫 `F-001-checkout`、`A-001-settle`,不要只寫 `F-001`——PR 描述會被沒讀過這份文檔的人讀到);對不到文檔就寫分支名。
 3. **順序**:有日誌的照 `devflow status` 的目標優先與里程碑順序排,被引用的 abstract 排在消費者之前;其餘照開發者指定的順序,沒指定且推不出取捨才用 AskUserQuestion 問。
 4. **預報**:每條 `git diff --name-only <base>..<分支>`(有日誌的 `base` 從日誌抄,其餘用 `git merge-base`),兩條以上都動到的檔列成預報,對照各日誌的「合併時要看」。
@@ -43,7 +44,7 @@ user-invocable: true
 ## 3. 驗收
 
 1. 跑建置與整套測試(有 `.design/` 就是 `system.md`「語言與工具」的那兩道),輸出留檔;有 `.design/` 再跑 `devflow status --tests <log>`(多語言專案每側一份:`--tests <目錄>=<log>,<目錄>=<log>`)與 `devflow lint all`。
-2. 判準:每份日誌宣稱達成的文檔合併後仍達成;日誌「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。**帶著紅燈不發 PR。**
+2. 判準:每份日誌宣稱達成的文檔合併後仍達成;日誌「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。**帶著紅燈不發 PR。** 設計分支的判準是建置編得過、`devflow lint all` 沒有紅、整套的紅只落在這份文檔 REV「重委派」欄點名的 law 上;別的紅就停,回報。
 3. **合併後紅**:歸因不改碼(`roles.md`「整合」):那條 law 屬於哪份文檔、它在自己的分支上綠不綠(看日誌的「測試」)、哪幾條分支與它共用檔案(看日誌的「合併時要看」)。寫成 GAP(角色 conductor)進 `.design/gaps.md`,commit,停下回報。候選超過一條才從主線另開臨時分支逐條重合、跑那份文檔的子集,找出第一條讓它紅的,臨時分支刪掉。
 
 ## 4. 發 PR
@@ -51,7 +52,7 @@ user-invocable: true
 1. 再次確認 `git branch --show-current` 不是主線,push 要發 PR 的分支。
 2. 有日誌就把每份日誌的內容寫進 PR 內文,`git rm .design/journal/*.md` commit。
 3. 組好內容**直接 `gh pr create` 送出,不需先向開發者確認**(發完在 §5 回報大綱):
-   - **標題**:英文 conventional commit 風格加全名,例 `feat: checkout and refund (F-001-checkout, F-002-refund)`、`refactor: lift money settlement (A-001-settle)`
+   - **標題**:英文 conventional commit 風格加全名,例 `feat: checkout and refund (F-001-checkout, F-002-refund)`、`refactor: lift money settlement (A-001-settle)`、設計分支 `design: checkout contract (F-001-checkout)`
    - **內文**:繁體中文,章節固定:
 
      ```markdown
@@ -61,10 +62,10 @@ user-invocable: true
      ## 包含什麼
      | 全名 | 類別 | 分支 | 需求 · 目標 · 里程碑 | 達成 |
      |---|---|---|---|---|
-     (對不到文檔的分支:全名欄寫分支名,其餘欄寫「-」)
+     (設計分支:達成欄寫「ready」;對不到文檔的分支:全名欄寫分支名,其餘欄寫「-」)
 
      ## 做了什麼與決定
-     (每條分支一小節。有日誌的抄日誌的「做了什麼」「決定」原文;沒有日誌的寫:動了哪個部分與為什麼、新增的依賴邊、實作層級決定、發現但沒做的事)
+     (每條分支一小節。有日誌的抄日誌的「做了什麼」「決定」原文;設計分支抄文檔的 Brief 與「決定」;其餘沒有日誌的寫:動了哪個部分與為什麼、新增的依賴邊、實作層級決定、發現但沒做的事)
 
      ## 合併
      - 順序:<分支順序與理由>;單一分支寫「單一分支,不需整合」
@@ -86,7 +87,7 @@ user-invocable: true
      🤖 Generated with [Claude Code](https://claude.com/claude-code)
      ```
 
-   - **Labels**(英文):新的 feature → `feature`、abstract 收整 → `refactor`、含 REV 或修訂既有文檔 → `revision`、只有驗收測試的 `build/R-n` → `test`;混合就都打上。Label 不存在先 `gh label create <name>`。
+   - **Labels**(英文):設計分支 → `design`、新的 feature → `feature`、abstract 收整 → `refactor`、含 REV 或修訂既有文檔 → `revision`、只有驗收測試的 `build/R-n` → `test`;混合就都打上。Label 不存在先 `gh label create <name>`。
 
 ## 5. 收尾
 

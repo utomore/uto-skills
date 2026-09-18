@@ -24,6 +24,8 @@ updated: 2026-09-05
 | 8 | `(<+>) :: SaveState -> SaveState -> SaveState` | 運算子簽名 | `Game.Save.Class` | core |
 | 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數,不該抓到 | `Game.Save.Class` | core |
 | 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Game.Save.State` | types |
+| 11 | `route :: SomeTypeRep -> Some 'Command -> Lane` | 升格的建構子與 SomeTypeRep,不該紅 | `Game.Save.State` | types |
+| 12 | `misroute :: Some 'Commnad -> Lane` | 升格的建構子打錯字,要紅 | `Game.Save.State` | types |
 | o | `ghostView :: SaveState -> Int` | 觀察點,程式碼沒有,要紅 | `Game.Save.State` | types |
 | = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Game.Save.Host` | shell |
 

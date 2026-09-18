@@ -22,13 +22,13 @@ $ lawful status
 ## pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|---|
-| P-001-game-save | IO 介面 | ready | 11 | 7 | 5 | 7 | nan/2 | 卡 GAP-1、GAP-1 |
+| P-001-game-save | IO 介面 | ready | 13 | 8 | 5 | 7 | nan/2 | 卡 GAP-1、GAP-1 |
 
 ## 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
 |---|---|---|---|---|---|---|
 | Game.World | 遊戲世界的不可變值 | types | - | - | 0 | 0 |
-| Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、effect、core、shell | effect | P-001-game-save | 9 | 6 |
+| Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、effect、core、shell | effect | P-001-game-save | 11 | 6 |
 | Game.Save.Extra | 多出來的一列 | core | core | - | 0 | 0 |
 | Game.FS | (沒填) | shell | - | P-001-game-save | 2 | 2 |
 | Game.Audio | 音效的混音 | core、pure | pure | - | 0 | 0 |
@@ -77,6 +77,7 @@ $ lawful status
 | O-3 | 優先「9」不是 1 到 4 | 改成 1(最高)到 4(最低) |
 | O-3 | 沒有 Law | lawful:objective 補「- Law:…」;一對一的需求寫「繼承 R-n」 |
 | P-001-game-save#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| P-001-game-save#misroute | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
 | P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |
 | GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
 | 模組表 | lint boundary 13 條不合規 | lawful lint boundary |

@@ -68,7 +68,8 @@ exit code:`status` 盤點 = 驗收(有未達成的 pipeline、open GAP、或需�
 |---|---|
 | `signatures(file)`:頂層簽名(名字、型別文字、模組) | `lint sig`、`status` |
 | `exports(file)`:匯出清單;沒寫回 null | `lint sig`、`lint boundary` |
-| `typeNames(file)`:宣告的型別名 | `lint io` |
+| `typeNames(file)`:宣告的型別名 | `lint sig`、`lint io` |
+| `dataConstructors(file)`:`data` / `newtype` 的建構子名;簽名裡升格的 `'Ctor` 對它查 | `lint sig` |
 | `stubs(file)`:本體還是 `stub` 的名字 | `status` |
 | `imports(file)`:import 的模組 | `lint boundary` |
 | `isEffectful(signature, extra)`:簽名是否碰到效果;`extra` 是 `Cone.md` 追加的效果型別 | `lint boundary` |
@@ -80,7 +81,7 @@ exit code:`status` 盤點 = 驗收(有未達成的 pipeline、open GAP、或需�
 | `modulePath(module)`:模組名 → 它在自己那棵原始碼樹底下的相對路徑 | `lint boundary`、`module --facade` |
 | `moduleFile(module)`:一個只有 module 宣告與空匯出清單的新檔 | `module --facade` |
 
-Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;匯出清單認 `Foo (..)`、`Foo (a, b)`、`(<+>)`、`module X`;型別名認 `data` / `newtype` / `type` / `class`;`import` 行;效果型別 `IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`、`TMVar`、`Chan` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`、`"R-n#LAW"`、`"O-n#LAW"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `error "P-00x#name stub"`,`undefined` 也算骨架;模組名的每一段是一層資料夾、最後一段加 `.hs`,前面接它那一層的原始碼根目錄;四棵樹在 `.cabal` 裡各是一個 sub-library,`build-depends` 只往下一層宣告。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
+Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;匯出清單認 `Foo (..)`、`Foo (a, b)`、`(<+>)`、`module X`;型別名認 `data` / `newtype` / `type` / `class`;建構子認 `data` / `newtype` 的 `=` 與 `|` 右邊與 GADT `where` 底下的 `Ctor ::`,簽名裡 DataKinds 升格的 `'Ctor` 對它查;`import` 行;效果型別 `IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`、`TMVar`、`Chan` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`、`"R-n#LAW"`、`"O-n#LAW"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `error "P-00x#name stub"`,`undefined` 也算骨架;模組名的每一段是一層資料夾、最後一段加 `.hs`,前面接它那一層的原始碼根目錄;四棵樹在 `.cabal` 裡各是一個 sub-library,`build-depends` 只往下一層宣告。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
 
 ## 跑東西的紀律
 

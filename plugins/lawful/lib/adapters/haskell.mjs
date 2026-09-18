@@ -30,7 +30,7 @@ const STDLIB = [
   'Maybe', 'Either', 'IO', 'FilePath', 'Text', 'ByteString', 'Map', 'Set', 'Seq', 'Vector', 'NonEmpty', 'IntMap', 'HashMap', 'HashSet',
   'Proxy', 'Void', 'Identity', 'Sum', 'Product', 'First', 'Last', 'Min', 'Max', 'Any', 'All', 'Const', 'Compose',
   'Eq', 'Ord', 'Show', 'Read', 'Enum', 'Bounded', 'Num', 'Integral', 'Fractional', 'Floating', 'Real', 'RealFrac',
-  'Functor', 'Applicative', 'Monad', 'Foldable', 'Traversable', 'Semigroup', 'Monoid', 'Generic', 'Typeable', 'NFData',
+  'Functor', 'Applicative', 'Monad', 'Foldable', 'Traversable', 'Semigroup', 'Monoid', 'Generic', 'Typeable', 'TypeRep', 'SomeTypeRep', 'NFData',
   'Handle', 'IORef', 'STM', 'TVar', 'MVar', 'ExceptT', 'StateT', 'ReaderT', 'WriterT', 'MaybeT', 'ST', 'STRef',
   'Value', 'Object', 'Dynamic',
 ];
@@ -145,6 +145,29 @@ export const haskell = {
     const re = /^(?:data|newtype|type|class)\s+(?:\([^)]*\)\s*=>\s*)?(?:[A-Z][\w.']*\s*=>\s*)?(?:family\s+)?([A-Z][\w']*)/gm;
     let m;
     while ((m = re.exec(stripComments(src)))) out.push(m[1]);
+    return out;
+  },
+  // data / newtype 的建構子:= 與 | 右邊的大寫名字,GADT 的 where 底下 Ctor :: 的名字。
+  // DataKinds 升格後在簽名裡寫成 'Ctor,lint sig 對這份清單查。
+  dataConstructors(src) {
+    const out = [];
+    const clean = stripComments(src);
+    // = 可以在宣告頭的下一行(縮排);每個 | 分支去掉存在量化的 forall 與 context 之後,第一個大寫名字是建構子。
+    const alg = /^(?:data|newtype)\s+(?:[^=\n]|\n[ \t])*?=\s*([^\n]*(?:\n[ \t]+\|[^\n]*)*)/gm;
+    let m;
+    while ((m = alg.exec(clean))) {
+      for (const alt of m[1].split('|')) {
+        const c = /^([A-Z][\w']*)/.exec(alt.replace(/^\s*forall\b[^.]*\.\s*/, '').replace(/^[^=]*=>\s*/, '').trim());
+        if (c) out.push(c[1]);
+      }
+    }
+    const gadt = /^data\s+[^\n=]*\bwhere\s*\n((?:[ \t]+[^\n]*\n?)*)/gm;
+    while ((m = gadt.exec(clean))) {
+      for (const line of m[1].split('\n')) {
+        const c = /^\s+([A-Z][\w']*(?:\s*,\s*[A-Z][\w']*)*)\s*::/.exec(line);
+        if (c) for (const n of c[1].split(',')) out.push(n.trim());
+      }
+    }
     return out;
   },
   // 本體還是骨架的頂層名字:等號右邊只有 undefined,或只有一個 error 呼叫。

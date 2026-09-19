@@ -1,0 +1,8 @@
+$ devflow migrate laws
+# migrate laws 帳本
+
+- .design/system.md:不動
+- 測試裡歸屬 R-n#LAW 的標記不動:照樣讀成需求的驗收測試;新寫的用 R-n#ACCEPT
+
+這棵樹不用換
+exit 0

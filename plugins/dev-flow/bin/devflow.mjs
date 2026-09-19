@@ -5,40 +5,48 @@ import process from 'node:process';
 import { readDesign } from '../lib/design.mjs';
 import { readSource } from '../lib/source.mjs';
 import { pickAdapter, pickSides, adapterNames } from '../lib/adapters/index.mjs';
-import { lintAll, lintBoundary, lintIds, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
+import { lintAll, lintBoundary, lintGlobal, lintIds, lintInvariants, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
-import { branchState, loadResults, docDetail, moduleDetail, statusReport } from '../lib/commands/status.mjs';
+import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, milestoneAdd, modulesGen, objectiveAdd, refinementAdd, requirementAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
-import { migrate, migrateObjectives } from '../lib/commands/migrate.mjs';
+import { claim, invariantAdd, milestoneAdd, modulesGen, objectiveAdd, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
+import { migrate, migrateLaws, migrateObjectives } from '../lib/commands/migrate.mjs';
 
 const HELP = `devflow <子命令> [選項]
 
-  status [--tests <log> | --run]       派工報告;law 綠幾條要給測試輸出,或 --run 跑 system.md 的整套指令;有 .git 時把有 build/<全名> 分支、而且它還沒合進主線的線列成建構中
+  status [--tests <log> | --run]       派工報告;law 綠幾條要給測試輸出,或 --run 跑 system.md 的整套指令;有 .git 時把有 build/<鍵> 分支、而且它還沒合進主線的線列成建構中,
+                                       鍵是里程碑全名 M-n-<slug>(切片)、文檔全名(修訂)或 R-n / INV-n(只寫那一條測試);分支有工作樹就從那棵樹讀它走到哪一步
                                        多語言專案每側一份輸出:--tests <目錄>=<log>,<目錄>=<log>,目錄是 system.md language 欄宣告的;--run 照整套指令每側各跑一道
   status --doc <F-00x | 全名>          一份文檔的 step 與 law 逐條狀態
   status --module <路徑或 目錄/**>     住在該檔案或目錄的所有 step 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
   status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
-  claim feature|abstract|spike|adr <slug> [--description <句>] [--milestone <M-n>]
-                                       鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑,spike 另建 spike/ 資料夾
+  claim feature|abstract|adr <slug> [--description <句>] [--milestone <M-n>]
+                                       鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(編號或全名 M-n-<slug> 都行)
+                                       配號看同一個 repo 的每一棵工作樹,別條 build 分支上 claim 走的號不重配
                                        system.md「語言與工具」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
-  requirement add <一句話> [--law <句>]
-                                       鑄 R-n 寫進 system.md「需求」;Law 沒給就留佔位符
-  objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]
-                                       鑄 O-n 建 objectives/R-n-O-n-<slug>.md;需求要是 system.md 裡有的;優先 1 最高、4 最低;Law 沒給就繼承需求
-  objective milestone <O-n> <一句話> [--bind <全名,全名>]
-                                       鑄 M-n 加進該目標檔的建置路線表;綁定的全名要是 features/ 裡有的 feature
+  requirement add <一句話> [--accept <句>]
+                                       鑄 R-n 寫進 system.md「需求」:一件必須達成的事;驗收(判它達成與否的那一句)沒給就留佔位符
+  invariant add <一句話> [--kind <種類>]
+                                       鑄 INV-n 寫進 system.md「全域 Law」區的領域不變量:整個專案任何一份 feature 都不准違反的 law;種類沒給就是 invariant
+  objective add <slug> <一句話> --requirement <R-n> --priority <1-4>
+                                       鑄 O-n 建 objectives/R-n-O-n-<slug>.md;需求要是 system.md 裡有的;優先 1 最高、4 最低
+  objective milestone <O-n> <slug> <一句話> [--bind <全名,全名>]
+                                       鑄 M-n,以全名 M-n-<slug> 加進該目標檔的建置路線表;slug 是 kebab-case 英文,切片的分支 build/M-n-<slug> 以它為鍵;
+                                       綁定的全名要是 features/ 裡有的 feature
   objective refinement <O-n> <一句話> --touch <全名,全名>
                                        鑄 RF-n 加進該目標檔的優化路線表;動到的要是該目標里程碑綁定過的 feature
-  lint ids | boundary | sig | laws | trace | io | all
+  lint ids | boundary | sig | laws | trace | io | invariants | global | all
                                        ids:兩個檔案同號、號段行讀不懂或重疊、owner 的號不在自己的號段內;
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與 abstract 的消費者;
-                                       laws:三行、種類、識別字、= 列有 law;trace:laws ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、秘密字面值
+                                       laws:文檔的 law 三行、種類、識別字、= 列有 law,與需求的驗收;trace:laws 與驗收 ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、契約、秘密字面值;
+                                       invariants:領域不變量的編號、種類、三行只引用最內層、寫了三行就有 INV-n#LAW 測試;
+                                       global:全域 Law 三類一次查完 = boundary(架構)+ io(契約)+ invariants(領域不變量)
   sync                                 同層搬家的 step,模組欄改成程式碼裡的實際檔案
   modules --gen                        從程式碼補模組表缺的檔案,層欄留白
   section <file> <節>… [--verify]      取 ## 節
-  spike close <SPK-00x> [--dry-run]    檢查 verdict / feeds / sha 齊全,刪 spike/SPK-00x-<slug>/
+  migrate laws [--write]               system.md 沒有「## 全域 Law」區、或需求與目標檔寫著「- Law:」的樹:層、對外 I/O、領域不變量收進「## 全域 Law」區,
+                                       需求的那一句改成「- 驗收:」,目標檔的 Law 與需求的蘊含說明刪掉;先印帳本,--write 才落地
   migrate objectives [--write]         目標還擠在一份 objectives.md 的樹:每個目標生一條需求寫進 system.md「需求」、拆成 objectives/ 一個目標一個檔、
                                        目的併進願景第二段;先印帳本,--write 才落地
   migrate <.design> [--language <adapter>] [--ignore <dir,dir>]
@@ -108,6 +116,7 @@ function main() {
     return emit(sectionCommand(path.resolve(root, sub), rest, { verify: !!args.flags.verify, display: sub }));
   }
 
+  if (cmd === 'migrate' && sub === 'laws') return emit(migrateLaws(root, { write: !!args.flags.write }));
   if (cmd === 'migrate' && sub === 'objectives') return emit(migrateObjectives(root, { write: !!args.flags.write, date: args.flags.date || undefined }));
   if (cmd === 'migrate') {
     if (!sub) {
@@ -128,12 +137,13 @@ function main() {
 
   if (cmd === 'lint') {
     const which = sub || 'all';
-    const one = { ids: lintIds, boundary: lintBoundary, sig: lintSig, laws: lintLaws, trace: lintTrace, io: lintIo };
+    const one = { ids: lintIds, boundary: lintBoundary, sig: lintSig, laws: lintLaws, trace: lintTrace, io: lintIo, invariants: lintInvariants };
     let results;
     if (which === 'all') results = lintAll(design, source, adapter);
+    else if (which === 'global') results = lintGlobal(design, source, adapter);
     else if (one[which]) results = [one[which](design, source, adapter)];
     else {
-      console.error(`lint 只有 ids / boundary / sig / laws / trace / io / all,沒有「${which}」`);
+      console.error(`lint 只有 ids / boundary / sig / laws / trace / io / invariants / global / all,沒有「${which}」`);
       return 1;
     }
     return emit(renderLint(results));
@@ -145,14 +155,19 @@ function main() {
     const note = testsFlag ? rawNote.replace(testsFlag, args.flags.tests) : rawNote;
     if (args.flags.doc) return emit(docDetail(design, source, adapter, results, note, args.flags.doc));
     if (args.flags.module) return emit(moduleDetail(design, source, adapter, results, note, args.flags.module));
-    const { building, stale } = branchState(root);
+    // 一條 build 分支走到哪一步:讀它那棵工作樹的 .design 與程式碼
+    const phaseOf = (wtRoot, key) => {
+      const q = loadProject(wtRoot);
+      return q.error ? '' : slicePhase(q.design, q.source, key);
+    };
+    const { building, stale, phases } = branchState(root, phaseOf);
     if (args.flags.json) {
       const data = statusJson(design, source, adapter, results, note, building, stale);
       console.log(JSON.stringify(data, null, 2));
       return data.route.allDone && data.summary.docs ? 0 : 1;
     }
     // --html 是額外產出,不取代報告:同一次呼叫先印報告,最後附看板的網址
-    const report = statusReport(design, source, adapter, results, note, building, stale);
+    const report = statusReport(design, source, adapter, results, note, building, stale, phases);
     if (args.flags.html) {
       const b = statusBoard(design, source, adapter, results, note, building, root, args.flags.html, !!args.flags.open, stale);
       report.text += `\n\n${b.text}`;
@@ -162,23 +177,29 @@ function main() {
 
   if (cmd === 'claim') {
     if (!sub || !rest[0]) {
-      console.error('用法:devflow claim feature|abstract|spike|adr <slug> [--description <句>] [--milestone <M-n>]');
+      console.error('用法:devflow claim feature|abstract|adr <slug> [--description <句>] [--milestone <M-n>]');
       return 1;
     }
     return emit(claim(design, sub, rest[0], { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined, milestone: typeof args.flags.milestone === 'string' ? args.flags.milestone : '' }));
   }
 
   if (cmd === 'requirement') {
-    if (sub === 'add' && rest[0]) return emit(requirementAdd(design, rest.join(' '), { law: typeof args.flags.law === 'string' ? args.flags.law : '' }));
-    console.error('用法:devflow requirement add <一句話> [--law <句>]');
+    if (sub === 'add' && rest[0]) return emit(requirementAdd(design, rest.join(' '), { accept: typeof args.flags.accept === 'string' ? args.flags.accept : '' }));
+    console.error('用法:devflow requirement add <一句話> [--accept <句>]');
+    return 1;
+  }
+
+  if (cmd === 'invariant') {
+    if (sub === 'add' && rest[0]) return emit(invariantAdd(design, rest.join(' '), { kind: typeof args.flags.kind === 'string' ? args.flags.kind : 'invariant' }));
+    console.error('用法:devflow invariant add <一句話> [--kind <種類>]');
     return 1;
   }
 
   if (cmd === 'objective') {
-    if (sub === 'add' && rest[0] && rest[1]) return emit(objectiveAdd(design, rest[0], rest.slice(1).join(' '), { requirement: typeof args.flags.requirement === 'string' ? args.flags.requirement : '', priority: args.flags.priority, law: typeof args.flags.law === 'string' ? args.flags.law : '', date: args.flags.date || undefined }));
-    if (sub === 'milestone' && rest[0] && rest[1]) return emit(milestoneAdd(design, rest[0], rest.slice(1).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
+    if (sub === 'add' && rest[0] && rest[1]) return emit(objectiveAdd(design, rest[0], rest.slice(1).join(' '), { requirement: typeof args.flags.requirement === 'string' ? args.flags.requirement : '', priority: args.flags.priority, date: args.flags.date || undefined }));
+    if (sub === 'milestone' && rest[0] && rest[1] && rest[2]) return emit(milestoneAdd(design, rest[0], rest[1], rest.slice(2).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
     if (sub === 'refinement' && rest[0] && rest[1]) return emit(refinementAdd(design, rest[0], rest.slice(1).join(' '), { touch: typeof args.flags.touch === 'string' ? args.flags.touch : '' }));
-    console.error('用法:devflow objective add <slug> <一句話> --requirement <R-n> --priority <1-4> [--law <句>]\n      devflow objective milestone <O-n> <一句話> [--bind <全名,全名>]\n      devflow objective refinement <O-n> <一句話> --touch <全名,全名>');
+    console.error('用法:devflow objective add <slug> <一句話> --requirement <R-n> --priority <1-4>\n      devflow objective milestone <O-n> <slug> <一句話> [--bind <全名,全名>]\n      devflow objective refinement <O-n> <一句話> --touch <全名,全名>');
     return 1;
   }
 
@@ -190,14 +211,6 @@ function main() {
       return 1;
     }
     return emit(modulesGen(design, source));
-  }
-
-  if (cmd === 'spike') {
-    if (sub !== 'close' || !rest[0]) {
-      console.error('用法:devflow spike close <SPK-00x> [--dry-run]');
-      return 1;
-    }
-    return emit(spikeClose(design, rest[0], { dryRun: !!args.flags['dry-run'] }));
   }
 
   console.error(`沒有「${cmd}」這個子命令。\n\n${HELP}`);

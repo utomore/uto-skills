@@ -1,6 +1,6 @@
 $ devflow requirement add 每一筆錢都查得到來源
 R-2 寫進 .design/system.md
-Law 還是佔位符,對談完填成可判定的一句
+驗收還是佔位符,對談完填成可判定的一句
 下一步:devflow objective add <slug> <一句話> --requirement R-2 --priority <1-4>
 exit 0
 --- .design/system.md
@@ -17,12 +17,38 @@ updated: 2026-09-07
 
 ## 需求
 ### R-1:每一筆結帳與退款的金額都算對
-- Law:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
 ### R-2:每一筆錢都查得到來源
-- Law:<一句可判定的話:這條需求成立時,什麼一定為真>
+- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+- INV-1 [bound] 任何一條路徑結算出來的金額都不為負
+  - forall ls in MoneyList, d in Money
+  - given settled(settle(ls, d))
+  - |- cents(settle(ls, d)) >= 0
+
+### 架構:層
+由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。
+
+| 層 | 裝什麼 |
+|---|---|
+| domain | 金額的型別與規則 |
+| application | 把 domain 串成一條結帳或退款 |
+| entry | HTTP 路由 |
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約 |
+|---|---|---|---|---|---|---|---|
+| POST /checkout | in | `RawBody` | `src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` | F-001#LAW-2 |
+| 結帳結果 | out | `HttpRes` | `src/entry/routes.ts` | F-001-checkout | trusted | - | INV-1 |
+| POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` | F-002#LAW-2 |
+| 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - | INV-1 |
 
 ## 語言與工具
 - 建置:`npx tsc --noEmit`
@@ -33,23 +59,6 @@ updated: 2026-09-07
 - 忽略目錄:無
 - 號段:無
 - 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
-
-## 層
-由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。
-
-| 層 | 裝什麼 |
-|---|---|
-| domain | 金額的型別與規則 |
-| application | 把 domain 串成一條結帳或退款 |
-| entry | HTTP 路由 |
-
-## 對外 I/O
-| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
-|---|---|---|---|---|---|---|
-| POST /checkout | in | `RawBody` | `src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` |
-| 結帳結果 | out | `HttpRes` | `src/entry/routes.ts` | F-001-checkout | trusted | - |
-| POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` |
-| 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - |
 
 ## Features
 | 全名 | 類別 |

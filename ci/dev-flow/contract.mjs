@@ -4,8 +4,9 @@
 //   node ci/dev-flow/contract.mjs [--root <專案根目錄>] [--lint-only]
 //
 // 做四件事,前三件任一紅就 exit 1:
-//   1. lint ids / boundary / sig / laws / io;lint trace 只擋幽靈引用(測試引用的編號文檔裡沒有)與 frozen 文檔沒有測試承接的 law,
-//      其餘的 trace 紅只印不擋:設計 PR 的 law 還沒有測試,它一定紅;
+//   1. lint ids / boundary / sig / laws / io / invariants(boundary、io、invariants 三道就是全域 Law 的三類);
+//      lint trace 只擋幽靈引用(測試引用的編號文檔裡沒有)與 verified 文檔沒有測試承接的 law,
+//      其餘的 trace 紅與「領域不變量寫了三行卻沒有測試」只印不擋:測試可以晚一條 PR 才到(剛批准的領域不變量,測試在下一波 build);
 //      status: draft 文檔的紅只印不擋:draft 是還在討論的文檔,改成 ready 的那條 PR 起才擋;
 //      lint ids 查的是檔案本身,不看 status,兩份 draft 同號照擋)
 //   2. 跑 system.md「語言與工具」的建置指令
@@ -76,12 +77,15 @@ async function main() {
   const drafts = design.docs.filter((d) => d.status === 'draft').flatMap((d) => [d.file, d.fullName]);
   const aboutDraft = (msg) => drafts.some((k) => msg.includes(k));
   // lint ids 查的是檔案本身(兩份同號、號不在 owner 的區間),跟文檔寫完沒有無關,不套 draft 過濾:claim 出來的新文檔一定是 draft
+  // 領域不變量寫了三行、測試還沒到:跟 trace 的其餘一樣只印不擋
+  const lateTest = (msg) => /^INV-\d+#LAW 寫了三行卻沒有測試/.test(msg);
   const content = [
     lint.lintBoundary(design, source, adapter),
     lint.lintSig(design, source, adapter),
     lint.lintLaws(design, source, adapter),
     lint.lintIo(design, source, adapter),
-  ].map((r) => ({ ...r, red: r.red.filter((m) => !aboutDraft(m)), draft: r.red.filter(aboutDraft) }));
+    lint.lintInvariants(design, source, adapter),
+  ].map((r) => ({ ...r, red: r.red.filter((m) => !aboutDraft(m) && !lateTest(m)), draft: r.red.filter(aboutDraft), late: r.red.filter((m) => !aboutDraft(m) && lateTest(m)) }));
   const results = [{ ...lint.lintIds(design), draft: [] }, ...content];
   const gated = lint.renderLint(results);
   console.log(gated.text);
@@ -92,13 +96,13 @@ async function main() {
     for (const x of draftReds) console.log(`- · ${x}`);
   }
   // lint trace 拆兩段:幽靈引用(測試還在守一條文檔裡沒有的編號)什麼時候都是錯,擋;
-  // frozen 文檔的 law 沒有測試承接也擋 —— frozen 是建置全綠後才改的,它的 law 理應都有測試;
-  // 其餘(ready 文檔的 law 還沒翻譯、需求與目標的 Law 還沒有驗收測試)只印:設計 PR 的 law 還沒有測試,它一定紅
+  // verified 文檔的 law 沒有測試承接也擋 —— verified 是建置全綠後才改的,它的 law 理應都有測試;
+  // 其餘(ready 文檔的 law 還沒翻譯、需求的驗收還沒有驗收測試、領域不變量還沒有測試)只印:測試可以晚一條 PR 才到(剛批准的領域不變量,測試在下一波 build)
   const trace = lint.lintTrace(design, source);
-  const frozen = design.docs.filter((d) => d.status === 'frozen' && d.id).map((d) => `${d.id}#`);
-  const gatedTrace = trace.red.filter((m) => m.includes('幽靈引用') || frozen.some((p) => m.startsWith(p)));
-  const openTrace = trace.red.filter((m) => !gatedTrace.includes(m));
-  const traced = lint.renderLint([{ title: 'lint trace(幽靈引用、frozen 文檔的 law)', red: gatedTrace, info: [] }]);
+  const verified = design.docs.filter((d) => d.status === 'verified' && d.id).map((d) => `${d.id}#`);
+  const gatedTrace = trace.red.filter((m) => m.includes('幽靈引用') || verified.some((p) => m.startsWith(p)));
+  const openTrace = [...trace.red.filter((m) => !gatedTrace.includes(m)), ...content.flatMap((r) => r.late)];
+  const traced = lint.renderLint([{ title: 'lint trace(幽靈引用、verified 文檔的 law)', red: gatedTrace, info: [] }]);
   console.log(traced.text);
   if (traced.exitCode) failed = true;
   console.log(`## lint trace 其餘(只印不擋):${openTrace.length ? `${openTrace.length} 條還沒有測試承接` : '全部有測試承接'}`);

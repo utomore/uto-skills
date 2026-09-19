@@ -1,10 +1,10 @@
 # 邊界
 
-依賴方向的唯一宣告是 `system.md` 的層表加 `modules.md` 的模組表;`devflow lint boundary` 拿 import 圖對它。
+依賴方向的唯一宣告是 `system.md` 的層表加 `modules.md` 的模組表;`devflow lint boundary` 拿 import 圖對它。層的兩條規則與對外 I/O 表是全域 Law 的架構與契約兩類(laws.md「全域 Law」):`dev-flow:spike-impl` 從第一行程式碼就守,離場前 `lint boundary` 要沒有紅。
 
 ## 層
 
-層是**檔案**的屬性,意義是依賴方向。層由專案自己命名、自己決定幾層,寫在 `system.md`「層」表,**由內而外**排:
+層是**檔案**的屬性,意義是依賴方向。層由專案自己命名、自己決定幾層,寫在 `system.md`「全域 Law」區的「架構:層」表,**由內而外**排;它是全域 Law 的架構一類(laws.md「全域 Law」):
 
 ```markdown
 | 層 | 裝什麼 |
@@ -36,7 +36,7 @@
 ```
 
 - 路徑是**相對專案根目錄的檔案路徑**,`目錄/**` 通配底下所有檔案,最長的樣式贏(`src/domain/**` 比 `src/**` 精確)。
-- 路徑欄由 `devflow modules --gen` 從程式碼生成(一個檔一列),人只填層欄,再自己把同層的合併成 `目錄/**` 一列。
+- 路徑欄由 `devflow modules --gen` 從程式碼生成(一個檔一列),人只填層欄,再自己把同層的合併成 `目錄/**` 一列。切片新增的檔案由 `dev-flow:spike-impl` 當場登記:檔案放哪一層是寫下第一行之前就要答的事。
 - 程式碼有、表上沒有的檔案 → 未登記;表上有、程式碼沒有的 → 幽靈。兩者都是 `lint boundary` 的紅。
 - 檔案沒有完成狀態。檔案的進度 = 它裝的所有 step 的狀態:`devflow status --module <路徑>` 列出哪些文檔的哪些 step 住在那裡、簽名在不在、laws 綠了幾條。
 
@@ -61,21 +61,22 @@ step 與觀察點都要是**該檔案對外匯出的名字**,程式碼才對得�
 
 ## 對外 I/O
 
-`system.md`「對外 I/O」表列出每個跨過最外層邊界的入口與出口:
+`system.md`「全域 Law」區的「契約:對外 I/O」表列出每個跨過最外層邊界的入口與出口;它是全域 Law 的契約一類:
 
 ```markdown
-| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
-|---|---|---|---|---|---|---|
-| POST /auth/refresh | in | `RefreshReq` | `src/entry/routes.ts` | F-002-token-refresh | untrusted | `parseRefresh` |
-| 換發結果 | out | `TokenPair` | `src/entry/routes.ts` | F-002-token-refresh | trusted | - |
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約 |
+|---|---|---|---|---|---|---|---|
+| POST /auth/refresh | in | `RefreshReq` | `src/entry/routes.ts` | F-002-token-refresh | untrusted | `parseRefresh` | F-002#LAW-4 |
+| 換發結果 | out | `TokenPair` | `src/entry/routes.ts` | F-002-token-refresh | trusted | - | - |
 ```
 
 - **信任**:`untrusted` = 這一端的內容由系統外面決定(使用者輸入、第三方回應、讀進來的檔案);`trusted` = 由系統自己產生。
 - **驗證**:`untrusted` 的 `in` 列必須指名一個做驗證的 step,而那個 step 要在該 feature 的 Steps 表裡。`in` 之後第一個碰到資料的東西就是它。
-- 每份 feature 的兩端都要對得到這張表;表上的文檔必須是 feature,不能是 abstract。
+- **契約**:這一端對外面承諾了什麼、由哪條 law 守著(重送同一個請求不會做第二次、對外的事件只增欄位不刪不改名)。寫那條 law:`F-00x#LAW-n` 或 `INV-n`,「、」分隔;沒有就「-」。只寫一句話而沒有 law 守著的契約不算數。
+- 每份 feature 的兩端都要對得到這張表;表上的文檔必須是 feature,不能是 abstract。一條切片新的入口與出口,`dev-flow:spike-impl` 記在決策紀錄「Touched」,`dev-flow:law-design` claim 出 feature 之後補成表上的列。
 - 表上的模組在模組表是最外層;型別不住最外層(邊界換了才不必跟著改)。
 
-`devflow lint io` 對帳以上,外加三條安全:
+`devflow lint io` 對帳以上(契約欄指到的 law 要存在),外加三條安全:
 
 1. `untrusted` 的 `in` 列沒有驗證 step,或驗證 step 不在 Steps 表裡 → 紅
 2. Laws 的三行與 Examples 的輸入輸出出現密碼 / 金鑰 / token 樣式的字面值 → 紅。**秘密不進文檔**,example 用假名或型別描述

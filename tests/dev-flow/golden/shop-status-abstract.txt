@@ -1,5 +1,5 @@
 $ devflow status --doc A-001-settle --tests test.log
-# A-001-settle  abstract  frozen
+# A-001-settle  abstract  verified
 一組品項金額扣掉折扣之後的應付金額
 · 測試結果來自 test.log
 
@@ -27,5 +27,5 @@ $ devflow status --doc A-001-settle --tests test.log
 ## 修訂
 - REV-1(2026-09-07,依 dev-flow:refactor 收整):把 F-001-checkout 與 F-002-refund 各自寫的金額計算收整進本檔
 
-文檔寫了 3 條簽名,程式碼裡有 3 條,還是骨架的 0 條 · 觀察點 2 個,程式碼裡有 2 個 · 寫了 3 條 law,通過 3 條 · 達成
+文檔寫了 3 條簽名,程式碼裡有 3 條,未實作的 0 條 · 觀察點 2 個,程式碼裡有 2 個 · 寫了 3 條 law,通過 3 條 · 達成
 exit 0

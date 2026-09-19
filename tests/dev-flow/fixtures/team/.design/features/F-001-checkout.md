@@ -1,7 +1,7 @@
 ---
 id: F-001
 description: 使用者把購物車結成一張已付款的訂單
-status: frozen
+status: verified
 updated: 2026-09-07
 ---
 # F-001-checkout:使用者把購物車結成一張已付款的訂單
@@ -44,7 +44,7 @@ input 是 POST /checkout 的 RawBody,output 是 HttpRes。
 
 ## 決定
 - **解析階段就把數字夾成非負整數,而不是讓結算去擋。** 否決:原樣傳進 domain 再回錯誤。`parseCheckout` 是 untrusted 入口的驗證 step,不合法的輸入不該有機會走到 domain。
-- **解凍一次**(2026-09-07):為了 REV-1 的收整解凍,收整做完由 build 重新 frozen。
+- **重開一次**(2026-09-07):為了 REV-1 的收整重開,收整做完由 build 重新 verified。
 
 ## 修訂記錄
 - REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle

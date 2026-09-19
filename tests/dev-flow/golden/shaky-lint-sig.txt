@@ -6,17 +6,17 @@ $ devflow lint sig
     程式碼:weigh(Rule): number(src/domain/rule.ts:5)
 - ✗ .design/features/F-001-score.md:17 F-001-score#missingStep 第 1 個參數的型別 Ghost 在程式碼與標準函式庫都找不到;型別住程式碼,拍板前先宣告
 - ✗ .design/features/F-001-score.md:17 F-001-score#missingStep 回傳的型別 any 沒有名字;step 之間傳遞的值用有名字的型別,形狀才有地方住
-- ✗ .design/features/F-001-score.md:17 F-001-score#missingStep 程式碼裡找不到;骨架在設計階段就要寫進程式碼
-- ✗ .design/features/F-001-score.md:18 helperOnly 引用了 feature F-002-other;feature 之間不互相引用,共用的部分走 dev-flow:refactor 抽成 abstract
-- ✗ .design/features/F-001-score.md:18 F-001-score#helperOnly 程式碼裡找不到;骨架在設計階段就要寫進程式碼
+- ✗ .design/features/F-001-score.md:17 F-001-score#missingStep 程式碼裡找不到;Steps 的簽名抄程式碼裡定下來的那一個,修訂新增的 step 先在程式碼裡宣告
+- ✗ .design/features/F-001-score.md:18 helperOnly 引用了 feature F-002-other;feature 之間不互相引用,共用的部分走 dev-flow:abstract 收整成 abstract
+- ✗ .design/features/F-001-score.md:18 F-001-score#helperOnly 程式碼裡找不到;Steps 的簽名抄程式碼裡定下來的那一個,修訂新增的 step 先在程式碼裡宣告
 - ✗ .design/features/F-001-score.md:19 weigh 是 A-002-single 的 = 列;引用別份的 step 要在模組欄註明「見 A-002-single」
 - ✗ .design/features/F-001-score.md:19 F-001-score#weigh 簽名不一致(回傳 string vs number)
     文檔:weigh(Rule): string
     程式碼:weigh(Rule): number(src/domain/rule.ts:5)
 - ✗ .design/features/F-002-other.md feature 要恰好一列 ! 列(對外進入點),現在 0 列
-- ✗ .design/features/F-002-other.md:17 F-002-other#helperOnly 程式碼裡找不到;骨架在設計階段就要寫進程式碼
+- ✗ .design/features/F-002-other.md:17 F-002-other#helperOnly 程式碼裡找不到;Steps 的簽名抄程式碼裡定下來的那一個,修訂新增的 step 先在程式碼裡宣告
 - ✗ .design/abstracts/A-001-lonely.md abstract 不碰對外邊界,不該有 ! 列
-- ✗ .design/abstracts/A-002-single.md:15 weigh 也是 F-001-score 的 step,兩邊都沒註明「見」;共用就走 dev-flow:refactor
-- ✗ .design/abstracts/A-001-lonely.md 沒有任何文檔引用 A-001-lonely;abstract 是 refactor 收整出來的共用部分,沒有消費者就該刪
+- ✗ .design/abstracts/A-002-single.md:15 weigh 也是 F-001-score 的 step,兩邊都沒註明「見」;共用就走 dev-flow:abstract
+- ✗ .design/abstracts/A-001-lonely.md 沒有任何文檔引用 A-001-lonely;abstract 是收整出來的共用部分,沒有消費者就該刪
 - · F-001-score#score 搬家:文檔 src/app/other.ts → 程式碼 src/app/store.ts(devflow sync 可改)
 exit 1

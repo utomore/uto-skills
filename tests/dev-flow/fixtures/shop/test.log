@@ -35,8 +35,12 @@
     ✓ holds
 
  PASS  test/requirements.test.ts
-  R-1#LAW 結帳與退款都照同一條結算
+  R-1#ACCEPT 結帳與退款都照同一條結算
     ✓ holds (1 ms)
 
-Test Suites: 4 passed, 4 total
-Tests:       16 passed, 16 total
+ PASS  test/invariants.test.ts
+  INV-1#LAW 任何一條路徑結算出來的金額都不為負
+    ✓ holds
+
+Test Suites: 5 passed, 5 total
+Tests:       17 passed, 17 total

@@ -6,7 +6,7 @@ exit 0
 id: F-001
 owner: bob@corp.com
 description: 把一段輸入算成分數
-status: frozen
+status: verified
 updated: 2026-09-07
 ---
 # F-001-score:把一段輸入算成分數
@@ -42,7 +42,7 @@ updated: 2026-09-07
 無
 
 ## 修訂記錄
-- REV-1(2026-09-07,依 開發者):改了但沒有解凍紀錄
+- REV-1(2026-09-07,依 開發者):改了但沒有重開紀錄
   - 動到:LAW-1
   - 保護:無
   - 重委派:qa(LAW-1)

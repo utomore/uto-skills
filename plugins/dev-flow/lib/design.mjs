@@ -1,4 +1,4 @@
-// 讀 .design/ 成一棵樹:system(願景、需求、語言與工具、層、對外 I/O、Features)、objectives(目標、里程碑、調整)、modules、features、abstracts、gaps、spikes。只讀不判;判在 commands/。
+// 讀 .design/ 成一棵樹:system(願景、需求、全域 Law 三區——領域不變量、架構的層、契約的對外 I/O——、語言與工具、Features)、objectives(目標、里程碑、調整)、modules、features、abstracts、gaps、journals。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
@@ -24,7 +24,7 @@ const isPlaceholder = (s) => /^<[^>]*>?$/.test((s || '').trim());
 export const hasPlaceholder = (s) => /<[^>]*>/.test(s || '');
 
 export const LAW_KINDS = ['invariant', 'identity', 'roundtrip', 'relation', 'bound', 'equiv', 'total', 'commute'];
-export const STATUSES = ['draft', 'ready', 'frozen'];
+export const STATUSES = ['draft', 'ready', 'verified'];
 export const TRUST = ['trusted', 'untrusted'];
 export const KINDS = { feature: 'F', abstract: 'A' };
 
@@ -32,12 +32,12 @@ function read(p) {
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
 }
 
-// 一個節裡的「Law」:清單項 `- Law:<一句話>`,子項可以是三行式(forall / given / |-)。
-// 沒有這一項回 null;有一句話但沒有三行是一句話的 law,由測試或蘊含承接。
-function parseLawItem(items) {
-  const it = items.find((i) => /^Law[::]/.test(i.text));
+// 需求的「驗收」:清單項 `- 驗收:<一句可判定的話>`,子項可以是三行式(forall / given / |-)。需求是必須達成的事,不是 law。
+// 沒有這一項回 null;有一句話但沒有三行,由驗收測試或建置路線承接。`- Law:` 靜默當同一項讀。
+function parseAcceptItem(items) {
+  const it = items.find((i) => /^(驗收|Law)[::]/.test(i.text));
   if (!it) return null;
-  const title = it.text.replace(/^Law[::]\s*/, '').trim();
+  const title = it.text.replace(/^(驗收|Law)[::]\s*/, '').trim();
   return {
     title,
     forall: it.children.find((c) => /^forall\b/.test(c)) || null,
@@ -45,7 +45,6 @@ function parseLawItem(items) {
     conclusion: it.children.find((c) => /^\|-/.test(c)) || null,
     formal: it.children.some((c) => /^(forall\b|\|-)/.test(c)),
     placeholder: hasPlaceholder(title),
-    inherits: (/^繼承\s*(R-\d+)/.exec(title) || [])[1] || null,
   };
 }
 
@@ -172,8 +171,17 @@ export function readSystem(designDir, root) {
     }
   }
 
-  // 層:表的順序就是由內而外;最後一列是最外層(唯一能做對外 I/O 的層)
-  const layerSec = findSection(secs, '層');
+  // 全域 Law 的三區住「## 全域 Law」底下的 ###:領域不變量、架構:層、契約:對外 I/O;同名的 ## 節靜默當同一區讀。
+  const globalSec = findSection(secs, '全域 Law');
+  const globalPart = (h3, h2) => {
+    if (globalSec) {
+      for (let i = secs.indexOf(globalSec) + 1; i < secs.length && secs[i].level > 2; i++) if (secs[i].level === 3 && secs[i].title === h3) return secs[i];
+    }
+    return findSection(secs, h2);
+  };
+
+  // 架構:層。表的順序就是由內而外;最後一列是最外層(唯一能做對外 I/O 的層)
+  const layerSec = globalPart('架構:層', '層');
   const layers = [];
   if (layerSec) {
     const t = parseTable(layerSec.lines);
@@ -183,8 +191,8 @@ export function readSystem(designDir, root) {
     });
   }
 
-  // 對外 I/O 表:名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證
-  const ioSec = findSection(secs, '對外 I/O');
+  // 對外 I/O 表:名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約
+  const ioSec = globalPart('契約:對外 I/O', '對外 I/O');
   const io = [];
   if (ioSec) {
     const t = parseTable(ioSec.lines);
@@ -197,6 +205,8 @@ export function readSystem(designDir, root) {
         feature: stripTicks(r[4] || ''),
         trust: (r[5] || '').trim(),
         guard: stripTicks(r[6] || ''),
+        // 契約:守這一端的 law,寫 F-00x#LAW-n 或 INV-n,「、」分隔;沒有就「-」
+        contract: (r[7] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x)),
         line: ioSec.start + t.rowLines[i] + 2,
       };
       if (!hasPlaceholder(row.name) && !hasPlaceholder(row.feature)) io.push(row);
@@ -220,7 +230,7 @@ export function readSystem(designDir, root) {
   const vision = paragraphs[0] || '';
   const visionState = !visionSec ? 'missing' : !visionFull || hasPlaceholder(visionFull) ? 'template' : 'ok';
 
-  // 需求:「## 需求」底下每個 ### R-n:<一句話> 一條;Law 是清單項,蘊含是清單項(一條需求有兩個以上目標時要有)
+  // 需求:「## 需求」底下每個 ### R-n:<一句話> 一條;驗收是清單項
   const reqSec = findSection(secs, '需求');
   const requirements = [];
   if (reqSec) {
@@ -230,16 +240,39 @@ export function readSystem(designDir, root) {
       const m = /^(R-\d+)\s*[::]\s*(.*)$/.exec(s.title);
       if (!m) continue;
       const items = parseList(s.lines);
-      const imp = items.find((it) => /^蘊含[::]/.test(it.text));
       requirements.push({
         id: m[1],
         title: m[2].trim(),
-        law: parseLawItem(items),
-        implication: imp ? imp.text.replace(/^蘊含[::]\s*/, '').trim() : '',
+        accept: parseAcceptItem(items),
         line: s.start + 1,
         placeholder: hasPlaceholder(m[2]),
       });
     }
+  }
+
+  // 領域不變量:「### 領域不變量」底下每條 `- INV-n [種類] 一句話`,子項可以是三行式;整個專案都不准違反,
+  // 三行的識別字只准是最內層的匯出與型別名(lint laws 對帳),測試歸屬 INV-n#LAW。
+  const invSec = globalPart('領域不變量', '領域不變量');
+  const invariants = [];
+  if (invSec) for (const it of parseList(invSec.lines)) {
+    const head = /^(INV-\d+)\s*(?:\[([^\]]*)\])?\s*(.*)$/.exec(it.text);
+    if (!head) continue;
+    const at = invSec.lines.findIndex((l) => l.startsWith(`- ${head[1]} `) || l.trim() === `- ${head[1]}`);
+    invariants.push({
+      id: head[1],
+      kind: (head[2] || '').trim(),
+      title: head[3].trim(),
+      law: {
+        title: head[3].trim(),
+        forall: it.children.find((c) => /^forall\b/.test(c)) || null,
+        given: it.children.filter((c) => /^given\b/.test(c)),
+        conclusion: it.children.find((c) => /^\|-/.test(c)) || null,
+        formal: it.children.some((c) => /^(forall\b|\|-)/.test(c)),
+        placeholder: hasPlaceholder(head[3]) || hasPlaceholder(head[2] || ''),
+      },
+      line: invSec.start + (at < 0 ? 0 : at) + 2,
+      placeholder: hasPlaceholder(head[3]) || hasPlaceholder(head[2] || ''),
+    });
   }
 
   return {
@@ -252,6 +285,9 @@ export function readSystem(designDir, root) {
     visionState,
     requirements,
     requirementsState: !reqSec ? 'missing' : 'ok',
+    invariants: invariants.filter((v) => !v.placeholder),
+    invariantsState: !invSec ? 'missing' : 'ok',
+    globalState: globalSec ? 'ok' : 'missing',
     priorityNote,
     priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok',
     commands,
@@ -271,7 +307,7 @@ export function readSystem(designDir, root) {
 }
 
 // 目標:objectives/ 一個檔一個目標,檔名 R-x-O-y-<slug>.md;frontmatter id、requirement、priority、updated;
-// 標題 # <全名>:<一句話>;Law 是清單項;建置路線是表(里程碑 | 做到什麼 | 綁定),優化路線是表(調整 | 做到什麼 | 動到),兩張表以表頭第一格分。
+// 標題 # <全名>:<一句話>;建置路線是表(里程碑 | 做到什麼 | 綁定),優化路線是表(調整 | 做到什麼 | 動到),兩張表以表頭第一格分。
 // 綁定欄是 feature 全名,「、」分隔;綁定是里程碑對到文檔的唯一寫法,完成度從綁定的文檔推。
 export function readObjectives(designDir, root) {
   const dir = path.join(designDir, 'objectives');
@@ -290,17 +326,19 @@ export function readObjectives(designDir, root) {
     const heading = lines.find((l) => /^# /.test(l)) || '';
     const tm = /^#\s+\S+\s*[::]\s*(.*)$/.exec(heading);
     const title = (tm ? tm[1] : heading.replace(/^#\s*/, '')).trim();
-    const items = parseList(lines);
     const milestones = [];
     const refinements = [];
     for (const t of parseTables(lines)) {
       const kind = (t.header[0] || '').trim();
       t.rows.forEach((r, i) => {
-        const id = (r[0] || '').trim();
-        if (!id || hasPlaceholder(id)) return;
+        const cell = stripTicks((r[0] || '').trim());
+        if (!cell || hasPlaceholder(cell)) return;
+        // 里程碑的第一格是全名 M-n-<slug>:M-n 是編號(全資料夾唯一,引用用它),slug 是切片分支 build/M-n-<slug> 的鍵
+        const mm = kind === '里程碑' ? /^(M-\d+)(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?$/.exec(cell) : null;
+        const id = mm ? mm[1] : cell;
         const rowTitle = (r[1] || '').trim();
         const row = { id, title: rowTitle, line: offset + t.rowLines[i] + 1, placeholder: hasPlaceholder(rowTitle) };
-        if (kind === '里程碑') milestones.push({ ...row, binds: names(r[2]) });
+        if (kind === '里程碑') milestones.push({ ...row, slug: mm && mm[2] ? mm[2] : '', fullName: cell, binds: names(r[2]) });
         else if (kind === '調整') refinements.push({ ...row, touches: names(r[2]) });
       });
     }
@@ -320,7 +358,6 @@ export function readObjectives(designDir, root) {
       requirement: hasPlaceholder(requirement) ? '' : requirement,
       priority: /^[1-4]$/.test(priorityRaw) ? Number(priorityRaw) : null,
       priorityRaw: hasPlaceholder(priorityRaw) ? '' : priorityRaw,
-      law: parseLawItem(items),
       milestones,
       refinements,
       line: 1,
@@ -463,7 +500,8 @@ export function readDoc(file, root) {
     slug: idM ? idM[3] : null,
     fm,
     hasFrontmatter,
-    status: fm.status || null,
+    // verified:每條 law 都有會失敗、現在通過的測試守著;frozen 是同一格的另一種寫法,讀進來當 verified
+    status: fm.status === 'frozen' ? 'verified' : fm.status || null,
     description: fm.description || '',
     owner: typeof fm.owner === 'string' ? fm.owner.trim() : '',
     sections: secs,
@@ -474,8 +512,8 @@ export function readDoc(file, root) {
     examples: examples.filter((e) => !e.placeholder),
     template,
     decisions,
-    thawed: decisions ? decisions.lines.some((l) => /解凍/.test(l)) : false,
-    // 每條 REV 的第一行:依欄寫的來源(GAP、SPK / ADR、RF-n、開發者的話)都在這一行
+    thawed: decisions ? decisions.lines.some((l) => /重開|解凍/.test(l)) : false,
+    // 每條 REV 的第一行:依欄寫的來源(GAP、ADR、RF-n、開發者的話)都在這一行
     revs: revItems.map((it) => ({ ...it, cites: [...new Set((it.text.match(/RF-\d+/g) || []))] })),
     lastRev: revItems.length ? revItems[revItems.length - 1].text : null,
   };
@@ -496,33 +534,19 @@ export function readGaps(designDir, root) {
   return { file: rel(root, file), exists: true, gaps };
 }
 
-export function readSpikes(designDir, root) {
-  const dir = path.join(designDir, 'spikes');
+// 決策紀錄:journal/<鍵>.md,一條 build 分支一份(鍵是里程碑全名 M-n-<slug>、文檔全名、或 R-n / O-n / INV-n)。
+// 只活在 build 分支,整合寫進 PR 後刪;status 靠「有沒有這一份」判切片完成了沒。
+export function readJournals(designDir, root) {
+  const dir = path.join(designDir, 'journal');
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((f) => /^SPK-\d{3}-.+\.md$/.test(f)).sort().map((f) => {
+  return fs.readdirSync(dir).filter((f) => /.md$/.test(f)).sort().map((f) => {
     const file = path.join(dir, f);
-    const { fm, body } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
-    const secs = sections(body);
-    const rounds = secs.filter((s) => s.level === 3 && /^RND-\d+/.test(s.title)).map((s) => ({
-      id: /^(RND-\d+)/.exec(s.title)[1],
-      sha: (parseList(s.lines).find((i) => /^sha[::]/.test(i.text)) || { text: '' }).text.replace(/^sha[::]\s*/, '').trim(),
-    }));
-    const base = path.basename(f, '.md');
-    return {
-      file: rel(root, file),
-      abs: file,
-      fullName: base,
-      id: fm.id || base.slice(0, 7),
-      slug: base.slice(8),
-      status: fm.status || '',
-      verdict: fm.verdict || '',
-      feeds: Array.isArray(fm.feeds) ? fm.feeds : fm.feeds ? [fm.feeds] : [],
-      rounds,
-    };
+    const { fm } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
+    return { file: rel(root, file), key: path.basename(f, '.md'), branch: typeof fm.branch === 'string' ? fm.branch.trim() : '', verdict: typeof fm.verdict === 'string' ? fm.verdict.trim() : '' };
   });
 }
 
-// 一檔一號的東西:feature、abstract、spike、ADR、目標。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
+// 一檔一號的東西:feature、abstract、ADR、目標。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
 export function readNumbered(designDir, root) {
   const out = [];
   const scan = (sub, re) => {
@@ -538,7 +562,6 @@ export function readNumbered(designDir, root) {
   };
   scan('features', /^(F-\d{3})-.+\.md$/);
   scan('abstracts', /^(A-\d{3})-.+\.md$/);
-  scan('spikes', /^(SPK-\d{3})-.+\.md$/);
   scan('adr', /^(ADR-\d{3})-.+\.md$/);
   scan('objectives', /^R-\d+-(O-\d+)-.+\.md$/);
   return out;
@@ -570,7 +593,7 @@ export function readDesign(root) {
     abstracts,
     docs: [...features, ...abstracts],
     gaps: readGaps(designDir, root),
-    spikes: readSpikes(designDir, root),
+    journals: readJournals(designDir, root),
     numbered: readNumbered(designDir, root),
   };
 }

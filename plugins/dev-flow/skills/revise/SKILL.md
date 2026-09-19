@@ -1,38 +1,67 @@
 ---
 name: revise
-description: dev-flow 的修訂 — 任何對既有 feature 或 abstract 的行為、簽名、層或效能承諾的改動都改原檔:回答 GAP、把優化路線的調整(RF-n)落到它動到的 feature、寫一條 REV(依 / 動到 / 保護 / 重委派 / 連動;調整的 REV 依欄引用 RF-n,保護含需求 Law 引用的 law)、必要時把 frozen 解凍,並講明哪幾條 law 與簽名要重新委派;law 號永久空缺。觸發詞:改契約、修 spec、改設計、回答 gap、結 gap、改介面、改行為、範圍變了、修訂、解凍、調整、效能優化、dev-flow revise。Use when an existing document must change, a GAP has been answered, or a refinement must be applied to the features it touches.
+description: dev-flow 的修訂 — 任何對既有 feature 或 abstract 的行為、簽名、層或效能承諾的改動都改原檔,文檔先行;經開發者批准的全域 Law 變更(新增、修改、放寬、替換、刪除)也只在這裡落筆。調整任何一條 law 之前,先把影響範圍逐項攤給開發者(直接動到、引用同一處的 law、連動的文檔、要重寫與重跑的測試、要重開的 verified 文檔與要重驗的 build 分支、需求還達不達成),再給至少兩個選項(一定含「不改」,各附當下成本、之後的代價、可不可逆),開發者選了才落筆。回答 GAP(含整合仲裁留下的那一條)、把優化路線的調整(RF-n)落到它動到的 feature、把開發者原本不在乎而現在要承諾的行為補成 law、寫一條 REV(依 / 動到 / 保護 / 重委派 / 連動)、必要時把 verified 重開;簽名或型別變了就同步改程式碼的宣告,新增的 step 先放未實作標記;收尾自動接上 dev-flow:build,只重做 REV 點名的;全域 Law 變更之後重新驗證受影響的工作;law 號永久空缺。觸發詞:改契約、修 spec、改設計、回答 gap、結 gap、改介面、改行為、範圍變了、修訂、重開、調整、效能優化、補一條 law、改 law、放寬 law、改全域 Law、改領域不變量、刪不變量、dev-flow revise。Use when an existing document or a global Law must change, a GAP has been answered, or a refinement must be applied to the features it touches.
 user-invocable: true
 ---
 
 # dev-flow:revise — 改原檔,留 REV
 
+> **核心**:A Law changes only after the developer has seen its full impact and chosen among options; the change lands in the original document first, stating what moves and what stays protected.(law 要改,開發者先看過完整的影響範圍、在選項裡選了,才落筆;先改原檔,講明動到什麼、保護什麼,之後才是測試與實作。) 步驟與這一句衝突時,這一句贏:停下,回報。
+
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/features.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/roles.md`「骨架與基線」、`rules/tooling.md`「收尾定錨」。再讀目標文檔與 `.design/gaps.md`;做的是調整就再讀那個目標檔(`.design/objectives/`)的那一列與它的需求 Law。
+`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/features.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」「完成度」、`rules/laws.md`「影響範圍與選項」「全域 Law 的變更」「Law 與需求」「全域 Law」、`rules/roles.md`「分支與所有權」「首跑」、`rules/tooling.md`「收尾定錨」。再讀目標文檔與 `.design/gaps.md`;做的是調整就再讀那個目標檔(`.design/objectives/`)的那一列與它的需求(含驗收);改的是全域 Law 就讀 `.design/system.md` 全份。
 
 ## 前置
 
-- 改的是**兩份以上文檔的共同部分** → 走 `dev-flow:refactor`,它會替每一份寫 REV。
-- 要加的是一個**可以獨立拿掉的新能力** → 那是新 feature,走 `dev-flow:feature`。
+- 改的是**兩份以上文檔的共同部分** → 走 `dev-flow:abstract`,它會替每一份寫 REV。
+- 要加的是一個**可以獨立拿掉的新能力** → 那是新的里程碑與切片,走 `dev-flow:objective` 再 `dev-flow:spike-impl`。
 - 做的是調整:那條 `RF-n` 要在某個目標檔的調整表上、動到的 feature 要是它列的、該目標的建置路線要已經達成;不是就停,回 `dev-flow:objective`。調整只改實作或行為品質,要改簽名或加 step 讓它做到新能力的,不是調整,是新里程碑。
+- 改的是**全域 Law**(`system.md`「全域 Law」區的任何一條:領域不變量、層表、對外 I/O 的信任、驗證與契約欄):來源只有開發者自己提的,或 `dev-flow:integrate` 的變更建議**經開發者明確批准**(GAP 記著反例與批准的選項)。沒有批准就停,不動;走下面「全域 Law 的變更」。
 - 其餘一律在這裡改原檔。**不開第二份檔**:開了,原檔就停在它被寫下的那一天,三個月後沒有人知道它現在長什麼樣。
-- 從與 origin 同步、工作樹乾淨的主線開 `design/<全名>`,修訂在這條分支上做(`roles.md`「分支與所有權」)。
+- **在哪做**(`roles.md`「分支與所有權」):這份文檔還在一條沒整合的 `build/` 分支上(切片談到一半、qa 開了 GAP、整合的仲裁退回來)→ 就在那棵工作樹上做。文檔已在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。
 
 ## 步驟
 
-1. **拿到來源的原句**:GAP 的提問原句、spike 的 verdict、`RF-n` 與它那一句、開發者的那一句話。REV 的「依」欄要寫它(調整一定寫 `RF-n`,`devflow status` 靠它算調整的進度),不寫已經刪掉的條目編號。
-2. **`frozen` 先解凍**:`status` 改回 `ready`,在「決定」記一條為什麼。
-3. **先補保護**:這次不准變的既有行為若還不是 law,**先補成 `LAW-n` 再改**。沒有 law 守著的「行為不變」等於沒有保護。調整的保護一定含需求 Law 引用到的每條 law:優化不准破壞需求 Law。
-4. **改條文**:Steps 的簽名、Laws、Examples、層。刪掉的 law 號永久空缺,新增的往下接。效能修訂把基準線寫進新的 law(「p95 <= 100,基準線 2026-09-18 量到 400」)。
-5. **寫 REV**:`## 修訂記錄` 加一條,五欄齊全(依 / 動到 / 保護 / 重委派 / 連動)。`updated` 改成今天。
-6. **連動**:`devflow status --doc <全名>` 看「被引用」;引用了本檔簽名的每一份,逐份同步並寫進「連動」欄。**責任在改的人**:簽名改了編譯器會告訴下游,語意改了什麼都不會抓。
-7. **結案 GAP**:寫 REV 的同一個動作把條目**整條刪掉**,不留 resolved。`gaps.md` 空了刪檔。
-8. **程式碼跟著**(`roles.md`「骨架與基線」):簽名變了就同步改簽名行、本體回骨架標記;新的 step 與型別寫成骨架。編得過,`devflow lint all`。文檔與骨架同一個 commit,在 `design/<全名>` 上。
+1. **拿到來源的原句**:GAP 的提問原句(整合仲裁留下的 GAP,原句含開發者選了哪個選項)、ADR 全名、`RF-n` 與它那一句、開發者的那一句話。REV 的「依」欄要寫它(調整一定寫 `RF-n`,`devflow status` 靠它算調整的進度),不寫已經刪掉的條目編號。
+2. **影響範圍**(`laws.md`「影響範圍與選項」):只要這次會動到任何一條 law,先查、先列,不准省略一項,查過而沒有的寫「無」。`devflow status --doc <全名>`(引用與被引用)、`devflow status`(建構中的分支、需求達成與否)、`devflow lint global` 是查的工具:
+
+   | 項 | 列什麼 |
+   |---|---|
+   | 直接動到 | 哪幾條 law 的哪一行變、哪幾條簽名或型別變 |
+   | 引用同一處的 law | 同一份文檔裡引用同一個 step 或觀察點的每一條 law;全域 Law 則是契約欄指到它的每一列、三行裡用到同一個最內層匯出的每一條領域不變量 |
+   | 連動的文檔 | 引用這份 abstract 的每一份消費者、Steps 表引用到動到的簽名的每一份;全域 Law 則是違反得了它的每一份 feature |
+   | 測試 | 要重寫的(歸屬全名)、要重跑的、確定不受影響的 |
+   | 狀態 | 哪幾份 `verified` 要重開;哪幾條建構中的 build 分支要重驗 |
+   | 需求 | 哪幾條需求的驗收引用到動到的 law;改完之後它還達不達成 |
+
+3. **給選項,等開發者選**:至少兩個,其中一個一定是「不改」。每個選項寫:改什麼、影響範圍裡哪幾項因此不同、當下成本、之後的代價、可不可逆;你給傾向與理由。**一次一條 law**,開發者對著那一個選項明確說了要,才往下;沉默、整批同意、「你決定」都不算。來源的 GAP 已經記著開發者選定的選項時,仍把影響範圍攤出來請開發者確認一次:仲裁當下看到的是反例,不是全部的牽連。
+4. **`verified` 先重開**:`status` 改回 `ready`,在「決定」記一條為什麼。
+5. **先補保護**:這次不准變的既有行為若還不是 law,**先補成 `LAW-n` 再改**。沒有 law 守著的「行為不變」等於沒有保護。調整的保護一定含需求的驗收引用到的每條 law:優化不准讓需求退回未達成。
+6. **改條文**:Steps 的簽名、Laws、Examples、層。新的 law 照 `laws.md`「Law 怎麼談」的判準:講得出一個讓它變假的實作。刪掉的 law 號永久空缺,新增的往下接。效能修訂把基準線寫進新的 law(「p95 <= 100,基準線 2026-09-18 量到 400」)。收窄定義域的修訂只動那條 law 的 `forall` / `given`。
+7. **寫 REV**:`## 修訂記錄` 加一條,五欄齊全(依 / 動到 / 保護 / 重委派 / 連動);依欄連同選了哪個選項,否決的選項與理由寫進「決定」。law 變了重派 qa,行為、簽名或型別變了重派 refactor。`updated` 改成今天。
+8. **連動**:影響範圍「連動的文檔」列到的每一份,逐份同步並寫進「連動」欄。**責任在改的人**:簽名改了編譯器會告訴下游,語意改了什麼都不會抓。
+9. **結案 GAP**:寫 REV 的同一個動作把條目**整條刪掉**,不留 resolved。`gaps.md` 空了刪檔。
+10. **宣告跟著**(`roles.md`「首跑」):簽名或型別變了就同步改程式碼裡的宣告,呼叫端一起改到編得過,行為不動;修訂新增的 step 在模組欄指的檔案裡宣告並匯出,本體是未實作標記,訊息帶 `F-00x#name`,**不得回傳假值**。跑建置指令,`devflow lint all`(整套的紅只該落在 REV「動到」欄點名的 law 上)。文檔與宣告同一個 commit,訊息帶全名。
+11. **接上 build**:直接執行 `dev-flow:build <全名>`,只重做 REV「重委派」欄點名的:qa 改那幾條測試,首跑時「動到」欄的 law 要紅、「保護」欄的要綠,再派 refactor。調整動到多份 feature 時,每一份各一次修訂、各自接上 build。
+
+## 全域 Law 的變更
+
+**任何全域 Law 的修改、放寬、替換或刪除,都必須經開發者明確批准;`dev-flow:integrate` 只能提出變更建議,不得自行決定變更,也不直接修改全域 Law。經批准的變更只在這裡完成,完成後重新驗證受影響的工作。** 新增也一樣(`laws.md`「全域 Law」准入四條)。
+
+1. 步驟 1 到 3 照做:來源的原句、影響範圍、選項。全域 Law 的影響範圍橫跨整個專案,「連動的文檔」列違反得了它的每一份 feature,「狀態」列每一條建構中的分支。放寬與刪除的選項,代價那一格寫明「之後哪些行為不再被擋」。
+2. 落筆在 `system.md` 的「全域 Law」區,與立案的變更走同一條路(`plan/<slug>` 分支,由 `dev-flow:integrate` 經 PR 合進主線):新增 `devflow invariant add <一句話> [--kind <種類>]`;修改、放寬、替換、刪除直接改那一條。編號不重用,刪掉的號永久空缺。層表與對外 I/O 表的變更同理,`modules.md` 跟著改到 `devflow lint boundary` 沒有紅。
+3. **重新驗證受影響的工作**,逐項回報結果:
+   - `devflow lint global` 沒有紅;
+   - 領域不變量的句子或三行變了,它原本的測試作廢 → `dev-flow:build INV-n` 重派 qa;刪掉的那一條,它的測試檔一起刪(否則是幽靈引用);
+   - 影響範圍裡每一份 `verified` 文檔重跑它的子集測試;紅的重開、各走一次上面的修訂;
+   - 建構中的分支:在它的決策紀錄所在分支的 `gaps.md` 留一條 GAP(角色 conductor,目標寫那條全域 Law),它合進新的主線之後從首跑起重跑。
+4. 為什麼變更,由 `dev-flow:integrate` 收這條 `plan/` 分支時寫成 ADR;這裡在回報裡留下 ADR 要用的四節材料(情境、決定、否決的選項、後果)。
 
 ## 收尾
 
-回報 REV 第幾條、動到什麼、保護什麼、要重派誰、連動了哪幾份、對應的調整(有的話);附定錨區塊。下一步一律是 `dev-flow:integrate`(發設計 PR);合進主線後 `dev-flow:build <全名>`(只重做 REV 點名的)。調整動到多份 feature 時,每一份各一次修訂再各自 build。
+回報 REV 第幾條(或哪一條全域 Law)、影響範圍六項、開發者選了哪個選項與否決了哪幾個、動到什麼、保護什麼、要重派誰、連動了哪幾份、對應的調整(有的話)、重新驗證的結果;附定錨區塊。接上 build 之後的收尾由 build 做;達成後 `dev-flow:integrate`。
 
 ## 邊界
 
-一次修訂一條 REV;不順便改別的;不寫實作、不寫測試;不替開發者決定要不要改——開發者說,你寫。
+一次修訂一條 REV、一次變更一條全域 Law;不順便改別的;不改本體的行為、不寫測試;沒有影響範圍與選項不落筆;不替開發者決定要不要改、選哪一個——開發者說,你寫。

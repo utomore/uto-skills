@@ -13,6 +13,6 @@ def test_f_001__ex_1():
     assert total_cents(add_item([], Item("a", 100))) == 100
 
 
-def test_r_1__law_total_nonneg():
+def test_r_1__accept_total_nonneg():
     assert total_cents([]) >= 0
     assert total_cents([Item("a", 1), Item("b", 2)]) >= 0

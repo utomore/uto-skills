@@ -18,7 +18,7 @@ func TestQueue(t *testing.T) {
 			t.Fatal("bad")
 		}
 	})
-	t.Run("R-1#LAW", func(t *testing.T) {
+	t.Run("R-1#ACCEPT", func(t *testing.T) {
 		jobs := Push(nil, Job{})
 		if Depth(Push(jobs, Job{})) != Depth(jobs)+1 {
 			t.Fatal("bad")

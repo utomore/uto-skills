@@ -1,89 +1,125 @@
 # 角色
 
-> feature 文檔是唯一真相;測試與實作都是它的投影。兩邊對不上,先懷疑文檔。
+> 需求(必須達成)與全域 Law(不得違反)先講好,其餘都等跑得通了再講。程式碼先到,文檔是對著它談出來的承諾,測試是承諾的投影;兩邊對不上,先懷疑文檔。
 
-## 三個階段
+## 五個階段
 
-| 階段 | 誰 | 在哪 | 產出 |
-|---|---|---|---|
-| **設計** | 開發者與 `dev-flow:project` / `dev-flow:objective` / `dev-flow:feature` / `dev-flow:refactor` 對談 | `design/<全名>` 分支,經 PR 合進主線 | `system.md`(願景、需求)、`objectives/`、模組表、`draft` 的 feature 與 abstract,以及它們的**骨架**:型別與每條簽名寫進程式碼(「骨架與基線」);開發者拍板後 skill 改 `ready` |
-| **建構** | `dev-flow:build` 的 conductor 帶 qa 與 impl | 該份文檔自己的分支與工作樹 | 測試、實作、REV、開發日誌;達成後 conductor 改 `frozen`。目標是一條需求或目標的 Law 時只派 qa(「驗收測試」) |
-| **整合** | `dev-flow:integrate` | 整合分支 | 設計分支各自一條 PR;幾條建構分支合成一條、整套綠、PR |
+| 階段 | 核心(這個階段的每一個判斷都服從它) | 誰 | 在哪 | 產出 |
+|---|---|---|---|---|
+| **立案** | Only what can be judged true before any code exists gets written: Requirements with their acceptance, global Laws, the trust boundary.(只寫做之前就判得出真假的東西) | 開發者與 `dev-flow:project` / `dev-flow:objective` 對談 | `plan/<slug>` 分支,經 PR 合進主線 | `system.md`(願景、需求與它的驗收、全域 Law 三區:領域不變量、架構的層、契約的對外 I/O)、`objectives/`(目標、里程碑 `M-n-<slug>`)、模組表 |
+| **切片** | The slice MUST make the milestone's Goal observably true end to end, MUST NOT violate a global Law, and MUST record every decision and every fake.(讓里程碑那一句話看得到地成真;不違反全域 Law;每個決定與每一處假都留下紀錄) | `dev-flow:spike-impl`,主 session 自己做 | 這條里程碑自己的分支 `build/M-n-<slug>` 與工作樹,從這一步開 | 從對外入口貫通到出口、跑得通的程式碼,與決策紀錄(「切片」「決策紀錄」) |
+| **Law** | law-design designs scope Laws only. A Law MUST be falsifiable and MUST be the developer's decision; it never describes what the code happens to do.(law 必須講得出怎樣算違反,而且是開發者拍板的承諾,不是把程式碼念一遍) | 開發者與 `dev-flow:law-design` 對談 | 同一棵工作樹 | 從切片 claim 出來的 feature:Steps 抄程式碼、laws 逐條拍板(laws.md「Law 怎麼談」),`ready` |
+| **建構** | A document is Verified only when every Law is guarded by a test that can fail and now passes; nobody bends a Law, a test or a declaration to get green.(每條 law 都有一條會失敗、現在通過的測試守著,才叫 verified;不為了變綠去動 law、測試或宣告) | `dev-flow:build` 的 conductor 帶 qa 與 refactor;law-design 收尾時自動接上 | 同一棵工作樹 | 測試、調整過的實作、REV、決策紀錄的「Verification」;每條 law 成立才算達成,conductor 改 `verified` |
+| **整合** | Integration MUST NOT reduce Law satisfaction, and MUST NOT change a Law: it proposes, the developer approves, revise writes.(合併之前成立的每一條 law,合併之後都要仍然成立;整合不改任何一條 law,只提建議,開發者批准,revise 落筆) | `dev-flow:integrate` | 整合分支 | 幾條達成的分支合成一條、整套綠、仲裁、ADR、PR |
 
-`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:開分支 → 對帳骨架 → qa → 基線 → impl → 仲裁 → 驗收測試 → 收尾。互不引用的文檔可以同時各開一波。主線指 origin 的主線,只透過整合 PR 前進:設計分支與建構分支都經它合入,本地主線不領先它。
+每個 skill 的 SKILL.md 開頭也有自己那一句核心;步驟與核心衝突時,核心贏,停下回報。
 
-設計階段寫的程式碼只有宣告:型別、列舉成員、簽名、匯出,本體一律是骨架標記。契約在對談裡拍板的當下就住進程式碼,qa 與 impl 讀到的是同一份;型別還定不下來的文檔留在 `draft`。
+一條里程碑從切片到達成都在同一條分支、同一棵工作樹上;它綁的每份文檔都 `verified`,才是可以被整合的狀態。互不相干的里程碑可以同時各開一條。主線指 origin 的主線,只透過整合 PR 前進,本地主線不領先它。
+
+既有文檔的改動是另一條路:`dev-flow:revise`(文檔先行,features.md「修訂(REV)」)與 `dev-flow:abstract`(收整)各自開 `build/<全名>`,改完條文同樣自動接上 build。
+
+`dev-flow:build` 只收 `ready` 且沒有 open GAP 的文檔。一份文檔一波,順序:對帳 → qa → 首跑 → refactor → 仲裁 → 驗收測試 → 收尾;一條里程碑綁了好幾份就一份接一份,被引用的 abstract 在前。
 
 ## 分支與所有權
 
-- 設計階段一份文檔一條分支 `design/<全名>`(動的是 `system.md`、`objectives/`、`modules.md` 這些共用檔時 `design/<slug>`),從與 origin 同步的主線 HEAD 開;文檔與骨架在上面 commit,拍板 `ready` 後交給 `dev-flow:integrate` 發 PR。合進主線之前不開它的 `build/`。`devflow claim` 只看當前工作樹,兩條設計分支各自配號會配到同一個號:一次開一條,開第二條之前先把第一條合進主線。
-- 建構階段一份文檔一條分支 `build/<全名>`(目標是需求或目標的 Law 時 `build/R-n` / `build/O-n`),從與 origin 同步的主線 HEAD 開,工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<全名>`;conductor、qa、impl 都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這份文檔有人在建,`devflow status` 把它列成建構中;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
-- 開 `build/` 的前提:本地主線與 origin 同步、工作樹乾淨;目標 `ready`、沒有 open GAP、骨架齊全(「骨架與基線」),三者都已合進主線;它引用的每份 abstract 都已達成並合進主線。引用的 abstract 還沒合進主線就不開,等它。
-- 分支上准動的東西只有自己的:這份文檔、自己 step 的本體、以自己全名命名的測試檔、本波要寫的驗收測試(以 `R-n` / `O-n` 命名的測試檔)、建置設定裡登記自己那幾行、`gaps.md` 追加、`journal/<全名>.md`。
-- 不動:`system.md`、`objectives/`、`modules.md`、任何型別、任何簽名、別份文檔與它的 step 本體、別人的測試檔。非動不可就是 GAP:型別與簽名是設計階段的東西,回 `dev-flow:revise`。
-- `gaps.md` 在分支上從主線最大號往上配。
-- 分支上的 commit 訊息帶文檔全名;骨架、測試、實作、日誌各自成 commit,整合時才對得出誰動了什麼。
+| 分支 | 誰開 | 鍵 |
+|---|---|---|
+| `plan/<slug>` | `dev-flow:integrate` 把主線上立案、目標與全域 Law 的變更帶走時 | 講這次改了什麼的 kebab-case 英文 |
+| `build/M-n-<slug>` | `dev-flow:spike-impl` | 里程碑全名 |
+| `build/<文檔全名>` | `dev-flow:revise`(文檔已在主線上)、`dev-flow:abstract` | 被修訂的文檔,或新的 abstract |
+| `build/R-n`、`build/INV-n` | `dev-flow:build`(只寫一條測試的那一波) | 那條需求的驗收,或那條領域不變量 |
 
-## 三角色
+- `build/` 分支一律從與 origin 同步的主線 HEAD 開(`git fetch` 後 `git status -sb` 沒有 ahead / behind、工作樹乾淨),工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<鍵>`;之後每個角色都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這條線有人在做,`devflow status` 把它列成建構中,並從那棵工作樹讀它走到哪一步;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
+- 開 `build/M-n-<slug>` 的前提:那條里程碑(含英文名)、它的目標與需求(含驗收)都已在主線上;它是該目標下一條還沒達成的里程碑。
+- **宣告歸設計這一側,本體歸實作這一側**:Steps 上的簽名與它們用到的型別,切片定案後只有 `dev-flow:law-design`、`dev-flow:revise`、`dev-flow:abstract` 能改;refactor 只動本體、私有 helper 與型別的內部表示。qa 與 refactor 非動宣告不可就是 GAP。
+- 分支上准動的東西只有自己的:這條里程碑範圍內的程式碼、從它 claim 出來的文檔、以文檔全名命名的測試檔、本波要寫的驗收測試(以 `R-n` / `INV-n` 命名的測試檔)、共用檔裡自己那幾列(`modules.md` 登記新檔、`system.md` 對外 I/O 表與 Features 表的新列、目標檔裡自己那條里程碑的綁定欄、建置設定登記自己那幾行)、`gaps.md` 追加、`journal/<鍵>.md`。
+- 不動:需求、目標、全域 Law 區(領域不變量、層表);別份已經在主線上的文檔與它的 step 本體、別人的測試檔。唯一的例外:需求的驗收或一條領域不變量還只有一句話、而這條切片剛好讓它引用得到的簽名出現了,`dev-flow:law-design` 與開發者把那一句話寫成三行;那一句話本身不改。切片非動到別份文檔的簽名不可,那是那份文檔的修訂:在同一棵工作樹上走 `dev-flow:revise`,REV 的連動欄寫明。
+- 進 `dev-flow:law-design` 之前先把主線合進工作樹一次(`git merge origin/<主線>`):Law 對著最新的全域 Law 與別人剛合進去的文檔談,衝突提早浮現。
+- `gaps.md` 在分支上從主線最大號往上配。
+- 分支上的 commit 訊息帶鍵;切片、文檔、測試、調整、決策紀錄各自成 commit,整合時才對得出誰動了什麼。
+
+## 角色
 
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
-| **conductor** | 目標文檔、模組表、測試結果 | 對帳骨架、先派 qa 再派 impl、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、寫骨架、讀 qa 與 impl 的產出來替他們決定 |
-| **qa** | 目標文檔、最內層的匯出、骨架的簽名;寫驗收測試時是那條 Law 與它引用到的簽名所在的每份文檔 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器;需求或目標的 Law 一條驗收測試(「驗收測試」) | 讀任何實作本體(含 `spike/`);讀 Law 沒引用到的別份文檔;改骨架;要求後門 |
-| **impl** | 目標文檔、骨架 | 把骨架標記換成實作、必要的私有 helper | 讀寫測試;改簽名與型別;import `spike/` |
+| **spike-impl**(主 session) | 目標檔與那條里程碑、需求與它的驗收、全域 Law(laws.md「全域 Law」)、`system.md` 的層與對外 I/O、`modules.md`、既有程式碼 | 貫通一條垂直切片、登記模組表、寫決策紀錄 | 寫 feature 文檔與 law;寫帶歸屬的測試;新增全域 Law;為了跑得通而違反層的兩條規則 |
+| **conductor** | 目標文檔、模組表、決策紀錄、測試結果 | 對帳、先派 qa、驗首跑、再派 refactor、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、補 law、替 qa 與 refactor 做他們的決定 |
+| **qa** | 目標文檔、最內層的匯出、Steps 上那幾條簽名的宣告;寫驗收測試時是那條驗收或領域不變量,與它引用到的簽名所在的每份文檔 | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器;需求的驗收或領域不變量一條測試(「驗收測試」) | 讀任何實作本體;讀那一條沒引用到的別份文檔;改程式碼;要求後門 |
+| **refactor** | 目標文檔、現有程式碼、決策紀錄的「Faked / Unverified」、conductor 給的紅燈歸因 | 調整或重寫實作,直到每條 law 成立;假的換成真的;必要的私有 helper | 讀寫測試;改 Steps 上的簽名與型別宣告;改文檔 |
 
-qa 與 impl 互不可見。qa 先、impl 後;開發者明說要平行才平行(平行時 conductor 在委派前對骨架的 commit `git worktree add --detach` 留一棵快照,qa 的測試在快照上跑基線)。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。
+qa 與 refactor 互不可見。qa 先、refactor 後,不平行:首跑要在 refactor 動手之前的程式碼上驗。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。
 
 ## 委派
 
-subagent 問不了人:
+spike-impl 與 law-design 不委派:貫通切片要看得到整個專案,Law 要當面談。qa 與 refactor 由 conductor 委派,subagent 問不了人:
 
 1. 不提問、不等回覆。文檔裡讀不出唯一答案就寫 GAP 停該項(features.md「提問(GAP)」);答案不會出現在簽名或 law 上的選擇(私有 helper、資料結構、演算法)自己決定,列進回報。
-2. 不寫共用檔(`system.md`、`modules.md`、`gaps.md`、spike 文檔、別人的 feature)。GAP 全文放回報,conductor 單線寫入配號。
+2. 不寫共用檔(`system.md`、`modules.md`、`gaps.md`、決策紀錄、別人的 feature)。GAP 全文放回報,conductor 單線寫入配號。
 3. 編號與檔名由 conductor 給;提到文檔寫全名。
-4. 機械查證不跳過:骨架與測試要編得過、laws 與 examples 的翻譯要對得上數。
+4. 機械查證不跳過:程式碼與測試要編得過、laws 與 examples 的翻譯要對得上數。
 5. 如實回報:測試紅就貼輸出;做不完的標未完成。
 
-回報固定五項:改了哪些檔;完成了什麼(qa:law / example 各翻幾條、紅綠分佈;impl:簽名 n / m、測試結果與**歸因**);自己決定的事;GAP 清單(局部序號,四欄);阻塞項。
+回報固定五項:改了哪些檔;完成了什麼(qa:law / example 各翻幾條、紅綠分佈;refactor:動了哪幾條 step 的本體、哪些是整份重寫、測試結果與**歸因**);自己決定的事;GAP 清單(局部序號,四欄);阻塞項。
 
-## 骨架與基線
+## 切片
 
-- 骨架 = Steps 表的每條簽名(步驟、`=` 列、`!` 列與 `o` 列的觀察點)寫進模組欄指的檔案並匯出,本體是 adapter 的骨架標記,訊息帶 `F-00x#name`,基線的紅燈才看得出打到哪個 step;`=` 列照 Steps 組裝整條,`!` 列把它接到最外層;程式碼已經有的照舊。簽名裡用到的型別一起宣告:自訂的住最內層或那條 step 的檔案,欄位寫全;別份文檔已經宣告過的直接用。
-- 骨架由設計階段寫,在設計分支上,與文檔一起經 PR 合進主線:`dev-flow:feature` 與 `dev-flow:refactor` 在文檔拍板 `ready` 之前寫齊,`dev-flow:revise` 改了簽名就同步改簽名行、本體回骨架標記。它是文檔與程式碼的同一次 commit。
-- 骨架要編得過,`devflow lint sig` 沒有紅(每列找得到、簽名一致、型別都宣告過),`devflow status --doc <全名>` 每列是「骨架」或「在」。**骨架不得回傳假值**(回 `0`、`[]`、`null` 會讓測試假綠,比沒寫還糟)。
-- conductor 開分支後只**對帳**:上面三樣不成立就停,回報缺什麼,回 `dev-flow:feature` 或 `dev-flow:revise`;不在分支上補簽名或型別。
+`dev-flow:spike-impl` 的任務是讓一條里程碑那一句話成真:從對外入口貫通到出口,能跑、看得到行為。它同時是可行性驗證——做不做得到、做得到的話長什麼樣,跑過才知道,不猜、不拿去問開發者。
 
-| 語言 | 骨架標記 |
+- 輸入:目標檔與那條里程碑、它的需求與驗收(這條路線走完要讓它達成)、全域 Law、`system.md` 的層與對外 I/O 的信任邊界。簽名、步驟怎麼拆、放哪個檔案,都是這一步邊做邊定的事。
+- **全域 Law 從第一行程式碼就守**,不留到整合:新檔案登記進模組表、內層不 import 外層、對外 I/O 只在最外層、`untrusted` 的入口第一個碰到資料的是驗證。純度與依賴方向事後補等於重寫。
+- 可以假:假資料、寫死的值、沒接上的外部系統。**每一處都記進決策紀錄「Faked / Unverified」**;沒記的假比沒做還糟,它會被當成達成。
+- 自己的煙霧測試可以寫,不標歸屬,算內部測試(`lint trace` 照列);law 的測試是 qa 的事。
+- 離場條件四項,缺一不離場:
+  1. 決策紀錄「Entry」那道指令跑得起來,看得到這條里程碑那一句話的行為;
+  2. 建置過,`devflow lint boundary` 沒有紅;
+  3. 整套測試跑一次:既有的 law、需求的驗收與領域不變量的測試沒有因為這一片變紅;`devflow lint global` 沒有紅;
+  4. 決策紀錄的切片六節填完(「決策紀錄」),連同程式碼 commit。
+- **走不通也是答案**:timebox 到了、或確定這個做法達不到那一句話,決策紀錄 frontmatter 寫 `verdict: infeasible`,「Goal / Scope」寫試了什麼、卡在哪、下次之前要先知道什麼,commit 後交給 `dev-flow:integrate`:分支不合,決策紀錄升成一條 ADR。里程碑要不要換做法、重切或刪掉,回 `dev-flow:objective`。
+- **這一版是草稿**:它的用處是讓 Law 談得下去。qa 之後 refactor 把它整份重寫是正常結果,不是失敗;誰都不為了保住它而放寬 law。
+
+## 首跑
+
+qa 交付後、派 refactor 之前,conductor 在現有的程式碼上跑一次 qa 的測試。它回答的是「這些測試真的會失敗嗎」:refactor 一旦動手,假綠與真綠在測試輸出裡同形。
+
+| 這條測試 | 首跑該是 |
+|---|---|
+| 決策紀錄「首跑該紅」列的 law(開發者答「不准」的) | 紅 |
+| 修訂那一波:REV「動到」欄點名的 law;打到未實作標記的 | 紅 |
+| 其餘的 law 與 example(開發者答「要」的、REV 保護的) | 綠 |
+
+- 該紅卻綠:退回 qa 重寫(斷言恆真、沒呼叫到受測簽名、或產生器生不出違反的輸入)。
+- 該綠卻紅:不是基線壞了,是切片的行為不像談的時候以為的那樣——照「仲裁」歸因,多半就是 refactor 要調的地方。
+- 首跑一條紅都沒有(開發者每一條都答「要」):紅綠證明不了測試會失敗,conductor 逐條拿 `|-` 行對測試的斷言,確認逐字翻了、真的呼叫到受測簽名,才派 refactor。
+- 首跑的結果寫進決策紀錄「Verification」的「首跑」。環境跑不起來、驗不成 → 在回報明寫「本波 qa 紅綠未驗證」,不得默認通過。
+- **未實作標記**:修訂新增的 step,`dev-flow:revise` 先在程式碼裡宣告它,本體是 adapter 的標記,訊息帶 `F-00x#name`,首跑的紅燈才看得出打到哪個 step。**不得回傳假值**(回 `0`、`[]`、`null` 會讓測試假綠)。
+
+| 語言 | 未實作標記 |
 |---|---|
 | TypeScript / JavaScript | `throw new Error("F-001#name not implemented")` |
 | Python | `raise NotImplementedError("F-001#name")` |
 | Go | `panic("F-001#name not implemented")` |
 | Rust | `todo!("F-001#name")` |
 
-- qa 交付後,conductor 在骨架上跑一次 qa 的測試當基線:打到骨架的要紅、打到型別本身承載的事實(建構子、欄位、列舉成員)的要綠、REV 保護的既有 law 要綠。
-- 該紅卻綠退回 qa 重寫(斷言恆真或沒呼叫到受測簽名);該綠卻紅開 GAP。基線過了才派 impl。
-- **委派模式下基線由 conductor 驗,不由 qa 保證**:impl 一旦填完本體,假綠與真綠在測試輸出裡同形,判準不是被違反,是被靜默停用。發委派之前記下骨架那個 commit 的 sha 並 `git worktree add --detach <路徑> <sha>` 建好快照工作樹(建構工作樹之外的第二棵,驗完移除),收到測試檔就複製進去跑。環境帶不過去、驗不成 → 在回報明寫「本波 qa 紅綠未驗證」,不得默認通過。
-
 ## 驗收測試
 
-需求與目標的 Law 寫了三行,就承諾了一條歸屬 `R-n#LAW` / `O-n#LAW` 的驗收測試(features.md「願景、需求、目標與路線」);沒有測試時那條 Law 是未知,`devflow status` 列警訊。它由 qa 寫、由 conductor 派,時機只有兩個:
+需求的驗收或一條領域不變量寫了三行,就承諾了一條測試:需求的歸屬 `R-n#ACCEPT`,領域不變量的歸屬 `INV-n#LAW`(features.md「願景、需求、目標與路線」、laws.md「全域 Law」);沒有測試時它是未知,`devflow status` 列警訊。它由 qa 寫、由 conductor 派,時機只有兩個:
 
 | 時機 | 誰派、在哪 |
 |---|---|
-| 一份文檔的 build 本波全綠後,`devflow status` 顯示它讓某個目標的建置路線全部達成,而該目標的 Law(繼承時是需求的 Law)有三行式卻沒有測試 | 同一條 build 分支上再派一次 qa,目標是那條 Law;綠了才收尾。一條需求有多個目標時,需求自己的三行式在最後一個目標達成的那波寫 |
-| 建置路線早就達成、Law 還沒有測試(`status` 的警訊與建議路線列 `dev-flow:build R-n` / `O-n`) | `dev-flow:build` 的目標直接是 `R-n` / `O-n`:開 `build/R-n` 分支,不寫骨架、不派 impl,只派 qa 寫那一條,跑整套一次,寫日誌,交給 `dev-flow:integrate` |
+| 一份文檔的 build 本波全綠後,`devflow status` 顯示它讓某條需求底下每個目標的建置路線都達成,而那條需求的驗收有三行式卻沒有測試;或 law-design 在這條分支上把一條領域不變量寫成了三行 | 同一條 build 分支上再派一次 qa,目標是那一條;綠了才收尾 |
+| 建置路線早就達成、驗收還沒有測試;領域不變量有三行卻沒有測試(`status` 的警訊與建議路線列 `dev-flow:build R-n` / `INV-n`) | `dev-flow:build` 的目標直接是那一條:開 `build/R-n` 或 `build/INV-n` 分支,不派 refactor,只派 qa 寫那一條,跑整套一次,寫決策紀錄,交給 `dev-flow:integrate` |
 
-- qa 讀的是那條 Law 的三行、它引用到的每個簽名所在文檔的 Steps 表與最內層的匯出;產生器與斷言照「qa 的交付」,`|-` 行逐字翻。測試檔以 `R-n` / `O-n` 命名,歸屬字串只放一個。
-- 驗收測試紅的歸因不是某個 step 的 impl:建置路線全部達成而 Law 未成立,代表里程碑切漏了、蘊含說明站不住、或 Law 寫錯。conductor 開 GAP(角色 conductor,目標寫 `R-n#LAW`)停下,回 `dev-flow:objective` 或 `dev-flow:revise`;不讓 qa 放寬斷言、不派 impl 改碼。
-- 一句話的 Law(沒有三行)沒有驗收測試,由底下的 Law 或建置路線推;不派 qa。
+- qa 讀的是那一條的三行、它引用到的每個簽名所在文檔的 Steps 表與最內層的匯出;領域不變量只引用最內層,就只讀最內層。產生器與斷言照「qa 的交付」,`|-` 行逐字翻。測試檔以 `R-n` / `INV-n` 命名,歸屬字串只放一個。
+- 這種測試紅的歸因不是某個 step 的實作:建置路線全部達成而需求未達成,代表里程碑切漏了、或驗收寫錯;領域不變量紅,代表某一條切片違反了它。conductor 開 GAP(角色 conductor,目標寫 `R-n#ACCEPT` 或 `INV-n#LAW`)停下,回 `dev-flow:objective` 或 `dev-flow:revise`;不讓 qa 放寬斷言。
+- 只有一句話的驗收(沒有三行)沒有驗收測試,由建置路線推;不派 qa。
 
 ## qa 的交付
 
-- 產生器由 qa 寫,只用公開的建構子組合法值;組不出來就是 GAP,指出缺的建構子。產生器要能縮小(shrink),反例才讀得懂。
+- 產生器由 qa 寫,只用公開的建構子組合法值;組不出來就是 GAP,指出缺的建構子。產生器要能縮小(shrink),反例才讀得懂——整合的仲裁拿縮小後的反例給開發者看。
 - 有 `given` 行的 law:產生器直接建構滿足前提的值;做不到才用條件過濾,並宣告覆蓋率下限,沒宣告覆蓋率的過濾式測試視同恆真。**`given` 的呼叫先發生**,測試照這個順序寫。
 - `total` 種類的斷言是「呼叫它不拋例外、不回錯誤」。
 - 每條 property test 限案例數與尺寸(例:100 個案例、產生器的尺寸有上限),整個測試檔有 timeout;不得產生無界的結構或無界的迴圈。跑爆機器的測試視同紅。
-- 測試檔編得過,紅綠分佈符合基線預期。
+- 測試檔編得過。**不因為看到綠或紅而改斷言**:首跑由 conductor 驗。
 - 內部支架(不是 step 的區域函數)的測試不標歸屬、不進 law 分母;要測就另開測試檔,`lint trace` 把它列成內部測試。
 
 ## 收尾
@@ -91,12 +127,13 @@ subagent 問不了人:
 本波全綠或停在 GAP 時,conductor 對開發者回報:
 
 - open 的 GAP 清單,各附「需要回答什麼」;回答走 `dev-flow:revise`,結案的 step 下一波重派。
-- `devflow status` 顯示達成 → 直接改 `frozen`。
-- qa 與 impl 自己決定的事整份列出供抽查,不逐條問。
-- 寫開發日誌(「開發日誌」),連同所有改動 commit 在分支上;不合併、不發 PR,那是 `dev-flow:integrate` 的事。
+- `devflow status` 顯示達成 → 直接改 `verified`。這條里程碑綁的每份文檔都達成,這條里程碑就正式達成,分支可以整合。
+- 決策紀錄「Faked / Unverified」每一列要嘛換成真的了、要嘛有一條 open GAP 講它為什麼還假;兩者都不是的,不算達成。
+- qa 與 refactor 自己決定的事整份列出供抽查,不逐條問。
+- 寫決策紀錄的「Verification」與「合併時要看」(「決策紀錄」),連同所有改動 commit 在分支上;不合併、不發 PR,那是 `dev-flow:integrate` 的事。
 - 定錨區塊(tooling.md「收尾定錨」)。
 
-開發者的決定只在三個地方發生:設計對談(`dev-flow:project` / `objective` / `feature` / `refactor`)、回答 GAP(`dev-flow:revise`)、驗收。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
+開發者的決定只在四個地方發生:立案對談(`dev-flow:project` / `objective`)、Law 對談(`dev-flow:law-design` / `abstract`)、回答 GAP 與選定 law 的調整(`dev-flow:revise`,先看影響範圍再選選項)、整合的仲裁(`dev-flow:integrate`)。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
 
 ## 仲裁
 
@@ -104,59 +141,76 @@ subagent 問不了人:
 
 | 歸因 | 處置 |
 |---|---|
-| 對得上,測試與原文一致 | impl 錯:附 law 原文重派 impl,不動測試、不附測試碼 |
+| 對得上,測試與原文一致 | 實作不符:附 law 原文派 refactor,不動測試、不附測試碼 |
 | 對得上,測試與原文不符 | qa 誤讀:附 law 原文重派 qa,不附實作碼;判定只依原文,不拿實作行為當依據 |
-| 對不上,或文檔沒涵蓋 | 文檔 bug:開 GAP 停該 step,不發委派、不讓 qa 與 impl 協商、conductor 不自己補 law |
-| 同一份文檔三輪仍紅 | 停止並升級,附結構性原因(簽名切錯、laws 互相矛盾、example 與 law 不一致、引用的 abstract 行為與文檔不符) |
+| 對不上,或文檔沒涵蓋 | 文檔 bug:開 GAP 停該 step,不發委派、不讓 qa 與 refactor 協商、conductor 不自己補 law |
+| 同一份文檔三輪仍紅 | 停止並升級,附結構性原因(簽名切錯、laws 互相矛盾、example 與 law 不一致、引用的 abstract 行為與文檔不符、型別裝不下這條 law) |
 
-qa 與 impl 只做歸因,裁決由 conductor。
+qa 與 refactor 只做歸因,裁決由 conductor。
 
 ## 測試跑幾次
 
 | 誰 | 範圍 | 次數 |
 |---|---|---|
+| spike-impl | 離場前整套 | 1 |
 | qa | 自己寫的測試檔 | 1 |
-| impl | 本份文檔的子集(`system.md` 的子集指令) | 互動 1;委派 0 |
-| conductor 收到 qa | 骨架快照上跑 qa 的測試當基線 | 1 |
+| refactor | 本份文檔的子集(`system.md` 的子集指令) | 互動 1;委派 0 |
+| conductor 收到 qa | 首跑:qa 的測試在現有的程式碼上 | 1 |
 | conductor 判定 | 本波子集 | 1 |
 | conductor 仲裁每輪 | 上一輪紅的那幾條 + 本波子集 | 每輪 1 |
 | conductor 本波全綠後 | 整套,整條迴圈只這一次 | 1 |
-| conductor 派驗收測試 | 那條 `R-n#LAW` / `O-n#LAW` 加整套 | 1 |
+| conductor 派驗收測試 | 那條 `R-n#ACCEPT` / `INV-n#LAW` 加整套 | 1 |
 | 修訂目標(有 REV) | 委派前先跑整套當基準線 | 1 |
 
 整套回答「有沒有連累別人」,只在自己這一塊全綠之後問一次;在自己的分支上,「別人」是主線合進來時的狀態。
 
-## 開發日誌
+## 決策紀錄
 
-`.design/journal/<全名>.md`,照 `templates/journal.md`,一條分支一份,conductor 收尾時寫,達成或停在 GAP 都寫。它只活在 build 分支:整合把內容寫進 PR 內文後刪檔,主線沒有日誌。
+`.design/journal/<鍵>.md`,照 `templates/journal.md`,一條 build 分支一份。**它是為了達成這條里程碑的 Goal / Scope 而產生的實作決策紀錄**:每一列回答「為了達成這條里程碑,決定了什麼、為什麼、受什麼約束」。它不是過程的流水帳——試了幾次、先做了哪個檔、花了多久都不寫;寫下來的每一項,都是之後有人(law-design、refactor、整合者)要拿來做下一個決定的東西。欄位固定、多半是表,讀它的人與 `devflow status` 都靠欄位找東西,不靠通讀。它只活在 build 分支:整合把內容寫進 PR 內文、把該留下的升成 ADR 後刪檔,主線沒有決策紀錄。
 
-日誌裝程式碼與文檔裝不下、整合者又非知道不可的事:
+切片六節由 `dev-flow:spike-impl` 離場前寫:
+
+| 節 | 裝什麼 | 誰讀 |
+|---|---|---|
+| frontmatter | `key`、`branch`、`base`(開分支時主線的 sha)、`verdict`(`feasible` / `infeasible`)、`updated` | 整合 |
+| Goal / Scope | 這份紀錄服務的目標與里程碑那一句、這一片做到了什麼、屬於這條里程碑卻明確沒做的 | law-design |
+| Entry | 怎麼把它跑起來看到行為,一道指令 | law-design 拿它產生例子問開發者 |
+| Decisions | 表,一列一個決定:`Decision`(為了達成這條里程碑決定了什麼)、`Reason`(為什麼,一句)、`Constraint`(這個決定受什麼約束:全域 Law 的哪一條(領域不變量、層的規則、對外 I/O 的契約)、需求的驗收或外部系統;沒有寫「-」)、否決的做法、可逆、跨文檔 | law-design 把只關一份文檔的搬進那份的「決定」;整合把不可逆又跨文檔的升 ADR,把 Constraint 指到全域 Law 的彙整成瘦身的證據 |
+| Assumptions & Invariants | 表:這一片當成成立的前提(一句可判定的話)、來源(刻意 / 順手)、在哪 | law 的直接來源:law-design 的題目清單,「順手」的就是開發者還沒被問過的 |
+| Faked / Unverified | 表:什麼是假的、在哪、真的該是什麼 | refactor 的待辦;收尾時逐列對 |
+| Touched | 動到的模組與層、共用型別、新的對外 I/O、建置設定 | law-design 補對外 I/O 表;整合的衝突預報 |
+
+後兩節由 conductor 收尾時寫,達成或停在 GAP 都寫;修訂、收整與驗收測試那幾波沒有切片,決策紀錄從這裡寫起:
 
 | 節 | 裝什麼 |
 |---|---|
-| frontmatter | `doc`(文檔全名,或驗收測試那波的 `R-n` / `O-n`)、`branch`、`base`(開分支時主線的 sha)、`updated` |
-| 做了什麼 | 骨架幾條、測試檔哪些、簽名 m / n、觀察點 j / k、laws g / k;寫了哪條驗收測試、綠不綠;達成,或停在哪幾條 GAP |
-| 動到的檔 | 分兩組:自己的(文檔、程式碼檔、測試檔)與共用的(建置設定改了哪幾行、共用檔案裡新增了哪些名字) |
-| 決定 | qa 與 impl 自己決定的事,一條一句:產生器的分佈與尺寸、資料結構、演算法、私有 helper。契約級決定不在這裡,它們在文檔的「決定」與 REV |
-| GAP | 本分支開的號與「需要回答什麼」 |
-| 測試 | 整套在本分支跑的指令、log 路徑、綠紅分佈 |
+| Verification | 每份文檔的簽名 m / n、觀察點 j / k、laws g / k,與它是不是 `verified`;首跑該紅(law-design 寫)與首跑結果;qa 與 refactor 自己決定的事,一條一句;本分支開的 GAP 與「需要回答什麼」;整套在本分支跑的指令、log 路徑、綠紅分佈。契約級決定不在這裡,它們在文檔的「決定」與 REV |
 | 合併時要看 | 與哪些文檔的 step 住同一個檔案、哪些檔別份也可能動、合併後預期什麼會變 |
 
 ## 整合
 
-`dev-flow:integrate` 把分支合成一條整合分支 `integrate/<YYYY-MM-DD>-<slug>`,整套綠了才發 PR;設計分支單獨一條,直接以它發。它是唯一發 PR 的出口,主線只透過它前進。整合者是 conductor 的身分:不寫實作、不寫測試、不補 law。
+`dev-flow:integrate` 把達成的分支合成一條整合分支 `integrate/<YYYY-MM-DD>-<slug>`,整套綠了才發 PR。它是唯一發 PR 的出口,主線只透過它前進。整合者是 conductor 的身分:不寫實作、不寫測試、不補 law、不改任何本體,也不改任何一條 law——scope law 與全域 Law 都一樣,它只提出變更建議。
 
-- **候選**:沒合進主線的分支,開發者指定就只合那些。`build/<全名>`(含驗收測試那波的 `build/R-n` / `build/O-n`)要有 `journal/<全名>.md` 才收,沒有代表還沒收尾;`design/<全名>` 要文檔 `ready`、`devflow lint sig` 沒有紅才收,沒有代表設計還沒拍板;其餘分支(手動改的、專案沒有 `.design/`)照分支名或 commit 訊息對到文檔全名,對不到就寫分支名。當前分支是主線而且有未提交的變更或領先的 commit,先開一條分支把它帶走,不從主線發 PR。
-- **順序**:有日誌的照目標優先 → 里程碑順序 → 分支名,被引用的 abstract 在消費者之前(照規則它已經先合進主線,這條只是保險);其餘照開發者指定的順序。
-- **衝突三類**:清單型(建置設定的檔案清單、匯出清單、`gaps.md`)兩邊都留;相鄰行的加法兩邊都留;同一個簽名或本體兩邊都改 = 所有權被違反,停下,列出是哪條 step、哪兩條分支,不猜。GAP 撞號,後合進來的往上移;GAP 的號只住 `gaps.md`,移號不牽動別處。
-- **判準**:合完跑建置與整套一次,`devflow status --tests <log>`、`devflow lint all`。每份日誌宣稱達成的文檔合併後仍達成;日誌「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。
-- **合併後紅**:先歸因,不改碼。那條 law 屬於哪份文檔、在它自己的分支上綠不綠(看日誌的「測試」)、哪幾條分支與它共用檔案(看日誌的「合併時要看」)。分支綠、合併紅 = 兩份文檔對共用的東西假設不同,寫成 GAP(角色 conductor,目標寫那條 law)停下;候選超過一條才逐條重合找出第一條讓它紅的分支。
-- **PR**:日誌內容進 PR 內文後刪日誌檔;標題英文、內文繁體中文,章節固定(`skills/integrate/SKILL.md`)。
-- **清理**:整合開頭先刪已合進主線的 `build/*` 分支與它們的工作樹。
+- **候選**:沒合進主線的分支,開發者指定就只合那些。`build/*` 要有 `journal/<鍵>.md`、而且 `devflow status` 在那條分支上顯示它的文檔都達成才收,沒有代表還沒收尾;決策紀錄 `verdict: infeasible` 的分支不合,只收它的決策紀錄(見下面「走不通的切片」);`plan/<slug>` 只動 `.design/`,`devflow lint all` 沒有新的紅就收;其餘分支(手動改的、專案沒有 `.design/`)照分支名或 commit 訊息對到文檔全名,對不到就寫分支名。當前分支是主線而且有未提交的變更或領先的 commit,先開一條分支把它帶走,不從主線發 PR。
+- **順序**:`plan/` 最先;有決策紀錄的照目標優先 → 里程碑順序 → 分支名,被引用的 abstract 在消費者之前;其餘照開發者指定的順序。
+- **衝突三類**:清單型(建置設定的檔案清單、匯出清單、`gaps.md`、模組表、對外 I/O 表、Features 表)兩邊都留;相鄰行的加法兩邊都留;同一個簽名或本體兩邊都改 = 兩條線對同一段程式碼假設不同,停下,走下面的仲裁。GAP 撞號,後合進來的往上移;GAP 的號只住 `gaps.md`,移號不牽動別處。
+- **判準**:**Integration MUST NOT reduce Law satisfaction.** 合完跑建置與整套一次,`devflow status --tests <log>`、`devflow lint all`(含 `lint global` 的三道)。合併之前在各自分支或主線上成立的每一條 law,合併之後都要仍然成立:每份決策紀錄宣稱達成的文檔合併後仍達成、全域 Law 三類沒有新的紅、領域不變量全綠;原本達成的需求沒有退回未達成;決策紀錄「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。
+- **合併後紅**:先歸因,不改碼。那條 law 屬於哪份文檔、在它自己的分支上綠不綠(看決策紀錄的「Verification」)、哪幾條分支與它共用檔案(看決策紀錄的「Touched」與「合併時要看」);候選超過一條才逐條重合找出第一條讓它紅的分支。分支綠、合併紅 = 兩條線的 law 或假設互斥,走仲裁。
+- **仲裁**,一次一條,問開發者:
+  - 呈現的是反例,不是兩段條文:測試縮小後的那個輸入、那條 law 說結果該是什麼、合併後的程式碼算出什麼、兩邊各依哪一條 law 或決策紀錄「Assumptions & Invariants」的哪一列。
+  - 三個選項,各附當下成本、之後的代價、可不可逆。它們是給開發者的**變更建議**:整合者不准自己選,也不准因為哪一個讓合併最快過就推它:
 
-## spike
-
-要跑了才知道的問題(函式庫撐不撐得住、協定延遲、能不能序列化)派 `dev-flow:spike`,不猜、不拿去問開發者。conductor 定問題、判準、timebox 並配號;subagent 只寫 `spike/SPK-00x-<slug>/` 底下;結案由 conductor 做(features.md「spike」)。「impl 有沒有做到文檔」與「law 該怎麼寫」不派 spike。
+    | 選項 | 之後怎麼走 |
+    |---|---|
+    | 以 A 為主 | B 不進這次整合。A 合進主線後,B 的工作樹合入主線,`dev-flow:revise` 改 B 那條 law,再 build |
+    | 收窄定義域 | 兩條 law 各自的 `forall` / `given` 排除對方的情境(金額不為負,排除退款單)。兩份文檔各一次 `dev-flow:revise`,只重派 qa 改那條測試;實作多半不必動 |
+    | 提煉上層 Law | 建議立一條領域不變量(要過准入四條);開發者明確批准後,由 `dev-flow:revise` 走「全域 Law 的變更」落筆(`devflow invariant add`),不是整合者。兩條分支都退回,各自 `dev-flow:revise` 讓自己的 law 服從它,再 build |
+  - 開發者選了什麼,寫成 GAP(角色 conductor,目標那條 law,「需要回答什麼」寫選項與開發者的原話)放進被退回的那條分支的 `gaps.md` 並 commit;`dev-flow:revise` 的 REV 依欄引用它。整合者自己不改 law、不現場合併兩邊的邏輯。
+- **全域 Law 的變更建議**:合併後紅的是全域 Law(`lint global` 的紅、領域不變量的測試紅),或決策紀錄的 Constraint 欄顯示某一條全域 Law 逼出了沒道理的決定,整合者照同一個格式提建議:反例、選項(一定含「不改,退回違反它的那條分支」)、各自的代價。**任何全域 Law 的修改、放寬、替換或刪除,都必須經開發者明確批准;整合者只能提出變更建議,不得自行決定變更,也不直接修改全域 Law。** 批准的那個選項寫成 GAP(角色 conductor,目標寫那條全域 Law),由 `dev-flow:revise` 完成,完成後重新驗證受影響的工作(laws.md「全域 Law 的變更」);這次整合只合不受它影響的分支。
+- **ADR**:每份決策紀錄「Decisions」表裡可逆欄為否、而且跨文檔欄為是的那幾列,各問開發者一次要不要升 ADR(`devflow claim adr <slug>`,四節從那一列與決策紀錄的「Goal / Scope」寫);收進這次 PR 的每一條全域 Law 變更一定有一條,記為什麼。其餘的權衡留在 PR 內文。
+- **走不通的切片**:`git show <分支>:.design/journal/<鍵>.md` 讀決策紀錄,升成一條 ADR(情境 = 那條里程碑要做到什麼,決定 = 這個做法不走,否決的替代方案 = 試過的做法與卡住的地方,後果 = 下次之前要先知道的事),分支與工作樹刪掉,不合它的程式碼。
+- **PR**:決策紀錄內容進 PR 內文後刪決策紀錄檔;各決策紀錄「Decisions」表裡 Constraint 欄指到全域 Law 的列彙整成一節,供開發者判斷哪條全域 Law 該瘦身(要不要變更仍由開發者提出或批准);標題英文、內文繁體中文,章節固定(`skills/integrate/SKILL.md`)。
+- **清理**:整合開頭先刪已合進主線的 `build/*` 與 `plan/*` 分支,連同它們的工作樹。
 
 ## 委派模型
 
@@ -165,8 +219,7 @@ qa 與 impl 只做歸因,裁決由 conductor。
 | 角色 | skill | 模型 |
 |---|---|---|
 | qa | `dev-flow:qa` | `sonnet` |
-| impl | `dev-flow:impl` | `sonnet` |
-| spike | `dev-flow:spike` | `sonnet` |
-| conductor(你) | — | 不指定 |
+| refactor | `dev-flow:refactor` | `sonnet` |
+| spike-impl、law-design、conductor(你) | — | 不委派,不指定 |
 
-qa 與 impl 拿到的是已經鎖死的文檔與骨架,做的是翻譯與填空;契約判斷在設計那一層,那一層由開發者與你在對談裡做。
+qa 拿到的是已經拍板的 law,做的是翻譯;refactor 拿到的是 law 原文與紅燈歸因,做的是讓它成立。契約判斷在 Law 對談那一層,那一層由開發者與你當面做;切片要看得到整個專案,也由你自己做。

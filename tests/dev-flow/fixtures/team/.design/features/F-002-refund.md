@@ -1,7 +1,7 @@
 ---
 id: F-002
 description: 客服把一張訂單的部分品項退款給使用者
-status: frozen
+status: verified
 updated: 2026-09-07
 ---
 # F-002-refund:客服把一張訂單的部分品項退款給使用者
@@ -39,7 +39,7 @@ input 是 POST /refund 的 RawBody,output 是 HttpRes。
 
 ## 決定
 - **手續費用同一條結算走,不另寫一條扣款。** 否決:退款自己寫扣手續費。同一件事寫兩次就是 A-001-settle 存在的理由。
-- **解凍一次**(2026-09-07):為了 REV-1 的收整解凍,收整做完由 build 重新 frozen。
+- **重開一次**(2026-09-07):為了 REV-1 的收整重開,收整做完由 build 重新 verified。
 
 ## 修訂記錄
 - REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle

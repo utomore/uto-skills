@@ -1,0 +1,23 @@
+$ devflow claim adr single-currency --description 金額只在單一幣別內計算 --date 2026-09-07
+建了 .design/adr/ADR-001-single-currency.md
+exit 0
+--- .design/adr/ADR-001-single-currency.md
+---
+id: ADR-001
+description: 金額只在單一幣別內計算
+updated: 2026-09-07
+---
+# ADR-001-single-currency:金額只在單一幣別內計算
+
+## 情境
+<兩三句:什麼問題逼出這個決定,牽動哪幾份文檔或哪幾層。>
+
+## 決定
+<一句。>
+
+## 否決的替代方案
+- <方案>:<為什麼不>
+
+## 後果
+- <三個月後誰會踩到什麼;哪幾份文檔要 REV。>
+

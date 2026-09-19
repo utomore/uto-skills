@@ -1,3 +1,3 @@
 describe('F-001#LAW-1', () => { it('a', () => { expect(1).toBe(1); }); });
 describe('F-001#LAW-9 幽靈', () => { it('b', () => { expect(1).toBe(1); }); });
-describe('R-7#LAW 幽靈的需求', () => { it('c', () => { expect(1).toBe(1); }); });
+describe('R-7#ACCEPT 幽靈的需求', () => { it('c', () => { expect(1).toBe(1); }); });

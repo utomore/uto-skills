@@ -1,54 +1,34 @@
 ---
 name: refactor
-description: dev-flow 的收整 — 把兩份以上 feature 之間可以抽象統一的部分抽成一份 abstract(A-00x,有自己的 = 列與 laws),原檔那幾列改成「見 A-00x-<slug>」,每一份被動到的 feature 各記一條 REV;只有一個消費者的 abstract 搬回去。觸發詞:重構、refactor、抽象、抽出共用、收整、合併重複、兩邊寫一樣的、共用邏輯、dev-flow refactor。Use when two or more features grew the same capability and it should be lifted into one shared abstract document.
-user-invocable: true
+description: dev-flow 的 refactor 角色 — 依指定的 feature 或 abstract 文檔、現有的程式碼與 conductor 給的紅燈歸因,調整或整份重寫實作,直到每條 law 成立;決策紀錄「Faked / Unverified」點名的假資料與寫死的值換成真的;修訂目標只做最後一條 REV 點名的部分,保護欄的 law 是護欄。禁止讀寫任何測試檔、禁止改 Steps 上的簽名與型別宣告,遇紅燈只做歸因不做仲裁。觸發詞:調整實作、重寫實作、refactor、讓 law 成立、把假的換成真的、填本體、dev-flow refactor。Use when existing code must be adjusted or rewritten until a document's laws hold, without touching tests or declarations.
+user-invocable: false
 ---
 
-# dev-flow:refactor — 收整成 abstract
+# dev-flow:refactor — 讓每條 law 成立
+
+> **核心**:Change the code until every Law holds; NEVER change a Law, a test or a declaration to get green.(改程式碼,直到每條 law 成立;絕不為了變綠去動 law、測試或宣告。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/features.md`「收整(refactor)」「feature 與 abstract」「修訂(REV)」「節」、`rules/roles.md`「骨架與基線」、`rules/boundary.md`「層」「模組表」、`rules/tooling.md`「CLI」「收尾定錨」。
+`rules/roles.md`「角色」「分支與所有權」「委派」「切片」、`rules/features.md`「節」「提問(GAP)」、`rules/boundary.md`「層」「匯出」。再讀目標文檔全文、它的 Steps 指到的程式碼檔,與決策紀錄的「Faked / Unverified」(切片那一波才有)。
 
 ## 輸入 / 產出
 
 | 輸入 | 產出 |
 |---|---|
-| 兩份以上 feature 長出同一段能力 | 一份 `ready` 的 `abstracts/A-00x-<slug>.md` 與它的骨架;每一份被動到的 feature 改成引用並各記一條 REV |
-
-## 前置
-
-`devflow lint sig` 與 `devflow status`。收整的證據有三種,至少要有一種:
-
-| 證據 | 從哪來 |
-|---|---|
-| 同名簽名出現在兩份文檔、兩邊都沒註明「見」 | `lint sig` 已經在報這一條 |
-| 兩份 feature 的骨架各自宣告了做同一件事的簽名或型別,只是名字不同 | 讀 `status` 的「待實作」按檔案列出的骨架 |
-| 讀程式碼發現同一段邏輯寫了兩次 | 開發者提出或你在別的工作裡撞到 |
-
-**只有一份 feature 用的不抽。** `status` 的警訊列出只有一個消費者的既有 abstract,那是反過來要搬回去的訊號,也走本 skill。
-
-從與 origin 同步、工作樹乾淨的主線開 `design/<全名>`(全名是新 abstract 的;搬回去的用被搬回的那份 feature 的),之後每一步都在這條分支上(`roles.md`「分支與所有權」)。
+| 文檔全名與路徑、工作樹路徑、子集測試指令、conductor 的紅燈歸因(哪幾條 law 現在不成立、law 原文);委派時另附基準線 | 每條 law 都成立的程式碼;回報五項 |
 
 ## 步驟
 
-1. **界定那一段**:攤開兩邊的 Steps,逐列問「這一列的輸入輸出在兩邊是不是同一件事」。是同一件事但簽名不同 → 先跟開發者敲定統一後的簽名。只是名字像 → 不抽,收工。
-2. **判它是不是一條資料流**:abstract 要有自己的 `=` 列(把步驟組成一次呼叫)與端到端的 laws。抽不出 `=` 列的只是共用 helper,住程式碼就好,**不建檔**——多一份文檔要多一份維護,而 helper 沒有可陳述的端到端性質。
-3. **建檔**:`devflow claim abstract <slug> --description <句>`。照 `templates/abstract.md` 寫 Brief(講明哪幾份 feature 從哪一步引用它)、Steps(沒有 `!` 列)、Laws、Examples、決定(為什麼值得抽、否決「留在原地各寫一份」的理由)。
-   - **laws 是這段能力自己的性質**,不是原本那幾條的聯集。搬得過來的搬,搬不過來的留在原檔。
-   - 層:abstract 住的層不得比它的消費者更外面。
-4. **改原檔**,一份一份做,每一份都做完四件事:
-   - 那幾列的簽名照抄統一後的寫法,模組欄改成「見 A-00x-<slug>」
-   - 搬走的 law 從原檔刪掉,**號永久空缺**
-   - `## 修訂記錄` 加一條 REV:依欄寫「收整進 A-00x-<slug>」,動到欄列出改成引用的那幾列與搬走的 law,保護欄列這次不准變的既有 law,重委派欄寫要重跑的測試
-   - `frozen` 的先解凍(`status` 改 `ready`,在「決定」記一條為什麼)
-5. **程式碼**:實際把那一段搬到 abstract 的檔案並匯出,原本兩邊的呼叫改成呼叫它;abstract 新出現的簽名與型別寫成骨架(`roles.md`「骨架與基線」)。搬走的測試跟著搬,歸屬字串改成 `A-00x#LAW-n`。
-6. `devflow lint all`:`lint sig` 不該再報同名未註明;`lint trace` 不該有幽靈引用。跑一次整套測試,輸出留檔。文檔、REV 與程式碼 commit 在 `design/<全名>` 上,訊息帶全名。
-
-## 收尾
-
-回報抽了哪一段、影響哪幾份 feature(各一條 REV)、程式碼搬了哪些檔、整套測試紅綠;附定錨區塊。下一步一律是 `dev-flow:integrate`(發設計 PR);合進主線後 `dev-flow:build <第一份被 REV 的 feature 全名>`(只重做 REV 點名的)。
+1. **先讀 law,再讀程式碼**:laws 是驗收條件。對每條 conductor 點名的 law,先講得出「現在的實作哪裡讓它變假」,再動手。
+2. **調得動就調,調不動就重寫**:現有的切片是草稿。結構撐不住那條 law(資料結構少一塊、步驟順序錯、把兩件事攪在一起)就整條 step 重寫,不為了保住舊程式碼而繞路;整份重寫的列進回報。
+3. **假的換成真的**:決策紀錄「Faked / Unverified」每一列,屬於這份文檔的換成真的該是的東西;換不了(要一個還沒有的外部系統、要開發者決定)→ GAP 四欄寫進回報。
+4. **不改宣告**:Steps 上的簽名、它們用到的型別宣告、匯出、層,一個都不動;型別的內部表示與私有 helper 是你的。非改宣告不可 → 停該項,GAP 四欄寫進回報,其餘照做。
+5. **層守住**:新加的 import 不得從內層指向外層;需要外面的東西就是簽名少一個參數,開 GAP。
+6. **沒有 law 守著的行為可以自由改**:它不是承諾。改了的列進回報的「自己決定的事」,一條一句。
+7. **跑子集**(委派模式 0 次,用 prompt 附的基準線):紅燈只做**歸因**——這條測試對應哪條 law 或 example、文檔怎麼寫的、實作哪裡不符。不改測試、不做裁決,列成阻塞項回報。
+8. **回報五項**:改了哪些檔;動了哪幾條 step 的本體、哪些是整份重寫、假的換掉幾處、測試結果與歸因;自己決定的事;GAP 清單;阻塞項。
 
 ## 邊界
 
-不新增能力:收整只搬東西,不順便改行為;真的要改行為,那是另一次 `dev-flow:revise`。不抽只有一個消費者的東西。不改 `system.md` 的對外 I/O(abstract 不碰對外邊界)。
+不讀、不寫、不改任何測試檔;不改文檔(`status`、`updated` 由 conductor 在跑完整套之後回寫);不改決策紀錄;不跑整套。**測試全綠也不得把有 open GAP 的 step 當完成**——兩種相反的實作都會全綠,你只是碰巧選了其中一種。不為了讓測試過而在內層開後門。

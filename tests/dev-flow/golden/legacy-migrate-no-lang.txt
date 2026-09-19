@@ -53,7 +53,7 @@ $ devflow migrate .design
 - 全域契約 G-C
 - spec-gaps(.design/subsystems/auth/spec-gaps.md)
 - bugfix 文檔 1 份(新樹沒有 bug 文檔:law 在就修碼,law 不在就補 law 走 REV)
-- `planned / specced / done` 與 `rev` 欄:新樹的 status 只有 draft / ready / frozen,進度由 `devflow status` 從程式碼與測試推
+- `planned / specced / done` 與 `rev` 欄:新樹的 status 只有 draft / ready / verified,進度由 `devflow status` 從程式碼與測試推
 - `code-paths` / `modules` / `part-of` / 功能總覽索引:靠簽名對帳查得到,不再寫進 frontmatter
 
 ## 6. 人要判的

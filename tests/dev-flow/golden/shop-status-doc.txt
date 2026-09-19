@@ -1,5 +1,5 @@
 $ devflow status --doc F-001-checkout --tests test.log
-# F-001-checkout  feature  frozen
+# F-001-checkout  feature  verified
 使用者把購物車結成一張已付款的訂單
 · 測試結果來自 test.log
 
@@ -31,5 +31,5 @@ $ devflow status --doc F-001-checkout --tests test.log
 ## 修訂
 - REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle
 
-文檔寫了 5 條簽名,程式碼裡有 5 條,還是骨架的 0 條 · 觀察點 3 個,程式碼裡有 3 個 · 寫了 3 條 law,通過 3 條 · 達成
+文檔寫了 5 條簽名,程式碼裡有 5 條,未實作的 0 條 · 觀察點 3 個,程式碼裡有 3 個 · 寫了 3 條 law,通過 3 條 · 達成
 exit 0

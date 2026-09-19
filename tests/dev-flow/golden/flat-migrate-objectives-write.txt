@@ -5,7 +5,7 @@ $ devflow migrate objectives --write --date 2026-09-07
 - .design/objectives/R-1-O-1-checkout.md:建(O-1;需求配 R-1;slug 從第一條綁定的 feature 推,不對就改檔名)
 - .design/objectives.md:刪
 
-都寫了;接著 devflow status 看警訊,需求的 Law 與蘊含說明由 dev-flow:project 對談補齊,目標檔的 slug 由 dev-flow:objective 定
+都寫了;接著 devflow status 看警訊,需求的驗收由 dev-flow:project 對談補齊,目標檔的 slug 由 dev-flow:objective 定
 exit 0
 --- .design/system.md
 ---
@@ -21,7 +21,7 @@ updated: 2026-09-07
 
 ## 需求
 ### R-1:每一筆結帳與退款的金額都算對
-- Law:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分
+- 驗收:任一筆訂單的應付金額與可退金額都等於明細加總減折扣,四捨五入到分
 
 ## 語言與工具
 - 建置:`npx tsc --noEmit`
@@ -65,12 +65,10 @@ updated: 2026-09-07
 ---
 # R-1-O-1-checkout:每一筆結帳與退款的金額都算對
 
-- Law:繼承 R-1
-
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| M-1 | 結帳走通 | F-001-checkout |
-| M-2 | 退款走通 | F-002-refund |
+| M-1-checkout | 結帳走通 | F-001-checkout |
+| M-2-refund | 退款走通 | F-002-refund |
 
 --- .design/objectives.md
 (不存在)

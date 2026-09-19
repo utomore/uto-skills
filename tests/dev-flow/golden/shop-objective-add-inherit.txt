@@ -1,7 +1,6 @@
 $ devflow objective add refund-correct 退款也算對錢 --requirement R-1 --priority 2 --date 2026-09-07
-建了 .design/objectives/R-1-O-2-refund-correct.md(O-2,需求 R-1,優先 2,Law 繼承 R-1)
-R-1 現在有 O-1、O-2 兩個以上的目標:各目標要有自己的 Law,system.md 的 R-1 要補蘊含說明;O-2 的 Law 改成自己的
-下一步:devflow objective milestone O-2 <一句話> --bind <F-00x-<slug>>
+建了 .design/objectives/R-1-O-2-refund-correct.md(O-2,需求 R-1,優先 2)
+下一步:devflow objective milestone O-2 <slug> <一句話>
 exit 0
 --- .design/objectives/R-1-O-2-refund-correct.md
 ---
@@ -11,8 +10,6 @@ priority: 2
 updated: 2026-09-07
 ---
 # R-1-O-2-refund-correct:退款也算對錢
-
-- Law:繼承 R-1
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|

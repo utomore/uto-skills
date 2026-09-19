@@ -585,12 +585,12 @@ function deriveGraph(grain) {
     if (objById.has(id)) {
       const o = objById.get(id);
       n = { id, kind: 'objective', title: o.title, sub: `${reqOf(id) === 'no-req' ? '沒有對到需求' : reqOf(id)} · 優先 ${o.priorityRaw || '(沒填)'}`,
-        note: `里程碑 ${o.milestonesAchieved}/${o.milestones.length} 達成 · Law ${o.law.holds === true ? '成立' : o.law.holds === false ? '未成立' : '未知'}`,
+        note: o.note || `里程碑 ${o.milestonesAchieved}/${o.milestones.length} 達成 · Law ${o.law.holds === true ? '成立' : o.law.holds === false ? '未成立' : '未知'}`,
         priority: o.priority || null, tone: o.achieved ? 'done' : o.law.holds === false ? 'stuck' : o.milestones.length ? 'going' : 'idle', achieved: o.achieved };
     } else if (reqById.has(id)) {
       const q = reqById.get(id); const key = reqKey(id);
       n = { id, kind: 'requirement', title: q.title, sub: `需求 · 目標最高優先 ${key === 5 ? '(沒填)' : key}`,
-        note: `Law ${q.law.holds === true ? '成立' : q.law.holds === false ? '未成立' : '未知'} · ${q.objectives.length} 個目標 · 里程碑 ${q.milestonesAchieved}/${q.milestones} 達成`,
+        note: q.note || `Law ${q.law.holds === true ? '成立' : q.law.holds === false ? '未成立' : '未知'} · ${q.objectives.length} 個目標 · 里程碑 ${q.milestonesAchieved}/${q.milestones} 達成`,
         priority: key === 5 ? null : key, tone: q.law.holds === true ? 'done' : q.law.holds === false ? 'stuck' : q.objectives.length ? 'going' : 'idle', achieved: q.law.holds === true };
     } else if (id === 'no-req') {
       const os = D.objectives.filter((o) => reqOf(o.id) === 'no-req'); const key = reqKey(id);

@@ -35,7 +35,7 @@
     ✓ holds
 
  PASS  test/requirements.test.ts
-  R-1#LAW 結帳與退款都照同一條結算
+  R-1#ACCEPT 結帳與退款都照同一條結算
     ✓ holds (1 ms)
 
 Test Suites: 4 passed, 4 total

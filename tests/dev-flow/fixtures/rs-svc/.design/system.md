@@ -7,13 +7,31 @@ updated: 2026-09-07
 ## 願景
 任何一組區間都能合併成不重疊的最少區間。
 
-夾具:證明 Rust adapter 的簽名(含 impl 方法與泛型回傳)、pub 匯出、cfg(test) 的排除與內嵌測試歸屬(含需求 Law 的識別字形式)對得上。
+夾具:證明 Rust adapter 的簽名(含 impl 方法與泛型回傳)、pub 匯出、cfg(test) 的排除與內嵌測試歸屬(含需求驗收測試歸屬的識別字形式)對得上。
 
 ## 需求
 ### R-1:合併出來的區間蓋住原本每一個
-- Law:合併之後的寬度不小於任一邊
+- 驗收:合併之後的寬度不小於任一邊
   - forall a in Span, b in Span
   - |- width(merge(a, b)) >= width(a) and width(merge(a, b)) >= width(b)
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+無
+
+### 架構:層
+| 層 | 裝什麼 |
+|---|---|
+| core | 區間的型別與規則 |
+| entry | CLI 進入點 |
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
+|---|---|---|---|---|---|---|
+| stdin 一行 | in | `Span` | `src/bin/cli.rs` | F-001-span | untrusted | `make` |
+| 區間寬度 | out | `u32` | `src/bin/cli.rs` | F-001-span | trusted | - |
 
 ## 語言與工具
 - 建置:`cargo build`
@@ -23,18 +41,6 @@ updated: 2026-09-07
 - Laws 詞彙追加:無
 - 忽略目錄:無
 - 優先:1 = 合併正確;2 = 進入點;3 = 呈現;4 = 工具
-
-## 層
-| 層 | 裝什麼 |
-|---|---|
-| core | 區間的型別與規則 |
-| entry | CLI 進入點 |
-
-## 對外 I/O
-| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
-|---|---|---|---|---|---|---|
-| stdin 一行 | in | `Span` | `src/bin/cli.rs` | F-001-span | untrusted | `make` |
-| 區間寬度 | out | `u32` | `src/bin/cli.rs` | F-001-span | trusted | - |
 
 ## Features
 | 全名 | 類別 |

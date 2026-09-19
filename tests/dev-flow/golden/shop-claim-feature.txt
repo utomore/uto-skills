@@ -1,4 +1,4 @@
-$ devflow claim feature ship --description 把已付款的訂單交給物流 --milestone M-2 --date 2026-09-07
+$ devflow claim feature ship --description 把已付款的訂單交給物流 --milestone M-2-refund --date 2026-09-07
 建了 .design/features/F-003-ship.md(status: draft)
 system.md Features 表加了一列
 綁進 M-2
@@ -36,7 +36,7 @@ updated: 2026-09-07
 | EX-1 | `<expr>` | `<value>` | LAW-1 |
 
 ## 決定
-- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<SPK-00x-<slug> 或 ADR-00x-<slug>,無則省略>
+- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<ADR-00x-<slug>,無則省略>
 
 ## 修訂記錄
 無
@@ -55,9 +55,35 @@ updated: 2026-09-07
 
 ## 需求
 ### R-1:每一筆結帳與退款的金額都算對
-- Law:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+- INV-1 [bound] 任何一條路徑結算出來的金額都不為負
+  - forall ls in MoneyList, d in Money
+  - given settled(settle(ls, d))
+  - |- cents(settle(ls, d)) >= 0
+
+### 架構:層
+由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。
+
+| 層 | 裝什麼 |
+|---|---|
+| domain | 金額的型別與規則 |
+| application | 把 domain 串成一條結帳或退款 |
+| entry | HTTP 路由 |
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約 |
+|---|---|---|---|---|---|---|---|
+| POST /checkout | in | `RawBody` | `src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` | F-001#LAW-2 |
+| 結帳結果 | out | `HttpRes` | `src/entry/routes.ts` | F-001-checkout | trusted | - | INV-1 |
+| POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` | F-002#LAW-2 |
+| 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - | INV-1 |
 
 ## 語言與工具
 - 建置:`npx tsc --noEmit`
@@ -68,23 +94,6 @@ updated: 2026-09-07
 - 忽略目錄:無
 - 號段:無
 - 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
-
-## 層
-由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。
-
-| 層 | 裝什麼 |
-|---|---|
-| domain | 金額的型別與規則 |
-| application | 把 domain 串成一條結帳或退款 |
-| entry | HTTP 路由 |
-
-## 對外 I/O
-| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
-|---|---|---|---|---|---|---|
-| POST /checkout | in | `RawBody` | `src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` |
-| 結帳結果 | out | `HttpRes` | `src/entry/routes.ts` | F-001-checkout | trusted | - |
-| POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` |
-| 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - |
 
 ## Features
 | 全名 | 類別 |
@@ -103,10 +112,8 @@ updated: 2026-09-07
 ---
 # R-1-O-1-money-correct:每一筆結帳與退款的金額都算對
 
-- Law:繼承 R-1
-
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| M-1 | 結帳走通 | F-001-checkout |
-| M-2 | 退款走通 | F-002-refund、F-003-ship |
+| M-1-checkout | 結帳走通 | F-001-checkout |
+| M-2-refund | 退款走通 | F-002-refund、F-003-ship |
 

@@ -15,7 +15,7 @@ const fixture = (plugin, name) => path.join(here, '..', plugin, 'fixtures', name
 const CASES = [
   ['dev-flow', 'shop', 0, ['## lint ids:通過', '✓ 契約對帳通過']],
   ['dev-flow', 'fullstack', 0, ['✓ 契約對帳通過']],
-  // shaky 的測試守著文檔裡沒有的 F-001#LAW-9,frozen 的 F-001 又有 law 沒測試:兩種都在 lint trace 擋的那段
+  // shaky 的測試守著文檔裡沒有的 F-001#LAW-9,verified 的 F-001 又有 law 沒測試:兩種都在 lint trace 擋的那段
   ['dev-flow', 'shaky', 1, ['## lint ids:', '✗ test/score.test.ts 引用的 F-001#LAW-9', '✗ F-001#LAW-2 沒有測試承接', '✗ 契約對帳有紅']],
   // team 有一份 draft(F-100 還是模板):它的紅只印不擋,整體要綠
   ['dev-flow', 'team', 0, ['## draft 文檔的紅(只印不擋)', 'F-100-wishlist', '✓ 契約對帳通過']],
@@ -42,9 +42,9 @@ const MUTATED = [
     ['✗ test/settle.test.ts 引用的 A-001#LAW-9 文檔裡沒有(幽靈引用)', '✗ 契約對帳有紅']],
   ['lawful', 'save-game', '幽靈引用', (r) => fs.appendFileSync(path.join(r, 'test/SaveGameSpec.hs'), '\n  describe "P-001#LAW-9" $\n    it "holds" $ True `shouldBe` True\n'), 1,
     ['✗ test/SaveGameSpec.hs 引用的 P-001#LAW-9 文檔裡沒有(幽靈引用)', '✗ 契約對帳有紅']],
-  // frozen 文檔的 law 沒有測試承接:擋;同一份改成 ready 就只印
-  ['dev-flow', 'shop', 'frozen 的 A-001 沒有測試', (r) => fs.rmSync(path.join(r, 'test/settle.test.ts')), 1,
-    ['## lint trace(幽靈引用、frozen 文檔的 law):', '✗ A-001#LAW-1 沒有測試承接', '✗ 契約對帳有紅']],
+  // verified(lawful 是 frozen)文檔的 law 沒有測試承接:擋;同一份改成 ready 就只印
+  ['dev-flow', 'shop', 'verified 的 A-001 沒有測試', (r) => fs.rmSync(path.join(r, 'test/settle.test.ts')), 1,
+    ['## lint trace(幽靈引用、verified 文檔的 law):', '✗ A-001#LAW-1 沒有測試承接', '✗ 契約對帳有紅']],
   ['dev-flow', 'shop', 'ready 的 A-001 沒有測試', (r) => { fs.rmSync(path.join(r, 'test/settle.test.ts')); setStatus(r, '.design/abstracts/A-001-settle.md', 'ready'); }, 0,
     ['## lint trace 其餘(只印不擋):', '- · A-001#LAW-1 沒有測試承接', '✓ 契約對帳通過']],
   ['lawful', 'frozen-ref', 'frozen 的 P-002 沒有測試', (r) => fs.rmSync(path.join(r, 'test/CountSpec.hs')), 1,

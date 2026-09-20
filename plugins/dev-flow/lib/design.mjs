@@ -610,6 +610,28 @@ export function readJournals(designDir, root) {
   });
 }
 
+// 名詞:專案根目錄 CLAUDE.md 的「## 名詞」節,一張表(名詞 | 定義 | 型別);領域名詞只在那裡定義,.design/ 裡不另寫一次。
+// 檔案不存在或沒有這一節是 missing;佔位符列不算;型別欄的「-」與佔位符讀成空字串。line 是 CLAUDE.md 裡的真實行號。
+export function readGlossary(root) {
+  const file = path.join(root, 'CLAUDE.md');
+  const text = read(file);
+  const out = { file: rel(root, file), state: 'missing', terms: [] };
+  if (text == null) return out;
+  const { body } = parseFrontmatter(text);
+  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+  const sec = findSection(sections(body), '名詞');
+  if (!sec) return out;
+  out.state = 'ok';
+  const t = parseTable(sec.lines);
+  if (t) t.rows.forEach((r, i) => {
+    const term = stripTicks(r[0] || '');
+    if (!term || hasPlaceholder(term)) return;
+    const type = stripTicks(r[2] || '');
+    out.terms.push({ term, definition: (r[1] || '').trim(), type: /^[-—–]?$/.test(type) || isPlaceholder(type) ? '' : type, line: offset + sec.start + t.rowLines[i] + 2 });
+  });
+  return out;
+}
+
 // 一檔一號的東西:feature、abstract、ADR、需求。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
 export function readNumbered(designDir, root) {
   const out = [];
@@ -644,6 +666,7 @@ export function readDesign(root) {
   const features = readDir(featuresDir, /^F-\d{3}-.+\.md$/, root);
   const abstracts = readDir(abstractsDir, /^A-\d{3}-.+\.md$/, root);
   const system = readSystem(designDir, root);
+  const glossary = readGlossary(root);
   // 沒有 requirements/ 而 system.md 有「## 需求」節:與 objectives/ 併成同一個形狀照讀;status 指到 migrate requirements
   let requirements = readRequirements(designDir, root);
   if (!requirements.exists && system && system.hasRequirementSection) {
@@ -655,6 +678,10 @@ export function readDesign(root) {
     featuresDir,
     abstractsDir,
     system,
+    // 名詞表住專案根目錄的 CLAUDE.md,不住 .design/
+    glossary: glossary.terms,
+    glossaryState: glossary.state,
+    glossaryFile: glossary.file,
     requirements,
     // 里程碑還擠在一份 objectives.md 裡:devflow migrate requirements 讀它
     objectivesFile: fs.existsSync(path.join(designDir, 'objectives.md')),

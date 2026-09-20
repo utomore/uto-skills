@@ -9,7 +9,7 @@
 | 檔 | 主題 |
 |---|---|
 | `laws.md` | law 是不得違反、需求是必須達成,判準是有沒有做完的一天;law 的兩種範圍(全域 Law 住 `system.md`「全域 Law」區,scope law 住一份 feature)、全域 Law 三類與准入四條、Law 怎麼談、調整 law 之前的影響範圍與選項、全域 Law 的第一次定義與變更 |
-| `features.md` | `.design/` 樹、system.md、願景、需求與里程碑、feature 文檔怎麼寫:編號與引用、簽名寫法、節、什麼要有 law、REV(含刪 step 與文檔退役)、GAP、完成度、ADR |
+| `features.md` | `.design/` 樹與它之外的一個檔(專案根目錄 `CLAUDE.md` 的「## 名詞」節)、system.md、願景、需求與里程碑、feature 文檔怎麼寫:編號與引用、簽名寫法、節、什麼要有 law、REV(含刪 step 與文檔退役)、GAP、完成度、ADR |
 | `boundary.md` | 層、模組表、IO 模組、匯出、對外 I/O(信任、驗證、契約)與安全三條、測試與邊界 |
 | `roles.md` | 五個階段、分支與所有權、spike-impl / conductor / qa / refactor、委派、切片、首跑、驗收測試、收尾、仲裁、測試跑幾次、決策紀錄、整合、委派模型 |
 | `tooling.md` | CLI 子命令與 exit code、status 報告版面、測試歸屬、language adapter、跑東西的紀律、收尾定錨 |
@@ -19,6 +19,7 @@
 | 名詞 | 在哪 |
 |---|---|
 | 願景、優先各級 | features.md「system.md」「願景、需求與里程碑」 |
+| 專案的名詞表(專案根目錄 `CLAUDE.md` 的「## 名詞」節)、名詞只住這一節、型別欄、誰寫 | features.md「`.design/`」「願景、需求與里程碑」;laws.md「Law 怎麼談」 |
 | 需求、`R-n`、需求檔 `requirements/R-n-<slug>.md`、驗收、優先 | features.md「願景、需求與里程碑」 |
 | 必須達成與不得違反、有沒有做完的一天、全域 Law 與 scope law、law 住哪裡、誰定哪一種、里程碑不管理約束 | laws.md「Law 與需求」 |
 | 里程碑、`M-n`、全名 `M-n-<slug>`、引用寫全名、階段性使用者驗收、依序一次一條、綁定、還沒有切片 | features.md「願景、需求與里程碑」 |

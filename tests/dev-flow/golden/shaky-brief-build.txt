@@ -139,7 +139,7 @@ updated: 2026-09-07
 - ✗ .design/features/F-002-other.md feature 要恰好一列 ! 列(對外進入點),現在 0 列
 - ✗ .design/features/F-002-other.md:18 F-002-other#helperOnly 程式碼裡找不到;Steps 的簽名抄程式碼裡定下來的那一個,修訂新增的 step 先在程式碼裡宣告
 - · F-001-score#score 搬家:文檔 src/app/other.ts → 程式碼 src/app/store.ts(devflow sync 可改)
-### lint laws:7 條不合規
+### lint laws:8 條不合規
 - ✗ .design/features/F-001-score.md LAW-2 種類「nonsense」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute
 - ✗ .design/features/F-001-score.md LAW-2 |- 行的 mysteryFn 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
 - ✗ .design/features/F-001-score.md EX-2 指到的 LAW-7 不存在
@@ -147,6 +147,7 @@ updated: 2026-09-07
 - ✗ .design/requirements/R-4-third-number.md:1 R-4 驗收 沒有;一句可判定的話,寫成清單項「- 驗收:…」
 - ✗ .design/requirements/R-5-entry-accept.md:1 R-5 驗收 |- 行的 mysteryTop 對不到 Steps 簽名(任何一份文檔的)、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
 - ✗ .design/requirements/R-5-entry-accept.md:1 R-5 驗收 的 |- 行引用了進入點 scoreHandler;進入點只接線,它做的事由對外 I/O 表承接
+- ✗ CLAUDE.md:8 名詞「分數」的型別 `Scorecard` 在程式碼裡找不到;型別欄寫程式碼裡真的有的型別名,還沒有就寫 -
 
 # gaps.md(2 條,open 的 2 條:GAP-1、GAP-1)
 
@@ -241,6 +242,7 @@ updated: 2026-09-07
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | system.md | 願景還是模板 | dev-flow:kickoff 訂願景 |
+| CLAUDE.md:10 | 名詞「分數」出現 2 列,名詞只定義一次 | dev-flow:require-design 與開發者講定哪一句是它的定義,留一列 |
 | system.md | 沒有宣告優先 1 到 4 各代表什麼 | dev-flow:require-design 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
 | R-2 | 驗收寫了三行卻沒有驗收測試,達成與否未知 | dev-flow:build R-2(只派 qa 寫一條歸屬 "R-2#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推 |
 | R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>) |

@@ -396,6 +396,11 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
     else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'dev-flow:kickoff 訂願景');
     if (sys.globalState === 'missing') warn('system.md', '沒有 ## 全域 Law 區,看不出約束住在哪裡', 'devflow migrate laws --write');
   }
+  // 名詞只定義一次、只住專案根目錄 CLAUDE.md 的「## 名詞」節:沒有這一節(檔案不存在也算)、或同一個名詞出現兩列,都是警訊;節在而表是空的不算
+  if (design.glossaryState === 'missing') warn(design.glossaryFile, '沒有 ## 名詞 節,領域名詞沒有地方定義', 'dev-flow:kickoff 補上這一節');
+  const termRows = new Map();
+  for (const g of design.glossary) termRows.set(g.term, [...(termRows.get(g.term) || []), g.line]);
+  for (const [term, rows] of termRows) if (rows.length > 1) warn(`${design.glossaryFile}:${rows[1]}`, `名詞「${term}」出現 ${rows.length} 列,名詞只定義一次`, 'dev-flow:require-design 與開發者講定哪一句是它的定義,留一列');
   if (design.requirements.merged) warn('system.md', '需求還住在「## 需求」節,看不出每條需求的優先與里程碑', 'devflow migrate requirements --write 換成 requirements/ 一條需求一個檔');
   else if (design.objectivesFile) warn('objectives.md', '里程碑還擠在一份 objectives.md 裡', 'devflow migrate requirements --write 換成 requirements/ 一條需求一個檔');
   for (const o of design.requirements.orphans || []) warn(o.file, `對到的需求 ${o.requirement} 不存在,它的里程碑沒有算進任何需求`, 'devflow migrate requirements 的帳本會列出它;決定它屬於哪條需求');

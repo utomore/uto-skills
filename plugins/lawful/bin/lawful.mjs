@@ -41,7 +41,7 @@ const HELP = `lawful <子命令> [選項]
   invariant add <一句話> [--kind <種類>]
                                        鑄 INV-n 寫進 Cone.md「全域 Law」的領域不變量;種類預設 invariant
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
-                                       一檔一號與號段 / 邊界 / 簽名 / laws / 測試歸屬 / 對外 I/O 與契約欄 / 領域不變量的對帳;
+                                       一檔一號與號段 / 邊界 / 簽名 / laws(含名詞表——專案根目錄 CLAUDE.md 的「## 名詞」節——型別欄的型別在程式碼裡)/ 測試歸屬 / 對外 I/O 與契約欄 / 領域不變量的對帳;
                                        global = 全域 Law 三類一次查完:boundary(架構)+ io(契約)+ invariants(領域不變量)
   sync [--date <YYYY-MM-DD>]            把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改)
   modules --gen                        從程式碼的模組名推出模組單元與層,補進模組表,職責欄留白

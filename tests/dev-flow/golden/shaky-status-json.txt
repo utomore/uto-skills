@@ -9,6 +9,23 @@ $ devflow status --json
   "visionFull": null,
   "visionState": "template",
   "priorityNote": null,
+  "glossary": [
+    {
+      "term": "分數",
+      "definition": "一份輸入照規則加權算出來的一個數字;不是名次",
+      "type": "Scorecard"
+    },
+    {
+      "term": "規則",
+      "definition": "一個名字加一個權重",
+      "type": "Rule"
+    },
+    {
+      "term": "分數",
+      "definition": "規則的權重加總",
+      "type": null
+    }
+  ],
   "tests": "沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知",
   "summary": {
     "requirements": 6,
@@ -780,6 +797,11 @@ $ devflow status --json
       "where": "system.md",
       "what": "願景還是模板",
       "fix": "dev-flow:kickoff 訂願景"
+    },
+    {
+      "where": "CLAUDE.md:10",
+      "what": "名詞「分數」出現 2 列,名詞只定義一次",
+      "fix": "dev-flow:require-design 與開發者講定哪一句是它的定義,留一列"
     },
     {
       "where": "system.md",

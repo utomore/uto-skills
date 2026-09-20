@@ -58,6 +58,7 @@ $ lawful status --tests test.log
 |---|---|---|
 | Cone.md | 沒有 ## 全域 Law 區,看不出約束住在哪裡 | lawful migrate laws --write |
 | Cone.md | 「## 需求」節或 objectives/ 底下的檔寫著「- Law:」或蘊含說明;需求附的是驗收 | lawful migrate laws --write |
+| CLAUDE.md | 沒有 ## 名詞 節,領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |
 | Cone.md | 需求還住在「## 需求」節,看不出每條需求的優先與里程碑 | lawful migrate requirements --write 換成 requirements/ 一條需求一個檔 |
 | .lawful/objectives/R-9-O-3-save-cloud.md | 對到的需求 R-9 不存在,它的里程碑沒有算進任何需求 | lawful migrate requirements 的帳本會列出它;決定它屬於哪條需求 |
 | M-1 | 沒有英文名,切片開不了分支 | lawful:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵 |

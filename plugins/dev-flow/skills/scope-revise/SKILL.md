@@ -76,7 +76,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
    - 談到一半發現新增的這一條與某條既有的 law 矛盾、或開發者其實要的是改既有的那一條 → 走第 13 步。
 8. **改條文**:
    - 准改:Steps 的簽名欄、模組欄、層欄、「做什麼」欄,加新的 step 列與 `o` 列;Brief;「決定」(新的取捨、否決的替代方案、理由);frontmatter 的 `description`;Laws 與 Examples 的**新增**列。
-   - **原有的每條 law 意思一個字都不變;原有 example 的輸入輸出不變。** 簽名或型別改了名,law 三行與 Examples 裡的識別字跟著換,是機械同步:只換名字,`forall` 的定義域、`given` 的前提、`|-` 的結論都不動。換完把改前改後逐條對一次,除了名字沒有別的差異。
+   - **原有的每條 law 意思一個字都不變;原有 example 的輸入輸出不變。** 簽名或型別改了名,law 三行與 Examples 裡的識別字跟著換,是機械同步:只換名字,`forall` 的定義域、`given` 的前提、`|-` 的結論都不動。換完把改前改後逐條對一次,除了名字沒有別的差異。改名的型別若在專案根目錄 `CLAUDE.md` 名詞表的「型別」欄上,那一欄的名字跟著換(只換這一格,定義與 `CLAUDE.md` 的其餘內容不動)。
    - 層的歸屬修正:層欄與 `modules.md` 一起改到 `devflow lint boundary` 沒有紅;層表本身(`system.md`「架構:層」)是全域 Law,不在這裡動。
 9. **寫 REV**:`## 修訂記錄` 加一條,五欄齊全:
    - 依:第 1 步的原句。

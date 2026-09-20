@@ -557,6 +557,28 @@ export function readJournals(lawfulDir, root) {
   });
 }
 
+// 名詞:專案根目錄 CLAUDE.md 的「## 名詞」節,一張表(名詞 | 定義 | 型別);領域名詞只在那裡定義,.lawful/ 裡不另寫一次。
+// 檔案不存在或沒有這一節是 missing;佔位符列不算;型別欄的「-」與佔位符讀成空字串。line 是 CLAUDE.md 裡的真實行號。
+export function readGlossary(root) {
+  const file = path.join(root, 'CLAUDE.md');
+  const text = read(file);
+  const out = { file: rel(root, file), state: 'missing', terms: [] };
+  if (text == null) return out;
+  const { body } = parseFrontmatter(text);
+  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+  const sec = findSection(sections(body), '名詞');
+  if (!sec) return out;
+  out.state = 'ok';
+  const t = parseTable(sec.lines);
+  if (t) t.rows.forEach((r, i) => {
+    const term = stripTicks(r[0] || '');
+    if (!term || hasPlaceholder(term)) return;
+    const type = stripTicks(r[2] || '');
+    out.terms.push({ term, definition: (r[1] || '').trim(), type: /^[-—–]?$/.test(type) || isPlaceholder(type) ? '' : type, line: offset + sec.start + t.rowLines[i] + 2 });
+  });
+  return out;
+}
+
 // 一檔一號的東西:pipeline、ADR、需求。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
 export function readNumbered(lawfulDir, root) {
   const out = [];
@@ -593,11 +615,16 @@ export function readDesign(root) {
   if (!requirements.exists && cone && cone.hasRequirementSection) {
     requirements = mergeRequirements(cone.sectionRequirements.map((q) => ({ ...q, file: cone.file })), readObjectives(lawfulDir, root), requirements.dir);
   }
+  const glossary = readGlossary(root);
   return {
     root,
     lawfulDir,
     pipelinesDir,
     cone,
+    // 名詞表住專案根目錄的 CLAUDE.md,不住 .lawful/
+    glossary: glossary.terms,
+    glossaryState: glossary.state,
+    glossaryFile: glossary.file,
     io: ioFrom ? ioFrom.io : [],
     ioState: ioFrom ? 'ok' : 'missing',
     ioFile: ioFrom === modules && modules ? modules.file : cone ? cone.file : '.lawful/Cone.md',

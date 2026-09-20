@@ -37,7 +37,7 @@ const HELP = `devflow <子命令> [選項]
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
                                        ids:兩個檔案同號、號段行讀不懂或重疊、owner 的號不在自己的號段內;
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與引用別份文檔的 step;
-                                       laws:文檔的 law 三行、種類、識別字、= 列有 law,與需求的驗收;trace:laws 與驗收 ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、契約、秘密字面值;
+                                       laws:文檔的 law 三行、種類、識別字、= 列有 law,與需求的驗收,名詞表(專案根目錄 CLAUDE.md 的「## 名詞」節)型別欄的型別在程式碼裡;trace:laws 與驗收 ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、契約、秘密字面值;
                                        invariants:領域不變量的編號、種類、三行只引用最內層、寫了三行就有 INV-n#LAW 測試;
                                        global:全域 Law 三類一次查完 = boundary(架構)+ io(契約)+ invariants(領域不變量)
   sync                                 同層搬家的 step,模組欄改成程式碼裡的實際檔案

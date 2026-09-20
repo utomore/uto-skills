@@ -11,6 +11,13 @@ $ lawful status --json
   "visionFull": "輸入檔解析、正規化後跑完整條。 三條 pipeline:里程碑 P-001 引用 P-002 的 = 列(有註明見);P-002 與 P-003 都把 shared 列成步驟而沒註明見。",
   "visionState": "ok",
   "priorityNote": "1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具",
+  "glossary": [
+    {
+      "term": "文件",
+      "definition": "一段文字解析、正規化之後的結果;不是輸入檔本身",
+      "type": null
+    }
+  ],
   "tests": "此 adapter 不解析測試輸出",
   "summary": {
     "requirements": 2,

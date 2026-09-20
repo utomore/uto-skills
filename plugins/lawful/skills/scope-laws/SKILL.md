@@ -25,7 +25,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief scope-laws --args '$ARGUMENTS' --part 6 --of 6`
 
-上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief scope-laws` 的輸出:規章、分支與工作樹、`Cone.md` 全份、決策紀錄全份。目標是里程碑時另有 `.lawful/` 的樹、這條里程碑所在的需求檔全文(一句話、驗收、里程碑表)、`modules.md`、已經綁上的 pipeline 全文與逐條狀態、types 層每個模組的匯出;目標是一條既有的 pipeline 時另有那條 pipeline 全文、逐條狀態、Stages 上每條簽名與型別的宣告、它引用的 pipeline 的 Stages 表與引用它的那幾列和 law、它朝向哪條里程碑(連同需求檔全文)、`gaps.md`、`lint sig` 與 `lint laws` 裡講到它的、status 報告裡講到它的每一行(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。切片的程式碼照決策紀錄「Touched」列的模組自己讀,一輪讀完。
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief scope-laws` 的輸出:規章、分支與工作樹、`Cone.md` 全份、決策紀錄全份。目標是里程碑時另有 `.lawful/` 的樹、這條里程碑所在的需求檔全文(一句話、驗收、里程碑表)、`modules.md`、已經綁上的 pipeline 全文與逐條狀態、types 層每個模組的匯出;目標是一條既有的 pipeline 時另有那條 pipeline 全文、逐條狀態、Stages 上每條簽名與型別的宣告、它引用的 pipeline 的 Stages 表與引用它的那幾列和 law、它朝向哪條里程碑(連同需求檔全文)、`gaps.md`、`lint sig` 與 `lint laws` 裡講到它的、status 報告裡講到它的每一行(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。名詞表不在 brief 裡:它住專案根目錄 `CLAUDE.md` 的「## 名詞」節,`CLAUDE.md` 每一場 session 都已經載入。切片的程式碼照決策紀錄「Touched」列的模組自己讀,一輪讀完。
 
 目標:里程碑全名 `M-n-<slug>`(切片剛做完),或既有的 law 要調整、要刪 stage、要退役的那條 pipeline 的全名。參數裡全名後面還有一段話(`lawful:scope-revise` 放棄時替開發者寫好的那一行,或開發者自己寫的)→ 那一段就是這次修訂的來源與原因:原本要做什麼、哪一條既有的 law 為什麼非調整不可、連帶要改的簽名、型別、模組有哪些;照它開工,不必再問一次。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief scope-laws <目標> --no-rules`;同一場裡目標 pipeline 或專案現況變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
@@ -64,6 +64,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 4. **Stages 抄程式碼**:資料流上的每一步一列,簽名逐字抄程式碼裡匯出的那一行(`pipelines.md`「簽名怎麼寫」);模組欄是實際的模組,層欄是它住的那棵原始碼樹,與模組表上那個單元宣告的層一致。補 `=` 列(純的整條,住 core 或 effect)與 io pipeline 的 `!` 列(進入點,住 shell)。
    - stage 之間傳遞的值要是有名字的型別;切片裡用了無名容器(`Value`、`Dynamic` …)的地方,現在與開發者定型別,把宣告改到位、編得過。
    - 切片沒有把純的部分組成一個值(`=` 列對不到一個函數)→ 現在抽出來並匯出:那是宣告的事,歸這一側;行為不動。
+   - **名詞表的「型別」欄**(`pipelines.md`「`.lawful/`」):這一片讓專案根目錄 `CLAUDE.md`「## 名詞」節上某個名詞第一次有了型別(那一列的「型別」欄還是 `-`,而這一片的程式碼宣告了對應它的型別)→ 與開發者確認是哪一個型別,把型別名填進那一列的「型別」欄。這是這裡唯一可以動 `CLAUDE.md` 的地方:不加列、不改名詞與定義,「## 名詞」節以外的內容一個字都不准動。
    - 用得到別條 pipeline 已經有的 stage(這一片直接呼叫了既有的程式碼)→ 簽名照抄,模組欄註明「見 <那條 pipeline 的全名>」;它的 law 住那一條,這裡不重寫、不複製,那一條屬於哪條需求都一樣(`pipelines.md`「編號與引用」)。
    - stage 與觀察點都要在匯出清單裡;只為 law 觀察而匯出的住 `*.Internal`(`boundary.md`「測試與邊界」)。
 5. **四項逐項問到**(`laws.md`「Law 怎麼談」):每一項先從決策紀錄的「Decisions」「Assumptions & Invariants」「Faked / Unverified」「Touched」找出這一片實際怎麼做的,講給開發者聽,再問他要的是什麼;這一片碰不到的那一項,也要問過才寫「無」。
@@ -86,6 +87,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
    - 每條都用切片跑出來的具體例子問:「現在的行為是 …。這是你要的、你不准的、還是你不在乎的?」
    - 要 → 寫成純 ASCII 三行的 law。不准 → 寫成 law(講不准之後該成立的事),它的全名記進決策紀錄「Verification」的「首跑該紅」。不在乎 → 不寫、不測。
    - 每條 law 講出一個讓它變假的實作;講不出來就是在描述程式碼,不收。
+   - law 的第一句用到的領域名詞,照 `CLAUDE.md`「## 名詞」節上的寫法。談的過程冒出表上沒有的名詞 → 不在 law 或 Brief 裡另外定義它;記在回報裡,列成給 `lawful:require-design` 的下一步(與開發者講定、寫進表)。
    - 三行寫不出來 = 少一個觀察點:補 `o` 列並在程式碼裡匯出它。`=` 列是效果描述時,觀察點是它的純解譯器(`boundary.md`「效果的判定」),law 拿純解譯器的結果寫。`=` 列至少一條端到端的 law。
    - 答「不准」而現有的型別裝不下 → 當場與開發者定型別要多什麼,改宣告、編得過;行為留給 refactor。
 7. **寫成三行,不改那一句話**(`roles.md`「分支與所有權」的例外):這條里程碑的需求的驗收還只有一句話,而這一片讓它講得到的簽名出現了 → 與開發者把它寫成三行(識別字是 Stages 的簽名,不含 `!` 列);`Cone.md`「全域 Law」區有一條領域不變量還只有一句話、這一片讓 types 層出現了它講得到的型別 → 同樣寫成三行(識別字只用 types 層的匯出與型別名)。那一句話本身不改;寫了三行,build 會派 qa 寫它的驗收測試。只把既有的那一句寫成三行,不新增、不改句子、不放寬。對外 I/O 表的契約欄填守這一端的那條 law。
@@ -139,8 +141,8 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 收尾
 
-切片剛做完:回報切出幾條 pipeline(各是 `io` 還是 `subflow`)、各幾條 stage、觀察點與 law、四項各談出什麼(哪幾條成了 law、哪幾條進了「決定」、哪一項是「無」)、哪幾條首跑該紅、哪幾件開發者答了不在乎(之後可以自由改的行為)、改了哪些宣告、**給 `lawful:global-laws` 的變更提議**(逐條:哪一條全域 Law、為什麼、哪個決定逼出來的;沒有寫「無」)、引用了哪幾條 pipeline 的哪幾個 stage。既有 pipeline 的 law 要調整:回報 REV 第幾條、來源(含參數裡帶進來的那一段原因)、影響範圍六項、開發者選了哪個選項與否決了哪幾個、動到什麼(調整的 law、新增的 law、連帶的簽名、型別、模組、層、example)、保護什麼、要重派誰、連動了哪幾條、對應的里程碑全名(有的話)。文檔退役:回報為什麼退役、影響範圍、開發者選了哪個選項、哪幾個 stage 搬去了哪一條、刪了哪些檔、從哪條里程碑與對外 I/O 表的哪幾列拿掉、整套測試與 `lint all` 的結果。附定錨區塊(`tooling.md`「收尾定錨」)。接上 build 之後的收尾由 build 做;達成後 `lawful:integrate`。
+切片剛做完:回報切出幾條 pipeline(各是 `io` 還是 `subflow`)、各幾條 stage、觀察點與 law、四項各談出什麼(哪幾條成了 law、哪幾條進了「決定」、哪一項是「無」)、哪幾條首跑該紅、哪幾件開發者答了不在乎(之後可以自由改的行為)、改了哪些宣告、名詞表哪幾列填了「型別」欄與表上沒有而要交給 `lawful:require-design` 講定的名詞(沒有寫「無」)、**給 `lawful:global-laws` 的變更提議**(逐條:哪一條全域 Law、為什麼、哪個決定逼出來的;沒有寫「無」)、引用了哪幾條 pipeline 的哪幾個 stage。既有 pipeline 的 law 要調整:回報 REV 第幾條、來源(含參數裡帶進來的那一段原因)、影響範圍六項、開發者選了哪個選項與否決了哪幾個、動到什麼(調整的 law、新增的 law、連帶的簽名、型別、模組、層、example)、保護什麼、要重派誰、連動了哪幾條、對應的里程碑全名(有的話)。文檔退役:回報為什麼退役、影響範圍、開發者選了哪個選項、哪幾個 stage 搬去了哪一條、刪了哪些檔、從哪條里程碑與對外 I/O 表的哪幾列拿掉、整套測試與 `lint all` 的結果。附定錨區塊(`tooling.md`「收尾定錨」)。接上 build 之後的收尾由 build 做;達成後 `lawful:integrate`。
 
 ## 邊界
 
-不改本體的行為(要改的由 law 講出來,refactor 去做);不寫測試;不新增、不修改、不放寬全域 Law,也不替開發者決定要不要走那條變更提議(`lawful:global-laws`);不改需求檔的一句話、驗收那一句、優先與里程碑的列(`lawful:require-design`;這裡只把既有的一句話寫成三行、填自己那條里程碑的綁定欄、把退役的 pipeline 從綁定欄拿掉);一個 stage 已經住在別條 pipeline 就引用,不在這條重寫它的 law;既有的 law 一條都不動的 `verified` pipeline 修訂不在這裡(`lawful:scope-revise`);不與它交錯:一件修訂從頭到尾只有一個修訂類的 skill 在跑,收進來的就一手做到 `verified`。`verified` 的檔只經由情形二重開之後才動。一次修訂一條 REV,不順便改別的;沒有影響範圍與選項不落筆;不替開發者決定要不要改、選哪一個——開發者說,你寫。law 不為了讓現在的切片過關而寫鬆:切片是草稿,law 是承諾。
+不改本體的行為(要改的由 law 講出來,refactor 去做);不寫測試;不新增、不修改、不放寬全域 Law,也不替開發者決定要不要走那條變更提議(`lawful:global-laws`);不改需求檔的一句話、驗收那一句、優先與里程碑的列(`lawful:require-design`;這裡只把既有的一句話寫成三行、填自己那條里程碑的綁定欄、把退役的 pipeline 從綁定欄拿掉);專案根目錄的 `CLAUDE.md` 只填「## 名詞」節裡既有列的「型別」欄,不加名詞、不改定義(`lawful:require-design`),這一節以外的內容一個字都不准動;一個 stage 已經住在別條 pipeline 就引用,不在這條重寫它的 law;既有的 law 一條都不動的 `verified` pipeline 修訂不在這裡(`lawful:scope-revise`);不與它交錯:一件修訂從頭到尾只有一個修訂類的 skill 在跑,收進來的就一手做到 `verified`。`verified` 的檔只經由情形二重開之後才動。一次修訂一條 REV,不順便改別的;沒有影響範圍與選項不落筆;不替開發者決定要不要改、選哪一個——開發者說,你寫。law 不為了讓現在的切片過關而寫鬆:切片是草稿,law 是承諾。

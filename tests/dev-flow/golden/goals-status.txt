@@ -54,6 +54,7 @@ $ devflow status
 ## 7. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
+| CLAUDE.md | 沒有 ## 名詞 節,領域名詞沒有地方定義 | dev-flow:kickoff 補上這一節 |
 | system.md | 需求還住在「## 需求」節,看不出每條需求的優先與里程碑 | devflow migrate requirements --write 換成 requirements/ 一條需求一個檔 |
 | .design/objectives/R-9-O-3-loyalty.md | 對到的需求 R-9 不存在,它的里程碑沒有算進任何需求 | devflow migrate requirements 的帳本會列出它;決定它屬於哪條需求 |
 | R-1 | 驗收寫了三行卻沒有驗收測試,達成與否未知 | dev-flow:build R-1(只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推 |

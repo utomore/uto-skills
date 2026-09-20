@@ -9,6 +9,28 @@ $ devflow status --json --tests test.log
   "visionFull": "小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。",
   "visionState": "ok",
   "priorityNote": "1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具",
+  "glossary": [
+    {
+      "term": "金額",
+      "definition": "以分為單位、單一幣別內的一筆錢;不是帶小數的數字,也不跨幣別換算",
+      "type": "Money"
+    },
+    {
+      "term": "結算金額",
+      "definition": "品項加總減掉折扣或手續費算出來的結果,算不出來時帶著原因;不是訂單上已經付的錢",
+      "type": "Settlement"
+    },
+    {
+      "term": "訂單",
+      "definition": "一筆結帳成功留下的紀錄,帶著付了多少;結帳失敗不產生訂單",
+      "type": "Order"
+    },
+    {
+      "term": "退款",
+      "definition": "對一筆訂單退回的錢的紀錄;不是取消訂單",
+      "type": "Refund"
+    }
+  ],
   "tests": "測試結果來自 test.log",
   "summary": {
     "requirements": 1,

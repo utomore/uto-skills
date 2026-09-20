@@ -97,7 +97,7 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 
 | Skill | 做什麼 |
 |---|---|
-| `/kickoff` | 專案的第一個命令:開 `.design/` 的樹,訪談出 `system.md` 的願景、語言與工具,與 `modules.md` 的骨架;不談需求也不談全域 Law,收尾自動接上 `require-design` |
+| `/kickoff` | 專案的第一個命令:開 `.design/` 的樹,訪談出 `system.md` 的願景、語言與工具,與 `modules.md` 的骨架,把願景裡的領域名詞講定寫進專案根目錄 `CLAUDE.md` 的「## 名詞」節;不談需求也不談全域 Law,收尾自動接上 `require-design` |
 | `/require-design` | 與開發者一次一條談需求:一句話、驗收、優先,寫檔之前先與既有每一條需求的驗收逐條對過有沒有衝突,當場切成依序完成的里程碑(每條是使用者看得到、展示得出來的階段,有英文名);把既有的東西改快改好也是一條里程碑,當場 `--bind` 既有的 feature(靠修訂達成的里程碑);之後加需求、改驗收、重排、加里程碑、把沒被綁定的 feature 收進里程碑也走這裡 |
 | `/global-laws` | 全域 Law 一區三類(領域不變量、架構的層、契約的對外 I/O)的第一次定義與之後每一次新增、修改、放寬、替換、刪除:先攤影響範圍與選項,開發者明確批准才落筆,落筆後重新驗證受影響的工作 |
 | `/spike-impl` | 一條里程碑:開 `build/M-n-<slug>` 工作樹,貫通一條跑得通的垂直切片,留下決策紀錄(Goal / Scope、Decisions:Decision / Reason / Constraint、Assumptions & Invariants、Faked / Unverified、Touched);走不通就記下為什麼 |
@@ -123,6 +123,8 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 ├── adr/ADR-001-<slug>.md           # 跨文檔、回不了頭的決定;整合時寫
 └── journal/M-1-<slug>.md           # 決策紀錄:為了達成這條里程碑的 Goal / Scope 而產生的實作決策;只活在 build 分支,整合寫進 PR 後刪
 ```
+
+領域名詞的定義不住 `.design/`:只住專案根目錄 `CLAUDE.md` 的「## 名詞」節(一張表:名詞、定義、型別),每一場 session 都會載入。`kickoff` 建立這一節,`require-design` 補詞與改定義,`scope-laws` 填型別欄;`CLAUDE.md` 裡這一節以外的內容不動。沒有這一節 `devflow status` 列警訊,型別欄填了而程式碼裡找不到 `devflow lint laws` 紅。
 
 ### CLI:`devflow`
 
@@ -178,6 +180,7 @@ Haskell 這類純函數式專案(functional core / imperative shell)的需求導
 - **四層固定**:`types ← effect ← core ← shell`,一層一棵原始碼樹(預設 `src-<層>`),各是建置系統的一個子函式庫,依賴方向由編譯器擋、`lint boundary` 再對一次。`=` 列是純的整條、`!` 列是 shell 進入點、`o` 列是觀察點。
 - **模組單元**:`modules.md` 一列一個單元(名字、職責、有哪幾層);切片要一個還沒有的單元或層,先 `lawful module` 劃邊界。pipeline 的 slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列住的單元,`lawful claim` 建檔時查;編號是身分,slug 取了就不換。
 - **Cone.md**:願景、全域 Law(領域不變量 INV-n、架構:四層、契約:對外 I/O)、專案約束(語言、三道指令、模組前綴、原始碼根目錄、硬性要求的套件、號段、優先各級)。領域不變量只引用 types 層。
+- **名詞表**:領域名詞的定義不住 `.lawful/`,只住專案根目錄 `CLAUDE.md` 的「## 名詞」節(一張表:名詞、定義、型別),每一場 session 都會載入。`kickoff` 建立這一節,`require-design` 補詞與改定義,`scope-laws` 填型別欄;`CLAUDE.md` 裡這一節以外的內容不動。沒有這一節 `lawful status` 列警訊,型別欄填了而程式碼裡找不到 `lawful lint laws` 紅。
 - **stage 之間不用無名容器**:`lint sig` 擋 aeson `Value` 這類型別,形狀要有名字。
 - 一個 stage 與它的 law 只住一條 pipeline,別條引用它;被引用的那一條通常是 `kind: subflow` 的 pipeline。
 

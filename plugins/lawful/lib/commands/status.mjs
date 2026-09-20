@@ -389,6 +389,11 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
     else if (design.strayGlobal) warn('modules.md', '「邊界」或「對外 I/O」還住在這一檔,不在 Cone.md 的全域 Law 區', 'lawful migrate laws --write');
     if (design.requirements.merged && design.requirements.requirements.some((q) => (q.accept && q.accept.written === 'Law') || q.implied || q.sources.some((o) => o.lawItem))) warn('Cone.md', '「## 需求」節或 objectives/ 底下的檔寫著「- Law:」或蘊含說明;需求附的是驗收', 'lawful migrate laws --write');
   }
+  // 名詞只定義一次、只住專案根目錄 CLAUDE.md 的「## 名詞」節:沒有這一節(檔案不存在也算)、或同一個名詞出現兩列,都是警訊;節在而表是空的不算
+  if (design.glossaryState === 'missing') warn(design.glossaryFile, '沒有 ## 名詞 節,領域名詞沒有地方定義', 'lawful:kickoff 補上這一節');
+  const termRows = new Map();
+  for (const g of design.glossary) termRows.set(g.term, [...(termRows.get(g.term) || []), g.line]);
+  for (const [term, rows] of termRows) if (rows.length > 1) warn(`${design.glossaryFile}:${rows[1]}`, `名詞「${term}」出現 ${rows.length} 列,名詞只定義一次`, 'lawful:require-design 與開發者講定哪一句是它的定義,留一列');
   if (design.requirements.merged) warn('Cone.md', '需求還住在「## 需求」節,看不出每條需求的優先與里程碑', 'lawful migrate requirements --write 換成 requirements/ 一條需求一個檔');
   else if (design.objectivesFile && cone) warn('objectives.md', '里程碑還擠在一份 objectives.md 裡', 'lawful migrate requirements --write 換成 requirements/ 一條需求一個檔');
   for (const o of design.requirements.orphans || []) warn(o.file, `對到的需求 ${o.requirement} 不存在,它的里程碑沒有算進任何需求`, 'lawful migrate requirements 的帳本會列出它;決定它屬於哪條需求');

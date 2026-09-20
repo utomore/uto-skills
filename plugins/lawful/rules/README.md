@@ -20,7 +20,7 @@
 
 | 檔 | 主題 |
 |---|---|
-| `pipelines.md` | `.lawful/` 樹、Cone.md、願景、需求與里程碑、pipeline 文檔怎麼寫:編號與引用、簽名怎麼寫、節、什麼要有 law、REV(含刪 stage 與文檔退役)、GAP、完成度、ADR |
+| `pipelines.md` | `.lawful/` 樹與它之外的一個檔(專案根目錄 `CLAUDE.md` 的「## 名詞」節)、Cone.md、願景、需求與里程碑、pipeline 文檔怎麼寫:編號與引用、簽名怎麼寫、節、什麼要有 law、REV(含刪 stage 與文檔退役)、GAP、完成度、ADR |
 | `laws.md` | law 是不得違反、需求是必須達成,判準是有沒有做完的一天;law 的兩種範圍、全域 Law 三類與准入四條、Law 怎麼談、調整 law 之前的影響範圍與選項、全域 Law 的第一次定義與變更 |
 | `boundary.md` | 四層、模組單元、模組表、效果的判定、對外 I/O、測試與邊界 |
 | `roles.md` | 五個階段、分支與所有權、spike-impl / conductor / qa / refactor、委派、切片、首跑、驗收測試、收尾、仲裁、測試跑幾次、決策紀錄、整合、委派模型 |
@@ -31,6 +31,7 @@
 | 名詞 | 在哪 |
 |---|---|
 | 願景、專案約束、優先各級 | pipelines.md「Cone.md」「願景、需求與里程碑」 |
+| 專案的名詞表(專案根目錄 `CLAUDE.md` 的「## 名詞」節)、名詞只住這一節、型別欄、誰寫 | pipelines.md「`.lawful/`」「願景、需求與里程碑」;laws.md「Law 怎麼談」 |
 | 需求、`R-n`、需求檔 `requirements/R-n-<slug>.md`、驗收、`R-n#ACCEPT`、優先 | pipelines.md「願景、需求與里程碑」 |
 | 里程碑、`M-n`、全名 `M-n-<slug>`、引用寫全名、階段性使用者驗收、依序一次一條、綁定、還沒有切片 | pipelines.md「願景、需求與里程碑」 |
 | 靠修訂達成的里程碑、做出文檔的里程碑、`--bind`、待修訂 | pipelines.md「願景、需求與里程碑」「修訂(REV)」「完成度」 |

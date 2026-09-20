@@ -1,0 +1,12 @@
+$ lawful brief qa P-009-nope --no-rules
+brief qa P-009-nope @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 目標
+
+這棵樹沒有 P-009-nope。pipeline:P-001-save-write;需求:R-1;目標:O-1。停下,回報。
+exit 0

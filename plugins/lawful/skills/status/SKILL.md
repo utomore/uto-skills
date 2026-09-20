@@ -2,13 +2,28 @@
 name: status
 description: lawful 的派工報告 — 跑 lawful status(接上最近一次測試輸出),用人話講每條需求的 Law 成立了沒、目標 Law 與里程碑的完成度、今天能開幾條線、卡住的、等決定、牽動誰、待實作、警訊、建議路線;--pipeline / --module 追問單條或單模組,--html 把同一份報告畫成便利貼看板。觸發詞:進度、狀態、status、今天做什麼、派工、看板、畫成圖、便利貼、lawful status、哪些卡住、需求成立了沒。Use when the developer asks where the project stands or what to do next.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:status — 今天做什麼
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/tooling.md`「CLI」「status 報告」「收尾定錨」、`rules/pipelines.md`「願景、需求、目標與路線」「完成度」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief status --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief status --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief status --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief status --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief status --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief status --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief status` 的輸出:規章、`Cone.md`「專案約束」、專案根目錄看起來像測試輸出的檔,與每一份比最新的原始碼、測試檔新還是舊。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief status --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 步驟
 

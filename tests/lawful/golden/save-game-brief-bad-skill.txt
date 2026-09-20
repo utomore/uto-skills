@@ -1,0 +1,3 @@
+$ lawful brief nope
+brief 沒有「nope」這個 skill;有的是:module、design、objective、pipeline、build、integrate、qa、impl、revise、status、audit、spike、study
+exit 0

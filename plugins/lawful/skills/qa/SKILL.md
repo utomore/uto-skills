@@ -2,19 +2,34 @@
 name: qa
 description: lawful 的 qa 角色 — 只讀 pipeline 文檔、types 層與骨架簽名,每條 law 一條 property test、每個 example 一條 example test,歸屬字串 "P-00x#LAW-n";conductor 指定一條需求或目標的 Law 時,讀它的三行與引用到的簽名所在 pipeline,寫一條歸屬 "R-n#LAW" / "O-n#LAW" 的驗收測試;產生器只用 smart constructor,案例數與尺寸有上限;寫不出斷言就開 GAP。觸發詞:寫測試、qa、property test、性質測試、驗收測試、lawful qa。Use when translating a pipeline's laws and examples, or one requirement or objective Law, into tests without reading any implementation.
 user-invocable: false
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:qa — laws 翻成測試
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/roles.md`「三角色」「委派」「驗收測試」「qa 的交付」、`rules/pipelines.md`「節」「什麼要有 law」「提問(GAP)」、`rules/boundary.md`「測試與邊界」。再讀目標 pipeline 檔、types 層模組、骨架模組的匯出簽名。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief qa` 的輸出:規章、目標 pipeline 全文(或那條需求、目標的 Law 三行與它引用到的 pipeline 的 Stages 表)、逐條狀態、Stages 上每條簽名與型別的宣告、types 層(行數上限以內的全文,其餘列匯出)、這個專案的測試怎麼寫(子集指令、歸屬寫法、現有測試檔的開頭)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:Skill 的 args:`<pipeline 全名 | R-n | O-n> --root <工作樹>`。看到的若是那道指令的原文而不是它的輸出,自己跑一次:`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa <目標> --root <工作樹>`(`${CLAUDE_PLUGIN_ROOT}` 是本 skill 基準目錄往上兩層);目標 pipeline 在這一場裡變過,重跑一次並加 `--no-rules`。輸出的第一行是指紋,回報的第一項照抄它。
 
 ## 輸入 / 產出
 
 | 輸入 | 產出 |
 |---|---|
-| pipeline 全名與檔、types 層模組清單、子集測試指令;或一條需求 / 目標的 Law 三行與它引用到的簽名所在 pipeline | 一個測試模組;回報五項 |
+| Skill 的 args:`<pipeline 全名 \| R-n \| O-n> --root <工作樹>`;其餘由開工 context 給 | 一個測試模組;回報六項 |
 
 ## 步驟
 
@@ -24,7 +39,7 @@ user-invocable: false
 4. **寫不出斷言**(law 讀不出唯一解釋、缺 `Eq` 實例、觀察點不在簽名上):停這一條,GAP 四欄寫進回報,局部序號;其餘照做。不猜、不看實作、不要求後門。
    - **驗收測試**(目標是一條 `R-n` / `O-n` 的 Law):只翻那一條,`describe "R-n#LAW"` / `"O-n#LAW"`,一個測試模組以 `R-n` / `O-n` 命名;識別字對到哪條 pipeline 的 Stages 就讀那條的 Stages 表與 types 層,其餘不讀。斷言逐字照 `|-` 行;它跨過幾條 pipeline 就呼叫幾條的純的整條與觀察點,不碰 IO。
 5. **只跑自己的測試模組一次**:編得過;打到 stub 的紅、打到型別事實的綠、REV 保護的綠。該紅卻綠自己先改。
-6. **回報五項**:改了哪些檔;law / example 各翻幾條、紅綠分佈;自己決定的事(產生器的分佈、尺寸);GAP 清單;阻塞項。
+6. **回報六項**:指紋(開工 context 的第一行,照抄);改了哪些檔;law / example 各翻幾條、紅綠分佈;自己決定的事(產生器的分佈、尺寸);GAP 清單;阻塞項。
 
 ## 邊界
 

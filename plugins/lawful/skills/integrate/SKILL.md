@@ -2,13 +2,28 @@
 name: integrate
 description: lawful 的整合 — 唯一發 PR 的出口。設計分支 design/<全名> 單獨一條直接發;幾條 build/<全名> 分支依開發日誌合成一條 integrate/<日期>-<slug> 分支:先清掉已合進主線的 build 分支與工作樹,讀每份日誌定順序與衝突預報,逐條 merge(清單型衝突兩邊都留、同一本體兩邊改就停)、GAP 撞號後合的往上移、整套跑一次、每份日誌宣稱達成的 pipeline 合併後仍要達成、合併後紅只歸因寫 GAP 不改碼,綠了把日誌寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)。觸發詞:整合、integrate、合併分支、merge build、發 PR、lawful integrate。Use when finished build branches should be merged into one integration branch, verified together, and sent as a pull request.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:integrate — 幾條 build 分支合成一條 PR
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/roles.md`「分支與所有權」「開發日誌」「整合」「仲裁」、`rules/pipelines.md`「提問(GAP)」「完成度」、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀 `.lawful/system.md` 的「語言與工具」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief integrate` 的輸出:規章、分支與工作樹(目前分支、建構中與殘留的 build 分支、設計分支)、開發日誌清單、`Cone.md`「專案約束」、`gaps.md`;沒有 `.lawful/` 的專案只有分支那一塊。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給;要合的分支從分支那一塊與開發者的話定。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

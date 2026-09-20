@@ -2,13 +2,28 @@
 name: objective
 description: lawful 的目標 — 對談後在 .lawful/objectives/ 訂專案目標(一個目標一個檔 R-x-O-y-<slug>.md):每個目標解決 Cone.md 的恰好一條需求,開發者答三問 What 做到什麼(一句話)、How 怎麼看得出做到了(Objective Law,一對一的需求直接繼承 Requirement Law)、Which 落在哪一級優先(1 到 4,各級代表什麼由檔頭一行宣告);目標底下兩條路線:建置路線的里程碑(M-n)綁定它要做到的 pipeline、還沒有的是待 claim,優化路線的調整(RF-n)只動既有 pipeline 的品質;一條需求有多個目標時補蘊含說明;也回答「這條 pipeline 服務哪個目標」、重排優先。配號只走 lawful objective add / milestone / refinement。觸發詞:目標、專案目標、objective、里程碑、milestone、調整、優化、refinement、優先、priority、這條 pipeline 為什麼做、朝向目標、lawful objective。Use when adding or reshaping project objectives, their laws, priorities, milestones and refinements, or binding pipelines to a milestone.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:objective — 目標、里程碑與調整
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/pipelines.md`「願景、需求、目標與路線」「完成度」、`rules/tooling.md`「CLI」「status 報告」「收尾定錨」。再讀 `.lawful/Cone.md` 的「願景」「需求」與「專案約束」的優先那行、`.lawful/objectives/` 底下每一檔(有的話),跑 `lawful status` 看需求表、目標表與警訊。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief objective --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief objective --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief objective --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief objective --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief objective --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief objective --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief objective` 的輸出:規章、`Cone.md` 全文、每個目標檔全文、`lawful status` 的需求表、目標表、等決定、警訊與建議路線。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief objective --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

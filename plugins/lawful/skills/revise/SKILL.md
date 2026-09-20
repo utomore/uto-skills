@@ -2,13 +2,28 @@
 name: revise
 description: lawful 的修訂 — 回答 GAP、開發者要改簽名或 law、解凍 frozen 的 pipeline、把優化路線的調整(RF-n)落到它動到的 pipeline:一律改原檔,一次修訂一條 REV(依 / 動到 / 保護 / 重委派;調整的 REV 依欄引用 RF-n),簽名變了程式碼同步回 stub,刪 GAP 條目,列出要重派的角色。觸發詞:修訂、回答 GAP、改 law、改簽名、解凍、改名、搬模組、改模組職責、加一層、收整、調整、優化、revise、lawful revise。Use when an existing pipeline's contract must change, a GAP has been answered, or a refinement must be applied to the pipelines it touches.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:revise — 改原檔,一條 REV
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.lawful/gaps.md`;做的是調整就再讀那個目標檔(`.lawful/objectives/`)的那一列與它的需求 Law。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief revise --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief revise --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief revise --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief revise --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief revise --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief revise --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief revise` 的輸出:規章、分支與工作樹、目標 pipeline 全文與逐條狀態、Stages 上每條簽名與型別的宣告、它引用的 pipeline 的 Stages 表與引用它的那幾列和 law、它朝向哪條里程碑與調整、`gaps.md`、`lint sig` 與 `lint laws` 裡講到它的、`lawful status` 裡講到它的每一行;目標是 `RF-n` 時是那個目標檔、需求的 Law 與它動到的每條 pipeline 全文;沒給目標時是 `gaps.md` 與 `lawful status` 的需求表、目標表、等決定、警訊與建議路線。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:pipeline 全名,或一條調整 `RF-n`;從一條 GAP 開始而還不知道動哪一條就不給。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief revise <目標> --no-rules`;同一場裡目標文檔或專案現況變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

@@ -47,7 +47,7 @@
 | `*.Internal`、後門 | boundary.md「測試與邊界」 |
 | conductor、qa、impl | roles.md「三角色」 |
 | build 分支、工作樹、建構中、所有權 | roles.md「分支與所有權」 |
-| 委派、回報五項 | roles.md「委派」 |
+| 委派、開工 context(`lawful brief`)、指紋、回報六項 | roles.md「委派」;tooling.md「CLI」 |
 | 開發日誌、`journal/<全名>.md` | roles.md「開發日誌」 |
 | 整合分支、清單型衝突、合併後紅、清理 | roles.md「整合」 |
 | 骨架、`stub`、基線 | roles.md「骨架與基線」 |
@@ -62,22 +62,6 @@
 
 ## 每個 skill 讀什麼
 
-`<L>` 是 skill 的基準目錄往上兩層(tooling.md「CLI」);節用 `node "<L>/bin/lawful.mjs" section <檔> <節>…` 取,一次讀完。
+不必查表:每份 SKILL.md 的「開工 context」在載入 skill 的那一刻跑 `lawful brief <skill> [<目標>]`,它要讀的規章節與它在這個專案裡要看的東西(目標 pipeline、逐條狀態、簽名與型別的宣告、types 層、`Cone.md`、目標檔、分支與工作樹、lint、status 報告,依 skill 而定)一次給齊。哪個 skill 讀哪幾節的表住在 CLI 裡,是唯一來源;`lawful brief <skill>` 印出來的「規章」那一塊就是它。
 
-| skill | 必讀 |
-|---|---|
-| `lawful:module` | boundary.md「模組單元」「模組表」「四層」;tooling.md「CLI」「收尾定錨」 |
-| `lawful:design` | pipelines.md「`.lawful/`」「Cone.md」「願景、需求、目標與路線」「ADR」;boundary.md 全份;tooling.md「language adapter」「收尾定錨」 |
-| `lawful:objective` | pipelines.md「願景、需求、目標與路線」「完成度」;tooling.md「CLI」「status 報告」「收尾定錨」 |
-| `lawful:pipeline` | pipelines.md「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」;roles.md「骨架與基線」;boundary.md「模組表」;tooling.md「CLI」「收尾定錨」 |
-| `lawful:build` | roles.md 全份;pipelines.md「提問(GAP)」「修訂(REV)」「完成度」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
-| `lawful:integrate` | roles.md「分支與所有權」「開發日誌」「整合」「仲裁」;pipelines.md「提問(GAP)」「完成度」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
-| `lawful:qa` | roles.md「三角色」「委派」「qa 的交付」;pipelines.md「節」「什麼要有 law」「提問(GAP)」;boundary.md「測試與邊界」 |
-| `lawful:impl` | roles.md「三角色」「委派」;pipelines.md「節」「提問(GAP)」;boundary.md「四層」 |
-| `lawful:revise` | pipelines.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」;tooling.md「收尾定錨」 |
-| `lawful:status` | tooling.md「CLI」「status 報告」「收尾定錨」;pipelines.md「願景、需求、目標與路線」「完成度」 |
-| `lawful:audit` | tooling.md「CLI」(含 `sync`);boundary.md 全份;pipelines.md「願景、需求、目標與路線」「節」「什麼要有 law」「完成度」 |
-| `lawful:spike` | pipelines.md「spike」;roles.md「委派」「spike」;tooling.md「跑東西的紀律」 |
-| `lawful:study` | tooling.md「跑東西的紀律」「收尾定錨」;專案有 `.lawful/` 時加 boundary.md「四層」「效果的判定」、pipelines.md「pipeline」 |
-
-prompt 標明委派模式的執行另讀 roles.md「委派」,不讀「收尾定錨」。
+`<L>` 是 plugin 根目錄,也就是 skill 的基準目錄往上兩層(tooling.md「CLI」);單獨要一節時用 `node "<L>/bin/lawful.mjs" section <檔> <節>…`。

@@ -1,0 +1,83 @@
+$ lawful brief revise --tests stale.log --no-rules
+brief revise (沒有目標) @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# gaps.md(2 條,open 的 2 條:GAP-1、GAP-1)
+
+````markdown
+# GAP
+
+## GAP-1(P-001#LAW-1 / qa)
+- 模糊點:SaveState 的相等要不要忽略順序
+- 卡住的項目:P-001#LAW-1 的 property test 寫不出斷言
+- 需要回答什麼:兩個實體順序不同的 SaveState 算不算同一個
+- 狀態:open
+
+## GAP-1(P-001#toSave / impl)
+- 模糊點:toSave 要不要保留幽靈實體
+- 卡住的項目:P-001#toSave 的本體
+- 需要回答什麼:ghostView 為空的實體要不要進 SaveState
+- 狀態:open
+````
+
+# lawful status 的需求、目標、等決定、警訊與建議路線(其餘各節要看再跑 lawful status)
+
+### lawful status
+願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
+需求 1 條,Law 成立 0 條(測試 0、推得 0)· 目標 3 個,達成 0 個 · 里程碑 4 條,達成 0 條 · 調整 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
+· 測試結果來自 stale.log
+
+#### 需求
+| 需求 | 一句話 | Law | 目標 | 目標 Law 成立 | 里程碑達成 | 調整達成 |
+|---|---|---|---|---|---|---|
+| R-1 | 玩家存檔後能讀回同一個世界 | 未知(寫了三行卻沒有 R-1#LAW 測試) | O-1、O-2 | 0/2 | 0/3 | 0/2 |
+
+#### 目標
+| 目標 | 需求 | 優先 | 一句話 | Law | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
+|---|---|---|---|---|---|---|---|---|
+| O-1 | R-1 | 1 | 玩家存檔後能讀回同一個世界 | 未知(繼承 R-1,寫了三行卻沒有 R-1#LAW 測試) | 2 | 0 | 0% | - |
+| O-2 | R-1 | 2 | 存檔壞了讀得出是哪裡壞 | 未成立(里程碑 0/1 達成) | 1 | 0 | 0% | 0/2 |
+| O-3 | R-7 | 9 | 存檔可以搬到別台機器 | 未成立(里程碑 0/1 達成) | 1 | 0 | 0% | - |
+- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
+- O-2 下一個里程碑:M-3 壞檔回報位置(P-002-load-game 不存在)
+- O-3 下一個里程碑:M-4 存檔不含絕對路徑(待 claim:lawful claim <slug> --milestone M-4)
+
+#### 3. 等決定
+- GAP-1(P-001#LAW-1 / qa):lawful:revise
+- GAP-1(P-001#toSave / impl):lawful:revise
+- SPK-002-zstd 還 open
+
+#### 6. 警訊
+| 哪裡 | 什麼事 | 怎麼辦 |
+|---|---|---|
+| R-1 | Law 寫了三行卻沒有驗收測試,成立與否未知 | lawful:build R-1(只派 qa 寫一條歸屬 "R-1#LAW" 的測試);不能自動化就只留一句,由目標 Law 推 |
+| R-1 | 有 2 個目標卻沒有蘊含說明 | Cone.md 的 R-1 補「- 蘊含:O-1、O-2 的 Law 都成立 ⟹ 本 Law 成立,因為 …」 |
+| O-1 | R-1 有 2 個目標,這一個的 Law 卻是繼承 | lawful:objective 給它自己的 Law;繼承只給一對一的需求 |
+| Cone.md | 沒有宣告優先 1 到 4 各代表什麼 | lawful:objective 在「專案約束」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
+| M-2 | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
+| .lawful/objectives/R-2-O-2-load-game.md | 檔名與 frontmatter 對不上(frontmatter:R-1 O-2) | 檔名 R-x-O-y-<slug> 的 R-x 與 O-y 要等於 frontmatter 的 requirement 與 id;目標換需求就改檔名 |
+| M-3 | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
+| RF-1 | 動到的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名 |
+| RF-2 | 動到的 P-001-game-save 不在 O-2 任何里程碑的綁定裡 | 優化路線不引入新 feature:只動本目標建置路線做出來的 pipeline;新能力開里程碑 |
+| O-3 | 需求 R-7 不在 Cone.md | 改成 Cone.md 裡有的 R-n,或 lawful requirement add 先立需求 |
+| O-3 | 優先「9」不是 1 到 4 | 改成 1(最高)到 4(最低) |
+| O-3 | 沒有 Law | lawful:objective 補「- Law:…」;一對一的需求寫「繼承 R-n」 |
+| P-001-game-save#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| P-001-game-save#misroute | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |
+| P-001-game-save | 測試輸出裡有 1 條結果(LAW-3)在這棵樹裡沒有測試承接,不算數 | 測試輸出與這棵樹對不上:重跑整套留檔再跑 status;測試真的不在就 lawful:build P-001-game-save |
+| GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
+| 模組表 | lint boundary 13 條不合規 | lawful lint boundary |
+
+#### 7. 建議路線
+1. 先回答 GAP-1、GAP-1(lawful:revise),卡住的 stage 才能重派
+2. lawful:build P-001-game-save(O-1 優先 1 · M-1 存檔寫得出檔案)
+exit 0

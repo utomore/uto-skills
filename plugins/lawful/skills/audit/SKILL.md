@@ -2,13 +2,28 @@
 name: audit
 description: lawful 的稽核 — lawful lint all 與 status 的機械紅逐條分類(文檔錯還是程式碼錯),同層搬家跑 sync,對需求與目標(每條需求的 Law 判得出來嗎、蘊含說明站得住嗎、工作是不是集中在最高優先目標、有沒有 pipeline 不朝向任何目標、達成的里程碑是不是真的涵蓋它那句、調整有沒有偷渡新 feature),再人判每條 pipeline 的 laws 有沒有講到該講的性質、邊界有沒有被繞過;產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、檢查文檔、對帳、lawful audit、文檔與程式碼對不上。Use when checking that .lawful and the code still agree, that the work still heads toward the requirements and objectives, and that laws cover what matters.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:audit — 對帳與判斷
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/tooling.md`「CLI」「status 報告」、`rules/boundary.md` 全份、`rules/pipelines.md`「願景、需求、目標與路線」「節」「什麼要有 law」「完成度」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief audit --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief audit --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief audit --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief audit --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief audit --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief audit --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief audit` 的輸出:規章、`lawful lint all` 的結果、`lawful status` 整份報告(根目錄恰好一份比每個原始碼與測試檔都新的測試輸出時接上它)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief audit --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 步驟
 

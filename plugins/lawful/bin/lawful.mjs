@@ -7,6 +7,7 @@ import { readSource } from '../lib/source.mjs';
 import { pickAdapter, adapterNames } from '../lib/adapters/index.mjs';
 import { lintAll, lintBoundary, lintIds, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
+import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, moduleDetail, pipelineDetail, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
 import { claim, milestoneAdd, moduleAdd, modulesGen, objectiveAdd, refinementAdd, rename, requirementAdd, spikeClose, sync } from '../lib/commands/edit.mjs';
@@ -44,6 +45,13 @@ const HELP = `lawful <子命令> [選項]
   sync [--date <YYYY-MM-DD>]            把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改)
   modules --gen                        從程式碼的模組名推出模組單元與層,補進模組表,職責欄留白
   section <file> <節>… [--verify]       取節
+  brief <skill> [<目標>] [--tests <log>] [--fingerprint] [--no-rules]
+                                       一個 skill 開工要的東西一次印完:規章的節,加上它在這個專案裡要看的那幾塊(目標 pipeline、逐條狀態、Stages 上每條簽名與型別的宣告、
+                                       types 層、Cone.md、目標檔、分支與工作樹、lint、status 報告,依 skill 而定);目標是 pipeline 全名、R-n / O-n、RF-n、SPK-00x,或不給;
+                                       第一行是指紋(skill、目標、目標與規章的雜湊),--fingerprint 只印那一行,--no-rules 不重印規章的節(同一場裡文檔改過之後重跑用);
+                                       --args '<一整串>' 是 skill 載入時的寫法:目標與旗標從那一串裡認,其餘的字不理;--part <k> [--of <N>] 只印第 k 段
+                                       (整份切成每段不超過 28KB:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,SKILL.md 放 N 道各取一段);永遠 exit 0,問題用文字講
+                                       skill:${briefSkills.join('、')}
   spike close <SPK-00x> [--dry-run]    檢查 verdict / feeds / sha 齊全,刪 spike/SPK-00x-<slug>/
   migrate cone [--write]               只有 system.md 的樹、或目標還擠在 objectives.md 的樹,換成 Cone.md 與 objectives/ 體系:先印帳本,--write 才落地
   migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>]
@@ -121,6 +129,38 @@ function main() {
     const ignore = str(args.flags.ignore).split(',').map((s) => s.trim()).filter(Boolean);
     const r = migrateFromDevFlow(path.resolve(root, rest[0]), root, { write: str(args.flags.write) ? path.resolve(root, args.flags.write) : null, language: str(args.flags.language) || null, ignore });
     return emit(r);
+  }
+
+  if (cmd === 'brief') {
+    if (!sub) {
+      console.error(`用法:lawful brief <${briefSkills.join(' | ')}> [<目標>] [--root <工作樹>] [--tests <log>] [--fingerprint] [--no-rules]`);
+      return 1;
+    }
+    // --args '<一整串>':skill 載入時的 $ARGUMENTS 原樣進來,目標與旗標從裡面認;直接下指令時照一般旗標讀
+    const inline = typeof args.flags.args === 'string' ? parseBriefArgs(args.flags.args) : null;
+    const opt = {
+      target: (inline && inline.target) || rest[0] || '',
+      root: inline && inline.root ? path.resolve(inline.root) : root,
+      tests: (inline && inline.tests) || str(args.flags.tests),
+      fingerprint: !!args.flags.fingerprint || !!(inline && inline.fingerprint),
+      noRules: !!args.flags['no-rules'] || !!(inline && inline.noRules),
+    };
+    const q = loadProject(opt.root);
+    const has = (k) => (q.error ? null : q[k]);
+    const statusText = () => {
+      if (q.error) return '(沒有 .lawful/)';
+      // 沒指定測試輸出:根目錄恰好一份、而且比每個原始碼與測試檔都新,就接上它(報告開頭會講來自哪一份)
+      if (!opt.tests) {
+        const logs = testLogs(opt.root, q.source);
+        if (logs.length === 1 && logs[0].fresh) opt.tests = logs[0].name;
+      }
+      const testsFlag = opt.tests ? path.resolve(opt.root, opt.tests) : null;
+      const { results, note: rawNote } = loadResults(q.design, q.adapter, { tests: testsFlag, run: false }, opt.root);
+      const { building, stale } = branchState(opt.root);
+      return statusReport(q.design, q.source, q.adapter, results, testsFlag ? rawNote.replace(testsFlag, opt.tests) : rawNote, building, stale).text;
+    };
+    emit(briefCommand(opt.root, has('design'), has('source'), has('adapter'), sub, opt.target, { fingerprint: opt.fingerprint, noRules: opt.noRules, statusText, part: Number(args.flags.part) || 0, of: Number(args.flags.of) || 0 }));
+    return 0;
   }
 
   const p = loadProject(root);

@@ -2,13 +2,30 @@
 name: study
 description: lawful 的專案導讀 — 帶開發者由上而下讀懂一個純函數式專案,六層縮放:全景(這是什麼、怎麼編、入口在哪)→ 純度地圖(types / effect / core / shell 四層落在哪幾棵原始碼樹與哪些模組單元、效果被推到哪裡)→ 設計理念(為什麼把效果描述成資料、為什麼這樣拆,區分文檔明載與推測)→ 型別(和積型別與 smart constructor 怎麼撐起資料流、哪些非法狀態被型別排除)→ 逐跳 trace(沿一條 pipeline 從進入點走到 output,每跳看型別怎麼變)→ 細讀(一個函數逐行、等式推理當桌上執行、REPL 當場跑、講得出它該有什麼性質);第 1 課選定一條主線 pipeline 貫穿六層,每個結論都附從原始碼讀出的 檔案:行號 片段作證明,一次一課、等開發者消化再往下。課程與語言無關,指令以 Haskell 為準,其他純函數語言換等價物。觸發詞:study、理解專案、學習專案、專案導讀、帶我看 code、trace code、code walkthrough、讀懂純函數專案、熟悉專案、onboarding。Use when guiding a developer top-down through an existing pure-functional codebase with code evidence, type-level tracing and line-level close reading.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:study — 專案導讀
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/tooling.md`「跑東西的紀律」「收尾定錨」;專案有 `.lawful/` 再加 `rules/boundary.md`「四層」「效果的判定」、`rules/pipelines.md`「pipeline」。本 skill 唯讀:不改程式碼、不建檔、不寫任何文檔,編號與 frontmatter 規格不讀。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief study` 的輸出:規章、`.lawful/` 現在有什麼、`Cone.md`「專案約束」、`modules.md` 全文;沒有 `.lawful/` 的專案只有規章。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
+
+本 skill 唯讀:不改程式碼、不建檔、不寫任何文檔,編號與 frontmatter 規格不讀。
 
 ## 目標
 

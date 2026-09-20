@@ -2,7 +2,7 @@
 
 ## CLI
 
-一支 CLI `lawful`,入口 `bin/lawful.mjs`。`<L>` 是 plugin 根目錄:載入 skill 時給的基準目錄往上兩層(`skills/<名字>/` 的上上層),規章在 `<L>/rules/`。被委派的角色從 conductor 的 prompt 拿 `<L>` 的實際路徑。手上沒有基準目錄時才用這道找:
+一支 CLI `lawful`,入口 `bin/lawful.mjs`。`<L>` 是 plugin 根目錄:載入 skill 時給的基準目錄往上兩層(`skills/<名字>/` 的上上層),規章在 `<L>/rules/`。SKILL.md 裡寫成 `${CLAUDE_PLUGIN_ROOT}` 的就是它;被委派的角色載入自己的 skill 就拿到基準目錄。手上沒有基準目錄時才用這道找:
 
 ```bash
 dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawful/bin/lawful.mjs' 2>/dev/null | head -1)")"
@@ -33,6 +33,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `lint all` | 以上全部 |
 | `modules --gen` | 從程式碼的模組名推出模組單元與它有哪幾層,補進模組表,職責欄留白;已有的列不動 |
 | `section <file> <節>…` | 取節 |
+| `brief <skill> [<目標>] [--tests <log>] [--fingerprint] [--no-rules]` | 一個 skill 開工要的東西一次印完:它要讀的規章節,加上它在這個專案裡要看的那幾塊——目標 pipeline 全文、逐條狀態、Stages 上每條簽名與型別的宣告(`檔案:行號` 與原文,不含本體)、types 層(行數上限以內的全文,其餘列匯出)、這個專案的測試怎麼寫(qa);要開的檔(impl);分支與工作樹、`Cone.md`「專案約束」、引用與被引用的 pipeline 的相關列、`lint sig` 與 `lint laws` 裡講到目標的、`gaps.md`、測試輸出新不新、status 報告裡講到目標的每一行(build、pipeline、revise);`Cone.md`、目標檔與 status 的需求表、目標表、警訊(objective、design);`lint all` 與整份 status(audit)。目標是 pipeline 全名、`R-n` / `O-n`、`RF-n`、`SPK-00x`,或不給,依 skill 而定;給錯種類會講這個 skill 收哪幾種。第一行是指紋 `brief <skill> <目標> @doc:<雜湊> rules:<雜湊>`,`--fingerprint` 只印那一行(conductor 對帳用),`--no-rules` 不重印規章的節。`--args '<一整串>'` 是 SKILL.md 注入行的寫法:目標與旗標(`--root`、`--tests`、`--no-rules`、`--fingerprint`)從那一串裡認,其餘的字不理;`--part <k> --of <N>` 只印第 k 段(整份切成每段不超過 28KB,SKILL.md 放 N 道注入行各取一段,最後一道還有沒印完的會講怎麼接著拿)。沒指定 `--tests` 而根目錄恰好一份比每個原始碼與測試檔都新的測試輸出,status 那一塊就接上它。唯讀;永遠 exit 0,問題用文字講 |
 | `spike close <SPK-00x>` | 檢查 verdict / feeds / sha 齊全,刪 `spike/SPK-00x-<slug>/` |
 | `migrate cone [--write]` | 只有 `system.md` 的樹、或目標還擠在一份 `objectives.md` 的樹,換成 `Cone.md` 與 `objectives/` 體系:先印帳本,`--write` 才落地。願景與目的併成「願景」、語言與工具變「專案約束」、每個目標生一條需求(判準當 Law)並讓目標繼承它、邊界與對外 I/O 搬進 `modules.md`、Pipelines 表的類別寫進各 pipeline 的 `kind`、每個目標拆成 `objectives/R-x-O-y-<slug>.md`(slug 從第一條綁定的 pipeline 推)、優先各級那行搬進「專案約束」,最後刪 `system.md` 與 `objectives.md` |
 | `migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>]` | 盤點 `subsystems/<slug>/` 體系的 `.design`,印一份帳本,不改任何檔:每份 F / E / G-* 的介面簽名在程式碼裡對到幾條、四格 law 翻成三行草稿(散文的標「需形式化」)、按簽名所在模組分組並建議 `claim` 的 slug、開發階段表列成目標與里程碑候選、退場清單、人要判的清單。分組、目標與里程碑怎麼綁、law 形式化由人做 |

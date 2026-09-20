@@ -44,7 +44,11 @@ subagent 問不了人:
 4. 機械查證不跳過:骨架與測試要編得過、laws 與 examples 的翻譯要對得上數。
 5. 如實回報:測試紅就貼輸出;做不完的標未完成。
 
-回報固定五項:改了哪些檔;完成了什麼(qa:law / example 各翻幾條、紅綠分佈;impl:簽名 n / m、測試結果與**歸因**);自己決定的事;GAP 清單(局部序號);阻塞項。
+**開工 context 由 `lawful brief` 給**:被委派的 qa 與 impl 第一個動作是用 Skill 工具載入自己的 skill,args 照抄 conductor 給的那一行(`<目標> --root <工作樹>`)。載入的那一刻 `lawful brief <角色> <目標>` 就跑完了:規章的節、目標 pipeline、逐條狀態、Stages 上每條簽名與型別的宣告、types 層,qa 另有這個專案的測試怎麼寫、impl 另有要開的檔,都在載入結果裡,不再另外讀規章、找宣告。conductor 的 prompt 只給任務(哪個角色、哪個目標、哪棵工作樹)與只有它知道的事(基線裡該紅卻綠的那幾條、仲裁後的歸因、REV 的重委派清單)。
+
+載入結果的第一行是**指紋**(`brief <角色> <目標> @doc:<雜湊> rules:<雜湊>`)。conductor 收回報時跑 `lawful brief <角色> <目標> --root <工作樹> --fingerprint` 對:對不上 = 這一場不是從 brief 開工的,或目標 pipeline 在這一波中途變過,回報作廢、重派。
+
+回報固定六項:指紋(照抄);改了哪些檔;完成了什麼(qa:law / example 各翻幾條、紅綠分佈;impl:簽名 n / m、測試結果與**歸因**);自己決定的事;GAP 清單(局部序號);阻塞項。spike 的委派回報另有自己的五項(`lawful:spike`「委派模式」),沒有指紋。
 
 ## 骨架與基線
 

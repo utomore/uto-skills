@@ -2,13 +2,28 @@
 name: module
 description: lawful 的模組單元 — 架構先行的那條路線:一條 pipeline 要一個還沒有的模組單元時,先對談出它的名字、職責範圍與有哪幾層(types / effect / core / shell 不一定都有),跑 lawful module 寫進模組表並在每一層的原始碼樹裡開好資料夾,再回去 claim pipeline。觸發詞:模組、新模組、module、模組單元、劃邊界、架構先行、命名空間、加一層、lawful module。Use when a new module unit's name, responsibility and layers must be fixed before any pipeline is written.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:module — 一個模組單元
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/boundary.md`「模組單元」「模組表」「四層」、`rules/tooling.md`「CLI」「收尾定錨」。再讀 `.lawful/modules.md`(含「邊界」)與 `.lawful/Cone.md`「專案約束」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief module` 的輸出:規章、`Cone.md`「專案約束」、`modules.md` 全文、`lint boundary` 的結果。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

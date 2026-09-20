@@ -25,7 +25,7 @@ grep -rn -E '2\.[0-9]\.[0-9]|以前|舊制|舊格式|舊文檔|舊專案|舊版|
 
 ```
 bash tests/dev-flow/run.sh                # dev-flow:夾具的 golden 回歸 + --help,brief 點名的規章節都在(節改了名會紅,brief 的 golden 用 --no-rules 所以不跟著規章變)、brief 每一段都在一道注入指令的大小上限以內而且接起來一個字不少,另外真的開一個 repo 驗殘留的 build 分支與切片的工作樹(claim 跨工作樹配號、status 讀出分支走到哪一步);fixtures/shop 同時是 .design 的完整範例
-bash tests/lawful/run.sh                  # lawful:八個夾具的 golden 回歸 + --help;fixtures/save-game 同時是 .lawful 的完整範例
+bash tests/lawful/run.sh                  # lawful:八個夾具的 golden 回歸 + --help,brief 點名的規章節都在、brief 每一段都在一道注入指令的大小上限以內而且接起來一個字不少、十三份 SKILL.md 的注入行與 allowed-tools 寫對(brief 的 golden 一樣用 --no-rules);fixtures/save-game 同時是 .lawful 的完整範例
 ```
 
 改了 `ci/dev-flow/contract.mjs` 或 `ci/lawful/contract.mjs`:

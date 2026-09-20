@@ -1,0 +1,134 @@
+$ lawful brief revise P-002 --tests none.log --no-rules
+brief revise P-002-syntax-parse @doc:6ba48176 rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 程式碼
+
+Cone.md 的 language 欄沒有可用的 adapter:簽名與型別的宣告、types 層這幾塊印不出來,要看就直接讀原始碼。
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# 目標 pipeline:.lawful/pipelines/P-002-syntax-parse.md
+
+````markdown
+---
+id: P-002
+description: 文字解析成 Doc
+kind: 子流
+status: ready
+updated: 2026-09-06
+---
+# P-002-syntax-parse:文字解析成 Doc
+
+## Brief
+子流。文字 → 切 token → Doc。shared 是它與 P-003-canon-normalize 共用的步驟,兩邊都沒註明見。
+
+## Stages
+| # | 簽名 | 做什麼 | 模組 | 層 |
+|---|---|---|---|---|
+| 1 | `shared :: Text -> [Token]` | 切 token | `App.Syntax.Token` | core |
+| = | `parse :: Text -> Either ParseError Doc` | 純的整條 | `App.Syntax` | core |
+
+## Laws
+- LAW-1 [total] 任何文字都解得出結果或錯誤
+  - forall t in Text
+  - |- total (parse t)
+
+## Examples
+| # | 輸入 | 輸出 | 覆蓋 |
+|---|---|---|---|
+| EX-1 | `parse ""` | `Left EmptyInput` | LAW-1 |
+
+## 決定
+無
+
+## 修訂記錄
+無
+````
+
+# 逐條狀態(文檔對程式碼;沒有給測試輸出,law 的紅綠不在這裡)
+
+### Stages
+- 1  shared :: Text -> [Token]  App.Syntax.Token/core  未查
+- =  parse :: Text -> Either ParseError Doc  App.Syntax/core  未查
+
+### Laws
+- LAW-1 [total] 任何文字都解得出結果或錯誤  未翻譯
+- EX-1 覆蓋 LAW-1  未翻譯
+
+### GAP
+- 無
+
+### 引用
+- 引用了:無
+- 被引用:P-001-cli-run
+
+文檔寫了 2 條簽名,程式碼裡有 0 條,還是骨架的 0 條 · 寫了 1 條 law,通過 0 條 · 未達成
+
+# 引用這條的 pipeline:.lawful/pipelines/P-001-cli-run.md(ready;只印它引用的列與提到它們的 law)
+
+- 1  `parse :: Text -> Either ParseError Doc`  App.Syntax/core
+
+# 這條 pipeline 朝向哪裡
+
+- R-1-O-1-cli-whole(優先 1)的里程碑 M-1:解析與正規化走通(綁定 P-002-syntax-parse、P-003-canon-normalize)
+
+R-1:輸入檔跑完整條
+- Law:任一輸入檔解析、正規化後跑完不出錯
+
+# gaps.md
+
+(還沒有 .lawful/gaps.md)
+
+# 對帳:lint sig 與 lint laws 裡講到這條 pipeline 的
+
+### lint sig:這條 pipeline 1 條不合規(全專案 1 條)
+- ✗ .lawful/pipelines/P-002-syntax-parse.md:16 shared 也是 P-003-canon-normalize 的 stage,兩邊都沒註明「見」;引用的那一邊補「見 P-00x-<slug>」
+### lint laws:這條 pipeline 1 條不合規(全專案 2 條)
+- ✗ .lawful/pipelines/P-002-syntax-parse.md LAW-1 |- 行的 total 對不到 Stages 簽名、types 層匯出或標準函式庫
+
+# lawful status 裡講到 P-002-syntax-parse 的每一行(整份報告要看再跑 lawful status)
+
+### lawful status
+願景:輸入檔解析、正規化後跑完整條。
+需求 1 條,Law 成立 0 條(測試 0、推得 0)· 目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · 調整 0 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 3 條,達成 0 條 · 模組單元 4 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+· 此 adapter 不解析測試輸出
+
+#### 目標
+- O-1 下一個里程碑:M-1 解析與正規化走通(P-002-syntax-parse 進行中、P-003-canon-normalize 進行中)
+
+#### pipelines
+| pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
+|---|---|---|---|---|---|---|---|---|
+| P-001-cli-run | IO 介面 | ready | 3 | 0 | 0 | 1 | 0/0 | 等 P-002-syntax-parse |
+| P-002-syntax-parse | 子流 | ready | 2 | 0 | 0 | 1 | 0/0 | 進行中 |
+
+#### 模組
+| 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
+|---|---|---|---|---|---|---|
+| App.Syntax | 把文字解析成文件 | core | - | P-002-syntax-parse、P-003-canon-normalize | 3 | 0 |
+
+#### 1. 今天能開幾條線
+- P-002-syntax-parse:lawful:build P-002-syntax-parse(O-1 優先 1 · M-1 解析與正規化走通)
+- P-002-syntax-parse 與 P-003-canon-normalize 的 stage 都住 `App.Syntax`:可以同時開,整合時這幾個模組單元的檔兩邊都動
+
+#### 2. 卡住的
+- P-001-cli-run 等 P-002-syntax-parse(未達成,先建它)
+
+#### 4. 牽動誰
+- P-002-syntax-parse ← P-001-cli-run
+
+#### 6. 警訊
+| 哪裡 | 什麼事 | 怎麼辦 |
+|---|---|---|
+| P-002-syntax-parse#shared | P-003-canon-normalize 也把 shared 列成 stage,兩邊都沒註明「見」 | 引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來 |
+
+#### 7. 建議路線
+1. lawful:build P-002-syntax-parse(O-1 優先 1 · M-1 解析與正規化走通)
+exit 0

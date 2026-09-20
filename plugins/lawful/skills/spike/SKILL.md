@@ -2,13 +2,28 @@
 name: spike
 description: lawful 的可行性驗證 — 讀原始碼答不出、要跑了才知道的問題:先寫要回答什麼、判準、timebox,在 spike/SPK-00x-<slug>/ 寫拋棄式程式碼,結論與 verdict 寫進 .lawful/spikes/,feeds 指向哪條 pipeline 的決定或哪份 ADR,lawful spike close 刪程式碼。觸發詞:spike、可行性、試一下、PoC、原型、驗證可不可行。Use when a design decision needs evidence that only running code can give.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:spike — 替決定生產證據
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/pipelines.md`「spike」、`rules/roles.md`「委派」「spike」、`rules/tooling.md`「跑東西的紀律」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief spike --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief spike --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief spike --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief spike --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief spike --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief spike --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief spike` 的輸出:規章、現有的 spike(編號、status、verdict、feeds)與專案根目錄 `spike/` 底下還在的資料夾;給了 `SPK-00x` 就再加那一份全文。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給;接著做既有的一份就給 `SPK-00x`。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief spike [SPK-00x] --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 步驟
 

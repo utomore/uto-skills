@@ -2,13 +2,28 @@
 name: pipeline
 description: lawful 的 pipeline 設計 — 一次一條,與開發者對談出 Brief、Stages(簽名、模組、層)、形式化 laws、examples 與決定,把型別與每條簽名的骨架寫進程式碼;lint laws 與 lint sig 過了、開發者拍板,改 ready。觸發詞:設計 pipeline、寫 pipeline、lawful pipeline、寫 law、定簽名、規格、spec。Use when specifying one data-flow pipeline with laws before any code is written.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:pipeline — 一條 pipeline
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/pipelines.md`「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」、`rules/roles.md`「骨架與基線」、`rules/boundary.md`「模組表」「效果的判定」、`rules/tooling.md`「CLI」「收尾定錨」。再讀 `.lawful/Cone.md`(它服務的那條需求與 Law)、`.lawful/modules.md`,以及 types 層模組的匯出(law 只准引用它們與 Stages 的簽名)。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief pipeline --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief pipeline --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief pipeline --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief pipeline --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief pipeline --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief pipeline --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief pipeline` 的輸出:規章、分支與工作樹、目標 pipeline 全文與逐條狀態、它朝向哪條里程碑與那條需求的 Law、`Cone.md`「專案約束」、`modules.md` 全文、types 層每個模組的匯出、它引用的 pipeline 的 Stages 表與引用它的那幾列、`lint sig` 與 `lint laws` 裡講到它的;沒給目標時是 `Cone.md` 全文、每個目標檔、`modules.md` 與 types 層的匯出。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:pipeline 全名 `P-00x-<slug>`;還沒 claim 就不給,claim 之後再跑一次。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief pipeline <目標> --no-rules`;同一場裡目標文檔或專案現況變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

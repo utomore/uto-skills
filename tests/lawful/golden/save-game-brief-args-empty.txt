@@ -1,0 +1,28 @@
+$ lawful brief status --args 看板 --no-rules
+brief status (沒有目標) @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# Cone.md「專案約束」
+
+- 語言:haskell
+- 建置:`cabal build`
+- 測試(整套):`cabal test`
+- 測試(子集):`cabal test --test-options='-m "P-001"'`
+- 模組前綴:`Game`
+- 原始碼根目錄:`src-<層>`
+- IO 模組追加:無
+- 效果型別追加:無
+- 忽略目錄:`old`
+- 號段:無
+- 套件與框架:cborg(CBOR 編解碼);不引入其他序列化套件
+- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+
+# 專案根目錄的測試輸出
+
+- test-tasty.log  <新舊看檔案時間>
+- test.log  <新舊看檔案時間>
+exit 0

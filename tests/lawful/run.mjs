@@ -88,6 +88,38 @@ const CASES = [
   ['broken-spike-close-dry', 'broken', ['spike', 'close', 'SPK-001', '--dry-run']],
   ['broken-spike-close', 'broken', ['spike', 'close', 'SPK-001'], ['spike/SPK-001-cbor-size/Main.hs']],
   ['broken-spike-close-open', 'broken', ['spike', 'close', 'SPK-002']],
+  // brief:一個 skill 開工要的東西一次印完。golden 用 --no-rules,才不會規章每改一次就跟著變;規章的節另外查(下面的「brief 的規章節」)
+  ['save-game-brief-qa', 'save-game', ['brief', 'qa', 'P-001-save-write', '--no-rules']],
+  ['save-game-brief-qa-requirement', 'save-game', ['brief', 'qa', 'R-1', '--no-rules']],
+  ['save-game-brief-qa-objective', 'save-game', ['brief', 'qa', 'O-1', '--no-rules']],
+  ['save-game-brief-impl', 'save-game', ['brief', 'impl', 'P-001', '--no-rules']],
+  ['save-game-brief-impl-wrong-kind', 'save-game', ['brief', 'impl', 'R-1', '--no-rules']],
+  ['save-game-brief-fingerprint', 'save-game', ['brief', 'qa', 'P-001-save-write', '--fingerprint']],
+  ['save-game-brief-no-target', 'save-game', ['brief', 'qa', '--no-rules']],
+  ['save-game-brief-missing', 'save-game', ['brief', 'qa', 'P-009-nope', '--no-rules']],
+  ['save-game-brief-bad-skill', 'save-game', ['brief', 'nope']],
+  // 有 status 那一塊的案例一律明講 --tests:沒講的時候 brief 會照檔案時間自己挑根目錄的那一份,而檔案時間每台機器不同
+  ['save-game-brief-build', 'save-game', ['brief', 'build', 'P-001-save-write', '--tests', 'test.log', '--no-rules']],
+  ['save-game-brief-build-requirement', 'save-game', ['brief', 'build', 'R-1', '--tests', 'test.log', '--no-rules']],
+  ['broken-brief-build', 'broken', ['brief', 'build', 'P-001-game-save', '--tests', 'stale.log', '--no-rules']],
+  ['save-game-brief-pipeline', 'save-game', ['brief', 'pipeline', 'P-001-save-write', '--no-rules']],
+  ['save-game-brief-pipeline-no-target', 'save-game', ['brief', 'pipeline', '--no-rules']],
+  ['templated-brief-pipeline', 'templated', ['brief', 'pipeline', 'P-001', '--no-rules']],
+  ['refs-brief-revise', 'refs', ['brief', 'revise', 'P-002', '--tests', 'none.log', '--no-rules']],
+  ['save-game-brief-revise-refinement', 'save-game', ['brief', 'revise', 'RF-1', '--tests', 'test.log', '--no-rules']],
+  ['broken-brief-revise-global', 'broken', ['brief', 'revise', '--tests', 'stale.log', '--no-rules']],
+  ['save-game-brief-objective', 'save-game', ['brief', 'objective', '--tests', 'test.log', '--no-rules']],
+  ['save-game-brief-design', 'save-game', ['brief', 'design', '--no-rules']],
+  ['save-game-brief-module', 'save-game', ['brief', 'module', '--no-rules']],
+  ['save-game-brief-integrate', 'save-game', ['brief', 'integrate', '--no-rules']],
+  ['save-game-brief-status', 'save-game', ['brief', 'status', '--no-rules']],
+  ['save-game-brief-audit', 'save-game', ['brief', 'audit', '--tests', 'test.log', '--no-rules']],
+  ['broken-brief-spike', 'broken', ['brief', 'spike', '--no-rules']],
+  ['broken-brief-spike-doc', 'broken', ['brief', 'spike', 'SPK-002', '--no-rules']],
+  ['save-game-brief-study', 'save-game', ['brief', 'study', '--no-rules']],
+  // skill 載入時 $ARGUMENTS 是自由文字:目標與旗標從裡面認,其餘的字不理
+  ['save-game-brief-args', 'save-game', ['brief', 'build', '--args', '幫我 build P-001-save-write (先看 log) --tests test.log --no-rules']],
+  ['save-game-brief-args-empty', 'save-game', ['brief', 'status', '--args', '看板 --no-rules']],
 ];
 
 function snapshot(root, files) {
@@ -110,6 +142,10 @@ for (const [name, fixture, argv, files, env] of CASES) {
   const r = spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '', ...env } });
   const envText = env ? Object.entries(env).map(([k, v]) => `${k}=${v} `).join('') : '';
   let actual = `$ ${envText}lawful ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
+  // brief 的指紋帶規章的雜湊:規章每改一次就變,golden 不追它
+  actual = actual.replace(/ rules:[0-9a-f]{8}/g, ' rules:<雜湊>');
+  // 測試輸出新不新看的是檔案時間,每台機器不同
+  actual = actual.replace(/^(- \S+)  (?:比每一個原始碼與測試檔都新|比 \S+ 舊:.*)$/gm, '$1  <新舊看檔案時間>');
   if (files) actual += snapshot(root, files) + '\n';
   if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
   const file = path.join(goldenDir, `${name}.txt`);
@@ -127,10 +163,57 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
+
+// brief 的規章節:每個 skill 點名的節都要真的在 rules/ 裡,節改了名這裡會紅
+{
+  const skills = (/skill:([^\n]+)/.exec(h.stdout) || [null, ''])[1].split('、').map((s) => s.trim()).filter(Boolean);
+  let ok = skills.length > 0;
+  for (const s of skills) {
+    const r = spawnSync(process.execPath, [bin, 'brief', s, '--root', path.join(here, 'fixtures', 'save-game')], { encoding: 'utf8' });
+    if (r.status !== 0 || !/^brief /.test(r.stdout) || !/^### \S+\.md「/m.test(r.stdout) || /裡沒有「/.test(r.stdout)) ok = false;
+  }
+  if (!ok) {
+    failed++;
+    console.log('✗ brief 的規章節');
+  } else console.log('✓ brief 的規章節');
+
+  // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
+  const TARGETS = { build: 'P-001-save-write', qa: 'P-001-save-write', impl: 'P-001-save-write', revise: 'P-001-save-write', pipeline: 'P-001-save-write' };
+  const PARTS = [1, 2, 3, 4, 5, 6];
+  let parted = skills.length > 0;
+  for (const s of skills) {
+    const run = (...extra) => spawnSync(process.execPath, [bin, 'brief', s, ...(TARGETS[s] ? [TARGETS[s]] : []), ...extra, '--root', path.join(here, 'fixtures', 'save-game')], { encoding: 'utf8' }).stdout.replace(/\r\n/g, '\n');
+    const whole = run().trimEnd();
+    const parts = PARTS.map((k) => run('--part', String(k), '--of', String(PARTS.length)).trimEnd());
+    if (parts.some((p) => Buffer.byteLength(p) > 29000)) parted = false;
+    // 第 2 段起的第一行是「(brief <skill> 第 k 段,接上一段)」,接回去之前拿掉
+    const joined = parts.filter(Boolean).map((p) => p.replace(/^.brief \S+ 第 \d+ 段[^\n]*\n\n/, '')).join('\n');
+    // 段與段之間的空行在切的時候會掉,比的是非空行
+    const solid = (t) => t.split('\n').filter((l) => l.trim()).join('\n');
+    if (solid(joined) !== solid(whole)) parted = false;
+  }
+  if (!parted) {
+    failed++;
+    console.log('✗ brief 的分段');
+  } else console.log('✓ brief 的分段');
+
+  // 每份 SKILL.md 的注入行:一個 skill PARTS 道、--of 寫對、免批准的 allowed-tools 在 frontmatter
+  let injected = skills.length > 0;
+  for (const s of skills) {
+    const md = fs.readFileSync(path.join(here, '..', '..', 'plugins', 'lawful', 'skills', s, 'SKILL.md'), 'utf8');
+    const lines = md.split(/\r?\n/).filter((l) => l.startsWith('!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief '));
+    const want = PARTS.map((k) => `!\`node "\${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief ${s} --args '$ARGUMENTS' --part ${k} --of ${PARTS.length}\``);
+    if (lines.join('\n') !== want.join('\n') || !/^allowed-tools: Bash\(node "\$\{CLAUDE_PLUGIN_ROOT\}\/bin\/lawful\.mjs":\*\)$/m.test(md)) injected = false;
+  }
+  if (!injected) {
+    failed++;
+    console.log('✗ SKILL.md 的注入行');
+  } else console.log('✓ SKILL.md 的注入行');
+}
 
 // --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事
 {

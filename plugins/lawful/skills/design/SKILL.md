@@ -2,13 +2,28 @@
 name: design
 description: lawful 的系統設計 — 訪談後產出 .lawful/Cone.md(願景、需求各有一條可判定的 Requirement Law、專案約束含語言、三道指令、模組前綴、原始碼根目錄與硬性要求的套件)、objectives/ 一個目標一個檔(每條需求至少一個目標,各有優先 1 到 4、Law 與里程碑)與 modules.md(四層邊界、模組單元表、對外 I/O),跨 pipeline 的決定寫 ADR,每條 IO 介面用 lawful claim 建成 draft 並綁進里程碑。觸發詞:系統設計、開新專案、專案願景、需求、lawful design、建 .lawful、模組表、邊界、IO 介面。Use when starting a pure-functional project or reshaping its vision, requirements, layers and pipeline list.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
 # lawful:design — 系統與邊界
 
-## 讀什麼
+## 開工 context
 
-`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/pipelines.md`「`.lawful/`」「Cone.md」「願景、需求、目標與路線」「ADR」、`rules/boundary.md` 全份、`rules/tooling.md`「language adapter」「收尾定錨」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief design --args '$ARGUMENTS' --part 1 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief design --args '$ARGUMENTS' --part 2 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief design --args '$ARGUMENTS' --part 3 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief design --args '$ARGUMENTS' --part 4 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief design --args '$ARGUMENTS' --part 5 --of 6`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief design --args '$ARGUMENTS' --part 6 --of 6`
+
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief design` 的輸出:規章、`.lawful/` 現在有什麼、`Cone.md` 全文、每個目標檔全文、`modules.md` 全文(還沒有的照實寫沒有)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief design --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

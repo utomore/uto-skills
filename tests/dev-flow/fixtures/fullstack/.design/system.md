@@ -13,13 +13,36 @@ updated: 2026-09-07
 
 ## 需求
 ### R-1:每一筆結帳與退款的金額都算對
-- Law:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 ### R-2:任何一籃子都算得出不為負的總金額
-- Law:任一品項清單的總金額不為負
+- 驗收:任一品項清單的總金額不為負
   - forall items in list
   - |- total_cents(items) >= 0
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+無
+
+### 架構:層
+| 層 | 裝什麼 |
+|---|---|
+| domain | 金額與購物籃的型別與規則 |
+| application | 把 domain 串成一條結帳或退款 |
+| entry | HTTP 路由 |
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
+|---|---|---|---|---|---|---|
+| POST /checkout | in | `RawBody` | `web/src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` |
+| 結帳結果 | out | `HttpRes` | `web/src/entry/routes.ts` | F-001-checkout | trusted | - |
+| POST /refund | in | `RawBody` | `web/src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` |
+| 退款結果 | out | `HttpRes` | `web/src/entry/routes.ts` | F-002-refund | trusted | - |
+| POST /basket | in | `str` | `api/cart/api.py` | F-003-basket | untrusted | `add_item` |
+| 總金額 | out | `str` | `api/cart/api.py` | F-003-basket | trusted | - |
 
 ## 語言與工具
 - 建置:web = `npx tsc --noEmit -p web`;api = `python -m compileall api/cart`
@@ -29,23 +52,6 @@ updated: 2026-09-07
 - Laws 詞彙追加:無
 - 忽略目錄:無
 - 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
-
-## 層
-| 層 | 裝什麼 |
-|---|---|
-| domain | 金額與購物籃的型別與規則 |
-| application | 把 domain 串成一條結帳或退款 |
-| entry | HTTP 路由 |
-
-## 對外 I/O
-| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
-|---|---|---|---|---|---|---|
-| POST /checkout | in | `RawBody` | `web/src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` |
-| 結帳結果 | out | `HttpRes` | `web/src/entry/routes.ts` | F-001-checkout | trusted | - |
-| POST /refund | in | `RawBody` | `web/src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` |
-| 退款結果 | out | `HttpRes` | `web/src/entry/routes.ts` | F-002-refund | trusted | - |
-| POST /basket | in | `str` | `api/cart/api.py` | F-003-basket | untrusted | `add_item` |
-| 總金額 | out | `str` | `api/cart/api.py` | F-003-basket | trusted | - |
 
 ## Features
 | 全名 | 類別 |

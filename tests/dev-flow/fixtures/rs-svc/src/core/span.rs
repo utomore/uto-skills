@@ -59,7 +59,7 @@ mod tests {
     }
 
     #[test]
-    fn r_1__law_merge_covers_each() {
+    fn r_1__accept_merge_covers_each() {
         let a = make(0, 5).unwrap();
         let b = make(3, 9).unwrap();
         assert!(width(merge(a, b)) >= width(a) && width(merge(a, b)) >= width(b));

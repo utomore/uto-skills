@@ -9,23 +9,46 @@ updated: 2026-09-07
 
 ## 需求
 ### R-1:分數算得出來
-- Law:<一句可判定的話:這條需求成立時,什麼一定為真>
+- 驗收:<一句可判定的話:這條需求成立時,什麼一定為真>
 
 ### R-2:寫了三行卻沒有驗收測試
-- Law:任何輸入分數不為負
+- 驗收:任何輸入分數不為負
   - forall raw in Raw
   - |- score(raw) >= 0
 
-### R-3:兩個目標卻沒有蘊含說明
-- Law:看得到兩個數字
+### R-3:有兩個目標的需求
+- 驗收:看得到兩個數字
 
 ### R-4:沒有任何目標的需求
-- Law:看得到第三個數字
+- 驗收:看得到第三個數字
 
-### R-5:Law 引用了進入點與不存在的東西
-- Law:進入點回的就是分數
+### R-5:驗收引用了進入點與不存在的東西
+- 驗收:進入點回的就是分數
   - forall raw in Raw
   - |- scoreHandler(raw) == mysteryTop(raw)
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+- INV-1 [bound] 只有一句話、還沒有三行式的不變量
+- INV-2 [invariant] 寫了三行卻沒有測試,而且引用了一份 feature 的簽名
+  - forall raw in Raw
+  - |- score(raw) >= 0
+- INV-2 [invariant] 編號重複
+- INV-3 [nonsense] 種類不合法
+
+### 架構:層
+| 層 | 裝什麼 |
+|---|---|
+| domain | 規則 |
+| application | 用例 |
+| entry | 路由 |
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約 |
+|---|---|---|---|---|---|---|---|
+| POST /score | in | `Raw` | `src/entry/api.ts` | F-001-score | untrusted | - | F-001#LAW-9、INV-9、冪等 |
 
 ## 語言與工具
 - 建置:`npx tsc --noEmit`
@@ -35,18 +58,6 @@ updated: 2026-09-07
 - Laws 詞彙追加:無
 - 忽略目錄:無
 - 號段:amy@corp.com = 000-099;bob@corp.com = 050-149;carol@corp.com = 1x0-199
-
-## 層
-| 層 | 裝什麼 |
-|---|---|
-| domain | 規則 |
-| application | 用例 |
-| entry | 路由 |
-
-## 對外 I/O
-| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 |
-|---|---|---|---|---|---|---|
-| POST /score | in | `Raw` | `src/entry/api.ts` | F-001-score | untrusted | - |
 
 ## Features
 | 全名 | 類別 |

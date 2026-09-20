@@ -1,16 +1,17 @@
 // 測試歸屬標記與測試輸出的共用解析。
 //
 // 標記有兩種寫法,同一個意思:
-//   字串形式   "F-001#LAW-1"、"R-1#LAW"   —— 測試名可以是任意字串的框架(JS 的 describe / it、Go 的 t.Run)
-//   識別字形式 f_001__law_1、r_1__law     —— 測試名必須是識別字的框架(Python 的 def、Rust 的 fn);大小寫不拘
-// 文檔的 law 與 example 是 F-00x#LAW-n / F-00x#EX-n;需求與目標的 Law 是 R-n#LAW / O-n#LAW(一條需求或目標只有一條 Law,沒有序號)。
+//   字串形式   "F-001#LAW-1"、"R-1#ACCEPT"、"INV-1#LAW"   —— 測試名可以是任意字串的框架(JS 的 describe / it、Go 的 t.Run)
+//   識別字形式 f_001__law_1、r_1__accept、inv_1__law     —— 測試名必須是識別字的框架(Python 的 def、Rust 的 fn);大小寫不拘
+// 文檔的 law 與 example 是 F-00x#LAW-n / F-00x#EX-n;需求的驗收是 R-n#ACCEPT、領域不變量是 INV-n#LAW(各只有一條,沒有序號)。
+// 需求是「必須達成」,不是 law;R-n#LAW 靜默讀成 R-n#ACCEPT。
 // 兩種都正規化成字串形式,測試輸出與原始碼才對得回同一個 key。
 
 const STRING_RE = /\b([FA])-(\d{3})#(LAW|EX)-(\d+)\b/g;
 // 前面可以有底線(`test_f_001__law_1_…` 是最常見的寫法),但不能是字母或數字
 const IDENT_RE = /(?<![A-Za-z0-9])([FfAa])_(\d{3})__(law|LAW|ex|EX)_(\d+)(?![0-9])/g;
-const TOP_STRING_RE = /\b([RO])-(\d+)#LAW\b/g;
-const TOP_IDENT_RE = /(?<![A-Za-z0-9])([RrOo])_(\d+)__(law|LAW)(?![A-Za-z0-9])/g;
+const TOP_STRING_RE = /\b(INV|R)-(\d+)#(LAW|ACCEPT)\b/g;
+const TOP_IDENT_RE = /(?<![A-Za-z0-9])(inv|INV|Inv|[Rr])_(\d+)__(law|LAW|accept|ACCEPT|Accept)(?![A-Za-z0-9])/g;
 
 export function normalizeMarker(kind, num, sort, n) {
   return `${kind.toUpperCase()}-${num}#${sort.toUpperCase()}-${n}`;
@@ -27,7 +28,7 @@ export function findMarkers(text) {
   for (const re of [TOP_STRING_RE, TOP_IDENT_RE]) {
     re.lastIndex = 0;
     let m;
-    while ((m = re.exec(text))) out.push(`${m[1].toUpperCase()}-${m[2]}#LAW`);
+    while ((m = re.exec(text))) out.push(`${m[1].toUpperCase()}-${m[2]}#${m[1].toUpperCase() === 'R' ? 'ACCEPT' : 'LAW'}`);
   }
   return out;
 }

@@ -161,7 +161,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
   if (bugfixes.length) gone.push(`bugfix 文檔 ${bugfixes.length} 份(新樹沒有 bug 文檔:law 在就修碼,law 不在就補 law 走 REV)`);
   if (!gone.length) out.push('- 無');
   for (const g of gone) out.push(`- ${g}`);
-  out.push('- `planned / specced / done` 與 `rev` 欄:新樹的 status 只有 draft / ready / frozen,進度由 `devflow status` 從程式碼與測試推');
+  out.push('- `planned / specced / done` 與 `rev` 欄:新樹的 status 只有 draft / ready / verified,進度由 `devflow status` 從程式碼與測試推');
   out.push('- `code-paths` / `modules` / `part-of` / 功能總覽索引:靠簽名對帳查得到,不再寫進 frontmatter');
 
   out.push('', '## 6. 人要判的');
@@ -173,8 +173,8 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
 }
 
 // migrate objectives [--write]:目標還擠在一份 objectives.md 的樹,換成 system.md「需求」與 objectives/ 體系。先印帳本,--write 才落地。
-// 每個 ## O-n → 一條需求(一句話照抄、判準當 Law)寫進 system.md「需求」,並拆成 objectives/R-x-O-n-<slug>.md(需求、優先進 frontmatter,
-// Law 寫「繼承 R-x」;slug 從第一條綁定的 feature 推);開頭的優先各級那行搬進「語言與工具」;「目的」併成「願景」第二段;刪 objectives.md。
+// 每個 ## O-n → 一條需求(一句話照抄、判準當驗收)寫進 system.md「需求」,並拆成 objectives/R-x-O-n-<slug>.md(需求、優先進 frontmatter;
+// slug 從第一條綁定的 feature 推);開頭的優先各級那行搬進「語言與工具」;「目的」併成「願景」第二段;刪 objectives.md。
 function sectionRange(lines, title) {
   const from = lines.findIndex((l) => new RegExp(`^## ${title}\\s*$`).test(l));
   if (from < 0) return null;
@@ -210,14 +210,12 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
     const slug = binds.length ? binds[0].replace(/^F-\d{3}-/, '') : 'unnamed';
     const bodyLines = [];
     for (const l of lines) {
-      if (/^- (需求|優先)[::]/.test(l)) continue;
-      if (/^- 判準[::]/.test(l)) {
-        bodyLines.push(`- Law:繼承 ${requirement}`);
-        continue;
-      }
-      bodyLines.push(l);
+      if (/^- (需求|優先|判準)[::]/.test(l)) continue;
+      // 里程碑的第一格要是全名 M-n-<slug>:只有編號的列,英文名從它第一份綁定的 feature 推;沒綁的留給 dev-flow:objective 定
+      const ms = /^(\s*\|\s*)(M-\d+)(\s*\|.*)$/.exec(l);
+      const bound = ms ? /F-\d{3}-([a-z0-9-]+)/.exec(ms[3]) : null;
+      bodyLines.push(ms && bound ? `${ms[1]}${ms[2]}-${bound[1]}${ms[3]}` : l);
     }
-    if (!bodyLines.some((l) => /^- Law[::]/.test(l))) bodyLines.unshift(`- Law:繼承 ${requirement}`);
     while (bodyLines.length && !bodyLines[0].trim()) bodyLines.shift();
     const fullName = `${requirement}-${id}-${slug}`;
     const content = ['---', `id: ${id}`, `requirement: ${requirement}`, `priority: ${priority}`, `updated: ${date}`, '---', `# ${fullName}:${title}`, '', ...bodyLines].join('\n').replace(/\s+$/, '') + '\n';
@@ -257,8 +255,8 @@ export function migrateObjectives(root, { write = false, date = new Date().toISO
   // 「需求」節:沒有就在願景後面補;每個目標一條
   if (!hasReal) {
     const block = split.objs.length
-      ? split.objs.flatMap((r, i) => [...(i ? [''] : []), `### ${r.requirement}:${r.title}`, `- Law:${r.law || '<一句可判定的話:這條需求成立時,什麼一定為真>'}`])
-      : ['### R-1:<一句話:誰在什麼情況下要得到什麼>', '- Law:<一句可判定的話:這條需求成立時,什麼一定為真>'];
+      ? split.objs.flatMap((r, i) => [...(i ? [''] : []), `### ${r.requirement}:${r.title}`, `- 驗收:${r.law || '<一句可判定的話:這條需求達成時,什麼一定為真>'}`])
+      : ['### R-1:<一句話:誰在什麼情況下要得到什麼>', '- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>'];
     const r = sectionRange(lines, '需求');
     if (r) lines.splice(r.from + 1, r.to - r.from - 1, ...block, '');
     else {
@@ -266,7 +264,7 @@ export function migrateObjectives(root, { write = false, date = new Date().toISO
       const at = v ? v.to : lines.length;
       lines.splice(at, 0, '## 需求', ...block, '');
     }
-    notes.push(`需求 ${split.objs.length} 條(${split.objs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : ',Law 留佔位符'}`).join('、') || '沒有目標,留一條模板'})`);
+    notes.push(`需求 ${split.objs.length} 條(${split.objs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : ',驗收留佔位符'}`).join('、') || '沒有目標,留一條模板'})`);
   }
   // 「語言與工具」補一行優先
   if (split.priorityNote && !/^- 優先[::]/m.test(lines.join('\n'))) {
@@ -294,6 +292,112 @@ export function migrateObjectives(root, { write = false, date = new Date().toISO
   if (split.objs.length) fs.mkdirSync(objDir, { recursive: true });
   for (const o of split.objs) fs.writeFileSync(path.join(objDir, o.file), o.content);
   fs.unlinkSync(objFile);
-  out.push('', '都寫了;接著 devflow status 看警訊,需求的 Law 與蘊含說明由 dev-flow:project 對談補齊,目標檔的 slug 由 dev-flow:objective 定');
+  out.push('', '都寫了;接著 devflow status 看警訊,需求的驗收由 dev-flow:project 對談補齊,目標檔的 slug 由 dev-flow:objective 定');
+  return { text: out.join('\n'), exitCode: 0 };
+}
+
+// migrate laws [--write]:Law 只剩「不得違反」的約束。先印帳本,--write 才落地。
+// system.md:「## 層」「## 對外 I/O」「## 領域不變量」收進「## 全域 Law」區的三個 ###(領域不變量、架構:層、契約:對外 I/O);
+// 需求的「- Law:」改成「- 驗收:」(需求是必須達成的事,不是 law),「- 蘊含:」刪掉;objectives/ 每個目標檔的「- Law:」連同它的三行刪掉。
+// 測試裡的 R-n#LAW 標記不動:它照樣讀成需求的驗收測試。
+const GLOBAL_INTRO = '不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。';
+
+function dropLawItems(lines, { rename = false } = {}) {
+  const out = [];
+  let changed = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (/^- 蘊含[::]/.test(l) || (!rename && /^- Law[::]/.test(l))) {
+      changed++;
+      while (i + 1 < lines.length && /^\s{2,}- /.test(lines[i + 1])) i++;
+      if (!rename && out.length && !out[out.length - 1].trim() && i + 1 < lines.length && !lines[i + 1].trim()) i++;
+      continue;
+    }
+    if (rename && /^- Law[::]/.test(l)) {
+      changed++;
+      out.push(l.replace(/^- Law[::]\s*/, '- 驗收:'));
+      continue;
+    }
+    out.push(l);
+  }
+  return { lines: out, changed };
+}
+
+export function migrateLaws(root, { write = false } = {}) {
+  const designDir = path.join(root, '.design');
+  const sysFile = path.join(designDir, 'system.md');
+  const objDir = path.join(designDir, 'objectives');
+  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
+  if (!fs.existsSync(sysFile)) return { text: `${rel(designDir)} 裡沒有 system.md;dev-flow:project 建它`, exitCode: 1 };
+  const out = ['# migrate laws 帳本', ''];
+  const sysText = fs.readFileSync(sysFile, 'utf8');
+  let lines = sysText.split(/\r?\n/);
+  const notes = [];
+  // 需求:Law → 驗收,蘊含刪掉
+  const req = sectionRange(lines, '需求');
+  if (req) {
+    const r = dropLawItems(lines.slice(req.from + 1, req.to), { rename: true });
+    if (r.changed) {
+      lines.splice(req.from + 1, req.to - req.from - 1, ...r.lines);
+      notes.push(`需求的「- Law:」改成「- 驗收:」、蘊含說明刪掉,共 ${r.changed} 處`);
+    }
+  }
+  // 全域 Law 區
+  if (!sectionRange(lines, '全域 Law')) {
+    const take = (title) => {
+      const s = sectionRange(lines, title);
+      if (!s) return null;
+      const body = lines.slice(s.from + 1, s.to);
+      while (body.length && !body[body.length - 1].trim()) body.pop();
+      return { at: s.from, body };
+    };
+    const parts = [['領域不變量', '領域不變量'], ['層', '架構:層'], ['對外 I/O', '契約:對外 I/O']];
+    let anchor = null;
+    const region = ['## 全域 Law', GLOBAL_INTRO, ''];
+    const found = [];
+    for (const [h2, h3] of parts) {
+      const got = take(h2);
+      if (got) {
+        const s = sectionRange(lines, h2);
+        lines.splice(s.from, s.to - s.from);
+        if (anchor == null || s.from < anchor) anchor = s.from;
+        found.push(h2);
+      }
+      region.push(`### ${h3}`, ...(got ? got.body : ['無']), '');
+    }
+    if (anchor == null) {
+      const after = sectionRange(lines, '需求') || sectionRange(lines, '願景');
+      anchor = after ? after.to : lines.length;
+    } else {
+      // 區放在需求之後:三節原本夾著別的節時,仍以需求節的結尾為準
+      const after = sectionRange(lines, '需求');
+      if (after) anchor = after.to;
+    }
+    lines.splice(anchor, 0, ...region);
+    notes.push(`${found.length ? `「${found.join('」「')}」` : '沒有任何一節,三區都'}收進「## 全域 Law」區${found.length < 3 ? ';缺的那一區先寫「無」' : ''}`);
+  }
+  const next = lines.join('\n').replace(/\n{3,}/g, '\n\n');
+  out.push(`- ${rel(sysFile)}:${notes.length ? notes.join(';') : '不動'}`);
+  const objWrites = [];
+  if (fs.existsSync(objDir)) for (const f of fs.readdirSync(objDir).filter((n) => n.endsWith('.md')).sort()) {
+    const file = path.join(objDir, f);
+    const text = fs.readFileSync(file, 'utf8');
+    const r = dropLawItems(text.split(/\r?\n/));
+    if (!r.changed) continue;
+    objWrites.push([file, r.lines.join('\n')]);
+    out.push(`- ${rel(file)}:目標的「- Law:」刪掉(目標達成 = 建置路線的里程碑全部達成)`);
+  }
+  out.push('- 測試裡歸屬 R-n#LAW 的標記不動:照樣讀成需求的驗收測試;新寫的用 R-n#ACCEPT');
+  if (next === sysText && !objWrites.length) {
+    out.push('', '這棵樹不用換');
+    return { text: out.join('\n'), exitCode: 0 };
+  }
+  if (!write) {
+    out.push('', '以上只是帳本;devflow migrate laws --write 才落地');
+    return { text: out.join('\n'), exitCode: 0 };
+  }
+  if (next !== sysText) fs.writeFileSync(sysFile, next);
+  for (const [file, text] of objWrites) fs.writeFileSync(file, text);
+  out.push('', '都寫了;接著 devflow lint global 與 devflow status 看警訊');
   return { text: out.join('\n'), exitCode: 0 };
 }

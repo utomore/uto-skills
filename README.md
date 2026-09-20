@@ -4,11 +4,11 @@ Claude Code 的 plugin marketplace:**spec 驅動開發**與**演講內容產生*
 
 | Plugin | 用途 | Skills | CLI |
 |---|---|---|---|
-| [dev-flow](#dev-flow) | 一般程式語言專案的 spec 驅動開發 | 13 | `devflow` |
+| [dev-flow](#dev-flow) | 一般程式語言專案的需求導向開發:先貫通切片,再談 Law、寫測試、調整實作 | 13 | `devflow` |
 | [lawful](#lawful) | 純函數式專案(functional core / imperative shell)的 spec 驅動開發 | 13 | `lawful` |
 | [talk-flow](#talk-flow) | Marp 投影片的主軸、段落、實作與審查 | 6 | — |
 
-dev-flow 與 lawful 是同一套方法的兩種形狀:文檔是唯一真相、簽名住在程式碼裡、性質由 property test 承接、進度由 CLI 從程式碼與測試推導。前者的邊界由專案自己宣告(層由內而外),後者的邊界由純度決定(四層固定)。
+dev-flow 與 lawful 共用同一組地基:簽名住在程式碼裡、性質寫成三行的 law 並由 property test 承接、每條需求各有一句可判定的話、進度由 CLI 從程式碼與測試推導。兩者的順序不同:dev-flow 先用實作貫通一條垂直切片,再對著它談 Law;lawful 先定簽名與 law,再委派測試與實作。邊界也不同:前者由專案自己宣告(層由內而外),後者由純度決定(四層固定)。
 
 ## 目錄
 
@@ -52,62 +52,73 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 
 ## dev-flow
 
-一般程式語言專案的 spec 驅動開發,不限語言。所有文檔住專案的 `.design/`,檔名英文 kebab-case,內文繁體中文。
+一般程式語言專案的需求導向開發,不限語言:**需求(必須達成)與全域 Law(不得違反)先講好,先用實作貫通一條垂直切片,再對著跑得通的東西談 Law、寫測試、調整實作。** 所有文檔住專案的 `.design/`,檔名英文 kebab-case,內文繁體中文。
 
 ### 核心概念
 
-- **feature 是文檔單位**:一段從對外邊界進、從對外邊界出的資料流,一份 `F-00x-<slug>.md` 就是它的唯一真相,從搖籃到墳墓。沒有子系統這一層,沒有 bug 文檔:bug 就是某條 law 在現況下不成立。
-- **簽名住在程式碼裡**:Steps 表每一列是一條正規式簽名 `name(T1, T2): R`,型別與簽名的骨架在設計階段就與文檔一起寫進 `design/<全名>` 分支,`lint sig` 全綠才能拍板 `ready`,經 PR 合進主線後才 `build`。`=` 列是整條、`o` 列是觀察點、`!` 列是進入點。
+- **程式碼先到,文檔是對著它談出來的承諾**:做之前只寫需求與它的驗收、全域 Law;簽名、步驟怎麼拆、放哪個檔案,是做了才知道的事,留給切片。測試涵蓋到哪裡,功能的承諾就到哪裡:沒有 law 守著的行為不是承諾,實作可以自由改。
+- **一條里程碑就是一條切片**:目標底下的里程碑有英文名(全名 `M-n-<slug>`),從切片、談 Law、測試到調整實作,都在同一條 `build/M-n-<slug>` 分支與工作樹上;qa 與 refactor 做完、每條 law 都有一條會失敗而現在通過的測試守著,文檔才是 `verified`,verified 才整合。
+- **每個階段一句核心**:立案只寫做之前判得出真假的東西;切片讓里程碑那一句話看得到地成真、不違反全域 Law、每個決定與每一處假都留紀錄;law 必須講得出怎樣算違反、而且是開發者的決定;每條 law 都被會失敗的測試守著才叫 verified;*Integration MUST NOT reduce Law satisfaction*。步驟與核心衝突時核心贏。
+- **決策紀錄是為了達成這條里程碑的 Goal / Scope 而產生的實作決策**,不是過程的流水帳:每一列 Decision / Reason / Constraint,加上這一片當成成立的前提(law 的直接來源)、哪裡是假的、動到了什麼。
+- **Law 是一次一條、用例子談出來的**:「現在的行為是 …,這是你要的、你不准的、還是你不在乎的?」要的寫成 law、不准的寫成 law 並記成首跑該紅、不在乎的不寫不測。每條 law 都要講得出一個讓它變假的實作,講不出來的只是在描述程式碼。
+- **feature 是文檔單位**:一段從對外邊界進、從對外邊界出的資料流,一份 `F-00x-<slug>.md` 就是它的唯一真相。切片可以大,文檔不跟著變大;沒有子系統這一層,沒有 bug 文檔:bug 就是某條 law 在現況下不成立。
+- **簽名住在程式碼裡**:Steps 表每一列是一條正規式簽名 `name(T1, T2): R`,抄程式碼裡定下來的那一個,`lint sig` 對帳。`=` 列是整條、`o` 列是觀察點、`!` 列是進入點。
 - **law 是純 ASCII 三行**:`forall` / `given` / `|-`,識別字只能是 Steps 的簽名、最內層的匯出或型別名;`given` 的呼叫先發生,命令式的時序也寫得出來。每條 law 由一條 property test 承接,測試以 `F-00x#LAW-n` 宣告歸屬。
-- **四層「為什麼」**:`system.md` 的願景(北極星)與需求(每條一個可判定的 Requirement Law);`objectives/` 一檔一個目標(解決恰好一條需求,有 Objective Law 與優先 1 到 4);目標底下的建置路線(里程碑綁定 feature)與優化路線(調整只動既有 feature 的品質)。
-- **邊界由專案宣告**:層由內而外,內層不准 import 外層,最外層是唯一能做對外 I/O 的層;對外 I/O 表帶信任與驗證兩欄,`untrusted` 的入口必須指名驗證 step。
-- **abstract 是收整出來的**:兩份以上 feature 長出同一段東西,`refactor` 抽成 `A-00x`,被動到的每一份記一條 REV;少於兩個消費者就該搬回去。feature 之間不互相引用。
-- **進度不是欄位**:`status` 只有 `draft` / `ready` / `frozen` 三格,都是人才知道的決定;做到哪、需求 Law 成立了沒、下一步做什麼,由 `devflow status` 從程式碼與測試推。
+- **需求是必須達成,law 是不得違反**:需求不是 law,它附一句驗收,由歸屬 `R-n#ACCEPT` 的驗收測試或建置路線判它達成了沒。law 只有兩種範圍:**全域 Law** 住 `system.md` 的「全域 Law」一區,整個專案都要守;**scope law** 住一份 feature 或 abstract 的「Laws」節,只約束那一份,`law-design` 只設計這一種。目標、里程碑、決策紀錄、ADR 裡都沒有 law。
+- **全域 Law 三類,住同一區,各有一道 lint 自動確認**:領域不變量 `INV-n` 只引用最內層共用的東西,由歸屬 `INV-n#LAW` 的測試長駐守著(`lint invariants`);架構的層由內而外、內層不准 import 外層、最外層是唯一能做對外 I/O 的層(`lint boundary`);契約的對外 I/O 表帶信任、驗證與契約,`untrusted` 的入口必須指名驗證 step(`lint io`)。`lint global` 三道一次查完,`status` 的「全域 Law」表印每一類現在的結果。
+- **全域 Law 的變更要開發者明確批准**:任何全域 Law 的修改、放寬、替換或刪除,都必須經開發者明確批准;`integrate` 只能提出變更建議,不得自行決定變更,也不直接修改全域 Law;經批准的變更由 `revise` 完成,完成後重新驗證受影響的工作。調整任何一條 law 之前,`revise` 先攤影響範圍(動到哪幾條、哪些文檔連動、哪些測試重寫、哪些 `verified` 要重開、哪些分支要重驗、需求還達不達成),再給至少兩個選項(一定含「不改」),開發者選了才落筆。
+- **四層「為什麼」**:`system.md` 的願景(北極星)與需求(必須達成,每條一句可判定的驗收);`objectives/` 一檔一個目標(解決恰好一條需求,優先 1 到 4;達成 = 里程碑全部達成);目標底下的建置路線(里程碑)與優化路線(調整只動既有 feature 的品質)。
+- **abstract 是收整出來的**:切片各切各的,兩份以上 feature 長出同一段東西,`abstract` 抽成 `A-00x`,被動到的每一份記一條 REV;少於兩個消費者就該搬回去。feature 之間不互相引用。
+- **進度不是欄位**:`status` 只有 `draft` / `ready` / `verified` 三格,都是人才知道的決定;做到哪、每條分支走到哪一步、需求達成了沒、全域 Law 有沒有被踩到、下一步做什麼,由 `devflow status` 從檔案、程式碼與測試推。
 
 ### 工作流程
 
 ```
-/project ──▶ /objective ──▶ /feature ──▶ /integrate ──▶ /build ──▶ /integrate
- 立案         目標與里程碑     一份文檔      設計 PR        qa + impl    合成一條 PR
-                                  ▲                          │
-                                  └──────── /revise ◀────────┘  GAP 答完、契約要改
+/project ──▶ /objective ──▶ /spike-impl ──▶ /law-design ──▶ /build ──▶ /integrate
+ 立案         目標與里程碑     貫通一條切片     對著切片談 Law    qa → 首跑     合成一條 PR
+ 需求與驗收                   決策紀錄         拍板才 ready      → refactor    仲裁、ADR
+ 全域 Law                          └──────── 同一條 build/M-n-<slug> 工作樹 ────────┘
+                                                    ▲
+                                  /revise ──────────┘  既有文檔的改動:文檔先行,留 REV,自動接上 build
 ```
 
-- 設計階段(`project` / `objective` / `feature` / `refactor`)由開發者與 skill 對談,在 `design/<全名>` 分支上產出文檔與骨架,經 `integrate` 發 PR 合進主線後才能 `build`。
-- 建構階段(`build`)由 conductor 在 `build/<全名>` 分支與工作樹上帶兩個互不可見的角色:`qa` 只讀文檔寫測試,`impl` 只讀骨架填本體;先在骨架快照上跑基線,再仲裁每一條紅。互不引用的文檔同時各開一波。
-- 整合階段(`integrate`)是唯一發 PR 的出口:依開發日誌定順序、逐條 merge、整套綠了才 `gh pr create`。
-- 隨時可跑:`status` 派工報告、`audit` 稽核、`spike` 可行性驗證、`study` 專案導讀。
+- 立案(`project` / `objective`)只寫做之前就講得清楚的東西,經 `integrate` 以 `plan/<slug>` 分支發 PR 合進主線。
+- 切片(`spike-impl`)從對外入口貫通到出口,同時是可行性驗證;從第一行程式碼就守全域 Law,可以假、但每一處都記進決策紀錄;走不通也是答案,整合時升成 ADR。
+- Law(`law-design`)把切片拆成 feature,Steps 抄程式碼,laws 逐條拍板;收尾自動接上 build。
+- 建構(`build`)由 conductor 帶兩個互不可見的角色:`qa` 只讀文檔寫測試;conductor 在現有的程式碼上驗首跑(該紅的紅、該綠的綠);`refactor` 不讀測試,調整或整份重寫實作直到每條 law 成立。互不相干的里程碑同時各開一條。
+- 整合(`integrate`)是唯一發 PR 的出口:每一條 law 都仍然成立才發;兩條分支的 law 互斥時不改碼,拿縮小後的反例問開發者三選一(以 A 為主 / 收窄定義域 / 提煉上層 Law);它不改任何一條 law,只提變更建議,批准的由 `revise` 落筆;不可逆又跨文檔的權衡升成 ADR。
+- 隨時可跑:`status` 派工報告、`audit` 稽核、`study` 專案導讀。
 
 ### Skills
 
 | Skill | 做什麼 |
 |---|---|
-| `/project` | 訪談後產出 `system.md`(願景、需求與 Requirement Law、語言與工具、層、對外 I/O、Features 清單)、`objectives/` 與 `modules.md`;每條要交付的能力 `devflow claim` 成 `draft` |
-| `/objective` | 目標三問(What / How / Which)、里程碑綁定 feature、調整動到哪些 feature、重排優先 |
-| `/feature` | 一份 `F-00x`:Brief、Steps、Laws、Examples、決定;把型別與簽名的骨架寫進程式碼,三道 lint 過了改 `ready` |
-| `/refactor` | 兩份以上 feature 的共同部分抽成 `A-00x`,原檔改成「見 A-00x」,各記一條 REV |
-| `/build` | conductor:開分支與工作樹 → 對帳骨架 → 派 qa → 基線 → 派 impl → 仲裁 → 驗收測試 → 整套 → 日誌;目標也可以直接是 `R-n` / `O-n`(只派 qa 寫驗收測試) |
-| `dev-flow:qa` | 委派角色:每條 law 一條 property test、每個 example 一條 example test;禁止讀任何實作 |
-| `dev-flow:impl` | 委派角色:把骨架標記換成實作;禁止讀寫測試、禁止改簽名與型別 |
-| `/revise` | 任何對既有文檔的改動都改原檔:回答 GAP、落地調整、寫一條 REV、必要時解凍 |
-| `/status` | 派工報告:需求 Law 成立了沒、目標與里程碑完成度、今天能開幾條線、卡住的、警訊、建議路線;`--html` 畫成看板 |
-| `/audit` | 四段稽核:對帳、需求與目標、穩定度、安全度,產出「哪裡 / 什麼事 / 怎麼辦」表 |
-| `/spike` | 讀原始碼答不出的問題:問題 / 判準 / timebox,拋棄式程式碼寫在 `spike/`,結案即刪、sha 留在文檔 |
+| `/project` | 訪談後產出 `system.md`(願景、需求與驗收、全域 Law 一區三類:領域不變量、架構的層、契約的對外 I/O、語言與工具)、`objectives/` 與 `modules.md`;不建 feature |
+| `/objective` | 目標兩問(What / Which)、里程碑(一條就是一條切片,有英文名)、調整動到哪些 feature、重排優先 |
+| `/spike-impl` | 一條里程碑:開 `build/M-n-<slug>` 工作樹,貫通一條跑得通的垂直切片,留下決策紀錄(Goal / Scope、Decisions:Decision / Reason / Constraint、Assumptions & Invariants、Faked / Unverified、Touched);走不通就記下為什麼 |
+| `/law-design` | 對著切片:claim 出 feature、Steps 抄程式碼、與開發者一次一條談 Law、記下首跑該紅,拍板改 `ready`,自動接上 build |
+| `/build` | conductor:對帳 → 派 qa → 首跑 → 派 refactor → 仲裁 → 驗收測試 → 整套 → 日誌;目標也可以直接是 `R-n` / `INV-n`(只派 qa 寫那一條測試) |
+| `dev-flow:qa` | 委派角色:每條 law 一條 property test、每個 example 一條 example test;禁止讀任何實作本體 |
+| `dev-flow:refactor` | 委派角色:調整或重寫實作直到每條 law 成立,假的換成真的;禁止讀寫測試、禁止改簽名與型別宣告 |
+| `/revise` | 任何對既有文檔的改動都改原檔,文檔先行:回答 GAP、落地調整、寫一條 REV、必要時解凍,自動接上 build |
+| `/abstract` | 兩份以上 feature 的共同部分抽成 `A-00x`,程式碼搬到一處,原檔改成「見 A-00x」,各記一條 REV |
+| `/status` | 派工報告:需求達成了沒、全域 Law 三類有沒有被踩到、目標與里程碑完成度、今天能開幾條線、每條分支走到哪一步、卡住的、警訊、建議路線;`--html` 畫成看板 |
+| `/audit` | 四段稽核:對帳、需求與目標(含 law 是不是只在描述程式碼、全域 Law 有沒有膨脹)、穩定度、安全度,產出「哪裡 / 什麼事 / 怎麼辦」表 |
 | `/study` | 六層縮放的專案導讀:全景 → 架構 → 理念 → 資料結構 → trace → 細讀,每個結論附 `檔案:行號` |
-| `/integrate` | 唯一發 PR 的出口:設計分支單獨一條直接發;建構分支清理已合的、盤點候選、逐條 merge、建置與整套綠了才發,標題英文、內文繁中 |
+| `/integrate` | 唯一發 PR 的出口:清理已合的、盤點候選、逐條 merge、每條 law 仍成立才發;law 互斥時仲裁、寫 ADR;不改任何一條 law,全域 Law 只提變更建議;標題英文、內文繁中 |
 
 ### `.design/` 結構
 
 ```
 .design/
-├── system.md                       # 願景、需求(R-n 與 Requirement Law)、語言與工具、層、對外 I/O、Features
-├── objectives/R-1-O-1-<slug>.md    # 一檔一個目標:Objective Law、優先、里程碑(M-n)、調整(RF-n)
+├── system.md                       # 願景、需求(R-n 與驗收)、全域 Law(領域不變量 INV-n、架構:層、契約:對外 I/O)、語言與工具、Features
+├── objectives/R-1-O-1-<slug>.md    # 一檔一個目標:優先、里程碑(M-n-<slug>)、調整(RF-n)
 ├── modules.md                      # 模組表:相對路徑樣式 → 層
 ├── features/F-001-<slug>.md        # 一條從對外邊界進出的資料流
 ├── abstracts/A-001-<slug>.md       # 兩份以上 feature 收整出來的共用能力
 ├── gaps.md                         # 只裝 open 的 GAP
-├── adr/ADR-001-<slug>.md           # 跨文檔的決定
-└── spikes/SPK-001-<slug>.md        # 可行性驗證的結論;程式碼在 spike/SPK-001-<slug>/,結案即刪
+├── adr/ADR-001-<slug>.md           # 跨文檔、回不了頭的決定;整合時寫
+└── journal/M-1-<slug>.md           # 決策紀錄:為了達成這條里程碑的 Goal / Scope 而產生的實作決策;只活在 build 分支,整合寫進 PR 後刪
 ```
 
 ### CLI:`devflow`
@@ -116,26 +127,27 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 
 | 子命令 | 做什麼 |
 |---|---|
-| `status [--tests <log> \| --run]` | 派工報告;`--doc` / `--module` 追問單份文檔或單一檔案;`--json` 給工具讀;`--html` 畫成看板 |
-| `claim feature\|abstract\|spike\|adr <slug>` | 鑄號建檔;feature 另加進 Features 表並綁進 `--milestone` |
-| `requirement add` | 鑄 `R-n` 寫進 `system.md` |
-| `objective add` / `milestone` / `refinement` | 鑄 `O-n` 建目標檔 / 鑄 `M-n` 綁 feature / 鑄 `RF-n` 指定動到的 feature |
+| `status [--tests <log> \| --run]` | 派工報告;建構中的分支從它的工作樹讀出走到哪一步;`--doc` / `--module` 追問單份文檔或單一檔案;`--json` 給工具讀;`--html` 畫成看板 |
+| `claim feature\|abstract\|adr <slug>` | 鑄號建檔;feature 另加進 Features 表並綁進 `--milestone`;配號看同一個 repo 的每一棵工作樹 |
+| `requirement add` / `invariant add` | 鑄 `R-n` / `INV-n` 寫進 `system.md` |
+| `objective add` / `milestone` / `refinement` | 鑄 `O-n` 建目標檔 / 鑄 `M-n-<slug>` / 鑄 `RF-n` 指定動到的 feature |
 | `lint ids` | 兩個檔案同號、號段行讀不懂或重疊、`owner` 的號不在自己的區間內 |
-| `lint boundary` | import 方向 vs 層表;非最外層碰 IO 模組;未登記與幽靈檔案 |
+| `lint boundary` | 全域 Law 的架構:import 方向 vs 層表;非最外層碰 IO 模組;未登記與幽靈檔案 |
 | `lint sig` | Steps 簽名 vs 程式碼:找得到、匯出、簽名一致、型別都宣告過、`=` / `o` / `!` 列的層與份數、abstract 有消費者、feature 不引用 feature |
-| `lint laws` | 三行齊全、種類合法、識別字對得到簽名或型別、`=` 列至少一條 law、example 指得到 law;需求與目標的 Law 同一套查 |
-| `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用;需求與目標 Law 寫了三行卻沒有驗收測試 |
-| `lint io` | 對外 I/O 表:`untrusted` 的入口有驗證 step、文檔沒有秘密字面值、最外層沒有未登記的出入口 |
+| `lint laws` | scope law:三行齊全、種類合法、識別字對得到簽名或型別、`=` 列至少一條 law、example 指得到 law;需求的驗收同一套查 |
+| `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用;需求的驗收寫了三行卻沒有驗收測試 |
+| `lint io` | 全域 Law 的契約:`untrusted` 的入口有驗證 step、契約欄指到的 law 存在、文檔沒有秘密字面值、最外層沒有未登記的出入口 |
+| `lint invariants` | 全域 Law 的領域不變量:編號、種類、三行只准引用最內層、寫了三行就有 `INV-n#LAW` 測試 |
+| `lint global` | 全域 Law 三類一次查完:`boundary`(架構)+ `io`(契約)+ `invariants`(領域不變量) |
 | `lint all` | 以上全部 |
 | `sync` / `modules --gen` | 同層搬家的 step 改模組欄 / 從程式碼補模組表 |
-| `spike close` | 檢查 verdict / feeds / sha 齊全,刪 `spike/` 的程式碼 |
-| `migrate objectives` / `migrate <.design>` | 目標還擠在一份 `objectives.md` 的樹拆成 `objectives/` / `subsystems/` 體系的遷移帳本(只印不改) |
+| `migrate laws` / `migrate objectives` / `migrate <.design>` | `system.md` 沒有「全域 Law」區的樹把三類約束收進那一區 / 目標還擠在一份 `objectives.md` 的樹拆成 `objectives/` / `subsystems/` 體系的遷移帳本(只印不改) |
 
 ### 語言 adapter
 
 語言相關的事全部走 adapter,讀取層不認識任何語言。模組的身分是相對專案根目錄的檔案路徑。
 
-| adapter | 副檔名 | 匯出 | 骨架標記 | 測試輸出 |
+| adapter | 副檔名 | 匯出 | 未實作標記 | 測試輸出 |
 |---|---|---|---|---|
 | `typescript`(含 javascript) | `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` | `export` | `throw new Error(…)` | jest / vitest / mocha |
 | `python` | `.py` | `__all__`,沒寫就是不以底線開頭的 | `raise NotImplementedError` | pytest / unittest |
@@ -152,7 +164,7 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 - 號段:amy@corp.com = 100-199;bob@corp.com = 200-299
 ```
 
-`devflow claim` 自動讀 `git config user.email`(`GIT_AUTHOR_EMAIL` 優先),從自己區間內的最大號往上配,frontmatter 寫 `owner`;email 不在號段行上就停。號段只管一檔一號的 feature / abstract / spike / ADR;需求、目標、里程碑、調整住共用檔,經設計 review。`lint ids` 抓同號與區間重疊,放進 PR 的 CI 就是安全網。單人專案寫 `無` 或不寫這一行,行為不變。
+`devflow claim` 自動讀 `git config user.email`(`GIT_AUTHOR_EMAIL` 優先),從自己區間內的最大號往上配,frontmatter 寫 `owner`;email 不在號段行上就停。號段只管一檔一號的 feature / abstract / ADR;需求、領域不變量、目標、里程碑、調整住共用檔,一律從最大號往上配。同一台機器上每條切片各住各的工作樹,`claim` 配號時看得到彼此;不同機器上各自 claim 的同號由 `lint ids` 抓,放進 PR 的 CI 就是安全網。單人專案寫 `無` 或不寫這一行,行為不變。
 
 ## lawful
 
@@ -160,12 +172,14 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 
 與 dev-flow 的差異:
 
+- **文檔先行**:一條 pipeline 先與開發者談出 Stages 的簽名與 laws、把型別與簽名的骨架寫進程式碼,拍板 `ready` 之後 conductor 才派 qa 與 impl;可行性另走 `spike`。
+
 - **四層固定**:`types ← effect ← core ← shell`,一層一棵原始碼樹(預設 `src-<層>`),各是建置系統的一個子函式庫,依賴方向由編譯器擋、`lint boundary` 再對一次。`=` 列是純的整條、`!` 列是 shell 進入點。
 - **模組單元先於 pipeline**:`modules.md` 一列一個單元(名字、職責、有哪幾層);要新單元先 `lawful module` 劃邊界再 claim。pipeline 的 slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列住的單元。
 - **Cone.md 取代 system.md**:願景、需求、專案約束(語言、三道指令、模組前綴、原始碼根目錄、硬性要求的套件、號段、優先各級)。
 - **stage 之間不用無名容器**:`lint sig` 擋 aeson `Value` 這類型別,形狀要有名字。
 
-Skills 與 dev-flow 同形:`design`、`objective`、`module`、`pipeline`、`build`、`qa`、`impl`、`revise`、`status`、`audit`、`spike`、`integrate`、`study`。CLI `lawful` 的子命令同形,另有 `module`、`rename`、`migrate cone`(只有 `system.md` 的樹換成 `Cone.md` 體系)與 `migrate from-dev-flow`。第一個 adapter 是 Haskell(認 hspec 與 tasty 兩種測試輸出)。
+Skills:`design`、`objective`、`module`、`pipeline`、`build`、`qa`、`impl`、`revise`、`status`、`audit`、`spike`、`integrate`、`study`。CLI `lawful` 的子命令與 `devflow` 相近(status、claim、lint、sync、section),另有 `module`、`rename`、`migrate cone`(只有 `system.md` 的樹換成 `Cone.md` 體系)與 `migrate from-dev-flow`。第一個 adapter 是 Haskell(認 hspec 與 tasty 兩種測試輸出)。
 
 ```
 .lawful/
@@ -225,7 +239,7 @@ review/             # 審查報告
 plugins/
 ├── dev-flow/
 │   ├── .claude-plugin/plugin.json
-│   ├── rules/                      # 四份主題規章(features / boundary / roles / tooling):每條規則唯一的住處
+│   ├── rules/                      # 五份主題規章(laws / features / boundary / roles / tooling):每條規則唯一的住處
 │   ├── skills/<name>/SKILL.md      # 只寫步驟,規則用檔名加節名引用
 │   ├── bin/devflow.mjs             # 單一 CLI
 │   ├── lib/                        # 讀取層、lint、status、語言 adapter

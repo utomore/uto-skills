@@ -1,53 +1,62 @@
 ---
 name: build
-description: dev-flow 的建構指揮(conductor)— 對一份 ready 的文檔:開 build/<全名> 分支與工作樹、對帳設計階段寫好的骨架、先派 qa 拿測試在骨架快照上跑基線、再派 impl、跑子集、仲裁四分流、全綠後跑整套一次、這份讓某個目標的建置路線全部達成而它的 Law 有三行式卻沒有驗收測試就再派一次 qa 寫 R-n#LAW / O-n#LAW、寫 GAP、達成後改 frozen、寫開發日誌 commit 在分支上;目標也可以直接是 R-n / O-n(只派 qa 寫那條驗收測試);互不引用的文檔可以同時各開一波,合併交給 dev-flow:integrate;不寫測試、不寫實作、不寫骨架、不補 law。觸發詞:build、建構、開工、實作這份、跑 feature、驗收測試、dev-flow build、委派開發、批次開發。Use when a ready feature or abstract should be turned into tests and code by delegated qa and impl roles on its own branch, or when a requirement or objective Law needs its acceptance test.
+description: dev-flow 的建構指揮(conductor)— 在一條 build 分支的工作樹上,對它每一份 ready 的文檔:對帳簽名、先派 qa 只讀文檔寫測試、在現有的程式碼上驗首跑(開發者答不准的 law 要紅、其餘要綠)、再派 refactor 調整或重寫實作、跑子集、仲裁四分流、全綠後跑整套一次、這份讓某個目標的建置路線全部達成而它的 需求的驗收或領域不變量有三行式卻沒有測試就再派一次 qa 寫 R-n#ACCEPT / INV-n#LAW、寫 GAP、每條 law 成立才改 verified、寫決策紀錄的「Verification」commit 在分支上;由 dev-flow:law-design、dev-flow:revise、dev-flow:abstract 收尾時自動接上;目標也可以直接是 R-n / INV-n(開分支,只派 qa 寫那條驗收測試);合併交給 dev-flow:integrate;不寫測試、不寫實作、不補 law。觸發詞:build、建構、開工、跑這條里程碑、跑 feature、驗收測試、dev-flow build、委派開發。Use when the ready documents of a build branch should be turned into tests and law-abiding code by delegated qa and refactor roles, or when a requirement, objective or invariant Law needs its acceptance test.
 user-invocable: true
 ---
 
 # dev-flow:build — conductor
 
+> **核心**:A document is Verified only when every Law is guarded by a test that can fail and now passes.(每條 law 都有一條會失敗、現在通過的測試守著,這份文檔才叫 verified;少一條都不是。) 步驟與這一句衝突時,這一句贏:停下,回報。
+
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/roles.md` 全份、`rules/features.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「測試歸屬」「跑東西的紀律」「收尾定錨」。再讀目標文檔、`.design/modules.md`、`.design/system.md` 的「語言與工具」。
+`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/roles.md` 全份、`rules/features.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「測試歸屬」「跑東西的紀律」「收尾定錨」。再讀目標文檔、`.design/journal/<鍵>.md`、`.design/modules.md`、`.design/system.md` 的「語言與工具」。
+
+## 輸入
+
+| 目標 | 這一波做什麼 |
+|---|---|
+| 里程碑全名 `M-n-<slug>` | 它綁的每一份 `ready` 文檔各一波,被引用的 abstract 在前 |
+| 文檔全名(`dev-flow:revise` 或 `dev-flow:abstract` 交過來的) | 那一份,只重做 REV「重委派」欄點名的 |
+| `R-n` / `INV-n` | 驗收測試那波:只派 qa 寫那一條(需求的驗收,或一條領域不變量) |
 
 ## 前置
 
-在主線、與 origin 同步(`git fetch` 後 `git status -sb` 沒有 ahead / behind)、工作樹乾淨(`git status --porcelain` 空);目標文檔與它的骨架因此都已合進主線,設計還在 `design/<全名>` 上就先 `dev-flow:integrate`。`devflow status`:目標是 `ready`、沒有 open GAP、不是建構中、引用的每份 abstract 都已達成並在主線上。不是就停,回報該先做什麼;abstract 還沒合進主線就等它(`roles.md`「分支與所有權」)。
-
-目標是 `R-n` / `O-n`(`roles.md`「驗收測試」):`status` 的需求表或目標表要顯示它的建置路線全部達成、Law 有三行式而沒有測試。是就走「驗收測試那波」:`git worktree add -b build/R-n ../<repo>.worktrees/R-n HEAD`,跳過第 1 到 6 步,直接第 7 步派 qa,再第 8 步整套、第 9 步收尾(日誌的 `doc` 寫 `R-n`)。建置路線沒達成就停,回報還差哪條里程碑。
+- **工作目錄是那條分支的工作樹** `../<repo>.worktrees/<鍵>`(`rules/roles.md`「分支與所有權」);build 不替里程碑與文檔開分支,分支由 `dev-flow:spike-impl`、`dev-flow:revise`、`dev-flow:abstract` 開。不在那棵樹上就先過去。
+- `devflow status`:目標文檔是 `ready`、沒有 open GAP、引用的每份 abstract 都已達成。還是 `draft` → `dev-flow:law-design`;不是就停,回報該先做什麼。
+- 目標是 `R-n` / `INV-n`(`rules/roles.md`「驗收測試」):`status` 要顯示它有三行式而沒有測試,需求另要它底下每個目標的建置路線全部達成。在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/R-n ../<repo>.worktrees/R-n HEAD`,跳過第 1 到 5 步,直接第 6 步派 qa,再第 7 步整套、第 8 步收尾(決策紀錄的 `key` 寫 `R-n`,從「Verification」寫起)。建置路線沒達成就停,回報還差哪條里程碑。
 
 ## 步驟
 
-0. **開分支**:`git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,記下 HEAD 的 sha(日誌的 `base`)。之後每道指令的工作目錄都是這棵工作樹,委派 prompt 也給它。有 REV 的目標在這棵樹上先跑整套當基準線,輸出留檔。
-1. **對帳骨架**(`roles.md`「骨架與基線」):跑建置指令編得過、`devflow lint sig` 沒有紅、`devflow status --doc <全名>` 每列是「骨架」或「在」。有一列「找不到」「不一致」、或簽名裡的型別沒宣告過,就停:回報缺什麼,回 `dev-flow:feature` 或 `dev-flow:revise`;不在分支上補簽名或型別。
-2. **記快照**:發任何委派之前 `git worktree add --detach <路徑> <base 的 sha>` 建好快照工作樹(建構工作樹之外的第二棵)。先建好再用,不要等發現骨架被動過才建。
-3. **派 qa**(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板):給全名、文檔路徑、建構工作樹路徑、最內層的檔案清單、子集測試指令。測試檔以全名命名。
-4. **基線**:qa 交付後把測試檔複製進快照工作樹跑一次,輸出留檔。打到骨架標記的要紅、打到型別事實的要綠、REV 保護的要綠。該紅卻綠退回 qa;該綠卻紅寫成 GAP。驗完移除快照 worktree;環境帶不過去就明寫「本波 qa 紅綠未驗證」,不得默認通過。回報裡的 GAP 由你寫進 `.design/gaps.md` 配號,從主線最大號往上。commit。
-5. **派 impl**(`dev-flow:impl`,`model: "sonnet"`):給全名、文檔路徑、建構工作樹路徑、骨架檔路徑、子集指令;**不給測試檔**。多語言專案的子集指令取這份文檔那一側的(Steps 模組路徑的目錄),派 qa 時同樣。
-6. **判定**:跑本波子集。有紅走仲裁(`roles.md`「仲裁」):每條紅先歸因到哪條 law 或 example,再照四分流處置;每輪只跑上一輪紅的加子集;同一份三輪仍紅停止並升級。commit。
-7. **驗收測試**(`roles.md`「驗收測試」):本波全綠後 `devflow status --tests <log>`;這份文檔讓某個目標的建置路線全部達成,而該目標的 Law(繼承時是需求的 Law)有三行式卻沒有 `O-n#LAW` / `R-n#LAW` 測試 → 同一條分支再派一次 qa(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板,「文檔」那行改成「Law:R-n / O-n,三行原文」並列出它引用到的簽名所在的每份文檔路徑),測試檔以 `R-n` / `O-n` 命名。紅不歸因到 impl:開 GAP(角色 conductor,目標 `R-n#LAW`)停下,回 `dev-flow:objective` 或 `dev-flow:revise`。沒有這種目標就跳過。
-8. **整套一次**:跑整套,輸出留檔,`devflow status --tests <log>`。
-9. **收尾**(`roles.md`「收尾」):open GAP 清單各附「需要回答什麼」;qa 與 impl 自己決定的事整份列出;`status` 顯示達成就改 `frozen`。照 `templates/journal.md` 寫 `.design/journal/<全名>.md`(`roles.md`「開發日誌」):數字抄 `devflow status --doc <全名>`,動到的檔抄 `git diff --stat <base>..HEAD`,決定抄 qa 與 impl 的回報。連同所有改動 commit。回到主線的工作目錄回報;分支留著給 `dev-flow:integrate`。
+0. **基準線**:有 REV 的目標(修訂、收整)先在這棵樹上跑整套當基準線,輸出留檔。
+1. **對帳**:跑建置指令編得過、`devflow lint sig` 與 `devflow lint laws` 沒有紅、`devflow status --doc <全名>` 每列是「在」或「未實作」(修訂新增的 step)。有一列「找不到」「不一致」、或簽名裡的型別沒宣告過,就停:回報缺什麼,回 `dev-flow:law-design` 或 `dev-flow:revise`;不在這裡補宣告。
+2. **派 qa**(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板):給全名、文檔路徑、工作樹路徑、最內層的檔案清單、子集測試指令。測試檔以全名命名。**不給決策紀錄**:哪幾條該紅 qa 不必知道。
+3. **首跑**(`rules/roles.md`「首跑」):qa 交付後,在現有的程式碼上跑一次它的測試,輸出留檔。決策紀錄「首跑該紅」列的 law、REV「動到」欄點名的 law、打到未實作標記的要紅;其餘要綠。該紅卻綠退回 qa;該綠卻紅照第 5 步歸因;一條紅都沒有就逐條拿 `|-` 行對測試的斷言。結果寫進決策紀錄「Verification」的「首跑」。環境跑不起來就明寫「本波 qa 紅綠未驗證」,不得默認通過。回報裡的 GAP 由你寫進 `.design/gaps.md` 配號,從主線最大號往上。commit。
+4. **派 refactor**(`dev-flow:refactor`,`model: "sonnet"`):給全名、文檔路徑、工作樹路徑、子集指令、**首跑紅的那幾條 law 的原文與歸因**、決策紀錄「Faked / Unverified」裡屬於這份文檔的列;**不給測試檔、不給測試碼**。首跑全綠而沒有假的東西要換,就不派。多語言專案的子集指令取這份文檔那一側的(Steps 模組路徑的目錄),派 qa 時同樣。
+5. **判定**:跑本波子集。有紅走仲裁(`rules/roles.md`「仲裁」):每條紅先歸因到哪條 law 或 example,再照四分流處置;每輪只跑上一輪紅的加子集;同一份三輪仍紅停止並升級。commit。
+6. **驗收測試**(`rules/roles.md`「驗收測試」):本波全綠後 `devflow status --tests <log>`;這份文檔讓某條需求底下每個目標的建置路線都達成,而那條需求的驗收有三行式卻沒有 `R-n#ACCEPT` 測試,或 law-design 在這條分支上把一條領域不變量寫成了三行而沒有 `INV-n#LAW` 測試 → 同一條分支再派一次 qa(prompt 的「文檔」那行改成「驗收:R-n,三行原文」或「領域不變量:INV-n,三行原文」並列出它引用到的簽名所在的每份文檔路徑),測試檔以 `R-n` / `INV-n` 命名。紅不歸因到某個 step 的實作:開 GAP(角色 conductor,目標 `R-n#ACCEPT` 或 `INV-n#LAW`)停下,回 `dev-flow:objective` 或 `dev-flow:revise`。沒有這種情形就跳過。
+7. **整套一次**:跑整套,輸出留檔,`devflow status --tests <log>`、`devflow lint all`。領域不變量有紅 = 這條分支違反了全專案的規則,照仲裁歸因到是哪一份的實作。
+8. **收尾**(`rules/roles.md`「收尾」):open GAP 清單各附「需要回答什麼」;qa 與 refactor 自己決定的事整份列出;決策紀錄「Faked / Unverified」逐列對過(換成真的了,或有一條 open GAP);`status` 顯示達成就改 `verified`。照 `templates/journal.md` 寫決策紀錄的「Verification」與「合併時要看」(`rules/roles.md`「決策紀錄」):數字抄 `devflow status --doc <全名>`,動到的檔抄 `git diff --stat <base>..HEAD`,決定抄 qa 與 refactor 的回報。連同所有改動 commit。分支留著給 `dev-flow:integrate`。
 
 ## 委派 prompt 模板
 
 ```
 【委派模式】遵守 <D>/rules/roles.md「委派」:不提問、不寫共用檔、提到文檔寫全名、如實回報。
-你是 <qa | impl> 角色,執行 dev-flow:<qa | impl>。
+你是 <qa | refactor> 角色,執行 dev-flow:<qa | refactor>。
 文檔:<全名>,檔:<路徑>
 工作樹:<路徑>(所有讀寫與指令都在這裡)
-最內層檔案:<清單>(qa 可讀;impl 另給骨架檔路徑)
+最內層檔案:<清單>(qa 可讀;其餘程式碼 qa 只讀 Steps 上那幾條簽名的宣告)
 子集測試指令:<一行>
 歸屬寫法:<字串 "F-00x#LAW-n" 或識別字 f_00x__law_n,依語言>
 回報固定五項:改了哪些檔;完成了什麼(數字);自己決定的事;GAP 清單(局部序號,四欄);阻塞項。
 ```
 
-impl 的 prompt 另加:禁止讀寫任何測試檔、禁止改簽名與型別、只跑子集、禁止改 frontmatter。修訂目標另附基準線的綠紅數字當護欄,不要自己重跑整庫。
+refactor 的 prompt 另加:現在不成立的 law 原文與歸因;決策紀錄「Faked / Unverified」裡要換成真的的列;禁止讀寫任何測試檔、禁止改 Steps 上的簽名與型別宣告、只跑子集、禁止改文檔。修訂目標另附基準線的綠紅數字當護欄,不要自己重跑整庫。
 
 ## 收尾
 
-定錨區塊(`tooling.md`「收尾定錨」)。下一步:`dev-flow:integrate`(要合的分支寫全名);還有能開的線就先 `dev-flow:build <另一份全名>`,幾條一起整合;`status` 列了建置路線達成而沒有驗收測試的需求或目標,就 `dev-flow:build R-n`。
+定錨區塊(`tooling.md`「收尾定錨」)。這條里程碑綁的每份文檔都達成 = 這條里程碑正式達成,下一步 `dev-flow:integrate`(要合的分支寫鍵);還有能開的線就先開下一條(`dev-flow:spike-impl <M-n-slug>`),幾條一起整合;`status` 列了沒有驗收測試的需求或沒有測試的領域不變量,就 `dev-flow:build R-n` / `INV-n`。
 
 ## 邊界
 
-不寫測試、不寫實作、不寫骨架、不補 law、不替開發者做契約級決定、不事後追認。簽名或型別缺了是設計沒做完,回設計,不在分支上補。qa 與 impl 互不可見;開發者明說要平行才平行。只動自己這份文檔的東西與本波的驗收測試(`roles.md`「分支與所有權」);驗收測試紅不派 impl、不放寬斷言;不合併、不發 PR。
+不寫測試、不寫實作、不補 law、不改宣告、不替開發者做契約級決定、不事後追認。簽名或型別缺了是 Law 那一層沒做完,回去,不在這裡補。qa 與 refactor 互不可見;qa 先、refactor 後。只動自己這條分支的東西與本波的驗收測試(`rules/roles.md`「分支與所有權」);驗收測試紅不放寬斷言;不合併、不發 PR。

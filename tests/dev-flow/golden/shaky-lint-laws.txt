@@ -1,12 +1,9 @@
 $ devflow lint laws
-## lint laws:9 條不合規
+## lint laws:6 條不合規
 - ✗ .design/features/F-001-score.md LAW-2 種類「nonsense」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute
 - ✗ .design/features/F-001-score.md LAW-2 |- 行的 mysteryFn 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
 - ✗ .design/features/F-001-score.md EX-2 指到的 LAW-7 不存在
-- ✗ .design/system.md:11 R-1 Law 還是模板
-- ✗ .design/system.md:25 R-5 Law |- 行的 mysteryTop 對不到 Steps 簽名(任何一份文檔的)、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
-- ✗ .design/system.md:25 R-5 Law 的 |- 行引用了進入點 scoreHandler;進入點只接線,它做的事由對外 I/O 表承接
-- ✗ .design/objectives/R-9-O-4-orphan.md:1 O-4 Law 沒有;一句可判定的話,寫成清單項「- Law:…」
-- ✗ .design/objectives/R-1-O-5-bare.md:1 O-5 Law 還是模板
-- ✗ .design/objectives/R-1-O-6-mismatch.md:1 O-7 Law |- 行的 ghostFn 對不到 Steps 簽名(任何一份文檔的)、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/system.md:11 R-1 驗收 還是模板
+- ✗ .design/system.md:25 R-5 驗收 |- 行的 mysteryTop 對不到 Steps 簽名(任何一份文檔的)、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/system.md:25 R-5 驗收 的 |- 行引用了進入點 scoreHandler;進入點只接線,它做的事由對外 I/O 表承接
 exit 1

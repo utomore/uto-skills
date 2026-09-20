@@ -21,9 +21,9 @@ node ci/dev-flow/contract.mjs [--root <專案根目錄>] [--lint-only]
 
 | 步驟 | 做什麼 | 紅了擋不擋 |
 |---|---|---|
-| 1 契約對帳 | `devflow lint ids`、`boundary`、`sig`、`laws`、`io` | 擋 |
-| 1 契約對帳 | `lint trace` 的幽靈引用(測試引用的編號文檔裡沒有)與 `status: frozen` 文檔沒有測試承接的 law | 擋:幽靈引用什麼時候都是錯;frozen 是建置全綠後才改的,它的 law 理應都有測試 |
-| 1 契約對帳 | `lint trace` 其餘(`ready` 文檔的 law 還沒翻譯、需求與目標的 Law 還沒有驗收測試) | 只印:設計 PR 的 law 還沒有測試,它一定紅 |
+| 1 契約對帳 | `devflow lint ids`、`boundary`、`sig`、`laws`、`io`、`invariants`(`boundary`、`io`、`invariants` 三道就是全域 Law 的三類) | 擋 |
+| 1 契約對帳 | `lint trace` 的幽靈引用(測試引用的編號文檔裡沒有)與 `status: verified` 文檔沒有測試承接的 law | 擋:幽靈引用什麼時候都是錯;verified 是建置全綠後才改的,它的 law 理應都有測試 |
+| 1 契約對帳 | `lint trace` 其餘(`ready` 文檔的 law 還沒翻譯、需求的驗收還沒有驗收測試)與領域不變量寫了三行卻沒有測試 | 只印:測試可以晚一條 PR 才到(剛批准的領域不變量,測試在下一波 build) |
 | 1 契約對帳 | `status: draft` 文檔的紅 | 只印:draft 是還在討論的文檔,改成 `ready` 的那條 PR 起才擋;`lint ids` 查的是檔案本身,兩份 draft 同號照擋 |
 | 2 建置 | `system.md`「語言與工具」的建置指令 | 擋 |
 | 3 整套測試 | 宣告的整套測試指令,輸出留檔;多語言專案每側一道 | 擋 |
@@ -63,7 +63,9 @@ GitLab 的 merge trains 對應 GitHub 的 merge queue,同樣等到需要再開�
 
 **PR 只有一份新的 draft 文檔,CI 會紅嗎?** 不會。draft 文檔的紅只印不擋。改成 `ready` 的那條 PR 起,它的每一列都要對得上程式碼。
 
-**設計 PR(文檔加骨架、本體是骨架標記)會紅嗎?** 不會。骨架編得過,既有測試不打它,`lint trace` 對 `ready` 文檔只印不擋。修訂(REV)把本體退回骨架標記時,被點名重委派的 law 的測試會紅,那條 PR 由 `dev-flow:integrate` 的判準決定放不放行。
+**只改立案的 PR(`plan/<slug>`:需求、領域不變量、目標、里程碑)會紅嗎?** 不會。它只動 `.design/`;里程碑還沒有切片、領域不變量還只有一句話,都是警訊不是紅。
+
+**一條里程碑的 PR 什麼時候才進得來?** 它在自己的 `build/M-n-<slug>` 分支上從切片做到每條 law 成立,`dev-flow:integrate` 才收它、整套綠了才發 PR;CI 看到的已經是達成的狀態,每一列都要對得上程式碼。
 
 **多語言專案?** `system.md` 的 `language` 欄寫 `[web = typescript, api = python]`、三道指令每側一組,腳本每側各跑一道、報告合併。CI 的工具鏈兩種都要裝。
 

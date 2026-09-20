@@ -5,7 +5,8 @@ $ lawful status --json
   "tool": "lawful",
   "labels": {
     "unit": "pipeline",
-    "steps": "Stages"
+    "steps": "Stages",
+    "measure": "條 pipeline"
   },
   "vision": "輸入檔解析、正規化後跑完整條。",
   "visionFull": "輸入檔解析、正規化後跑完整條。 三條 pipeline:里程碑 P-001 引用 P-002 的 = 列(有註明見);P-002 與 P-003 都把 shared 列成步驟而沒註明見。",
@@ -159,6 +160,61 @@ $ lawful status --json
     }
   ],
   "invariants": [],
+  "globalLaws": {
+    "gates": [
+      {
+        "kind": "架構",
+        "where": "架構:四層",
+        "gate": "boundary",
+        "red": 0,
+        "result": "四層,沒有程式碼可對"
+      },
+      {
+        "kind": "契約",
+        "where": "契約:對外 I/O",
+        "gate": "io",
+        "red": 0,
+        "result": "1 列,通過;契約欄指到的 law 0 條,成立 0 條"
+      },
+      {
+        "kind": "領域不變量",
+        "where": "領域不變量",
+        "gate": "invariants",
+        "red": 0,
+        "result": "0 條,通過;成立 0 條"
+      }
+    ],
+    "layers": [
+      {
+        "name": "types",
+        "what": "`App.Doc`"
+      },
+      {
+        "name": "effect",
+        "what": "無"
+      },
+      {
+        "name": "core",
+        "what": "`App.Syntax`、`App.Canon`、`App.Cli`"
+      },
+      {
+        "name": "shell",
+        "what": "`App.Cli.Main`"
+      }
+    ],
+    "io": [
+      {
+        "name": "輸入檔",
+        "direction": "in",
+        "type": "Text",
+        "module": "App.Cli.Main",
+        "entry": "P-001-cli-run",
+        "trust": null,
+        "guard": null,
+        "contract": []
+      }
+    ]
+  },
   "bands": [
     {
       "id": "R-1",
@@ -347,7 +403,11 @@ $ lawful status --json
             "id": "LAW-1",
             "kind": "total",
             "title": "任何文字都有結果",
-            "result": "未翻譯"
+            "result": "未翻譯",
+            "lines": [
+              "forall t in Text",
+              "|- total (run t)"
+            ]
           }
         ]
       },
@@ -452,7 +512,11 @@ $ lawful status --json
             "id": "LAW-1",
             "kind": "total",
             "title": "任何文字都解得出結果或錯誤",
-            "result": "未翻譯"
+            "result": "未翻譯",
+            "lines": [
+              "forall t in Text",
+              "|- total (parse t)"
+            ]
           }
         ]
       },
@@ -543,7 +607,11 @@ $ lawful status --json
             "id": "LAW-1",
             "kind": "identity",
             "title": "正規化冪等",
-            "result": "未翻譯"
+            "result": "未翻譯",
+            "lines": [
+              "forall d in Doc",
+              "|- normalize (normalize d) == normalize d"
+            ]
           }
         ]
       },

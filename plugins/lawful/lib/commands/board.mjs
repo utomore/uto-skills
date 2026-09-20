@@ -5,17 +5,20 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { analyze, buildKeyOf, counts, docState, invariantView, metWord, moduleView, openLines, requirementView, reviseLines, sliceLines, suggestRoutes, warnings } from './status.mjs';
+import { analyze, buildKeyOf, counts, docState, globalView, invariantView, metWord, moduleView, openLines, requirementView, reviseLines, sliceLines, suggestRoutes, warnings } from './status.mjs';
 
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
 const TOKEN = '__STATUS_JSON__';
+
+// 三行式原樣帶出去:forall、given(可以好幾行)、|-;還沒有三行式就是空陣列
+const threeLines = (l) => [l.forall, ...(l.given || []), l.conclusion].filter(Boolean);
 
 function lawsOf(x) {
   return {
     total: x.laws.length,
     green: x.unknown ? null : x.laws.filter((l) => l.result === 'green').length,
     traced: x.laws.filter((l) => l.traced).length,
-    items: x.laws.map((l) => ({ id: l.id, kind: l.kind || null, title: l.title || '', result: l.result })),
+    items: x.laws.map((l) => ({ id: l.id, kind: l.kind || null, title: l.title || '', result: l.result, lines: threeLines(l) })),
   };
 }
 
@@ -39,7 +42,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const a = analyze(design, source, adapter, results);
   const ov = requirementView(design, a);
   const inv = invariantView(design, a);
-  const warns = warnings(design, a, ov, source, adapter, stale, inv);
+  const glob = globalView(design, a, source, adapter, inv);
+  const warns = warnings(design, a, ov, source, adapter, stale, inv, glob);
   const route = suggestRoutes(design, a, ov, warns.length, building, inv);
   const slices = sliceLines(ov, building, design);
   const revisions = reviseLines(ov, building);
@@ -142,7 +146,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
 
   return {
     tool: 'lawful',
-    labels: { unit: 'pipeline', steps: 'Stages' },
+    labels: { unit: 'pipeline', steps: 'Stages', measure: '條 pipeline' },
     vision: cone && cone.visionState === 'ok' ? cone.vision : null,
     visionFull: cone && cone.visionState === 'ok' ? cone.visionFull : null,
     visionState: cone ? cone.visionState : null,
@@ -177,7 +181,13 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       milestonesAchieved: q.done,
       milestones: q.ms.map((m) => ({ id: m.id, name: m.fullName, title: m.title, achieved: m.achieved, state: m.state, byRevision: m.byRevision, binds: m.binds })),
     })),
-    invariants: inv.map((v) => ({ id: v.id, kind: v.kind || null, title: v.title, formal: !!v.law.formal, holds: v.holds, source: v.source, tested: v.tested })),
+    invariants: inv.map((v) => ({ id: v.id, kind: v.kind || null, title: v.title, formal: !!v.law.formal, lines: threeLines(v.law), holds: v.holds, source: v.source, tested: v.tested })),
+    // 全域 Law 另外兩類的每一列:四層(由內而外,各帶「裝什麼」那一句)與對外 I/O 表;gates 是三類各自那一道 lint 的結果,與報告的「全域 Law」表同源
+    globalLaws: {
+      gates: glob.map((g) => ({ kind: g.kind, where: g.where, gate: g.gate, red: g.red, result: g.result })),
+      layers: cone ? ['types', 'effect', 'core', 'shell'].map((name) => ({ name, what: (cone.layerNotes || {})[name] || '' })) : [],
+      io: design.io.map((r) => ({ name: r.name, direction: r.direction, type: r.type, module: r.module, entry: r.pipeline, trust: null, guard: null, contract: r.contract })),
+    },
     bands,
     modules: {
       units: mv.units.map((u) => ({
@@ -248,6 +258,7 @@ export function statusBoard(design, source, adapter, results, resultNote, buildi
       url,
       '樹從左上往下長,每深一層往右縮排一格:願景 → 需求 → 里程碑 → 便利貼;便利貼是 pipeline,虛線箭頭是引用,預設只畫選取那一份的',
       '「相依」頁籤把需求排成先後:左邊先做、右邊後做,邊從 pipeline 的引用推出來,紅色的邊是高優先依賴低優先',
+      '「約束」頁籤把 law 全部攤開:上半是全域 Law 三類(領域不變量、層、對外 I/O),下半是每條 pipeline 自己的 Scope Law,顏色是測試結果,對外 I/O 的契約欄畫成指到那條 law 的箭頭',
     ].join('\n'),
     exitCode: data.route.allDone && data.summary.docs ? 0 : 1,
   };

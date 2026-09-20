@@ -3,7 +3,8 @@ $ devflow status --json
   "tool": "devflow",
   "labels": {
     "unit": "文檔",
-    "steps": "Steps"
+    "steps": "Steps",
+    "measure": "份文檔"
   },
   "vision": null,
   "visionFull": null,
@@ -290,6 +291,7 @@ $ devflow status --json
       "kind": "bound",
       "title": "只有一句話、還沒有三行式的不變量",
       "formal": false,
+      "lines": [],
       "holds": null,
       "source": "還沒有三行式",
       "tested": false
@@ -299,6 +301,10 @@ $ devflow status --json
       "kind": "invariant",
       "title": "寫了三行卻沒有測試,而且引用了一份 feature 的簽名",
       "formal": true,
+      "lines": [
+        "forall raw in Raw",
+        "|- score(raw) >= 0"
+      ],
       "holds": null,
       "source": "寫了三行卻沒有 INV-2#LAW 測試",
       "tested": false
@@ -308,6 +314,7 @@ $ devflow status --json
       "kind": "invariant",
       "title": "編號重複",
       "formal": false,
+      "lines": [],
       "holds": null,
       "source": "還沒有三行式",
       "tested": false
@@ -317,11 +324,67 @@ $ devflow status --json
       "kind": "nonsense",
       "title": "種類不合法",
       "formal": false,
+      "lines": [],
       "holds": null,
       "source": "還沒有三行式",
       "tested": false
     }
   ],
+  "globalLaws": {
+    "gates": [
+      {
+        "kind": "架構",
+        "where": "架構:層",
+        "gate": "boundary",
+        "red": 3,
+        "result": "3 層,3 條不合規"
+      },
+      {
+        "kind": "契約",
+        "where": "契約:對外 I/O",
+        "gate": "io",
+        "red": 6,
+        "result": "1 列,6 條不合規;契約欄指到的 law 3 條,成立 nan 條"
+      },
+      {
+        "kind": "領域不變量",
+        "where": "領域不變量",
+        "gate": "invariants",
+        "red": 4,
+        "result": "4 條,4 條不合規;成立 nan 條"
+      }
+    ],
+    "layers": [
+      {
+        "name": "domain",
+        "what": "規則"
+      },
+      {
+        "name": "application",
+        "what": "用例"
+      },
+      {
+        "name": "entry",
+        "what": "路由"
+      }
+    ],
+    "io": [
+      {
+        "name": "POST /score",
+        "direction": "in",
+        "type": "Raw",
+        "module": "src/entry/api.ts",
+        "entry": "F-001-score",
+        "trust": "untrusted",
+        "guard": null,
+        "contract": [
+          "F-001#LAW-9",
+          "INV-9",
+          "冪等"
+        ]
+      }
+    ]
+  },
   "bands": [
     {
       "id": "R-2",
@@ -494,13 +557,21 @@ $ devflow status --json
             "id": "LAW-1",
             "kind": "invariant",
             "title": "分數不為負",
-            "result": "未跑"
+            "result": "未跑",
+            "lines": [
+              "forall raw in Raw",
+              "|- score(raw) >= 0"
+            ]
           },
           {
             "id": "LAW-2",
             "kind": "nonsense",
             "title": "種類不合法,而且引用了不存在的東西",
-            "result": "未翻譯"
+            "result": "未翻譯",
+            "lines": [
+              "forall raw in Raw",
+              "|- mysteryFn(raw) == score(raw)"
+            ]
           }
         ]
       },
@@ -674,7 +745,11 @@ $ devflow status --json
             "id": "LAW-1",
             "kind": "invariant",
             "title": "恆為正",
-            "result": "未翻譯"
+            "result": "未翻譯",
+            "lines": [
+              "forall raw in Raw",
+              "|- helperOnly(raw) > 0"
+            ]
           }
         ]
       },

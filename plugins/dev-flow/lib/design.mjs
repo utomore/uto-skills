@@ -300,6 +300,8 @@ export function readSystem(designDir, root) {
     rangesErrors: ranges.errors,
     rangesLine: ranges.line,
     layers,
+    // 層表沒有列是正常的:層是從第一條切片抽上去的;沒有這一小區才是 missing
+    layersState: !layerSec ? 'missing' : 'ok',
     outermost: layers.length ? layers[layers.length - 1].name : null,
     io,
     listed,

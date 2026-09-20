@@ -1,6 +1,6 @@
 $ lawful invariant add 存檔裡的實體 id 不重複
 INV-2 寫進 .lawful/Cone.md「全域 Law」的領域不變量
-還沒有三行式:types 層的型別出現後寫成 forall / |- 兩行(識別字只用 types 層的匯出與型別名),再 lawful:build INV-2 派 qa 寫歸屬 "INV-2#LAW" 的測試
+還沒有三行式:從切片抽上去的,把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名);types 層的型別還沒出現的先留一句話。有了三行,build 派 qa 寫歸屬 "INV-2#LAW" 的測試
 exit 0
 --- .lawful/Cone.md
 ---

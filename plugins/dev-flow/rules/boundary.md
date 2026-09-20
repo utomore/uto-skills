@@ -1,6 +1,6 @@
 # 邊界
 
-依賴方向的唯一宣告是 `system.md` 的層表加 `modules.md` 的模組表;`devflow lint boundary` 拿 import 圖對它。層的兩條規則與對外 I/O 表是全域 Law 的架構與契約兩類(laws.md「全域 Law」):`dev-flow:spike-impl` 從第一行程式碼就守,離場前 `lint boundary` 要沒有紅。
+依賴方向的唯一宣告是 `system.md` 的層表加 `modules.md` 的模組表;`devflow lint boundary` 拿 import 圖對它。層的兩條規則與對外 I/O 表是全域 Law 的架構與契約兩類(laws.md「全域 Law」):表上有什麼,`dev-flow:spike-impl` 從第一行程式碼就守,離場前 `lint boundary` 要沒有紅。層表與對外 I/O 表都是從做出來的切片裡長出來的:專案的第一條切片做完之前兩張表只有表頭,`lint boundary` 此時沒有依賴方向可對,不是紅;`dev-flow:scope-laws` 對著那一片與開發者把層與每一端的信任講定,層表由 `dev-flow:global-laws` 落筆,對外 I/O 表的新列由 `dev-flow:scope-laws` 寫。
 
 ## 層
 

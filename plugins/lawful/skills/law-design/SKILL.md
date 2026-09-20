@@ -1,6 +1,6 @@
 ---
 name: law-design
-description: lawful 的 Law 設計 — 對著一條跑得通的切片與它的決策紀錄,把它拆成一條講一段資料流的 pipeline(lawful claim 建檔、綁進里程碑,共用的那一段拆成子流),Stages 的簽名逐字抄程式碼裡定下來的那一個,再與開發者一次一條、用切片跑出來的例子談 Law:要的寫成 law、不准的寫成 law 並記成首跑該紅、不在乎的不寫不測;每條 law 都要講得出一個讓它變假的實作。lint sig、laws、io、boundary 過了、開發者逐條拍板才改 ready,收尾自動接上 lawful:build(派 qa、驗首跑、派 refactor)。觸發詞:law-design、談 Law、定 Law、設計 law、寫 pipeline、設計 pipeline、寫 law、定簽名、寫規格、規格書、spec、這一片要承諾什麼、lawful law-design。Use when a working slice exists and its behaviour should be turned into pipeline documents and laws through a dialogue with the developer.
+description: lawful(有 .lawful/ 的 Haskell 專案)的 Law 設計:對著跑得通的切片 claim 出 pipeline,Stages 抄程式碼,與開發者一條一條談 law(要、不准、不在乎),拍板 ready 後自動接上 build。觸發詞:談 Law、定 Law、law-design、寫 pipeline、pipeline 文檔、寫規格、spec、這一片要承諾什麼。Use when a working slice should be turned into pipeline documents and laws through a dialogue with the developer.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

@@ -1,6 +1,6 @@
 ---
 name: objective
-description: dev-flow 的目標 — 對談後在 .design/objectives/ 訂專案目標(一個目標一個檔 R-x-O-y-<slug>.md):每個目標解決 system.md 的恰好一條需求,開發者答兩問 What 做到什麼(一句話)、Which 落在哪一級優先(1 到 4,各級代表什麼由 system.md 一行宣告);目標沒有自己的判準也沒有 law:它達成 = 建置路線的里程碑全部達成,需求達成了沒由需求的驗收判;目標底下兩條路線:建置路線的里程碑(全名 M-n-<slug>)一條就是一條垂直切片的範圍,綁定欄在切片做完、law-design claim 出 feature 之後才填,優化路線的調整(RF-n)只動既有 feature 的品質;也回答「這份 feature 服務哪個目標」、重排優先。配號只走 devflow objective add / milestone / refinement;里程碑的英文名是切片分支 build/M-n-<slug> 的鍵。觸發詞:目標、專案目標、objective、里程碑、milestone、調整、優化、refinement、優先、priority、這個功能為什麼做、朝向目標、dev-flow objective。Use when adding or reshaping project objectives, their priorities, milestones and refinements, or binding features to a milestone.
+description: dev-flow(有 .design/ 的專案)的目標:訂目標(每個解決一條需求、優先 1 到 4)、里程碑 M-n-<slug>(一條就是一條切片的範圍)與調整 RF-n;也回答一份 feature 服務哪個目標、重排優先。觸發詞:目標、objective、里程碑、milestone、調整、refinement、優先、這個功能為什麼做。Use when adding or reshaping objectives, priorities, milestones and refinements.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---

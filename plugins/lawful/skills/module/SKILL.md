@@ -1,6 +1,6 @@
 ---
 name: module
-description: lawful 的模組單元 — 立案時、或 lawful:spike-impl 途中切片要一個還沒有的模組單元(或既有單元還沒宣告的那一層)時,先對談出它的名字、職責範圍與有哪幾層(types / effect / core / shell 不一定都有),跑 lawful module 寫進模組表並在每一層的原始碼樹裡開好資料夾,再回去繼續切片。觸發詞:模組、新模組、module、模組單元、劃邊界、命名空間、加一層、lawful module。Use when a new module unit's name, responsibility and layers must be fixed before code moves into it.
+description: lawful(有 .lawful/ 的 Haskell 專案)的模組單元:劃一個新的模組單元(名字、職責、有哪幾層)並在四棵原始碼樹裡開好資料夾;立案時、或切片途中要一個還沒有的單元或層時先跑。觸發詞:新模組、模組單元、module、劃邊界、加一層、modules.md。Use when a slice or the project setup needs a module unit or layer that does not exist yet.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

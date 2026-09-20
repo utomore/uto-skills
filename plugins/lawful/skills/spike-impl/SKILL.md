@@ -1,6 +1,6 @@
 ---
 name: spike-impl
-description: lawful 的切片 — 拿一條里程碑(M-n-<slug>)與它的需求(含驗收)、全域 Law,開 build/M-n-<slug> 分支與工作樹,用實作從 shell 的進入點貫通到出口,做出一條跑得通的垂直切片;它同時是可行性驗證,走不通也是答案。從第一行程式碼就守全域 Law(領域不變量、四層的依賴方向與效果邊界、對外 I/O 只在 shell),要一個還沒有的模組單元就先跑 lawful:module;離場前 lint global 沒有紅、整套測試沒有因它變紅,並留下一份結構化的決策紀錄——為了達成這條里程碑的 Goal / Scope 而產生的實作決策(Goal / Scope、Entry、Decisions 每列 Decision / Reason / Constraint、Assumptions & Invariants、Faked / Unverified、Touched)——給 law-design。不寫 pipeline 文檔、不寫 law、不新增全域 Law。觸發詞:切片、垂直切片、spike、spike-impl、先做出來、貫通、做這條里程碑、可行性驗證、試一下、PoC、prototype、原型、跑跑看、實作、lawful spike-impl。Use when a milestone should first be made to work end to end in code, before any pipeline document or law is written.
+description: lawful(有 .lawful/ 的 Haskell 專案)的切片:拿一條里程碑,在 build/M-n-<slug> 工作樹上用實作從 shell 的進入點貫通到出口,做出跑得通的垂直切片並留下決策紀錄;同時是可行性驗證,走不通也是答案。觸發詞:切片、spike、先做出來、貫通、做這條里程碑、可行性、試一下、PoC、prototype、原型。Use when a milestone should first be made to work end to end in code, before any pipeline document or law is written.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

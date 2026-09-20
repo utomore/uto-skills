@@ -1,6 +1,6 @@
 ---
 name: audit
-description: dev-flow 的稽核 — 四段:對帳(devflow lint all 與 status 的機械紅逐條分類成文檔錯還是程式碼錯)、需求與目標(每條需求的驗收判得出來嗎、工作是不是集中在最高優先目標、有沒有 feature 不朝向任何目標、達成的里程碑是不是真的涵蓋它那句、調整有沒有偷渡新 feature)、穩定度(修訂熱點、改動半徑、收整沒成立的 abstract、卡住多久)、安全度(對外 I/O 的信任與驗證、秘密字面值、沒登記的出入口、內層碰 IO);產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、架構檢測、檢查文檔、對帳、專案健檢、目標貼合、穩定度、安全檢查、文檔與程式碼對不上。Use when checking that .design and the code still agree, that the work still heads toward the vision and objectives, and how stable and how safe the project currently is.
+description: dev-flow(有 .design/ 的專案)的稽核:lint 與 status 的紅逐條分類(文檔錯還是程式碼錯)、需求與目標是否貼合、穩定度、安全度,產出「哪裡、什麼事、怎麼辦」表,不直接改契約。觸發詞:稽核、audit、健檢、對帳、文檔與程式碼對不上、安全檢查。Use when checking that .design and the code still agree and how healthy the project is.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---

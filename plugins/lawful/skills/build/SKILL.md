@@ -1,6 +1,6 @@
 ---
 name: build
-description: lawful 的建構指揮(conductor)— 在一條 build 分支的工作樹上,對它每一條 ready 的 pipeline:對帳簽名、先派 qa 只讀文檔與 types 層寫測試、在現有的程式碼上驗首跑(開發者答不准的 law 要紅、其餘要綠)、再派 refactor 調整或重寫實作、跑子集、仲裁四分流、全綠後跑整套一次、這條讓某條需求的建置路線全部達成而它的驗收有三行式卻沒有測試、或 law-design 把一條領域不變量寫成了三行,就再派一次 qa 寫 R-n#ACCEPT / INV-n#LAW、寫 GAP、每條 law 成立才改 verified、寫決策紀錄的「Verification」commit 在分支上;由 lawful:law-design、lawful:revise 收尾時自動接上;目標也可以直接是 R-n / INV-n(開分支,只派 qa 寫那條驗收測試);合併交給 lawful:integrate;不寫測試、不寫實作、不補 law。觸發詞:build、建構、開工、跑這條里程碑、跑這條 pipeline、驗收測試、lawful build、委派。Use when the ready pipelines of a build branch should be turned into tests and law-abiding code by delegated qa and refactor roles, or when a requirement's acceptance or a domain invariant needs its test.
+description: lawful(有 .lawful/ 的 Haskell 專案)的建構指揮(conductor):對 ready 的 pipeline 派 qa 寫測試、驗首跑、派 refactor 調整實作、仲裁紅燈,每條 law 成立才改 verified;目標也可以是 R-n 或 INV-n(只補那一條驗收測試)。觸發詞:build、建構、開工、跑這條里程碑、跑 pipeline、補驗收測試、委派開發。Use when ready pipelines should be turned into tests and law-abiding code, or an acceptance test is missing.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

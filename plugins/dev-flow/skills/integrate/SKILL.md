@@ -1,6 +1,6 @@
 ---
 name: integrate
-description: dev-flow 的整合 — 把達成的 build 分支合成一條整合分支、每一條 law 都仍然成立才發 PR,是唯一發 PR 的出口。先確認當前分支(在主 branch 上有變更就先開新分支把它帶走,立案、目標與全域 Law 的變更是 plan/<slug>,禁止從主 branch 直接發 PR)、清掉已合進主線的分支與工作樹、盤點候選(build/<鍵> 分支讀它的決策紀錄定順序與衝突預報,走不通的切片只收決策紀錄)、逐條 merge(清單型衝突兩邊都留)、跑建置與整套一次;兩條分支的 law 或假設互斥時不改碼,拿縮小後的反例一次一條問開發者(以 A 為主 / 收窄定義域 / 提煉上層 Law),把結果寫成 GAP 退回;整合不改任何一條 law:任何全域 Law 的修改、放寬、替換或刪除都必須經開發者明確批准,integrate 只能提出變更建議、不得自行決定變更、不直接修改全域 Law,經批准的變更由 revise 完成並重新驗證受影響的工作;決策紀錄裡不可逆又跨文檔的權衡升成 ADR、擋到實作的全域 Law 彙整進 PR;綠了把決策紀錄寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)並打上 labels。觸發詞:發 PR、pull request、整合、integrate、整合分支、合併分支、merge branch、合 build 分支、仲裁、寫 ADR、dev-flow integrate。Use when finished branches should be merged, verified together, arbitrated where their laws conflict, and sent as a pull request.
+description: dev-flow(有 .design/ 的專案)的整合,唯一發 PR 的出口:把達成的 build 分支合成一條,整套綠、每條 law 仍成立才發 PR;兩條線的 law 互斥時向開發者仲裁、寫 ADR;全域 Law 只提變更建議。觸發詞:發 PR、pull request、整合、integrate、合併分支、merge、仲裁、ADR。Use when finished branches should be merged, verified together and sent as a pull request.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---

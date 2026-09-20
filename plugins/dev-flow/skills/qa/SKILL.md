@@ -1,6 +1,6 @@
 ---
 name: qa
-description: dev-flow 的 qa 角色 — 只讀 feature 或 abstract 文檔、最內層的匯出與 Steps 上那幾條簽名的宣告,每條 law 一條 property test、每個 example 一條 example test,歸屬 "F-00x#LAW-n" 或 f_00x__law_n;conductor 指定一條需求的驗收或一條領域不變量時,讀它的三行與引用到的簽名所在文檔,寫一條歸屬 "R-n#ACCEPT"(需求的驗收)或 "INV-n#LAW"(領域不變量)的測試(識別字形式 r_n__accept / inv_n__law);產生器只用公開建構子、能縮小,案例數與尺寸有上限;不讀任何實作本體,不因為看到紅綠而改斷言;寫不出斷言就開 GAP。觸發詞:寫測試、qa、property test、性質測試、測試設計、驗收測試、dev-flow qa。Use when translating a document's laws and examples, or one requirement, objective or invariant Law, into tests without reading any implementation.
+description: dev-flow(有 .design/ 的專案)的 qa 角色,只由 build 的 conductor 委派(開發者要補測試走 build):只讀文檔與宣告,每條 law 一條 property test、每個 example 一條 example test,或一條需求驗收、領域不變量的測試;不讀實作本體。觸發詞:寫測試、qa、property test、性質測試、驗收測試。Use when translating laws and examples into tests without reading any implementation.
 user-invocable: false
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---

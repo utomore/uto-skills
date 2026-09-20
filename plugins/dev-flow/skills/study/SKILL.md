@@ -1,6 +1,6 @@
 ---
 name: study
-description: 專案導讀 — 帶著開發者循序漸進、由上而下理解目前的專案,六層縮放:全景(這是什麼、技術棧、入口)→ 架構(層的邊界與通訊)→ 設計理念(為什麼這樣切,區分文檔明載與推測)→ 核心資料結構(定義在哪、誰產生誰消費、不變量)→ 逐跳 trace code(沿一條真實路徑從入口追到輸出)→ 細讀(鑽進一兩個關鍵函式逐行走,含桌上執行);第 1 課選定一條主線情境貫穿六層,每個結論都附從原始碼讀出的 檔案:行號 片段作證明,一次一課、等開發者消化再往下。觸發詞:study、理解專案、學習專案、專案導讀、專案導覽、帶我看 code、trace code、code walkthrough、熟悉專案、讀懂專案、onboarding。Use when guiding a developer through understanding an existing codebase top-down with code evidence, step-by-step code tracing, and line-level close reading.
+description: dev-flow 的專案導讀:帶開發者由上而下讀懂一個專案,六層縮放(全景 → 架構 → 理念 → 資料結構 → trace → 細讀),每個結論附 檔案:行號 的原文,一次一課。觸發詞:study、理解專案、導讀、帶我看 code、trace code、熟悉專案、onboarding。Use when guiding a developer through an existing codebase top-down with code evidence.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---

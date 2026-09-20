@@ -1,6 +1,6 @@
 ---
 name: abstract
-description: dev-flow 的收整 — 把兩份以上 feature 之間同一段能力抽成一份 abstract(A-00x,有自己的 = 列與 laws):開 build/<全名> 分支與工作樹、把那一段程式碼搬到一處、原檔那幾列改成「見 A-00x-<slug>」、abstract 的 laws 對著現有的行為與開發者逐條談、每一份被動到的 feature 各記一條 REV,收尾自動接上 dev-flow:build;只有一個消費者的 abstract 搬回去。切片各切各的,同一段能力寫了兩次是常態,整合之後由這裡收。觸發詞:收整、abstract、抽象、抽出共用、合併重複、兩邊寫一樣的、共用邏輯、重構成共用、dev-flow abstract。Use when two or more features grew the same capability and it should be lifted into one shared abstract document.
+description: dev-flow(有 .design/ 的專案)的收整:兩份以上 feature 寫了同一段能力,抽成一份 abstract(A-00x),程式碼搬到一處,原檔那幾列改成「見 A-00x」,再自動接上 build。觸發詞:收整、abstract、抽出共用、合併重複、兩邊寫一樣的、共用邏輯。Use when two or more features grew the same capability and it should become one shared abstract.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---

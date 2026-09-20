@@ -217,7 +217,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
   } else console.log('✓ brief 的規章節');
 
   // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
-  const TARGETS = { build: 'F-001-checkout', qa: 'F-001-checkout', refactor: 'F-002-refund', revise: 'F-002-refund', 'law-design': 'M-2-refund', 'spike-impl': 'M-1-checkout' };
+  const TARGETS = { build: 'F-001-checkout', qa: 'F-001-checkout', refactor: 'F-002-refund', 'law-design': 'M-2-refund', 'spike-impl': 'M-1-checkout' };
   let parted = skills.length > 0;
   for (const s of skills) {
     const run = (...extra) => spawnSync(process.execPath, [bin, 'brief', s, ...(TARGETS[s] ? [TARGETS[s]] : []), ...extra, '--root', path.join(here, 'fixtures', 'shop')], { encoding: 'utf8' }).stdout.replace(/\r\n/g, '\n');
@@ -234,6 +234,30 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     failed++;
     console.log('✗ brief 的分段');
   } else console.log('✓ brief 的分段');
+
+  // 每份 SKILL.md:skills/ 底下的資料夾與 brief 的 skill 名單一一對上;frontmatter 的 name 等於資料夾名;
+  // description 是單行的純量,裡面不准有「冒號加空白」(YAML 會讀成另一個鍵,整份 frontmatter 壞掉、skill 不會被載入);
+  // 四道注入行寫對;免批准的 allowed-tools 在 frontmatter
+  const skillsDir = path.join(here, '..', '..', 'plugins', 'dev-flow', 'skills');
+  const dirs = fs.readdirSync(skillsDir).filter((d) => fs.existsSync(path.join(skillsDir, d, 'SKILL.md'))).sort();
+  const wrong = [];
+  if (dirs.join(',') !== [...skills].sort().join(',')) wrong.push(`skills/ 是 ${dirs.join('、')};brief 的名單是 ${[...skills].sort().join('、')}`);
+  for (const s of dirs) {
+    const md = fs.readFileSync(path.join(skillsDir, s, 'SKILL.md'), 'utf8');
+    const fm = (/^---\r?\n([\s\S]*?)\r?\n---/.exec(md) || [, ''])[1];
+    const desc = (/^description: (.*)$/m.exec(fm) || [, ''])[1];
+    if (!new RegExp(`^name: ${s}$`, 'm').test(fm)) wrong.push(`${s}:name 不等於資料夾名`);
+    if (!desc || /: /.test(desc) || /^['"[{>|]/.test(desc)) wrong.push(`${s}:description 會讓 frontmatter 讀不成(空的、含「冒號加空白」、或以引號括號開頭)`);
+    const lines = md.split(/\r?\n/).filter((l) => l.startsWith('!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief '));
+    const want = [1, 2, 3, 4].map((k) => `!\`node "\${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief ${s} --args '$ARGUMENTS' --part ${k} --of 4\``);
+    if (lines.join('\n') !== want.join('\n')) wrong.push(`${s}:注入行不是四道 brief ${s} --part 1..4 --of 4`);
+    if (!/^allowed-tools: Bash\(node "\$\{CLAUDE_PLUGIN_ROOT\}\/bin\/devflow\.mjs":\*\)$/m.test(fm)) wrong.push(`${s}:frontmatter 沒有免批准的 allowed-tools`);
+  }
+  if (wrong.length) {
+    failed++;
+    console.log('✗ SKILL.md 的 frontmatter 與注入行');
+    for (const w of wrong) console.log(`  ${w}`);
+  } else console.log('✓ SKILL.md 的 frontmatter 與注入行');
 }
 
 // --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事

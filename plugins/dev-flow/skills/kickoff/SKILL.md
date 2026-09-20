@@ -1,6 +1,6 @@
 ---
 name: kickoff
-description: dev-flow(有 .design/ 的專案)的立案,專案的第一個命令:建立 .design/ 的樹,與開發者訂願景、語言與工具(三道指令)、模組表的骨架;不談需求也不談全域 Law,收尾自動接上 require-design。觸發詞:開新專案、立案、kickoff、建立 .design、專案願景、技術選型、模組表。Use when starting a new dev-flow project: create the .design tree, its vision, language, tooling and module table.
+description: dev-flow 的立案,專案的第一個命令(還沒有 .design/ 的專案從這裡開始):建立 .design/ 的樹,與開發者訂願景、語言與工具(三道指令)、模組表的骨架;不談需求也不談全域 Law,收尾自動接上 require-design。觸發詞:開新專案、立案、kickoff、建立 .design、專案願景、技術選型、模組表。Use when starting a new dev-flow project and creating its .design tree, vision, language, tooling and module table.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---

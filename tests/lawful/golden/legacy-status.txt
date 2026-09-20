@@ -2,7 +2,7 @@ $ lawful status
 · 缺 .lawful/Cone.md;這棵樹只有 system.md,lawful migrate cone --write 換過來
 
 # lawful status
-需求 0 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · 調整 0 條,達成 0 條 · io pipeline 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+需求 0 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · io pipeline 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 需求
@@ -46,6 +46,7 @@ $ lawful status
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | Cone.md | 不存在 | lawful migrate cone --write |
+| CLAUDE.md | 沒有 ## 名詞 節,領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |
 | .lawful/ | 沒有任何需求 | lawful:require-design 談第一條需求(至少一條) |
 | P-001-save-write | 沒有被任何里程碑綁定 | 不朝向任何需求:lawful:require-design 綁進一條里程碑,或刪掉這條 pipeline |
 | .lawful/pipelines/P-001-save-write.md | 沒有 kind | frontmatter 補 kind: io 或 subflow |

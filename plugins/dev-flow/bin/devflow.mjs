@@ -10,7 +10,7 @@ import { sectionCommand } from '../lib/commands/section.mjs';
 import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, invariantAdd, milestoneAdd, modulesGen, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
+import { claim, invariantAdd, milestoneAdd, modulesGen, requirementAdd, sync } from '../lib/commands/edit.mjs';
 import { migrate, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
 
 const HELP = `devflow <子命令> [選項]
@@ -22,23 +22,22 @@ const HELP = `devflow <子命令> [選項]
   status --module <路徑或 目錄/**>     住在該檔案或目錄的所有 step 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
   status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
-  claim feature|adr <slug> [--description <句>] [--milestone <M-n>]
-                                       鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(編號或全名 M-n-<slug> 都行)
+  claim feature|adr <slug> [--description <句>] [--milestone <M-n-slug>]
+                                       鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(給全名 M-n-<slug>)
                                        配號看同一個 repo 的每一棵工作樹,別條 build 分支上 claim 走的號不重配
                                        system.md「語言與工具」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
   requirement add <slug> <一句話> --priority <1-4> [--accept <句>]
                                        鑄 R-n 建 requirements/R-n-<slug>.md:一件必須達成的事;優先 1 最高、4 最低;驗收(判它達成與否的那一句)沒給就留佔位符
   requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]
                                        鑄 M-n,以全名 M-n-<slug> 加在該需求檔的里程碑表最後(表的列序就是先後);slug 是 kebab-case 英文,切片的分支 build/M-n-<slug> 以它為鍵;
-                                       綁定的全名要是 features/ 裡有的 feature
-  requirement refinement <R-n> <一句話> --touch <全名,全名>
-                                       鑄 RF-n 加進該需求檔的調整表;動到的要是這條需求的里程碑綁定過的 feature
+                                       綁定的全名要是 features/ 裡有的 feature;綁一份已經被別條里程碑綁過的 feature,這條里程碑就靠修訂它達成:
+                                       那份 feature 達成,而且它的修訂記錄裡有一條 REV 的依欄寫了這條里程碑的全名
   invariant add <一句話> [--kind <種類>]
                                        鑄 INV-n 寫進 system.md「全域 Law」區的領域不變量:整個專案任何一份 feature 都不准違反的 law;種類沒給就是 invariant
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
                                        ids:兩個檔案同號、號段行讀不懂或重疊、owner 的號不在自己的號段內;
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與引用別份文檔的 step;
-                                       laws:文檔的 law 三行、種類、識別字、= 列有 law,與需求的驗收;trace:laws 與驗收 ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、契約、秘密字面值;
+                                       laws:文檔的 law 三行、種類、識別字、= 列有 law,與需求的驗收,名詞表(專案根目錄 CLAUDE.md 的「## 名詞」節)型別欄的型別在程式碼裡;trace:laws 與驗收 ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、契約、秘密字面值;
                                        invariants:領域不變量的編號、種類、三行只引用最內層、寫了三行就有 INV-n#LAW 測試;
                                        global:全域 Law 三類一次查完 = boundary(架構)+ io(契約)+ invariants(領域不變量)
   sync                                 同層搬家的 step,模組欄改成程式碼裡的實際檔案
@@ -53,8 +52,10 @@ const HELP = `devflow <子命令> [選項]
                                        skill:${briefSkills.join('、')}
   migrate laws [--write]               system.md 沒有「## 全域 Law」區、或需求寫著「- Law:」的樹:層、對外 I/O、領域不變量收進「## 全域 Law」區,
                                        需求的那一句改成「- 驗收:」;先印帳本,--write 才落地
-  migrate requirements [--write]       需求還住在 system.md「## 需求」節、里程碑住 objectives/ 或一份 objectives.md 的樹:每條需求連同朝向它的里程碑與調整
-                                       併成 requirements/R-n-<slug>.md 一條一個檔,「## 需求」節與 objectives/ 刪掉;要人判的列在帳本裡;先印帳本,--write 才落地
+  migrate requirements [--write]       需求還住在 system.md「## 需求」節、里程碑住 objectives/ 或一份 objectives.md 的樹:每條需求連同朝向它的里程碑
+                                       併成 requirements/R-n-<slug>.md 一條一個檔,「## 需求」節與 objectives/ 刪掉;
+                                       需求檔或目標檔有調整表的樹:調整表的每一列換成里程碑表的一列(配新的 M-n,綁定 = 動到欄),調整表刪掉,
+                                       文檔修訂記錄依欄引用的調整編號改寫成新的 M-n;要人判的列在帳本裡;先印帳本,--write 才落地
   migrate <.design> [--language <adapter>] [--ignore <dir,dir>]
                                        盤點 subsystems/ 體系的 .design:每份舊文檔的介面在程式碼裡對到幾條、
                                        四格 law 翻成三行草稿、共用的簽名列出來(只住一份文檔,別份引用)、退場清單;只印帳本,不改任何檔
@@ -216,7 +217,7 @@ function main() {
 
   if (cmd === 'claim') {
     if (!sub || !rest[0]) {
-      console.error('用法:devflow claim feature|adr <slug> [--description <句>] [--milestone <M-n>]');
+      console.error('用法:devflow claim feature|adr <slug> [--description <句>] [--milestone <M-n-slug>]');
       return 1;
     }
     return emit(claim(design, sub, rest[0], { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined, milestone: typeof args.flags.milestone === 'string' ? args.flags.milestone : '' }));
@@ -225,8 +226,7 @@ function main() {
   if (cmd === 'requirement') {
     if (sub === 'add' && rest[0] && rest[1]) return emit(requirementAdd(design, rest[0], rest.slice(1).join(' '), { accept: typeof args.flags.accept === 'string' ? args.flags.accept : '', priority: args.flags.priority, date: args.flags.date || undefined }));
     if (sub === 'milestone' && rest[0] && rest[1] && rest[2]) return emit(milestoneAdd(design, rest[0], rest[1], rest.slice(2).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
-    if (sub === 'refinement' && rest[0] && rest[1]) return emit(refinementAdd(design, rest[0], rest.slice(1).join(' '), { touch: typeof args.flags.touch === 'string' ? args.flags.touch : '' }));
-    console.error('用法:devflow requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      devflow requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]\n      devflow requirement refinement <R-n> <一句話> --touch <全名,全名>');
+    console.error('用法:devflow requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      devflow requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]');
     return 1;
   }
 

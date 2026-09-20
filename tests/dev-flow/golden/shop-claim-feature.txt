@@ -1,7 +1,7 @@
 $ devflow claim feature ship --description 把已付款的訂單交給物流 --milestone M-2-refund --date 2026-09-07
 建了 .design/features/F-003-ship.md(status: draft)
 system.md Features 表加了一列
-綁進 M-2
+綁進 M-2-refund
 exit 0
 --- .design/features/F-003-ship.md
 ---
@@ -112,4 +112,5 @@ updated: 2026-09-07
 |---|---|---|
 | M-1-checkout | 結帳走通 | F-001-checkout |
 | M-2-refund | 退款走通 | F-002-refund、F-003-ship |
+| M-3-settle-total | 手續費大過要退的金額也結得出來 | F-001-checkout |
 

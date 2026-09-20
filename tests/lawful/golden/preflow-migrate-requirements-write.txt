@@ -2,17 +2,22 @@ $ lawful migrate requirements --write --date 2026-09-05
 # migrate requirements 帳本
 
 - .lawful/Cone.md:「## 需求」節刪掉,需求搬進 requirements/
-- .lawful/requirements/R-1-save-roundtrip.md:建(優先 1;里程碑 3 條、調整 1 條;併自 R-1-O-1-save-roundtrip、R-1-O-2-save-list;里程碑補英文名 M-1-save-write)
-- .lawful/requirements/R-2-unnamed.md:建(優先 沒有;里程碑 0 條、調整 0 條)
+- .lawful/requirements/R-1-save-roundtrip.md:建(優先 1;里程碑 4 條,其中 1 條換自調整表;併自 R-1-O-1-save-roundtrip、R-1-O-2-save-list;里程碑補英文名 M-1-save-write)
+- .lawful/requirements/R-2-unnamed.md:建(優先 沒有;里程碑 0 條)
 - .lawful/objectives/R-1-O-1-save-roundtrip.md:刪
 - .lawful/objectives/R-1-O-2-save-list.md:刪
 - .lawful/pipelines/P-001-save-write.md:kind「IO 介面」改成 io
 
+## 調整表換成里程碑
+- RF-1 → M-5:存檔檔案壓縮後不超過 1 MB(R-1-save-roundtrip;綁定 P-001-save-write)
+- .lawful/pipelines/P-001-save-write.md:修訂記錄依欄的 RF-1 改寫成 M-5
+
 ## 人要判的
-- R-1:併了 2 個目標(O-1「玩家存檔後能讀回同一個世界」:M-1、M-2;O-2「玩家看得到自己有哪些存檔」:M-3),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求
+- R-1:併了 2 個目標(O-1「玩家存檔後能讀回同一個世界」:M-1-save-write、M-2、M-5;O-2「玩家看得到自己有哪些存檔」:M-3-save-list),里程碑照(優先、目標號)串接、換自調整表的排最後;順序不對就改表的列序,其實是兩件事就拆成兩條需求
 - R-1:M-2 還沒綁 pipeline,英文名沒有來源;lawful:require-design 把第一格寫成 M-n-<slug>
 - R-2:沒有任何目標朝向它,檔名暫用 R-2-unnamed、沒有優先也沒有里程碑;lawful:require-design 補,改名要連檔名一起改
 - .lawful/objectives/R-9-O-3-save-cloud.md:對到的 R-9 不存在,留著沒動(里程碑 M-4-save-cloud);決定它屬於哪條需求,併進那個需求檔之後刪掉
+- M-5(R-1-save-roundtrip,換自 RF-1「存檔檔案壓縮後不超過 1 MB」):補英文名,lawful:require-design 把第一格寫成 M-5-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
 
 都寫了;接著 lawful status 看警訊,「人要判的」與缺的驗收、優先由 lawful:require-design 對談補齊
 exit 0
@@ -59,10 +64,7 @@ updated: 2026-09-05
 | M-1-save-write | 存檔寫得出檔案 | P-001-save-write |
 | M-2 | 存檔壞了看得出來 | - |
 | M-3-save-list | 存檔列得出來 | - |
-
-| 調整 | 做到什麼 | 動到 |
-|---|---|---|
-| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+| M-5 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
 
 --- .lawful/requirements/R-2-unnamed.md
 ---
@@ -147,5 +149,5 @@ updated: 2026-09-05
 - **格式用 CBOR。** 否決:JSON。證據:ADR-001-save-format
 
 ## 修訂記錄
-無
+- REV-1(2026-09-05,依 M-5):存檔檔案壓縮後不超過 1 MB,補一條 bound 的 law
 

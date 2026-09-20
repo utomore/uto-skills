@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { KIND_ALIASES, kindOf, readDesign } from '../design.mjs';
-import { parseFrontmatter, sections, parseTable, parseList, stripTicks } from '../markdown.mjs';
+import { parseFrontmatter, sections, parseTable, parseList, stripTicks, splitRow } from '../markdown.mjs';
 import { pickAdapter } from '../adapters/index.mjs';
 import { readSource, findSignature } from '../source.mjs';
 
@@ -533,9 +533,93 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
   return { text: out.join('\n'), exitCode: 0 };
 }
 
+// 調整表(調整 | 做到什麼 | 動到)→ 里程碑表的列。調整(RF-n)就是一條綁既有 pipeline 的里程碑:
+// 每一列配一個新的 M-n(整棵樹的里程碑最大號往上,照需求編號、列序配,所以結果是確定的)、第一格只有編號(英文名由人補)、
+// 綁定 = 「動到」欄、做到什麼照抄;調整表刪掉;每條 pipeline 修訂記錄裡 REV 依欄的 RF-n 改寫成新的 M-n。
+// 做到什麼還是模板佔位符的列讀不進來,跟著表一起刪。同一個 RF-n 出現兩列時各配各的新號,REV 的引用改寫成第一列的。
+function planRefinements(requirements, extraMilestones = []) {
+  const numOf = (m) => Number((/^M-(\d+)$/.exec(m.id) || [0, 0])[1]);
+  let max = Math.max(0, ...requirements.flatMap((q) => q.milestones).map(numOf), ...extraMilestones.map(numOf));
+  const ordered = [...requirements].sort((x, y) => Number(x.fileId.slice(2)) - Number(y.fileId.slice(2)) || x.fullName.localeCompare(y.fullName));
+  const rows = [];
+  const map = new Map();
+  const twice = [];
+  for (const q of ordered) for (const m of q.milestones) {
+    if (!m.fromRefinement) continue;
+    const row = { q, m, from: m.id, to: `M-${++max}` };
+    rows.push(row);
+    if (map.has(m.id)) twice.push(row);
+    else map.set(m.id, row.to);
+  }
+  const newId = new Map(rows.map((r) => [r.m, r.to]));
+  const nameOf = (m) => newId.get(m) || m.fullName;
+  return {
+    rows,
+    map,
+    twice,
+    nameOf,
+    // 一條里程碑在里程碑表上的那一列
+    rowOf: (m) => `| ${nameOf(m)} | ${m.title} | ${m.binds.length ? m.binds.join('、') : '-'} |`,
+  };
+}
+
+// 一個需求檔:調整表整張刪掉(連同它前面的一個空行),rows 接在里程碑表最後;沒有里程碑表就在調整表原本的位置補一張。行尾照原檔。
+function foldRefinementTable(text, rows) {
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  const lines = text.split(/\r?\n/);
+  const headAt = (h) => lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === h);
+  let at = -1;
+  for (let h = headAt('調整'); h >= 0; h = headAt('調整')) {
+    let end = h;
+    while (end + 1 < lines.length && /^\s*\|/.test(lines[end + 1])) end++;
+    const from = h > 0 && !lines[h - 1].trim() ? h - 1 : h;
+    lines.splice(from, end - from + 1);
+    if (at < 0) at = from;
+  }
+  if (rows.length) {
+    const m = headAt('里程碑');
+    if (m >= 0) {
+      let last = m;
+      while (last + 1 < lines.length && /^\s*\|/.test(lines[last + 1])) last++;
+      lines.splice(last + 1, 0, ...rows);
+    } else lines.splice(at, 0, '', '| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|', ...rows);
+  }
+  return lines.join(eol);
+}
+
+// pipeline 的修訂記錄:REV 那一行(依欄住在這一行)裡的 RF-n 照對照表改寫成新的 M-n。回 { text, hits:[[RF-n, M-n], …] }
+function rewriteRevCites(text, map) {
+  const hits = [];
+  const next = text.replace(/^- REV-\d+.*$/gm, (line) => line.replace(/(?<![A-Za-z0-9])RF-\d+/g, (id) => {
+    if (!map.has(id)) return id;
+    hits.push([id, map.get(id)]);
+    return map.get(id);
+  }));
+  return { text: next, hits };
+}
+
+// 帳本的三塊:逐列對照、動到的 pipeline、人要判的。docs 是 [{ file, abs }];回 { ledger, judge, writes:[[相對路徑, 新內容]] }
+function refinementLedger(plan, docs) {
+  const ledger = [];
+  const judge = [];
+  const writes = [];
+  if (plan.rows.length) ledger.push('', '## 調整表換成里程碑');
+  for (const r of plan.rows) ledger.push(`- ${r.from} → ${r.to}:${r.m.title}(${r.q.fullName};綁定 ${r.m.binds.join('、') || '-'})`);
+  for (const d of docs) {
+    const r = rewriteRevCites(fs.readFileSync(d.abs, 'utf8'), plan.map);
+    if (!r.hits.length) continue;
+    writes.push([d.file, r.text]);
+    ledger.push(`- ${d.file}:修訂記錄依欄的 ${[...new Set(r.hits.map(([from, to]) => `${from} 改寫成 ${to}`))].join('、')}`);
+  }
+  for (const r of plan.rows) judge.push(`${r.to}(${r.q.fullName},換自 ${r.from}「${r.m.title}」):補英文名,lawful:require-design 把第一格寫成 ${r.to}-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名`);
+  for (const r of plan.twice) judge.push(`${r.from} 在調整表出現不只一列:${r.to} 是後面那一列換來的,REV 依欄的 ${r.from} 一律改寫成 ${plan.map.get(r.from)};引用的其實是 ${r.to} 就自己改`);
+  return { ledger, judge, writes };
+}
+
 // migrate requirements [--write]:需求住 Cone.md「## 需求」節、里程碑住 objectives/(或一份 objectives.md)的樹,
-// 換成 requirements/R-n-<slug>.md 一條需求一個檔(一句話、驗收、優先、里程碑表、調整表)。先印帳本,--write 才落地。
-// 併法與 CLI 照讀這種樹時同一支(design.mjs 的 mergeRequirements):slug 取第一個目標的,優先取最高的,里程碑與調整依(優先、目標號)串接。
+// 換成 requirements/R-n-<slug>.md 一條需求一個檔(一句話、驗收、優先、里程碑表)。先印帳本,--write 才落地。
+// 併法與 CLI 照讀這種樹時同一支(design.mjs 的 mergeRequirements):slug 取第一個目標的,優先取最高的,里程碑依(優先、目標號)串接;
+// 目標檔的調整表在同一道裡換成里程碑表的列(planRefinements)。已經是 requirements/ 而需求檔還帶調整表的樹,只換那張表。
 // 整件事先在暫存的 .lawful 複本上做完,--write 才把結果搬回來;對不到需求的目標檔留著不動,列給人判。
 // 同一道指令順手把每條 pipeline frontmatter 的 kind 從「IO 介面」「子流」改寫成 io、subflow;只有 kind 要換的樹也跑得了。
 function kindEdits(lawfulDir, rel) {
@@ -546,7 +630,7 @@ function kindEdits(lawfulDir, rel) {
     const text = fs.readFileSync(abs, 'utf8');
     const m = /^kind:[ \t]*(.+?)[ \t]*(\r?)$/m.exec(text);
     if (!m || !KIND_ALIASES[m[1]]) continue;
-    out.push({ abs, rel: rel(abs), from: m[1], to: KIND_ALIASES[m[1]], next: text.replace(/^kind:[ \t]*(.+?)[ \t]*(\r?)$/m, `kind: ${KIND_ALIASES[m[1]]}$2`) });
+    out.push({ abs, rel: rel(abs), from: m[1], to: KIND_ALIASES[m[1]], apply: (t) => t.replace(/^kind:[ \t]*(.+?)[ \t]*(\r?)$/m, `kind: ${KIND_ALIASES[m[1]]}$2`) });
   }
   return out;
 }
@@ -565,7 +649,7 @@ export function migrateRequirements(root, { write = false, date = new Date().toI
       return { text: out.join('\n'), exitCode: 0 };
     }
     apply();
-    for (const e of kinds) fs.writeFileSync(e.abs, e.next);
+    for (const e of kinds) fs.writeFileSync(e.abs, e.apply(fs.readFileSync(e.abs, 'utf8')));
     out.push('', '都寫了;接著 lawful status 看警訊,「人要判的」與缺的驗收、優先由 lawful:require-design 對談補齊');
     return { text: out.join('\n'), exitCode: 0 };
   };
@@ -573,7 +657,26 @@ export function migrateRequirements(root, { write = false, date = new Date().toI
     if (!kinds.length) return { text: `${why},每條 pipeline 的 kind 也已經是 io 或 subflow,這棵樹不用換`, exitCode: 0 };
     return finish(['# migrate requirements 帳本', '', `- ${why}`, ...kindLines], () => {});
   };
-  if (fs.existsSync(reqDir)) return onlyKinds(`${rel(reqDir)} 已經在`);
+  if (fs.existsSync(reqDir)) {
+    // 已經是 requirements/ 的樹:只剩調整表要換
+    const design = readDesign(root);
+    const reqs = design.requirements.requirements;
+    const withTable = reqs.filter((q) => q.hasRefinementTable);
+    if (!withTable.length) return onlyKinds(`${rel(reqDir)} 已經在,每個需求檔只有一張里程碑表`);
+    const plan = planRefinements(reqs);
+    const out = ['# migrate requirements 帳本', ''];
+    const writes = [];
+    for (const q of withTable) {
+      const rows = plan.rows.filter((r) => r.q === q);
+      writes.push([q.file, foldRefinementTable(fs.readFileSync(q.abs, 'utf8'), rows.map((r) => plan.rowOf(r.m)))]);
+      out.push(`- ${q.file}:調整表刪掉${rows.length ? `,${rows.length} 列換成里程碑表的列(${rows.map((r) => `${r.from} → ${r.to}`).join('、')})` : ',表裡沒有要換的列'}`);
+    }
+    const led = refinementLedger(plan, design.pipelines.map((p) => ({ file: p.file, abs: path.join(root, p.file) })));
+    out.push(...kindLines, ...led.ledger, '', '## 人要判的', ...(led.judge.length ? led.judge.map((j) => `- ${j}`) : ['- 無']));
+    return finish(out, () => {
+      for (const [file, text] of [...writes, ...led.writes]) fs.writeFileSync(path.join(root, file), text);
+    });
+  }
 
   const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-migrate-'));
   try {
@@ -617,22 +720,22 @@ export function migrateRequirements(root, { write = false, date = new Date().toI
     };
     const files = [];
     const judge = [];
-    for (const q of merged.requirements) {
-      if (q.placeholder) continue;
+    const kept = merged.requirements.filter((q) => !q.placeholder);
+    const plan = planRefinements(kept, merged.orphans.flatMap((o) => o.milestones));
+    for (const q of kept) {
       const body = bodyOf(q.id);
       const accept = body.length ? body : ['- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>'];
       const content = [
         '---', `id: ${q.id}`, `priority: ${q.priority || '<1 到 4,1 最高>'}`, `updated: ${date}`, '---',
         `# ${q.fullName}:${q.title}`, '', ...accept, '',
         '| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|',
-        ...q.milestones.map((m) => `| ${m.fullName} | ${m.title} | ${m.binds.length ? m.binds.join('、') : '-'} |`),
-        ...(q.refinements.length ? ['', '| 調整 | 做到什麼 | 動到 |', '|---|---|---|', ...q.refinements.map((rf) => `| ${rf.id} | ${rf.title} | ${rf.touches.join('、') || '-'} |`)] : []),
+        ...q.milestones.map((m) => plan.rowOf(m)),
       ].join('\n') + '\n';
       files.push({ name: `${q.fullName}.md`, content, q });
-      if (q.sources.length > 1) judge.push(`${q.id}:併了 ${q.sources.length} 個目標(${q.sources.map((o) => `${o.id}「${o.title}」:${o.milestones.map((m) => m.id).join('、') || '沒有里程碑'}`).join(';')}),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求`);
+      if (q.sources.length > 1) judge.push(`${q.id}:併了 ${q.sources.length} 個目標(${q.sources.map((o) => `${o.id}「${o.title}」:${o.milestones.map(plan.nameOf).join('、') || '沒有里程碑'}`).join(';')}),里程碑照(優先、目標號)串接、換自調整表的排最後;順序不對就改表的列序,其實是兩件事就拆成兩條需求`);
       if (!q.sources.length) judge.push(`${q.id}:沒有任何目標朝向它,檔名暫用 ${q.fullName}、沒有優先也沒有里程碑;lawful:require-design 補,改名要連檔名一起改`);
       else if (q.slug === 'unnamed') judge.push(`${q.id}:英文名沒有來源,檔名暫用 ${q.fullName};改名要連檔名一起改`);
-      const bare = q.milestones.filter((m) => !m.slug).map((m) => m.id);
+      const bare = q.milestones.filter((m) => !m.slug && !m.fromRefinement).map((m) => m.id);
       if (bare.length) judge.push(`${q.id}:${bare.join('、')} 還沒綁 pipeline,英文名沒有來源;lawful:require-design 把第一格寫成 M-n-<slug>`);
     }
     for (const o of merged.orphans) judge.push(`${o.file}:對到的 ${o.requirement} 不存在,留著沒動(里程碑 ${o.milestones.map((m) => m.fullName).join('、') || '無'});決定它屬於哪條需求,併進那個需求檔之後刪掉`);
@@ -643,12 +746,16 @@ export function migrateRequirements(root, { write = false, date = new Date().toI
     out.push(`- .lawful/Cone.md:${coneNotes.join(';')}`);
     for (const f of files) {
       const got = f.q.milestones.filter((m) => named.has(m.fullName)).map((m) => m.fullName);
-      out.push(`- .lawful/requirements/${f.name}:建(優先 ${f.q.priority || '沒有'};里程碑 ${f.q.milestones.length} 條、調整 ${f.q.refinements.length} 條${f.q.sources.length ? `;併自 ${f.q.sources.map((o) => o.fullName).join('、')}` : ''}${got.length ? `;里程碑補英文名 ${got.join('、')}` : ''})`);
+      const folded = f.q.milestones.filter((m) => m.fromRefinement).length;
+      out.push(`- .lawful/requirements/${f.name}:建(優先 ${f.q.priority || '沒有'};里程碑 ${f.q.milestones.length} 條${folded ? `,其中 ${folded} 條換自調整表` : ''}${f.q.sources.length ? `;併自 ${f.q.sources.map((o) => o.fullName).join('、')}` : ''}${got.length ? `;里程碑補英文名 ${got.join('、')}` : ''})`);
     }
     if (hadFile) out.push('- .lawful/objectives.md:刪(先照每個 ## O-n 拆開,再併進它的需求)');
     const used = merged.requirements.flatMap((q) => q.sources);
     if (!hadFile) for (const o of used) out.push(`- ${o.file}:刪`);
     out.push(...kindLines);
+    const led = refinementLedger(plan, design.pipelines.map((p) => ({ file: p.file, abs: path.join(tmpRoot, p.file) })));
+    out.push(...led.ledger);
+    judge.push(...led.judge);
     out.push('', '## 人要判的', ...(judge.length ? judge.map((j) => `- ${j}`) : ['- 無']));
     // 暫存複本在這個函式結束時刪掉:要搬回來的內容先讀進記憶體
     const orphanFiles = hadFile ? merged.orphans.map((o) => [path.join(root, o.file), fs.readFileSync(path.join(tmpRoot, o.file), 'utf8')]) : [];
@@ -656,6 +763,7 @@ export function migrateRequirements(root, { write = false, date = new Date().toI
       fs.writeFileSync(coneFile, nextCone);
       if (files.length) fs.mkdirSync(reqDir, { recursive: true });
       for (const f of files) fs.writeFileSync(path.join(reqDir, f.name), f.content);
+      for (const [file, text] of led.writes) fs.writeFileSync(path.join(root, file), text);
       const objDir = path.join(lawfulDir, 'objectives');
       if (hadFile) {
         fs.unlinkSync(path.join(lawfulDir, 'objectives.md'));

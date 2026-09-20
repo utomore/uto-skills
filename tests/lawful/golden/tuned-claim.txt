@@ -1,0 +1,3 @@
+$ lawful claim report-export --description 把報表匯成 CSV --milestone M-2-report-render --date 2026-09-05
+這棵樹的需求檔不是「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」;先 lawful migrate requirements --write 換過來
+exit 1

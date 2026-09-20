@@ -13,7 +13,4 @@ updated: 2026-09-05
 |---|---|---|
 | M-1-game-save | 存檔寫得出檔案 | P-001-game-save |
 | M-2-load-game | 讀檔還原世界 | P-002-load-game |
-
-| 調整 | 做到什麼 | 動到 |
-|---|---|---|
-| RF-1 | 錯誤訊息帶行號 | P-002-load-game |
+| M-6 | 靠修訂達成卻沒有英文名,綁的另一條 pipeline 也不存在 | P-001-game-save、P-009-nope |

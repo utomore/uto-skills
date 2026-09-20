@@ -40,7 +40,7 @@ brief build P-001-game-save @doc:97e45071 rules:<雜湊>
 
 # 決策紀錄
 
-(.lawful/journal/ 裡沒有 P-001-game-save 或 M-1-game-save 的決策紀錄)
+(.lawful/journal/ 裡沒有 P-001-game-save 或 M-1-game-save 或 M-6 的決策紀錄)
 
 # 目標 pipeline:.lawful/pipelines/P-001-game-save.md
 
@@ -182,7 +182,7 @@ updated: 2026-09-05
 - ✗ .lawful/pipelines/P-001-game-save.md:30 P-001-game-save#ghostView 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
 - ✗ .lawful/pipelines/P-001-game-save.md:31 = 列 saveGame 在 shell 層;= 列是純的整條(core 或 effect),shell 的進入點另列成 ! 列
 - · P-001-game-save#toSave 搬家:文檔 Game.Save.Project → 程式碼 Game.Save.Codec(lawful sync 可改)
-### lint laws:這條 pipeline 7 條不合規(全專案 9 條)
+### lint laws:這條 pipeline 7 條不合規(全專案 10 條)
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-3 種類「linear」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-4 |- 行的 crc32 對不到 Stages 簽名、types 層匯出或標準函式庫
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-5 缺 |- 行
@@ -217,11 +217,11 @@ updated: 2026-09-05
 
 ### lawful status
 願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-需求 4 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 里程碑 5 條,達成 0 條 · 調整 2 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
+需求 4 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 里程碑 6 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
 · 測試結果來自 stale.log
 
 #### 需求
-- R-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
+- R-1 下一個里程碑:M-1-game-save 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
 
 #### pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
@@ -253,12 +253,11 @@ updated: 2026-09-05
 #### 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| RF-2 | 動到的 P-001-game-save 不在 R-2 任何里程碑的綁定裡 | 調整不引入新 pipeline:只動這條需求的里程碑做出來的 pipeline;新能力開里程碑 |
 | P-001-game-save#decode | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
 | P-001-game-save#misroute | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
 | P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |
 | P-001-game-save | 測試輸出裡有 1 條結果(LAW-3)在這棵樹裡沒有測試承接,不算數 | 測試輸出與這棵樹對不上:重跑整套留檔再跑 status;測試真的不在就 lawful:build P-001-game-save |
 
 #### 7. 建議路線
-2. lawful:build P-001-game-save(R-1 優先 1 · M-1 存檔寫得出檔案)
+2. lawful:build P-001-game-save(R-1 優先 1 · M-1-game-save 存檔寫得出檔案)
 exit 0

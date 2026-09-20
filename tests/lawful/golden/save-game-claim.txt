@@ -1,4 +1,4 @@
-$ lawful claim save-load --description 把存檔讀回 World --kind subflow --milestone M-1 --date 2026-09-05
+$ lawful claim save-load --description 把存檔讀回 World --kind subflow --milestone M-1-save-write --date 2026-09-05
 建了 .lawful/pipelines/P-002-save-load.md(status: draft,kind: subflow)
 綁進 M-1-save-write
 exit 0
@@ -56,8 +56,5 @@ updated: 2026-09-05
 |---|---|---|
 | M-1-save-write | 存檔寫得出檔案 | P-001-save-write、P-002-save-load |
 | M-2-save-inspect | 存檔壞了看得出來 | - |
-
-| 調整 | 做到什麼 | 動到 |
-|---|---|---|
-| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+| M-3-save-compact | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
 

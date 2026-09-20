@@ -11,6 +11,13 @@ $ lawful status --json
   "visionFull": "輸入檔解析、正規化後跑完整條。 三條 pipeline:里程碑 P-001 引用 P-002 的 = 列(有註明見);P-002 與 P-003 都把 shared 列成步驟而沒註明見。",
   "visionState": "ok",
   "priorityNote": "1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具",
+  "glossary": [
+    {
+      "term": "文件",
+      "definition": "一段文字解析、正規化之後的結果;不是輸入檔本身",
+      "type": null
+    }
+  ],
   "tests": "此 adapter 不解析測試輸出",
   "summary": {
     "requirements": 2,
@@ -19,10 +26,8 @@ $ lawful status --json
     "requirementsInferred": 0,
     "invariants": 0,
     "invariantsHolding": 0,
-    "milestones": 2,
+    "milestones": 3,
     "milestonesAchieved": 0,
-    "refinements": 0,
-    "refinementsAchieved": 0,
     "ioFaces": 1,
     "ioFacesAchieved": 0,
     "pipelines": 3,
@@ -46,11 +51,7 @@ $ lawful status --json
     },
     {
       "label": "里程碑",
-      "value": "0 / 2 達成"
-    },
-    {
-      "label": "調整",
-      "value": "0 / 0 達成"
+      "value": "0 / 3 達成"
     },
     {
       "label": "io pipeline",
@@ -85,10 +86,10 @@ $ lawful status --json
         "title": "任一輸入檔解析、正規化後跑完不出錯",
         "formal": false,
         "holds": false,
-        "source": "M-2 還沒達成",
+        "source": "M-2-cli-run、M-3-parse-line-number 還沒達成",
         "tested": false
       },
-      "note": "驗收未達成 · 里程碑 0/1 達成",
+      "note": "驗收未達成 · 里程碑 0/2 達成",
       "dependsOn": [
         "R-2"
       ],
@@ -96,19 +97,30 @@ $ lawful status --json
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
-      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-2",
           "name": "M-2-cli-run",
           "title": "整條跑完",
           "achieved": false,
+          "state": "進行中",
+          "byRevision": false,
           "binds": [
             "P-001-cli-run"
           ]
+        },
+        {
+          "id": "M-3",
+          "name": "M-3-parse-line-number",
+          "title": "解析錯誤帶行號",
+          "achieved": false,
+          "state": "待修訂",
+          "byRevision": true,
+          "binds": [
+            "P-002-syntax-parse"
+          ]
         }
-      ],
-      "refinements": []
+      ]
     },
     {
       "id": "R-2",
@@ -121,7 +133,7 @@ $ lawful status --json
         "title": "任一段文字解析、正規化後得到一份文件或一個講得出位置的錯誤",
         "formal": false,
         "holds": false,
-        "source": "M-1 還沒達成",
+        "source": "M-1-syntax-parse 還沒達成",
         "tested": false
       },
       "note": "驗收未達成 · 里程碑 0/1 達成",
@@ -130,20 +142,20 @@ $ lawful status --json
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
-      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-1",
           "name": "M-1-syntax-parse",
           "title": "解析與正規化走通",
           "achieved": false,
+          "state": "進行中",
+          "byRevision": false,
           "binds": [
             "P-002-syntax-parse",
             "P-003-canon-normalize"
           ]
         }
-      ],
-      "refinements": []
+      ]
     }
   ],
   "invariants": [],
@@ -151,18 +163,25 @@ $ lawful status --json
     {
       "id": "R-1",
       "title": "R-1 輸入檔跑完整條",
-      "note": "驗收未達成 · M-2 還沒達成",
+      "note": "驗收未達成 · M-2-cli-run、M-3-parse-line-number 還沒達成",
       "notes": [
         "優先 1:讀寫的正確性",
-        "里程碑 0/1 達成 · 完成度 0%"
+        "里程碑 0/2 達成 · 完成度 0%"
       ],
       "achieved": false,
       "columns": [
         {
-          "title": "M-2 整條跑完",
+          "title": "M-2-cli-run 整條跑完",
           "achieved": false,
           "docs": [
             "P-001-cli-run"
+          ]
+        },
+        {
+          "title": "M-3-parse-line-number 解析錯誤帶行號(待修訂)",
+          "achieved": false,
+          "docs": [
+            "P-002-syntax-parse"
           ]
         }
       ],
@@ -171,7 +190,7 @@ $ lawful status --json
     {
       "id": "R-2",
       "title": "R-2 一段文字讀得成一份正規化的文件",
-      "note": "驗收未達成 · M-1 還沒達成",
+      "note": "驗收未達成 · M-1-syntax-parse 還沒達成",
       "notes": [
         "優先 2:使用者看得到的",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -179,7 +198,7 @@ $ lawful status --json
       "achieved": false,
       "columns": [
         {
-          "title": "M-1 解析與正規化走通",
+          "title": "M-1-syntax-parse 解析與正規化走通",
           "achieved": false,
           "docs": [
             "P-002-syntax-parse",
@@ -309,7 +328,7 @@ $ lawful status --json
       "building": false,
       "requirement": "R-1",
       "priority": 1,
-      "milestone": "M-2",
+      "milestone": "M-2-cli-run",
       "signatures": {
         "total": 3,
         "matched": 0,
@@ -412,9 +431,9 @@ $ lawful status --json
       "state": "進行中",
       "achieved": false,
       "building": false,
-      "requirement": "R-2",
-      "priority": 2,
-      "milestone": "M-1",
+      "requirement": "R-1",
+      "priority": 1,
+      "milestone": "M-3-parse-line-number",
       "signatures": {
         "total": 2,
         "matched": 0,
@@ -505,7 +524,7 @@ $ lawful status --json
       "building": false,
       "requirement": "R-2",
       "priority": 2,
-      "milestone": "M-1",
+      "milestone": "M-1-syntax-parse",
       "signatures": {
         "total": 2,
         "matched": 0,
@@ -595,16 +614,18 @@ $ lawful status --json
     "openable": [
       {
         "name": "P-002-syntax-parse",
-        "tag": "R-2 優先 2 · M-1 解析與正規化走通"
+        "tag": "R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號"
       },
       {
         "name": "P-003-canon-normalize",
-        "tag": "R-2 優先 2 · M-1 解析與正規化走通"
+        "tag": "R-2 優先 2 · M-1-syntax-parse 解析與正規化走通"
       }
     ],
     "building": [],
     "slices": [],
     "slicesBuilding": [],
+    "revisions": [],
+    "revisionsBuilding": [],
     "shared": [
       {
         "a": "P-002-syntax-parse",
@@ -625,9 +646,9 @@ $ lawful status --json
   ],
   "route": {
     "steps": [
-      "lawful:build P-002-syntax-parse(R-2 優先 2 · M-1 解析與正規化走通)",
-      "lawful:build P-003-canon-normalize(R-2 優先 2 · M-1 解析與正規化走通)",
-      "lawful:build P-001-cli-run(R-1 優先 1 · M-2 整條跑完)"
+      "lawful:build P-002-syntax-parse(R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號)",
+      "lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)",
+      "lawful:build P-001-cli-run(R-1 優先 1 · M-2-cli-run 整條跑完)"
     ],
     "note": null,
     "allDone": false

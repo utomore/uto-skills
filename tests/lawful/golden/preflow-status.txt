@@ -1,15 +1,15 @@
 $ lawful status --tests test.log
 # lawful status
 願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-需求 2 條,達成 1 條(測試 1、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 3 條,達成 0 條 · 調整 1 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 4 個 · 還開著的 GAP 0 條
+需求 2 條,達成 1 條(測試 1、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 4 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 4 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 ## 需求
 - 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
-| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
-|---|---|---|---|---|---|---|---|---|
-| R-1 | 1 | 玩家存檔後能讀回同一個世界 | 達成(測試 R-1#ACCEPT green) | - | 3 | 0 | 0% | 0/1 |
-| R-2 | (沒填) | 存檔壞了讀得出是哪裡壞 | 未達成(還沒有里程碑) | - | 0 | 0 | - | - |
+| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
+|---|---|---|---|---|---|---|---|
+| R-1 | 1 | 玩家存檔後能讀回同一個世界 | 達成(測試 R-1#ACCEPT green) | - | 4 | 0 | 0% |
+| R-2 | (沒填) | 存檔壞了讀得出是哪裡壞 | 未達成(還沒有里程碑) | - | 0 | 0 | - |
 - R-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-save-write 進行中)
 
 ## 全域 Law
@@ -58,6 +58,7 @@ $ lawful status --tests test.log
 |---|---|---|
 | Cone.md | 沒有 ## 全域 Law 區,看不出約束住在哪裡 | lawful migrate laws --write |
 | Cone.md | 「## 需求」節或 objectives/ 底下的檔寫著「- Law:」或蘊含說明;需求附的是驗收 | lawful migrate laws --write |
+| CLAUDE.md | 沒有 ## 名詞 節,領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |
 | Cone.md | 需求還住在「## 需求」節,看不出每條需求的優先與里程碑 | lawful migrate requirements --write 換成 requirements/ 一條需求一個檔 |
 | .lawful/objectives/R-9-O-3-save-cloud.md | 對到的需求 R-9 不存在,它的里程碑沒有算進任何需求 | lawful migrate requirements 的帳本會列出它;決定它屬於哪條需求 |
 | M-1 | 沒有英文名,切片開不了分支 | lawful:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵 |
@@ -65,6 +66,7 @@ $ lawful status --tests test.log
 | R-2 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
 | R-2 | 沒有任何里程碑 | lawful:require-design 切里程碑(lawful requirement milestone R-2 <slug> <一句話>) |
 | P-001-save-write | verified 而測試紅 | 先重開再修 |
+| P-001-save-write | verified 而有 REV 卻沒有重開紀錄 | 在「決定」補一條重開 |
 | P-001#EX-2 | 測試紅 | 仲裁:先歸因再改 |
 
 ## 7. 建議路線

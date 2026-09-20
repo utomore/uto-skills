@@ -2,7 +2,7 @@ $ GIT_AUTHOR_EMAIL=amy@corp.com devflow claim feature ship --description 把已�
 建了 .design/features/F-101-ship.md(status: draft)
 F-101 配自 amy@corp.com 的號段 100-199,owner 寫進 frontmatter
 system.md Features 表加了一列
-綁進 M-2
+綁進 M-2-refund
 exit 0
 --- .design/features/F-101-ship.md
 ---

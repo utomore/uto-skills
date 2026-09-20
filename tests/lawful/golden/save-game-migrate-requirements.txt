@@ -1,3 +1,3 @@
 $ lawful migrate requirements
-.lawful/requirements 已經在,每條 pipeline 的 kind 也已經是 io 或 subflow,這棵樹不用換
+.lawful/requirements 已經在,每個需求檔只有一張里程碑表,每條 pipeline 的 kind 也已經是 io 或 subflow,這棵樹不用換
 exit 0

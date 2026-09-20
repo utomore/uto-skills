@@ -10,7 +10,7 @@ import { sectionCommand } from '../lib/commands/section.mjs';
 import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, moduleDetail, pipelineDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, invariantAdd, milestoneAdd, moduleAdd, modulesGen, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
+import { claim, invariantAdd, milestoneAdd, moduleAdd, modulesGen, requirementAdd, sync } from '../lib/commands/edit.mjs';
 import { migrateCone, migrateFromDevFlow, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
 
 const HELP = `lawful <子命令> [選項]
@@ -27,8 +27,8 @@ const HELP = `lawful <子命令> [選項]
                                        劃一個模組單元:模組表寫一列,它宣告的每一層在那棵原始碼樹裡開好資料夾。
                                        名稱沒有 . 就接上 Cone.md 的模組前綴;單元已經在表上就補上缺的層。層預設 types,core
                                        --facade 另外建一個與單元同名的門面模組,沒指定層就開在最上層(只有它 import 得到底下每一層);要讓下層的消費者也用得到這個名字就指定層。門面只准一個
-  claim <slug> [--description <句>] [--kind <io | subflow>] [--milestone <M-n>]
-                                       鑄號建 pipeline 檔(status: draft),綁進 --milestone 那條里程碑(編號或全名 M-n-<slug> 都行)。
+  claim <slug> [--description <句>] [--kind <io | subflow>] [--milestone <M-n-slug>]
+                                       鑄號建 pipeline 檔(status: draft),綁進 --milestone 那條里程碑(給全名 M-n-<slug>)。
                                        kind:io 是跨過 shell 的資料流(有進入點),subflow 是被別條 pipeline 引用的純資料流
                                        slug 是 <領域名詞>-<動詞或動名詞>:領域名詞是 = 列住的模組單元(去掉模組前綴、大駝峰拆成 kebab),要在模組表上
                                        號從每一棵工作樹的 pipeline 的最大號往上配;Cone.md「專案約束」有號段行時,從 git user.email 對到的區間內配,frontmatter 寫 owner
@@ -36,13 +36,12 @@ const HELP = `lawful <子命令> [選項]
                                        鑄 R-n 建 requirements/R-n-<slug>.md:一件必須達成的事;優先 1 最高、4 最低;驗收(判它達成與否的那一句)沒給就留佔位符
   requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]
                                        鑄 M-n(全資料夾唯一),以全名 M-n-<slug> 加在該需求檔的里程碑表最後(表的列序就是先後);slug 是 kebab-case 英文,
-                                       切片的分支 build/M-n-<slug> 以它為鍵;綁定的全名要是 pipelines/ 裡有的 pipeline
-  requirement refinement <R-n> <一句話> --touch <全名,全名>
-                                       鑄 RF-n(全資料夾唯一)加進該需求檔的調整表;動到的要是這條需求的里程碑綁定過的 pipeline
+                                       切片的分支 build/M-n-<slug> 以它為鍵;綁定的全名要是 pipelines/ 裡有的 pipeline;
+                                       綁一條已經被別條里程碑綁過的 pipeline,這條里程碑就靠修訂它達成:那條 pipeline 達成,而且它的修訂記錄裡有一條 REV 的依欄寫了這條里程碑的全名
   invariant add <一句話> [--kind <種類>]
                                        鑄 INV-n 寫進 Cone.md「全域 Law」的領域不變量;種類預設 invariant
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
-                                       一檔一號與號段 / 邊界 / 簽名 / laws / 測試歸屬 / 對外 I/O 與契約欄 / 領域不變量的對帳;
+                                       一檔一號與號段 / 邊界 / 簽名 / laws(含名詞表——專案根目錄 CLAUDE.md 的「## 名詞」節——型別欄的型別在程式碼裡)/ 測試歸屬 / 對外 I/O 與契約欄 / 領域不變量的對帳;
                                        global = 全域 Law 三類一次查完:boundary(架構)+ io(契約)+ invariants(領域不變量)
   sync [--date <YYYY-MM-DD>]            把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改)
   modules --gen                        從程式碼的模組名推出模組單元與層,補進模組表,職責欄留白
@@ -56,8 +55,10 @@ const HELP = `lawful <子命令> [選項]
                                        skill:${briefSkills.join('、')}
   migrate laws [--write]               Cone.md 沒有「## 全域 Law」區、或「## 需求」節與 objectives/ 底下的檔寫著「- Law:」的樹:modules.md 的「邊界」與「對外 I/O」收進 Cone.md「## 全域 Law」區,
                                        需求的那一句改成「- 驗收:」,蘊含說明與 objectives/ 底下的「- Law:」刪掉,里程碑補英文名;先印帳本,--write 才落地
-  migrate requirements [--write]       需求還住在 Cone.md「## 需求」節、里程碑住 objectives/ 或一份 objectives.md 的樹:每條需求連同朝向它的里程碑與調整
+  migrate requirements [--write]       需求還住在 Cone.md「## 需求」節、里程碑住 objectives/ 或一份 objectives.md 的樹:每條需求連同朝向它的里程碑
                                        併成 requirements/R-n-<slug>.md 一條一個檔,「## 需求」節與 objectives/ 刪掉;pipeline 的 kind 不是 io 或 subflow 而認得出來的,改寫成 io 或 subflow;
+                                       需求檔或目標檔有調整表的樹:調整表的每一列換成里程碑表的一列(配新的 M-n,綁定 = 動到欄),調整表刪掉,
+                                       pipeline 修訂記錄依欄引用的調整編號改寫成新的 M-n;
                                        要人判的列在帳本裡;先印帳本,--write 才落地
   migrate cone [--write]               只有 system.md 的樹、或里程碑還擠在一份 objectives.md 的樹:建 Cone.md、objectives.md 拆成 objectives/ 一個檔一份;先印帳本,--write 才落地;之後接 migrate requirements
   migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>]
@@ -233,7 +234,7 @@ function main() {
 
   if (cmd === 'claim') {
     if (!sub) {
-      console.error('用法:lawful claim <slug> [--description <句>] [--kind <io | subflow>] [--milestone <M-n>]');
+      console.error('用法:lawful claim <slug> [--description <句>] [--kind <io | subflow>] [--milestone <M-n-slug>]');
       return 1;
     }
     return emit(claim(design, sub, { description: str(args.flags.description), date: str(args.flags.date) || undefined, milestone: str(args.flags.milestone), kind: str(args.flags.kind) }));
@@ -242,8 +243,7 @@ function main() {
   if (cmd === 'requirement') {
     if (sub === 'add' && rest[0] && rest[1]) return emit(requirementAdd(design, rest[0], rest.slice(1).join(' '), { accept: str(args.flags.accept), priority: args.flags.priority, date: str(args.flags.date) || undefined }));
     if (sub === 'milestone' && rest[0] && rest[1] && rest[2]) return emit(milestoneAdd(design, rest[0], rest[1], rest.slice(2).join(' '), { bind: str(args.flags.bind) }));
-    if (sub === 'refinement' && rest[0] && rest[1]) return emit(refinementAdd(design, rest[0], rest.slice(1).join(' '), { touch: str(args.flags.touch) }));
-    console.error('用法:lawful requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      lawful requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]\n      lawful requirement refinement <R-n> <一句話> --touch <全名,全名>');
+    console.error('用法:lawful requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      lawful requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]');
     return 1;
   }
 

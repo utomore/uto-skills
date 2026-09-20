@@ -1,8 +1,3 @@
-$ devflow requirement refinement R-1 結帳一次走完不重算 --touch F-001-checkout
-RF-1 寫進 R-1-money-correct,動到 F-001-checkout
-下一步:dev-flow:scope-revise F-001-checkout(既有的 law 不動、可以新增,REV 的依欄引用 RF-1;要調整既有的 law 才做得到,整件改走 dev-flow:scope-laws);調整達成 = 動到的每份都有一條 REV 引用它、都達成,而且 R-1 仍達成
-exit 0
---- .design/requirements/R-1-money-correct.md
 ---
 id: R-1
 priority: 1
@@ -21,5 +16,5 @@ updated: 2026-09-07
 
 | 調整 | 做到什麼 | 動到 |
 |---|---|---|
-| RF-1 | 結帳一次走完不重算 | F-001-checkout |
-
+| RF-1 | 手續費大過要退的金額也結得出來 | F-001-checkout |
+| RF-2 | 退款一秒內完成 | F-002-refund |

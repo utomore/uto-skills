@@ -8,5 +8,5 @@ brief qa P-009-nope @doc:- rules:<雜湊>
 
 # 目標
 
-這棵樹沒有 P-009-nope。pipeline:P-001-save-write;里程碑:M-1-save-write、M-2-save-inspect;需求:R-1;領域不變量:INV-1。停下,回報。
+這棵樹沒有 P-009-nope。pipeline:P-001-save-write;里程碑:M-1-save-write、M-2-save-inspect、M-3-save-compact;需求:R-1;領域不變量:INV-1。停下,回報。
 exit 0

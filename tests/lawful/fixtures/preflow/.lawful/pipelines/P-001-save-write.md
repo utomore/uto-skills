@@ -50,4 +50,4 @@ updated: 2026-09-05
 - **格式用 CBOR。** 否決:JSON。證據:ADR-001-save-format
 
 ## 修訂記錄
-無
+- REV-1(2026-09-05,依 RF-1):存檔檔案壓縮後不超過 1 MB,補一條 bound 的 law

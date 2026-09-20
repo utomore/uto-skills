@@ -1,0 +1,3 @@
+$ devflow requirement add ships-on-time 每一筆訂單準時出貨 --priority 3
+這棵樹的需求檔不是「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」;先 devflow migrate requirements --write 換過來
+exit 1

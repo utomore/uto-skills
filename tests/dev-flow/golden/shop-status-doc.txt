@@ -36,7 +36,7 @@ $ devflow status --doc F-001-checkout --tests test.log
 - 被引用:F-002-refund
 
 ## 修訂
-- REV-1(2026-09-07,依開發者:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law
+- REV-1(2026-09-07,依 M-3-settle-total:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law
 
 文檔寫了 5 條簽名,程式碼裡有 5 條,未實作的 0 條 · 觀察點 5 個,程式碼裡有 5 個 · 寫了 6 條 law,通過 6 條 · 達成
 exit 0

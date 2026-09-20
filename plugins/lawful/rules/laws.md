@@ -104,6 +104,7 @@ scope law 是對著跑得通的切片談出來的:開發者看得到行為,才�
 
 - **寫得出一個讓這句話變假的實作,才是 law。** 寫不出來,那一句只是在描述程式碼現在做了什麼(「先 `toSave` 再 `encode`」);qa 照它寫出來的測試是同義反覆,程式碼怎麼寫它怎麼過。對談時每條候選都講出那個反例實作,講不出來就不收。
 - law 寫的是「以後要一直成立什麼」,不是「現在做了什麼」;識別字與三行式照 pipelines.md「節」的 Laws。
+- law 的第一句用到的領域名詞,照專案根目錄 `CLAUDE.md`「## 名詞」節上的寫法(pipelines.md「`.lawful/`」);表上沒有的名詞先由 `lawful:require-design` 講定,不在 law 裡另外定義。這一片讓某個名詞第一次有了型別,`lawful:scope-laws` 把型別名填進那一列的「型別」欄,那一節的其他欄位與 `CLAUDE.md` 的其他內容不動。
 - 三行寫不出來,代表少一個觀察點(投影、存取子、效果描述的純解譯器):補 `o` 列並在程式碼裡匯出它(boundary.md「效果的判定」「測試與邊界」)。
 - 答「不准」而現有的型別裝不下(存檔格式沒有地方記版本):當場與開發者定型別要多什麼,`lawful:scope-laws` 把型別的宣告改到位、編得過;行為留給 refactor。型別與簽名歸設計這一側,本體歸 refactor(roles.md「分支與所有權」)。
 - 開發者逐條拍板,不整批追認;一條 pipeline 的 law 多到談不完,就是這條切得太大,拆成兩條。
@@ -111,7 +112,7 @@ scope law 是對著跑得通的切片談出來的:開發者看得到行為,才�
 
 ## 影響範圍與選項
 
-**要改的東西走哪裡,一句話分流:要調整(修改、放寬、替換、刪除)既有的 law → `lawful:scope-laws`;law 不動、或只新增 law,而文檔或實作要變 → `lawful:scope-revise`;全域 Law → `lawful:global-laws`;需求面的條目(需求、驗收、優先、里程碑、調整)→ `lawful:require-design`。** GAP 的結案與調整 `RF-n` 的落地也照這一句:`RF-n` 預設走 `lawful:scope-revise`(需要新的 law 就在那裡新增);要調整既有的 law 才做得到的調整,整件走 `lawful:scope-laws`。**一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止**,不交錯、不接力。
+**要改的東西走哪裡,一句話分流:要調整(修改、放寬、替換、刪除)既有的 law → `lawful:scope-laws`;law 不動、或只新增 law,而文檔或實作要變 → `lawful:scope-revise`;全域 Law → `lawful:global-laws`;需求面的條目(需求、驗收、優先、里程碑)→ `lawful:require-design`。** GAP 的結案與靠修訂達成的里程碑(pipelines.md「願景、需求與里程碑」)也照這一句:既有的 law 不動、新的承諾用新增的 law 表達,走 `lawful:scope-revise`;要調整既有的 law 才做得到,整件走 `lawful:scope-laws`。**一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止**,不交錯、不接力。
 
 調整任何一條 law 之前,先把**影響範圍**攤給開發者,再給**選項**;開發者選了才落筆。scope law 由 `lawful:scope-laws` 攤,全域 Law 由 `lawful:global-laws` 攤。沒有影響範圍、沒有選項的 law 調整不准落筆,來源是 GAP、整合的仲裁或開發者自己的話都一樣。
 

@@ -185,6 +185,8 @@ const MODULES = `(() => {
   const sec = document.getElementById('modules-section');
   const rows = [...document.querySelectorAll('#modules .unit')];
   const link = document.querySelector('#modules .unit a[data-go]');
+  // 側欄比視窗長的時候模組段在畫面外:先捲到看得到,量到的座標才點得到它
+  if (link) link.scrollIntoView({ block: 'center', behavior: 'instant' });
   const r = link && link.getBoundingClientRect();
   return {
     has: !!(D.modules && D.modules.units.length),
@@ -257,8 +259,9 @@ async function run(page, label, expect) {
   check(`${label}:手一停就交還,字才會重畫成清的`, atRest === 'auto', `靜止時的 will-change 是 ${atRest}`);
 
   // 模組段:一個模組單元一列,層是它在原始碼樹裡的落點;沒有模組資料的工具整段不出現
+  // 拖曳之後的第一下點擊被頁面當成拖曳的尾巴吃掉:先點掉它。畫布挪過了,那一點底下是哪張便利貼看夾具的版面,所以不靠再點一次取消,直接回派工那一頁,模組段才在畫面上
   await page.click(pick.x, pick.y);
-  await page.click(pick.x, pick.y);
+  await page.evaluate('select(null)');
   const mods = await page.evaluate(MODULES);
   check(`${label}:模組段跟著資料出現或收起`, mods.shown === mods.has,
     `有模組資料 ${mods.has},段落顯示 ${mods.shown}`);
@@ -274,14 +277,14 @@ async function run(page, label, expect) {
     }
   }
 
-  // 樹只有四層:願景 → 需求的區塊 → 里程碑與調整 → 便利貼;一個區塊一張卡、一欄一張卡,優先與里程碑完成度寫在需求的區塊上
+  // 樹只有四層:願景 → 需求的區塊 → 里程碑 → 便利貼;一個區塊一張卡、一欄一張卡,優先與里程碑完成度寫在需求的區塊上
   const shape = await page.evaluate(`(() => {
     const bad = [];
     const bands = [...document.querySelectorAll('.band')];
     const groups = [...document.querySelectorAll('.group')];
     const columns = D.bands.reduce((s, b) => s + b.columns.length, 0);
     if (bands.length !== D.bands.length) bad.push('區塊畫了 ' + bands.length + ' 張,資料有 ' + D.bands.length + ' 個');
-    if (groups.length !== columns) bad.push('里程碑與調整畫了 ' + groups.length + ' 張,資料有 ' + columns + ' 欄');
+    if (groups.length !== columns) bad.push('里程碑畫了 ' + groups.length + ' 張,資料有 ' + columns + ' 欄');
     const kinds = new Set([...document.querySelectorAll('#world .card')].map((el) => el.dataset.kind));
     for (const k of kinds) if (!['vision', 'band', 'group', 'note'].includes(k)) bad.push('多了一層 ' + k);
     D.bands.forEach((b, bi) => {
@@ -290,9 +293,20 @@ async function run(page, label, expect) {
     });
     return bad;
   })()`);
-  check(`${label}:樹是願景、需求的區塊、里程碑與調整、便利貼四層`, shape.length === 0, shape.join(' · '));
+  check(`${label}:樹是願景、需求的區塊、里程碑、便利貼四層`, shape.length === 0, shape.join(' · '));
 
-  // 版面:每張卡片都比它自己的父卡片更右(里程碑與調整直接掛在需求的區塊底下)
+  // 靠修訂既有的文檔達成、還沒有 REV 引用它的里程碑:它那一欄的卡片標題帶「(待修訂)」;資料裡沒有 refinements
+  const pending = await page.evaluate(`(() => {
+    const groups = [...document.querySelectorAll('.group')].map((g) => g.textContent);
+    const waiting = D.requirements.flatMap((q) => q.milestones.filter((m) => m.state === '待修訂'));
+    return { waiting: waiting.map((m) => m.name), unmarked: waiting.filter((m) => !groups.some((t) => t.includes(m.name + ' ' + m.title + '(待修訂)'))).map((m) => m.name),
+      stateless: D.requirements.flatMap((q) => q.milestones.filter((m) => !['達成', '待修訂', '進行中'].includes(m.state) || typeof m.byRevision !== 'boolean')).map((m) => m.name),
+      refinements: D.requirements.some((q) => 'refinements' in q) || 'refinements' in D.summary };
+  })()`);
+  check(`${label}:待修訂的里程碑在它那一欄的卡片上標出來`, pending.unmarked.length === 0, `沒標的 ${pending.unmarked.join('、')}`);
+  check(`${label}:每條里程碑帶狀態字與是不是靠修訂達成,資料裡只有里程碑`, pending.stateless.length === 0 && !pending.refinements, JSON.stringify(pending));
+
+  // 版面:每張卡片都比它自己的父卡片更右(里程碑直接掛在需求的區塊底下)
   const askew = await page.evaluate(`(() => {
     const at = (el) => parseFloat(el.style.left);
     const one = (sel) => document.querySelector(sel);
@@ -346,7 +360,7 @@ async function run(page, label, expect) {
       const q = D.requirements.find((r) => r.id === dagSelected);
       const text = docEl.textContent;
       return { dagSelected, docOpen: !docEl.hidden, lit: document.querySelectorAll('#links2 .dep.lit').length, rows: docEl.querySelectorAll('section').length,
-        missing: q ? q.milestones.filter((m) => !text.includes(m.id + ' ' + m.title)).map((m) => m.id) : [] };
+        missing: q ? q.milestones.filter((m) => !text.includes(m.name + ' ' + m.title + (m.state === '待修訂' ? '(待修訂)' : ''))).map((m) => m.name) : [] };
     })()`);
     check(`${label}:點相依圖的卡會選到它`, sel.dagSelected === dag.first.id && sel.docOpen, JSON.stringify(sel));
     check(`${label}:選了卡它的邊會亮`, sel.lit === dag.first.degree, `亮了 ${sel.lit} 條,這張卡有 ${dag.first.degree} 條邊`);

@@ -64,7 +64,7 @@ input 是 POST /checkout 的 RawBody,output 是 HttpRes。
 - **重開一次**(2026-09-07):為了 REV-1 重開,由 build 重新 verified。
 
 ## 修訂記錄
-- REV-1(2026-09-07,依開發者:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law
+- REV-1(2026-09-07,依 M-3-settle-total:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law
   - 動到:新增 LAW-6、EX-5
   - 保護:LAW-1、LAW-2、LAW-3、LAW-4、LAW-5
   - 重委派:qa(LAW-6、EX-5)

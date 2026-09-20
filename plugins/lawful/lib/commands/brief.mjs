@@ -8,7 +8,7 @@ import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseFrontmatter, sections } from '../markdown.mjs';
 import { findType } from '../source.mjs';
-import { analyze, branchState, pipelineDetail } from './status.mjs';
+import { analyze, branchState, pipelineDetail, requirementView } from './status.mjs';
 import { lintAll, lintBoundary, lintGlobal, lintLaws, lintSig, renderLint } from './lint.mjs';
 
 const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -378,7 +378,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
     if (q.abs) return wholeFile(`需求檔:${q.file}`, q.abs, '(讀不到)');
     const acc = q.accept;
     return [`# 需求:${q.id}(${q.file})`, '', `${q.id}:${q.title}`, `- 驗收:${acc ? acc.title : '(還沒寫)'}`, ...(acc ? [acc.forall, ...acc.given, acc.conclusion].filter(Boolean).map((l) => `  - ${l}`) : []),
-      ...q.milestones.map((m) => `- 里程碑 ${m.fullName}:${m.title}(綁定 ${m.binds.join('、') || '-'})`), ...q.refinements.map((rf) => `- 調整 ${rf.id}:${rf.title}(動到 ${rf.touches.join('、') || '-'})`), ''];
+      ...q.milestones.map((m) => `- 里程碑 ${m.fullName}:${m.title}(綁定 ${m.binds.join('、') || '-'})`), ''];
   };
 
   // 三行裡的識別字對到哪條 pipeline 的 Stages(不含引用別條的那幾列)
@@ -482,16 +482,23 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
       out.push('');
     },
 
-    // 里程碑:它那條需求的需求檔全文;pipeline:綁它的里程碑、動到它的調整,與那幾條需求的需求檔
+    // 里程碑:它那條需求的需求檔全文;pipeline:綁它的里程碑,與那幾條需求的需求檔
     requirement: () => {
       if (ms) return out.push(...requirementLines(ms.q));
       const rows = [];
       const reqs = new Set();
+      // 靠修訂這一條達成的里程碑:它的修訂記錄裡要有一條 REV 的依欄寫了那條里程碑的全名
+      const view = a ? requirementView(design, a).reqs : [];
+      const revised = (q, m) => {
+        const vq = view.find((w) => w.fullName === q.fullName);
+        const v = vq ? vq.ms.find((w) => w.line === m.line && w.fullName === m.fullName) : null;
+        const d = v ? v.docs.find((w) => w.name === name) : null;
+        return d && d.byRevision ? `;靠修訂這一條達成,${d.cited ? 'REV 的依欄已經引用它' : `還沒有 REV 的依欄引用它:REV 的依欄寫 ${m.fullName}`}` : '';
+      };
       for (const q of requirements) {
-        for (const m of q.milestones) if (m.binds.includes(name)) { rows.push(`- ${q.fullName}(優先 ${q.priority == null ? '沒填' : q.priority})的里程碑 ${m.fullName}:${m.title}(綁定 ${m.binds.join('、')})`); reqs.add(q); }
-        for (const rf of q.refinements) if (rf.touches.includes(name)) { rows.push(`- ${q.fullName} 的調整 ${rf.id}:${rf.title}(動到 ${rf.touches.join('、')})`); reqs.add(q); }
+        for (const m of q.milestones) if (m.binds.includes(name)) { rows.push(`- ${q.fullName} 的里程碑 ${m.fullName}:${m.title}(綁定 ${m.binds.join('、')}${revised(q, m)})`); reqs.add(q); }
       }
-      out.push('# 這條 pipeline 朝向哪裡', '', ...(rows.length ? rows : ['(沒有任何里程碑綁它,也沒有調整動到它)']), '');
+      out.push('# 這條 pipeline 朝向哪裡', '', ...(rows.length ? rows : ['(沒有任何里程碑綁它)']), '');
       for (const q of reqs) out.push(...requirementLines(q));
     },
 

@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { analyze, buildKeyOf, counts, docState, invariantView, metWord, lineTag, requirementView, openLines, sliceLines, suggestRoutes, warnings } from './status.mjs';
+import { analyze, buildKeyOf, counts, docState, invariantView, metWord, lineTag, requirementView, openLines, reviseLines, sliceLines, suggestRoutes, warnings } from './status.mjs';
 
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
 const TOKEN = '__STATUS_JSON__';
@@ -43,6 +43,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const warns = warnings(design, a, ov, source, adapter, stale, inv);
   const route = suggestRoutes(design, a, ov, warns.length, building, inv);
   const slices = sliceLines(ov, building);
+  const revisions = reviseLines(ov, building);
   const { openable, inBuild, shared } = openLines(a, ov, building);
   const sys = design.system;
   const n = counts(design, a, ov, inv);
@@ -60,7 +61,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       building: !!buildKeyOf(x, ov, building),
       requirement: at ? at.q.id : null,
       priority: at ? at.q.priority : null,
-      milestone: at ? at.m.id : null,
+      milestone: at ? at.m.fullName : null,
       signatures: { total: x.sigTotal, matched: x.sigOk, stub: x.stubCount },
       observations: { total: x.obsTotal, matched: x.obsOk },
       laws: lawsOf(x),
@@ -92,7 +93,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     const m = /^\s*([1-4])\s*[=＝::]\s*(.+?)[。.]?\s*$/.exec(part);
     if (m) tierMeaning.set(Number(m[1]), m[2].trim());
   }
-  // 看板的分法:一條需求一個區塊,區塊底下一條里程碑或一條調整一欄(里程碑照表上的先後排);
+  // 看板的分法:一條需求一個區塊,區塊底下一條里程碑一欄(里程碑照表上的先後排);
   // 沒被綁的 feature 自成一個區塊;abstracts/ 底下照讀進來而沒被綁的文檔另成一個區塊
   const bound = new Set(ov.reqs.flatMap((q) => q.ms.flatMap((m) => m.binds)));
   const bands = ov.reqs.map((q) => ({
@@ -101,13 +102,10 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     note: `驗收${metWord(q.holds)} · ${q.source}`,
     notes: [
       `優先 ${q.priorityRaw || '(沒填)'}${q.priority && tierMeaning.has(q.priority) ? `:${tierMeaning.get(q.priority)}` : ''}`,
-      `里程碑 ${q.done}/${q.ms.length} 達成 · 完成度 ${q.pct == null ? '-' : `${q.pct}%`}${q.rfs.length ? ` · 調整 ${q.rfDone}/${q.rfs.length} 達成` : ''}`,
+      `里程碑 ${q.done}/${q.ms.length} 達成 · 完成度 ${q.pct == null ? '-' : `${q.pct}%`}`,
     ],
     achieved: q.holds === true,
-    columns: [
-      ...q.ms.map((m) => ({ title: `${m.id} ${m.title}${m.binds.length ? '' : '(還沒有切片)'}`, achieved: m.achieved, docs: m.binds })),
-      ...q.rfs.map((rf) => ({ title: `${rf.id} ${rf.title}(調整,${rf.state})`, achieved: rf.achieved, docs: rf.touches })),
-    ],
+    columns: q.ms.map((m) => ({ title: `${m.fullName} ${m.title}${!m.binds.length ? '(還沒有切片)' : m.state === '待修訂' ? '(待修訂)' : ''}`, achieved: m.achieved, docs: m.binds })),
     empty: q.ms.length ? null : '沒有任何里程碑',
   }));
   const loose = docs.filter((d) => d.kind === 'feature' && !bound.has(d.name)).map((d) => d.name);
@@ -125,8 +123,6 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     invariantsHolding: n.invariantsHolding,
     milestones: n.milestones,
     milestonesAchieved: n.milestonesAchieved,
-    refinements: n.refinements,
-    refinementsAchieved: n.refinementsAchieved,
     features: n.features,
     featuresAchieved: n.featuresAchieved,
     abstracts: n.abstracts,
@@ -143,13 +139,14 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     visionFull: sys && sys.visionState === 'ok' ? sys.visionFull : null,
     visionState: sys ? sys.visionState : null,
     priorityNote: sys && sys.priorityNoteState === 'ok' ? sys.priorityNote : null,
+    // 名詞表(專案根目錄 CLAUDE.md 的「## 名詞」節)原樣帶出去:名詞、定義、型別(還沒有型別是 null)
+    glossary: (design.glossary || []).map((g) => ({ term: g.term, definition: g.definition, type: g.type || null })),
     tests: resultNote,
     summary,
     headline: [
       { label: '需求', value: `${summary.requirementsHolding} / ${summary.requirements} 達成(測試 ${summary.requirementsTested}、推得 ${summary.requirementsInferred})` },
       { label: '領域不變量', value: `${summary.invariantsHolding} / ${summary.invariants} 成立` },
       { label: '里程碑', value: `${summary.milestonesAchieved} / ${summary.milestones} 達成` },
-      { label: '調整', value: `${summary.refinementsAchieved} / ${summary.refinements} 達成` },
       { label: 'feature', value: `${summary.featuresAchieved} / ${summary.features} 達成` },
       ...(summary.abstracts ? [{ label: '共用文檔', value: `${summary.abstracts} 份` }] : []),
       { label: '還沒實作的 step', value: `${summary.todoSteps} 個` },
@@ -169,9 +166,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       achieved: q.holds === true,
       percent: q.pct,
       milestonesAchieved: q.done,
-      refinementsAchieved: q.rfDone,
-      milestones: q.ms.map((m) => ({ id: m.id, name: m.fullName, title: m.title, achieved: m.achieved, binds: m.binds })),
-      refinements: q.rfs.map((rf) => ({ id: rf.id, title: rf.title, touches: rf.touches, state: rf.state, achieved: rf.achieved })),
+      milestones: q.ms.map((m) => ({ id: m.id, name: m.fullName, title: m.title, achieved: m.achieved, state: m.state, byRevision: m.byRevision, binds: m.binds })),
     })),
     invariants: inv.map((v) => ({ id: v.id, kind: v.kind || null, title: v.title, formal: !!v.law.formal, holds: v.holds, source: v.source, tested: v.tested })),
     bands,
@@ -182,6 +177,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       building: inBuild.map((x) => ({ name: x.p.fullName, tag: lineTag(x, ov) })),
       slices: slices.openable.map((s) => ({ name: s.m.fullName, requirement: s.q.id, title: s.m.title })),
       slicesBuilding: slices.inBuild.map((s) => ({ name: s.m.fullName, requirement: s.q.id, title: s.m.title })),
+      revisions: revisions.openable.map((s) => ({ name: s.m.fullName, requirement: s.q.id, title: s.m.title, revise: s.m.toRevise })),
+      revisionsBuilding: revisions.inBuild.map((s) => ({ name: s.m.fullName, requirement: s.q.id, title: s.m.title, revise: s.m.toRevise, branch: `build/${s.key}` })),
       shared,
     },
     gaps: a.openGaps.map((g) => ({ id: g.id, target: g.target, role: g.role })),
@@ -224,7 +221,7 @@ export function statusBoard(design, source, adapter, results, resultNote, buildi
     text: [
       `看板寫到 ${shown}` + (opened ? ',已經叫瀏覽器打開' : ',點這個網址打開'),
       url,
-      '樹從左上往下長,每深一層往右縮排一格:願景 → 需求 → 里程碑與調整 → 便利貼;便利貼是文檔,虛線箭頭是引用,預設只畫選取那一份的',
+      '樹從左上往下長,每深一層往右縮排一格:願景 → 需求 → 里程碑 → 便利貼;便利貼是文檔,虛線箭頭是引用,預設只畫選取那一份的',
       '「相依」頁籤把需求排成先後:左邊先做、右邊後做,邊從文檔的引用推出來,紅色的邊是高優先依賴低優先',
     ].join('\n'),
     exitCode: data.route.allDone && data.summary.docs ? 0 : 1,

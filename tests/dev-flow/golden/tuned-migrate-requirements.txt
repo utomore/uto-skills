@@ -1,0 +1,19 @@
+$ devflow migrate requirements
+# migrate requirements 帳本
+
+- .design/requirements/R-1-money-correct.md:調整表刪掉,2 列換成里程碑表的列(RF-1 → M-4、RF-2 → M-5)
+- .design/requirements/R-2-money-traceable.md:調整表刪掉,1 列換成里程碑表的列(RF-3 → M-6)
+
+## 調整表換成里程碑
+- RF-1 → M-4:手續費大過要退的金額也結得出來(R-1-money-correct;綁定 F-001-checkout)
+- RF-2 → M-5:退款一秒內完成(R-1-money-correct;綁定 F-002-refund)
+- RF-3 → M-6:結帳結果帶出處(R-2-money-traceable;綁定 F-001-checkout)
+- .design/features/F-001-checkout.md:修訂記錄依欄的 RF-1 改寫成 M-4
+
+## 人要判的
+- M-4(R-1-money-correct,換自 RF-1「手續費大過要退的金額也結得出來」):補英文名,dev-flow:require-design 把第一格寫成 M-4-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
+- M-5(R-1-money-correct,換自 RF-2「退款一秒內完成」):補英文名,dev-flow:require-design 把第一格寫成 M-5-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
+- M-6(R-2-money-traceable,換自 RF-3「結帳結果帶出處」):補英文名,dev-flow:require-design 把第一格寫成 M-6-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
+
+以上只是帳本;devflow migrate requirements --write 才落地
+exit 0

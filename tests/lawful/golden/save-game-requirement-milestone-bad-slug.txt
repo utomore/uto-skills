@@ -1,0 +1,5 @@
+$ lawful requirement milestone R-1 存檔壞了修得回來
+用法:lawful requirement add <slug> <一句話> --priority <1-4> [--accept <句>]
+      lawful requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]
+      lawful requirement refinement <R-n> <一句話> --touch <全名,全名>
+exit 1

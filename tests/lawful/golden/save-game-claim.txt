@@ -1,19 +1,19 @@
-$ lawful claim save-load --description 把存檔讀回 World --kind 子流 --milestone M-1 --date 2026-09-05
-建了 .lawful/pipelines/P-002-save-load.md(status: draft,kind: 子流)
+$ lawful claim save-load --description 把存檔讀回 World --kind subflow --milestone M-1 --date 2026-09-05
+建了 .lawful/pipelines/P-002-save-load.md(status: draft,kind: subflow)
 綁進 M-1-save-write
 exit 0
 --- .lawful/pipelines/P-002-save-load.md
 ---
 id: P-002
 description: 把存檔讀回 World
-kind: 子流
+kind: subflow
 status: draft
 updated: 2026-09-05
 ---
 # P-002-save-load:把存檔讀回 World
 
 ## Brief
-<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 IO 介面,或它是 P-00y-<slug> 引用的子流。它讓 M-n-<slug> 往前哪一步。>
+<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它的 kind 是 io(跨過 shell、有進入點),或是 P-00y-<slug> 引用的 subflow。它讓 M-n-<slug> 往前哪一步。>
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -22,7 +22,7 @@ updated: 2026-09-05
 | 2 | `<name :: Type>` | <一句> | `<Module>`(見 P-00z-<slug>) | core |
 | o | `<name :: Type>` | 觀察:<law 要看的量,一句> | `<Module.Internal>` | core |
 | = | `<name :: Type>` | 純的整條 | `<Module>` | core |
-| ! | `<name :: Type>` | 進入點:<接到哪個對外 I/O;子流刪這列> | `<Module>` | shell |
+| ! | `<name :: Type>` | 進入點:<接到哪個對外 I/O;subflow 刪這列> | `<Module>` | shell |
 
 ## Laws
 - LAW-1 [<invariant | identity | roundtrip | relation | bound | equiv | total | commute>] <一句中文>
@@ -40,14 +40,17 @@ updated: 2026-09-05
 ## 修訂記錄
 無
 
---- .lawful/objectives/R-1-O-1-save-roundtrip.md
+--- .lawful/requirements/R-1-save-roundtrip.md
 ---
-id: O-1
-requirement: R-1
+id: R-1
 priority: 1
 updated: 2026-09-05
 ---
-# R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
+# R-1-save-roundtrip:玩家存檔後能讀回同一個世界
+
+- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|

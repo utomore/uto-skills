@@ -88,10 +88,10 @@ $ devflow status
 | R-4 | 沒有驗收 | dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」 |
 | R-4 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
 | F-002-other | 沒有被任何里程碑綁定 | 不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature |
-| INV-1 | 還沒有三行式,成立與否未知 | dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
+| INV-1 | 還沒有三行式,成立與否未知 | dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
 | INV-2 | 寫了三行卻沒有測試,成立與否未知 | dev-flow:build INV-2(只派 qa 寫一條歸屬 "INV-2#LAW" 的測試) |
-| INV-2 | 還沒有三行式,成立與否未知 | dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
-| INV-3 | 還沒有三行式,成立與否未知 | dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
+| INV-2 | 還沒有三行式,成立與否未知 | dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
+| INV-3 | 還沒有三行式,成立與否未知 | dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
 | GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
 | F-001-score | verified 而有 REV 卻沒有重開紀錄 | 在「決定」補一條重開 |
 | F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise |

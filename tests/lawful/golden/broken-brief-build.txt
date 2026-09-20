@@ -1,5 +1,5 @@
 $ lawful brief build P-001-game-save --tests stale.log --no-rules
-brief build P-001-game-save @doc:7ed007e8 rules:<雜湊>
+brief build P-001-game-save @doc:97e45071 rules:<雜湊>
 這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
 
 # 規章
@@ -22,6 +22,22 @@ brief build P-001-game-save @doc:7ed007e8 rules:<雜湊>
 - 號段:amy@corp.com = 000-099;bob@corp.com = 050-149;carol@corp.com = 1x0-199
 - 套件與框架:無
 
+# modules.md
+
+````markdown
+# 模組表
+
+## 模組單元
+| 模組 | 層 | 職責 |
+|---|---|---|
+| `Game.World` | types | 遊戲世界的不可變值 |
+| `Game.Save` | types、effect、core、shell | 可存檔的投影、編解碼與存檔的進入點 |
+| `Game.Save.Extra` | core | 多出來的一列 |
+| `Game.FS` | shell |  |
+| `Game.Audio` | core、pure | 音效的混音 |
+| `Game.Legacy` | core | 搬遷中的舊存檔格式 |
+````
+
 # 決策紀錄
 
 (.lawful/journal/ 裡沒有 P-001-game-save 或 M-1-game-save 的決策紀錄)
@@ -33,7 +49,7 @@ brief build P-001-game-save @doc:7ed007e8 rules:<雜湊>
 id: P-001
 owner: bob@corp.com
 description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
-kind: IO 介面
+kind: io
 status: ready
 updated: 2026-09-05
 ---
@@ -145,9 +161,8 @@ updated: 2026-09-05
 
 # 對帳:lint sig 與 lint laws 裡講到這條 pipeline 的
 
-### lint sig:這條 pipeline 16 條不合規(全專案 16 條)
-- ✗ .lawful/pipelines/P-001-game-save.md slug 的領域名詞不是 = 列住的單元:= 列 saveGame 住 Game.Save(save),slug 是「game-save」;lawful rename P-001 save-<動詞>
-- ✗ .lawful/pipelines/P-001-game-save.md IO 介面要恰好一列 ! 列(shell 的進入點),現在 0 列
+### lint sig:這條 pipeline 15 條不合規(全專案 15 條)
+- ✗ .lawful/pipelines/P-001-game-save.md kind 是 io 的 pipeline 要恰好一列 ! 列(shell 的進入點),現在 0 列
 - ✗ .lawful/pipelines/P-001-game-save.md:19 P-001-game-save#decode 簽名不一致
     文檔:decode :: ByteString -> Either DecodeError SaveState
     程式碼:decode :: ByteString -> Maybe SaveState(src-core/Game/Save/Codec.hs:21)
@@ -202,16 +217,16 @@ updated: 2026-09-05
 
 ### lawful status
 願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-需求 2 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 目標 3 個,達成 0 個 · 里程碑 4 條,達成 0 條 · 調整 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
+需求 4 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 里程碑 5 條,達成 0 條 · 調整 2 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
 · 測試結果來自 stale.log
 
-#### 目標
-- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
+#### 需求
+- R-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
 
 #### pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|---|
-| P-001-game-save | IO 介面 | ready | 14 | 9 | 5 | 7 | 0/2 | 卡 GAP-1、GAP-1 |
+| P-001-game-save | io | ready | 14 | 9 | 5 | 7 | 0/2 | 卡 GAP-1、GAP-1 |
 
 #### 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
@@ -224,8 +239,8 @@ updated: 2026-09-05
 - P-001#toSave 停在 GAP-1(impl 提)
 
 #### 3. 等決定
-- GAP-1(P-001#LAW-1 / qa):lawful:revise
-- GAP-1(P-001#toSave / impl):lawful:revise
+- GAP-1(P-001#LAW-1 / qa):答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws
+- GAP-1(P-001#toSave / impl):答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws
 
 #### 5. 待實作(按模組單元)
   - Game.FS:P-001-game-save#writeSave(未實作)、P-001-game-save#checksum
@@ -238,12 +253,12 @@ updated: 2026-09-05
 #### 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| RF-2 | 動到的 P-001-game-save 不在 O-2 任何里程碑的綁定裡 | 優化路線不引入新 pipeline:只動本目標建置路線做出來的 pipeline;新能力開里程碑 |
-| P-001-game-save#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
-| P-001-game-save#misroute | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| RF-2 | 動到的 P-001-game-save 不在 R-2 任何里程碑的綁定裡 | 調整不引入新 pipeline:只動這條需求的里程碑做出來的 pipeline;新能力開里程碑 |
+| P-001-game-save#decode | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
+| P-001-game-save#misroute | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
 | P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |
 | P-001-game-save | 測試輸出裡有 1 條結果(LAW-3)在這棵樹裡沒有測試承接,不算數 | 測試輸出與這棵樹對不上:重跑整套留檔再跑 status;測試真的不在就 lawful:build P-001-game-save |
 
 #### 7. 建議路線
-2. lawful:build P-001-game-save(O-1 優先 1 · M-1 存檔寫得出檔案)
+2. lawful:build P-001-game-save(R-1 優先 1 · M-1 存檔寫得出檔案)
 exit 0

@@ -1,3 +1,3 @@
 $ lawful brief nope
-brief 沒有「nope」這個 skill;有的是:project、objective、module、spike-impl、law-design、build、qa、refactor、revise、integrate、status、audit、study
+brief 沒有「nope」這個 skill;有的是:kickoff、require-design、global-laws、module、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、status、audit、study
 exit 0

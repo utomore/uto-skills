@@ -925,7 +925,7 @@ $ devflow status --json
     {
       "where": "INV-1",
       "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "fix": "dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
     },
     {
       "where": "INV-2",
@@ -935,12 +935,12 @@ $ devflow status --json
     {
       "where": "INV-2",
       "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "fix": "dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
     },
     {
       "where": "INV-3",
       "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "fix": "dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
     },
     {
       "where": "GAP-1",

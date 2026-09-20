@@ -19,7 +19,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief global-laws --args '$ARGUMENTS' --part 4 --of 4`
 
-上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief global-laws` 的輸出:規章、分支與工作樹、`system.md` 全份(「全域 Law」三個小區都在裡面)、`modules.md`、每個需求檔、`gaps.md`、`lint global` 的結果與 status 報告(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief global-laws` 的輸出:規章、分支與工作樹、`system.md` 全份(「全域 Law」三個小區都在裡面)、每個需求檔、`modules.md`、`gaps.md`、`lint global` 的結果與 status 報告(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
 目標:不必給;要改的是某一條領域不變量就給 `INV-n`。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief global-laws --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 

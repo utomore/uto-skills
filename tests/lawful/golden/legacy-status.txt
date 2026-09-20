@@ -2,15 +2,12 @@ $ lawful status
 · 缺 .lawful/Cone.md;這棵樹只有 system.md,lawful migrate cone --write 換過來
 
 # lawful status
-需求 0 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 目標 0 個,達成 0 個 · 里程碑 0 條,達成 0 條 · 調整 0 條,達成 0 條 · IO 介面 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+需求 0 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · 調整 0 條,達成 0 條 · io pipeline 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 需求
 - 沒有 Cone.md;lawful migrate cone --write
-
-## 目標
-- 沒有任何目標;lawful:objective 訂第一個
-- 沒有被任何里程碑綁定的 pipeline:P-001-save-write;它們不朝向任何目標
+- 沒有被任何里程碑綁定的 pipeline:P-001-save-write;它們不朝向任何需求
 
 ## 全域 Law
 - 沒有 Cone.md
@@ -31,7 +28,7 @@ $ lawful status
 - 還沒有任何 stage 住進去的單元:Game.World
 
 ## 1. 今天能開幾條線
-- P-001-save-write:lawful:build P-001-save-write(沒有綁到任何目標)
+- P-001-save-write:lawful:build P-001-save-write(沒有被任何里程碑綁定)
 
 ## 2. 卡住的
 - 無
@@ -49,11 +46,10 @@ $ lawful status
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | Cone.md | 不存在 | lawful migrate cone --write |
-| objectives.md | 目標還擠在一份檔裡 | lawful migrate cone --write 拆成 objectives/ 一個目標一個檔 |
-| .lawful/ | 沒有任何目標 | lawful:objective 訂第一個目標(至少一個) |
-| P-001-save-write | 沒有被任何里程碑綁定 | 不朝向任何目標:lawful:objective 綁進一條里程碑,或刪掉這條 pipeline |
-| .lawful/pipelines/P-001-save-write.md | 沒有 kind | frontmatter 補 kind: IO 介面 或 子流 |
+| .lawful/ | 沒有任何需求 | lawful:require-design 談第一條需求(至少一條) |
+| P-001-save-write | 沒有被任何里程碑綁定 | 不朝向任何需求:lawful:require-design 綁進一條里程碑,或刪掉這條 pipeline |
+| .lawful/pipelines/P-001-save-write.md | 沒有 kind | frontmatter 補 kind: io 或 subflow |
 
 ## 7. 建議路線
-1. lawful:build P-001-save-write(沒有綁到任何目標)
+1. lawful:build P-001-save-write(沒有被任何里程碑綁定)
 exit 1

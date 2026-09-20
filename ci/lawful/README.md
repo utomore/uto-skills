@@ -46,7 +46,7 @@ node <uto-skills>/ci/lawful/contract.mjs --lint-only   # 只對帳,不建置不�
 4. Settings → Branches → 主線的 branch protection 勾三項:
    - **Require status checks to pass**,選 `contract`
    - **Require branches to be up to date before merging**:兩條 PR 都綠、合在一起會紅時,第二條被要求先更新再重跑
-   - **Require review from Code Owners**:動到 `Cone.md`、`objectives/`、`modules.md` 的 PR 要架構負責人 approve
+   - **Require review from Code Owners**:動到 `Cone.md`、`requirements/`、`modules.md` 的 PR 要架構負責人 approve
 
 一天十幾條 PR、大家一直在等 update branch 的時候,再開 merge queue,流程不用改。
 
@@ -63,7 +63,7 @@ GitLab 的 merge trains 對應 GitHub 的 merge queue,同樣等到需要再開�
 
 **PR 只有一條新的 draft pipeline,CI 會紅嗎?** 不會。draft 的紅只印不擋。改成 `ready` 的那條 PR 起,它的每一列都要對得上程式碼。
 
-**只改立案的 PR(`plan/<slug>`:需求、領域不變量、目標、里程碑)會紅嗎?** 不會。它只動 `.lawful/`;里程碑還沒有切片、領域不變量還只有一句話,都是警訊不是紅。
+**只改立案的 PR(`plan/<slug>`:需求、里程碑、全域 Law)會紅嗎?** 不會。它只動 `.lawful/`;里程碑還沒有切片、領域不變量還只有一句話,都是警訊不是紅。
 
 **一條里程碑的 PR 什麼時候才進得來?** 它在自己的 `build/M-n-<slug>` 分支上從切片做到每條 law 成立,`lawful:integrate` 才收它、整套綠了才發 PR;CI 看到的已經是達成的狀態,每一列都要對得上程式碼。
 

@@ -21,7 +21,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief scope-laws --args '$ARGUMENTS' --part 4 --of 4`
 
-上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief scope-laws` 的輸出:規章、分支與工作樹、`.design/` 的樹、`system.md` 全份、`modules.md`、`gaps.md`。目標是里程碑時另有這條里程碑所在的需求檔全文(一句話、驗收、里程碑表)、決策紀錄全份、已經綁上的文檔;目標是一份既有文檔時另有那份文檔全文、逐條狀態、Steps 上每條簽名與型別的宣告、它引用的與引用它的文檔全文、它朝向哪條里程碑與哪條調整(連同需求檔的一句話與驗收)、`lint global` 的結果與 status 報告(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。切片的程式碼照決策紀錄「Touched」列的檔自己讀,一輪讀完。
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief scope-laws` 的輸出:規章、分支與工作樹、`system.md` 全份、決策紀錄全份。目標是里程碑時另有 `.design/` 的樹、這條里程碑所在的需求檔全文(一句話、驗收、里程碑表)、`modules.md`、已經綁上的文檔全文與逐條狀態;目標是一份既有文檔時另有那份文檔全文、逐條狀態、Steps 上每條簽名與型別的宣告、它引用的與引用它的文檔全文、它朝向哪條里程碑與哪條調整(連同需求檔全文)、`gaps.md`、`lint sig` 與 `lint laws` 的結果、status 報告(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。切片的程式碼照決策紀錄「Touched」列的檔自己讀,一輪讀完。
 
 目標:里程碑全名 `M-n-<slug>`(切片剛做完),或既有的 law 要調整、要刪 step、要退役的那份文檔的全名。參數裡全名後面還有一段話(`dev-flow:scope-revise` 放棄時替開發者寫好的那一行,或開發者自己寫的)→ 那一段就是這次修訂的來源與原因:原本要做什麼、哪一條既有的 law 為什麼非調整不可、連帶要改的簽名、型別、模組有哪些;照它開工,不必再問一次。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief scope-laws <目標> --no-rules`;同一場裡目標文檔變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 

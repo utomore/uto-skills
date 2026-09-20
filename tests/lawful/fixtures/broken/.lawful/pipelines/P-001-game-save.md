@@ -2,7 +2,7 @@
 id: P-001
 owner: bob@corp.com
 description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
-kind: IO 介面
+kind: io
 status: ready
 updated: 2026-09-05
 ---

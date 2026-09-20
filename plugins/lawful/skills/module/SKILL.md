@@ -35,7 +35,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 前置
 
-- 沒有 `.lawful/Cone.md` → 停,先 `lawful:project`。
+- 沒有 `.lawful/Cone.md` → 停,先 `lawful:kickoff`。
 - `Cone.md`「專案約束」沒有模組前綴或原始碼根目錄 → 先問開發者這個專案的模組命名空間叫什麼、四層各自的原始碼根目錄怎麼命名(預設 `src-<層>`),寫進那一節。
 - 那四個根目錄還不是建置系統的子函式庫 → 先請開發者在建置設定裡各開一個、`build-depends` 照 types ← effect ← core ← shell 宣告;沒有這一步,層的相依方向只有 lint 擋得住,編譯器擋不住。
 - 要的東西在既有單元的範圍內、那一層也宣告過 → 不建新單元,直接把模組寫進去;單元裡加模組不必經過這裡。
@@ -51,10 +51,10 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
    - **core**:它有純轉換要被 pipeline 當 stage 用嗎?
    - **shell**:它自己碰對外 I/O 嗎?只被別人呼叫、不碰 I/O 的單元沒有這層。
    答否的層就不建;層可以之後再補,同一道命令跑第二次就好。
-4. **問要不要門面**:別的單元 import 這個單元時,想寫一個名字(`import Weft.Render`)還是直接指到裡面的模組?要一個名字就加 `--facade`,它預設開在最上層(`boundary.md`「模組單元」)。再問這個名字主要給誰用:門面住哪一層,只有那一層以上的消費者 import 得到,所以型別被別人的 types 層大量使用的單元寫 `--facade types`,真解譯器給 `Main` 接的寫 `--facade shell`。
+4. **問要不要門面**:別的單元 import 這個單元時,想寫一個名字(`import Game.Render`)還是直接指到裡面的模組?要一個名字就加 `--facade`,它預設開在最上層(`boundary.md`「模組單元」)。再問這個名字主要給誰用:門面住哪一層,只有那一層以上的模組 import 得到,所以型別被別人的 types 層大量使用的單元寫 `--facade types`,真解譯器給 `Main` 接的寫 `--facade shell`。
 5. **建**:`lawful module <名稱> --layers <逗號分隔> --responsibility <一句話> [--facade [層]]`。先 `--dry-run` 唸給開發者聽會在哪幾棵樹裡開資料夾、門面建在哪,說好再跑一次不帶 `--dry-run`。資料夾裡除了門面不放模組:要幾個檔、叫什麼名字由切片決定。
 6. **對帳**:`lawful lint boundary`。職責欄空的、單元巢狀會紅;宣告了層還沒有程式碼是常態,只會列成訊息。
-7. **接回去**:切片途中劃的,回 `lawful:spike-impl` 繼續把模組寫進去,決策紀錄「Touched」記這個新單元;立案時劃的,回 `lawful:project` / `lawful:objective`。
+7. **接回去**:切片途中劃的,回 `lawful:spike-impl` 繼續把模組寫進去,決策紀錄「Touched」記這個新單元;立案時劃的,回 `lawful:kickoff`。
 
 ## 收尾
 
@@ -62,4 +62,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 邊界
 
-不寫任何簽名、型別或實作;除了 `--facade` 那個空門面不建任何模組檔;不改建置設定,只講要加哪幾行。裡面有什麼由切片長出來、由 pipeline 的 Stages 記下來。不動既有單元的職責與範圍(要動走 `lawful:revise`)。不替開發者決定名字與層。
+不寫任何簽名、型別或實作;除了 `--facade` 那個空門面不建任何模組檔;不改建置設定,只講要加哪幾行。裡面有什麼由切片長出來、由 pipeline 的 Stages 記下來。不動既有單元的名字、職責與範圍:要動而牽動全域 Law(`Cone.md`「架構:四層」那四句)的是 `lawful:global-laws` 的事,只牽動某條 pipeline 的 stage 住哪一層的是 `lawful:scope-revise` 的事。不替開發者決定名字與層。

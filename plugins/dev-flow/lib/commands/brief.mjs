@@ -36,7 +36,7 @@ const RULES = {
 const BLOCKS = {
   kickoff: { none: ['tree', 'system', 'modules'] },
   'require-design': { none: ['system', 'requirements', 'status'], top: ['system', 'requirements', 'status'] },
-  'global-laws': { none: ['branch', 'system', 'requirements', 'gaps', 'lintglobal', 'status'], top: ['branch', 'system', 'requirements', 'gaps', 'lintglobal', 'status'] },
+  'global-laws': { none: ['branch', 'system', 'requirements', 'modules', 'gaps', 'lintglobal', 'status'], top: ['branch', 'system', 'requirements', 'modules', 'gaps', 'lintglobal', 'status'] },
   'spike-impl': { milestone: ['branch', 'tree', 'requirement', 'system', 'modules', 'status'] },
   'scope-laws': { milestone: ['branch', 'tree', 'requirement', 'system', 'modules', 'journal', 'bound'], doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'system', 'journal', 'gaps', 'lint', 'status'] },
   'scope-revise': { doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'modules', 'gaps', 'lint', 'status'] },
@@ -45,7 +45,7 @@ const BLOCKS = {
   refactor: { doc: ['doc', 'detail', 'declarations', 'files'] },
   integrate: { none: ['branch', 'journals', 'tools', 'gaps'] },
   status: { none: ['tools', 'logs'] },
-  audit: { none: ['lintall', 'status', 'modules'] },
+  audit: { none: ['lintall', 'requirements', 'status', 'modules'] },
   study: { none: ['tree', 'tools', 'modules'] },
 };
 const KIND_WORD = { doc: '一份文檔的全名', milestone: '一條里程碑的全名 M-n-<slug>', top: 'R-n 或 INV-n', none: '不給目標' };

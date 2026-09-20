@@ -1,0 +1,207 @@
+$ lawful brief scope-laws M-1-save-write --no-rules
+brief scope-laws M-1-save-write @doc:e3d36c59 rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# .lawful/ 現在有什麼
+
+- adr/
+  - ADR-001-save-format.md
+- Cone.md
+- modules.md
+- pipelines/
+  - P-001-save-write.md
+- requirements/
+  - R-1-save-roundtrip.md
+
+# 需求檔:.lawful/requirements/R-1-save-roundtrip.md
+
+````markdown
+---
+id: R-1
+priority: 1
+updated: 2026-09-05
+---
+# R-1-save-roundtrip:玩家存檔後能讀回同一個世界
+
+- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1-save-write | 存檔寫得出檔案 | P-001-save-write |
+| M-2-save-inspect | 存檔壞了看得出來 | - |
+
+| 調整 | 做到什麼 | 動到 |
+|---|---|---|
+| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+````
+
+# Cone.md(全份)
+
+````markdown
+---
+language: haskell
+updated: 2026-09-05
+---
+# save-game:把遊戲世界存成檔案再讀回來
+
+## 願景
+玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
+
+替一個小型 2D 遊戲提供存檔與讀檔。玩家按存檔,當前世界寫成一個檔案;讀檔把檔案還原成同一個世界。不處理雲端同步,不處理跨版本升級。
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區,各有一道 lint 自動確認(`lawful lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+- INV-1 [roundtrip] 可存檔的狀態收進什麼實體,就吐出什麼實體
+  - forall es in [SavedEntity]
+  - |- savedEntities (mkSaveState es) == es
+
+### 架構:四層
+- types:`Game.World`(遊戲世界的不可變值,含渲染快取)、`Game.Save.State`(可存檔的投影)
+- effect:無
+- core:`Game.Save.Core.*`(投影與編解碼)
+- shell:`Game.Save.Host`(存檔進入點)、`Game.FS`(檔案系統)
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
+|---|---|---|---|---|---|
+| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-write | P-001#LAW-5、INV-1 |
+
+## 專案約束
+- 語言:haskell
+- 建置:`cabal build`
+- 測試(整套):`cabal test`
+- 測試(子集):`cabal test --test-options='-m "P-001"'`
+- 模組前綴:`Game`
+- 原始碼根目錄:`src-<層>`
+- IO 模組追加:無
+- 效果型別追加:無
+- 忽略目錄:`old`
+- 號段:無
+- 套件與框架:cborg(CBOR 編解碼);不引入其他序列化套件
+- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+````
+
+# modules.md
+
+````markdown
+# 模組表
+
+## 模組單元
+| 模組 | 層 | 職責 |
+|---|---|---|
+| `Game.World` | types | 遊戲世界的不可變值與它的實體 |
+| `Game.Save` | types、core、shell | 可存檔的投影、編解碼與存檔的進入點 |
+| `Game.FS` | shell | 檔案系統:原子寫檔 |
+````
+
+# 決策紀錄
+
+(.lawful/journal/ 裡沒有 M-1-save-write 的決策紀錄)
+
+# 綁的 pipeline:.lawful/pipelines/P-001-save-write.md
+
+````markdown
+---
+id: P-001
+description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+kind: io
+status: ready
+updated: 2026-09-05
+---
+# P-001-save-write:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+
+## Brief
+玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
+流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString;進入點把它接到檔案系統。它的 kind 是 io,兩端碰到 shell。
+
+## Stages
+| # | 簽名 | 做什麼 | 模組 | 層 |
+|---|---|---|---|---|
+| 1 | `toSave :: World -> SaveState` | 去掉快取,留可存欄位 | `Game.Save.Project` | core |
+| 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
+| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態,壞檔回錯誤 | `Game.Save.Codec` | core |
+| 4 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
+| o | `savedIds :: SaveState -> [EntityId]` | 觀察:投影後的實體 id | `Game.Save.Project.Internal` | core |
+| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Game.Save` | core |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Game.Save.Host` | shell |
+
+## Laws
+- LAW-1 [roundtrip] 存了再讀回到同一個狀態
+  - forall s in SaveState
+  - |- decode (encode s) == Right s
+- LAW-2 [invariant] 投影不丟實體
+  - forall w in World
+  - |- length (savedEntities (toSave w)) == entityCount w
+- LAW-3 [bound] 檔案大小跟實體數線性
+  - forall s in SaveState
+  - |- length (encode s) <= 64 + 128 * length (savedEntities s)
+- LAW-4 [invariant] 投影後實體 id 不重複
+  - forall w in World
+  - |- nub (savedIds (toSave w)) == savedIds (toSave w)
+- LAW-5 [roundtrip] 整條存出去的位元組解回來就是投影
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
+
+## Examples
+| # | 輸入 | 輸出 | 覆蓋 |
+|---|---|---|---|
+| EX-1 | `decode ""` | `Left EmptyInput` | LAW-1 |
+| EX-2 | `toSave emptyWorld` | `emptySave` | LAW-2 |
+
+## 決定
+- **存 SaveState 不存 World。** 否決:直接編碼 World。渲染快取是衍生資料,存進去會讓 roundtrip 對不上。
+- **格式用 CBOR。** 否決:JSON。證據:ADR-001-save-format
+
+## 修訂記錄
+無
+````
+
+# P-001-save-write 的逐條狀態
+
+### Stages
+- 1  toSave :: World -> SaveState  Game.Save.Project/core  未實作
+- 2  encode :: SaveState -> ByteString  Game.Save.Codec/core  未實作
+- 3  decode :: ByteString -> Either DecodeError SaveState  Game.Save.Codec/core  未實作
+- 4  writeSave :: FilePath -> ByteString -> IO ()  Game.FS/shell  未實作
+- o  savedIds :: SaveState -> [EntityId]  Game.Save.Project.Internal/core  在
+- =  saveBytes :: World -> ByteString  Game.Save/core  在
+- !  saveGame :: FilePath -> World -> IO ()  Game.Save.Host/shell  在
+
+### Laws
+- LAW-1 [roundtrip] 存了再讀回到同一個狀態  未跑
+- LAW-2 [invariant] 投影不丟實體  未跑
+- LAW-3 [bound] 檔案大小跟實體數線性  未跑
+- LAW-4 [invariant] 投影後實體 id 不重複  未跑
+- LAW-5 [roundtrip] 整條存出去的位元組解回來就是投影  未跑
+- EX-1 覆蓋 LAW-1  未跑
+- EX-2 覆蓋 LAW-2  未跑
+
+### GAP
+- 無
+
+### 引用
+- 引用了:無
+- 被引用:無
+
+文檔寫了 6 條簽名,程式碼裡有 6 條,未實作的 4 條 · 觀察點 1 個,程式碼裡有 1 個 · 寫了 5 條 law,通過 nan 條 · 未達成
+
+# types 層
+
+### Game.Save.State  src-types/Game/Save/State.hs(35 行,只列匯出;要用再 Read)
+匯出:SaveState、SavedEntity、SavedEntity(..)、DecodeError、DecodeError(..)、mkSaveState、savedEntities、emptySave
+
+### Game.World  src-types/Game/World.hs(40 行,只列匯出;要用再 Read)
+匯出:World、Entity、Entity(..)、EntityId、EntityId(..)、mkWorld、entities、entityCount、emptyWorld
+exit 0

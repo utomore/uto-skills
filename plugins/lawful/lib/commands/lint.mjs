@@ -1,5 +1,5 @@
 // lint ids / boundary / sig / laws / trace / io / all。每道回 { title, red: [], info: [] }。
-import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, layerRoot, matchesPattern, unitOf, unitOfSlug, unitSlug } from '../design.mjs';
+import { ALLOWED_IMPORTS, LAYERS, LAW_KINDS, layerRoot, matchesPattern, unitOf } from '../design.mjs';
 import { findSignature, findType } from '../source.mjs';
 
 function at(file, line) {
@@ -158,24 +158,16 @@ export function lintSig(design, source, adapter) {
     });
   };
   for (const p of design.pipelines) {
-    if (p.template.stages) r.red.push(`${p.file} Stages 表還是模板(${p.template.stages} 列佔位符);lawful:law-design 照程式碼抄成真的簽名`);
+    if (p.template.stages) r.red.push(`${p.file} Stages 表還是模板(${p.template.stages} 列佔位符);lawful:scope-laws 照程式碼抄成真的簽名`);
     if (!p.stages.length) {
       if (!p.template.stages) r.red.push(`${p.file} 沒有 Stages 表`);
       continue;
     }
     const wholes = p.stages.filter((s) => s.whole);
     if (wholes.length !== 1) r.red.push(`${p.file} = 列要恰好一列,現在 ${wholes.length} 列`);
-    // slug = <領域名詞>-<動詞>:領域名詞是 = 列住的模組單元。= 列對不到單元時退而查它是不是表上任何一個單元
-    if (p.slug) {
-      const units = entries.filter((e) => !e.placeholder);
-      const wholeUnit = wholes.length === 1 && !wholes[0].ref ? unitOf(units, wholes[0].module) : null;
-      if (!/^[a-z0-9]+(-[a-z0-9]+)+$/.test(p.slug)) r.red.push(`${p.file} slug「${p.slug}」不是 <領域名詞>-<動詞或動名詞>;lawful rename ${p.id} <slug>`);
-      else if (wholeUnit && !p.slug.startsWith(`${unitSlug(design.cone, wholeUnit.unit)}-`)) r.red.push(`${p.file} slug 的領域名詞不是 = 列住的單元:= 列 ${wholes[0].name} 住 ${wholeUnit.unit}(${unitSlug(design.cone, wholeUnit.unit)}),slug 是「${p.slug}」;lawful rename ${p.id} ${unitSlug(design.cone, wholeUnit.unit)}-<動詞>`);
-      else if (!wholeUnit && units.length && !unitOfSlug(design.cone, units, p.slug)) r.red.push(`${p.file} slug「${p.slug}」的領域名詞對不到模組表上任何單元;lawful rename ${p.id} <單元>-<動詞>`);
-    }
     const runners = p.stages.filter((s) => s.runner);
-    if (p.kind === 'IO 介面' && runners.length !== 1) r.red.push(`${p.file} IO 介面要恰好一列 ! 列(shell 的進入點),現在 ${runners.length} 列`);
-    if (p.kind === '子流' && runners.length) r.red.push(`${p.file} 子流不碰 shell,不該有 ! 列`);
+    if (p.kind === 'io' && runners.length !== 1) r.red.push(`${p.file} kind 是 io 的 pipeline 要恰好一列 ! 列(shell 的進入點),現在 ${runners.length} 列`);
+    if (p.kind === 'subflow' && runners.length) r.red.push(`${p.file} subflow 不碰 shell,不該有 ! 列`);
     for (const s of p.stages) {
       if (!s.name || !s.type) {
         r.red.push(`${at(p.file, s.line)} 簽名欄不是 name :: Type:${s.sigText}`);
@@ -303,7 +295,7 @@ export function lintLaws(design, source, adapter) {
     const stageNames = new Set(p.stages.map((s) => s.name));
     const lawIds = new Set();
     const mentioned = new Set();
-    if (p.template.laws) r.red.push(`${p.file} Laws 還是模板(${p.template.laws} 條佔位符);lawful:law-design 寫成真的 law`);
+    if (p.template.laws) r.red.push(`${p.file} Laws 還是模板(${p.template.laws} 條佔位符);lawful:scope-laws 寫成真的 law`);
     else if (!p.laws.length) r.red.push(`${p.file} 沒有 law`);
     for (const l of p.laws) {
       const where = `${p.file} ${l.id || l.title}`;
@@ -320,7 +312,7 @@ export function lintLaws(design, source, adapter) {
       if (s.whole && s.name && !mentioned.has(s.name)) r.red.push(`${at(p.file, s.line)} = 列 ${s.name} 沒有任何 law 引用;整條至少一條 law`);
       if (s.runner && s.name && mentioned.has(s.name)) r.red.push(`${at(p.file, s.line)} ! 列 ${s.name} 被 law 引用;law 只講純的量,進入點不掛 law`);
     }
-    if (p.template.examples) r.red.push(`${p.file} Examples 還是模板(${p.template.examples} 列佔位符);lawful:law-design 寫成真的 example`);
+    if (p.template.examples) r.red.push(`${p.file} Examples 還是模板(${p.template.examples} 列佔位符);lawful:scope-laws 寫成真的 example`);
     else if (!p.examples.length) r.red.push(`${p.file} 沒有 example`);
     for (const ex of p.examples) {
       if (!/^EX-\d+$/.test(ex.id)) r.red.push(`${p.file} example 編號「${ex.id}」不是 EX-n`);
@@ -331,8 +323,9 @@ export function lintLaws(design, source, adapter) {
   // 需求的驗收:一句話必填;寫了三行就照 pipeline law 的規矩查,識別字可以是任何一條 pipeline 的 Stages 簽名
   const allStages = new Set(design.pipelines.flatMap((p) => p.stages.map((s) => s.name)));
   const runners = new Set(design.pipelines.flatMap((p) => p.stages.filter((s) => s.runner).map((s) => s.name)));
-  if (design.cone) for (const q of design.cone.requirements) {
-    const where = `${at(design.cone.file, q.line)} ${q.id} 驗收`;
+  for (const q of design.requirements.requirements) {
+    if (q.placeholder) continue;
+    const where = `${at(q.file, q.line)} ${q.id} 驗收`;
     if (!q.accept) { r.red.push(`${where} 沒有;一句可判定的話,寫成清單項「- 驗收:…」`); continue; }
     if (q.accept.placeholder) { r.red.push(`${where} 還是模板`); continue; }
     if (!q.accept.formal) continue;
@@ -379,10 +372,10 @@ export function lintTrace(design, source) {
     for (const l of p.laws) if (l.id) declared.add(`${p.id}#${l.id}`);
     for (const e of p.examples) declared.add(`${p.id}#${e.id}`);
   }
-  // 需求的驗收:寫了三行的只由驗收測試判,沒有測試即紅;一句話的沒有測試不算紅,由建置路線推。領域不變量的測試歸 lint invariants 管
+  // 需求的驗收:寫了三行的只由驗收測試判,沒有測試即紅;一句話的沒有測試不算紅,由里程碑推。領域不變量的測試歸 lint invariants 管
   const formal = new Set();
   const prose = new Set();
-  if (design.cone) for (const q of design.cone.requirements) {
+  for (const q of design.requirements.requirements) {
     if (!q.accept || q.accept.placeholder) continue;
     (q.accept.formal ? formal : prose).add(`${q.id}#ACCEPT`);
   }
@@ -398,12 +391,12 @@ export function lintTrace(design, source) {
   }
   for (const d of declared) if (!seen.has(d)) r.red.push(`${d} 沒有測試承接(未翻譯)`);
   for (const d of formal) if (!seen.has(d)) r.red.push(`${d} 寫了三行卻沒有驗收測試;三行式的驗收只由測試判,沒有測試就是未知`);
-  for (const d of prose) if (!seen.has(d)) r.info.push(`${d} 沒有驗收測試,達成與否由建置路線推`);
+  for (const d of prose) if (!seen.has(d)) r.info.push(`${d} 沒有驗收測試,達成與否由里程碑推`);
   for (const [m, files] of seen) if (!declared.has(m) && !formal.has(m) && !prose.has(m) && !invMarks.has(m)) r.red.push(`${files.join(', ')} 引用的 ${m} 文檔裡沒有(幽靈引用)`);
   return r;
 }
 
-// Cone.md「全域 Law › 契約:對外 I/O」表 vs IO 介面兩端、模組表、程式碼、契約欄指到的 law。
+// Cone.md「全域 Law › 契約:對外 I/O」表 vs kind 是 io 的 pipeline 兩端、模組表、程式碼、契約欄指到的 law。
 export function lintIo(design, source) {
   const r = { title: 'lint io', red: [], info: [] };
   if (!design.cone) {
@@ -412,8 +405,8 @@ export function lintIo(design, source) {
   }
   const mods = { file: design.ioFile };
   const entries = design.modules ? design.modules.entries : [];
-  const ioFaces = design.pipelines.filter((p) => p.kind === 'IO 介面').map((p) => p.fullName);
-  if (design.ioState === 'missing' && ioFaces.length) r.red.push(`${mods.file} 的「全域 Law」區沒有「### 契約:對外 I/O」;每條 IO 介面的兩端都要對得到這張表`);
+  const ioFaces = design.pipelines.filter((p) => p.kind === 'io').map((p) => p.fullName);
+  if (design.ioState === 'missing' && ioFaces.length) r.red.push(`${mods.file} 的「全域 Law」區沒有「### 契約:對外 I/O」;每條 kind 是 io 的 pipeline 兩端都要對得到這張表`);
   const covered = new Set();
   for (const row of design.io) {
     const where = at(mods.file, row.line);
@@ -429,7 +422,7 @@ export function lintIo(design, source) {
     if (!['in', 'out'].includes(row.direction)) r.red.push(`${where} ${row.name} 的方向「${row.direction}」要是 in 或 out`);
     if (!row.pipeline) r.red.push(`${where} ${row.name} 沒寫進入哪條 pipeline`);
     else if (!design.pipelines.some((p) => p.fullName === row.pipeline)) r.red.push(`${where} ${row.name} 指到的 ${row.pipeline} 不存在`);
-    else if (!ioFaces.includes(row.pipeline)) r.red.push(`${where} ${row.name} 指到的 ${row.pipeline} 不是 IO 介面;跨過 shell 的資料流才會出現在對外 I/O 表`);
+    else if (!ioFaces.includes(row.pipeline)) r.red.push(`${where} ${row.name} 指到的 ${row.pipeline} 的 kind 不是 io;跨過 shell 的資料流才會出現在對外 I/O 表`);
     else covered.add(row.pipeline);
     if (row.module) {
       const entry = entries.length ? unitOf(entries, row.module) : null;
@@ -447,7 +440,7 @@ export function lintIo(design, source) {
     }
   }
   for (const m of ioFaces) {
-    if (!covered.has(m)) r.red.push(`${mods.file} IO 介面 ${m} 沒有任何對外 I/O 列;IO 介面的兩端都要對得到這張表`);
+    if (!covered.has(m)) r.red.push(`${mods.file} ${m} 的 kind 是 io,卻沒有任何對外 I/O 列;它的兩端都要對得到這張表`);
   }
   return r;
 }

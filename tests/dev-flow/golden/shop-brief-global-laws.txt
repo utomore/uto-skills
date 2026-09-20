@@ -87,6 +87,18 @@ updated: 2026-09-07
 | M-2-refund | 退款走通 | F-002-refund |
 ````
 
+# modules.md
+
+````markdown
+# 模組表
+
+| 路徑 | 層 |
+|---|---|
+| `src/domain/**` | domain |
+| `src/app/**` | application |
+| `src/entry/**` | entry |
+````
+
 # gaps.md
 
 (還沒有 .design/gaps.md)

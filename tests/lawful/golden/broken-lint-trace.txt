@@ -10,4 +10,6 @@ $ lawful lint trace
 - ✗ R-1#ACCEPT 寫了三行卻沒有驗收測試;三行式的驗收只由測試判,沒有測試就是未知
 - ✗ test/SaveGameSpec.hs 引用的 P-001#LAW-7 文檔裡沒有(幽靈引用)
 - · test/UtilSpec.hs 沒有歸屬,當內部單元測試,不進 law 分母
+- · R-3#ACCEPT 沒有驗收測試,達成與否由里程碑推
+- · R-9#ACCEPT 沒有驗收測試,達成與否由里程碑推
 exit 1

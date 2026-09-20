@@ -13,7 +13,7 @@ const repo = path.join(here, '..', '..');
 
 const BOARDS = [
   { name: 'lawful', bin: ['plugins', 'lawful', 'bin', 'lawful.mjs'], root: ['tests', 'lawful', 'fixtures', 'refs'],
-    expect: { nodes: ['R-1'], edges: [] } },   // 三條 pipeline 都綁在同一條需求的里程碑底下,互相引用不算需求之間的相依
+    expect: { nodes: ['R-1', 'R-2'], edges: ['R-2>R-1'] } },   // R-1 的 P-001-cli-run 見 R-2 的 P-002-syntax-parse:R-2 在左,R-1 在右(高優先依賴低優先,邊是紅的)
   { name: 'dev-flow', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'fullstack'],
     expect: { nodes: ['R-1', 'R-2', 'R-3'], edges: ['R-1>R-3'] } },   // R-3 的 F-002-refund 見 R-1 的 F-001-checkout:R-1 在左,R-3 在右;R-2 誰也不靠
 ];

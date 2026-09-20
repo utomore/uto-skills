@@ -1,7 +1,9 @@
 // migrate from-dev-flow <.design>:盤點 subsystems/ 體系的 .design,印一份帳本。只讀不寫(--write 才落地)。
 // 機械的部分:介面表的簽名對程式碼、四格 law 翻三行草稿、按模組分組;人判的部分列在最後。
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { KIND_ALIASES, kindOf, readDesign } from '../design.mjs';
 import { parseFrontmatter, sections, parseTable, parseList, stripTicks } from '../markdown.mjs';
 import { pickAdapter } from '../adapters/index.mjs';
 import { readSource, findSignature } from '../source.mjs';
@@ -209,7 +211,7 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
   out.push(`來源:${path.relative(root, designDir).split(path.sep).join('/') || '.lawful'} · 文檔 ${docs.length} 份(F ${docs.filter((d) => d.kind === 'F').length}、E ${docs.filter((d) => d.kind === 'E').length}、B ${docs.filter((d) => d.kind === 'B').length}、G-* ${docs.filter((d) => d.kind.startsWith('G-')).length})· ADR ${adrCount} 份原樣搬 · ${source ? `程式碼模組 ${source.modules.size} 個` : '沒有 adapter,簽名未對程式碼'}`);
   out.push('');
 
-  out.push('## 目標與里程碑候選(從開發階段表來;每個階段是一個目標候選、它的里程碑欄是里程碑候選,綁到哪幾條 pipeline 由人定)');
+  out.push('## 需求與里程碑候選(從開發階段表來;每個階段是某條需求的一條里程碑候選,屬於哪條需求、綁到哪幾條 pipeline 由人定)');
   if (!stages.length) out.push('- system.md 沒有開發階段表');
   else {
     out.push('| 階段 | 里程碑 | 狀態 |', '|---|---|---|');
@@ -226,7 +228,7 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
   }
   out.push('');
 
-  out.push('## 分組建議(同一組合成一條子流 pipeline;要不要合、叫什麼,人定)');
+  out.push('## 分組建議(同一組合成一條 kind 是 subflow 的 pipeline;要不要合、叫什麼,人定)');
   for (const [key, list] of [...groups].sort()) {
     const slug = /對不到/.test(key) ? '' : kebab(key.split('.').slice(-1)[0]);
     out.push(`- **${key}**${slug ? ` → 建議 \`lawful claim ${slug}\`` : ''}:${list.map((d) => d.fullName).join('、')}`);
@@ -271,8 +273,8 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
   const asm = docs.reduce((n, d) => n + d.openAsm, 0);
   out.push('## 人要判的');
   out.push(`1. 模組單元:簽名現在住的模組要併成哪幾個單元、各自的職責與有哪幾層,一個單元一道 lawful module;每個檔照它的層搬進那一棵原始碼樹`);
-  out.push(`2. 分組:${groups.size} 組要不要合、各叫什麼;哪幾組是同一條 IO 介面 pipeline 的 stage`);
-  out.push(`3. 目標與里程碑:${stages.length} 個階段各是不是一個目標(lawful objective add,優先 1 到 4)、它的里程碑綁哪幾條 pipeline`);
+  out.push(`2. 分組:${groups.size} 組要不要合、各叫什麼;哪幾組是同一條 kind 是 io 的 pipeline 的 stage`);
+  out.push(`3. 需求與里程碑:${stages.length} 個階段各屬於哪條需求(lawful:require-design 談出需求,lawful requirement milestone 切里程碑)、它的里程碑綁哪幾條 pipeline`);
   out.push(`4. law 形式化:${prose} 條 law 的觀察點是散文,要改寫成只引用 Stages 簽名與 types 匯出的 \`|-\` 行`);
   out.push(`5. 簽名:${missing.length} 條找不到、${mismatched.length} 條不一致,誰對誰錯`);
   out.push(`6. 待確認假設:${asm} 條還在檔上,決定了寫進「決定」,沒決定的開 GAP`);
@@ -327,7 +329,7 @@ function globalZone(boundary, ioText) {
   ];
 }
 
-// 目標檔的里程碑表:只有編號的列,英文名從它第一條綁定的 pipeline 推;沒綁的留給 lawful:objective 定。回 { lines, named, unnamed }
+// 目標檔的里程碑表:只有編號的列,英文名從它第一條綁定的 pipeline 推;沒綁的留給 lawful:require-design 定。回 { lines, named, unnamed }
 function nameMilestones(lines) {
   const named = [];
   const unnamed = [];
@@ -426,8 +428,8 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
   const hasCone = fs.existsSync(coneFile);
   const hasSys = fs.existsSync(sysFile);
   const hasObjFile = fs.existsSync(objFile);
-  if (hasCone && !hasObjFile) return { text: `${rel(coneFile)} 已經存在、目標也已經在 objectives/,這棵樹不用換`, exitCode: 0 };
-  if (!hasCone && !hasSys) return { text: `${rel(lawfulDir)} 裡沒有 system.md,也沒有 Cone.md;lawful:project 建 Cone.md`, exitCode: 1 };
+  if (hasCone && !hasObjFile) return { text: `${rel(coneFile)} 已經存在,也沒有 objectives.md,這棵樹不用換`, exitCode: 0 };
+  if (!hasCone && !hasSys) return { text: `${rel(lawfulDir)} 裡沒有 system.md,也沒有 Cone.md;lawful:kickoff 建 Cone.md`, exitCode: 1 };
   const out = ['# migrate cone 帳本', ''];
   const writes = [];   // [abs, text]
   const objText = hasObjFile ? fs.readFileSync(objFile, 'utf8') : '';
@@ -445,7 +447,7 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
     const ioText = sectionText(secs, '對外 I/O');
     const plSec = secs.find((x) => x.level === 2 && x.title === 'Pipelines');
     const plTable = plSec ? parseTable(plSec.lines) : null;
-    const kindOf = new Map((plTable ? plTable.rows : []).map((r) => [stripTicks(r[0] || ''), (r[1] || '').trim()]));
+    const kindInTable = new Map((plTable ? plTable.rows : []).map((r) => [stripTicks(r[0] || ''), (r[1] || '').trim()]));
     split = splitObjectives(objText, { assignRequirements: true, date });
     const reqs = split.objs;
     const cone = [
@@ -490,7 +492,7 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
       const abs = path.join(pipelinesDir, f);
       const text = fs.readFileSync(abs, 'utf8');
       if (/^kind:/m.test(text)) continue;
-      const kind = kindOf.get(path.basename(f, '.md')) || '<IO 介面 | 子流>';
+      const kind = kindOf(kindInTable.get(path.basename(f, '.md')) || '') || '<io | subflow>';
       const next = text.replace(/^(description:.*\r?\n)/m, `$1kind: ${kind}\n`);
       kindEdits.push({ abs, rel: rel(abs), kind, next, changed: next !== text });
     }
@@ -527,8 +529,149 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
   for (const [abs, text] of writes) fs.writeFileSync(abs, text);
   if (hasObjFile) fs.unlinkSync(objFile);
   if (hasSys) fs.unlinkSync(sysFile);
-  out.push('', '都寫了;接著 lawful status 看警訊,需求的驗收與領域不變量由 lawful:project 對談補齊,目標檔的 slug 與還沒有英文名的里程碑由 lawful:objective 定');
+  out.push('', '都寫了;接著 lawful migrate requirements --write 把「## 需求」節與 objectives/ 換成 requirements/ 一條需求一個檔,再 lawful status 看警訊;需求的驗收由 lawful:require-design、領域不變量由 lawful:global-laws 對談補齊');
   return { text: out.join('\n'), exitCode: 0 };
+}
+
+// migrate requirements [--write]:需求住 Cone.md「## 需求」節、里程碑住 objectives/(或一份 objectives.md)的樹,
+// 換成 requirements/R-n-<slug>.md 一條需求一個檔(一句話、驗收、優先、里程碑表、調整表)。先印帳本,--write 才落地。
+// 併法與 CLI 照讀這種樹時同一支(design.mjs 的 mergeRequirements):slug 取第一個目標的,優先取最高的,里程碑與調整依(優先、目標號)串接。
+// 整件事先在暫存的 .lawful 複本上做完,--write 才把結果搬回來;對不到需求的目標檔留著不動,列給人判。
+// 同一道指令順手把每條 pipeline frontmatter 的 kind 從「IO 介面」「子流」改寫成 io、subflow;只有 kind 要換的樹也跑得了。
+function kindEdits(lawfulDir, rel) {
+  const dir = path.join(lawfulDir, 'pipelines');
+  const out = [];
+  for (const f of fs.existsSync(dir) ? fs.readdirSync(dir).filter((x) => /^P-\d{3}-.+\.md$/.test(x)).sort() : []) {
+    const abs = path.join(dir, f);
+    const text = fs.readFileSync(abs, 'utf8');
+    const m = /^kind:[ \t]*(.+?)[ \t]*(\r?)$/m.exec(text);
+    if (!m || !KIND_ALIASES[m[1]]) continue;
+    out.push({ abs, rel: rel(abs), from: m[1], to: KIND_ALIASES[m[1]], next: text.replace(/^kind:[ \t]*(.+?)[ \t]*(\r?)$/m, `kind: ${KIND_ALIASES[m[1]]}$2`) });
+  }
+  return out;
+}
+
+export function migrateRequirements(root, { write = false, date = new Date().toISOString().slice(0, 10) } = {}) {
+  const lawfulDir = path.join(root, '.lawful');
+  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
+  const coneFile = path.join(lawfulDir, 'Cone.md');
+  const reqDir = path.join(lawfulDir, 'requirements');
+  if (!fs.existsSync(coneFile)) return { text: `${rel(lawfulDir)} 裡沒有 Cone.md;只有 system.md 的樹先 lawful migrate cone --write`, exitCode: 1 };
+  const kinds = kindEdits(lawfulDir, rel);
+  const kindLines = kinds.map((e) => `- ${e.rel}:kind「${e.from}」改成 ${e.to}`);
+  const finish = (out, apply) => {
+    if (!write) {
+      out.push('', '以上只是帳本;lawful migrate requirements --write 才落地');
+      return { text: out.join('\n'), exitCode: 0 };
+    }
+    apply();
+    for (const e of kinds) fs.writeFileSync(e.abs, e.next);
+    out.push('', '都寫了;接著 lawful status 看警訊,「人要判的」與缺的驗收、優先由 lawful:require-design 對談補齊');
+    return { text: out.join('\n'), exitCode: 0 };
+  };
+  const onlyKinds = (why) => {
+    if (!kinds.length) return { text: `${why},每條 pipeline 的 kind 也已經是 io 或 subflow,這棵樹不用換`, exitCode: 0 };
+    return finish(['# migrate requirements 帳本', '', `- ${why}`, ...kindLines], () => {});
+  };
+  if (fs.existsSync(reqDir)) return onlyKinds(`${rel(reqDir)} 已經在`);
+
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-migrate-'));
+  try {
+    const tmpLawful = path.join(tmpRoot, '.lawful');
+    fs.cpSync(lawfulDir, tmpLawful, { recursive: true });
+    const coneNotes = [];
+    const hadFile = fs.existsSync(path.join(tmpLawful, 'objectives.md'));
+    if (hadFile) {
+      const first = migrateCone(tmpRoot, { write: true, date });
+      const line = first.text.split('\n').find((l) => l.startsWith('- .lawful/Cone.md:'));
+      if (line) coneNotes.push(line.replace(/^- \.lawful\/Cone\.md:/, ''));
+    }
+    // 里程碑的第一格只有編號的列:英文名從它第一條綁定的 pipeline 推
+    const named = new Set();
+    const tmpObjDir = path.join(tmpLawful, 'objectives');
+    for (const f of fs.existsSync(tmpObjDir) ? fs.readdirSync(tmpObjDir).filter((x) => /\.md$/.test(x)) : []) {
+      const abs = path.join(tmpObjDir, f);
+      const m = nameMilestones(fs.readFileSync(abs, 'utf8').replace(/\r\n/g, '\n').split('\n'));
+      if (!m.named.length) continue;
+      for (const n of m.named) named.add(n);
+      fs.writeFileSync(abs, m.lines.join('\n'));
+    }
+    const design = readDesign(tmpRoot);
+    const merged = design.requirements;
+    if (!merged.merged) return onlyKinds(`${rel(coneFile)} 沒有「## 需求」節,也沒有 objectives.md:沒有需求可換(lawful:require-design 談第一條)`);
+    // Cone.md:每條需求的原文(驗收連同三行)搬走,整節刪掉
+    const lines = fs.readFileSync(path.join(tmpLawful, 'Cone.md'), 'utf8').replace(/\r\n/g, '\n').split('\n');
+    const from = lines.findIndex((l) => /^## 需求\s*$/.test(l));
+    let to = lines.findIndex((l, i) => i > from && /^## /.test(l));
+    if (to < 0) to = lines.length;
+    const bodyOf = (id) => {
+      let at = -1;
+      for (let i = from + 1; i < to; i++) if (new RegExp(`^### ${id}\\s*[::]`).test(lines[i])) at = i;
+      if (at < 0) return [];
+      let stop = at + 1;
+      while (stop < to && !/^#{1,3} /.test(lines[stop])) stop++;
+      const body = dropItems(lines.slice(at + 1, stop).map((l) => l.replace(/^- Law([::])/, '- 驗收$1')), '蘊含').lines;
+      while (body.length && !body[0].trim()) body.shift();
+      while (body.length && !body[body.length - 1].trim()) body.pop();
+      return body;
+    };
+    const files = [];
+    const judge = [];
+    for (const q of merged.requirements) {
+      if (q.placeholder) continue;
+      const body = bodyOf(q.id);
+      const accept = body.length ? body : ['- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>'];
+      const content = [
+        '---', `id: ${q.id}`, `priority: ${q.priority || '<1 到 4,1 最高>'}`, `updated: ${date}`, '---',
+        `# ${q.fullName}:${q.title}`, '', ...accept, '',
+        '| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|',
+        ...q.milestones.map((m) => `| ${m.fullName} | ${m.title} | ${m.binds.length ? m.binds.join('、') : '-'} |`),
+        ...(q.refinements.length ? ['', '| 調整 | 做到什麼 | 動到 |', '|---|---|---|', ...q.refinements.map((rf) => `| ${rf.id} | ${rf.title} | ${rf.touches.join('、') || '-'} |`)] : []),
+      ].join('\n') + '\n';
+      files.push({ name: `${q.fullName}.md`, content, q });
+      if (q.sources.length > 1) judge.push(`${q.id}:併了 ${q.sources.length} 個目標(${q.sources.map((o) => `${o.id}「${o.title}」:${o.milestones.map((m) => m.id).join('、') || '沒有里程碑'}`).join(';')}),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求`);
+      if (!q.sources.length) judge.push(`${q.id}:沒有任何目標朝向它,檔名暫用 ${q.fullName}、沒有優先也沒有里程碑;lawful:require-design 補,改名要連檔名一起改`);
+      else if (q.slug === 'unnamed') judge.push(`${q.id}:英文名沒有來源,檔名暫用 ${q.fullName};改名要連檔名一起改`);
+      const bare = q.milestones.filter((m) => !m.slug).map((m) => m.id);
+      if (bare.length) judge.push(`${q.id}:${bare.join('、')} 還沒綁 pipeline,英文名沒有來源;lawful:require-design 把第一格寫成 M-n-<slug>`);
+    }
+    for (const o of merged.orphans) judge.push(`${o.file}:對到的 ${o.requirement} 不存在,留著沒動(里程碑 ${o.milestones.map((m) => m.fullName).join('、') || '無'});決定它屬於哪條需求,併進那個需求檔之後刪掉`);
+    lines.splice(from, to - from);
+    const nextCone = lines.join('\n').replace(/\n{3,}/g, '\n\n');
+    coneNotes.push(files.length ? '「## 需求」節刪掉,需求搬進 requirements/' : '「## 需求」節刪掉(節裡還是模板,沒有需求可搬)');
+    const out = ['# migrate requirements 帳本', ''];
+    out.push(`- .lawful/Cone.md:${coneNotes.join(';')}`);
+    for (const f of files) {
+      const got = f.q.milestones.filter((m) => named.has(m.fullName)).map((m) => m.fullName);
+      out.push(`- .lawful/requirements/${f.name}:建(優先 ${f.q.priority || '沒有'};里程碑 ${f.q.milestones.length} 條、調整 ${f.q.refinements.length} 條${f.q.sources.length ? `;併自 ${f.q.sources.map((o) => o.fullName).join('、')}` : ''}${got.length ? `;里程碑補英文名 ${got.join('、')}` : ''})`);
+    }
+    if (hadFile) out.push('- .lawful/objectives.md:刪(先照每個 ## O-n 拆開,再併進它的需求)');
+    const used = merged.requirements.flatMap((q) => q.sources);
+    if (!hadFile) for (const o of used) out.push(`- ${o.file}:刪`);
+    out.push(...kindLines);
+    out.push('', '## 人要判的', ...(judge.length ? judge.map((j) => `- ${j}`) : ['- 無']));
+    // 暫存複本在這個函式結束時刪掉:要搬回來的內容先讀進記憶體
+    const orphanFiles = hadFile ? merged.orphans.map((o) => [path.join(root, o.file), fs.readFileSync(path.join(tmpRoot, o.file), 'utf8')]) : [];
+    return finish(out, () => {
+      fs.writeFileSync(coneFile, nextCone);
+      if (files.length) fs.mkdirSync(reqDir, { recursive: true });
+      for (const f of files) fs.writeFileSync(path.join(reqDir, f.name), f.content);
+      const objDir = path.join(lawfulDir, 'objectives');
+      if (hadFile) {
+        fs.unlinkSync(path.join(lawfulDir, 'objectives.md'));
+        // 拆出來而對不到需求的那幾份,留在 objectives/ 給人判
+        for (const [abs, text] of orphanFiles) {
+          fs.mkdirSync(objDir, { recursive: true });
+          fs.writeFileSync(abs, text);
+        }
+      } else {
+        for (const o of used) fs.unlinkSync(path.join(root, o.file));
+        if (fs.existsSync(objDir) && !fs.readdirSync(objDir).length) fs.rmdirSync(objDir);
+      }
+    });
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  }
 }
 
 // migrate laws [--write]:全域 Law 三類收進 Cone.md「## 全域 Law」區,需求附的那一句叫驗收,目標沒有 Law。先印帳本,--write 才落地。
@@ -607,7 +750,7 @@ export function migrateLaws(root, { write = false } = {}) {
     const d = dropItems(text.split('\n'), 'Law');
     const m = nameMilestones(d.lines);
     const next = m.lines.join('\n').replace(/\n{3,}/g, '\n\n');
-    const notes = [d.dropped ? '目標的「- Law:」刪掉(目標達成 = 里程碑全部達成)' : '', m.named.length ? `里程碑補英文名:${m.named.join('、')}` : '', m.unnamed.length ? `${m.unnamed.join('、')} 還沒綁 pipeline,英文名由 lawful:objective 定` : ''].filter(Boolean);
+    const notes = [d.dropped ? '「- Law:」刪掉(里程碑不管理約束;需求達成與否由驗收判)' : '', m.named.length ? `里程碑補英文名:${m.named.join('、')}` : '', m.unnamed.length ? `${m.unnamed.join('、')} 還沒綁 pipeline,英文名由 lawful:require-design 定` : ''].filter(Boolean);
     if (notes.length) out.push(`- ${rel(abs)}:${notes.join(';')}`);
     if (next !== text) writes.push([abs, next]);
   }
@@ -639,7 +782,7 @@ export function migrateLaws(root, { write = false } = {}) {
     }
   };
   walk(root, 0);
-  for (const [m, f] of [...marks].sort()) judge.push(/^R-/.test(m) ? `${f} 的 "${m}":需求的驗收測試歸屬是 "${m.replace('#LAW', '#ACCEPT')}",改字串` : `${f} 的 "${m}":目標沒有 Law,這條測試要嘛改歸到那條需求的驗收("R-n#ACCEPT"),要嘛拿掉歸屬當內部測試`);
+  for (const [m, f] of [...marks].sort()) judge.push(/^R-/.test(m) ? `${f} 的 "${m}":需求的驗收測試歸屬是 "${m.replace('#LAW', '#ACCEPT')}",改字串` : `${f} 的 "${m}":需求面沒有 O-n 這一層,這條測試要嘛改歸到那條需求的驗收("R-n#ACCEPT"),要嘛拿掉歸屬當內部測試`);
   if (judge.length) out.push('', '人要判的:', ...judge.map((j) => `- ${j}`));
 
   if (!writes.length && !judge.length) return { text: '這棵樹已經是全域 Law 區、驗收、里程碑英文名的長相,不用換', exitCode: 0 };
@@ -648,6 +791,6 @@ export function migrateLaws(root, { write = false } = {}) {
     return { text: out.join('\n'), exitCode: 0 };
   }
   for (const [abs, text] of writes) fs.writeFileSync(abs, text);
-  out.push('', '都寫了;接著 lawful lint global 與 lawful status 看警訊,領域不變量由 lawful:project 對談補,對外 I/O 的契約欄由 lawful:law-design 在 law 拍板時填');
+  out.push('', '都寫了;接著 lawful lint global 與 lawful status 看警訊,領域不變量與對外 I/O 的契約欄由 lawful:global-laws 對談補');
   return { text: out.join('\n'), exitCode: 0 };
 }

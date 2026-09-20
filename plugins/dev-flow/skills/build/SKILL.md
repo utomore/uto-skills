@@ -19,7 +19,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief build --args '$ARGUMENTS' --part 4 --of 4`
 
-上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief build` 的輸出:規章、分支與工作樹、`system.md`「語言與工具」、`modules.md`、決策紀錄、目標文檔全文與逐條狀態(里程碑就是它綁的每一份)、`lint sig` 與 `lint laws` 的結果、`gaps.md`、根目錄的測試輸出新不新、status 報告。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief build` 的輸出:規章、分支與工作樹、`system.md`「語言與工具」、`gaps.md`、根目錄的測試輸出新不新、status 報告。目標是一份文檔時另有 `modules.md`、決策紀錄、那份文檔全文與逐條狀態、`lint sig` 與 `lint laws` 的結果;目標是里程碑時另有 `modules.md`、決策紀錄、它的需求檔全文、它綁的每一份文檔全文與逐條狀態、`lint sig` 與 `lint laws` 的結果;目標是 `R-n` / `INV-n` 時另有那一條的三行。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
 目標:里程碑全名 `M-n-<slug>`、文檔全名,或 `R-n` / `INV-n`。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief build <目標> --no-rules`;同一場裡目標文檔變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 

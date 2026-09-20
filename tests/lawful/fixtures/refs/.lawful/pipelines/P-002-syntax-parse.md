@@ -1,14 +1,14 @@
 ---
 id: P-002
 description: 文字解析成 Doc
-kind: 子流
+kind: subflow
 status: ready
 updated: 2026-09-06
 ---
 # P-002-syntax-parse:文字解析成 Doc
 
 ## Brief
-子流。文字 → 切 token → Doc。shared 是它與 P-003-canon-normalize 共用的步驟,兩邊都沒註明見。
+subflow。文字 → 切 token → Doc。shared 是它與 P-003-canon-normalize 共用的步驟,兩邊都沒註明見。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |

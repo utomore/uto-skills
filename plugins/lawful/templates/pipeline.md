@@ -1,14 +1,14 @@
 ---
 id: P-00x
 description: <一句話:input 到 output>
-kind: <IO 介面 | 子流>
+kind: <io | subflow>
 status: draft
 updated: <YYYY-MM-DD>
 ---
 # P-00x-<slug>:<同 description>
 
 ## Brief
-<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 IO 介面,或它是 P-00y-<slug> 引用的子流。它讓 M-n-<slug> 往前哪一步。>
+<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它的 kind 是 io(跨過 shell、有進入點),或是 P-00y-<slug> 引用的 subflow。它讓 M-n-<slug> 往前哪一步。>
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -17,7 +17,7 @@ updated: <YYYY-MM-DD>
 | 2 | `<name :: Type>` | <一句> | `<Module>`(見 P-00z-<slug>) | core |
 | o | `<name :: Type>` | 觀察:<law 要看的量,一句> | `<Module.Internal>` | core |
 | = | `<name :: Type>` | 純的整條 | `<Module>` | core |
-| ! | `<name :: Type>` | 進入點:<接到哪個對外 I/O;子流刪這列> | `<Module>` | shell |
+| ! | `<name :: Type>` | 進入點:<接到哪個對外 I/O;subflow 刪這列> | `<Module>` | shell |
 
 ## Laws
 - LAW-1 [<invariant | identity | roundtrip | relation | bound | equiv | total | commute>] <一句中文>

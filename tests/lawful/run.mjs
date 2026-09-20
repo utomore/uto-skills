@@ -17,8 +17,8 @@ const CASES = [
   ['save-game-lint-all', 'save-game', ['lint', 'all']],
   // team:Cone.md 有號段行的樹;claim 從自己的區間配號並寫 owner,email 不在號段行上就停
   ['team-lint-ids', 'team', ['lint', 'ids']],
-  ['team-claim', 'team', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', '子流', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-101-save-load.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md'], { GIT_AUTHOR_EMAIL: 'amy@corp.com' }],
-  ['team-claim-other', 'team', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', '子流', '--date', DATE], ['.lawful/pipelines/P-200-save-load.md'], { GIT_AUTHOR_EMAIL: 'bob@corp.com' }],
+  ['team-claim', 'team', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', 'subflow', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-101-save-load.md', '.lawful/requirements/R-1-save-roundtrip.md'], { GIT_AUTHOR_EMAIL: 'amy@corp.com' }],
+  ['team-claim-other', 'team', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', 'subflow', '--date', DATE], ['.lawful/pipelines/P-200-save-load.md'], { GIT_AUTHOR_EMAIL: 'bob@corp.com' }],
   ['team-claim-unknown', 'team', ['claim', 'save-load', '--date', DATE], ['.lawful/pipelines/P-101-save-load.md'], { GIT_AUTHOR_EMAIL: 'carol@corp.com' }],
   ['broken-lint-ids', 'broken', ['lint', 'ids']],
   ['broken-lint-boundary', 'broken', ['lint', 'boundary']],
@@ -28,11 +28,19 @@ const CASES = [
   ['broken-lint-io', 'broken', ['lint', 'io']],
   ['broken-lint-invariants', 'broken', ['lint', 'invariants']],
   ['save-game-lint-global', 'save-game', ['lint', 'global']],
-  // preflow:需求寫著 Law、目標有 Law、邊界與對外 I/O 住 modules.md、里程碑只有編號、frozen、還留著 spikes/ 的樹,給 migrate laws 當輸入
+  // preflow:需求住 Cone.md「## 需求」節還寫著 Law、里程碑住 objectives/(一條需求有兩個目標檔、一條沒有、一個目標檔對不到需求)、
+  // 邊界與對外 I/O 住 modules.md、里程碑只有編號、kind 寫著中文值、frozen、還留著 spikes/ 的樹:migrate laws 與 migrate requirements 的輸入,
+  // 也驗這種樹照讀得出同一份報告、寫檔的指令停下來
   ['preflow-status', 'preflow', ['status', '--tests', 'test.log']],
   ['preflow-migrate-laws', 'preflow', ['migrate', 'laws']],
-  ['preflow-migrate-laws-write', 'preflow', ['migrate', 'laws', '--write'], ['.lawful/Cone.md', '.lawful/modules.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md', '.lawful/pipelines/P-001-save-write.md']],
+  ['preflow-migrate-laws-write', 'preflow', ['migrate', 'laws', '--write'], ['.lawful/Cone.md', '.lawful/modules.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md', '.lawful/objectives/R-1-O-2-save-list.md', '.lawful/pipelines/P-001-save-write.md']],
+  ['preflow-migrate-requirements', 'preflow', ['migrate', 'requirements']],
+  ['preflow-migrate-requirements-write', 'preflow', ['migrate', 'requirements', '--write', '--date', DATE], ['.lawful/Cone.md', '.lawful/requirements/R-1-save-roundtrip.md', '.lawful/requirements/R-2-unnamed.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md', '.lawful/objectives/R-1-O-2-save-list.md', '.lawful/objectives/R-9-O-3-save-cloud.md', '.lawful/pipelines/P-001-save-write.md']],
+  ['preflow-requirement-add', 'preflow', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2']],
+  ['preflow-claim-milestone', 'preflow', ['claim', 'save-load', '--milestone', 'M-1']],
+  ['preflow-brief-spike-impl', 'preflow', ['brief', 'spike-impl', 'M-2', '--tests', 'test.log', '--no-rules']],
   ['save-game-migrate-laws', 'save-game', ['migrate', 'laws']],
+  ['save-game-migrate-requirements', 'save-game', ['migrate', 'requirements']],
   ['save-game-section', 'save-game', ['section', '.lawful/pipelines/P-001-save-write.md', 'Brief', 'Laws']],
   ['save-game-section-verify', 'save-game', ['section', '.lawful/pipelines/P-001-save-write.md', 'Brief', '沒有的節', '--verify']],
   ['save-game-status', 'save-game', ['status']],
@@ -45,6 +53,7 @@ const CASES = [
   ['broken-status-stale-log', 'broken', ['status', '--tests', 'stale.log']],
   ['save-game-status-tasty', 'save-game', ['status', '--tests', 'test-tasty.log']],
   ['devflow-migrate', 'devflow', ['migrate', 'from-dev-flow', '.design', '--ignore', 'old']],
+  // refs:R-1 的 P-001-cli-run 引用 R-2 的 P-002-syntax-parse,需求表的「依賴」欄印得出東西
   ['refs-status', 'refs', ['status']],
   ['refs-status-json', 'refs', ['status', '--json']],
   ['refs-lint-sig', 'refs', ['lint', 'sig']],
@@ -64,36 +73,35 @@ const CASES = [
   ['save-game-module-bad-layer', 'save-game', ['module', 'Audio', '--layers', 'pure']],
   ['save-game-module-nested', 'save-game', ['module', 'Game.Save.Extra', '--layers', 'core', '--responsibility', '多的']],
   ['broken-module-no-responsibility', 'broken', ['module', 'Input', '--layers', 'types'], ['.lawful/modules.md']],
-  ['save-game-claim', 'save-game', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', '子流', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-002-save-load.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md']],
+  ['save-game-claim', 'save-game', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', 'subflow', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-002-save-load.md', '.lawful/requirements/R-1-save-roundtrip.md']],
   ['save-game-claim-no-milestone', 'save-game', ['claim', 'save-load', '--description', '把存檔讀回 World', '--date', DATE], ['.lawful/pipelines/P-002-save-load.md']],
   ['save-game-claim-bad-kind', 'save-game', ['claim', 'save-load', '--kind', '介面']],
   ['save-game-claim-bad-domain', 'save-game', ['claim', 'game-load', '--description', '把存檔讀回 World']],
   ['save-game-claim-one-word', 'save-game', ['claim', 'load']],
   ['save-game-rename-dry', 'save-game', ['rename', 'P-001', 'save-store', '--dry-run']],
-  ['save-game-rename', 'save-game', ['rename', 'P-001-save-write', 'save-store'], ['.lawful/pipelines/P-001-save-write.md', '.lawful/pipelines/P-001-save-store.md', '.lawful/modules.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md', 'src-core/Game/Save.hs']],
+  ['save-game-rename', 'save-game', ['rename', 'P-001-save-write', 'save-store'], ['.lawful/pipelines/P-001-save-write.md', '.lawful/pipelines/P-001-save-store.md', '.lawful/modules.md', '.lawful/requirements/R-1-save-roundtrip.md', 'src-core/Game/Save.hs']],
   ['save-game-rename-bad-domain', 'save-game', ['rename', 'P-001', 'game-store']],
   ['save-game-rename-missing', 'save-game', ['rename', 'P-009', 'save-store']],
-  ['save-game-requirement-add', 'save-game', ['requirement', 'add', '換了版本的存檔在新版讀得回來', '--accept', '任一前一版的存檔,新版讀回的投影與前一版一樣'], ['.lawful/Cone.md']],
-  ['save-game-requirement-add-no-accept', 'save-game', ['requirement', 'add', '換了版本的存檔在新版讀得回來'], ['.lawful/Cone.md']],
-  ['templated-requirement-add', 'templated', ['requirement', 'add', '報表印得出來', '--accept', '任一段文字都印得出一份報表'], ['.lawful/Cone.md']],
+  ['save-game-requirement-add', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2', '--accept', '任一前一版的存檔,新版讀回的投影與前一版一樣', '--date', DATE], ['.lawful/requirements/R-2-save-upgrade.md']],
+  ['save-game-requirement-add-no-accept', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2', '--date', DATE], ['.lawful/requirements/R-2-save-upgrade.md']],
+  ['save-game-requirement-add-bad-slug', 'save-game', ['requirement', 'add', 'Save_Upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2']],
+  ['save-game-requirement-add-no-priority', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來']],
+  ['templated-requirement-add', 'templated', ['requirement', 'add', 'report-print', '報表印得出來', '--priority', '1', '--accept', '任一段文字都印得出一份報表', '--date', DATE], ['.lawful/requirements/R-1-report-print.md']],
   ['save-game-invariant-add', 'save-game', ['invariant', 'add', '存檔裡的實體 id 不重複'], ['.lawful/Cone.md']],
   ['save-game-invariant-add-bad-kind', 'save-game', ['invariant', 'add', '存檔裡的實體 id 不重複', '--kind', 'always']],
   ['templated-invariant-add', 'templated', ['invariant', 'add', '報表的行數不為負', '--kind', 'bound'], ['.lawful/Cone.md']],
-  ['save-game-objective-add', 'save-game', ['objective', 'add', 'save-repair', '存檔壞了讀得出是哪裡壞', '--requirement', 'R-1', '--priority', '2', '--date', DATE], ['.lawful/objectives/R-1-O-2-save-repair.md']],
-  ['save-game-objective-add-bad-slug', 'save-game', ['objective', 'add', 'Save_Repair', '存檔壞了讀得出是哪裡壞', '--requirement', 'R-1', '--priority', '2']],
-  ['save-game-objective-add-no-requirement', 'save-game', ['objective', 'add', 'save-repair', '存檔壞了讀得出是哪裡壞', '--priority', '2']],
-  ['save-game-objective-add-missing-requirement', 'save-game', ['objective', 'add', 'save-repair', '存檔壞了讀得出是哪裡壞', '--requirement', 'R-9', '--priority', '2']],
-  ['save-game-objective-refinement', 'save-game', ['objective', 'refinement', 'O-1', '寫檔改成串流', '--touch', 'P-001-save-write'], ['.lawful/objectives/R-1-O-1-save-roundtrip.md']],
-  ['save-game-objective-refinement-missing', 'save-game', ['objective', 'refinement', 'O-1', '寫檔改成串流', '--touch', 'P-002-save-load']],
-  ['broken-objective-refinement-outside', 'broken', ['objective', 'refinement', 'O-2', '寫檔改成串流', '--touch', 'P-001-game-save']],
+  ['save-game-requirement-refinement', 'save-game', ['requirement', 'refinement', 'R-1', '寫檔改成串流', '--touch', 'P-001-save-write'], ['.lawful/requirements/R-1-save-roundtrip.md']],
+  ['save-game-requirement-refinement-missing', 'save-game', ['requirement', 'refinement', 'R-1', '寫檔改成串流', '--touch', 'P-002-save-load']],
+  ['broken-requirement-refinement-outside', 'broken', ['requirement', 'refinement', 'R-2', '寫檔改成串流', '--touch', 'P-001-game-save']],
   ['legacy-migrate-cone', 'legacy', ['migrate', 'cone']],
   ['legacy-migrate-cone-write', 'legacy', ['migrate', 'cone', '--write', '--date', DATE], ['.lawful/Cone.md', '.lawful/objectives/R-1-O-1-save-write.md', '.lawful/objectives.md', '.lawful/modules.md', '.lawful/pipelines/P-001-save-write.md', '.lawful/system.md']],
+  ['legacy-migrate-requirements', 'legacy', ['migrate', 'requirements']],
   ['legacy-status', 'legacy', ['status']],
-  ['save-game-objective-milestone', 'save-game', ['objective', 'milestone', 'O-1', 'save-load', '讀檔還原世界', '--bind', 'P-001-save-write'], ['.lawful/objectives/R-1-O-1-save-roundtrip.md']],
-  ['save-game-objective-milestone-missing', 'save-game', ['objective', 'milestone', 'O-1', 'save-load', '讀檔還原世界', '--bind', 'P-002-save-load']],
-  ['save-game-objective-milestone-unbound', 'save-game', ['objective', 'milestone', 'O-1', 'save-repair', '存檔壞了修得回來'], ['.lawful/objectives/R-1-O-1-save-roundtrip.md']],
-  ['save-game-objective-milestone-bad-slug', 'save-game', ['objective', 'milestone', 'O-1', '存檔壞了修得回來']],
-  ['templated-objective-add', 'templated', ['objective', 'add', 'report-print', '報表印得出來', '--requirement', 'R-1', '--priority', '1']],
+  ['save-game-requirement-milestone', 'save-game', ['requirement', 'milestone', 'R-1', 'save-load', '讀檔還原世界', '--bind', 'P-001-save-write'], ['.lawful/requirements/R-1-save-roundtrip.md']],
+  ['save-game-requirement-milestone-missing', 'save-game', ['requirement', 'milestone', 'R-1', 'save-load', '讀檔還原世界', '--bind', 'P-002-save-load']],
+  ['save-game-requirement-milestone-unbound', 'save-game', ['requirement', 'milestone', 'R-1', 'save-repair', '存檔壞了修得回來'], ['.lawful/requirements/R-1-save-roundtrip.md']],
+  ['save-game-requirement-milestone-bad-slug', 'save-game', ['requirement', 'milestone', 'R-1', '存檔壞了修得回來']],
+  ['save-game-requirement-milestone-no-requirement', 'save-game', ['requirement', 'milestone', 'R-9', 'save-repair', '存檔壞了修得回來']],
   ['broken-sync', 'broken', ['sync', '--date', DATE], ['.lawful/pipelines/P-001-game-save.md']],
   ['broken-modules-gen', 'broken', ['modules', '--gen'], ['.lawful/modules.md']],
   // brief:一個 skill 開工要的東西一次印完。golden 用 --no-rules,才不會規章每改一次就跟著變;規章的節另外查(下面的「brief 的規章節」)
@@ -113,14 +121,15 @@ const CASES = [
   ['broken-brief-build', 'broken', ['brief', 'build', 'P-001-game-save', '--tests', 'stale.log', '--no-rules']],
   ['save-game-brief-spike-impl', 'save-game', ['brief', 'spike-impl', 'M-2-save-inspect', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-spike-impl-wrong-kind', 'save-game', ['brief', 'spike-impl', 'P-001-save-write', '--no-rules']],
-  ['save-game-brief-law-design', 'save-game', ['brief', 'law-design', 'M-1-save-write', '--no-rules']],
-  ['templated-brief-law-design', 'templated', ['brief', 'law-design', 'M-1', '--no-rules']],
-  ['refs-brief-revise', 'refs', ['brief', 'revise', 'P-002', '--tests', 'none.log', '--no-rules']],
-  ['save-game-brief-revise-refinement', 'save-game', ['brief', 'revise', 'RF-1', '--tests', 'test.log', '--no-rules']],
-  ['save-game-brief-revise-invariant', 'save-game', ['brief', 'revise', 'INV-1', '--tests', 'test.log', '--no-rules']],
-  ['broken-brief-revise-global', 'broken', ['brief', 'revise', '--tests', 'stale.log', '--no-rules']],
-  ['save-game-brief-objective', 'save-game', ['brief', 'objective', '--tests', 'test.log', '--no-rules']],
-  ['save-game-brief-project', 'save-game', ['brief', 'project', '--no-rules']],
+  ['save-game-brief-scope-laws', 'save-game', ['brief', 'scope-laws', 'M-1-save-write', '--no-rules']],
+  ['save-game-brief-scope-laws-doc', 'save-game', ['brief', 'scope-laws', 'P-001-save-write', '--tests', 'test.log', '--no-rules']],
+  ['templated-brief-scope-laws', 'templated', ['brief', 'scope-laws', 'M-1', '--no-rules']],
+  ['refs-brief-scope-revise', 'refs', ['brief', 'scope-revise', 'P-002', '--tests', 'none.log', '--no-rules']],
+  ['save-game-brief-scope-revise-wrong-kind', 'save-game', ['brief', 'scope-revise', 'M-1-save-write', '--no-rules']],
+  ['save-game-brief-global-laws-invariant', 'save-game', ['brief', 'global-laws', 'INV-1', '--tests', 'test.log', '--no-rules']],
+  ['broken-brief-global-laws', 'broken', ['brief', 'global-laws', '--tests', 'stale.log', '--no-rules']],
+  ['save-game-brief-require-design', 'save-game', ['brief', 'require-design', '--tests', 'test.log', '--no-rules']],
+  ['save-game-brief-kickoff', 'save-game', ['brief', 'kickoff', '--no-rules']],
   ['save-game-brief-module', 'save-game', ['brief', 'module', '--no-rules']],
   ['save-game-brief-integrate', 'save-game', ['brief', 'integrate', '--no-rules']],
   ['save-game-brief-status', 'save-game', ['brief', 'status', '--no-rules']],
@@ -172,7 +181,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/objective milestone <O-n> <slug>/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement add <slug>/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || !/requirement refinement <R-n>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /IO 介面|子流/.test(h.stdout) || !/--kind <io \| subflow>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
@@ -191,7 +200,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   } else console.log('✓ brief 的規章節');
 
   // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
-  const TARGETS = { build: 'P-001-save-write', qa: 'P-001-save-write', refactor: 'P-001-save-write', revise: 'P-001-save-write', 'law-design': 'M-1-save-write', 'spike-impl': 'M-2-save-inspect' };
+  const TARGETS = { build: 'P-001-save-write', qa: 'P-001-save-write', refactor: 'P-001-save-write', 'scope-revise': 'P-001-save-write', 'scope-laws': 'M-1-save-write', 'spike-impl': 'M-2-save-inspect' };
   const PARTS = [1, 2, 3, 4, 5, 6];
   let parted = skills.length > 0;
   for (const s of skills) {
@@ -210,18 +219,102 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     console.log('✗ brief 的分段');
   } else console.log('✓ brief 的分段');
 
-  // 每份 SKILL.md 的注入行:一個 skill PARTS 道、--of 寫對、免批准的 allowed-tools 在 frontmatter
-  let injected = skills.length > 0;
-  for (const s of skills) {
-    const md = fs.readFileSync(path.join(here, '..', '..', 'plugins', 'lawful', 'skills', s, 'SKILL.md'), 'utf8');
+  // 每份 SKILL.md:skills/ 底下的資料夾與 brief 的 skill 名單一一對上;frontmatter 的 name 等於資料夾名;
+  // description 是單行的純量,裡面不准有「冒號加空白」(YAML 會讀成另一個鍵,整份 frontmatter 壞掉、skill 不會被載入);
+  // 六道注入行寫對;免批准的 allowed-tools 在 frontmatter
+  const skillsDir = path.join(here, '..', '..', 'plugins', 'lawful', 'skills');
+  const dirs = fs.readdirSync(skillsDir).filter((d) => fs.existsSync(path.join(skillsDir, d, 'SKILL.md'))).sort();
+  const wrong = [];
+  if (dirs.join(',') !== [...skills].sort().join(',')) wrong.push(`skills/ 是 ${dirs.join('、')};brief 的名單是 ${[...skills].sort().join('、')}`);
+  for (const s of dirs) {
+    const md = fs.readFileSync(path.join(skillsDir, s, 'SKILL.md'), 'utf8');
+    const fm = (/^---\r?\n([\s\S]*?)\r?\n---/.exec(md) || [, ''])[1];
+    const desc = (/^description: (.*)$/m.exec(fm) || [, ''])[1];
+    if (!new RegExp(`^name: ${s}$`, 'm').test(fm)) wrong.push(`${s}:name 不等於資料夾名`);
+    if (!desc || /: /.test(desc) || /^['"[{>|]/.test(desc)) wrong.push(`${s}:description 會讓 frontmatter 讀不成(空的、含「冒號加空白」、或以引號括號開頭)`);
     const lines = md.split(/\r?\n/).filter((l) => l.startsWith('!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief '));
     const want = PARTS.map((k) => `!\`node "\${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief ${s} --args '$ARGUMENTS' --part ${k} --of ${PARTS.length}\``);
-    if (lines.join('\n') !== want.join('\n') || !/^allowed-tools: Bash\(node "\$\{CLAUDE_PLUGIN_ROOT\}\/bin\/lawful\.mjs":\*\)$/m.test(md)) injected = false;
+    if (lines.join('\n') !== want.join('\n')) wrong.push(`${s}:注入行不是六道 brief ${s} --part 1..${PARTS.length} --of ${PARTS.length}`);
+    if (!/^allowed-tools: Bash\(node "\$\{CLAUDE_PLUGIN_ROOT\}\/bin\/lawful\.mjs":\*\)$/m.test(fm)) wrong.push(`${s}:frontmatter 沒有免批准的 allowed-tools`);
   }
-  if (!injected) {
+  if (wrong.length) {
     failed++;
-    console.log('✗ SKILL.md 的注入行');
-  } else console.log('✓ SKILL.md 的注入行');
+    console.log('✗ SKILL.md 的 frontmatter 與注入行');
+    for (const w of wrong) console.log(`  ${w}`);
+  } else console.log('✓ SKILL.md 的 frontmatter 與注入行');
+}
+
+// 三道 migrate 以任何先後接連跑,落地的樹都一樣;跑過的樹再跑一次是「不用換」;只有 kind 要換的樹也換得了
+{
+  const run = (root, ...argv) => spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+  const treeOf = (root) => {
+    const out = [];
+    const walk = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((p, q) => p.name.localeCompare(q.name))) {
+        const abs = path.join(dir, e.name);
+        if (e.isDirectory()) walk(abs);
+        else out.push(`--- ${path.relative(root, abs).split(path.sep).join('/')}\n${fs.readFileSync(abs, 'utf8').replace(/\r\n/g, '\n')}`);
+      }
+    };
+    walk(path.join(root, '.lawful'));
+    return out.join('\n');
+  };
+  const after = (fixture, orders) => orders.map((order) => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-order-'));
+    fs.cpSync(path.join(here, 'fixtures', fixture), tmp, { recursive: true });
+    const exits = order.map((sub) => run(tmp, 'migrate', sub, '--write', '--date', DATE).status);
+    const again = order.map((sub) => run(tmp, 'migrate', sub).stdout);
+    const tree = treeOf(tmp);
+    const status = run(tmp, 'status').stdout;
+    fs.rmSync(tmp, { recursive: true, force: true });
+    return { order, exits, again, tree, status };
+  });
+  const wrong = [];
+  const sets = [
+    ['preflow', [['laws', 'requirements'], ['requirements', 'laws'], ['cone', 'requirements', 'laws']]],
+    ['legacy', [['cone', 'laws', 'requirements'], ['cone', 'requirements', 'laws']]],
+  ];
+  for (const [fixture, orders] of sets) {
+    const got = after(fixture, orders);
+    for (const g of got) {
+      if (g.exits.some((x) => x !== 0)) wrong.push(`${fixture}:${g.order.join(' → ')} 有一道 exit 不是 0(${g.exits.join('、')})`);
+      if (g.tree !== got[0].tree) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹與 ${got[0].order.join(' → ')} 不一樣`);
+      if (!g.again.every((t) => !/^- /m.test(t.split('人要判的')[0]))) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後再跑一次,還有東西要換`);
+      if (/lawful migrate (cone|laws|requirements)/.test(g.status)) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後 status 還指到 migrate`);
+      if (!/\n--- \.lawful\/requirements\/R-1-/.test(`\n${g.tree}`) || /\n--- \.lawful\/objectives\.md\n/.test(g.tree) || /\nkind: (IO 介面|子流)\n/.test(g.tree)) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹沒有 requirements/、還留著 objectives.md、或 kind 沒換`);
+    }
+  }
+  // 只有 system.md 的樹:laws 與 requirements 都講先跑 cone,不動任何檔
+  {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-order-'));
+    fs.cpSync(path.join(here, 'fixtures', 'legacy'), tmp, { recursive: true });
+    const before = treeOf(tmp);
+    for (const sub of ['laws', 'requirements']) {
+      const r = run(tmp, 'migrate', sub, '--write');
+      if (r.status !== 1 || !/lawful migrate cone --write/.test(r.stdout + r.stderr)) wrong.push(`legacy:migrate ${sub} 在只有 system.md 的樹上沒有講先跑 migrate cone`);
+    }
+    if (treeOf(tmp) !== before) wrong.push('legacy:講了先跑 migrate cone,卻動了檔');
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+  // 已經有 requirements/、只有 kind 要換的樹
+  {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-order-'));
+    fs.cpSync(path.join(here, 'fixtures', 'team'), tmp, { recursive: true });
+    const file = path.join(tmp, '.lawful', 'pipelines', 'P-100-save-verify.md');
+    fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/^kind: subflow(\r?)$/m, 'kind: 子流$1'));
+    const read = run(tmp, 'status').stdout;
+    const r = run(tmp, 'migrate', 'requirements', '--write');
+    const text = fs.readFileSync(file, 'utf8');
+    if (!/\| P-100-save-verify \| subflow \|/.test(read)) wrong.push('team:kind 的另一種寫法沒有照讀成 subflow');
+    if (r.status !== 0 || !/P-100-save-verify\.md:kind「子流」改成 subflow/.test(r.stdout) || !/^kind: subflow\r?$/m.test(text)) wrong.push('team:只有 kind 要換的樹,migrate requirements --write 沒有把它換掉');
+    if (!/不用換/.test(run(tmp, 'migrate', 'requirements').stdout)) wrong.push('team:kind 換完之後再跑一次,還有東西要換');
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+  if (wrong.length) {
+    failed++;
+    console.log('✗ migrate 的先後');
+    for (const w of wrong) console.log(`  ${w}`);
+  } else console.log('✓ migrate 的先後');
 }
 
 // --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事

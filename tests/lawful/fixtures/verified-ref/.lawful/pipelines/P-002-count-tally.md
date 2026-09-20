@@ -1,14 +1,14 @@
 ---
 id: P-002
 description: 數一段文字的字數
-kind: IO 介面
+kind: io
 status: verified
 updated: 2026-09-06
 ---
 # P-002-count-tally:數一段文字的字數
 
 ## Brief
-IO 介面。文字 → 切字 → 數個數。
+io。文字 → 切字 → 數個數。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |

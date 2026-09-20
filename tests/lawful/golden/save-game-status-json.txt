@@ -51,7 +51,7 @@ $ lawful status --json --tests test.log
       "value": "0 / 1 達成"
     },
     {
-      "label": "IO 介面",
+      "label": "io pipeline",
       "value": "0 / 1 達成"
     },
     {
@@ -74,8 +74,8 @@ $ lawful status --json --tests test.log
   "requirements": [
     {
       "id": "R-1",
-      "name": "R-1",
-      "file": ".lawful/Cone.md",
+      "name": "R-1-save-roundtrip",
+      "file": ".lawful/requirements/R-1-save-roundtrip.md",
       "title": "玩家存檔後能讀回同一個世界",
       "priority": 1,
       "priorityRaw": "1",
@@ -87,6 +87,7 @@ $ lawful status --json --tests test.log
         "tested": true
       },
       "note": "驗收達成 · 里程碑 0/2 達成",
+      "dependsOn": [],
       "built": false,
       "achieved": true,
       "percent": 0,
@@ -274,7 +275,7 @@ $ lawful status --json --tests test.log
     {
       "name": "P-001-save-write",
       "id": "P-001",
-      "kind": "IO 介面",
+      "kind": "io",
       "status": "ready",
       "description": "把當前 World 投影成可存檔的狀態,編碼後寫到磁碟",
       "state": "進行中",
@@ -462,7 +463,7 @@ $ lawful status --json --tests test.log
     "openable": [
       {
         "name": "P-001-save-write",
-        "tag": "O-1 優先 1 · M-1 存檔寫得出檔案"
+        "tag": "R-1 優先 1 · M-1 存檔寫得出檔案"
       }
     ],
     "building": [],
@@ -480,7 +481,7 @@ $ lawful status --json --tests test.log
   ],
   "route": {
     "steps": [
-      "lawful:build P-001-save-write(O-1 優先 1 · M-1 存檔寫得出檔案)"
+      "lawful:build P-001-save-write(R-1 優先 1 · M-1 存檔寫得出檔案)"
     ],
     "note": null,
     "allDone": false

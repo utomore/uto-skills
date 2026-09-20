@@ -48,7 +48,7 @@ src-types/Weft/Render/Color.hs   Weft.Render.Color  types
 - 檔案位置要對得上模組名:`Weft.Render.View` 的檔是 `<那一層的樹>/Weft/Render/View.hs`。
 - **模組前綴**與**原始碼根目錄**寫在 `Cone.md`「專案約束」。原始碼根目錄是一個帶 `<層>` 的樣式,預設 `src-<層>`。
 
-模組單元先劃、程式碼後住進去:`lawful module` 只決定名字、範圍與有哪幾層,在每一層的樹裡開好資料夾,不放任何模組。立案時劃已經看得出來的單元;切片途中要一個還沒有的單元,`lawful:spike-impl` 先停下來跑 `lawful:module` 劃出來,再把模組寫進去。在既有單元裡加、改、搬模組不必回頭動模組表。宣告了層卻還沒有程式碼是常態,`lint boundary` 列成訊息不算紅。
+模組單元先劃、程式碼後住進去:`lawful module` 只決定名字、範圍與有哪幾層,在每一層的樹裡開好資料夾,不放任何模組。立案時(`lawful:kickoff`)劃已經看得出來的單元;切片途中要一個還沒有的單元,`lawful:spike-impl` 先停下來跑 `lawful:module` 劃出來,再把模組寫進去。在既有單元裡加、改、搬模組不必回頭動模組表。宣告了層卻還沒有程式碼是常態,`lint boundary` 列成訊息不算紅。
 
 ## 模組表
 
@@ -77,7 +77,7 @@ src-types/Weft/Render/Color.hs   Weft.Render.Color  types
 - 效果系統的描述型別(`Eff es`、`Sem r`、`Free f`、自家的指令 ADT)不是效果:它是純資料,住 effect;帶著 `IOE :> es` 這種執行能力的才算效果。
 - IO 模組黑名單由 adapter 的 `ioModules` 給預設:繞過型別系統的逃生口(`unsafePerformIO`、`Debug.Trace`、FFI)與只有效果的模組;有純 API 的模組(`System.Random` 的 `StdGen`、`Data.Time` 的 `UTCTime`)不在名單上,它們的效果由簽名擋。`Cone.md`「專案約束」可追加。
 - 效果的**描述**是純資料,住 effect;**執行**它的真解譯器住 shell。同一個效果在同一個單元的兩層各有一個名字,不共用模組。
-- 每個效果描述配一個**純解譯器**(把描述跑在記憶體裡的資料上:`Map FilePath ByteString` 當檔案系統、固定序列當時鐘),住 effect 或 core。它是觀察點:IO 介面 `=` 列的 law 靠它寫,qa 不必碰 IO。
+- 每個效果描述配一個**純解譯器**(把描述跑在記憶體裡的資料上:`Map FilePath ByteString` 當檔案系統、固定序列當時鐘),住 effect 或 core。它是觀察點:io pipeline `=` 列的 law 靠它寫,qa 不必碰 IO。
 
 ## 對外 I/O
 
@@ -92,9 +92,9 @@ src-types/Weft/Render/Color.hs   Weft.Render.Color  types
 ```
 
 - **契約**:這一端對外面承諾了什麼、由哪條 law 守著(寫出去的檔一定讀得回來、對外的格式只增欄位不刪不改名)。寫那條 law:`P-00x#LAW-n` 或 `INV-n`,「、」分隔;沒有就「-」。只寫一句話而沒有 law 守著的契約不算數。
-- 每條 IO 介面(frontmatter `kind: IO 介面`)的兩端都要對得到這張表的某一列;表上的 pipeline 必須是 IO 介面。一條切片新的入口與出口,`lawful:spike-impl` 記在決策紀錄「Touched」,`lawful:law-design` claim 出 pipeline 之後補成表上的列。
+- 每條 io pipeline(frontmatter `kind: io`)的兩端都要對得到這張表的某一列;表上的 pipeline 必須是 `kind: io`。一條切片新的入口與出口,`lawful:spike-impl` 記在決策紀錄「Touched」,`lawful:scope-laws` claim 出 pipeline 之後補成表上的列;文檔退役(pipelines.md「修訂(REV)」)時,它那幾列跟著拿掉。
 - 表上的 shell 模組在模組表是 shell 層、程式碼裡有;型別與效果 ADT 住 types 或 effect,不住 shell(邊界換了才不必跟著改)。
-- `lawful lint io` 對帳以上:方向是 in / out、pipeline 存在且是 IO 介面、shell 模組與型別住對層、每條 IO 介面至少一列、契約欄指到的 law 要存在。
+- `lawful lint io` 對帳以上:方向是 in / out、pipeline 存在且是 `kind: io`、shell 模組與型別住對層、每條 io pipeline 至少一列、契約欄指到的 law 要存在。
 
 ## 測試與邊界
 

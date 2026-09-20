@@ -3,12 +3,12 @@ $ lawful migrate cone --write --date 2026-09-05
 
 - .lawful/Cone.md:建,願景(目的接成第二段)、需求 1 條(R-1 ← O-1)、全域 Law 區(四層、對外 I/O、領域不變量寫「無」)、專案約束(語言與工具照搬,優先各級那行搬進來)
 - .lawful/modules.md:整理成只有「模組單元」表
-- .lawful/pipelines/P-001-save-write.md:frontmatter 補 kind: IO 介面
+- .lawful/pipelines/P-001-save-write.md:frontmatter 補 kind: io
 - .lawful/objectives/R-1-O-1-save-write.md:建(O-1;需求配 R-1;slug 從第一條綁定的 pipeline 推,不對就改檔名)
 - .lawful/objectives.md:刪
 - .lawful/system.md:刪
 
-都寫了;接著 lawful status 看警訊,需求的驗收與領域不變量由 lawful:project 對談補齊,目標檔的 slug 與還沒有英文名的里程碑由 lawful:objective 定
+都寫了;接著 lawful migrate requirements --write 把「## 需求」節與 objectives/ 換成 requirements/ 一條需求一個檔,再 lawful status 看警訊;需求的驗收由 lawful:require-design、領域不變量由 lawful:global-laws 對談補齊
 exit 0
 --- .lawful/Cone.md
 ---
@@ -86,7 +86,7 @@ updated: 2026-09-05
 ---
 id: P-001
 description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
-kind: IO 介面
+kind: io
 status: ready
 updated: 2026-09-05
 ---

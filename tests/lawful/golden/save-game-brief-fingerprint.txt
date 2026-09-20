@@ -1,3 +1,3 @@
 $ lawful brief qa P-001-save-write --fingerprint
-brief qa P-001-save-write @doc:2ab167af rules:<雜湊>
+brief qa P-001-save-write @doc:c64043f5 rules:<雜湊>
 exit 0

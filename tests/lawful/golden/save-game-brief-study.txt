@@ -12,10 +12,10 @@ brief study (沒有目標) @doc:- rules:<雜湊>
   - ADR-001-save-format.md
 - Cone.md
 - modules.md
-- objectives/
-  - R-1-O-1-save-roundtrip.md
 - pipelines/
   - P-001-save-write.md
+- requirements/
+  - R-1-save-roundtrip.md
 
 # Cone.md「專案約束」
 

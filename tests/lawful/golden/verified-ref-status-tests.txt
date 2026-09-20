@@ -1,20 +1,15 @@
 $ lawful status --tests test.log
 # lawful status
 願景:一段文字丟進來,字數統計與報表一次算對。
-需求 1 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 目標 1 個,達成 0 個 · 里程碑 2 條,達成 1 條 · 調整 1 條,達成 0 條 · IO 介面 2 條,達成 1 條 · pipeline 2 條,達成 1 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
+需求 1 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 2 條,達成 1 條 · 調整 1 條,達成 0 條 · io pipeline 2 條,達成 1 條 · pipeline 2 條,達成 1 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 ## 需求
-| 需求 | 一句話 | 驗收 | 目標 | 目標達成 | 里程碑達成 | 調整達成 |
-|---|---|---|---|---|---|---|
-| R-1 | 一段文字進來,報表算對 | 未達成(O-1 還沒達成) | O-1 | 0/1 | 1/2 | 0/1 |
-
-## 目標
 - 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
-| 目標 | 需求 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
-|---|---|---|---|---|---|---|---|
-| O-1 | R-1 | 1 | 一段文字進來,報表算對 | 2 | 1 | 50% | 0/1 |
-- O-1 下一個里程碑:M-2 報表印得出來(P-001-report-render 進行中)
+| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
+|---|---|---|---|---|---|---|---|---|
+| R-1 | 1 | 一段文字進來,報表算對 | 未達成(M-2 還沒達成) | - | 2 | 1 | 50% | 0/1 |
+- R-1 下一個里程碑:M-2 報表印得出來(P-001-report-render 進行中)
 
 ## 全域 Law
 | 類別 | 住 Cone.md 的哪一區 | 自動確認 | 結果 |
@@ -28,8 +23,8 @@ $ lawful status --tests test.log
 ## pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|---|
-| P-001-report-render | IO 介面 | ready | 3 | 3 | 1 | 1 | 0/0 | 進行中 |
-| P-002-count-tally | IO 介面 | verified | 2 | 2 | 0 | 1 | 1/1 | 達成 |
+| P-001-report-render | io | ready | 3 | 3 | 1 | 1 | 0/0 | 進行中 |
+| P-002-count-tally | io | verified | 2 | 2 | 0 | 1 | 1/1 | 達成 |
 
 ## 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
@@ -40,7 +35,7 @@ $ lawful status --tests test.log
 - 還沒有任何 stage 住進去的單元:App.Token
 
 ## 1. 今天能開幾條線
-- P-001-report-render:lawful:build P-001-report-render(O-1 優先 1 · M-2 報表印得出來)
+- P-001-report-render:lawful:build P-001-report-render(R-1 優先 1 · M-2 報表印得出來)
 
 ## 2. 卡住的
 - 無
@@ -61,5 +56,5 @@ $ lawful status --tests test.log
 | 全域 Law:契約 | lint io 1 條不合規 | lawful lint io |
 
 ## 7. 建議路線
-1. lawful:build P-001-report-render(O-1 優先 1 · M-2 報表印得出來)
+1. lawful:build P-001-report-render(R-1 優先 1 · M-2 報表印得出來)
 exit 1

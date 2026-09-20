@@ -1,14 +1,14 @@
 ---
 id: P-001
 description: 讀一段文字,解析後正規化
-kind: IO 介面
+kind: io
 status: ready
 updated: 2026-09-06
 ---
 # P-001-cli-run:讀一段文字,解析後正規化
 
 ## Brief
-IO 介面。文字 → 解析 → 正規化 → 輸出。引用 P-002-syntax-parse 的整條。
+io。文字 → 解析 → 正規化 → 輸出。引用 P-002-syntax-parse 的整條。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |

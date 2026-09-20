@@ -1,14 +1,14 @@
 ---
 id: P-001
 description: 把一段文字的字數寫成報告
-kind: IO 介面
+kind: io
 status: ready
 updated: 2026-09-06
 ---
 # P-001-report-render:把一段文字的字數寫成報告
 
 ## Brief
-IO 介面。文字 → 數字數 → 報告。數字數引用 P-002-count-tally 的整條。
+io。文字 → 數字數 → 報告。數字數引用 P-002-count-tally 的整條。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |

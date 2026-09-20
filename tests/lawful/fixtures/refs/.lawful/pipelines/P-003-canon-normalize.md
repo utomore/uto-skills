@@ -1,14 +1,14 @@
 ---
 id: P-003
 description: Doc 正規化
-kind: 子流
+kind: subflow
 status: ready
 updated: 2026-09-06
 ---
 # P-003-canon-normalize:Doc 正規化
 
 ## Brief
-子流。Doc → 正規化 → Doc。shared 與 P-002-syntax-parse 同名而沒註明見。
+subflow。Doc → 正規化 → Doc。shared 與 P-002-syntax-parse 同名而沒註明見。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |

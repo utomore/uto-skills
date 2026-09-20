@@ -14,6 +14,10 @@ updated: 2026-09-05
 - Law:任一 World 存檔再讀回,可存檔的投影一模一樣
   - forall w in World
   - |- decode (saveBytes w) == Right (toSave w)
+- 蘊含:O-1 與 O-2 都達成,存得進去也找得回來
+
+### R-2:存檔壞了讀得出是哪裡壞
+- Law:任一壞掉的存檔,讀檔回報第一個壞掉的位置
 
 ## 專案約束
 - 語言:haskell

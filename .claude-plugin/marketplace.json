@@ -15,7 +15,7 @@
     },
     {
       "name": "lawful",
-      "description": "Haskell 這類純函數式專案(functional core / imperative shell)的需求導向開發,流程與 skill 名稱同 dev-flow:需求(必須達成,各有一句驗收)與全域 Law(不得違反:領域不變量、四層 types ← effect ← core ← shell、對外 I/O)先講好,spike-impl 先貫通一條切片,law-design 對著它談 Law,build 帶 qa 與 refactor 讓每條 law 成立,integrate 是唯一發 PR 的出口。文檔住 .lawful/:Cone.md、objectives/、modules.md(模組單元)、pipelines/(input → 純轉換 → output 的資料流,IO 介面或子流);進度一律由 CLI lawful 從程式碼與測試推導(status、lint、claim、module、brief、migrate)。skills:project、objective、module、spike-impl、law-design、build、qa、refactor、revise、integrate、status、audit、study。",
+      "description": "Haskell 這類純函數式專案(functional core / imperative shell)的需求導向開發,流程與 skill 名稱同 dev-flow:需求(必須達成,各有一句驗收)與全域 Law(不得違反:領域不變量、四層 types ← effect ← core ← shell、對外 I/O)先講好,spike-impl 先貫通一條切片,scope-laws 對著它談 Law,build 帶 qa 與 refactor 讓每條 law 成立,integrate 是唯一發 PR 的出口。文檔住 .lawful/:Cone.md、requirements/、modules.md(模組單元)、pipelines/(input → 純轉換 → output 的資料流,kind 是 io 或 subflow);進度一律由 CLI lawful 從程式碼與測試推導(status、lint、claim、module、brief、migrate)。skills:kickoff、require-design、global-laws、module、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、status、audit、study。",
       "author": {
         "name": "utomore"
       },

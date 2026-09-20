@@ -1,5 +1,0 @@
-$ lawful objective milestone O-1 存檔壞了修得回來
-用法:lawful objective add <slug> <一句話> --requirement <R-n> --priority <1-4>
-      lawful objective milestone <O-n> <slug> <一句話> [--bind <全名,全名>]
-      lawful objective refinement <O-n> <一句話> --touch <全名,全名>
-exit 1

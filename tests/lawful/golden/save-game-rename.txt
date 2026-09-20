@@ -2,8 +2,8 @@ $ lawful rename P-001-save-write save-store
 P-001-save-write → P-001-save-store:改名 .lawful/pipelines/P-001-save-write.md → .lawful/pipelines/P-001-save-store.md
 改了 .lawful/adr/ADR-001-save-format.md(2 處)
 改了 .lawful/Cone.md(1 處)
-改了 .lawful/objectives/R-1-O-1-save-roundtrip.md(2 處)
 改了 .lawful/pipelines/P-001-save-write.md(1 處)
+改了 .lawful/requirements/R-1-save-roundtrip.md(2 處)
 改了 src-core/Game/Save/Codec.hs(1 處)
 改了 src-core/Game/Save/Project/Internal.hs(1 處)
 改了 src-core/Game/Save/Project.hs(1 處)
@@ -18,7 +18,7 @@ exit 0
 ---
 id: P-001
 description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
-kind: IO 介面
+kind: io
 status: ready
 updated: 2026-09-05
 ---
@@ -26,7 +26,7 @@ updated: 2026-09-05
 
 ## Brief
 玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
-流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString;進入點把它接到檔案系統。它是 IO 介面,兩端碰到 shell。
+流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString;進入點把它接到檔案系統。它的 kind 是 io,兩端碰到 shell。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -79,14 +79,17 @@ updated: 2026-09-05
 | `Game.Save` | types、core、shell | 可存檔的投影、編解碼與存檔的進入點 |
 | `Game.FS` | shell | 檔案系統:原子寫檔 |
 
---- .lawful/objectives/R-1-O-1-save-roundtrip.md
+--- .lawful/requirements/R-1-save-roundtrip.md
 ---
-id: O-1
-requirement: R-1
+id: R-1
 priority: 1
 updated: 2026-09-05
 ---
-# R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
+# R-1-save-roundtrip:玩家存檔後能讀回同一個世界
+
+- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|

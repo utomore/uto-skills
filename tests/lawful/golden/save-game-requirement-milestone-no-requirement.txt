@@ -1,0 +1,3 @@
+$ lawful requirement milestone R-9 save-repair 存檔壞了修得回來
+requirements/ 沒有 R-9;先 lawful requirement add
+exit 1

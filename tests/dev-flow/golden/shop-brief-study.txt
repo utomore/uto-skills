@@ -1,0 +1,43 @@
+$ devflow brief study --no-rules
+brief study (沒有目標) @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# .design/ 現在有什麼
+
+- abstracts/
+  - A-001-settle.md
+- features/
+  - F-001-checkout.md
+  - F-002-refund.md
+- modules.md
+- objectives/
+  - R-1-O-1-money-correct.md
+- system.md
+
+# system.md「語言與工具」
+
+- 建置:`npx tsc --noEmit`
+- 測試(整套):`npx jest`
+- 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 號段:無
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+
+# modules.md
+
+````markdown
+# 模組表
+
+| 路徑 | 層 |
+|---|---|
+| `src/domain/**` | domain |
+| `src/app/**` | application |
+| `src/entry/**` | entry |
+````
+exit 0

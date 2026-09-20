@@ -63,23 +63,6 @@
 
 ## 每個 skill 讀什麼
 
-`<D>` 是 skill 的基準目錄往上兩層(tooling.md「CLI」);節用 `node "<D>/bin/devflow.mjs" section <檔> <節>…` 取,一次讀完。
+不必查表:每份 SKILL.md 的「開工 context」在載入 skill 的那一刻跑 `devflow brief <skill> [<目標>]`,它要讀的規章節與它在這個專案裡要看的東西(目標文檔、逐條狀態、宣告、目標檔與需求、決策紀錄、分支與工作樹、lint、status 報告,依 skill 而定)一次給齊。哪個 skill 讀哪幾節的表住在 CLI 裡,是唯一來源;`devflow brief <skill>` 印出來的「規章」那一塊就是它。
 
-| skill | 必讀 |
-|---|---|
-| `dev-flow:project` | features.md「`.design/`」「system.md」「願景、需求、目標與路線」;laws.md「Law 與需求」「全域 Law」;boundary.md 全份;tooling.md「language adapter」「收尾定錨」 |
-| `dev-flow:objective` | features.md「願景、需求、目標與路線」「完成度」;tooling.md「CLI」「status 報告」「收尾定錨」 |
-| `dev-flow:spike-impl` | roles.md「五個階段」「分支與所有權」「角色」「切片」「決策紀錄」;features.md「願景、需求、目標與路線」;laws.md「全域 Law」;boundary.md 全份;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
-| `dev-flow:law-design` | features.md「feature 與 abstract」「編號與引用」「簽名怎麼寫」「frontmatter 與 status」「節」「什麼要有 law」;laws.md「Law 怎麼談」「Law 與需求」「全域 Law」;roles.md「分支與所有權」「首跑」「決策紀錄」;boundary.md「模組表」「對外 I/O」;tooling.md「CLI」「收尾定錨」 |
-| `dev-flow:build` | roles.md 全份;features.md「提問(GAP)」「修訂(REV)」「完成度」;tooling.md「CLI」「測試歸屬」「跑東西的紀律」「收尾定錨」 |
-| `dev-flow:qa` | 由 `devflow brief qa` 在載入時給,不另外讀 |
-| `dev-flow:refactor` | 由 `devflow brief refactor` 在載入時給,不另外讀 |
-| `dev-flow:integrate` | roles.md「分支與所有權」「決策紀錄」「整合」「仲裁」;features.md「提問(GAP)」「完成度」「ADR」;laws.md「全域 Law」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
-| `dev-flow:revise` | features.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」「完成度」;laws.md「影響範圍與選項」「全域 Law 的變更」「Law 與需求」「全域 Law」;roles.md「分支與所有權」「首跑」;tooling.md「收尾定錨」 |
-| `dev-flow:abstract` | features.md「收整(abstract)」「feature 與 abstract」「修訂(REV)」「節」;laws.md「Law 怎麼談」;roles.md「分支與所有權」;boundary.md「層」「模組表」;tooling.md「CLI」「收尾定錨」 |
-| `dev-flow:status` | tooling.md「CLI」「status 報告」「收尾定錨」;features.md「願景、需求、目標與路線」「完成度」;laws.md「全域 Law」 |
-| `dev-flow:audit` | tooling.md「CLI」「status 報告」;boundary.md 全份;features.md「願景、需求、目標與路線」「節」「什麼要有 law」「完成度」「收整(abstract)」;laws.md「全域 Law」「Law 怎麼談」 |
-
-prompt 標明委派模式的執行另讀 roles.md「委派」,不讀「收尾定錨」。
-
-`dev-flow:study` 不碰文檔模型,不讀本規章。
+同一場裡要再查別的節:`node "<D>/bin/devflow.mjs" section <檔> <節>…`,`<D>` 是 skill 的基準目錄往上兩層(tooling.md「CLI」)。

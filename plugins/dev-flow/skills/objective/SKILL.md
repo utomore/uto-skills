@@ -2,15 +2,26 @@
 name: objective
 description: dev-flow 的目標 — 對談後在 .design/objectives/ 訂專案目標(一個目標一個檔 R-x-O-y-<slug>.md):每個目標解決 system.md 的恰好一條需求,開發者答兩問 What 做到什麼(一句話)、Which 落在哪一級優先(1 到 4,各級代表什麼由 system.md 一行宣告);目標沒有自己的判準也沒有 law:它達成 = 建置路線的里程碑全部達成,需求達成了沒由需求的驗收判;目標底下兩條路線:建置路線的里程碑(全名 M-n-<slug>)一條就是一條垂直切片的範圍,綁定欄在切片做完、law-design claim 出 feature 之後才填,優化路線的調整(RF-n)只動既有 feature 的品質;也回答「這份 feature 服務哪個目標」、重排優先。配號只走 devflow objective add / milestone / refinement;里程碑的英文名是切片分支 build/M-n-<slug> 的鍵。觸發詞:目標、專案目標、objective、里程碑、milestone、調整、優化、refinement、優先、priority、這個功能為什麼做、朝向目標、dev-flow objective。Use when adding or reshaping project objectives, their priorities, milestones and refinements, or binding features to a milestone.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:objective — 目標、里程碑與調整
 
 > **核心**:A milestone MUST be one sentence that a single running slice can make observably true.(一條里程碑是一句話,而且一條跑得起來的切片就能讓它看得到地成真;做不到就再切。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/features.md`「願景、需求、目標與路線」「完成度」、`rules/tooling.md`「CLI」「status 報告」「收尾定錨」。再讀 `.design/system.md` 的「願景」「需求」與「語言與工具」的優先那行、`.design/objectives/` 底下每一檔(有的話),跑 `devflow status` 看需求表、目標表與警訊。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief objective --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief objective --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief objective --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief objective --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief objective` 的輸出:規章、`system.md` 全份(願景、需求、優先各級那一行都在裡面)、`objectives/` 底下每一檔、status 報告(需求表、目標表與警訊)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給;有最近一次測試輸出就加 `--tests <log>`。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief objective --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

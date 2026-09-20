@@ -2,15 +2,26 @@
 name: integrate
 description: dev-flow 的整合 — 把達成的 build 分支合成一條整合分支、每一條 law 都仍然成立才發 PR,是唯一發 PR 的出口。先確認當前分支(在主 branch 上有變更就先開新分支把它帶走,立案、目標與全域 Law 的變更是 plan/<slug>,禁止從主 branch 直接發 PR)、清掉已合進主線的分支與工作樹、盤點候選(build/<鍵> 分支讀它的決策紀錄定順序與衝突預報,走不通的切片只收決策紀錄)、逐條 merge(清單型衝突兩邊都留)、跑建置與整套一次;兩條分支的 law 或假設互斥時不改碼,拿縮小後的反例一次一條問開發者(以 A 為主 / 收窄定義域 / 提煉上層 Law),把結果寫成 GAP 退回;整合不改任何一條 law:任何全域 Law 的修改、放寬、替換或刪除都必須經開發者明確批准,integrate 只能提出變更建議、不得自行決定變更、不直接修改全域 Law,經批准的變更由 revise 完成並重新驗證受影響的工作;決策紀錄裡不可逆又跨文檔的權衡升成 ADR、擋到實作的全域 Law 彙整進 PR;綠了把決策紀錄寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)並打上 labels。觸發詞:發 PR、pull request、整合、integrate、整合分支、合併分支、merge branch、合 build 分支、仲裁、寫 ADR、dev-flow integrate。Use when finished branches should be merged, verified together, arbitrated where their laws conflict, and sent as a pull request.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:integrate — 分支合成一條 PR
 
 > **核心**:Integration MUST NOT reduce Law satisfaction, and MUST NOT change a Law: it proposes, the developer approves, revise writes.(合併之前成立的每一條 law,合併之後都要仍然成立;做不到就不合,拿反例去問開發者。整合不改任何一條 law——scope law 與全域 Law 都一樣:只提變更建議,開發者明確批准,由 revise 落筆。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/roles.md`「分支與所有權」「決策紀錄」「整合」「仲裁」、`rules/features.md`「提問(GAP)」「完成度」「ADR」、`rules/laws.md`「全域 Law」、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀 `.design/system.md` 的「語言與工具」。專案沒有 `.design/` 的話規章都不必讀,照 git 與 PR 的部分做完即可。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief integrate --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief integrate --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief integrate --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief integrate --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief integrate` 的輸出:規章、分支與工作樹(建構中的與已合進主線卻還在的 build 分支都列了)、這棵樹的決策紀錄清單、`system.md`「語言與工具」、`gaps.md`;專案沒有 `.design/` 時只有分支那一塊,規章不必讀,照 git 與 PR 的部分做完即可。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief integrate --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

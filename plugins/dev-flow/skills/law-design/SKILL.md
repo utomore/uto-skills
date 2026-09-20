@@ -2,6 +2,7 @@
 name: law-design
 description: dev-flow 的 Law 設計 — 對著一條跑得通的切片與它的決策紀錄,把它拆成一份講一件使用者做得到的事的 feature(devflow claim 建檔、綁進里程碑),Steps 的簽名抄程式碼裡定下來的那一個,再與開發者一次一條、用切片跑出來的例子談 Law:要的寫成 law、不准的寫成 law 並記成首跑該紅、不在乎的不寫不測;每條 law 都要講得出一個讓它變假的實作。三道 lint 過了、開發者逐條拍板才改 ready,收尾自動接上 dev-flow:build(派 qa、驗首跑、派 refactor)。觸發詞:law-design、談 Law、定 Law、設計 law、補設計文檔、寫功能文檔、feature、寫規格、規格書、寫 spec、這一片要承諾什麼、dev-flow law-design。Use when a working slice exists and its behaviour should be turned into feature documents and laws through a dialogue with the developer.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:law-design — 對著切片談 Law
@@ -10,9 +11,19 @@ user-invocable: true
 >
 > **核心**:A Law MUST be falsifiable and MUST be the developer's decision; it never describes what the code happens to do.(每條 law 都講得出怎樣算違反,而且是開發者拍板的承諾;把程式碼現在做的事念一遍不是 law。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/features.md`「feature 與 abstract」「編號與引用」「簽名怎麼寫」「frontmatter 與 status」「節」「什麼要有 law」、`rules/laws.md`「Law 怎麼談」「Law 與需求」「全域 Law」、`rules/roles.md`「分支與所有權」「首跑」「決策紀錄」、`rules/boundary.md`「模組表」「對外 I/O」、`rules/tooling.md`「CLI」「收尾定錨」。再讀這條里程碑的目標檔與它的需求(含驗收)、`.design/system.md`、`.design/journal/M-n-<slug>.md` 全份,與切片的程式碼。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief law-design --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief law-design --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief law-design --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief law-design --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief law-design` 的輸出:規章、分支與工作樹、`.design/` 的樹、這條里程碑的目標檔與它的需求(含驗收)、`system.md` 全份、`modules.md`、決策紀錄全份、已經綁上的文檔。開工要讀的規章與專案現況都在這裡,不再另外讀。切片的程式碼照決策紀錄「Touched」列的檔自己讀,一輪讀完。
+
+目標:里程碑全名 `M-n-<slug>`。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief law-design <目標> --no-rules`;同一場裡目標文檔變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

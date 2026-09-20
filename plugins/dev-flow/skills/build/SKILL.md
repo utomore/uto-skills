@@ -2,15 +2,26 @@
 name: build
 description: dev-flow 的建構指揮(conductor)— 在一條 build 分支的工作樹上,對它每一份 ready 的文檔:對帳簽名、先派 qa 只讀文檔寫測試、在現有的程式碼上驗首跑(開發者答不准的 law 要紅、其餘要綠)、再派 refactor 調整或重寫實作、跑子集、仲裁四分流、全綠後跑整套一次、這份讓某個目標的建置路線全部達成而它的 需求的驗收或領域不變量有三行式卻沒有測試就再派一次 qa 寫 R-n#ACCEPT / INV-n#LAW、寫 GAP、每條 law 成立才改 verified、寫決策紀錄的「Verification」commit 在分支上;由 dev-flow:law-design、dev-flow:revise、dev-flow:abstract 收尾時自動接上;目標也可以直接是 R-n / INV-n(開分支,只派 qa 寫那條驗收測試);合併交給 dev-flow:integrate;不寫測試、不寫實作、不補 law。觸發詞:build、建構、開工、跑這條里程碑、跑 feature、驗收測試、dev-flow build、委派開發。Use when the ready documents of a build branch should be turned into tests and law-abiding code by delegated qa and refactor roles, or when a requirement, objective or invariant Law needs its acceptance test.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:build — conductor
 
 > **核心**:A document is Verified only when every Law is guarded by a test that can fail and now passes.(每條 law 都有一條會失敗、現在通過的測試守著,這份文檔才叫 verified;少一條都不是。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/roles.md` 全份、`rules/features.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「測試歸屬」「跑東西的紀律」「收尾定錨」。再讀目標文檔、`.design/journal/<鍵>.md`、`.design/modules.md`、`.design/system.md` 的「語言與工具」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief build --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief build --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief build --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief build --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief build` 的輸出:規章、分支與工作樹、`system.md`「語言與工具」、`modules.md`、決策紀錄、目標文檔全文與逐條狀態(里程碑就是它綁的每一份)、`lint sig` 與 `lint laws` 的結果、`gaps.md`、根目錄的測試輸出新不新、status 報告。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:里程碑全名 `M-n-<slug>`、文檔全名,或 `R-n` / `INV-n`。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief build <目標> --no-rules`;同一場裡目標文檔變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入
 

@@ -1,0 +1,102 @@
+$ devflow brief build R-1 --tests test.log --no-rules
+brief build R-1 @doc:4e4de31c rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# system.md「語言與工具」
+
+- 建置:`npx tsc --noEmit`
+- 測試(整套):`npx jest`
+- 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 號段:無
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+
+# 目標:R-1(需求的驗收)
+
+R-1:每一筆結帳與退款的金額都算對
+```
+forall raw in RawBody
+|- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
+```
+
+# gaps.md
+
+(還沒有 .design/gaps.md)
+
+# 專案根目錄的測試輸出
+
+- test.log  <新舊看檔案時間>
+
+# devflow status
+
+### devflow status
+願景:小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
+需求 1 條,達成 1 條(測試 1、推得 0)· 領域不變量 1 條,成立 1 條 · 目標 1 個,達成 1 個 · 里程碑 2 條,達成 2 條 · 調整 0 條,達成 0 條 · feature 2 份,達成 2 份 · abstract 1 份 · 文檔共 3 份,達成 3 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+· 測試結果來自 test.log
+
+#### 需求
+| 需求 | 一句話 | 驗收 | 目標 | 目標達成 | 里程碑達成 | 調整達成 |
+|---|---|---|---|---|---|---|
+| R-1 | 每一筆結帳與退款的金額都算對 | 達成(測試 R-1#ACCEPT green) | O-1 | 1/1 | 2/2 | 0/0 |
+
+#### 目標
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+| 目標 | 需求 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
+|---|---|---|---|---|---|---|---|
+| O-1 | R-1 | 1 | 每一筆結帳與退款的金額都算對 | 2 | 2 | 100% | - |
+
+#### 全域 Law
+| 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
+|---|---|---|---|
+| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,通過 |
+| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 4 列,通過;契約欄指到的 law 3 條,成立 3 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 1 條,通過;成立 1 條 |
+
+| 領域不變量 | 種類 | 一句話 | 成立 |
+|---|---|---|---|
+| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 成立(測試 INV-1#LAW green) |
+
+#### 文檔
+| 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
+|---|---|---|---|---|---|---|---|---|---|
+| F-001-checkout | feature | verified | 5 | 5 | 0 | 3 | 3/3 | 1 | 達成 |
+| F-002-refund | feature | verified | 5 | 5 | 0 | 2 | 2/2 | 1 | 達成 |
+| A-001-settle | abstract | verified | 3 | 3 | 0 | 3 | 3/3 | 1 | 達成 |
+
+#### 1. 今天能開幾條線
+- 無
+
+#### 2. 卡住的
+- 無
+
+#### 3. 等決定
+- 無
+
+#### 4. 牽動誰
+- A-001-settle ← F-001-checkout、F-002-refund
+
+#### 5. 待實作(按檔案)
+- 無
+
+#### 6. 修訂熱點
+- F-001-checkout:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-sett」
+- F-002-refund:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-sett」
+- A-001-settle:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):把 F-001-checkout 與 」
+- A-001-settle:2 份文檔引用它,改它要一起 REV
+
+#### 7. 警訊
+- 無
+
+#### 8. 建議路線
+- 目前功能全部正常運作:每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:devflow requirement add 或 dev-flow:objective
+exit 0

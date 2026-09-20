@@ -2,15 +2,26 @@
 name: revise
 description: dev-flow 的修訂 — 任何對既有 feature 或 abstract 的行為、簽名、層或效能承諾的改動都改原檔,文檔先行;經開發者批准的全域 Law 變更(新增、修改、放寬、替換、刪除)也只在這裡落筆。調整任何一條 law 之前,先把影響範圍逐項攤給開發者(直接動到、引用同一處的 law、連動的文檔、要重寫與重跑的測試、要重開的 verified 文檔與要重驗的 build 分支、需求還達不達成),再給至少兩個選項(一定含「不改」,各附當下成本、之後的代價、可不可逆),開發者選了才落筆。回答 GAP(含整合仲裁留下的那一條)、把優化路線的調整(RF-n)落到它動到的 feature、把開發者原本不在乎而現在要承諾的行為補成 law、寫一條 REV(依 / 動到 / 保護 / 重委派 / 連動)、必要時把 verified 重開;簽名或型別變了就同步改程式碼的宣告,新增的 step 先放未實作標記;收尾自動接上 dev-flow:build,只重做 REV 點名的;全域 Law 變更之後重新驗證受影響的工作;law 號永久空缺。觸發詞:改契約、修 spec、改設計、回答 gap、結 gap、改介面、改行為、範圍變了、修訂、重開、調整、效能優化、補一條 law、改 law、放寬 law、改全域 Law、改領域不變量、刪不變量、dev-flow revise。Use when an existing document or a global Law must change, a GAP has been answered, or a refinement must be applied to the features it touches.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:revise — 改原檔,留 REV
 
 > **核心**:A Law changes only after the developer has seen its full impact and chosen among options; the change lands in the original document first, stating what moves and what stays protected.(law 要改,開發者先看過完整的影響範圍、在選項裡選了,才落筆;先改原檔,講明動到什麼、保護什麼,之後才是測試與實作。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/features.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」「完成度」、`rules/laws.md`「影響範圍與選項」「全域 Law 的變更」「Law 與需求」「全域 Law」、`rules/roles.md`「分支與所有權」「首跑」、`rules/tooling.md`「收尾定錨」。再讀目標文檔與 `.design/gaps.md`;做的是調整就再讀那個目標檔(`.design/objectives/`)的那一列與它的需求(含驗收);改的是全域 Law 就讀 `.design/system.md` 全份。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief revise --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief revise --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief revise --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief revise --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief revise` 的輸出:規章、分支與工作樹、目標文檔全文、逐條狀態、Steps 上每條簽名與型別的宣告、它引用的與引用它的文檔全文、它朝向哪條里程碑與哪條調整(連同需求與驗收)、`system.md` 全份、`gaps.md`、`lint global` 的結果與 status 報告(影響範圍從這幾塊攤);沒有文檔目標時給 `system.md` 全份、每個目標檔、`gaps.md`、`lint global` 的結果與 status 報告。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:要改的那份文檔的全名;改的是需求或全域 Law 就不給,或給 `R-n` / `INV-n`。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief revise <目標> --no-rules`;同一場裡目標文檔變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 前置
 

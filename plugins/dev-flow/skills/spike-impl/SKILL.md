@@ -2,15 +2,26 @@
 name: spike-impl
 description: dev-flow 的切片 — 拿一條里程碑(M-n-<slug>)與它的需求(含驗收)、全域 Law,開 build/M-n-<slug> 分支與工作樹,用實作從對外入口貫通到出口,做出一條跑得通的垂直切片;它同時是可行性驗證,走不通也是答案。從第一行程式碼就守全域 Law(領域不變量、層的兩條規則、對外 I/O 的信任邊界),離場前 lint global 沒有紅、整套測試沒有因它變紅,並留下一份結構化的決策紀錄——為了達成這條里程碑的 Goal / Scope 而產生的實作決策(Goal / Scope、Entry、Decisions 每列 Decision / Reason / Constraint、Assumptions & Invariants、Faked / Unverified、Touched)——給 law-design。不寫 feature 文檔、不寫 law、不新增全域 Law。觸發詞:切片、垂直切片、spike、spike-impl、先做出來、貫通、做這條里程碑、可行性驗證、試一下、PoC、prototype、原型、跑跑看、dev-flow spike-impl。Use when a milestone should first be made to work end to end in code, before any feature document or law is written.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:spike-impl — 先貫通一條切片
 
 > **核心**:The slice MUST make the milestone's Goal observably true end to end, MUST NOT violate a global Law, and MUST record every decision and every fake.(讓里程碑那一句話從入口到出口看得到地成真;不違反全域 Law;每個決定與每一處假都留在決策紀錄。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/roles.md`「五個階段」「分支與所有權」「角色」「切片」「決策紀錄」、`rules/features.md`「願景、需求、目標與路線」、`rules/laws.md`「Law 與需求」「全域 Law」、`rules/boundary.md` 全份、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀那個目標檔、`.design/system.md` 全份、`.design/modules.md`。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief spike-impl --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief spike-impl --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief spike-impl --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief spike-impl --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief spike-impl` 的輸出:規章、分支與工作樹(有沒有 remote 也在裡面)、`.design/` 的樹、這條里程碑的目標檔與它的需求(含驗收)、`system.md` 全份、`modules.md`、status 報告(能開的線在裡面)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:里程碑全名 `M-n-<slug>`。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief spike-impl <目標> --no-rules`;同一場裡目標文檔變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

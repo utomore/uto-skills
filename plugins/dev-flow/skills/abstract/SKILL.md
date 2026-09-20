@@ -2,15 +2,26 @@
 name: abstract
 description: dev-flow 的收整 — 把兩份以上 feature 之間同一段能力抽成一份 abstract(A-00x,有自己的 = 列與 laws):開 build/<全名> 分支與工作樹、把那一段程式碼搬到一處、原檔那幾列改成「見 A-00x-<slug>」、abstract 的 laws 對著現有的行為與開發者逐條談、每一份被動到的 feature 各記一條 REV,收尾自動接上 dev-flow:build;只有一個消費者的 abstract 搬回去。切片各切各的,同一段能力寫了兩次是常態,整合之後由這裡收。觸發詞:收整、abstract、抽象、抽出共用、合併重複、兩邊寫一樣的、共用邏輯、重構成共用、dev-flow abstract。Use when two or more features grew the same capability and it should be lifted into one shared abstract document.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:abstract — 收整成 abstract
 
 > **核心**:Lift only what two or more features verifiably share; lifting MUST NOT change any behaviour a Law guards.(只抽兩份以上 feature 真的共用的那一段;收整不得改變任何一條 law 守著的行為。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/features.md`「收整(abstract)」「feature 與 abstract」「修訂(REV)」「節」、`rules/laws.md`「Law 怎麼談」、`rules/roles.md`「分支與所有權」、`rules/boundary.md`「層」「模組表」、`rules/tooling.md`「CLI」「收尾定錨」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief abstract --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief abstract --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief abstract --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief abstract --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief abstract` 的輸出:規章、分支與工作樹、`modules.md`、每份文檔的 Steps 與「同名的 step 出現在兩份以上文檔」的清單;給了全名另有那一份的全文、逐條狀態與宣告。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給;已經有那份 abstract 或要看某一份 feature 時給它的全名。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief abstract --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

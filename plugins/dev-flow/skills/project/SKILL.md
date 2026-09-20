@@ -2,15 +2,26 @@
 name: project
 description: dev-flow 的立案 — 訪談後產出 .design/system.md(願景;需求——必須達成的事,各有一句可判定的驗收;全域 Law 一區——不得違反的約束,三類:領域不變量、架構的層、契約的對外 I/O 表含信任;語言與工具含三道指令與優先各級的宣告)、objectives/ 一個目標一個檔(每條需求至少一個目標,各有優先 1 到 4 與帶英文名的里程碑)與 modules.md 模組表。這是切片開工之前唯一先寫的東西:需求與它的驗收、全域 Law;全域 Law 的每一條由開發者定,立案之後的變更走 dev-flow:revise;feature 文檔不在這裡建,它們在切片做完之後由 dev-flow:law-design 談出來。觸發詞:立案、開新專案、專案願景、需求、系統設計、主架構、dev-flow project、建 .design、模組表、層、技術選型、領域不變量、全域 Law。Use when starting a project or reshaping its vision, requirements, global laws, layers and boundaries.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:project — 立案與邊界
 
 > **核心**:Only what can be judged true before any code exists gets written: what MUST be achieved (Requirements with their acceptance) and what MUST NOT be violated (the global Laws); every global Law is the developer's decision.(只寫做之前就判得出真假的東西:必須達成的需求與它的驗收、不得違反的全域 Law;每一條全域 Law 都是開發者的決定;其餘留給切片。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/features.md`「`.design/`」「system.md」「願景、需求、目標與路線」、`rules/laws.md`「Law 與需求」「全域 Law」、`rules/boundary.md` 全份、`rules/tooling.md`「language adapter」「收尾定錨」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief project --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief project --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief project --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief project --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief project` 的輸出:規章、`.design/` 現在有哪些檔、`system.md` 與 `modules.md` 全份(已經有的話)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief project --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 

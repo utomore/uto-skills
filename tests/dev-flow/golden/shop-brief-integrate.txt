@@ -1,0 +1,31 @@
+$ devflow brief integrate --no-rules
+brief integrate (沒有目標) @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# 決策紀錄清單
+
+(這棵樹的 .design/journal/ 是空的;各條 build 分支的決策紀錄在它們自己的工作樹上)
+
+# system.md「語言與工具」
+
+- 建置:`npx tsc --noEmit`
+- 測試(整套):`npx jest`
+- 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 號段:無
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+
+# gaps.md
+
+(還沒有 .design/gaps.md)
+exit 0

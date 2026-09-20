@@ -11,9 +11,15 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 開工 context
 
-!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief refactor $ARGUMENTS`
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief refactor --args '$ARGUMENTS' --part 1 --of 4`
 
-上面這一段是載入 skill 時跑 `devflow brief refactor <文檔全名> [--root <工作樹>]` 的輸出:規章的節、目標文檔全文、逐條狀態、Steps 上每條簽名與型別的宣告(不准改的那些)、要開的檔(本體在那裡,一輪讀完)、子集測試指令、不准碰的測試檔清單。規章與文檔不再另外讀。第一行是指紋,回報的第一項照抄。決策紀錄的「Faked / Unverified」由 conductor 在 prompt 裡給(切片那一波才有)。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief refactor --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief refactor --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief refactor --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief refactor <文檔全名> [--root <工作樹>]` 的輸出:規章的節、目標文檔全文、逐條狀態、Steps 上每條簽名與型別的宣告(不准改的那些)、要開的檔(本體在那裡,一輪讀完)、子集測試指令、不准碰的測試檔清單。規章與文檔不再另外讀。第一行是指紋,回報的第一項照抄。決策紀錄的「Faked / Unverified」由 conductor 在 prompt 裡給(切片那一波才有)。
 
 看到的若是那道指令的原文而不是它的輸出,自己跑一次(`${CLAUDE_PLUGIN_ROOT}` 是本 skill 基準目錄往上兩層);目標文檔在這一場裡變過,重跑一次並加 `--no-rules`。
 

@@ -1,0 +1,56 @@
+$ devflow brief abstract --no-rules
+brief abstract (沒有目標) @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# modules.md
+
+````markdown
+# 模組表
+
+| 路徑 | 層 |
+|---|---|
+| `src/domain/**` | domain |
+| `src/app/**` | application |
+| `src/entry/**` | entry |
+````
+
+# 每份文檔的 Steps
+
+### F-001-checkout(feature,verified)
+- 1  parseCheckout(RawBody): CheckoutReq  src/app/checkout.ts/application
+- 2  settle(MoneyList, Money): Settlement  src/domain/money.ts/domain  見 A-001-settle
+- 3  toOrder(CheckoutReq, Settlement): CheckoutResult  src/app/checkout.ts/application
+- o  reqLines(CheckoutReq): MoneyList  src/app/checkout.ts/application
+- o  reqDiscount(CheckoutReq): Money  src/app/checkout.ts/application
+- o  paidCents(CheckoutResult): number  src/app/checkout.ts/application
+- =  checkout(RawBody): CheckoutResult  src/app/checkout.ts/application
+- !  checkoutHandler(HttpReq): HttpRes  src/entry/routes.ts/entry
+
+### F-002-refund(feature,verified)
+- 1  parseRefund(RawBody): RefundReq  src/app/refund.ts/application
+- 2  settle(MoneyList, Money): Settlement  src/domain/money.ts/domain  見 A-001-settle
+- 3  toRefund(RefundReq, Settlement): RefundResult  src/app/refund.ts/application
+- o  refundLines(RefundReq): MoneyList  src/app/refund.ts/application
+- o  refundFee(RefundReq): Money  src/app/refund.ts/application
+- o  returnedCents(RefundResult): number  src/app/refund.ts/application
+- =  refund(RawBody): RefundResult  src/app/refund.ts/application
+- !  refundHandler(HttpReq): HttpRes  src/entry/routes.ts/entry
+
+### A-001-settle(abstract,verified)
+- 1  sumLines(MoneyList): Settlement  src/domain/money.ts/domain
+- 2  subtract(Settlement, Money): Settlement  src/domain/money.ts/domain
+- o  cents(Settlement): number  src/domain/money.ts/domain
+- o  settled(Settlement): boolean  src/domain/money.ts/domain
+- =  settle(MoneyList, Money): Settlement  src/domain/money.ts/domain
+
+### 同名的 step 出現在兩份以上文檔(沒有註明「見」)
+- 無
+exit 0

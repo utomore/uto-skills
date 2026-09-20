@@ -2,15 +2,26 @@
 name: status
 description: dev-flow 的派工報告 — 跑 devflow status(接上最近一次測試輸出),用人話講每條需求達成了沒、全域 Law 三類(架構、契約、領域不變量)有沒有被踩到、目標與里程碑的完成度、今天能開幾條線(能開的切片與能 build 的文檔)、建構中的每條分支走到哪一步(切片中、切片完成、Law 討論中、Law 已定、調整中、達成)、卡住的、等決定、牽動誰、待實作、修訂熱點、警訊、建議路線;--doc / --module 追問單份文檔或單一檔案,--html 把同一份報告畫成便利貼看板。觸發詞:進度、狀態、status、今天做什麼、派工、還差什麼、哪些卡住、看板、畫成圖、便利貼、dev-flow status、需求成立了沒。Use when the developer asks where the project stands or what to do next.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:status — 今天做什麼
 
 > **核心**:Every number and every next step MUST be derived from files, code and test output, never from memory.(每個數字、每個下一步都從檔案、程式碼與測試輸出推出來,不靠記憶、不自己估。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/tooling.md`「CLI」「status 報告」「收尾定錨」、`rules/features.md`「願景、需求、目標與路線」「完成度」、`rules/laws.md`「Law 與需求」「全域 Law」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief status --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief status --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief status --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief status --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief status` 的輸出:規章、`system.md`「語言與工具」、專案根目錄看起來像測試輸出的檔,與每一份比最新的原始碼、測試檔新還是舊。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief status --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 步驟
 

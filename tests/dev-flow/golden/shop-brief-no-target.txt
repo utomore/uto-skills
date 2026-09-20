@@ -8,5 +8,5 @@ brief qa (沒有目標) @doc:- rules:<雜湊>
 
 # 目標
 
-目標未指定。定出目標之後跑一次:devflow brief qa <文檔全名> [--root <工作樹>] --no-rules
+目標未指定;dev-flow:qa 的目標是一份文檔的全名、R-n 或 INV-n。定出目標之後跑一次:devflow brief qa <目標> [--root <工作樹>] --no-rules
 exit 0

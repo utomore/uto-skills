@@ -7,7 +7,7 @@ import { readSource } from '../lib/source.mjs';
 import { pickAdapter, pickSides, adapterNames } from '../lib/adapters/index.mjs';
 import { lintAll, lintBoundary, lintGlobal, lintIds, lintInvariants, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
-import { briefCommand, briefSkills } from '../lib/commands/brief.mjs';
+import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
 import { claim, invariantAdd, milestoneAdd, modulesGen, objectiveAdd, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
@@ -46,10 +46,13 @@ const HELP = `devflow <子命令> [選項]
   sync                                 同層搬家的 step,模組欄改成程式碼裡的實際檔案
   modules --gen                        從程式碼補模組表缺的檔案,層欄留白
   section <file> <節>… [--verify]      取 ## 節
-  brief <skill> [<文檔全名>] [--fingerprint] [--no-rules]
-                                       一個角色開工要的東西一次印完:規章的節、目標文檔、逐條狀態、Steps 上每條簽名與型別的宣告(檔案:行號與原文,不含本體)、
-                                       最內層、這個專案的測試怎麼寫;第一行是指紋(skill、目標、文檔與規章的雜湊),--fingerprint 只印那一行,--no-rules 不重印規章的節(同一場裡文檔改過之後重跑用);
-                                       skill 載入時自動執行,永遠 exit 0,問題用文字講;skill:${briefSkills.join('、')}
+  brief <skill> [<目標>] [--tests <log>] [--fingerprint] [--no-rules]
+                                       一個 skill 開工要的東西一次印完:規章的節,加上它在這個專案裡要看的那幾塊(目標文檔、逐條狀態、Steps 上每條簽名與型別的宣告、
+                                       目標檔與需求、決策紀錄、分支與工作樹、lint、status 報告,依 skill 而定);目標是文檔全名、里程碑全名 M-n-<slug>、R-n / INV-n,或不給;
+                                       第一行是指紋(skill、目標、目標與規章的雜湊),--fingerprint 只印那一行,--no-rules 不重印規章的節(同一場裡文檔改過之後重跑用);
+                                       --args '<一整串>' 是 skill 載入時的寫法:目標與旗標從那一串裡認,其餘的字不理;--part <k> [--of <N>] 只印第 k 段
+                                       (整份切成每段不超過 28KB:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,SKILL.md 放 N 道各取一段);永遠 exit 0,問題用文字講
+                                       skill:${briefSkills.join('、')}
   migrate laws [--write]               system.md 沒有「## 全域 Law」區、或需求與目標檔寫著「- Law:」的樹:層、對外 I/O、領域不變量收進「## 全域 Law」區,
                                        需求的那一句改成「- 驗收:」,目標檔的 Law 與需求的蘊含說明刪掉;先印帳本,--write 才落地
   migrate objectives [--write]         目標還擠在一份 objectives.md 的樹:每個目標生一條需求寫進 system.md「需求」、拆成 objectives/ 一個目標一個檔、
@@ -98,6 +101,12 @@ function loadProject(root) {
   return { design, adapter, source, notes };
 }
 
+// 一條 build 分支走到哪一步:讀它那棵工作樹的 .design 與程式碼
+function phaseOf(wtRoot, key) {
+  const q = loadProject(wtRoot);
+  return q.error ? '' : slicePhase(q.design, q.source, key);
+}
+
 function emit(r) {
   if (r.text) console.log(r.text);
   return r.exitCode;
@@ -134,12 +143,33 @@ function main() {
 
   if (cmd === 'brief') {
     if (!sub) {
-      console.error(`用法:devflow brief <${briefSkills.join(' | ')}> [<文檔全名>] [--root <工作樹>] [--fingerprint] [--no-rules]`);
+      console.error(`用法:devflow brief <${briefSkills.join(' | ')}> [<目標>] [--root <工作樹>] [--tests <log>] [--fingerprint] [--no-rules]`);
       return 1;
     }
-    const q = loadProject(root);
+    // --args '<一整串>':skill 載入時的 $ARGUMENTS 原樣進來,目標與旗標從裡面認;直接下指令時照一般旗標讀
+    const inline = typeof args.flags.args === 'string' ? parseBriefArgs(args.flags.args) : null;
+    const opt = {
+      target: (inline && inline.target) || rest[0] || '',
+      root: inline && inline.root ? path.resolve(inline.root) : root,
+      tests: (inline && inline.tests) || (typeof args.flags.tests === 'string' ? args.flags.tests : ''),
+      fingerprint: !!args.flags.fingerprint || !!(inline && inline.fingerprint),
+      noRules: !!args.flags['no-rules'] || !!(inline && inline.noRules),
+    };
+    const q = loadProject(opt.root);
     const has = (k) => (q.error ? null : q[k]);
-    emit(briefCommand(root, has('design'), has('source'), has('adapter'), sub, rest[0] || '', { fingerprint: !!args.flags.fingerprint, noRules: !!args.flags['no-rules'] }));
+    const statusText = () => {
+      if (q.error) return '(沒有 .design/)';
+      // 沒指定測試輸出:根目錄恰好一份、而且比每個原始碼與測試檔都新,就接上它(報告第三行會講來自哪一份)
+      if (!opt.tests) {
+        const logs = testLogs(opt.root, q.source);
+        if (logs.length === 1 && logs[0].fresh) opt.tests = logs[0].name;
+      }
+      const testsFlag = !opt.tests ? null : opt.tests.includes('=') ? opt.tests : path.resolve(opt.root, opt.tests);
+      const { results, note: rawNote } = loadResults(q.design, q.adapter, { tests: testsFlag, run: false }, opt.root);
+      const { building, stale, phases } = branchState(opt.root, phaseOf);
+      return statusReport(q.design, q.source, q.adapter, results, testsFlag ? rawNote.replace(testsFlag, opt.tests) : rawNote, building, stale, phases).text;
+    };
+    emit(briefCommand(opt.root, has('design'), has('source'), has('adapter'), sub, opt.target, { fingerprint: opt.fingerprint, noRules: opt.noRules, statusText, part: Number(args.flags.part) || 0, of: Number(args.flags.of) || 0 }));
     return 0;
   }
 
@@ -171,11 +201,6 @@ function main() {
     const note = testsFlag ? rawNote.replace(testsFlag, args.flags.tests) : rawNote;
     if (args.flags.doc) return emit(docDetail(design, source, adapter, results, note, args.flags.doc));
     if (args.flags.module) return emit(moduleDetail(design, source, adapter, results, note, args.flags.module));
-    // 一條 build 分支走到哪一步:讀它那棵工作樹的 .design 與程式碼
-    const phaseOf = (wtRoot, key) => {
-      const q = loadProject(wtRoot);
-      return q.error ? '' : slicePhase(q.design, q.source, key);
-    };
     const { building, stale, phases } = branchState(root, phaseOf);
     if (args.flags.json) {
       const data = statusJson(design, source, adapter, results, note, building, stale);

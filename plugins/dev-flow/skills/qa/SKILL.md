@@ -11,9 +11,15 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 開工 context
 
-!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief qa $ARGUMENTS`
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief qa --args '$ARGUMENTS' --part 1 --of 4`
 
-上面這一段是載入 skill 時跑 `devflow brief qa <目標> [--root <工作樹>]` 的輸出:規章的節、目標文檔(或那條需求的驗收、領域不變量的三行與它引用到的文檔)、逐條狀態、Steps 上每條簽名與型別的宣告、最內層、這個專案的測試怎麼寫。開工要的全部在這裡,不再另外讀規章、找宣告、翻別的測試檔;宣告那一塊只有簽名與型別,本體不在裡面,也不去開。第一行是指紋,回報的第一項照抄。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief qa --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief qa --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief qa --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief qa <目標> [--root <工作樹>]` 的輸出:規章的節、目標文檔(或那條需求的驗收、領域不變量的三行與它引用到的文檔)、逐條狀態、Steps 上每條簽名與型別的宣告、最內層、這個專案的測試怎麼寫。開工要的全部在這裡,不再另外讀規章、找宣告、翻別的測試檔;宣告那一塊只有簽名與型別,本體不在裡面,也不去開。第一行是指紋,回報的第一項照抄。
 
 看到的若是那道指令的原文而不是它的輸出,自己跑一次(`${CLAUDE_PLUGIN_ROOT}` 是本 skill 基準目錄往上兩層);目標文檔在這一場裡變過,重跑一次並加 `--no-rules`。
 

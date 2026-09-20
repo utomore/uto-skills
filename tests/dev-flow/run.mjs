@@ -125,6 +125,29 @@ const CASES = [
   ['rs-brief-qa', 'rs-svc', ['brief', 'qa', 'F-001-span', '--no-rules']],
   ['fullstack-brief-qa', 'fullstack', ['brief', 'qa', 'F-003-basket', '--no-rules']],
   ['blank-brief-qa', 'blank', ['brief', 'qa', 'F-001', '--no-rules']],
+  // 指揮階段:每個 skill 各有自己那幾塊;目標的種類不合就講它收哪幾種
+  // 有 status 那一塊的案例一律明講 --tests:沒講的時候 brief 會照檔案時間自己挑根目錄的那一份,而檔案時間每台機器不同
+  ['shop-brief-build', 'shop', ['brief', 'build', 'F-001-checkout', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-build-milestone', 'shop', ['brief', 'build', 'M-2-refund', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-build-requirement', 'shop', ['brief', 'build', 'R-1', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-build-no-target', 'shop', ['brief', 'build', '--no-rules']],
+  ['shaky-brief-build', 'shaky', ['brief', 'build', 'F-001-score', '--tests', 'stale.log', '--no-rules']],
+  ['shop-brief-revise', 'shop', ['brief', 'revise', 'F-002-refund', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-revise-global', 'shop', ['brief', 'revise', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-law-design', 'shop', ['brief', 'law-design', 'M-2-refund', '--no-rules']],
+  ['shop-brief-spike-impl', 'shop', ['brief', 'spike-impl', 'M-1-checkout', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-spike-impl-wrong-kind', 'shop', ['brief', 'spike-impl', 'F-001-checkout', '--no-rules']],
+  ['shop-brief-abstract', 'shop', ['brief', 'abstract', '--no-rules']],
+  ['shop-brief-integrate', 'shop', ['brief', 'integrate', '--no-rules']],
+  ['shop-brief-status', 'shop', ['brief', 'status', '--no-rules']],
+  ['shop-brief-audit', 'shop', ['brief', 'audit', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-objective', 'shop', ['brief', 'objective', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-project', 'shop', ['brief', 'project', '--no-rules']],
+  ['shop-brief-study', 'shop', ['brief', 'study', '--no-rules']],
+  ['blank-brief-objective', 'blank', ['brief', 'objective', '--no-rules']],
+  // skill 載入時的寫法:整串參數是自由文字,目標與旗標從裡面認
+  ['shop-brief-args', 'shop', ['brief', 'build', '--args', '幫我 build F-001-checkout (先看 log) --tests test.log --no-rules']],
+  ['shop-brief-args-empty', 'shop', ['brief', 'status', '--args', '看板 --no-rules']],
 ];
 
 function snapshot(root, files) {
@@ -149,6 +172,8 @@ for (const [name, fixture, argv, files, env] of CASES) {
   let actual = `$ ${envText}devflow ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
   // brief 的指紋帶規章的雜湊:規章每改一次就變,golden 不追它
   actual = actual.replace(/ rules:[0-9a-f]{8}/g, ' rules:<雜湊>');
+  // 測試輸出新不新看的是檔案時間,每台機器不同
+  actual = actual.replace(/^(- \S+)  (?:比每一個原始碼與測試檔都新|比 \S+ 舊:.*)$/gm, '$1  <新舊看檔案時間>');
   if (files) actual += snapshot(root, files) + '\n';
   if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
   const file = path.join(goldenDir, `${name}.txt`);
@@ -166,7 +191,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/objective refinement/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/objective milestone <O-n> <slug>/.test(h.stdout) || /spike/.test(h.stdout) || !/migrate objectives/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/objective refinement/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/objective milestone <O-n> <slug>/.test(h.stdout) || /^s+spike/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate objectives/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
@@ -183,6 +208,25 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     failed++;
     console.log('✗ brief 的規章節');
   } else console.log('✓ brief 的規章節');
+
+  // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
+  const TARGETS = { build: 'F-001-checkout', qa: 'F-001-checkout', refactor: 'F-002-refund', revise: 'F-002-refund', 'law-design': 'M-2-refund', 'spike-impl': 'M-1-checkout' };
+  let parted = skills.length > 0;
+  for (const s of skills) {
+    const run = (...extra) => spawnSync(process.execPath, [bin, 'brief', s, ...(TARGETS[s] ? [TARGETS[s]] : []), ...extra, '--root', path.join(here, 'fixtures', 'shop')], { encoding: 'utf8' }).stdout.replace(/\r\n/g, '\n');
+    const whole = run().trimEnd();
+    const parts = [1, 2, 3, 4].map((k) => run('--part', String(k), '--of', '4').trimEnd());
+    if (parts.some((p) => Buffer.byteLength(p) > 29000)) parted = false;
+    // 第 2 段起的第一行是「(brief <skill> 第 k 段,接上一段)」,接回去之前拿掉
+    const joined = parts.filter(Boolean).map((p) => p.replace(/^.brief \S+ 第 \d+ 段[^\n]*\n\n/, '')).join('\n');
+    // 段與段之間的空行在切的時候會掉,比的是非空行
+    const solid = (t) => t.split('\n').filter((l) => l.trim()).join('\n');
+    if (solid(joined) !== solid(whole)) parted = false;
+  }
+  if (!parted) {
+    failed++;
+    console.log('✗ brief 的分段');
+  } else console.log('✓ brief 的分段');
 }
 
 // --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事

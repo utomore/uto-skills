@@ -2,15 +2,26 @@
 name: audit
 description: dev-flow 的稽核 — 四段:對帳(devflow lint all 與 status 的機械紅逐條分類成文檔錯還是程式碼錯)、需求與目標(每條需求的驗收判得出來嗎、工作是不是集中在最高優先目標、有沒有 feature 不朝向任何目標、達成的里程碑是不是真的涵蓋它那句、調整有沒有偷渡新 feature)、穩定度(修訂熱點、改動半徑、收整沒成立的 abstract、卡住多久)、安全度(對外 I/O 的信任與驗證、秘密字面值、沒登記的出入口、內層碰 IO);產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、架構檢測、檢查文檔、對帳、專案健檢、目標貼合、穩定度、安全檢查、文檔與程式碼對不上。Use when checking that .design and the code still agree, that the work still heads toward the vision and objectives, and how stable and how safe the project currently is.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:audit — 對帳、需求與目標、穩定度、安全度
 
 > **核心**:Report, never repair: classify every discrepancy and name the command that fixes it.(只報不修:每一處不一致都分類,並指名修它的那道命令。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/tooling.md`「CLI」「status 報告」、`rules/boundary.md` 全份、`rules/features.md`「願景、需求、目標與路線」「節」「什麼要有 law」「完成度」「收整(abstract)」、`rules/laws.md`「Law 與需求」「全域 Law」「Law 怎麼談」。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief audit --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief audit --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief audit --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief audit --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief audit` 的輸出:規章、`devflow lint all` 的結果、status 報告、`modules.md`。開工要讀的規章與專案現況都在這裡,不再另外讀。
+
+目標:不必給;有最近一次測試輸出就加 `--tests <log>`。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief audit --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 步驟
 

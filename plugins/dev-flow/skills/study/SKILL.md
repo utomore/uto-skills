@@ -2,13 +2,24 @@
 name: study
 description: 專案導讀 — 帶著開發者循序漸進、由上而下理解目前的專案,六層縮放:全景(這是什麼、技術棧、入口)→ 架構(層的邊界與通訊)→ 設計理念(為什麼這樣切,區分文檔明載與推測)→ 核心資料結構(定義在哪、誰產生誰消費、不變量)→ 逐跳 trace code(沿一條真實路徑從入口追到輸出)→ 細讀(鑽進一兩個關鍵函式逐行走,含桌上執行);第 1 課選定一條主線情境貫穿六層,每個結論都附從原始碼讀出的 檔案:行號 片段作證明,一次一課、等開發者消化再往下。觸發詞:study、理解專案、學習專案、專案導讀、專案導覽、帶我看 code、trace code、code walkthrough、熟悉專案、讀懂專案、onboarding。Use when guiding a developer through understanding an existing codebase top-down with code evidence, step-by-step code tracing, and line-level close reading.
 user-invocable: true
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:study — 專案導讀
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/tooling.md`「跑東西的紀律」「收尾定錨」;要講 `.design/` 的樹再加 `rules/features.md`「`.design/`」。本 skill 不建檔,編號與 frontmatter 規格不讀。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief study --args '$ARGUMENTS' --part 1 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief study --args '$ARGUMENTS' --part 2 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief study --args '$ARGUMENTS' --part 3 --of 4`
+
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief study --args '$ARGUMENTS' --part 4 --of 4`
+
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief study` 的輸出:規章、`.design/` 的樹、`system.md`「語言與工具」、`modules.md`。開工要讀的規章與專案現況都在這裡,不再另外讀。本 skill 不建檔,編號與 frontmatter 規格不讀。
+
+目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief study --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 **程式碼知識圖**:專案根目錄有 `graph.json`、或裝了 `knot` / `graphify` CLI 時可以拿它導航——找入口與 hub、型別的反向可達當資料流候選、最短路徑當呼叫鏈候選、`tests-of` 當使用範例。**圖只給「去哪裡看」,每一跳仍要打開檔案讀原文確認**;沒有圖就用一般搜尋,流程一個字不變。
 

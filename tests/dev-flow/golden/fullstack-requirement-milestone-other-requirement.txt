@@ -1,0 +1,21 @@
+$ devflow requirement milestone R-3 fee-over-refund 手續費大過要退的金額也退得出來 --bind F-001-checkout
+M-4-fee-over-refund 寫進 R-3-refund-correct,綁定 F-001-checkout
+下一步:dev-flow:scope-revise F-001-checkout,REV 的依欄寫 M-4-fee-over-refund
+exit 0
+--- .design/requirements/R-3-refund-correct.md
+---
+id: R-3
+priority: 1
+updated: 2026-09-07
+---
+# R-3-refund-correct:每一筆退款退回的錢都算對
+
+- 驗收:任一筆請求,退回的錢都等於要退的品項加總減掉手續費的結算金額
+  - forall raw in RawBody
+  - |- returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-2-refund | 退款走通 | F-002-refund |
+| M-4-fee-over-refund | 手續費大過要退的金額也退得出來 | F-001-checkout |
+

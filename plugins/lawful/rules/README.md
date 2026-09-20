@@ -1,6 +1,6 @@
 # lawful 規章
 
-`lawful` 替純函數式專案(functional core / imperative shell)做 spec 驅動開發,實作先行。文檔的單位是 **pipeline**:一段 input → 純轉換 → output 的資料流,類別寫在 `kind`:兩端碰 shell 的是 `io`、只在純核心裡的是 `subflow`;stage 是住在程式碼裡的簽名,laws 是開發者對著跑得通的切片逐條拍板的承諾。兩棵樹各管各的。需求面三層:`Cone.md` 的**願景**(北極星)→ `requirements/` 一檔一條的**需求**(必須達成的事,各有一句可判定的驗收與優先 1 到 4)→ 需求檔裡的**里程碑** `M-n-<slug>`(有順序、依序完成;每一條是一個使用者看得到、展示得出來的階段,也是一條垂直切片的範圍;全部達成,這條需求的建置就走完);里程碑走完之後的**調整**只改既有 pipeline 的品質,每一次之後需求仍要達成。約束面只有兩種範圍:**全域 Law**(領域不變量、架構的四層、契約的對外 I/O,住 `Cone.md` 一區,每類一道 lint)與 **scope law**(一條 pipeline 的 Laws 節);任何程式碼都受全域 Law 加上它自己那條 pipeline 的 scope law 約束。判準:這件事有沒有做完的一天,有 = 需求,沒有 = law。
+`lawful` 替純函數式專案(functional core / imperative shell)做 spec 驅動開發,實作先行。文檔的單位是 **pipeline**:一段 input → 純轉換 → output 的資料流,類別寫在 `kind`:兩端碰 shell 的是 `io`、只在純核心裡的是 `subflow`;stage 是住在程式碼裡的簽名,laws 是開發者對著跑得通的切片逐條拍板的承諾。兩棵樹各管各的。需求面三層:`Cone.md` 的**願景**(北極星)→ `requirements/` 一檔一條的**需求**(必須達成的事,各有一句可判定的驗收與優先 1 到 4)→ 需求檔裡的**里程碑** `M-n-<slug>`(有順序、依序完成;每一條是一個使用者看得到、展示得出來的階段,也是一條垂直切片的範圍;全部達成,這條需求的建置就走完);把既有的東西改快、改小、改好,也是這條需求底下的一條里程碑:綁既有的 pipeline,靠修訂它達成。約束面只有兩種範圍:**全域 Law**(領域不變量、架構的四層、契約的對外 I/O,住 `Cone.md` 一區,每類一道 lint)與 **scope law**(一條 pipeline 的 Laws 節);任何程式碼都受全域 Law 加上它自己那條 pipeline 的 scope law 約束。判準:這件事有沒有做完的一天,有 = 需求,沒有 = law。
 
 做之前只寫判得出真假的東西(願景、需求與里程碑、全域 Law),其餘等跑得通了再講。一條里程碑走五個階段:
 
@@ -33,9 +33,9 @@
 | 願景、專案約束、優先各級 | pipelines.md「Cone.md」「願景、需求與里程碑」 |
 | 需求、`R-n`、需求檔 `requirements/R-n-<slug>.md`、驗收、`R-n#ACCEPT`、優先 | pipelines.md「願景、需求與里程碑」 |
 | 里程碑、`M-n`、全名 `M-n-<slug>`、引用寫全名、階段性使用者驗收、依序一次一條、綁定、還沒有切片 | pipelines.md「願景、需求與里程碑」 |
-| 調整、`RF-n`、動到、待修訂 | pipelines.md「願景、需求與里程碑」「修訂(REV)」 |
-| 需求的依賴、新需求的衝突檢查、里程碑綁既有的 pipeline | pipelines.md「願景、需求與里程碑」 |
-| 需求達成 / 未達成 / 未知、完成度、調整達成 | pipelines.md「完成度」 |
+| 靠修訂達成的里程碑、做出文檔的里程碑、`--bind`、待修訂 | pipelines.md「願景、需求與里程碑」「修訂(REV)」「完成度」 |
+| 需求的依賴、新需求的衝突檢查、里程碑綁既有的 pipeline(靠修訂達成的里程碑) | pipelines.md「願景、需求與里程碑」 |
+| 需求達成 / 未達成 / 未知、完成度、里程碑達成 | pipelines.md「完成度」 |
 | 必須達成與不得違反、有沒有做完的一天、全域 Law 與 scope law、law 住哪裡、誰定哪一種、里程碑不管理約束 | laws.md「Law 與需求」 |
 | 領域不變量、`INV-n`、`INV-n#LAW`、准入四條、`lint invariants`、`lint global` | laws.md「全域 Law」 |
 | 要 / 不准 / 不在乎、讓它變假的實作、第一次談約束的四項(資料交互、資料儲存在哪、外部串接方法、軟體架構) | laws.md「Law 怎麼談」 |

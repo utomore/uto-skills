@@ -106,7 +106,7 @@ body:not(.view-dag) .dag-only{display:none}
 .band .n{font-size:11.5px;margin-top:4px;opacity:.72;line-height:1.5}
 .band[data-done=y]{background:var(--done);border-color:var(--done)}
 
-/* 里程碑與調整 */
+/* 里程碑 */
 .group{background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--edge, var(--rule));
   box-shadow:0 3px 10px rgba(0,0,0,.08)}
 .group[data-done=y]{--edge:var(--done)}
@@ -285,7 +285,7 @@ document.getElementById('legend').innerHTML = TERMS
   + '<span title="虛線箭頭:箭頭那一端是被引用的那一份"><i style="background:var(--wire)"></i>引用</span>';
 helpEl.innerHTML = `<button class="close">關閉</button><h3>便利貼的顏色</h3><dl>${
   TERMS.map(([t, name, why]) => `<dt><i style="background:var(--${t})"></i>${esc(name)}</dt><dd>${esc(why)}</dd>`).join('')
-}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,一條弧線從右邊繞過去。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 需求 → 里程碑與調整 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd>
+}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,一條弧線從右邊繞過去。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 需求 → 里程碑 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd>
 <dt><i style="background:var(--wire)"></i>相依頁籤</dt><dd>需求排成先後:左邊那一條達成了,右邊那一條才做得到。邊不是人寫的,是從${esc(D.labels.unit)}的引用推出來的:綁在需求甲的里程碑底下的一份引用了綁在需求乙的里程碑底下的一份,甲就依賴乙;沒被任何里程碑綁的那份自成一張「共用」卡。紅色的邊是優先倒掛:高優先的需求依賴低優先的需求。虛線的邊是互相依賴</dd></dl>`;
 const setTopHeight = () => document.body.style.setProperty('--topH', document.getElementById('top').offsetHeight + 'px');
 
@@ -326,7 +326,7 @@ if (D.modules && (D.modules.units.length || D.modules.unregistered.length)) {
 }
 
 // ── 這棵樹:從左上往下長,每深一層往右縮排一格 ──
-// 願景 → 需求的區塊 → 里程碑與調整 → 便利貼;便利貼在里程碑右邊折成方陣往右鋪
+// 願景 → 需求的區塊 → 里程碑 → 便利貼;便利貼在里程碑右邊折成方陣往右鋪
 const NOTE_W = 236, GROUP_W = 360, BAND_W = 420, VISION_W = 660;
 const LEFT = 40;          // 願景的左緣,也是整張圖的最左邊
 const IND = 36;           // 每深一層往右縮排這麼多
@@ -434,7 +434,7 @@ D.bands.forEach((band, bi) => {
   const mine = [bBox];
   y += bBox.h + GAP_DROP;
 
-  // 一條里程碑或一條調整:卡片一張,便利貼在它右邊鋪成方陣,排滿了才往下折
+  // 一條里程碑:卡片一張,便利貼在它右邊鋪成方陣,排滿了才往下折
   const colKids = [];
   band.columns.forEach((col, ci) => {
     if (ci) y += GAP_GROUP;
@@ -541,7 +541,7 @@ function deriveGraph() {
         tone: q.achieved ? 'done' : q.law.tested && q.law.holds === false ? 'stuck' : q.milestones.length ? 'going' : 'idle', achieved: q.achieved };
     } else if (strayById.has(id)) {
       const b = strayById.get(id);
-      n = { id, kind: 'stray', title: b.title, sub: b.note, note: `里程碑與調整 ${b.columns.length} 條`, priority: null, tone: 'stuck', achieved: false };
+      n = { id, kind: 'stray', title: b.title, sub: b.note, note: `里程碑 ${b.columns.length} 條`, priority: null, tone: 'stuck', achieved: false };
     } else {
       const d = byName.get(id);
       n = { id, kind: 'shared', title: d ? d.description : '', sub: `共用 · 沒有被任何里程碑綁定`, note: d ? d.state : '', priority: null, tone: d ? tone(d) : 'stuck', achieved: !!(d && d.achieved) };
@@ -1023,8 +1023,7 @@ function openDagNode(id) {
     <p class="sub"><span class="dot" style="background:var(--${n.tone})"></span>${esc(n.note)}</p>
     <section><h3>先要有(它依賴 ${n.deps.length} 個)</h3>${n.deps.length ? `<ul>${n.deps.map((e) => edgeRow(e, e.to)).join('')}</ul>` : '<p class="empty">不依賴任何一個,可以先做</p>'}</section>
     <section><h3>誰等它(${n.dependents.length} 個)</h3>${n.dependents.length ? `<ul>${n.dependents.map((e) => edgeRow(e, e.from)).join('')}</ul>` : '<p class="empty">沒有人等它</p>'}</section>
-    ${q ? `<section><h3>里程碑</h3>${q.milestones.length ? `<ul>${q.milestones.map((m) => `<li><span class="dot ${m.achieved ? 'g' : 'n'}"></span>${esc(m.name)} ${esc(m.title)}${m.binds.length ? ` — ${m.binds.map(linkTo).join('、')}` : '(還沒有切片)'}</li>`).join('')}</ul>` : '<p class="empty">沒有任何里程碑</p>'}</section>` : ''}
-    ${q && q.refinements.length ? `<section><h3>調整</h3><ul>${q.refinements.map((rf) => `<li><span class="dot ${rf.achieved ? 'g' : 'n'}"></span>${esc(rf.id)} ${esc(rf.title)}(${esc(rf.state)})${rf.touches.length ? ` — ${rf.touches.map(linkTo).join('、')}` : ''}</li>`).join('')}</ul></section>` : ''}
+    ${q ? `<section><h3>里程碑</h3>${q.milestones.length ? `<ul>${q.milestones.map((m) => `<li><span class="dot ${m.achieved ? 'g' : 'n'}"></span>${esc(m.name)} ${esc(m.title)}${m.state === '待修訂' ? '(待修訂)' : ''}${m.binds.length ? ` — ${m.binds.map(linkTo).join('、')}` : '(還沒有切片)'}</li>`).join('')}</ul>` : '<p class="empty">沒有任何里程碑</p>'}</section>` : ''}
     ${n.kind === 'shared' ? `<section><h3>${esc(D.labels.unit)}</h3><p class="sub">${linkTo(id)}</p></section>` : ''}`;
 }
 function dagSelect(id) {

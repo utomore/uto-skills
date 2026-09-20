@@ -1,5 +1,5 @@
 $ devflow brief scope-laws M-2-refund --no-rules
-brief scope-laws M-2-refund @doc:b41daaac rules:<雜湊>
+brief scope-laws M-2-refund @doc:945ce47b rules:<雜湊>
 這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
 
 # 規章
@@ -38,6 +38,7 @@ updated: 2026-09-07
 |---|---|---|
 | M-1-checkout | 結帳走通 | F-001-checkout |
 | M-2-refund | 退款走通 | F-002-refund |
+| M-3-settle-total | 手續費大過要退的金額也結得出來 | F-001-checkout |
 ````
 
 # system.md(全份)

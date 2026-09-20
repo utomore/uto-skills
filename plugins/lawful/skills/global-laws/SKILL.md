@@ -36,8 +36,8 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ## 前置
 
 - 沒有 `.lawful/Cone.md` → `lawful:kickoff`。`Cone.md` 沒有「## 全域 Law」區 → 回 `lawful:kickoff` 的前置處理。
-- 要改的是**一條 pipeline** 的 scope law、簽名或實作,要回答的 GAP 目標欄寫的是某條 pipeline,要落地的是調整 `RF-n` → 不在這裡:要調整(修改、放寬、替換、刪除)既有的 scope law 走 `lawful:scope-laws`;既有的 law 不動、或只新增 law,而文檔或實作要變(含 `RF-n`)走 `lawful:scope-revise`。一件修訂從頭到尾只有一個修訂類的 skill 在跑。
-- 開發者講的是一件**有做完的一天**的事 → 那是需求;需求面的條目(需求、驗收、優先、里程碑、調整)走 `lawful:require-design`(`laws.md`「Law 與需求」)。
+- 要改的是**一條 pipeline** 的 scope law、簽名或實作,要回答的 GAP 目標欄寫的是某條 pipeline,要做的是一條靠修訂達成的里程碑 → 不在這裡:要調整(修改、放寬、替換、刪除)既有的 scope law 走 `lawful:scope-laws`;既有的 law 不動、或只新增 law,而文檔或實作要變(含靠修訂達成的里程碑)走 `lawful:scope-revise`。一件修訂從頭到尾只有一個修訂類的 skill 在跑。
+- 開發者講的是一件**有做完的一天**的事 → 那是需求;需求面的條目(需求、驗收、優先、里程碑)走 `lawful:require-design`(`laws.md`「Law 與需求」)。
 - 只是要多劃一個模組單元、或既有單元要多一層,四層那四句不變 → 那不是全域 Law 的變更,走 `lawful:module`。
 - 變更的來源只有兩種:開發者自己提的,或 `lawful:integrate` 的變更建議**經開發者明確批准**。沒有批准就停,不動。
 - **在哪做**:與立案、需求的變更走同一條路——在主線的工作樹上落筆、commit,由 `lawful:integrate` 帶上 `plan/<slug>` 分支經 PR 合進主線(`roles.md`「分支與所有權」)。

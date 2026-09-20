@@ -1,0 +1,20 @@
+$ lawful requirement milestone R-2 save-stream 存檔寫入改成串流 --bind P-001-game-save
+M-7-save-stream 寫進 R-2-load-report,綁定 P-001-game-save
+下一步:lawful:scope-revise P-001-game-save,REV 的依欄寫 M-7-save-stream
+exit 0
+--- .lawful/requirements/R-2-load-report.md
+---
+id: R-2
+priority: 9
+updated: 2026-09-05
+---
+# R-2-load-report:存檔壞了讀得出是哪裡壞
+
+- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1-load-report | 壞檔回報位置 | - |
+| M-4 | 存檔不含絕對路徑 | - |
+| M-7-save-stream | 存檔寫入改成串流 | P-001-game-save |
+

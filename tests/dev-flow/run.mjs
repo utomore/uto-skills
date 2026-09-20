@@ -39,8 +39,8 @@ const CASES = [
   ['shop-requirement-milestone-missing-requirement', 'shop', ['requirement', 'milestone', 'R-9', 'ship', '出貨走通']],
   ['shop-invariant-add', 'shop', ['invariant', 'add', '退回的錢不超過付過的錢', '--kind', 'bound'], ['.design/system.md']],
   ['shop-invariant-add-bad-kind', 'shop', ['invariant', 'add', '退回的錢不超過付過的錢', '--kind', 'nonsense']],
-  ['shop-requirement-refinement', 'shop', ['requirement', 'refinement', 'R-1', '結帳一次走完不重算', '--touch', 'F-001-checkout'], ['.design/requirements/R-1-money-correct.md']],
-  ['shop-requirement-refinement-missing', 'shop', ['requirement', 'refinement', 'R-1', '出貨改成批次', '--touch', 'F-009-nope']],
+  // 綁一份已經被別條里程碑綁過的 feature:這條里程碑靠修訂它達成,下一步是 scope-revise,REV 的依欄寫這條里程碑的全名
+  ['shop-requirement-milestone-revise', 'shop', ['requirement', 'milestone', 'R-1', 'checkout-fast', '結帳一秒內完成', '--bind', 'F-001-checkout'], ['.design/requirements/R-1-money-correct.md']],
   ['shop-requirement-milestone-missing', 'shop', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通', '--bind', 'F-009-nope']],
   ['shop-claim-kind-rejected', 'shop', ['claim', 'abstract', 'audit-log', '--description', '共用的稽核紀錄', '--date', DATE], ['.design/abstracts/A-001-audit-log.md']],
   ['shop-claim-adr', 'shop', ['claim', 'adr', 'single-currency', '--description', '金額只在單一幣別內計算', '--date', DATE], ['.design/adr/ADR-001-single-currency.md']],
@@ -93,7 +93,8 @@ const CASES = [
   ['fullstack-status-bad-side', 'fullstack', ['status', '--tests', 'mobile=api.log']],
   ['fullstack-status-doc', 'fullstack', ['status', '--doc', 'F-003-basket', '--tests', 'web=web.log,api=api.log']],
   ['fullstack-status-module', 'fullstack', ['status', '--module', 'api/cart/basket.py', '--tests', 'web=web.log,api=api.log']],
-  ['fullstack-requirement-refinement-outside', 'fullstack', ['requirement', 'refinement', 'R-1', '結帳順便算籃子', '--touch', 'F-003-basket']],
+  // 綁別條需求的里程碑做出來的 feature 也不擋:這條里程碑靠修訂它達成
+  ['fullstack-requirement-milestone-other-requirement', 'fullstack', ['requirement', 'milestone', 'R-3', 'fee-over-refund', '手續費大過要退的金額也退得出來', '--bind', 'F-001-checkout'], ['.design/requirements/R-3-refund-correct.md']],
 
   // shared-doc:一份不被里程碑綁定的文檔被兩份 feature 引用;status 與 lint sig 照讀,里程碑不綁它
   ['shared-doc-status', 'shared-doc', ['status']],
@@ -113,10 +114,18 @@ const CASES = [
   ['goals-status', 'goals', ['status']],
   ['goals-lint-laws', 'goals', ['lint', 'laws']],
   ['goals-migrate-requirements', 'goals', ['migrate', 'requirements', '--date', DATE]],
-  ['goals-migrate-requirements-write', 'goals', ['migrate', 'requirements', '--write', '--date', DATE], ['.design/system.md', '.design/requirements/R-1-refund-correct.md', '.design/requirements/R-2-unnamed.md', '.design/objectives/R-1-O-1-money-correct.md', '.design/objectives/R-9-O-3-loyalty.md']],
+  ['goals-migrate-requirements-write', 'goals', ['migrate', 'requirements', '--write', '--date', DATE], ['.design/system.md', '.design/requirements/R-1-refund-correct.md', '.design/requirements/R-2-unnamed.md', '.design/objectives/R-1-O-1-money-correct.md', '.design/objectives/R-9-O-3-loyalty.md', '.design/features/F-001-checkout.md']],
   ['goals-requirement-milestone', 'goals', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通']],
   ['goals-brief-spike-impl', 'goals', ['brief', 'spike-impl', 'M-3-partial-refund', '--no-rules']],
   ['shop-migrate-requirements', 'shop', ['migrate', 'requirements']],
+  // tuned:已經是 requirements/ 而需求檔還帶調整表的樹(shop 加兩張調整表,F-001-checkout 的 REV-1 依欄引用 RF-1)。
+  // status 照讀(每一列讀成一條綁既有文檔的里程碑:REV 引用了的達成、沒引用的待修訂)、警訊指到 migrate requirements;寫需求檔的指令停下;
+  // migrate requirements 把每一列換成里程碑表的一列、REV 依欄的編號跟著改寫
+  ['tuned-status', 'tuned', ['status', '--tests', 'test.log']],
+  ['tuned-requirement-milestone', 'tuned', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通']],
+  ['tuned-requirement-add', 'tuned', ['requirement', 'add', 'ships-on-time', '每一筆訂單準時出貨', '--priority', '3']],
+  ['tuned-migrate-requirements', 'tuned', ['migrate', 'requirements']],
+  ['tuned-migrate-requirements-write', 'tuned', ['migrate', 'requirements', '--write'], ['.design/requirements/R-1-money-correct.md', '.design/requirements/R-2-money-traceable.md', '.design/features/F-001-checkout.md', '.design/features/F-002-refund.md']],
 
   // subsystems/ 體系的遷移帳本
   ['legacy-migrate', 'legacy', ['migrate', '.design', '--language', 'typescript']],
@@ -146,6 +155,9 @@ const CASES = [
   ['shaky-brief-build', 'shaky', ['brief', 'build', 'F-001-score', '--tests', 'stale.log', '--no-rules']],
   ['shop-brief-scope-laws-doc', 'shop', ['brief', 'scope-laws', 'F-002-refund', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-scope-revise', 'shop', ['brief', 'scope-revise', 'F-002-refund', '--tests', 'test.log', '--no-rules']],
+  // 靠修訂這一份達成的里程碑在「這份文檔朝向哪裡」照樣列:REV 的依欄引用了(shop)、還沒引用(shaky)
+  ['shop-brief-scope-revise-cited', 'shop', ['brief', 'scope-revise', 'F-001-checkout', '--tests', 'test.log', '--no-rules']],
+  ['shaky-brief-scope-revise-pending', 'shaky', ['brief', 'scope-revise', 'F-001-score', '--tests', 'stale.log', '--no-rules']],
   ['shop-brief-scope-revise-milestone', 'shop', ['brief', 'scope-revise', 'M-2-refund', '--no-rules']],
   ['shop-brief-global-laws', 'shop', ['brief', 'global-laws', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-global-laws-invariant', 'shop', ['brief', 'global-laws', 'INV-1', '--tests', 'test.log', '--no-rules']],
@@ -205,7 +217,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/requirement refinement <R-n>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || /requirement refinement/.test(h.stdout) || /refinement|RF-/i.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
@@ -265,6 +277,48 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     console.log('✗ SKILL.md 的 frontmatter 與注入行');
     for (const w of wrong) console.log(`  ${w}`);
   } else console.log('✓ SKILL.md 的 frontmatter 與注入行');
+}
+
+// 兩道 migrate 以任何先後接連跑,落地的樹都一樣;跑過的樹再跑一次是「不用換」,status 不再指到 migrate
+{
+  const run = (root, ...argv) => spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+  const treeOf = (root) => {
+    const out = [];
+    const walk = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((p, q) => p.name.localeCompare(q.name))) {
+        const abs = path.join(dir, e.name);
+        if (e.isDirectory()) walk(abs);
+        else out.push(`--- ${path.relative(root, abs).split(path.sep).join('/')}\n${fs.readFileSync(abs, 'utf8').replace(/\r\n/g, '\n')}`);
+      }
+    };
+    walk(path.join(root, '.design'));
+    return out.join('\n');
+  };
+  const wrong = [];
+  for (const fixture of ['flat', 'goals', 'tuned']) {
+    const got = [['laws', 'requirements'], ['requirements', 'laws']].map((order) => {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'devflow-order-'));
+      fs.cpSync(path.join(here, 'fixtures', fixture), tmp, { recursive: true });
+      const exits = order.map((sub) => run(tmp, 'migrate', sub, '--write', '--date', DATE).status);
+      const again = order.map((sub) => run(tmp, 'migrate', sub).stdout);
+      const tree = treeOf(tmp);
+      const status = run(tmp, 'status').stdout;
+      fs.rmSync(tmp, { recursive: true, force: true });
+      return { order, exits, again, tree, status };
+    });
+    for (const g of got) {
+      if (g.exits.some((x) => x !== 0)) wrong.push(`${fixture}:${g.order.join(' → ')} 有一道 exit 不是 0(${g.exits.join('、')})`);
+      if (g.tree !== got[0].tree) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹與 ${got[0].order.join(' → ')} 不一樣`);
+      if (!g.again.every((t) => /這棵樹不用換/.test(t))) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後再跑一次,還有東西要換`);
+      if (/devflow migrate (laws|requirements)/.test(g.status)) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後 status 還指到 migrate`);
+      if (!/\n--- \.design\/requirements\/R-1-/.test(`\n${g.tree}`) || /\n--- \.design\/objectives\.md\n/.test(g.tree) || `\n${g.tree}`.split('\n--- ').some((s) => s.startsWith('.design/requirements/') && /\n\| 調整 \|/.test(s))) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹沒有 requirements/、還留著 objectives.md、或需求檔還有調整表`);
+    }
+  }
+  if (wrong.length) {
+    failed++;
+    console.log('✗ migrate 的先後');
+    for (const w of wrong) console.log(`  ${w}`);
+  } else console.log('✓ migrate 的先後');
 }
 
 // --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事
@@ -347,7 +401,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
   else {
     const base = fs.mkdtempSync(path.join(os.tmpdir(), 'slice-'));
     const main = path.join(base, 'repo');
-    const tree = path.join(base, 'repo.worktrees', 'M-3-ship');
+    const tree = path.join(base, 'repo.worktrees', 'M-4-ship');
     const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
     const devflow = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
     fs.cpSync(path.join(here, 'fixtures', 'shop'), main, { recursive: true });
@@ -356,26 +410,63 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     git(main, 'add', '-A');
     git(main, 'commit', '-m', 'base');
     const before = devflow(main, 'status', '--tests', 'test.log').stdout;
-    git(main, 'worktree', 'add', '-b', 'build/M-3-ship', tree, 'HEAD');
+    git(main, 'worktree', 'add', '-b', 'build/M-4-ship', tree, 'HEAD');
     const opened = devflow(main, 'status', '--tests', 'test.log').stdout;
     fs.mkdirSync(path.join(tree, '.design', 'journal'), { recursive: true });
-    fs.writeFileSync(path.join(tree, '.design', 'journal', 'M-3-ship.md'), '---\nkey: M-3-ship\nbranch: build/M-3-ship\nverdict: feasible\n---\n# 開發日誌:M-3-ship\n');
+    fs.writeFileSync(path.join(tree, '.design', 'journal', 'M-4-ship.md'), '---\nkey: M-4-ship\nbranch: build/M-4-ship\nverdict: feasible\n---\n# 開發日誌:M-4-ship\n');
     const sliced = devflow(main, 'status', '--tests', 'test.log').stdout;
-    const claimed = devflow(tree, 'claim', 'feature', 'ship', '--milestone', 'M-3-ship', '--date', DATE).stdout;
+    const claimed = devflow(tree, 'claim', 'feature', 'ship', '--milestone', 'M-4-ship', '--date', DATE).stdout;
     const talking = devflow(main, 'status', '--tests', 'test.log').stdout;
     const other = devflow(main, 'claim', 'feature', 'wishlist', '--date', DATE).stdout;
-    const ok = before.includes('- M-3-ship:dev-flow:spike-impl M-3-ship(R-1 優先 1 · 出貨走通)')
-      && opened.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片中') && !opened.includes('| build/M-3-ship | 已合進主線卻還在 |')
-      && sliced.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片完成,等 dev-flow:scope-laws')
-      && claimed.includes('F-003-ship') && claimed.includes('綁進 M-3-ship') && talking.includes('build/M-3-ship;Law 討論中')
+    const ok = before.includes('- M-4-ship:dev-flow:spike-impl M-4-ship(R-1 優先 1 · 出貨走通)')
+      && opened.includes('- M-4-ship:建構中,分支 build/M-4-ship;切片中') && !opened.includes('| build/M-4-ship | 已合進主線卻還在 |')
+      && sliced.includes('- M-4-ship:建構中,分支 build/M-4-ship;切片完成,等 dev-flow:scope-laws')
+      && claimed.includes('F-003-ship') && claimed.includes('綁進 M-4-ship') && talking.includes('build/M-4-ship;Law 討論中')
       && other.includes('F-004-wishlist');
     git(main, 'worktree', 'remove', '--force', tree);
     fs.rmSync(base, { recursive: true, force: true });
     if (!ok) {
       failed++;
       console.log('✗ 切片的工作樹');
-      console.log([before, opened, sliced, claimed, talking, other].map((t) => t.split('\n').filter((l) => /M-3-ship|F-00[34]/.test(l)).join('\n')).join('\n---\n'));
+      console.log([before, opened, sliced, claimed, talking, other].map((t) => t.split('\n').filter((l) => /M-4-ship|F-00[34]/.test(l)).join('\n')).join('\n---\n'));
     } else console.log('✓ 切片的工作樹');
+  }
+}
+
+// 靠修訂達成的里程碑也可以是 build 分支的鍵:綁的文檔還沒有引用它的 REV 是「待修訂」(不因為文檔本來就 verified 而算做完、也不因為沒有決策紀錄而算切片中),
+// 工作樹上寫了引用它的 REV、文檔重開之後照一般的字
+{
+  const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
+  if (!hasGit) console.log('· 沒有 git,跳過靠修訂達成的里程碑的工作樹檢查');
+  else {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'revise-'));
+    const main = path.join(base, 'repo');
+    const tree = path.join(base, 'repo.worktrees', 'M-4-checkout-fast');
+    const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
+    const devflow = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+    fs.cpSync(path.join(here, 'fixtures', 'shop'), main, { recursive: true });
+    devflow(main, 'requirement', 'milestone', 'R-1', 'checkout-fast', '結帳一秒內完成', '--bind', 'F-001-checkout');
+    git(main, 'init', '-b', 'main');
+    git(main, 'add', '-A');
+    git(main, 'commit', '-m', 'base');
+    const before = devflow(main, 'status', '--tests', 'test.log').stdout;
+    git(main, 'worktree', 'add', '-b', 'build/M-4-checkout-fast', tree, 'HEAD');
+    const opened = devflow(main, 'status', '--tests', 'test.log').stdout;
+    const doc = path.join(tree, '.design', 'features', 'F-001-checkout.md');
+    fs.writeFileSync(doc, `${fs.readFileSync(doc, 'utf8').replace(/^status: verified$/m, 'status: ready').replace(/\s+$/, '')}\n- REV-2(${DATE},依 M-4-checkout-fast):結帳一秒內完成,補一條 bound 的 law\n`);
+    const revised = devflow(main, 'status', '--tests', 'test.log').stdout;
+    const inTree = devflow(tree, 'status', '--tests', 'test.log').stdout;
+    const ok = before.includes('- M-4-checkout-fast:dev-flow:scope-revise F-001-checkout(') && before.includes('REV 的依欄寫 M-4-checkout-fast')
+      && opened.includes('- M-4-checkout-fast:建構中,分支 build/M-4-checkout-fast;待修訂')
+      && revised.includes('- M-4-checkout-fast:建構中,分支 build/M-4-checkout-fast;調整中')
+      && !inTree.includes('F-001-checkout 待修訂');
+    git(main, 'worktree', 'remove', '--force', tree);
+    fs.rmSync(base, { recursive: true, force: true });
+    if (!ok) {
+      failed++;
+      console.log('✗ 靠修訂達成的里程碑的工作樹');
+      console.log([before, opened, revised, inTree].map((t) => t.split('\n').filter((l) => /M-4-checkout-fast/.test(l)).join('\n')).join('\n---\n'));
+    } else console.log('✓ 靠修訂達成的里程碑的工作樹');
   }
 }
 

@@ -1,0 +1,62 @@
+$ devflow status --tests test.log
+# devflow status
+願景:小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
+需求 2 條,達成 1 條(測試 1、推得 0)· 領域不變量 1 條,成立 1 條 · 里程碑 6 條,達成 3 條 · feature 2 份,達成 2 份 · 文檔共 2 份,達成 2 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+· 測試結果來自 test.log
+
+## 需求
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
+|---|---|---|---|---|---|---|---|
+| R-1 | 1 | 每一筆結帳與退款的金額都算對 | 達成(測試 R-1#ACCEPT green) | - | 4 | 3 | 75% |
+| R-2 | 2 | 每一筆錢都查得到來源 | 未達成(M-3-trace、RF-3 還沒達成) | R-1 | 2 | 0 | 0% |
+- R-1 下一個里程碑:RF-2 退款一秒內完成(F-002-refund 待修訂);待修訂:dev-flow:scope-revise F-002-refund(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 RF-2
+- R-2 下一個里程碑:M-3-trace 訂單帶得出每一筆金額的出處(還沒有切片:dev-flow:spike-impl M-3-trace)
+
+## 全域 Law
+| 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
+|---|---|---|---|
+| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,通過 |
+| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 4 列,通過;契約欄指到的 law 3 條,成立 3 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 1 條,通過;成立 1 條 |
+
+| 領域不變量 | 種類 | 一句話 | 成立 |
+|---|---|---|---|
+| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 成立(測試 INV-1#LAW green) |
+
+## 文檔
+| 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
+|---|---|---|---|---|---|---|---|---|---|
+| F-001-checkout | feature | verified | 5 | 5 | 0 | 6 | 6/6 | 1 | 達成 |
+| F-002-refund | feature | verified | 5 | 5 | 0 | 2 | 2/2 | 1 | 達成 |
+
+## 1. 今天能開幾條線
+- RF-2:dev-flow:scope-revise F-002-refund(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 RF-2(R-1 優先 1 · 退款一秒內完成)
+- M-3-trace:dev-flow:spike-impl M-3-trace(R-2 優先 2 · 訂單帶得出每一筆金額的出處)
+
+## 2. 卡住的
+- 無
+
+## 3. 等決定
+- 無
+
+## 4. 牽動誰
+- F-001-checkout ← F-002-refund
+
+## 5. 待實作(按檔案)
+- 無
+
+## 6. 修訂熱點
+- F-001-checkout:REV 1 條,最後一條「REV-1(2026-09-07,依 RF-1:退款也走 settle,手續費可能大過要退的金額):settle 補一條」
+- F-002-refund:REV 1 條,最後一條「REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 」
+
+## 7. 警訊
+| 哪裡 | 什麼事 | 怎麼辦 |
+|---|---|---|
+| .design/requirements/R-1-money-correct.md | 還有調整表;調整就是一條綁既有文檔的里程碑,需求檔只有一張里程碑表 | devflow migrate requirements --write |
+| .design/requirements/R-2-money-traceable.md | 還有調整表;調整就是一條綁既有文檔的里程碑,需求檔只有一張里程碑表 | devflow migrate requirements --write |
+
+## 8. 建議路線
+1. dev-flow:scope-revise F-002-refund(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 RF-2(R-1 優先 1 · RF-2 退款一秒內完成),之後自動接上 build
+2. dev-flow:spike-impl M-3-trace(R-2 優先 2 · 訂單帶得出每一筆金額的出處)
+exit 1

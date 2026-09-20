@@ -10,7 +10,7 @@ import { sectionCommand } from '../lib/commands/section.mjs';
 import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, invariantAdd, milestoneAdd, modulesGen, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
+import { claim, invariantAdd, milestoneAdd, modulesGen, requirementAdd, sync } from '../lib/commands/edit.mjs';
 import { migrate, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
 
 const HELP = `devflow <子命令> [選項]
@@ -30,9 +30,8 @@ const HELP = `devflow <子命令> [選項]
                                        鑄 R-n 建 requirements/R-n-<slug>.md:一件必須達成的事;優先 1 最高、4 最低;驗收(判它達成與否的那一句)沒給就留佔位符
   requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]
                                        鑄 M-n,以全名 M-n-<slug> 加在該需求檔的里程碑表最後(表的列序就是先後);slug 是 kebab-case 英文,切片的分支 build/M-n-<slug> 以它為鍵;
-                                       綁定的全名要是 features/ 裡有的 feature
-  requirement refinement <R-n> <一句話> --touch <全名,全名>
-                                       鑄 RF-n 加進該需求檔的調整表;動到的要是這條需求的里程碑綁定過的 feature
+                                       綁定的全名要是 features/ 裡有的 feature;綁一份已經被別條里程碑綁過的 feature,這條里程碑就靠修訂它達成:
+                                       那份 feature 達成,而且它的修訂記錄裡有一條 REV 的依欄寫了這條里程碑的全名
   invariant add <一句話> [--kind <種類>]
                                        鑄 INV-n 寫進 system.md「全域 Law」區的領域不變量:整個專案任何一份 feature 都不准違反的 law;種類沒給就是 invariant
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
@@ -53,8 +52,10 @@ const HELP = `devflow <子命令> [選項]
                                        skill:${briefSkills.join('、')}
   migrate laws [--write]               system.md 沒有「## 全域 Law」區、或需求寫著「- Law:」的樹:層、對外 I/O、領域不變量收進「## 全域 Law」區,
                                        需求的那一句改成「- 驗收:」;先印帳本,--write 才落地
-  migrate requirements [--write]       需求還住在 system.md「## 需求」節、里程碑住 objectives/ 或一份 objectives.md 的樹:每條需求連同朝向它的里程碑與調整
-                                       併成 requirements/R-n-<slug>.md 一條一個檔,「## 需求」節與 objectives/ 刪掉;要人判的列在帳本裡;先印帳本,--write 才落地
+  migrate requirements [--write]       需求還住在 system.md「## 需求」節、里程碑住 objectives/ 或一份 objectives.md 的樹:每條需求連同朝向它的里程碑
+                                       併成 requirements/R-n-<slug>.md 一條一個檔,「## 需求」節與 objectives/ 刪掉;
+                                       需求檔或目標檔有調整表的樹:調整表的每一列換成里程碑表的一列(配新的 M-n,綁定 = 動到欄),調整表刪掉,
+                                       文檔修訂記錄依欄引用的調整編號改寫成新的 M-n;要人判的列在帳本裡;先印帳本,--write 才落地
   migrate <.design> [--language <adapter>] [--ignore <dir,dir>]
                                        盤點 subsystems/ 體系的 .design:每份舊文檔的介面在程式碼裡對到幾條、
                                        四格 law 翻成三行草稿、共用的簽名列出來(只住一份文檔,別份引用)、退場清單;只印帳本,不改任何檔
@@ -225,8 +226,7 @@ function main() {
   if (cmd === 'requirement') {
     if (sub === 'add' && rest[0] && rest[1]) return emit(requirementAdd(design, rest[0], rest.slice(1).join(' '), { accept: typeof args.flags.accept === 'string' ? args.flags.accept : '', priority: args.flags.priority, date: args.flags.date || undefined }));
     if (sub === 'milestone' && rest[0] && rest[1] && rest[2]) return emit(milestoneAdd(design, rest[0], rest[1], rest.slice(2).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
-    if (sub === 'refinement' && rest[0] && rest[1]) return emit(refinementAdd(design, rest[0], rest.slice(1).join(' '), { touch: typeof args.flags.touch === 'string' ? args.flags.touch : '' }));
-    console.error('用法:devflow requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      devflow requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]\n      devflow requirement refinement <R-n> <一句話> --touch <全名,全名>');
+    console.error('用法:devflow requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      devflow requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]');
     return 1;
   }
 

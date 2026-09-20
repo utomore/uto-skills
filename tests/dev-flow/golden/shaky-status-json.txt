@@ -17,10 +17,8 @@ $ devflow status --json
     "requirementsInferred": 0,
     "invariants": 4,
     "invariantsHolding": 0,
-    "milestones": 6,
+    "milestones": 7,
     "milestonesAchieved": 0,
-    "refinements": 4,
-    "refinementsAchieved": 0,
     "features": 2,
     "featuresAchieved": 0,
     "abstracts": 0,
@@ -40,11 +38,7 @@ $ devflow status --json
     },
     {
       "label": "里程碑",
-      "value": "0 / 6 達成"
-    },
-    {
-      "label": "調整",
-      "value": "0 / 4 達成"
+      "value": "0 / 7 達成"
     },
     {
       "label": "feature",
@@ -80,9 +74,7 @@ $ devflow status --json
       "achieved": false,
       "percent": null,
       "milestonesAchieved": 0,
-      "refinementsAchieved": 0,
-      "milestones": [],
-      "refinements": []
+      "milestones": []
     },
     {
       "id": "R-3",
@@ -104,17 +96,17 @@ $ devflow status --json
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
-      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-1",
           "name": "M-1",
           "title": "<一句話>",
           "achieved": false,
+          "state": "進行中",
+          "byRevision": false,
           "binds": []
         }
-      ],
-      "refinements": []
+      ]
     },
     {
       "id": "R-5",
@@ -136,17 +128,17 @@ $ devflow status --json
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
-      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-4",
           "name": "M-4-entry",
           "title": "進入點回得出分數",
           "achieved": false,
+          "state": "進行中",
+          "byRevision": false,
           "binds": []
         }
-      ],
-      "refinements": []
+      ]
     },
     {
       "id": "R-9",
@@ -168,17 +160,17 @@ $ devflow status --json
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
-      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-5",
           "name": "M-5-third",
           "title": "第三個數字看得到",
           "achieved": false,
+          "state": "進行中",
+          "byRevision": false,
           "binds": []
         }
-      ],
-      "refinements": []
+      ]
     },
     {
       "id": "R-1",
@@ -194,19 +186,20 @@ $ devflow status --json
         "source": "驗收還是模板",
         "tested": false
       },
-      "note": "驗收未達成 · 里程碑 0/2 達成",
+      "note": "驗收未達成 · 里程碑 0/3 達成",
       "dependsOn": [],
       "built": false,
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
-      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-1",
           "name": "M-1",
           "title": "分數算得出來",
           "achieved": false,
+          "state": "進行中",
+          "byRevision": false,
           "binds": [
             "F-001-score",
             "F-009-nope"
@@ -215,47 +208,25 @@ $ devflow status --json
         {
           "id": "M-3",
           "name": "M-3-plain",
-          "title": "一條普通的里程碑",
+          "title": "靠修訂 F-001-score 達成,它的修訂記錄裡還沒有一條 REV 引用這一條",
           "achieved": false,
+          "state": "待修訂",
+          "byRevision": true,
           "binds": [
             "F-001-score"
           ]
-        }
-      ],
-      "refinements": [
-        {
-          "id": "RF-1",
-          "title": "動到了里程碑沒綁過的 feature",
-          "touches": [
-            "F-002-other"
-          ],
-          "state": "待修訂",
-          "achieved": false
         },
         {
-          "id": "RF-2",
-          "title": "動到了不存在的 feature",
-          "touches": [
+          "id": "M-6",
+          "name": "M-6",
+          "title": "靠修訂達成卻沒有英文名,綁的另一份文檔也不存在",
+          "achieved": false,
+          "state": "待修訂",
+          "byRevision": true,
+          "binds": [
+            "F-001-score",
             "F-009-nope"
-          ],
-          "state": "待修訂",
-          "achieved": false
-        },
-        {
-          "id": "RF-3",
-          "title": "<一句話:改既有 feature 的哪一種品質>",
-          "touches": [
-            "F-001-score"
-          ],
-          "state": "待修訂",
-          "achieved": false
-        },
-        {
-          "id": "RF-3",
-          "title": "編號撞到的調整,而且沒動到任何東西",
-          "touches": [],
-          "state": "待修訂",
-          "achieved": false
+          ]
         }
       ]
     },
@@ -281,19 +252,19 @@ $ devflow status --json
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
-      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-2",
           "name": "M-2-score-too",
           "title": "分數也算得出來",
           "achieved": false,
+          "state": "待修訂",
+          "byRevision": true,
           "binds": [
             "F-001-score"
           ]
         }
-      ],
-      "refinements": []
+      ]
     }
   ],
   "invariants": [
@@ -407,7 +378,7 @@ $ devflow status --json
       "note": "驗收未達成 · 驗收還是模板",
       "notes": [
         "優先 high",
-        "里程碑 0/2 達成 · 完成度 0% · 調整 0/4 達成"
+        "里程碑 0/3 達成 · 完成度 0%"
       ],
       "achieved": false,
       "columns": [
@@ -420,37 +391,19 @@ $ devflow status --json
           ]
         },
         {
-          "title": "M-3-plain 一條普通的里程碑",
+          "title": "M-3-plain 靠修訂 F-001-score 達成,它的修訂記錄裡還沒有一條 REV 引用這一條(待修訂)",
           "achieved": false,
           "docs": [
             "F-001-score"
           ]
         },
         {
-          "title": "RF-1 動到了里程碑沒綁過的 feature(調整,待修訂)",
+          "title": "M-6 靠修訂達成卻沒有英文名,綁的另一份文檔也不存在(待修訂)",
           "achieved": false,
           "docs": [
-            "F-002-other"
-          ]
-        },
-        {
-          "title": "RF-2 動到了不存在的 feature(調整,待修訂)",
-          "achieved": false,
-          "docs": [
+            "F-001-score",
             "F-009-nope"
           ]
-        },
-        {
-          "title": "RF-3 <一句話:改既有 feature 的哪一種品質>(調整,待修訂)",
-          "achieved": false,
-          "docs": [
-            "F-001-score"
-          ]
-        },
-        {
-          "title": "RF-3 編號撞到的調整,而且沒動到任何東西(調整,待修訂)",
-          "achieved": false,
-          "docs": []
         }
       ],
       "empty": null
@@ -466,7 +419,7 @@ $ devflow status --json
       "achieved": false,
       "columns": [
         {
-          "title": "M-2-score-too 分數也算得出來",
+          "title": "M-2-score-too 分數也算得出來(待修訂)",
           "achieved": false,
           "docs": [
             "F-001-score"
@@ -797,6 +750,17 @@ $ devflow status --json
       }
     ],
     "slicesBuilding": [],
+    "revisions": [
+      {
+        "name": "M-2-score-too",
+        "requirement": "R-4",
+        "title": "分數也算得出來",
+        "revise": [
+          "F-001-score"
+        ]
+      }
+    ],
+    "revisionsBuilding": [],
     "shared": []
   },
   "gaps": [
@@ -878,29 +842,14 @@ $ devflow status --json
       "fix": "改成 features/ 裡有的全名,或刪這個綁定"
     },
     {
-      "where": "RF-1",
-      "what": "動到的 F-002-other 不在 R-1 任何里程碑的綁定裡",
-      "fix": "調整不引入新 feature:只動這條需求的里程碑做出來的 feature;新能力開里程碑"
+      "where": "M-6",
+      "what": "沒有英文名,REV 的依欄寫不出它的全名",
+      "fix": "dev-flow:require-design 把第一格寫成 M-6-<slug>(kebab-case 英文);引用一條里程碑一律用全名"
     },
     {
-      "where": "RF-2",
-      "what": "動到的 F-009-nope 不存在",
-      "fix": "改成 features/ 裡有的全名"
-    },
-    {
-      "where": "RF-3",
-      "what": "調整還是模板",
-      "fix": "dev-flow:require-design 寫成一句話"
-    },
-    {
-      "where": "RF-3",
-      "what": "調整編號重複",
-      "fix": "編號全資料夾唯一;配號只走 devflow requirement refinement"
-    },
-    {
-      "where": "RF-3",
-      "what": "沒有動到任何文檔",
-      "fix": "動到欄填這條需求的里程碑綁定過的 feature 全名"
+      "where": "M-6",
+      "what": "綁定的 F-009-nope 不存在",
+      "fix": "改成 features/ 裡有的全名,或刪這個綁定"
     },
     {
       "where": ".design/requirements/R-4-third-number.md",
@@ -997,6 +946,7 @@ $ devflow status --json
     "steps": [
       "先回答 GAP-1、GAP-1(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派",
       "dev-flow:scope-laws F-002-other(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
+      "dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too(R-4 優先 ? · M-2-score-too 分數也算得出來),之後自動接上 build",
       "dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)",
       "dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)",
       "dev-flow:build INV-2(只派 qa 寫 INV-2#LAW 的測試)"

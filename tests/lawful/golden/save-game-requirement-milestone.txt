@@ -1,5 +1,6 @@
 $ lawful requirement milestone R-1 save-load 讀檔還原世界 --bind P-001-save-write
-M-3-save-load 寫進 R-1-save-roundtrip,綁定 P-001-save-write
+M-4-save-load 寫進 R-1-save-roundtrip,綁定 P-001-save-write
+下一步:lawful:scope-revise P-001-save-write,REV 的依欄寫 M-4-save-load
 exit 0
 --- .lawful/requirements/R-1-save-roundtrip.md
 ---
@@ -17,9 +18,6 @@ updated: 2026-09-05
 |---|---|---|
 | M-1-save-write | 存檔寫得出檔案 | P-001-save-write |
 | M-2-save-inspect | 存檔壞了看得出來 | - |
-| M-3-save-load | 讀檔還原世界 | P-001-save-write |
-
-| 調整 | 做到什麼 | 動到 |
-|---|---|---|
-| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+| M-3-save-compact | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+| M-4-save-load | 讀檔還原世界 | P-001-save-write |
 

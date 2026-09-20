@@ -1,5 +1,5 @@
 $ lawful brief scope-laws M-1-save-write --no-rules
-brief scope-laws M-1-save-write @doc:e3d36c59 rules:<雜湊>
+brief scope-laws M-1-save-write @doc:760bc0f6 rules:<雜湊>
 這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
 
 # 規章
@@ -39,10 +39,7 @@ updated: 2026-09-05
 |---|---|---|
 | M-1-save-write | 存檔寫得出檔案 | P-001-save-write |
 | M-2-save-inspect | 存檔壞了看得出來 | - |
-
-| 調整 | 做到什麼 | 動到 |
-|---|---|---|
-| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+| M-3-save-compact | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
 ````
 
 # Cone.md(全份)

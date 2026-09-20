@@ -17,10 +17,8 @@ $ devflow status --json --tests test.log
     "requirementsInferred": 0,
     "invariants": 1,
     "invariantsHolding": 1,
-    "milestones": 2,
-    "milestonesAchieved": 2,
-    "refinements": 0,
-    "refinementsAchieved": 0,
+    "milestones": 3,
+    "milestonesAchieved": 3,
     "features": 2,
     "featuresAchieved": 2,
     "abstracts": 0,
@@ -40,11 +38,7 @@ $ devflow status --json --tests test.log
     },
     {
       "label": "里程碑",
-      "value": "2 / 2 達成"
-    },
-    {
-      "label": "調整",
-      "value": "0 / 0 達成"
+      "value": "3 / 3 達成"
     },
     {
       "label": "feature",
@@ -74,19 +68,20 @@ $ devflow status --json --tests test.log
         "source": "測試 R-1#ACCEPT green",
         "tested": true
       },
-      "note": "驗收達成 · 里程碑 2/2 達成",
+      "note": "驗收達成 · 里程碑 3/3 達成",
       "dependsOn": [],
       "built": true,
       "achieved": true,
       "percent": 100,
-      "milestonesAchieved": 2,
-      "refinementsAchieved": 0,
+      "milestonesAchieved": 3,
       "milestones": [
         {
           "id": "M-1",
           "name": "M-1-checkout",
           "title": "結帳走通",
           "achieved": true,
+          "state": "達成",
+          "byRevision": false,
           "binds": [
             "F-001-checkout"
           ]
@@ -96,12 +91,24 @@ $ devflow status --json --tests test.log
           "name": "M-2-refund",
           "title": "退款走通",
           "achieved": true,
+          "state": "達成",
+          "byRevision": false,
           "binds": [
             "F-002-refund"
           ]
+        },
+        {
+          "id": "M-3",
+          "name": "M-3-settle-total",
+          "title": "手續費大過要退的金額也結得出來",
+          "achieved": true,
+          "state": "達成",
+          "byRevision": true,
+          "binds": [
+            "F-001-checkout"
+          ]
         }
-      ],
-      "refinements": []
+      ]
     }
   ],
   "invariants": [
@@ -122,7 +129,7 @@ $ devflow status --json --tests test.log
       "note": "驗收達成 · 測試 R-1#ACCEPT green",
       "notes": [
         "優先 1:錢算對",
-        "里程碑 2/2 達成 · 完成度 100%"
+        "里程碑 3/3 達成 · 完成度 100%"
       ],
       "achieved": true,
       "columns": [
@@ -138,6 +145,13 @@ $ devflow status --json --tests test.log
           "achieved": true,
           "docs": [
             "F-002-refund"
+          ]
+        },
+        {
+          "title": "M-3-settle-total 手續費大過要退的金額也結得出來",
+          "achieved": true,
+          "docs": [
+            "F-001-checkout"
           ]
         }
       ],
@@ -257,7 +271,7 @@ $ devflow status --json --tests test.log
       },
       "revisions": {
         "count": 1,
-        "last": "REV-1(2026-09-07,依開發者:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law"
+        "last": "REV-1(2026-09-07,依 M-3-settle-total:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law"
       },
       "gaps": [],
       "refs": [],
@@ -579,6 +593,8 @@ $ devflow status --json --tests test.log
     "building": [],
     "slices": [],
     "slicesBuilding": [],
+    "revisions": [],
+    "revisionsBuilding": [],
     "shared": []
   },
   "gaps": [],

@@ -1,0 +1,13 @@
+Build profile: -w ghc-9.14.1 -O1
+Running 1 test suites...
+Test suite spec: RUNNING...
+
+P-002#LAW-1
+  count t == length (tokens t) [✔]
+    +++ OK, passed 100 tests.
+P-002#EX-1
+  count "" == 0 [✔]
+
+Finished in 0.0101 seconds
+2 examples, 0 failures
+Test suite spec: PASS

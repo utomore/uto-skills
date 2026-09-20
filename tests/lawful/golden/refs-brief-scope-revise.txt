@@ -77,7 +77,26 @@ subflow。文字 → 切 token → Doc。shared 是它與 P-003-canon-normalize 
 
 # 這條 pipeline 朝向哪裡
 
-- R-2-syntax-parse(優先 2)的里程碑 M-1-syntax-parse:解析與正規化走通(綁定 P-002-syntax-parse、P-003-canon-normalize)
+- R-1-cli-whole 的里程碑 M-3-parse-line-number:解析錯誤帶行號(綁定 P-002-syntax-parse;靠修訂這一條達成,還沒有 REV 的依欄引用它:REV 的依欄寫 M-3-parse-line-number)
+- R-2-syntax-parse 的里程碑 M-1-syntax-parse:解析與正規化走通(綁定 P-002-syntax-parse、P-003-canon-normalize)
+
+# 需求檔:.lawful/requirements/R-1-cli-whole.md
+
+````markdown
+---
+id: R-1
+priority: 1
+updated: 2026-09-05
+---
+# R-1-cli-whole:輸入檔跑完整條
+
+- 驗收:任一輸入檔解析、正規化後跑完不出錯
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-2-cli-run | 整條跑完 | P-001-cli-run |
+| M-3-parse-line-number | 解析錯誤帶行號 | P-002-syntax-parse |
+````
 
 # 需求檔:.lawful/requirements/R-2-syntax-parse.md
 
@@ -125,7 +144,7 @@ updated: 2026-09-05
 
 ### lawful status
 願景:輸入檔解析、正規化後跑完整條。
-需求 2 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 2 條,達成 0 條 · 調整 0 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 3 條,達成 0 條 · 模組單元 4 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+需求 2 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 3 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 3 條,達成 0 條 · 模組單元 4 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 #### 需求
@@ -143,7 +162,7 @@ updated: 2026-09-05
 | App.Syntax | 把文字解析成文件 | core | - | P-002-syntax-parse、P-003-canon-normalize | 3 | 0 |
 
 #### 1. 今天能開幾條線
-- P-002-syntax-parse:lawful:build P-002-syntax-parse(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
+- P-002-syntax-parse:lawful:build P-002-syntax-parse(R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號)
 - P-002-syntax-parse 與 P-003-canon-normalize 的 stage 都住 `App.Syntax`:可以同時開,整合時這幾個模組單元的檔兩邊都動
 
 #### 2. 卡住的
@@ -158,5 +177,5 @@ updated: 2026-09-05
 | P-002-syntax-parse#shared | P-003-canon-normalize 也把 shared 列成 stage,兩邊都沒註明「見」 | 引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來 |
 
 #### 7. 建議路線
-1. lawful:build P-002-syntax-parse(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
+1. lawful:build P-002-syntax-parse(R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號)
 exit 0

@@ -32,7 +32,7 @@ export function unitOfSlug(cone, entries, slug) {
   }
   return best;
 }
-// 讀 .lawful/ 成一棵樹:cone(願景、全域 Law 三區、專案約束)、requirements(需求:驗收、優先、里程碑、調整)、modules(模組單元)、pipelines、gaps、journals。只讀不判;判在 commands/。
+// 讀 .lawful/ 成一棵樹:cone(願景、全域 Law 三區、專案約束)、requirements(需求:驗收、優先、里程碑)、modules(模組單元)、pipelines、gaps、journals。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
@@ -245,14 +245,18 @@ export function readCone(lawfulDir, root) {
   };
 }
 
-// 里程碑表(里程碑 | 做到什麼 | 綁定)與調整表(調整 | 做到什麼 | 動到),兩張表以表頭第一格分。
+// 里程碑表(里程碑 | 做到什麼 | 綁定):需求檔唯一的一張表。
 // 綁定欄是 pipeline 全名,「、」分隔;綁定是里程碑對到 pipeline 的唯一寫法,完成度從綁定的 pipeline 推。里程碑表的列序就是先後。
+// 表頭第一格是「調整」的表(調整 | 做到什麼 | 動到)靜默照讀:每一列讀成一條里程碑,接在里程碑表之後——
+// 編號與全名都是 RF-n、沒有英文名、綁定 = 「動到」欄、fromRefinement 為真(做到什麼還是模板佔位符的列不算);hasRefinementTable 講這個檔有那張表(migrate requirements 換掉它)。
 function routeTables(lines, offset) {
   const names = (cell) => (cell || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
   const milestones = [];
-  const refinements = [];
+  const fromRefinements = [];
+  let hasRefinementTable = false;
   for (const t of parseTables(lines)) {
     const kind = (t.header[0] || '').trim();
+    if (kind === '調整') hasRefinementTable = true;
     t.rows.forEach((r, i) => {
       const cell = stripTicks((r[0] || '').trim());
       if (!cell || hasPlaceholder(cell)) return;
@@ -262,10 +266,10 @@ function routeTables(lines, offset) {
       const rowTitle = (r[1] || '').trim();
       const row = { id, title: rowTitle, line: offset + t.rowLines[i] + 1, placeholder: hasPlaceholder(rowTitle) };
       if (kind === '里程碑') milestones.push({ ...row, slug: mm && mm[2] ? mm[2] : '', fullName: cell, binds: names(r[2]) });
-      else if (kind === '調整') refinements.push({ ...row, touches: names(r[2]) });
+      else if (kind === '調整' && !row.placeholder) fromRefinements.push({ ...row, slug: '', fullName: cell, binds: names(r[2]), fromRefinement: true });
     });
   }
-  return { milestones, refinements };
+  return { milestones: [...milestones, ...fromRefinements], hasRefinementTable };
 }
 
 const priorityOf = (fm) => {
@@ -274,7 +278,7 @@ const priorityOf = (fm) => {
 };
 
 // 需求:requirements/ 一條一個檔,檔名 R-n-<slug>.md;frontmatter id、priority、updated;標題 # <全名>:<一句話>;
-// 驗收是清單項;里程碑表與調整表在後面。需求是必須達成的事:里程碑依序走完,建置就走完。
+// 驗收是清單項;里程碑表在後面。需求是必須達成的事:里程碑依序走完,建置就走完。
 export function readRequirements(lawfulDir, root) {
   const dir = path.join(lawfulDir, 'requirements');
   if (!fs.existsSync(dir)) return { dir: rel(root, dir), exists: false, requirements: [] };
@@ -334,7 +338,7 @@ export function readObjectives(lawfulDir, root) {
 }
 
 // 「## 需求」節的每條 R-n 加上朝向它的每個目標檔,併成與 readRequirements 同一個形狀:
-// slug 取第一個目標的,優先取最高的,里程碑與調整依(優先、目標號)串接。sources 是併進來的目標檔;orphans 是對不到需求的目標檔。
+// slug 取第一個目標的,優先取最高的,里程碑依(優先、目標號)串接,從調整表讀來的那幾條同樣串接、排在最後。sources 是併進來的目標檔;orphans 是對不到需求的目標檔。
 export function mergeRequirements(sectionRequirements, objectives, dir) {
   const byPriority = (a, b) => (a.priority || 5) - (b.priority || 5) || Number(a.id.slice(2)) - Number(b.id.slice(2));
   const ids = new Set(sectionRequirements.map((q) => q.id));
@@ -356,8 +360,8 @@ export function mergeRequirements(sectionRequirements, objectives, dir) {
       implied: !!q.implied,
       priority: top ? top.priority : null,
       priorityRaw: top ? String(top.priority) : '',
-      milestones: os.flatMap((o) => o.milestones),
-      refinements: os.flatMap((o) => o.refinements),
+      milestones: [...os.flatMap((o) => o.milestones.filter((m) => !m.fromRefinement)), ...os.flatMap((o) => o.milestones.filter((m) => m.fromRefinement))],
+      hasRefinementTable: os.some((o) => o.hasRefinementTable),
       line: q.line,
       placeholder: q.placeholder,
       sources: os,
@@ -521,8 +525,9 @@ export function readPipeline(file, root) {
     decisions,
     // 要改 verified 的 pipeline 先「重開」:決定節記一條為什麼
     reopened: decisions ? decisions.lines.some((l) => /重開|解凍/.test(l)) : false,
-    // 每條 REV 的第一行:依欄寫的來源(GAP、SPK / ADR、RF-n、開發者的話)都在這一行
-    revs: revItems.map((it) => ({ ...it, cites: [...new Set((it.text.match(/RF-\d+/g) || []))] })),
+    // 每條 REV 的第一行:依欄寫的來源(GAP、SPK / ADR、里程碑全名、開發者的話)都在這一行。cites 收它引用的里程碑編號:
+    // 全名 M-3-checkout-fast 取 M-3;RF-n 照同一套收
+    revs: revItems.map((it) => ({ ...it, cites: [...new Set(it.text.match(/(?<![A-Za-z0-9])(?:M|RF)-\d+/g) || [])] })),
   };
 }
 

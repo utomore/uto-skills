@@ -40,7 +40,7 @@ brief build P-001-game-save @doc:97e45071 rules:<雜湊>
 
 # 決策紀錄
 
-(.lawful/journal/ 裡沒有 P-001-game-save 或 M-1-game-save 的決策紀錄)
+(.lawful/journal/ 裡沒有 P-001-game-save 或 M-1-game-save 或 M-6 的決策紀錄)
 
 # 目標 pipeline:.lawful/pipelines/P-001-game-save.md
 
@@ -217,7 +217,7 @@ updated: 2026-09-05
 
 ### lawful status
 願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-需求 4 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 里程碑 5 條,達成 0 條 · 調整 2 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
+需求 4 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 里程碑 6 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
 · 測試結果來自 stale.log
 
 #### 需求
@@ -253,7 +253,6 @@ updated: 2026-09-05
 #### 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| RF-2 | 動到的 P-001-game-save 不在 R-2 任何里程碑的綁定裡 | 調整不引入新 pipeline:只動這條需求的里程碑做出來的 pipeline;新能力開里程碑 |
 | P-001-game-save#decode | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
 | P-001-game-save#misroute | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
 | P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |

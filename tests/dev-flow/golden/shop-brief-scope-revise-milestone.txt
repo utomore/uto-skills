@@ -1,5 +1,5 @@
 $ devflow brief scope-revise M-2-refund --no-rules
-brief scope-revise M-2-refund @doc:b41daaac rules:<雜湊>
+brief scope-revise M-2-refund @doc:945ce47b rules:<雜湊>
 這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
 
 # 規章

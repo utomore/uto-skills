@@ -112,7 +112,7 @@ scope law 是對著跑得通的切片談出來的:開發者看得到行為,才�
 
 ## 影響範圍與選項
 
-**要改的東西走哪裡,一句話分流:要調整(修改、放寬、替換、刪除)既有的 law → `dev-flow:scope-laws`;law 不動、或只新增 law,而文檔或實作要變 → `dev-flow:scope-revise`;全域 Law → `dev-flow:global-laws`;需求面的條目(需求、驗收、優先、里程碑、調整)→ `dev-flow:require-design`。** GAP 的結案與調整 `RF-n` 的落地也照這一句:`RF-n` 預設走 `dev-flow:scope-revise`(需要新的 law 就在那裡新增);要調整既有的 law 才做得到的調整,整件走 `dev-flow:scope-laws`。**一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止**,不交錯、不接力。
+**要改的東西走哪裡,一句話分流:要調整(修改、放寬、替換、刪除)既有的 law → `dev-flow:scope-laws`;law 不動、或只新增 law,而文檔或實作要變 → `dev-flow:scope-revise`;全域 Law → `dev-flow:global-laws`;需求面的條目(需求、驗收、優先、里程碑)→ `dev-flow:require-design`。** GAP 的結案與靠修訂達成的里程碑(features.md「願景、需求與里程碑」)也照這一句:既有的 law 不動、新的承諾用新增的 law 表達,走 `dev-flow:scope-revise`;要調整既有的 law 才做得到,整件走 `dev-flow:scope-laws`。**一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止**,不交錯、不接力。
 
 調整任何一條 law 之前,先把**影響範圍**攤給開發者,再給**選項**;開發者選了才落筆。scope law 由 `dev-flow:scope-laws` 攤,全域 Law 由 `dev-flow:global-laws` 攤。沒有影響範圍、沒有選項的 law 調整不准落筆,來源是 GAP、整合的仲裁或開發者自己的話都一樣。
 

@@ -221,7 +221,7 @@ emptyWorld = mkWorld []
 
 # 決策紀錄
 
-(.lawful/journal/ 裡沒有 P-001-save-write 或 M-1-save-write 的決策紀錄)
+(.lawful/journal/ 裡沒有 P-001-save-write 或 M-1-save-write 或 M-3-save-compact 的決策紀錄)
 
 # 要開的檔
 

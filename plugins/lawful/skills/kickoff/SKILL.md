@@ -35,8 +35,8 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 前置
 
-- 不合規的樹先遷移,再照更新模式往下:只有 `system.md` 的樹 → 跑 `lawful migrate cone`;`Cone.md` 沒有「## 全域 Law」區、或需求寫著「- Law:」的樹 → 跑 `lawful migrate laws`;需求住 `Cone.md` 的「## 需求」節加 `objectives/`、或 pipeline 的 `kind` 不是 `io` / `subflow` 的樹 → 跑 `lawful migrate requirements`;每一道先印帳本,帳本列的「人要判的」(里程碑串接的順序、沒有里程碑的需求、無處可去的里程碑)帶開發者逐項判過,`--write` 才落地,三道以任何先後接連跑都行。
-- 要談的是需求面的條目(需求、驗收、優先、里程碑、調整)→ 不在這裡,走 `lawful:require-design`。要定或要改的是全域 Law(領域不變量、四層各裝什麼、對外 I/O)→ 不在這裡,走 `lawful:global-laws`。要調整(修改、放寬、替換、刪除)一條 pipeline 既有的 law → `lawful:scope-laws`;既有的 law 不動、或只新增 law,而文檔或實作要變 → `lawful:scope-revise`。
+- 不合規的樹先遷移,再照更新模式往下:只有 `system.md` 的樹 → 跑 `lawful migrate cone`;`Cone.md` 沒有「## 全域 Law」區、或需求寫著「- Law:」的樹 → 跑 `lawful migrate laws`;需求住 `Cone.md` 的「## 需求」節加 `objectives/`、或 pipeline 的 `kind` 不是 `io` / `subflow`、或需求檔還帶調整表的樹(調整表的每一列換成一條綁既有 pipeline 的里程碑)→ 跑 `lawful migrate requirements`;每一道先印帳本,帳本列的「人要判的」(里程碑串接的順序、沒有里程碑的需求、無處可去的里程碑、沒有英文名的里程碑)帶開發者逐項判過,`--write` 才落地,三道以任何先後接連跑都行。
+- 要談的是需求面的條目(需求、驗收、優先、里程碑)→ 不在這裡,走 `lawful:require-design`。要定或要改的是全域 Law(領域不變量、四層各裝什麼、對外 I/O)→ 不在這裡,走 `lawful:global-laws`。要調整(修改、放寬、替換、刪除)一條 pipeline 既有的 law → `lawful:scope-laws`;既有的 law 不動、或只新增 law,而文檔或實作要變 → `lawful:scope-revise`。
 - 只是要多劃一個模組單元、或既有單元要多一層 → 不必重跑立案,走 `lawful:module`。
 
 ## 步驟

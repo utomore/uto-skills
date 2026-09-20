@@ -1,22 +1,22 @@
 $ devflow status --tests stale.log
 # devflow status
-需求 6 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 里程碑 6 條,達成 0 條 · 調整 4 條,達成 0 條 · feature 2 份,達成 0 份 · 文檔共 2 份,達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 2 條
+需求 6 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 里程碑 7 條,達成 0 條 · feature 2 份,達成 0 份 · 文檔共 2 份,達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 2 條
 · 測試結果來自 stale.log
 
 ## 需求
-| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
-|---|---|---|---|---|---|---|---|---|
-| R-2 | 2 | 寫了三行卻沒有驗收測試,也沒有里程碑 | 未知(寫了三行卻沒有 R-2#ACCEPT 測試) | - | 0 | 0 | - | - |
-| R-3 | 2 | 里程碑編號撞到別條需求的 | 未達成(M-1 還沒達成) | - | 1 | 0 | 0% | - |
-| R-5 | 3 | 驗收引用了進入點與不存在的東西 | 未知(寫了三行卻沒有 R-5#ACCEPT 測試) | - | 1 | 0 | 0% | - |
-| R-9 | 4 | 檔名與 frontmatter 對不上的需求 | 未達成(M-5-third 還沒達成) | - | 1 | 0 | 0% | - |
-| R-1 | high | 分數算得出來 | 未達成(驗收還是模板) | - | 2 | 0 | 0% | 0/4 |
-| R-4 | (沒填) | 沒有 frontmatter 的需求 | 未達成(M-2-score-too 還沒達成) | R-1 | 1 | 0 | 0% | - |
+| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
+|---|---|---|---|---|---|---|---|
+| R-2 | 2 | 寫了三行卻沒有驗收測試,也沒有里程碑 | 未知(寫了三行卻沒有 R-2#ACCEPT 測試) | - | 0 | 0 | - |
+| R-3 | 2 | 里程碑編號撞到別條需求的 | 未達成(M-1 還沒達成) | - | 1 | 0 | 0% |
+| R-5 | 3 | 驗收引用了進入點與不存在的東西 | 未知(寫了三行卻沒有 R-5#ACCEPT 測試) | - | 1 | 0 | 0% |
+| R-9 | 4 | 檔名與 frontmatter 對不上的需求 | 未達成(M-5-third 還沒達成) | - | 1 | 0 | 0% |
+| R-1 | high | 分數算得出來 | 未達成(驗收還是模板) | - | 3 | 0 | 0% |
+| R-4 | (沒填) | 沒有 frontmatter 的需求 | 未達成(M-2-score-too 還沒達成) | R-1 | 1 | 0 | 0% |
 - R-3 下一個里程碑:M-1 <一句話>(還沒有切片,也還沒有英文名)
 - R-5 下一個里程碑:M-4-entry 進入點回得出分數(還沒有切片:dev-flow:spike-impl M-4-entry)
 - R-9 下一個里程碑:M-5-third 第三個數字看得到(還沒有切片:dev-flow:spike-impl M-5-third)
 - R-1 下一個里程碑:M-1 分數算得出來(F-001-score 卡 GAP-1、GAP-1、F-009-nope 不存在)
-- R-4 下一個里程碑:M-2-score-too 分數也算得出來(F-001-score 卡 GAP-1、GAP-1)
+- R-4 下一個里程碑:M-2-score-too 分數也算得出來(F-001-score 待修訂);待修訂:dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too
 - 沒有被任何里程碑綁定的 feature:F-002-other;它們不朝向任何需求
 
 ## 全域 Law
@@ -40,6 +40,7 @@ $ devflow status --tests stale.log
 | F-002-other | feature | draft | 3 | 2 | 0 | 1 | 0/0 | 0 | 進行中 |
 
 ## 1. 今天能開幾條線
+- M-2-score-too:dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too(R-4 優先 ? · 分數也算得出來)
 - M-4-entry:dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)
 - M-5-third:dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)
 
@@ -79,11 +80,8 @@ $ devflow status --tests stale.log
 | M-1 | 里程碑編號重複 | 編號全資料夾唯一;配號只走 devflow requirement milestone |
 | M-1 | 沒有英文名,切片開不了分支 | dev-flow:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵 |
 | M-1 | 綁定的 F-009-nope 不存在 | 改成 features/ 裡有的全名,或刪這個綁定 |
-| RF-1 | 動到的 F-002-other 不在 R-1 任何里程碑的綁定裡 | 調整不引入新 feature:只動這條需求的里程碑做出來的 feature;新能力開里程碑 |
-| RF-2 | 動到的 F-009-nope 不存在 | 改成 features/ 裡有的全名 |
-| RF-3 | 調整還是模板 | dev-flow:require-design 寫成一句話 |
-| RF-3 | 調整編號重複 | 編號全資料夾唯一;配號只走 devflow requirement refinement |
-| RF-3 | 沒有動到任何文檔 | 動到欄填這條需求的里程碑綁定過的 feature 全名 |
+| M-6 | 沒有英文名,REV 的依欄寫不出它的全名 | dev-flow:require-design 把第一格寫成 M-6-<slug>(kebab-case 英文);引用一條里程碑一律用全名 |
+| M-6 | 綁定的 F-009-nope 不存在 | 改成 features/ 裡有的全名,或刪這個綁定 |
 | .design/requirements/R-4-third-number.md | 沒有 frontmatter | 照 templates/requirement.md 補 id、priority、updated |
 | R-4 | 沒有驗收 | dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」 |
 | R-4 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
@@ -107,7 +105,8 @@ $ devflow status --tests stale.log
 ## 8. 建議路線
 1. 先回答 GAP-1、GAP-1(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派
 2. dev-flow:scope-laws F-002-other(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)
-3. dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)
-4. dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)
-5. dev-flow:build INV-2(只派 qa 寫 INV-2#LAW 的測試)
+3. dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too(R-4 優先 ? · M-2-score-too 分數也算得出來),之後自動接上 build
+4. dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)
+5. dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)
+6. dev-flow:build INV-2(只派 qa 寫 INV-2#LAW 的測試)
 exit 1

@@ -34,9 +34,9 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 不合規的樹先遷移,再照更新模式往下:
 
 - 只有 `subsystems/` 體系的 `.design/` → `devflow migrate .design --language <adapter>` 印帳本,帶開發者逐項判,再照本 skill 建新樹。
-- 需求不住 `requirements/` 的樹(`system.md` 有「## 需求」節,里程碑住 `objectives/` 的各檔或一份 `objectives.md`)→ `devflow migrate requirements` 印帳本,帳本列的「人要判的」(里程碑串接的順序、沒有里程碑的需求、無處可去的里程碑)帶開發者逐項判,再 `--write`。
+- 需求不住 `requirements/` 的樹(`system.md` 有「## 需求」節,里程碑住 `objectives/` 的各檔或一份 `objectives.md`)、或需求檔還帶調整表的樹(調整表的每一列換成一條綁既有 feature 的里程碑)→ `devflow migrate requirements` 印帳本,帳本列的「人要判的」(里程碑串接的順序、沒有里程碑的需求、無處可去的里程碑、沒有英文名的里程碑)帶開發者逐項判,再 `--write`。
 - `devflow status` 警訊說 `system.md` 沒有「## 全域 Law」區、或需求寫著「- Law:」→ `devflow migrate laws` 印帳本再 `--write`。兩道遷移可以接連跑,先後都行。
-- 要談的是需求、里程碑或調整 → 不在這裡,走 `dev-flow:require-design`。要定或要改的是全域 Law(領域不變量、層、對外 I/O)→ 不在這裡,走 `dev-flow:global-laws`。
+- 要談的是需求或里程碑 → 不在這裡,走 `dev-flow:require-design`。要定或要改的是全域 Law(領域不變量、層、對外 I/O)→ 不在這裡,走 `dev-flow:global-laws`。
 
 ## 步驟
 

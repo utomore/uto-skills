@@ -1,4 +1,4 @@
-// 會寫檔的子命令:module、claim、requirement add / milestone / refinement、invariant add、sync、modules --gen。
+// 會寫檔的子命令:module、claim、requirement add / milestone、invariant add、sync、modules --gen。
 // 需求一條一個檔,住 requirements/R-n-<slug>.md。
 import fs from 'node:fs';
 import path from 'node:path';
@@ -86,7 +86,7 @@ export function claim(design, slug, { description = '', date = today(), mileston
   // --milestone 收全名 M-n-<slug>;只給編號也靜默認得。認到之後綁定用它的編號當鍵,印出來的一律是全名
   const ms = milestone ? design.requirements.requirements.flatMap((q) => q.milestones).find((m) => m.fullName === milestone || m.id === milestone) : null;
   if (milestone && !ms) return { text: `requirements/ 沒有 ${milestone} 這條里程碑;先 lawful requirement milestone <R-n> <slug> <一句話>`, exitCode: 1 };
-  if (milestone && (design.requirements.merged || design.objectivesFile)) return { text: NOT_MIGRATED, exitCode: 1 };
+  if (milestone && notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
   // 別的工作樹上已經 claim 走的號也算:每條切片各自 claim,合進主線時才不會同號
   const nums = [];
   const lawfulRel = path.relative(design.root, design.pipelinesDir);
@@ -122,25 +122,20 @@ export function claim(design, slug, { description = '', date = today(), mileston
 }
 
 const MILESTONE_TABLE = ['| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|'];
-const REFINEMENT_TABLE = ['| 調整 | 做到什麼 | 動到 |', '|---|---|---|'];
 
 const requirementFile = (design, q) => path.join(design.root, q.file);
-const NOT_MIGRATED = '這棵樹的需求與里程碑還沒有搬進 requirements/;先 lawful migrate requirements --write 換成一條需求一個檔';
+// 寫需求檔的指令只在「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」的樹上動手
+const notMigrated = (design) => design.requirements.merged || design.objectivesFile || design.requirements.requirements.some((q) => q.hasRefinementTable);
+const NOT_MIGRATED = '這棵樹的需求檔不是「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」;先 lawful migrate requirements --write 換過來';
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-// 在需求檔裡、表頭第一格是 head 的那張表尾端加一列;沒有那張表就補表頭:里程碑表補在調整表之前,調整表補在檔尾
+// 在需求檔裡、表頭第一格是 head 的那張表尾端加一列;沒有那張表就在檔尾補表頭
 function appendRow(lines, head, table, row) {
-  const headAt = (h) => lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === h);
-  const i = headAt(head);
+  const i = lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === head);
   if (i >= 0) {
     let last = i;
     while (last + 1 < lines.length && /^\s*\|/.test(lines[last + 1])) last++;
     lines.splice(last + 1, 0, row);
-    return;
-  }
-  const before = head === '里程碑' ? headAt('調整') : -1;
-  if (before >= 0) {
-    lines.splice(before, 0, ...table, row, '');
     return;
   }
   let end = lines.length;
@@ -165,10 +160,10 @@ function bindMilestone(design, milestoneId, fullName) {
 }
 
 // requirement add <slug> <一句話> --priority <1-4> [--accept <句>]:鑄 R-n,建 requirements/R-n-<slug>.md。
-// 需求是必須達成的事,驗收是判它達成與否的那一句;里程碑與調整各自配號,模板的佔位列不進檔。
+// 需求是必須達成的事,驗收是判它達成與否的那一句;里程碑另外配號,模板的佔位列不進檔。
 export function requirementAdd(design, slug, title, { accept = '', priority, date = today() } = {}) {
   if (!design.cone) return { text: `沒有 .lawful/Cone.md;${design.legacySystem ? 'lawful migrate cone --write' : 'lawful:kickoff 先建它'}`, exitCode: 1 };
-  if (design.requirements.merged || design.objectivesFile) return { text: NOT_MIGRATED, exitCode: 1 };
+  if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
   if (!SLUG.test(slug || '')) return { text: `需求要一個 kebab-case 英文名:lawful requirement add <slug> <一句話> --priority <1-4>(拿到的是「${slug || ''}」)`, exitCode: 1 };
   if (!title || /<[^>]*>/.test(title)) return { text: '需求要一句話:誰在什麼情況下要得到什麼', exitCode: 1 };
   if (!/^[1-4]$/.test(String(priority || ''))) return { text: '--priority 要是 1 到 4,1 最高', exitCode: 1 };
@@ -181,7 +176,7 @@ export function requirementAdd(design, slug, title, { accept = '', priority, dat
   tpl = tpl.replace(/R-n-<slug>/g, fullName).replace(/R-n/g, id)
     .replace('<1 到 4,1 最高>', String(priority)).replace('<YYYY-MM-DD>', date)
     .replace('<一句話:誰在什麼情況下要得到什麼>', title)
-    .split(/\r?\n/).filter((l) => !/^\|\s*(M|RF)-\d+\S*\s*\|.*<[^>]*>/.test(l)).join('\n');
+    .split(/\r?\n/).filter((l) => !/^\|\s*M-\d+\S*\s*\|.*<[^>]*>/.test(l)).join('\n');
   // 給了 --accept 就只留那一句;三行式在對談裡寫
   if (accept) {
     const lines = tpl.split('\n');
@@ -247,7 +242,7 @@ export function invariantAdd(design, title, { kind = 'invariant' } = {}) {
 // requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]:鑄 M-n(全資料夾唯一),以全名 M-n-<slug> 加到該需求檔的里程碑表最後;表的列序就是先後。
 // slug 是這條里程碑的英文名,切片的分支 build/M-n-<slug> 與決策紀錄 journal/M-n-<slug>.md 都以它為鍵。
 export function milestoneAdd(design, reqId, slug, title, { bind = '' } = {}) {
-  if (design.requirements.merged || design.objectivesFile) return { text: NOT_MIGRATED, exitCode: 1 };
+  if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
   const req = design.requirements.requirements.find((q) => q.id === reqId);
   if (!req) return { text: `requirements/ 沒有 ${reqId};先 lawful requirement add`, exitCode: 1 };
   if (!SLUG.test(slug || '')) return { text: `里程碑要一個 kebab-case 英文名:lawful requirement milestone ${reqId} <slug> <一句話>(拿到的是「${slug || ''}」)`, exitCode: 1 };
@@ -262,30 +257,17 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '' } = {}) {
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   appendRow(lines, '里程碑', MILESTONE_TABLE, `| ${fullName} | ${title} | ${binds.length ? binds.join('、') : '-'} |`);
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${fullName} 寫進 ${req.fullName}${binds.length ? `,綁定 ${binds.join('、')}` : `,還沒有切片:lawful:spike-impl ${fullName}`}`].join('\n'), exitCode: 0, id, fullName };
-}
-
-// requirement refinement <R-n> <一句話> --touch <全名,全名>:鑄 RF-n(全資料夾唯一),加到該需求檔的調整表裡。
-// 動到的 pipeline 要是這條需求的里程碑綁定過的:調整不引入新 pipeline。
-export function refinementAdd(design, reqId, title, { touch = '' } = {}) {
-  if (design.requirements.merged || design.objectivesFile) return { text: NOT_MIGRATED, exitCode: 1 };
-  const req = design.requirements.requirements.find((q) => q.id === reqId);
-  if (!req) return { text: `requirements/ 沒有 ${reqId};先 lawful requirement add`, exitCode: 1 };
-  if (!title || /<[^>]*>/.test(title)) return { text: '調整要一句話:改既有 pipeline 的哪一種品質', exitCode: 1 };
-  const touches = touch.split(/[、,]/).map((x) => x.trim()).filter(Boolean);
-  if (!touches.length) return { text: '--touch 至少一條 pipeline 全名;調整只改既有的 pipeline', exitCode: 1 };
-  const missing = touches.filter((b) => !design.pipelines.some((p) => p.fullName === b));
-  if (missing.length) return { text: `動到的 ${missing.join('、')} 不存在;只能是 pipelines/ 裡有的全名`, exitCode: 1 };
-  const bound = new Set(req.milestones.flatMap((m) => m.binds));
-  const outside = touches.filter((b) => !bound.has(b));
-  if (outside.length) return { text: `${outside.join('、')} 不在 ${reqId} 任何里程碑的綁定裡;調整不引入新 pipeline,新能力開里程碑(lawful requirement milestone)`, exitCode: 1 };
-  const nums = design.requirements.requirements.flatMap((q) => q.refinements.map((r) => Number((r.id.match(/^RF-(\d+)$/) || [0, 0])[1])));
-  const id = `RF-${(nums.length ? Math.max(...nums) : 0) + 1}`;
-  const file = requirementFile(design, req);
-  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
-  appendRow(lines, '調整', REFINEMENT_TABLE, `| ${id} | ${title} | ${touches.join('、')} |`);
-  fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${id} 寫進 ${req.fullName},動到 ${touches.join('、')}`, `下一步:lawful:scope-revise ${touches[0]}(既有的 law 不動、可以新增,REV 的依欄引用 ${id};要調整既有的 law 才做得到,整件改走 lawful:scope-laws);調整達成 = 動到的每條都有一條 REV 引用它、都達成,而且 ${reqId} 仍達成`].join('\n'), exitCode: 0, id };
+  // 綁的 pipeline 已經被別條里程碑綁過:這條里程碑靠修訂它達成,REV 的依欄引用了這條里程碑才算數
+  const revise = binds.filter((b) => design.requirements.requirements.some((q) => q.milestones.some((m) => m.binds.includes(b))));
+  return {
+    text: [
+      `${fullName} 寫進 ${req.fullName}${binds.length ? `,綁定 ${binds.join('、')}` : `,還沒有切片:lawful:spike-impl ${fullName}`}`,
+      ...revise.map((b) => `下一步:lawful:scope-revise ${b},REV 的依欄寫 ${fullName}`),
+    ].join('\n'),
+    exitCode: 0,
+    id,
+    fullName,
+  };
 }
 
 // 同層搬家的 stage,把模組欄改成程式碼的模組。

@@ -25,7 +25,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief scope-laws --args '$ARGUMENTS' --part 6 --of 6`
 
-上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief scope-laws` 的輸出:規章、分支與工作樹、`Cone.md` 全份、決策紀錄全份。目標是里程碑時另有 `.lawful/` 的樹、這條里程碑所在的需求檔全文(一句話、驗收、里程碑表)、`modules.md`、已經綁上的 pipeline 全文與逐條狀態、types 層每個模組的匯出;目標是一條既有的 pipeline 時另有那條 pipeline 全文、逐條狀態、Stages 上每條簽名與型別的宣告、它引用的 pipeline 的 Stages 表與引用它的那幾列和 law、它朝向哪條里程碑與哪條調整(連同需求檔全文)、`gaps.md`、`lint sig` 與 `lint laws` 裡講到它的、status 報告裡講到它的每一行(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。切片的程式碼照決策紀錄「Touched」列的模組自己讀,一輪讀完。
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief scope-laws` 的輸出:規章、分支與工作樹、`Cone.md` 全份、決策紀錄全份。目標是里程碑時另有 `.lawful/` 的樹、這條里程碑所在的需求檔全文(一句話、驗收、里程碑表)、`modules.md`、已經綁上的 pipeline 全文與逐條狀態、types 層每個模組的匯出;目標是一條既有的 pipeline 時另有那條 pipeline 全文、逐條狀態、Stages 上每條簽名與型別的宣告、它引用的 pipeline 的 Stages 表與引用它的那幾列和 law、它朝向哪條里程碑(連同需求檔全文)、`gaps.md`、`lint sig` 與 `lint laws` 裡講到它的、status 報告裡講到它的每一行(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。切片的程式碼照決策紀錄「Touched」列的模組自己讀,一輪讀完。
 
 目標:里程碑全名 `M-n-<slug>`(切片剛做完),或既有的 law 要調整、要刪 stage、要退役的那條 pipeline 的全名。參數裡全名後面還有一段話(`lawful:scope-revise` 放棄時替開發者寫好的那一行,或開發者自己寫的)→ 那一段就是這次修訂的來源與原因:原本要做什麼、哪一條既有的 law 為什麼非調整不可、連帶要改的簽名、型別、模組有哪些;照它開工,不必再問一次。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief scope-laws <目標> --no-rules`;同一場裡目標 pipeline 或專案現況變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
@@ -34,21 +34,20 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 | 情形 | 輸入 | 產出 |
 |---|---|---|
 | **切片剛做完**(主場景) | 里程碑全名 `M-n-<slug>`(它的 `build/` 工作樹上有一條 `verdict: feasible` 的切片與它的決策紀錄),或這條里程碑底下一條還是 `draft` 的 pipeline 全名 | 一條或幾條 `ready` 的 `pipelines/P-00x-<slug>.md`(`kind: io` 或 `kind: subflow`),綁在這條里程碑上;四項討論的結論(寫成 law、記進「決定」、或列成給 `lawful:global-laws` 的變更提議);決策紀錄「Verification」的「首跑該紅」;然後接上 `lawful:build` |
-| **既有 pipeline 的 law 要調整** | 一條已經拍板過的 pipeline 全名(含 `verified`),加上來源:開發者要修改、放寬、替換或刪除一條既有的 law,要刪一個有 law 的 stage,回答一條答案要調整既有 law 的 GAP(含整合仲裁留下的、整合時「重複的 stage 留哪一份」留下的),要調整既有的 law 才做得到的調整 `RF-n` 或里程碑 `M-n-<slug>`(靠修訂這條既有的 pipeline 達成的那一種),或 `lawful:scope-revise` 放棄之後整件轉過來的修訂(連同它原本打算改的簽名、型別、實作,與它攤過的影響範圍) | 改過的原檔、**一條**裝下整件修訂的 REV(調整的 law、連帶的簽名、型別、模組、層、Examples、新增的 law)、連動的 pipeline、同步改過的宣告;然後接上 `lawful:build`,只重做 REV 點名的,收尾時 pipeline 回到 `verified` |
+| **既有 pipeline 的 law 要調整** | 一條已經拍板過的 pipeline 全名(含 `verified`),加上來源:開發者要修改、放寬、替換或刪除一條既有的 law,要刪一個有 law 的 stage,回答一條答案要調整既有 law 的 GAP(含整合仲裁留下的、整合時「重複的 stage 留哪一份」留下的),要調整既有的 law 才做得到的里程碑 `M-n-<slug>`(靠修訂這條 pipeline達成的那一種),或 `lawful:scope-revise` 放棄之後整件轉過來的修訂(連同它原本打算改的簽名、型別、實作,與它攤過的影響範圍) | 改過的原檔、**一條**裝下整件修訂的 REV(調整的 law、連帶的簽名、型別、模組、層、Examples、新增的 law)、連動的 pipeline、同步改過的宣告;然後接上 `lawful:build`,只重做 REV 點名的,收尾時 pipeline 回到 `verified` |
 | **文檔退役** | 一條用不到的 pipeline 全名(一次性的存檔搬遷跑完了、功能下架),加上開發者講的為什麼 | 刪掉的 pipeline 文檔、它的測試模組與程式碼;里程碑的綁定欄與 `Cone.md` 的對外 I/O 表拿掉它;別條還在用的 stage 連同 law 先搬到還活著的那一條;決策紀錄記為什麼退役,交給 `lawful:integrate` 寫成 ADR |
 
 ## 前置
 
-一句話分流(`pipelines.md`「修訂(REV)」):**要調整(修改、放寬、替換、刪除)既有的 law → 這裡;law 不動、或只新增 law,而文檔或實作要變 → `lawful:scope-revise`;全域 Law → `lawful:global-laws`;需求面的條目(需求、驗收、優先、里程碑、調整)→ `lawful:require-design`。** 一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止。
+一句話分流(`pipelines.md`「修訂(REV)」):**要調整(修改、放寬、替換、刪除)既有的 law → 這裡;law 不動、或只新增 law,而文檔或實作要變 → `lawful:scope-revise`;全域 Law → `lawful:global-laws`;需求面的條目(需求、驗收、優先、里程碑)→ `lawful:require-design`。** 一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止。
 
-- 目標是一條 `verified` 的 pipeline,而這次**既有的 law 一條都不動**(簽名或型別要改、加 stage、stage 跨層搬家、層的歸屬修正、`=` 列搬到別的模組單元、Brief / 決定 / 描述要改、調整 `RF-n` 的實作品質、bug、只要新增一條保護用的或新上界的 law、答案不必調整既有 law 的 GAP)→ 走 `lawful:scope-revise`,新增的 law 它自己談。stage 只是在同一層內搬模組 → 不是修訂,`lawful sync`。
+- 目標是一條 `verified` 的 pipeline,而這次**既有的 law 一條都不動**(簽名或型別要改、加 stage、stage 跨層搬家、層的歸屬修正、`=` 列搬到別的模組單元、Brief / 決定 / 描述要改、靠修訂達成的里程碑而既有的 law 不必動、bug、只要新增一條保護用的或新上界的 law、答案不必調整既有 law 的 GAP)→ 走 `lawful:scope-revise`,新增的 law 它自己談。stage 只是在同一層內搬模組 → 不是修訂,`lawful sync`。
 - **刪 stage**:刪掉一個有 law 的 stage 等於刪既有的 law,整件在這裡做(情形二)。**兩條 pipeline 重複的 stage**(兩條切片平行開工各寫了一份,整合時選了一份留著):目標是要改成引用的那一條——刪掉自己的那個 stage 與它的 law,Stages 表那一列改成模組欄註明「見 <留著的那一條的全名>」,law 不搬、不複製(`pipelines.md`「編號與引用」);照情形二做,REV 的「連動」欄寫留著的那一條。
 - **文檔退役**:一條 pipeline 用不到了 → 目標是它的全名,走情形三(`pipelines.md`「修訂(REV)」)。
 - 要加的是一個**可以獨立拿掉的新能力** → 那是新的里程碑與切片,走 `lawful:require-design` 再 `lawful:spike-impl`。
 - **切片剛做完**:工作目錄是這條里程碑的工作樹 `../<repo>.worktrees/M-n-<slug>`;決策紀錄在、`verdict: feasible`。沒有切片 → `lawful:spike-impl`。先把主線合進來一次:`git fetch` 後 `git merge origin/<主線>`。約束對著最新的全域 Law 談;合不進來的衝突先解,解不了就停下回報。
 - **既有 pipeline 的 law 要調整**:
-  - 來源是調整 `RF-n`:調整預設走 `lawful:scope-revise`(需要新的 law 它自己新增);這裡只收要調整既有的 law 才做得到的調整,而且整件都在這裡做。那條 `RF-n` 要在某個需求檔的調整表上、動到的 pipeline 要是它列的、該需求的里程碑要已經全部達成;不是就停,回 `lawful:require-design`。要改簽名或加 stage 讓它做到新能力的,不是調整,是新里程碑。調整動到多條 pipeline 時,每一條各一次修訂、各自接上 build。
-  - 來源是一條靠修訂這條既有的 pipeline 達成的里程碑 `M-n-<slug>`(`pipelines.md`「願景、需求與里程碑」):它要是所在需求下一條還沒達成的里程碑;就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照 `roles.md`「分支與所有權」從主線開),REV 的依欄寫 `M-n-<slug>` 與它那一句,重開 pipeline 的同一個動作把這條 pipeline 的全名填進那條里程碑的綁定欄。既有的 law 一條都不必動的,走 `lawful:scope-revise`。
+  - 來源是一條靠修訂這條 pipeline 達成的里程碑 `M-n-<slug>`(`pipelines.md`「願景、需求與里程碑」):這裡只收要調整既有的 law 才做得到的,整件都在這裡做;既有的 law 一條都不必動的(新的承諾用新增的 law 表達),走 `lawful:scope-revise`。它要是所在需求下一條還沒達成的里程碑、它的綁定欄要有這條 pipeline(`status` 顯示它「待修訂」);不是就停,回 `lawful:require-design`——綁定欄由它當場填,這裡不碰那一欄。就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照 `roles.md`「分支與所有權」從主線開),REV 的依欄寫里程碑的全名 `M-n-<slug>` 與它那一句:`lawful status` 靠這條 REV 判這條里程碑達成了沒。一條里程碑綁了好幾條既有的 pipeline 時,每一條各一次修訂、各自接上 build。要的是一個可以獨立拿掉的新能力,不是修訂,是做出新 pipeline 的里程碑。
   - 目標 pipeline 還不是 `verified`(切片那一波的 `draft` / `ready`:Law 談到一半、qa 或 refactor 開了 GAP、整合的仲裁退回來)→ 那一波的簽名、型別與 law 都在這裡改,law 動不動都一樣。
   - 一律改原檔。**不開第二份檔**:開了,原檔就停在它被寫下的那一天,三個月後沒有人知道它現在長什麼樣。
   - **在哪做**(`roles.md`「分支與所有權」):這條 pipeline 還在一條沒整合的 `build/` 分支上 → 就在那棵工作樹上做。pipeline 已在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。`lawful:scope-revise` 放棄之後轉過來的,就在它開的那棵樹上做:先確認它已經還原(pipeline 是 `verified`、與它開工時的 HEAD 沒有差異),沒有還原乾淨就停下回報。
@@ -99,7 +98,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 文檔先行:先改條文,再改測試與實作(`pipelines.md`「修訂(REV)」)。一次修訂一條 REV,**整件修訂一手包辦**:調整 law 的同時,這一件連帶要改的 Stages 簽名、型別、模組、層、Examples、新增的 law 與實作方向,都在同一條 REV 裡處理,然後直接接上 build 做到 `verified`。不把其中一部分留給 `lawful:scope-revise`。
 
-1. **拿到來源的原句**:參數裡全名後面的那一段話就是來源與原因(`lawful:scope-revise` 放棄時寫好的那一行:原本要做什麼、哪一條既有的 law 為什麼非調整不可、連帶要改的簽名、型別、模組),照它開工,不必再問開發者一次;沒有那一段才問。其餘的來源:GAP 的提問原句(整合仲裁留下的 GAP,原句含開發者選了哪個選項)、ADR 全名、`RF-n` 與它那一句、里程碑 `M-n-<slug>` 與它那一句、開發者的那一句話。REV 的「依」欄要寫它(調整一定寫 `RF-n`,`lawful status` 靠它算調整的進度),不寫已經刪掉的條目編號。
+1. **拿到來源的原句**:參數裡全名後面的那一段話就是來源與原因(`lawful:scope-revise` 放棄時寫好的那一行:原本要做什麼、哪一條既有的 law 為什麼非調整不可、連帶要改的簽名、型別、模組),照它開工,不必再問開發者一次;沒有那一段才問。其餘的來源:GAP 的提問原句(整合仲裁留下的 GAP,原句含開發者選了哪個選項)、ADR 全名、里程碑的全名 `M-n-<slug>` 與它那一句、開發者的那一句話。REV 的「依」欄要寫它(來源是里程碑的一定寫它的全名,`lawful status` 靠它判這條里程碑達成了沒),不寫已經刪掉的條目編號。
 2. **影響範圍**(`laws.md`「影響範圍與選項」):先查、先列,不准省略一項,查過而沒有的寫「無」。`lawful status --pipeline <全名>`(引用與被引用)、`lawful status`(建構中的分支、需求達成與否)是查的工具:
 
    | 項 | 列什麼 |
@@ -112,8 +111,8 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
    | 需求 | 哪幾條需求的驗收引用到動到的 law;改完之後它還達不達成 |
 
 3. **給選項,等開發者選**:至少兩個,其中一個一定是「不改」。每個選項寫:改什麼、影響範圍裡哪幾項因此不同、當下成本、之後的代價、可不可逆;放寬與刪除的選項,代價那一格寫明之後哪些行為沒有 law 擋著;你給傾向與理由。**一次一條 law**,開發者對著那一個選項明確說了要,才往下;沉默、整批同意、「你決定」都不算。來源的 GAP 已經記著開發者選定的選項時,仍把影響範圍攤出來請開發者確認一次:仲裁當下看到的是反例,不是全部的牽連。
-4. **`verified` 先重開**:`status` 改回 `ready`,在「決定」記一條「重開:<為什麼>」。來源是里程碑 `M-n-<slug>` 的,同一個動作把這條 pipeline 的全名填進那條里程碑的綁定欄。
-5. **先補保護**:這次不准變的既有行為若還不是 law,**先補成 `LAW-n` 再改**。沒有 law 守著的「行為不變」等於沒有保護。來源是調整的,保護一定含需求的驗收引用到的每條 law:調整不准讓需求退回未達成。
+4. **`verified` 先重開**:`status` 改回 `ready`,在「決定」記一條「重開:<為什麼>」。
+5. **先補保護**:這次不准變的既有行為若還不是 law,**先補成 `LAW-n` 再改**。沒有 law 守著的「行為不變」等於沒有保護。來源是里程碑的,保護一定含需求的驗收引用到的每條 law:修訂不准讓需求退回未達成。
 6. **改條文**,整件一次改完:調整的那幾條 law;這一件連帶要改的 Stages 簽名、型別、模組欄與層欄、加或刪的 stage、Examples、Brief 與「決定」。簽名或型別改了名,別條 law 三行裡的識別字跟著換是機械同步,意思不變,REV 註明。新的 law 照 `laws.md`「Law 怎麼談」的判準:講得出一個讓它變假的實作;開發者原本不在乎、現在要承諾的行為,也是在這裡補成 law。新增的 law 碰到資料交互、儲存、外部串接或架構,照情形一第 5 步那一項的題目問過。刪掉的 law 號永久空缺,新增的往下接。效能的承諾把基準線寫進新的 law(「存檔不超過 1 MB,基準線 2026-09-18 量到 3 MB」)。收窄定義域的修訂只動那條 law 的 `forall` / `given`。刪 stage:那一列與掛在它上面的 law 一起刪,引用它的別條 law 照第 2 步列過的逐條處理。重複的 stage 改成引用:那一列留著、簽名照抄、模組欄改成留著的那一條的模組並註明「見 <它的全名>」,掛在它上面的 law 與只覆蓋那幾條 law 的 example 刪掉;REV 的重委派寫 qa(刪掉守那幾條 law 的測試)與 refactor(刪掉自己那一份實作,改呼叫留著的那一份)。
 7. **寫 REV**:`## 修訂記錄` 加**一條**,裝下整件修訂,五欄齊全(依 / 動到 / 保護 / 重委派 / 連動);動到欄列調整的與新增的 law、連帶的簽名、型別、stage、模組與 example;依欄連同選了哪個選項,否決的選項與理由寫進「決定」。law 變了重派 qa,行為、簽名或型別變了重派 refactor。`updated` 改成今天。
 8. **連動**:影響範圍「連動的文檔」列到的每一條,逐條同步並寫進「連動」欄;`verified` 的先重開、各記一條 REV。**責任在改的人**:簽名改了編譯器會告訴下游,語意改了什麼都不會抓。
@@ -140,7 +139,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 收尾
 
-切片剛做完:回報切出幾條 pipeline(各是 `io` 還是 `subflow`)、各幾條 stage、觀察點與 law、四項各談出什麼(哪幾條成了 law、哪幾條進了「決定」、哪一項是「無」)、哪幾條首跑該紅、哪幾件開發者答了不在乎(之後可以自由改的行為)、改了哪些宣告、**給 `lawful:global-laws` 的變更提議**(逐條:哪一條全域 Law、為什麼、哪個決定逼出來的;沒有寫「無」)、引用了哪幾條 pipeline 的哪幾個 stage。既有 pipeline 的 law 要調整:回報 REV 第幾條、來源(含參數裡帶進來的那一段原因)、影響範圍六項、開發者選了哪個選項與否決了哪幾個、動到什麼(調整的 law、新增的 law、連帶的簽名、型別、模組、層、example)、保護什麼、要重派誰、連動了哪幾條、對應的調整或里程碑(有的話)。文檔退役:回報為什麼退役、影響範圍、開發者選了哪個選項、哪幾個 stage 搬去了哪一條、刪了哪些檔、從哪條里程碑與對外 I/O 表的哪幾列拿掉、整套測試與 `lint all` 的結果。附定錨區塊(`tooling.md`「收尾定錨」)。接上 build 之後的收尾由 build 做;達成後 `lawful:integrate`。
+切片剛做完:回報切出幾條 pipeline(各是 `io` 還是 `subflow`)、各幾條 stage、觀察點與 law、四項各談出什麼(哪幾條成了 law、哪幾條進了「決定」、哪一項是「無」)、哪幾條首跑該紅、哪幾件開發者答了不在乎(之後可以自由改的行為)、改了哪些宣告、**給 `lawful:global-laws` 的變更提議**(逐條:哪一條全域 Law、為什麼、哪個決定逼出來的;沒有寫「無」)、引用了哪幾條 pipeline 的哪幾個 stage。既有 pipeline 的 law 要調整:回報 REV 第幾條、來源(含參數裡帶進來的那一段原因)、影響範圍六項、開發者選了哪個選項與否決了哪幾個、動到什麼(調整的 law、新增的 law、連帶的簽名、型別、模組、層、example)、保護什麼、要重派誰、連動了哪幾條、對應的里程碑全名(有的話)。文檔退役:回報為什麼退役、影響範圍、開發者選了哪個選項、哪幾個 stage 搬去了哪一條、刪了哪些檔、從哪條里程碑與對外 I/O 表的哪幾列拿掉、整套測試與 `lint all` 的結果。附定錨區塊(`tooling.md`「收尾定錨」)。接上 build 之後的收尾由 build 做;達成後 `lawful:integrate`。
 
 ## 邊界
 

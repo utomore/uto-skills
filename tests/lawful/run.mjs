@@ -86,9 +86,17 @@ const CASES = [
   ['save-game-invariant-add', 'save-game', ['invariant', 'add', '存檔裡的實體 id 不重複'], ['.lawful/Cone.md']],
   ['save-game-invariant-add-bad-kind', 'save-game', ['invariant', 'add', '存檔裡的實體 id 不重複', '--kind', 'always']],
   ['templated-invariant-add', 'templated', ['invariant', 'add', '報表的行數不為負', '--kind', 'bound'], ['.lawful/Cone.md']],
-  ['save-game-requirement-refinement', 'save-game', ['requirement', 'refinement', 'R-1', '寫檔改成串流', '--touch', 'P-001-save-write'], ['.lawful/requirements/R-1-save-roundtrip.md']],
-  ['save-game-requirement-refinement-missing', 'save-game', ['requirement', 'refinement', 'R-1', '寫檔改成串流', '--touch', 'P-002-save-load']],
-  ['broken-requirement-refinement-outside', 'broken', ['requirement', 'refinement', 'R-2', '寫檔改成串流', '--touch', 'P-001-game-save']],
+  // 綁別條需求的里程碑做出來的 pipeline 也不擋:這條里程碑靠修訂它達成,下一步是 scope-revise,REV 的依欄寫這條里程碑的全名
+  ['broken-requirement-milestone-other-requirement', 'broken', ['requirement', 'milestone', 'R-2', 'save-stream', '存檔寫入改成串流', '--bind', 'P-001-game-save'], ['.lawful/requirements/R-2-load-report.md']],
+  // tuned:已經是 requirements/ 而需求檔還帶調整表的樹(verified-ref 加一張調整表,P-002-count-tally 的 REV-1 依欄引用 RF-1)。
+  // status 照讀(每一列讀成一條綁既有 pipeline 的里程碑:REV 引用了的達成、沒引用的待修訂)、警訊指到 migrate requirements;寫需求檔的指令停下;
+  // migrate requirements 把每一列換成里程碑表的一列、REV 依欄的編號跟著改寫
+  ['tuned-status', 'tuned', ['status', '--tests', 'test.log']],
+  ['tuned-requirement-milestone', 'tuned', ['requirement', 'milestone', 'R-1', 'report-csv', '報表匯得出 CSV']],
+  ['tuned-requirement-add', 'tuned', ['requirement', 'add', 'report-fast', '報表一秒內印完', '--priority', '3']],
+  ['tuned-claim', 'tuned', ['claim', 'report-export', '--description', '把報表匯成 CSV', '--milestone', 'M-2-report-render', '--date', DATE]],
+  ['tuned-migrate-requirements', 'tuned', ['migrate', 'requirements']],
+  ['tuned-migrate-requirements-write', 'tuned', ['migrate', 'requirements', '--write'], ['.lawful/requirements/R-1-report-correct.md', '.lawful/pipelines/P-002-count-tally.md', '.lawful/pipelines/P-001-report-render.md']],
   ['legacy-migrate-cone', 'legacy', ['migrate', 'cone']],
   ['legacy-migrate-cone-write', 'legacy', ['migrate', 'cone', '--write', '--date', DATE], ['.lawful/Cone.md', '.lawful/objectives/R-1-O-1-save-write.md', '.lawful/objectives.md', '.lawful/modules.md', '.lawful/pipelines/P-001-save-write.md', '.lawful/system.md']],
   ['legacy-migrate-requirements', 'legacy', ['migrate', 'requirements']],
@@ -121,6 +129,9 @@ const CASES = [
   ['save-game-brief-scope-laws-doc', 'save-game', ['brief', 'scope-laws', 'P-001-save-write', '--tests', 'test.log', '--no-rules']],
   ['templated-brief-scope-laws', 'templated', ['brief', 'scope-laws', 'M-1', '--no-rules']],
   ['refs-brief-scope-revise', 'refs', ['brief', 'scope-revise', 'P-002', '--tests', 'none.log', '--no-rules']],
+  // 靠修訂這一條達成的里程碑在「這條 pipeline 朝向哪裡」照樣列:REV 的依欄引用了(verified-ref)、還沒引用(save-game)
+  ['verified-ref-brief-scope-revise-cited', 'verified-ref', ['brief', 'scope-revise', 'P-002-count-tally', '--tests', 'test.log', '--no-rules']],
+  ['save-game-brief-scope-revise-pending', 'save-game', ['brief', 'scope-revise', 'P-001-save-write', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-scope-revise-wrong-kind', 'save-game', ['brief', 'scope-revise', 'M-1-save-write', '--no-rules']],
   ['save-game-brief-global-laws-invariant', 'save-game', ['brief', 'global-laws', 'INV-1', '--tests', 'test.log', '--no-rules']],
   ['broken-brief-global-laws', 'broken', ['brief', 'global-laws', '--tests', 'stale.log', '--no-rules']],
@@ -177,7 +188,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement add <slug>/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || !/requirement refinement <R-n>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /IO 介面|子流/.test(h.stdout) || !/--kind <io \| subflow>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || /^\s+rename\b/m.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement add <slug>/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || /refinement|RF-/i.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /IO 介面|子流/.test(h.stdout) || !/--kind <io \| subflow>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || /^\s+rename\b/m.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
@@ -269,6 +280,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   const sets = [
     ['preflow', [['laws', 'requirements'], ['requirements', 'laws'], ['cone', 'requirements', 'laws']]],
     ['legacy', [['cone', 'laws', 'requirements'], ['cone', 'requirements', 'laws']]],
+    ['tuned', [['laws', 'requirements'], ['requirements', 'laws']]],
   ];
   for (const [fixture, orders] of sets) {
     const got = after(fixture, orders);
@@ -277,7 +289,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
       if (g.tree !== got[0].tree) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹與 ${got[0].order.join(' → ')} 不一樣`);
       if (!g.again.every((t) => !/^- /m.test(t.split('人要判的')[0]))) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後再跑一次,還有東西要換`);
       if (/lawful migrate (cone|laws|requirements)/.test(g.status)) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後 status 還指到 migrate`);
-      if (!/\n--- \.lawful\/requirements\/R-1-/.test(`\n${g.tree}`) || /\n--- \.lawful\/objectives\.md\n/.test(g.tree) || /\nkind: (IO 介面|子流)\n/.test(g.tree)) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹沒有 requirements/、還留著 objectives.md、或 kind 沒換`);
+      if (!/\n--- \.lawful\/requirements\/R-1-/.test(`\n${g.tree}`) || /\n--- \.lawful\/objectives\.md\n/.test(g.tree) || /\nkind: (IO 介面|子流)\n/.test(g.tree) || `\n${g.tree}`.split('\n--- ').some((s) => s.startsWith('.lawful/requirements/') && /\n\| 調整 \|/.test(s))) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹沒有 requirements/、還留著 objectives.md、kind 沒換、或需求檔還有調整表`);
     }
   }
   // 只有 system.md 的樹:laws 與 requirements 都講先跑 cone,不動任何檔
@@ -383,6 +395,42 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
       failed++;
       console.log('✗ 殘留的 build 分支');
     } else console.log('✓ 殘留的 build 分支');
+  }
+}
+
+// 靠修訂達成的里程碑也可以是 build 分支的鍵:綁的 pipeline 還沒有引用它的 REV 是「待修訂」(不因為 pipeline 本來就 verified 而算做完、也不因為沒有決策紀錄而算切片中),
+// 工作樹上寫了引用它的 REV、pipeline 重開之後照一般的字。verified-ref 的 M-4-tally-unicode 就是這樣一條
+{
+  const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
+  if (!hasGit) console.log('· 沒有 git,跳過靠修訂達成的里程碑的工作樹檢查');
+  else {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'revise-'));
+    const main = path.join(base, 'repo');
+    const tree = path.join(base, 'repo.worktrees', 'M-4-tally-unicode');
+    const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
+    const lawful = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+    fs.cpSync(path.join(here, 'fixtures', 'verified-ref'), main, { recursive: true });
+    git(main, 'init', '-b', 'main');
+    git(main, 'add', '-A');
+    git(main, 'commit', '-m', 'base');
+    const before = lawful(main, 'status', '--tests', 'test.log').stdout;
+    git(main, 'worktree', 'add', '-b', 'build/M-4-tally-unicode', tree, 'HEAD');
+    const opened = lawful(main, 'status', '--tests', 'test.log').stdout;
+    const doc = path.join(tree, '.lawful', 'pipelines', 'P-002-count-tally.md');
+    fs.writeFileSync(doc, `${fs.readFileSync(doc, 'utf8').replace(/^status: verified(\r?)$/m, 'status: ready$1').replace(/\s+$/, '')}\n- REV-2(${DATE},依 M-4-tally-unicode):全形字也算一個字\n`);
+    const revised = lawful(main, 'status', '--tests', 'test.log').stdout;
+    const inTree = lawful(tree, 'status', '--tests', 'test.log').stdout;
+    const ok = before.includes('- M-4-tally-unicode:lawful:scope-revise P-002-count-tally(') && before.includes('REV 的依欄寫 M-4-tally-unicode')
+      && opened.includes('- M-4-tally-unicode:建構中,分支 build/M-4-tally-unicode;待修訂')
+      && /- M-4-tally-unicode:建構中,分支 build\/M-4-tally-unicode;(調整中|Law 已定,等 qa)/.test(revised)
+      && !inTree.includes('P-002-count-tally 待修訂');
+    git(main, 'worktree', 'remove', '--force', tree);
+    fs.rmSync(base, { recursive: true, force: true });
+    if (!ok) {
+      failed++;
+      console.log('✗ 靠修訂達成的里程碑的工作樹');
+      console.log([before, opened, revised, inTree].map((t) => t.split('\n').filter((l) => /M-4-tally-unicode/.test(l)).join('\n')).join('\n---\n'));
+    } else console.log('✓ 靠修訂達成的里程碑的工作樹');
   }
 }
 

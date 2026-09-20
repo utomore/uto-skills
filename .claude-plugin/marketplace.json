@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "dev-flow",
-      "description": "一般程式語言專案的需求導向開發(TypeScript / JavaScript、Python、Go、Rust):需求(必須達成,各有一句驗收)與全域 Law(不得違反:領域不變量、層、對外 I/O)先講好,spike-impl 先用實作貫通一條垂直切片,law-design 對著跑得通的東西與開發者談 Law,build 帶 qa 與 refactor 兩個互不可見的角色讓每條 law 都有一條會失敗而現在通過的測試守著,integrate 是唯一發 PR 的出口。文檔住 .design/:system.md、requirements/、features/、abstracts/;進度一律由 CLI devflow 從程式碼與測試推導(status、lint、claim、brief、migrate)。skills:kickoff、require-design、glaws-revise、spike-impl、law-design、build、qa、refactor、abstract、integrate、status、audit、study。",
+      "description": "一般程式語言專案的需求導向開發(TypeScript / JavaScript、Python、Go、Rust):需求(必須達成,各有一句驗收)與全域 Law(不得違反:領域不變量、層、對外 I/O)先講好,spike-impl 先用實作貫通一條垂直切片,scope-laws 對著跑得通的東西與開發者談 Law,build 帶 qa 與 refactor 兩個互不可見的角色讓每條 law 都有一條會失敗而現在通過的測試守著,integrate 是唯一發 PR 的出口。文檔住 .design/:system.md、requirements/、features/;進度一律由 CLI devflow 從程式碼與測試推導(status、lint、claim、brief、migrate)。skills:kickoff、require-design、global-laws、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、status、audit、study。",
       "author": {
         "name": "utomore"
       },

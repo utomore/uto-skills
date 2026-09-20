@@ -14,7 +14,7 @@ updated: 2026-09-07
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
 | 1 | `<name(T1, T2): R>` | <一句> | `<src/app/x.ts>` | <application> |
-| 2 | `<name(T1): R>` | <一句> | `<src/domain/y.ts>`(見 A-00x-<slug>) | <domain> |
+| 2 | `<name(T1): R>` | <一句> | `<src/domain/y.ts>`(見 F-00y-<slug>) | <domain> |
 | o | `<name(T1): R>` | 觀察:<law 要看的量,一句> | `<src/domain/y.ts>` | <domain> |
 | = | `<name(T1, T2): R>` | 整條 | `<src/app/x.ts>` | <application> |
 | ! | `<name(T1): R>` | 進入點:<接到哪一列對外 I/O> | `<src/entry/z.ts>` | <entry> |

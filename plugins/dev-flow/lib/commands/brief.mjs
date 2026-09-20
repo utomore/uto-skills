@@ -18,16 +18,16 @@ const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const RULES = {
   kickoff: [['features.md', ['`.design/`', 'system.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求']], ['boundary.md', ['模組表']], ['tooling.md', ['language adapter', '收尾定錨']]],
   'require-design': [['features.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
-  'glaws-revise': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['features.md', ['提問(GAP)', '完成度']], ['roles.md', ['分支與所有權']], ['tooling.md', ['CLI', '收尾定錨']]],
+  'global-laws': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['features.md', ['提問(GAP)', '完成度']], ['roles.md', ['分支與所有權']], ['tooling.md', ['CLI', '收尾定錨']]],
   'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['features.md', ['願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
-  'law-design': [['features.md', ['feature 與 abstract', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O']], ['tooling.md', ['CLI', '收尾定錨']]],
+  'scope-laws': [['features.md', ['feature', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O']], ['tooling.md', ['CLI', '收尾定錨']]],
+  'scope-revise': [['features.md', ['簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑']], ['boundary.md', ['模組表', '層']], ['tooling.md', ['CLI', '收尾定錨']]],
   build: [['roles.md', '*'], ['features.md', ['提問(GAP)', '修訂(REV)', '完成度']], ['tooling.md', ['CLI', '測試歸屬', '跑東西的紀律', '收尾定錨']]],
   qa: [['roles.md', ['角色', '委派', '驗收測試', 'qa 的交付']], ['features.md', ['節', '什麼要有 law', '提問(GAP)']], ['boundary.md', ['測試與邊界']], ['tooling.md', ['測試歸屬']]],
   refactor: [['roles.md', ['角色', '分支與所有權', '委派', '切片']], ['features.md', ['節', '提問(GAP)']], ['boundary.md', ['層', '匯出']]],
-  abstract: [['features.md', ['收整(abstract)', 'feature 與 abstract', '修訂(REV)', '節']], ['laws.md', ['Law 怎麼談']], ['roles.md', ['分支與所有權']], ['boundary.md', ['層', '模組表']], ['tooling.md', ['CLI', '收尾定錨']]],
   integrate: [['roles.md', ['分支與所有權', '決策紀錄', '整合', '仲裁']], ['features.md', ['提問(GAP)', '完成度', 'ADR']], ['laws.md', ['全域 Law']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
   status: [['tooling.md', ['CLI', 'status 報告', '收尾定錨']], ['features.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求', '全域 Law']]],
-  audit: [['tooling.md', ['CLI', 'status 報告']], ['boundary.md', '*'], ['features.md', ['願景、需求與里程碑', '節', '什麼要有 law', '完成度', '收整(abstract)']], ['laws.md', ['Law 與需求', '全域 Law', 'Law 怎麼談']]],
+  audit: [['tooling.md', ['CLI', 'status 報告']], ['boundary.md', '*'], ['features.md', ['願景、需求與里程碑', '節', '什麼要有 law', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', 'Law 怎麼談']]],
   study: [['tooling.md', ['跑東西的紀律', '收尾定錨']], ['features.md', ['`.design/`']]],
 };
 
@@ -36,13 +36,13 @@ const RULES = {
 const BLOCKS = {
   kickoff: { none: ['tree', 'system', 'modules'] },
   'require-design': { none: ['system', 'requirements', 'status'], top: ['system', 'requirements', 'status'] },
-  'glaws-revise': { none: ['branch', 'system', 'requirements', 'gaps', 'lintglobal', 'status'], top: ['branch', 'system', 'requirements', 'gaps', 'lintglobal', 'status'] },
+  'global-laws': { none: ['branch', 'system', 'requirements', 'gaps', 'lintglobal', 'status'], top: ['branch', 'system', 'requirements', 'gaps', 'lintglobal', 'status'] },
   'spike-impl': { milestone: ['branch', 'tree', 'requirement', 'system', 'modules', 'status'] },
-  'law-design': { milestone: ['branch', 'tree', 'requirement', 'system', 'modules', 'journal', 'bound'], doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'system', 'journal', 'gaps', 'lint', 'status'] },
+  'scope-laws': { milestone: ['branch', 'tree', 'requirement', 'system', 'modules', 'journal', 'bound'], doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'system', 'journal', 'gaps', 'lint', 'status'] },
+  'scope-revise': { doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'modules', 'gaps', 'lint', 'status'] },
   build: { doc: ['branch', 'tools', 'modules', 'journal', 'doc', 'detail', 'lint', 'gaps', 'logs', 'status'], milestone: ['branch', 'tools', 'modules', 'journal', 'requirement', 'bound', 'lint', 'gaps', 'logs', 'status'], top: ['branch', 'tools', 'top', 'gaps', 'logs', 'status'] },
   qa: { doc: ['doc', 'detail', 'declarations', 'innermost', 'testing'], top: ['top', 'touched', 'innermost', 'testing'] },
   refactor: { doc: ['doc', 'detail', 'declarations', 'files'] },
-  abstract: { none: ['branch', 'modules', 'steps'], doc: ['branch', 'modules', 'doc', 'detail', 'declarations', 'steps'] },
   integrate: { none: ['branch', 'journals', 'tools', 'gaps'] },
   status: { none: ['tools', 'logs'] },
   audit: { none: ['lintall', 'status', 'modules'] },
@@ -482,7 +482,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
 
     // 里程碑綁的每一份文檔:全文與逐條狀態
     bound: () => {
-      if (!ms.m.binds.length) return out.push('# 這條里程碑綁的文檔', '', '(綁定欄還是空的:切片做完、law-design claim 出 feature 之後才有)', '');
+      if (!ms.m.binds.length) return out.push('# 這條里程碑綁的文檔', '', '(綁定欄還是空的:切片做完、scope-laws claim 出 feature 之後才有)', '');
       for (const b of ms.m.binds) {
         const d = design.docs.find((q) => q.fullName === b);
         if (!d) { out.push(`# 綁的文檔:${b}`, '', '(features/ 裡沒有這一份)', ''); continue; }

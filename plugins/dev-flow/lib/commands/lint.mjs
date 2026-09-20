@@ -96,8 +96,6 @@ export function lintSig(design, source, adapter) {
   const entries = design.modules ? design.modules.entries : [];
   const sys = design.system;
   const layerNames = sys ? sys.layers.map((l) => l.name) : [];
-  const consumers = new Map(design.abstracts.map((a) => [a.fullName, new Set()]));
-  for (const d of design.docs) for (const s of d.steps) if (s.ref && consumers.has(s.ref)) consumers.get(s.ref).add(d.fullName);
   // 簽名裡的型別:自訂的(大寫開頭)要在程式碼裡宣告過,標準函式庫與詞彙追加的 adapter 認得;帶命名空間的不查。
   // 無名容器(dict、any、interface{} …)沒有地方寫形狀,step 之間傳遞的值不准用;! 列接的是對外的東西,不查。
   const adapters = (Array.isArray(adapter) ? adapter : adapter ? [adapter] : []).map((a) => a.adapter || a);
@@ -117,7 +115,7 @@ export function lintSig(design, source, adapter) {
   };
 
   for (const p of design.docs) {
-    if (p.template.steps) r.red.push(`${p.file} Steps 表還是模板(${p.template.steps} 列佔位符);dev-flow:law-design 照程式碼寫成真的簽名`);
+    if (p.template.steps) r.red.push(`${p.file} Steps 表還是模板(${p.template.steps} 列佔位符);dev-flow:scope-laws 照程式碼寫成真的簽名`);
     if (!p.steps.length) {
       if (!p.template.steps) r.red.push(`${p.file} 沒有 Steps 表`);
       continue;
@@ -126,7 +124,7 @@ export function lintSig(design, source, adapter) {
     if (wholes.length !== 1) r.red.push(`${p.file} = 列(整條)要恰好一列,現在 ${wholes.length} 列`);
     const entriesRows = p.steps.filter((s) => s.entry);
     if (p.kind === 'feature' && entriesRows.length !== 1) r.red.push(`${p.file} feature 要恰好一列 ! 列(對外進入點),現在 ${entriesRows.length} 列`);
-    if (p.kind === 'abstract' && entriesRows.length) r.red.push(`${p.file} abstract 不碰對外邊界,不該有 ! 列`);
+    if (p.kind === 'abstract' && entriesRows.length) r.red.push(`${p.file} 不在 features/ 的文檔不碰對外邊界,不該有 ! 列`);
 
     for (const s of p.steps) {
       if (!s.name) {
@@ -141,11 +139,15 @@ export function lintSig(design, source, adapter) {
       if (entries.length && !entry) r.red.push(`${at(p.file, s.line)} ${s.name} 的模組 ${s.module} 不在模組表`);
       else if (entry && entry.layer !== s.layer) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,模組表說 ${s.module} 是 ${entry.layer} 層`);
       if (s.ref && !design.docs.some((q) => q.fullName === s.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 引用的 ${s.ref} 不存在`);
-      if (s.ref && kindOf(design, s.ref) === 'feature') r.red.push(`${at(p.file, s.line)} ${s.name} 引用了 feature ${s.ref};feature 之間不互相引用,共用的部分走 dev-flow:abstract 收整成 abstract`);
+      // 一個 step 與它的 law 只住在一份文檔;別的文檔引用它。被引用的那份要真的有這個 step,而且不是它自己也在引用別人
+      if (s.ref) {
+        const home = design.docs.find((q) => q.fullName === s.ref);
+        if (home && !home.steps.some((t) => t.name === s.name && !t.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 寫著見 ${s.ref},那一份卻沒有這個 step(或它自己也是引用);引用要指到 step 真正住的那一份`);
+      }
       if (!s.ref) {
         const owner = design.docs.find((q) => q !== p && q.steps.some((t) => t.name === s.name && t.whole));
         if (owner) r.red.push(`${at(p.file, s.line)} ${s.name} 是 ${owner.fullName} 的 = 列;引用別份的 step 要在模組欄註明「見 ${owner.fullName}」`);
-        else for (const q of design.docs) if (q !== p && q.fullName > p.fullName && q.steps.some((t) => t.name === s.name && !t.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 也是 ${q.fullName} 的 step,兩邊都沒註明「見」;共用就走 dev-flow:abstract`);
+        else for (const q of design.docs) if (q !== p && q.fullName > p.fullName && q.steps.some((t) => t.name === s.name && !t.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 也是 ${q.fullName} 的 step,兩邊都沒註明「見」;一個 step 只住一份文檔:留先做出它的那一份,另一份在模組欄註明「見」那一份的全名,law 不重寫`);
       }
       checkTypes(p, s);
       if (!source) continue;
@@ -168,11 +170,6 @@ export function lintSig(design, source, adapter) {
         else r.info.push(`${p.fullName}#${s.name} 搬家:文檔 ${s.module} → 程式碼 ${same.file}(devflow sync 可改)`);
       }
     }
-  }
-  // abstract 的存在條件是被兩份以上文檔引用;零個是死的抽象
-  for (const a of design.abstracts) {
-    const n = consumers.get(a.fullName).size;
-    if (n === 0) r.red.push(`${a.file} 沒有任何文檔引用 ${a.fullName};abstract 是收整出來的共用部分,沒有消費者就該刪`);
   }
   return r;
 }
@@ -396,7 +393,7 @@ export function lintIo(design, source, adapter) {
     else {
       const doc = design.docs.find((d) => d.fullName === row.feature);
       if (!doc) r.red.push(`${where} ${row.name} 指到的 ${row.feature} 不存在`);
-      else if (doc.kind !== 'feature') r.red.push(`${where} ${row.name} 指到的 ${row.feature} 是 abstract;跨過對外邊界的是 feature`);
+      else if (doc.kind !== 'feature') r.red.push(`${where} ${row.name} 指到的 ${row.feature} 不是 feature;跨過對外邊界的是 feature`);
       else covered.add(row.feature);
     }
     if (!row.module) r.red.push(`${where} ${row.name} 沒寫最外層的模組`);

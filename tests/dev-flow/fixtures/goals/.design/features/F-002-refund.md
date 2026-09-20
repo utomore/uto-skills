@@ -15,7 +15,7 @@ input 是 POST /refund 的 RawBody,output 是 HttpRes。
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
 | 1 | `parseRefund(RawBody): RefundReq` | 解析並夾住請求裡的數字,不信任任何一段 | `src/app/refund.ts` | application |
-| 2 | `settle(MoneyList, Money): Settlement` | 扣掉手續費之後的退款金額 | `src/domain/money.ts`(見 A-001-settle) | domain |
+| 2 | `settle(MoneyList, Money): Settlement` | 扣掉手續費之後的退款金額 | `src/domain/money.ts`(見 F-001-checkout) | domain |
 | 3 | `toRefund(RefundReq, Settlement): RefundResult` | 結算成功就產生退款,失敗就帶回理由 | `src/app/refund.ts` | application |
 | o | `refundLines(RefundReq): MoneyList` | 觀察:這次要退哪些品項 | `src/app/refund.ts` | application |
 | o | `refundFee(RefundReq): Money` | 觀察:這次的手續費 | `src/app/refund.ts` | application |
@@ -38,12 +38,12 @@ input 是 POST /refund 的 RawBody,output 是 HttpRes。
 | EX-2 | `refund("o1\|10\|30")` | `returnedCents 是 -1` | LAW-1、LAW-2 |
 
 ## 決定
-- **手續費用同一條結算走,不另寫一條扣款。** 否決:退款自己寫扣手續費。同一件事寫兩次就是 A-001-settle 存在的理由。
-- **重開一次**(2026-09-07):為了 REV-1 的收整重開,收整做完由 build 重新 verified。
+- **手續費用同一條結算走,不另寫一條扣款。** 否決:退款自己寫扣手續費。settle 與它的 law 住在 F-001-checkout,這裡引用它,law 不重寫。
+- **重開一次**(2026-09-07):為了 REV-1 重開,由 build 重新 verified。
 
 ## 修訂記錄
-- REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle
-  - 動到:第 2 步改成「見 A-001-settle」
+- REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 settle
+  - 動到:第 2 步改成「見 F-001-checkout」
   - 保護:LAW-1、LAW-2
-  - 重委派:qa(LAW-1)
-  - 連動:A-001-settle 建檔
+  - 重委派:qa(LAW-1)、refactor(`refund`)
+  - 連動:F-001-checkout 的 REV-1 替 settle 補了 total 的 law

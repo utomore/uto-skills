@@ -17,7 +17,6 @@ function today() {
 
 const SPEC = {
   feature: { prefix: 'F', dir: 'features', tpl: 'feature.md' },
-  abstract: { prefix: 'A', dir: 'abstracts', tpl: 'abstract.md' },
   adr: { prefix: 'ADR', dir: 'adr', tpl: 'adr.md' },
 };
 
@@ -73,7 +72,7 @@ export function nextNumber(design, nums, prefix) {
 
 export function claim(design, kind, slug, { description = '', date = today(), milestone = '' } = {}) {
   const spec = SPEC[kind];
-  if (!spec) return { text: `claim 的類別只有 feature / abstract / adr,沒有「${kind}」`, exitCode: 1 };
+  if (!spec) return { text: `claim 的類別只有 feature / adr,沒有「${kind}」`, exitCode: 1 };
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) return { text: `slug 要是 kebab-case 英文:${slug}`, exitCode: 1 };
   if (milestone && kind !== 'feature') return { text: '--milestone 只給 feature:里程碑綁的是 feature', exitCode: 1 };
   // --milestone 給編號 M-n 或全名 M-n-<slug> 都行
@@ -113,7 +112,7 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
   if (next.owner) tpl = tpl.replace(/^(id: .*)$/m, `$1\nowner: ${next.owner}`);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, tpl);
-  const out = [`建了 ${path.relative(design.root, file).split(path.sep).join('/')}${kind === 'feature' || kind === 'abstract' ? '(status: draft)' : ''}`];
+  const out = [`建了 ${path.relative(design.root, file).split(path.sep).join('/')}${kind === 'feature' ? '(status: draft)' : ''}`];
   if (next.owner) out.push(`${id} 配自 ${next.owner} 的號段 ${next.range},owner 寫進 frontmatter`);
 
   if (kind === 'feature') {
@@ -224,7 +223,7 @@ export function requirementAdd(design, slug, title, { accept = '', priority, dat
 }
 
 // invariant add <一句話> [--kind <種類>]:鑄 INV-n,寫進 system.md「全域 Law」區的「領域不變量」尾端;區裡沒有這一小節就補在區的最前面。
-// 領域不變量是開發者批准的決定,只由 glaws-revise 寫;整個專案任何一份 feature 都不准違反,三行的識別字只用最內層的匯出與型別名。
+// 領域不變量是開發者批准的決定,只由 global-laws 寫;整個專案任何一份 feature 都不准違反,三行的識別字只用最內層的匯出與型別名。
 export function invariantAdd(design, title, { kind = 'invariant' } = {}) {
   if (!title || /<[^>]*>/.test(title)) return { text: '領域不變量要一句話:整個專案都不准違反的是什麼', exitCode: 1 };
   if (!design.system) return { text: '沒有 .design/system.md;dev-flow:kickoff 先建它', exitCode: 1 };
@@ -275,7 +274,7 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '' } = {}) {
   const bad = binds.filter((b) => !design.docs.some((d) => d.fullName === b));
   if (bad.length) return { text: `綁定的 ${bad.join('、')} 不存在;里程碑只綁 features/ 裡有的全名`, exitCode: 1 };
   const abstracts = binds.filter((b) => design.abstracts.some((d) => d.fullName === b));
-  if (abstracts.length) return { text: `${abstracts.join('、')} 是 abstract;里程碑綁 feature,abstract 跟著引用它的 feature 達成`, exitCode: 1 };
+  if (abstracts.length) return { text: `${abstracts.join('、')} 不是 feature;里程碑綁 features/ 裡的文檔`, exitCode: 1 };
   const nums = design.requirements.requirements.flatMap((q) => q.milestones.map((m) => Number((m.id.match(/^M-(\d+)$/) || [0, 0])[1])));
   const id = `M-${(nums.length ? Math.max(...nums) : 0) + 1}`;
   const file = requirementFile(design, req);
@@ -306,7 +305,7 @@ export function refinementAdd(design, reqId, title, { touch = '' } = {}) {
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   appendRow(lines, '調整', REFINEMENT_TABLE, `| ${id} | ${title} | ${touches.join('、')} |`);
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${id} 寫進 ${req.fullName},動到 ${touches.join('、')}`, `下一步:dev-flow:law-design ${touches[0]},REV 的依欄引用 ${id};調整達成 = 動到的每份都有一條 REV 引用它、都達成,而且 ${reqId} 仍達成`].join('\n'), exitCode: 0, id };
+  return { text: [`${id} 寫進 ${req.fullName},動到 ${touches.join('、')}`, `下一步:dev-flow:scope-revise ${touches[0]}(既有的 law 不動、可以新增,REV 的依欄引用 ${id};要調整既有的 law 才做得到,整件改走 dev-flow:scope-laws);調整達成 = 動到的每份都有一條 REV 引用它、都達成,而且 ${reqId} 仍達成`].join('\n'), exitCode: 0, id };
 }
 
 // 同層搬家的 step,把模組欄改成程式碼裡的實際檔案。

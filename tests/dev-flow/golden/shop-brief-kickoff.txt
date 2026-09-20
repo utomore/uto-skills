@@ -8,8 +8,6 @@ brief kickoff (沒有目標) @doc:- rules:<雜湊>
 
 # .design/ 現在有什麼
 
-- abstracts/
-  - A-001-settle.md
 - features/
   - F-001-checkout.md
   - F-002-refund.md
@@ -73,7 +71,6 @@ updated: 2026-09-07
 |---|---|
 | F-001-checkout | feature |
 | F-002-refund | feature |
-| A-001-settle | abstract |
 ````
 
 # modules.md

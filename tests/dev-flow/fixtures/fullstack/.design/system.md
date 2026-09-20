@@ -48,5 +48,4 @@ updated: 2026-09-07
 |---|---|
 | F-001-checkout | feature |
 | F-002-refund | feature |
-| A-001-settle | abstract |
 | F-003-basket | feature |

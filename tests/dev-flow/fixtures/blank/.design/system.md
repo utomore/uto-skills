@@ -8,7 +8,7 @@ updated: <YYYY-MM-DD>
 <北極星,第一段一到三句:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼。後面可以展開:替誰做什麼、明確不做什麼;不隨里程碑變。>
 
 ## 全域 Law
-不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准,一律由 `dev-flow:glaws-revise` 寫。
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准,一律由 `dev-flow:global-laws` 寫。
 
 ### 領域不變量
 - INV-1 [<invariant | identity | roundtrip | relation | bound | equiv | total | commute>] <一句話:整個專案任何一份 feature 都不准違反的領域規則;一條都沒有就這一區只寫「無」>
@@ -48,4 +48,3 @@ updated: <YYYY-MM-DD>
 | 全名 | 類別 |
 |---|---|
 | F-001-<slug> | feature |
-| A-001-<slug> | abstract |

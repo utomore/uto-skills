@@ -14,8 +14,8 @@ const repo = path.join(here, '..', '..');
 const BOARDS = [
   { name: 'lawful', bin: ['plugins', 'lawful', 'bin', 'lawful.mjs'], root: ['tests', 'lawful', 'fixtures', 'refs'],
     expect: { nodes: ['R-1'], edges: [] } },   // 三條 pipeline 都綁在同一條需求的里程碑底下,互相引用不算需求之間的相依
-  { name: 'dev-flow', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'shop'],
-    expect: { nodes: ['R-1', 'A-001-settle'], edges: ['A-001-settle>R-1'] } },   // 兩份 feature 都見 A-001,A-001 沒被綁:共用卡在左,R-1 在右
+  { name: 'dev-flow', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'fullstack'],
+    expect: { nodes: ['R-1', 'R-2', 'R-3'], edges: ['R-1>R-3'] } },   // R-3 的 F-002-refund 見 R-1 的 F-001-checkout:R-1 在左,R-3 在右;R-2 誰也不靠
 ];
 
 let failed = 0;
@@ -161,10 +161,12 @@ async function openPage(browser, fileUrl) {
   };
 }
 
-// 拿一張有引用出去的便利貼;沒有的話拿第一張
+// 拿一張有引用出去的便利貼;沒有的話拿第一張。樹往下長,那一張不在畫面裡就先縮成全景,滑鼠才點得到
 const PICK = `(() => {
   const want = D.docs.find((d) => d.refs.length && noteEls.has(d.name)) || D.docs.find((d) => noteEls.has(d.name));
   const el = noteEls.get(want.name);
+  const seen = (b) => b.x >= 0 && b.y >= 0 && b.x + b.width <= innerWidth && b.y + b.height <= innerHeight;
+  if (!seen(el.getBoundingClientRect())) fit();
   const r = el.getBoundingClientRect();
   return { name: want.name, refs: want.refs.length, x: r.x + r.width / 2, y: r.y + r.height / 2 };
 })()`;

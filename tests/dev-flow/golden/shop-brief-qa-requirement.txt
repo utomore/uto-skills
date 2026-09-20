@@ -19,17 +19,24 @@ forall raw in RawBody
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
 | 1 | `parseCheckout(RawBody): CheckoutReq` | 解析並夾住請求裡的數字,不信任任何一段 | `src/app/checkout.ts` | application |
-| 2 | `settle(MoneyList, Money): Settlement` | 結算應付金額 | `src/domain/money.ts`(見 A-001-settle) | domain |
+| 2 | `settle(MoneyList, Money): Settlement` | 結算應付金額:同幣別的品項相加再扣掉一筆金額,幣別不同或扣成負的就是錯誤 | `src/domain/money.ts` | domain |
 | 3 | `toOrder(CheckoutReq, Settlement): CheckoutResult` | 結算成功就產生訂單,失敗就帶回理由 | `src/app/checkout.ts` | application |
 | o | `reqLines(CheckoutReq): MoneyList` | 觀察:這張購物車有哪些品項 | `src/app/checkout.ts` | application |
 | o | `reqDiscount(CheckoutReq): Money` | 觀察:這張購物車的折扣 | `src/app/checkout.ts` | application |
 | o | `paidCents(CheckoutResult): number` | 觀察:訂單付了多少分,沒成單回 -1 | `src/app/checkout.ts` | application |
+| o | `cents(Settlement): number` | 觀察:結算出來是多少分,沒結算成回 -1 | `src/domain/money.ts` | domain |
+| o | `settled(Settlement): boolean` | 觀察:這次結算成功了沒 | `src/domain/money.ts` | domain |
 | = | `checkout(RawBody): CheckoutResult` | 整條:解析 → 結算 → 產生訂單 | `src/app/checkout.ts` | application |
 | ! | `checkoutHandler(HttpReq): HttpRes` | 進入點:接到 POST /checkout | `src/entry/routes.ts` | entry |
 
 ### 1 `parseCheckout`  src/app/checkout.ts:7
 ```typescript
 export function parseCheckout(raw: RawBody): CheckoutReq
+```
+
+### 2 `settle`  src/domain/money.ts:27
+```typescript
+export function settle(lines: MoneyList, discount: Money): Settlement
 ```
 
 ### o `reqLines`  src/app/checkout.ts:17
@@ -45,6 +52,11 @@ export function reqDiscount(r: CheckoutReq): Money
 ### o `paidCents`  src/app/checkout.ts:30
 ```typescript
 export function paidCents(r: CheckoutResult): number
+```
+
+### o `cents`  src/domain/money.ts:35
+```typescript
+export function cents(s: Settlement): number
 ```
 
 ### = `checkout`  src/app/checkout.ts:34
@@ -67,6 +79,11 @@ export type CheckoutResult = { readonly order: Order | null; readonly reason: st
 export type Money = { readonly cents: number; readonly currency: string };
 ```
 
+### 型別 `MoneyError`  src/domain/money.ts:3
+```typescript
+export type MoneyError = 'currency-mismatch' | 'negative-total';
+```
+
 ### 型別 `MoneyList`  src/domain/money.ts:2
 ```typescript
 export type MoneyList = Money[];
@@ -82,12 +99,17 @@ export type Order = { readonly id: string; readonly paid: Money };
 export type RawBody = string;
 ```
 
+### 型別 `Settlement`  src/domain/money.ts:4
+```typescript
+export type Settlement = { readonly total: Money | null; readonly error: MoneyError | null };
+```
+
 # 引用到的文檔:F-002-refund(.design/features/F-002-refund.md)
 
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
 | 1 | `parseRefund(RawBody): RefundReq` | 解析並夾住請求裡的數字,不信任任何一段 | `src/app/refund.ts` | application |
-| 2 | `settle(MoneyList, Money): Settlement` | 扣掉手續費之後的退款金額 | `src/domain/money.ts`(見 A-001-settle) | domain |
+| 2 | `settle(MoneyList, Money): Settlement` | 扣掉手續費之後的退款金額 | `src/domain/money.ts`(見 F-001-checkout) | domain |
 | 3 | `toRefund(RefundReq, Settlement): RefundResult` | 結算成功就產生退款,失敗就帶回理由 | `src/app/refund.ts` | application |
 | o | `refundLines(RefundReq): MoneyList` | 觀察:這次要退哪些品項 | `src/app/refund.ts` | application |
 | o | `refundFee(RefundReq): Money` | 觀察:這次的手續費 | `src/app/refund.ts` | application |
@@ -150,46 +172,6 @@ export type RefundReq = { readonly orderId: string; readonly lines: MoneyList; r
 export type RefundResult = { readonly refund: Refund | null; readonly reason: string };
 ```
 
-# 引用到的文檔:A-001-settle(.design/abstracts/A-001-settle.md)
-
-| # | 簽名 | 做什麼 | 模組 | 層 |
-|---|---|---|---|---|
-| 1 | `sumLines(MoneyList): Settlement` | 同幣別的品項相加,幣別不同就是錯誤 | `src/domain/money.ts` | domain |
-| 2 | `subtract(Settlement, Money): Settlement` | 扣掉一筆金額,扣成負的就是錯誤 | `src/domain/money.ts` | domain |
-| o | `cents(Settlement): number` | 觀察:結算出來是多少分,沒結算成回 -1 | `src/domain/money.ts` | domain |
-| o | `settled(Settlement): boolean` | 觀察:這次結算成功了沒 | `src/domain/money.ts` | domain |
-| = | `settle(MoneyList, Money): Settlement` | 整條:加總再扣折扣 | `src/domain/money.ts` | domain |
-
-### o `cents`  src/domain/money.ts:35
-```typescript
-export function cents(s: Settlement): number
-```
-
-### = `settle`  src/domain/money.ts:27
-```typescript
-export function settle(lines: MoneyList, discount: Money): Settlement
-```
-
-### 型別 `Money`  src/domain/money.ts:1
-```typescript
-export type Money = { readonly cents: number; readonly currency: string };
-```
-
-### 型別 `MoneyError`  src/domain/money.ts:3
-```typescript
-export type MoneyError = 'currency-mismatch' | 'negative-total';
-```
-
-### 型別 `MoneyList`  src/domain/money.ts:2
-```typescript
-export type MoneyList = Money[];
-```
-
-### 型別 `Settlement`  src/domain/money.ts:4
-```typescript
-export type Settlement = { readonly total: Money | null; readonly error: MoneyError | null };
-```
-
 # 最內層(domain)
 
 ### src/domain/money.ts(38 行,全文)
@@ -238,18 +220,34 @@ export function cents(s: Settlement): number {
 - 子集測試指令:npx jest test/<檔名>
 - 歸屬寫法:字串,"R-1#ACCEPT"
 - 測試檔以 R-1 命名
-- 現有的測試檔:test/checkout.test.ts、test/invariants.test.ts、test/refund.test.ts、test/requirements.test.ts、test/settle.test.ts
+- 現有的測試檔:test/checkout.test.ts、test/invariants.test.ts、test/refund.test.ts、test/requirements.test.ts
 
 ### 這個專案的測試長這樣:test/checkout.test.ts 的開頭
 ```typescript
 import { checkout, paidCents } from '../src/app/checkout';
+import { cents, money, settle, settled, sumLines } from '../src/domain/money';
 
 describe('F-001#LAW-1 訂單付的錢等於結算金額', () => { it('holds', () => { expect(paidCents(checkout('c1|100,50|20'))).toBe(130); }); });
 describe('F-001#LAW-2 不拋例外', () => { it('holds', () => { expect(paidCents(checkout('!!!'))).toBeDefined(); }); });
 describe('F-001#LAW-3 成單時不為負', () => { it('holds', () => { expect(paidCents(checkout('c1|100|20'))).toBeGreaterThanOrEqual(0); }); });
+describe('F-001#LAW-4 結算成功時金額不為負', () => {
+  it('holds', () => { expect(cents(settle([money(100, 'TWD')], money(20, 'TWD')))).toBeGreaterThanOrEqual(0); });
+});
+describe('F-001#LAW-5 扣掉的金額是零時等於相加', () => {
+  it('holds', () => { expect(cents(settle([money(100, 'TWD')], money(0, 'TWD')))).toBe(cents(sumLines([money(100, 'TWD')]))); });
+});
+describe('F-001#LAW-6 結算不拋例外', () => {
+  it('holds', () => { expect(settled(settle([], money(0, 'TWD')))).toBe(true); });
+});
 describe('F-001#EX-1', () => { it('holds', () => { expect(paidCents(checkout('c1|100,50|20'))).toBe(130); }); });
 describe('F-001#EX-2', () => { it('holds', () => { expect(paidCents(checkout('c1|100|300'))).toBe(-1); }); });
 describe('F-001#EX-3', () => { it('holds', () => { expect(paidCents(checkout(''))).toBe(0); }); });
+describe('F-001#EX-4', () => {
+  it('holds', () => { expect(cents(settle([money(100, 'TWD'), money(50, 'TWD')], money(20, 'TWD')))).toBe(130); });
+});
+describe('F-001#EX-5', () => {
+  it('holds', () => { expect(cents(settle([money(100, 'TWD')], money(300, 'TWD')))).toBe(-1); });
+});
 
 ```
 exit 0

@@ -41,7 +41,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 一句話分流(`pipelines.md`「修訂(REV)」):**要調整(修改、放寬、替換、刪除)既有的 law → 這裡;law 不動、或只新增 law,而文檔或實作要變 → `lawful:scope-revise`;全域 Law → `lawful:global-laws`;需求面的條目(需求、驗收、優先、里程碑、調整)→ `lawful:require-design`。** 一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止。
 
-- 目標是一條 `verified` 的 pipeline,而這次**既有的 law 一條都不動**(簽名或型別要改、加 stage、stage 跨層搬家、層的歸屬修正、`=` 列搬到別的模組單元而要換 slug、Brief / 決定 / 描述要改、調整 `RF-n` 的實作品質、bug、只要新增一條保護用的或新上界的 law、答案不必調整既有 law 的 GAP)→ 走 `lawful:scope-revise`,新增的 law 它自己談。stage 只是在同一層內搬模組 → 不是修訂,`lawful sync`。
+- 目標是一條 `verified` 的 pipeline,而這次**既有的 law 一條都不動**(簽名或型別要改、加 stage、stage 跨層搬家、層的歸屬修正、`=` 列搬到別的模組單元、Brief / 決定 / 描述要改、調整 `RF-n` 的實作品質、bug、只要新增一條保護用的或新上界的 law、答案不必調整既有 law 的 GAP)→ 走 `lawful:scope-revise`,新增的 law 它自己談。stage 只是在同一層內搬模組 → 不是修訂,`lawful sync`。
 - **刪 stage**:刪掉一個有 law 的 stage 等於刪既有的 law,整件在這裡做(情形二)。**兩條 pipeline 重複的 stage**(兩條切片平行開工各寫了一份,整合時選了一份留著):目標是要改成引用的那一條——刪掉自己的那個 stage 與它的 law,Stages 表那一列改成模組欄註明「見 <留著的那一條的全名>」,law 不搬、不複製(`pipelines.md`「編號與引用」);照情形二做,REV 的「連動」欄寫留著的那一條。
 - **文檔退役**:一條 pipeline 用不到了 → 目標是它的全名,走情形三(`pipelines.md`「修訂(REV)」)。
 - 要加的是一個**可以獨立拿掉的新能力** → 那是新的里程碑與切片,走 `lawful:require-design` 再 `lawful:spike-impl`。
@@ -122,7 +122,6 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
     - 簽名或型別變了就同步改程式碼裡的宣告與匯出清單,呼叫端一起改到編得過,行為不動。
     - 修訂新增的 stage 在模組欄指的模組裡宣告並匯出,本體是未實作標記 `error "P-00x#name not implemented"`,**不得回傳假值**。
     - 層變了,檔搬到那一層的原始碼樹;模組單元沒宣告那一層就 `lawful module <單元> --layers <新的層>`(`boundary.md`「模組表」),改到 `lawful lint boundary` 沒有紅。
-    - `=` 列搬到別的模組單元,另 `lawful rename <P-00x> <單元>-<動詞>` 讓 slug 的領域名詞跟上;之後的 REV、commit 訊息與接上 build 都用新的全名。
 
     跑建置指令,`lawful lint all`(整套的紅只該落在 REV「動到」欄點名的 law 上)。文檔與宣告同一個 commit,訊息帶全名。
 11. **接上 build**:直接執行 `lawful:build <全名>`,只重做 REV「重委派」欄點名的:qa 改那幾條測試,首跑時「動到」欄的 law 要紅、「保護」欄的要綠,再派 refactor 照 REV 把實作做到位。**收尾時每條 law 成立、build 把 pipeline 改回 `verified`,這一件修訂才算做完**;停在 GAP 就回報停在哪裡,不把剩下的交給別的修訂類的 skill。

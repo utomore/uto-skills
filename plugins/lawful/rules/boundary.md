@@ -29,23 +29,23 @@ types / effect / core 的每個模組都有匯出清單;沒寫匯出清單的模
 
 ## 模組單元
 
-模組表一列是一個**模組單元**:一段有名字的職責。程式碼裡它是一個命名空間,`Weft.Render` 底下的東西都歸它。
+模組表一列是一個**模組單元**:一段有名字的職責。程式碼裡它是一個命名空間,`Game.Render` 底下的東西都歸它。
 
 **層不是命名規範,是編譯期的維護框架**:一層一棵原始碼樹,四棵樹各是建置系統的一個子函式庫(Haskell:cabal sub-library),`build-depends` 照四層的方向宣告一次。一個檔屬於哪一層,看它住在哪棵樹 —— 模組名裡不寫層,誰能 import 誰由編譯器擋:
 
 ```
-src-effect/Weft/Render.hs        Weft.Render        effect  ← 這一層的門面
-src-effect/Weft/Render/View.hs   Weft.Render.View   effect
-src-effect/Weft/Render/Font.hs   Weft.Render.Font   effect
-src-shell/Weft/Render/GL.hs      Weft.Render.GL     shell   ← 同一個單元,另一棵樹
-src-types/Weft/Render/Color.hs   Weft.Render.Color  types
+src-effect/Game/Render.hs        Game.Render        effect  ← 這一層的門面
+src-effect/Game/Render/View.hs   Game.Render.View   effect
+src-effect/Game/Render/Font.hs   Game.Render.Font   effect
+src-shell/Game/Render/GL.hs      Game.Render.GL     shell   ← 同一個單元,另一棵樹
+src-types/Game/Render/Color.hs   Game.Render.Color  types
 ```
 
 - 一個單元在一層裡要幾個檔、叫什麼名字,由切片決定,規章不規定。
-- **門面**是與單元同名的那個模組(`src-effect/Weft/Render.hs`),把單元的公開面重新匯出。要不要有隨意,有就只能有一個。它預設住最上層,因為只有最上層 import 得到底下每一層、重新匯出得了整個單元;門面住哪一層,就只有那一層以上的消費者用得到這個名字,所以主要被下層消費的單元(型別給別人的 types 層用的)把門面放低一點。`lawful module --facade [層]` 建它。
-- 單元不巢狀:`Weft.Render` 在表上,`Weft.Render.View` 就不能另外列一列 —— 它是 `Weft.Render` 的一部分。
+- **門面**是與單元同名的那個模組(`src-effect/Game/Render.hs`),把單元的公開面重新匯出。要不要有隨意,有就只能有一個。它預設住最上層,因為只有最上層 import 得到底下每一層、重新匯出得了整個單元;門面住哪一層,就只有那一層以上的消費者用得到這個名字,所以主要被下層消費的單元(型別給別人的 types 層用的)把門面放低一點。`lawful module --facade [層]` 建它。
+- 單元不巢狀:`Game.Render` 在表上,`Game.Render.View` 就不能另外列一列 —— 它是 `Game.Render` 的一部分。
 - 一個模組名只准一個檔:同名的兩個檔(尤其分在兩棵樹裡)在子函式庫之間會撞名,`lint boundary` 算紅。
-- 檔案位置要對得上模組名:`Weft.Render.View` 的檔是 `<那一層的樹>/Weft/Render/View.hs`。
+- 檔案位置要對得上模組名:`Game.Render.View` 的檔是 `<那一層的樹>/Game/Render/View.hs`。
 - **模組前綴**與**原始碼根目錄**寫在 `Cone.md`「專案約束」。原始碼根目錄是一個帶 `<層>` 的樣式,預設 `src-<層>`。
 
 模組單元先劃、程式碼後住進去:`lawful module` 只決定名字、範圍與有哪幾層,在每一層的樹裡開好資料夾,不放任何模組。立案時(`lawful:kickoff`)劃已經看得出來的單元;切片途中要一個還沒有的單元,`lawful:spike-impl` 先停下來跑 `lawful:module` 劃出來,再把模組寫進去。在既有單元裡加、改、搬模組不必回頭動模組表。宣告了層卻還沒有程式碼是常態,`lint boundary` 列成訊息不算紅。
@@ -60,9 +60,9 @@ src-types/Weft/Render/Color.hs   Weft.Render.Color  types
 ## 模組單元
 | 模組 | 層 | 職責 |
 |---|---|---|
-| `Weft.Math` | types | 向量、矩陣與角度 |
-| `Weft.Render` | types、effect、shell | 畫面指令的描述與它的真解譯器 |
-| `Weft.Physics` | types、effect、core | 剛體、碰撞偵測與步進 |
+| `Game.Math` | types | 向量、矩陣與角度 |
+| `Game.Render` | types、effect、shell | 畫面指令的描述與它的真解譯器 |
+| `Game.Physics` | types、effect、core | 剛體、碰撞偵測與步進 |
 | `Main` | shell | 可執行檔進入點 |
 ```
 
@@ -87,8 +87,8 @@ src-types/Weft/Render/Color.hs   Weft.Render.Color  types
 ### 契約:對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
 |---|---|---|---|---|---|
-| 存檔檔案 | out | `ByteString` | `Weft.Save.Host` | P-001-save-write | P-001#LAW-5 |
-| 讀檔檔案 | in | `ByteString` | `Weft.Save.Host` | P-002-save-load | - |
+| 存檔檔案 | out | `ByteString` | `Game.Save.Host` | P-001-save-write | P-001#LAW-5 |
+| 讀檔檔案 | in | `ByteString` | `Game.Save.Host` | P-002-save-load | - |
 ```
 
 - **契約**:這一端對外面承諾了什麼、由哪條 law 守著(寫出去的檔一定讀得回來、對外的格式只增欄位不刪不改名)。寫那條 law:`P-00x#LAW-n` 或 `INV-n`,「、」分隔;沒有就「-」。只寫一句話而沒有 law 守著的契約不算數。

@@ -10,7 +10,7 @@ import { sectionCommand } from '../lib/commands/section.mjs';
 import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, moduleDetail, pipelineDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, invariantAdd, milestoneAdd, moduleAdd, modulesGen, refinementAdd, rename, requirementAdd, sync } from '../lib/commands/edit.mjs';
+import { claim, invariantAdd, milestoneAdd, moduleAdd, modulesGen, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
 import { migrateCone, migrateFromDevFlow, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
 
 const HELP = `lawful <子命令> [選項]
@@ -32,7 +32,6 @@ const HELP = `lawful <子命令> [選項]
                                        kind:io 是跨過 shell 的資料流(有進入點),subflow 是被別條 pipeline 引用的純資料流
                                        slug 是 <領域名詞>-<動詞或動名詞>:領域名詞是 = 列住的模組單元(去掉模組前綴、大駝峰拆成 kebab),要在模組表上
                                        號從每一棵工作樹的 pipeline 的最大號往上配;Cone.md「專案約束」有號段行時,從 git user.email 對到的區間內配,frontmatter 寫 owner
-  rename <P-00x> <slug> [--dry-run]    換 slug,編號不動;檔改名,專案裡寫著舊全名的每一處(.lawful/、原始碼註解)一起改
   requirement add <slug> <一句話> --priority <1-4> [--accept <句>]
                                        鑄 R-n 建 requirements/R-n-<slug>.md:一件必須達成的事;優先 1 最高、4 最低;驗收(判它達成與否的那一句)沒給就留佔位符
   requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]
@@ -67,7 +66,7 @@ const HELP = `lawful <子命令> [選項]
 選項
   --root <dir>                         專案根目錄(預設目前目錄)
   --date <YYYY-MM-DD>                  claim / requirement add / sync / migrate cone / migrate requirements 寫進檔的日期(預設今天)
-  --dry-run                            module / rename 只印會做什麼,不寫檔
+  --dry-run                            module 只印會做什麼,不寫檔
 
 exit code:status 盤點 = 全部達成、每條需求達成、每條領域不變量成立 0,否則 1;--pipeline / --module = 查得到 0;lint 通過 0、有不合規 1。
 adapter:${adapterNames.join(', ')};Cone.md 的 language 欄選。`;
@@ -238,14 +237,6 @@ function main() {
       return 1;
     }
     return emit(claim(design, sub, { description: str(args.flags.description), date: str(args.flags.date) || undefined, milestone: str(args.flags.milestone), kind: str(args.flags.kind) }));
-  }
-
-  if (cmd === 'rename') {
-    if (!sub || !rest[0]) {
-      console.error('用法:lawful rename <P-00x | 全名> <slug> [--dry-run]');
-      return 1;
-    }
-    return emit(rename(design, sub, rest[0], { dryRun: !!args.flags['dry-run'] }));
   }
 
   if (cmd === 'requirement') {

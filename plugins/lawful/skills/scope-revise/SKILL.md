@@ -64,7 +64,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
    | 項 | 列什麼 |
    |---|---|
-   | 直接動到 | 哪幾條簽名或型別變、加哪個 stage、哪幾個 stage 換模組或換層、`=` 列換不換模組單元(全名跟著換)、哪幾個 stage 的實作要調、要**新增**哪幾條 law 與 example;**不得列任何一條既有的 law**——列得出來就走第 13 步 |
+   | 直接動到 | 哪幾條簽名或型別變、加哪個 stage、哪幾個 stage 換模組或換層、`=` 列換不換模組單元(全名照舊)、哪幾個 stage 的實作要調、要**新增**哪幾條 law 與 example;**不得列任何一條既有的 law**——列得出來就走第 13 步 |
    | 引用同一處的 law | 引用到動到的簽名或型別的每一條既有 law 與 example:它們的識別字要機械同步,意思不變;新增的 law 與哪幾條既有 law 講同一個 stage,兩者有沒有矛盾(矛盾 = 要調整既有的 law,走第 13 步) |
    | 連動的文檔 | Stages 表引用到動到的 stage 或簽名的每一條 pipeline(模組欄註明「見」這一條的) |
    | 測試 | 簽名或型別變了而要改呼叫與建構的(歸屬全名,斷言不動)、新增的 law 與 example 要新寫的、要重跑的、確定不受影響的 |
@@ -98,14 +98,13 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
     - 簽名或型別變了就同步改程式碼裡的宣告與匯出清單,呼叫端一起改到編得過。
     - 新增的 stage 在模組欄指的模組裡宣告並匯出,本體是未實作標記 `error "P-00x#name not implemented"`,**不得回傳假值**。
     - stage 換模組就把宣告搬到新模組、匯出清單跟著;層變了,檔搬到那一層的原始碼樹,模組單元沒宣告那一層就 `lawful module <單元> --layers <新的層>`(`boundary.md`「模組表」)。
-    - `=` 列搬到別的模組單元,另 `lawful rename <P-00x> <單元>-<動詞>` 讓 slug 的領域名詞跟上;之後的 REV、commit 訊息與接上 build 都用新的全名。
     - **行為不動**,本體的調整留給 refactor。
 
     跑建置指令、`lawful lint all`:不該有新的紅;`lint laws` 紅 = 機械同步漏了一處,或新增的 law 引用了對不到的識別字。文檔與宣告同一個 commit,訊息帶全名。
 12. **接上 build**:直接執行 `lawful:build <全名>`,不等開發者另外下指令,只重做 REV「重委派」欄點名的。這一波的首跑:**原有的每條 law 與 example 都該綠**(來源是「law 在而實作不符」的,只有那一條紅),新增的 law 照「動到」欄註明的綠或紅;原有的別條紅 = 宣告同步時動到了行為,或這次修訂其實動到了既有的 law,停下歸因。refactor 照 REV 那一句調實作,保護欄是護欄。**收尾時原有的與新增的每條 law 都綠,build 把 pipeline 改回 `verified`**;連動而重開的 pipeline 各自接上 build。效能、大小的調整,收尾時再量一次,數字寫進決策紀錄的「Verification」。
 13. **非調整既有的 law 不可 → 放棄,整件轉交**(攤影響範圍時、談新增的 law 時,或 build 做到一半 refactor 回報「這條既有的 law 擋著這次要的品質」、qa 回報「簽名一改這條 law 讀不出唯一解釋」、開發者看了結果要放寬一條):
     - **停下**,不補救、不把既有的 law 改鬆、不把意思的改變當成機械同步帶過去。
-    - **還原這一場改過的東西**,文檔與宣告回到開工時的樣子,不留半套:還沒 commit 的改動 `git restore`(`lawful module` 開的空資料夾一起刪);已經 commit 的(文檔、宣告、REV、刪掉的 GAP、`lawful rename` 與 `lawful module` 改過的檔、綁定欄、qa 與 refactor 在這一波的 commit)逐個 `git revert`,到與開工時記下的那個 HEAD 沒有差異(`git diff <開工時的 HEAD> --stat` 是空的)。pipeline 回到 `verified`、用回開工時的全名。
+    - **還原這一場改過的東西**,文檔與宣告回到開工時的樣子,不留半套:還沒 commit 的改動 `git restore`(`lawful module` 開的空資料夾一起刪);已經 commit 的(文檔、宣告、REV、刪掉的 GAP、`lawful module` 改過的檔、綁定欄、qa 與 refactor 在這一波的 commit)逐個 `git revert`,到與開工時記下的那個 HEAD 沒有差異(`git diff <開工時的 HEAD> --stat` 是空的)。pipeline 回到 `verified`。
     - **替開發者把下一道指令寫好,讓他直接貼上**。先用一兩句話講:已經還原了什麼(哪幾個檔、哪幾個 commit、pipeline 回到 `verified`)、為什麼放棄(哪一條既有的 law 非調整不可)。接著單獨一個程式碼區塊,裡面只有這一行:
 
       ```

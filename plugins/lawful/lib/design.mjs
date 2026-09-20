@@ -15,7 +15,7 @@ export function layerOfFile(cone, file) {
   }
   return best;
 }
-// 一個模組單元的領域名詞:去掉模組前綴,大駝峰拆成 kebab(Weft.ActionSequence → action-sequence;Game.Save.Extra → save-extra)。
+// 一個模組單元的領域名詞:去掉模組前綴,大駝峰拆成 kebab(Game.ActionSequence → action-sequence;Game.Save.Extra → save-extra)。
 export function unitSlug(cone, unit) {
   const prefix = cone && cone.modulePrefix;
   let rest = unit;

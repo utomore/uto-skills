@@ -118,7 +118,7 @@ pipeline 之間**可以互相引用**,不論它們屬於哪條需求:兩條 pipe
 - `Cone.md`「專案約束」沒有號段行時,`lawful claim` 從全部 pipeline 的最大號往上配。有號段行時(每人一段,以 git 的 `user.email` 為鍵:`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),從自己區間內的最大號往上配,frontmatter 多一欄 `owner: <email>`;email 對不到任何區間、或區間用完,claim 停下,由架構負責人改號段行。號段只管 pipeline 與 ADR;需求、領域不變量、里程碑、調整一律從最大號往上配(里程碑與調整跨需求檔、跨工作樹)。
 - `lint ids`:兩個檔案同號、號段行讀不懂或兩段重疊、`owner` 的號不在自己的區間內即紅。不同機器上各自 claim 時彼此看不到,同號在合進主線時才浮現,這條在 PR 的 CI 上跑。
 - pipeline 與 ADR 一律寫全名。
-- pipeline 的 slug 是 `<領域名詞>-<動詞或動名詞>`,kebab-case 英文,至少兩段。領域名詞是 `=` 列住的**模組單元**:去掉模組前綴、大駝峰拆成 kebab(`Weft.ActionSequence` → `action-sequence`);後面接這條資料流做什麼(`inventory-step`、`render-compose`、`snapshot-rewind`、`save-write`)。`lawful claim` 查領域名詞對得上模組表,`lint sig` 查它是 `=` 列住的單元;`=` 列搬到別的單元就 `lawful rename <P-00x> <slug>`,編號不動,專案裡寫著原全名的每一處一起改。
+- pipeline 的 slug 是 `<領域名詞>-<動詞或動名詞>`,kebab-case 英文,至少兩段。領域名詞是 `=` 列住的**模組單元**:去掉模組前綴、大駝峰拆成 kebab(`Game.ActionSequence` → `action-sequence`);後面接這條資料流做什麼(`inventory-step`、`render-compose`、`snapshot-rewind`、`save-write`)。`lawful claim` 建檔時查領域名詞對得上模組表。**編號是身分,slug 取了就不換**:`=` 列之後搬到別的模組單元,slug 照舊。
 
 ## 簽名怎麼寫
 
@@ -155,17 +155,17 @@ Stages 表的簽名欄逐字抄程式碼:`name :: Type`,就是原始碼裡那一
 ```markdown
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `candidates :: World -> [(EntityId, EntityId)]` | 粗篩可能碰撞的對 | `Weft.Physics.Broadphase` | core |
-| 2 | `queryDynamic :: World -> [(EntityId, RigidBody)]` | 取非靜態剛體 | `Weft.ECS.Query`(見 P-003-ecs-query) | core |
-| o | `overlaps :: EntityId -> EntityId -> World -> Bool` | 觀察:兩實體是否相交 | `Weft.Physics.Broadphase.Internal` | core |
-| = | `step :: Time -> World -> (World, [CollisionEvent])` | 純的整條 | `Weft.Physics` | core |
+| 1 | `candidates :: World -> [(EntityId, EntityId)]` | 粗篩可能碰撞的對 | `Game.Physics.Broadphase` | core |
+| 2 | `queryDynamic :: World -> [(EntityId, RigidBody)]` | 取非靜態剛體 | `Game.ECS.Query`(見 P-003-ecs-query) | core |
+| o | `overlaps :: EntityId -> EntityId -> World -> Bool` | 觀察:兩實體是否相交 | `Game.Physics.Broadphase.Internal` | core |
+| = | `step :: Time -> World -> (World, [CollisionEvent])` | 純的整條 | `Game.Physics` | core |
 ```
 
 io pipeline 多一列進入點,放在最後:
 
 ```markdown
-| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Weft.Save` | core |
-| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Weft.Save.Host` | shell |
+| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Game.Save` | core |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Game.Save.Host` | shell |
 ```
 
 - 簽名欄照上面「簽名怎麼寫」。`lawful lint sig` 對帳。

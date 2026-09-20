@@ -1,6 +1,5 @@
 $ lawful lint sig
-## lint sig:16 條不合規
-- ✗ .lawful/pipelines/P-001-game-save.md slug 的領域名詞不是 = 列住的單元:= 列 saveGame 住 Game.Save(save),slug 是「game-save」;lawful rename P-001 save-<動詞>
+## lint sig:15 條不合規
 - ✗ .lawful/pipelines/P-001-game-save.md kind 是 io 的 pipeline 要恰好一列 ! 列(shell 的進入點),現在 0 列
 - ✗ .lawful/pipelines/P-001-game-save.md:19 P-001-game-save#decode 簽名不一致
     文檔:decode :: ByteString -> Either DecodeError SaveState

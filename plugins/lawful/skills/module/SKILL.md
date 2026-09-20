@@ -51,7 +51,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
    - **core**:它有純轉換要被 pipeline 當 stage 用嗎?
    - **shell**:它自己碰對外 I/O 嗎?只被別人呼叫、不碰 I/O 的單元沒有這層。
    答否的層就不建;層可以之後再補,同一道命令跑第二次就好。
-4. **問要不要門面**:別的單元 import 這個單元時,想寫一個名字(`import Weft.Render`)還是直接指到裡面的模組?要一個名字就加 `--facade`,它預設開在最上層(`boundary.md`「模組單元」)。再問這個名字主要給誰用:門面住哪一層,只有那一層以上的模組 import 得到,所以型別被別人的 types 層大量使用的單元寫 `--facade types`,真解譯器給 `Main` 接的寫 `--facade shell`。
+4. **問要不要門面**:別的單元 import 這個單元時,想寫一個名字(`import Game.Render`)還是直接指到裡面的模組?要一個名字就加 `--facade`,它預設開在最上層(`boundary.md`「模組單元」)。再問這個名字主要給誰用:門面住哪一層,只有那一層以上的模組 import 得到,所以型別被別人的 types 層大量使用的單元寫 `--facade types`,真解譯器給 `Main` 接的寫 `--facade shell`。
 5. **建**:`lawful module <名稱> --layers <逗號分隔> --responsibility <一句話> [--facade [層]]`。先 `--dry-run` 唸給開發者聽會在哪幾棵樹裡開資料夾、門面建在哪,說好再跑一次不帶 `--dry-run`。資料夾裡除了門面不放模組:要幾個檔、叫什麼名字由切片決定。
 6. **對帳**:`lawful lint boundary`。職責欄空的、單元巢狀會紅;宣告了層還沒有程式碼是常態,只會列成訊息。
 7. **接回去**:切片途中劃的,回 `lawful:spike-impl` 繼續把模組寫進去,決策紀錄「Touched」記這個新單元;立案時劃的,回 `lawful:kickoff`。

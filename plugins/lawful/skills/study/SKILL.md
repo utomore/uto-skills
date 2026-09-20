@@ -119,7 +119,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
   (四種來源不得混寫;只有 [推測] 時要講清楚「作者沒說,這是我的解讀」)
 
 **證據**:
-  `src-core/Weft/Physics/Broadphase.hs:42-58`
+  `src-core/Game/Physics/Broadphase.hs:42-58`
   ```haskell
   (從檔案讀出的原文片段,3–20 行;要完整到能看出結論為真,不要只貼一行簽名)
   ```

@@ -78,10 +78,6 @@ const CASES = [
   ['save-game-claim-bad-kind', 'save-game', ['claim', 'save-load', '--kind', '介面']],
   ['save-game-claim-bad-domain', 'save-game', ['claim', 'game-load', '--description', '把存檔讀回 World']],
   ['save-game-claim-one-word', 'save-game', ['claim', 'load']],
-  ['save-game-rename-dry', 'save-game', ['rename', 'P-001', 'save-store', '--dry-run']],
-  ['save-game-rename', 'save-game', ['rename', 'P-001-save-write', 'save-store'], ['.lawful/pipelines/P-001-save-write.md', '.lawful/pipelines/P-001-save-store.md', '.lawful/modules.md', '.lawful/requirements/R-1-save-roundtrip.md', 'src-core/Game/Save.hs']],
-  ['save-game-rename-bad-domain', 'save-game', ['rename', 'P-001', 'game-store']],
-  ['save-game-rename-missing', 'save-game', ['rename', 'P-009', 'save-store']],
   ['save-game-requirement-add', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2', '--accept', '任一前一版的存檔,新版讀回的投影與前一版一樣', '--date', DATE], ['.lawful/requirements/R-2-save-upgrade.md']],
   ['save-game-requirement-add-no-accept', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2', '--date', DATE], ['.lawful/requirements/R-2-save-upgrade.md']],
   ['save-game-requirement-add-bad-slug', 'save-game', ['requirement', 'add', 'Save_Upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2']],
@@ -181,7 +177,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement add <slug>/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || !/requirement refinement <R-n>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /IO 介面|子流/.test(h.stdout) || !/--kind <io \| subflow>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement add <slug>/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || !/requirement refinement <R-n>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /IO 介面|子流/.test(h.stdout) || !/--kind <io \| subflow>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || /^\s+rename\b/m.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');

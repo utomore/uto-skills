@@ -176,12 +176,12 @@ Haskell 這類純函數式專案(functional core / imperative shell)的需求導
 與 dev-flow 的差異:
 
 - **四層固定**:`types ← effect ← core ← shell`,一層一棵原始碼樹(預設 `src-<層>`),各是建置系統的一個子函式庫,依賴方向由編譯器擋、`lint boundary` 再對一次。`=` 列是純的整條、`!` 列是 shell 進入點、`o` 列是觀察點。
-- **模組單元**:`modules.md` 一列一個單元(名字、職責、有哪幾層);切片要一個還沒有的單元或層,先 `lawful module` 劃邊界。pipeline 的 slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列住的單元。
+- **模組單元**:`modules.md` 一列一個單元(名字、職責、有哪幾層);切片要一個還沒有的單元或層,先 `lawful module` 劃邊界。pipeline 的 slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列住的單元,`lawful claim` 建檔時查;編號是身分,slug 取了就不換。
 - **Cone.md**:願景、全域 Law(領域不變量 INV-n、架構:四層、契約:對外 I/O)、專案約束(語言、三道指令、模組前綴、原始碼根目錄、硬性要求的套件、號段、優先各級)。領域不變量只引用 types 層。
 - **stage 之間不用無名容器**:`lint sig` 擋 aeson `Value` 這類型別,形狀要有名字。
 - 一個 stage 與它的 law 只住一條 pipeline,別條引用它;被引用的那一條通常是 `kind: subflow` 的 pipeline。
 
-Skills:`kickoff`、`require-design`、`global-laws`、`module`、`spike-impl`、`scope-laws`、`scope-revise`、`build`、`qa`、`refactor`、`integrate`、`status`、`audit`、`study`。CLI `lawful` 的子命令與 `devflow` 相同(status、claim、requirement、invariant、lint、sync、section、brief),另有 `module`、`rename`、`migrate laws`(全域 Law 還沒收進 `Cone.md`、需求還寫著 Law 的樹)、`migrate cone`(只有 `system.md` 的樹)、`migrate requirements`(需求不住 `requirements/` 的樹)與 `migrate from-dev-flow`。adapter 是 Haskell(認 hspec 與 tasty 兩種測試輸出)。
+Skills:`kickoff`、`require-design`、`global-laws`、`module`、`spike-impl`、`scope-laws`、`scope-revise`、`build`、`qa`、`refactor`、`integrate`、`status`、`audit`、`study`。CLI `lawful` 的子命令與 `devflow` 相同(status、claim、requirement、invariant、lint、sync、section、brief),另有 `module`、`migrate laws`(全域 Law 還沒收進 `Cone.md`、需求還寫著 Law 的樹)、`migrate cone`(只有 `system.md` 的樹)、`migrate requirements`(需求不住 `requirements/` 的樹)與 `migrate from-dev-flow`。adapter 是 Haskell(認 hspec 與 tasty 兩種測試輸出)。
 
 ```
 .lawful/

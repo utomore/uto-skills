@@ -1,4 +1,4 @@
-// 會寫檔的子命令:module、claim、rename、requirement add / milestone / refinement、invariant add、sync、modules --gen。
+// 會寫檔的子命令:module、claim、requirement add / milestone / refinement、invariant add、sync、modules --gen。
 // 需求一條一個檔,住 requirements/R-n-<slug>.md。
 import fs from 'node:fs';
 import path from 'node:path';
@@ -286,52 +286,6 @@ export function refinementAdd(design, reqId, title, { touch = '' } = {}) {
   appendRow(lines, '調整', REFINEMENT_TABLE, `| ${id} | ${title} | ${touches.join('、')} |`);
   fs.writeFileSync(file, lines.join('\n'));
   return { text: [`${id} 寫進 ${req.fullName},動到 ${touches.join('、')}`, `下一步:lawful:scope-revise ${touches[0]}(既有的 law 不動、可以新增,REV 的依欄引用 ${id};要調整既有的 law 才做得到,整件改走 lawful:scope-laws);調整達成 = 動到的每條都有一條 REV 引用它、都達成,而且 ${reqId} 仍達成`].join('\n'), exitCode: 0, id };
-}
-
-// rename <P-00x> <slug>:編號不動,換 slug;檔改名,專案裡每個寫著舊全名的地方(.lawful/ 全部、原始碼與測試的註解)一起改。
-const RENAME_EXTS = new Set(['.md', '.hs', '.cabal', '.txt', '.yaml', '.yml', '.json', '.toml', '.py', '.rs', '.go', '.ts', '.js', '.mjs']);
-const RENAME_SKIP = new Set(['.git', 'node_modules', 'dist-newstyle', 'dist', 'target', '.stack-work']);
-
-function walkText(dir, root, ignore, out) {
-  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
-    const abs = path.join(dir, ent.name);
-    const relPath = path.relative(root, abs).split(path.sep).join('/');
-    if (ent.isDirectory()) {
-      if (RENAME_SKIP.has(ent.name) || ent.name.startsWith('dist-newstyle') || ignore.includes(relPath) || ignore.includes(ent.name)) continue;
-      walkText(abs, root, ignore, out);
-    } else if (RENAME_EXTS.has(path.extname(ent.name))) out.push(abs);
-  }
-  return out;
-}
-
-export function rename(design, idOrName, slug, { dryRun = false } = {}) {
-  const p = design.pipelines.find((q) => q.id === idOrName || q.fullName === idOrName);
-  if (!p) return { text: `pipelines/ 裡沒有 ${idOrName}`, exitCode: 1 };
-  const bad = checkSlug(design, slug);
-  if (bad) return { text: bad, exitCode: 1 };
-  const from = p.fullName;
-  const to = `${p.id}-${slug}`;
-  if (from === to) return { text: `${from} 已經叫這個名字`, exitCode: 0 };
-  const target = path.join(design.pipelinesDir, `${to}.md`);
-  if (fs.existsSync(target)) return { text: `${relOf(design, target)} 已存在`, exitCode: 1 };
-  const verb = dryRun ? '會改' : '改了';
-  const re = new RegExp(`(?<![A-Za-z0-9-])${from}(?![A-Za-z0-9-])`, 'g'); // 全名只有 P-00x 與 kebab,不用跳脫
-  const ignore = design.cone ? design.cone.ignoreDirs : [];
-  const out = [];
-  let files = 0;
-  for (const abs of walkText(design.root, design.root, ignore, [])) {
-    const text = fs.readFileSync(abs, 'utf8');
-    const hits = (text.match(re) || []).length;
-    if (!hits) continue;
-    files++;
-    if (!dryRun) fs.writeFileSync(abs, text.replace(re, to));
-    out.push(`${verb} ${relOf(design, abs)}(${hits} 處)`);
-  }
-  const oldFile = path.join(design.root, p.file);
-  if (!dryRun) fs.renameSync(oldFile, target);
-  out.unshift(`${from} → ${to}:${dryRun ? '會改名' : '改名'} ${p.file} → ${relOf(design, target)}`);
-  out.push(`${files} 個檔寫著舊全名${dryRun ? '' : ',都改了'};測試歸屬字串只帶 ${p.id},不受影響`);
-  return { text: out.join('\n'), exitCode: 0, fullName: to };
 }
 
 // 同層搬家的 stage,把模組欄改成程式碼的模組。

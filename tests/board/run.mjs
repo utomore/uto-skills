@@ -16,6 +16,9 @@ const BOARDS = [
     expect: { nodes: ['R-1', 'R-2'], edges: ['R-2>R-1'] } },   // R-1 的 P-001-cli-run 見 R-2 的 P-002-syntax-parse:R-2 在左,R-1 在右(高優先依賴低優先,邊是紅的)
   { name: 'dev-flow', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'fullstack'],
     expect: { nodes: ['R-1', 'R-2', 'R-3'], edges: ['R-1>R-3'] } },   // R-3 的 F-002-refund 見 R-1 的 F-001-checkout:R-1 在左,R-3 在右;R-2 誰也不靠
+  // 對外 I/O 表的契約欄有寫 law 的夾具:約束頁籤的弧線在這兩棵樹上才畫得出來
+  { name: 'dev-flow(shop)', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'shop'], cites: true },
+  { name: 'lawful(save-game)', bin: ['plugins', 'lawful', 'bin', 'lawful.mjs'], root: ['tests', 'lawful', 'fixtures', 'save-game'], cites: true },
 ];
 
 let failed = 0;
@@ -228,7 +231,37 @@ const DAG = `(() => {
   };
 })()`;
 
-async function run(page, label, expect) {
+// 約束頁籤的狀態:三頁哪一頁在畫面上、每一種卡的數目對不對得上資料、契約欄的弧線有沒有接到沒畫的卡。
+// 順手挑一張卡給滑鼠點(有弧線的優先)並把畫面挪到它那裡
+const LAWS = `(() => {
+  const vis = (el) => !el.hidden && getComputedStyle(el).display !== 'none';
+  const G = D.globalLaws;
+  const types = { inv: 0, layer: 0, io: 0, law: 0 };
+  for (const c of lawInfo.values()) types[c.type]++;
+  const expectTypes = { inv: D.invariants.length, layer: G.layers.length, io: G.io.length, law: D.docs.reduce((s, d) => s + d.laws.total, 0) };
+  const wanted = G.io.reduce((s, r) => s + r.contract.filter((c) => lawInfo.has(c)).length, 0);
+  const dangling = lawCites.filter((c) => !lawEls.has(c.from) || !lawEls.has(c.to)).length;
+  const key = (lawCites[0] && lawCites[0].from) || [...lawEls.keys()][0] || null;
+  let pick = null;
+  if (key) {
+    const b = lawBox.get(lawEls.get(key));
+    zoomTo({ x1: b.x - 200, y1: b.y - 200, x2: b.x + b.w + 200, y2: b.y + b.h + 200 });
+    const r = lawEls.get(key).getBoundingClientRect();
+    pick = { key, degree: lawCites.filter((c) => c.from === key || c.to === key).length, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  }
+  return {
+    on: document.body.classList.contains('view-laws'),
+    treeShown: vis(world), dagShown: vis(world2), lawsShown: vis(world3),
+    filterShown: vis(document.querySelector('.bar button[data-filter]')),
+    cards: lawEls.size, types, expectTypes,
+    groups: document.querySelectorAll('.lgroup').length, expectGroups: 3 + D.docs.length,
+    arcs: document.querySelectorAll('#links3 .cite').length, wanted, dangling,
+    legend: document.getElementById('legend').textContent,
+    pick,
+  };
+})()`;
+
+async function run(page, label, expect, cites) {
   const pick = await page.evaluate(PICK);
 
   // 點便利貼:側欄換成那一份、頭上那一串亮起來、它的引用線亮起來
@@ -374,6 +407,57 @@ async function run(page, label, expect) {
   await page.click(treeTab.x, treeTab.y);
   const back = await page.evaluate(DAG);
   check(`${label}:切回樹那一頁便利貼回來`, !back.on && back.treeShown && !back.dagShown && back.filterShown, JSON.stringify(back));
+
+  // 約束頁籤:law 全部攤開,一條一張卡。上半全域 Law 三類各一叢,下半一份一叢;對外 I/O 的契約欄畫成指到那條 law 的弧線
+  const tabAt = (view) => page.evaluate(`(() => { const r = document.querySelector('.bar button[data-view="${view}"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
+  const lawsTab = await tabAt('laws');
+  await page.click(lawsTab.x, lawsTab.y);
+  const laws = await page.evaluate(LAWS);
+  check(`${label}:切到約束頁籤只看得到約束圖`, laws.on && !laws.treeShown && !laws.dagShown && laws.lawsShown, JSON.stringify(laws));
+  check(`${label}:領域不變量、層、對外 I/O 的每一列與每條 scope law 各一張卡`, JSON.stringify(laws.types) === JSON.stringify(laws.expectTypes),
+    `畫了 ${JSON.stringify(laws.types)},資料是 ${JSON.stringify(laws.expectTypes)}`);
+  check(`${label}:全域 Law 三類各一叢,Scope Law 一份一叢`, laws.groups === laws.expectGroups, `畫了 ${laws.groups} 叢,應該 ${laws.expectGroups} 叢`);
+  check(`${label}:契約欄寫到的 law 各一條弧線,兩端都是畫出來的卡`, laws.arcs === laws.wanted && laws.dangling === 0,
+    `弧線 ${laws.arcs} 條,契約欄指得到的 law ${laws.wanted} 條,${laws.dangling} 條接到沒畫的卡`);
+  if (cites) check(`${label}:這棵樹的契約欄有寫 law,弧線畫得出來`, laws.arcs > 0, `弧線 ${laws.arcs} 條`);
+  check(`${label}:約束頁的圖例講的是測試結果`, laws.legend.includes('成立') && laws.legend.includes('契約') && !laws.legend.includes('draft'), laws.legend);
+  check(`${label}:樹那一頁的篩選在約束頁收起來`, !laws.filterShown);
+  if (laws.pick) {
+    await page.click(laws.pick.x, laws.pick.y);
+    const sel = await page.evaluate(`({ lawSelected, docOpen: !docEl.hidden, lit: document.querySelectorAll('#links3 .cite.lit').length, related: document.querySelectorAll('#world3 .lcard.rel').length })`);
+    check(`${label}:點約束頁的卡會選到它`, sel.lawSelected === laws.pick.key && sel.docOpen, JSON.stringify(sel));
+    check(`${label}:選了卡它的契約弧線會亮`, sel.lit === laws.pick.degree && sel.related === laws.pick.degree,
+      `亮了 ${sel.lit} 條、另一端亮了 ${sel.related} 張,這張卡有 ${laws.pick.degree} 條`);
+    await page.click(laws.pick.x, laws.pick.y);
+    const un = await page.evaluate('({ lawSelected, homeOpen: !homeEl.hidden })');
+    check(`${label}:約束頁再點一次會取消選取`, un.lawSelected === null && un.homeOpen);
+  }
+
+  // 從樹那一頁的細節面板點一條 law:跳到約束頁並選到它
+  const treeTab2 = await tabAt('tree');
+  await page.click(treeTab2.x, treeTab2.y);
+  const link = await page.evaluate(`(() => {
+    const d = D.docs.find((x) => x.laws.total && noteEls.has(x.name));
+    if (!d) return null;
+    select(d.name);
+    const a = docEl.querySelector('[data-law]');
+    if (!a) return { key: null };
+    a.scrollIntoView({ block: 'center', behavior: 'instant' });
+    const r = a.getBoundingClientRect();
+    return { key: a.dataset.law, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  })()`);
+  if (link) {
+    check(`${label}:便利貼細節裡的 law 是連結`, !!link.key);
+    if (link.key) {
+      await page.click(link.x, link.y);
+      const hop = await page.evaluate(`({ on: document.body.classList.contains('view-laws'), lawSelected, docOpen: !docEl.hidden })`);
+      check(`${label}:點細節裡的 law 會跳到約束頁並選到它`, hop.on && hop.lawSelected === link.key && hop.docOpen, JSON.stringify(hop));
+    }
+  }
+  const treeTab3 = await tabAt('tree');
+  await page.click(treeTab3.x, treeTab3.y);
+  const home = await page.evaluate(DAG);
+  check(`${label}:從約束頁切回樹那一頁便利貼回來`, !home.on && home.treeShown && !home.dagShown && home.filterShown, JSON.stringify(home));
 }
 
 const chrome = findChrome();
@@ -396,7 +480,7 @@ if (!chrome) {
       }
       const page = await openPage(browser, pathToFileURL(out).href);
       try {
-        await run(page, b.name, b.expect);
+        await run(page, b.name, b.expect, b.cites);
       } finally {
         await page.close();
       }

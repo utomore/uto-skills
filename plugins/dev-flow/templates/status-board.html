@@ -70,8 +70,27 @@ h1,h2,h3{margin:0;font-weight:600}
 #links2 .dep.cycle{stroke-dasharray:5 5}
 #links2 .dep.lit{stroke:var(--going);stroke-width:2.6;opacity:1;marker-end:url(#arrowLit2)}
 #links2 .dep.faded{opacity:.12}
-body.view-dag .tree-only{display:none}
+#world3{position:absolute;top:0;left:0;transform-origin:0 0;user-select:none}
+#links3{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+#links3 path{fill:none}
+#links3 .tree{stroke:var(--wire);stroke-width:1.6;opacity:.5}
+#links3 .cite{stroke:var(--wire);stroke-width:1.4;opacity:.45;stroke-dasharray:6 5;marker-end:url(#arrow3)}
+#links3 .cite.lit{stroke:var(--going);stroke-width:2.4;opacity:1;stroke-dasharray:none;marker-end:url(#arrowLit3)}
+#links3 .cite.faded{opacity:.1}
+body:not(.view-tree) .tree-only{display:none}
 body:not(.view-dag) .dag-only{display:none}
+
+/* 約束:上半全域 Law 三類,下半每份文檔自己的 Scope Law;一條 law 一張卡,顏色是測試結果 */
+.lcard{background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--edge, var(--rule));
+  box-shadow:0 3px 10px rgba(0,0,0,.1);cursor:pointer;padding:9px 12px 8px}
+.lcard[data-tone=done]{--edge:var(--done)}
+.lcard[data-tone=stuck]{--edge:var(--stuck)}
+.lcard[data-tone=wait]{--edge:var(--wait)}
+.lcard[data-tone=idle]{--edge:var(--idle)}
+.lcard .k{font-size:11px;letter-spacing:.05em;color:var(--faint)}
+.lcard .name{font-weight:600;font-size:13px;margin-top:2px;line-height:1.5;word-break:break-word}
+.lcard .n{font-size:12px;margin-top:4px;color:var(--edge, var(--faint));font-weight:600}
+.lcard .w{font-size:12px;margin-top:3px;color:var(--faint);line-height:1.5;word-break:break-word}
 
 /* 相依:一條需求一張卡,左邊先做、右邊後做 */
 .dnode{background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--edge, var(--rule));
@@ -101,18 +120,19 @@ body:not(.view-dag) .dag-only{display:none}
 .vision p.none{color:var(--stuck)}
 
 /* 需求的區塊 */
-.band{background:var(--ink);color:var(--panel);border:1px solid var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.14)}
-.band .t{font-size:14px;font-weight:700;letter-spacing:.04em}
-.band .n{font-size:11.5px;margin-top:4px;opacity:.72;line-height:1.5}
+.band,.lband{background:var(--ink);color:var(--panel);border:1px solid var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.14)}
+.band .t,.lband .t{font-size:14px;font-weight:700;letter-spacing:.04em}
+.band .n,.lband .n{font-size:11.5px;margin-top:4px;opacity:.72;line-height:1.5}
 .band[data-done=y]{background:var(--done);border-color:var(--done)}
 
-/* 里程碑 */
-.group{background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--edge, var(--rule));
+/* 里程碑;約束頁的一類全域 Law 或一份文檔也是這個樣子 */
+.group,.lgroup{background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--edge, var(--rule));
   box-shadow:0 3px 10px rgba(0,0,0,.08)}
-.group[data-done=y]{--edge:var(--done)}
+.group[data-done=y],.lgroup[data-done=y]{--edge:var(--done)}
 .group[data-done=n]{--edge:var(--going)}
-.group .t{font-size:13px;font-weight:600;line-height:1.5}
-.group .n{font-size:12px;color:var(--faint);margin-top:4px}
+.lgroup[data-done=n]{--edge:var(--stuck)}
+.group .t,.lgroup .t{font-size:13px;font-weight:600;line-height:1.5}
+.group .n,.lgroup .n{font-size:12px;color:var(--faint);margin-top:4px}
 
 /* 便利貼 */
 .note{background:var(--paper);box-shadow:0 5px 12px rgba(0,0,0,.16);border-top:4px solid var(--edge);
@@ -157,6 +177,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
 #doc th{text-align:left;color:var(--faint);font-weight:500;border-bottom:1px solid var(--rule);padding:4px 6px 4px 0}
 #doc td{padding:4px 6px 4px 0;border-bottom:1px solid var(--rule);vertical-align:top}
 #doc td.s{white-space:nowrap}
+#doc pre{margin:0;padding:8px 10px;background:var(--bg);border:1px solid var(--rule);border-radius:4px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
 #doc .jump{background:none;border:0;padding:0;font:inherit;color:var(--going);cursor:pointer;text-decoration:underline}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
 .dot.g{background:var(--done)} .dot.r{background:var(--stuck)} .dot.y{background:var(--wait)} .dot.n{background:var(--idle)} .dot.e{background:var(--rule)}
@@ -191,13 +213,14 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
   background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:3px 12px;opacity:.9}
 </style>
 </head>
-<body>
+<body class="view-tree">
 <div id="top">
   <div id="head"><h1 id="title">看板</h1><div class="chips" id="chips"></div></div>
   <div id="tests"></div>
   <div class="bar">
     <button data-view="tree" aria-pressed="true">樹</button>
     <button data-view="dag" aria-pressed="false">相依</button>
+    <button data-view="laws" aria-pressed="false">約束</button>
     <span class="sep"></span>
     <button class="tree-only" data-filter="all" aria-pressed="true">全部</button>
     <button class="tree-only" data-filter="open" aria-pressed="false">今天能開</button>
@@ -224,7 +247,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
   </div>
 </div>
 
-<div id="stage"><div id="world"><svg id="links"></svg></div><div id="world2"><svg id="links2"></svg></div></div>
+<div id="stage"><div id="world"><svg id="links"></svg></div><div id="world2"><svg id="links2"></svg></div><div id="world3"><svg id="links3"></svg></div></div>
 
 <div id="mini">
   <div id="minihead"><b>小地圖</b><select id="jump"></select></div>
@@ -280,13 +303,27 @@ document.getElementById('title').textContent = `${D.tool} 看板`;
 document.getElementById('chips').innerHTML = D.headline
   .map((c) => `<span class="chip">${esc(c.label)} <b>${esc(c.value)}</b></span>`).join('');
 document.getElementById('tests').textContent = `${D.tests} ·`;
-document.getElementById('legend').innerHTML = TERMS
-  .map(([t, name, why]) => `<span title="${esc(why)}"><i style="background:var(--${t})"></i>${esc(name)}</span>`).join('')
-  + '<span title="虛線箭頭:箭頭那一端是被引用的那一份"><i style="background:var(--wire)"></i>引用</span>';
+// 約束頁的卡是 law,顏色講的是測試結果,圖例跟著換
+const LAW_TERMS = [
+  ['done', '成立', '測試跑過而且是綠的;對外 I/O 的一列是綠的,代表它契約欄寫的 law 全部成立'],
+  ['stuck', '不成立', '測試是紅的;對外 I/O 的一列是紅的,代表它契約欄寫的 law 有一條不成立或找不到'],
+  ['wait', '還沒跑', '翻成測試了但這一次沒有結果,或領域不變量寫了三行卻沒有測試'],
+  ['idle', '還沒翻成測試', '還沒有測試承接這條 law,或領域不變量還沒有三行式;對外 I/O 的一列是灰的,代表契約欄沒有寫 law'],
+];
+function fillLegend(laws) {
+  const [terms, wireName, wireWhy] = laws
+    ? [LAW_TERMS, '契約', '虛線箭頭:從對外 I/O 的一列指到它契約欄寫的那條 law']
+    : [TERMS, '引用', '虛線箭頭:箭頭那一端是被引用的那一份'];
+  document.getElementById('legend').innerHTML = terms
+    .map(([t, name, why]) => `<span title="${esc(why)}"><i style="background:var(--${t})"></i>${esc(name)}</span>`).join('')
+    + `<span title="${esc(wireWhy)}"><i style="background:var(--wire)"></i>${esc(wireName)}</span>`;
+}
+fillLegend(false);
 helpEl.innerHTML = `<button class="close">關閉</button><h3>便利貼的顏色</h3><dl>${
   TERMS.map(([t, name, why]) => `<dt><i style="background:var(--${t})"></i>${esc(name)}</dt><dd>${esc(why)}</dd>`).join('')
 }<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,一條弧線從右邊繞過去。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 需求 → 里程碑 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd>
-<dt><i style="background:var(--wire)"></i>相依頁籤</dt><dd>需求排成先後:左邊那一條達成了,右邊那一條才做得到。邊不是人寫的,是從${esc(D.labels.unit)}的引用推出來的:綁在需求甲的里程碑底下的一份引用了綁在需求乙的里程碑底下的一份,甲就依賴乙;沒被任何里程碑綁的那份自成一張「共用」卡。紅色的邊是優先倒掛:高優先的需求依賴低優先的需求。虛線的邊是互相依賴</dd></dl>`;
+<dt><i style="background:var(--wire)"></i>相依頁籤</dt><dd>需求排成先後:左邊那一條達成了,右邊那一條才做得到。邊不是人寫的,是從${esc(D.labels.unit)}的引用推出來的:綁在需求甲的里程碑底下的一份引用了綁在需求乙的里程碑底下的一份,甲就依賴乙;沒被任何里程碑綁的那份自成一張「共用」卡。紅色的邊是優先倒掛:高優先的需求依賴低優先的需求。虛線的邊是互相依賴</dd>
+<dt><i style="background:var(--wire)"></i>約束頁籤</dt><dd>law 全部攤開,一條一張卡。上半是全域 Law 三類:領域不變量、層(由內而外)、對外 I/O 表的每一列;下半是 Scope Law,一${esc(D.labels.measure)}一叢。卡的顏色是測試結果:${LAW_TERMS.map(([, name, why]) => `${esc(name)}——${esc(why)}`).join(';')}。層的卡沒有顏色,層守不守得住看那一叢上 lint boundary 的結果。虛線箭頭從對外 I/O 的一列指到它契約欄寫的那條 law</dd></dl>`;
 const setTopHeight = () => document.body.style.setProperty('--topH', document.getElementById('top').offsetHeight + 'px');
 
 // 側欄的首頁:派工
@@ -387,11 +424,12 @@ const box = new Map();       // 元素 → {x,y,w,h}
 const pick = (sel) => world.querySelector(sel);
 const bandEl = (bi) => pick(`.band[data-band="${bi}"]`);
 const groupEl = (bi, ci) => pick(`.group[data-band="${bi}"][data-col="${ci}"]`);
-function place(el, x, y, w) {
+// into 是那片畫布自己的位置表:樹與約束頁各一張
+function place(el, x, y, w, into = box) {
   el.style.left = x + 'px';
   el.style.top = y + 'px';
   const b = { x, y, w, h: H.get(el) };
-  box.set(el, b);
+  into.set(el, b);
   return b;
 }
 const hull = (boxes) => ({
@@ -407,15 +445,15 @@ const ancestors = new Map(); // 便利貼 → 它上面那一串卡片
 const trees = [];            // 每一組「父卡片 → 它的子卡片進線點」
 
 // 便利貼方陣:一排排滿了就往下折,每一排從左緣接一條線進來
-const PER_ROW = Math.max(1, Math.floor((MAX_GRID + GAP_NOTE) / (NOTE_W + GAP_NOTE)));
-function grid(els, x0, yTop) {
+function grid(els, x0, yTop, w = NOTE_W, into = box, maxW = MAX_GRID) {
+  const perRow = Math.max(1, Math.floor((maxW + GAP_NOTE) / (w + GAP_NOTE)));
   const rows = [];
   let yy = yTop;
-  for (let i = 0; i < els.length; i += PER_ROW) {
-    const row = els.slice(i, i + PER_ROW);
+  for (let i = 0; i < els.length; i += perRow) {
+    const row = els.slice(i, i + perRow);
     let xx = x0;
     let h = 0;
-    for (const el of row) { place(el, xx, yy, NOTE_W); xx += NOTE_W + GAP_NOTE; h = Math.max(h, H.get(el)); }
+    for (const el of row) { place(el, xx, yy, w, into); xx += w + GAP_NOTE; h = Math.max(h, H.get(el)); }
     rows.push({ x: x0, ey: yy + STUB });
     yy += h + GAP_NOTE_ROW;
   }
@@ -464,21 +502,26 @@ const paths = [`<defs>
   <marker id="arrowWait" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--wait)"></path></marker>
   <marker id="arrowLit" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--going)"></path></marker>
 </defs>`];
-const wire = (d) => paths.push(`<path class="tree" d="${d}"></path>`);
 // 父卡片垂一條下來,每個子卡片各自從那條橫過來接進自己的左緣;便利貼掛在里程碑右邊,就從右緣垂
-for (const t of trees) {
-  const kids = t.kids.filter(Boolean);
-  if (!t.from || !kids.length) continue;
-  const last = kids[kids.length - 1].ey;
-  const right = t.side === 'right';
-  const sx = right ? t.from.x + t.from.w + GAP_COL / 2 : t.from.x + IND / 2;
-  if (right) {
-    const y0 = t.from.y + Math.min(STUB, t.from.h / 2);
-    wire(`M ${t.from.x + t.from.w} ${y0} H ${sx}`);
-    if (last > y0) wire(`M ${sx} ${y0} V ${last}`);
-  } else wire(`M ${sx} ${t.from.y + t.from.h} V ${last}`);
-  for (const kd of kids) wire(`M ${sx} ${kd.ey} H ${kd.x}`);
+function treeWires(ts) {
+  const out = [];
+  const wire = (d) => out.push(`<path class="tree" d="${d}"></path>`);
+  for (const t of ts) {
+    const kids = t.kids.filter(Boolean);
+    if (!t.from || !kids.length) continue;
+    const last = kids[kids.length - 1].ey;
+    const right = t.side === 'right';
+    const sx = right ? t.from.x + t.from.w + GAP_COL / 2 : t.from.x + IND / 2;
+    if (right) {
+      const y0 = t.from.y + Math.min(STUB, t.from.h / 2);
+      wire(`M ${t.from.x + t.from.w} ${y0} H ${sx}`);
+      if (last > y0) wire(`M ${sx} ${y0} V ${last}`);
+    } else wire(`M ${sx} ${t.from.y + t.from.h} V ${last}`);
+    for (const kd of kids) wire(`M ${sx} ${kd.ey} H ${kd.x}`);
+  }
+  return out;
 }
+paths.push(...treeWires(trees));
 
 // ── 引用:一條弧線,從引用者的右緣出去,繞到右邊,再接進被引用那一份的右緣 ──
 const contentRight = Math.max(...[...box.values()].map((b) => b.x + b.w));
@@ -689,13 +732,163 @@ buildDag();
   }
 }
 
-// 兩個視圖共用同一片畫布與同一套平移縮放;切換時各自記住自己的鏡頭
+// ── 約束:law 全部攤開。上半是全域 Law 三類,下半是每一份自己的 Scope Law ──
+// 版面與樹同一套:區塊 → 一類(或一份)→ 右邊鋪成方陣的卡,一條 law 一張;對外 I/O 的契約欄畫成指到那條 law 的弧線
+const world3 = document.getElementById('world3');
+const links3 = document.getElementById('links3');
+const LC_W = 264;
+const LAW_GRID = 1110;        // law 的卡一排四張就折行:這一頁是拿來讀字的,開頁不能縮到看不見
+const lawBox = new Map();
+const lawEls = new Map();     // 鍵 → 卡
+const lawInfo = new Map();    // 鍵 → 這張卡講的是什麼
+const lawKeyOf = new Map();   // 「文檔全名#第幾條」→ 鍵:樹那一頁的細節面板靠它跳過來
+const lawZone = new Map();    // 區塊或一叢 → 點它要縮放到的範圍
+const lawZones = [];
+const lawCites = [];          // 對外 I/O 的一列 → 它契約欄寫的那條 law
+let lawSelected = null;
+let lawTotalW = 0, lawMaxY = 0;
+const resultTone = (r) => (r === 'green' ? 'done' : r === 'red' ? 'stuck' : r === '未跑' ? 'wait' : 'idle');
+const resultWord = (r) => (r === 'green' ? '成立' : r === 'red' ? '不成立' : r);
+const invTone = (v) => (v.holds === true ? 'done' : v.holds === false ? 'stuck' : v.formal ? 'wait' : 'idle');
+const invWord = (v) => (v.holds === true ? '成立' : v.holds === false ? '不成立' : '未知');
+
+function buildLaws() {
+  const G = D.globalLaws || { gates: [], layers: [], io: [] };
+  const gate = (kind) => G.gates.find((g) => g.kind === kind) || null;
+  const gateNote = (kind) => (gate(kind) ? `lint ${gate(kind).gate}:${gate(kind).result}` : '');
+  // 同一個編號寫了兩次也各畫一張,不讓後一條蓋掉前一條
+  const fresh = (key) => { let k = key; for (let i = 2; lawInfo.has(k); i++) k = `${key}(第 ${i} 條)`; return k; };
+  const add = (key, info) => { const k = fresh(key); lawInfo.set(k, { ...info, key: k }); return k; };
+
+  const scopeGroups = D.docs.map((d) => {
+    const keys = d.laws.items.map((l, i) => {
+      const key = add(`${d.id}#${l.id || `第 ${i + 1} 條`}`, { type: 'law', doc: d, law: l, tone: resultTone(l.result),
+        k: `${l.id || '沒有編號'}${l.kind ? ` [${l.kind}]` : ''}`, name: l.title, n: resultWord(l.result) });
+      lawKeyOf.set(`${d.name}#${i}`, key);
+      return key;
+    });
+    return { title: d.name, note: `${d.description ? `${d.description} · ` : ''}law ${d.laws.green === null ? 'nan' : d.laws.green}/${d.laws.total} 成立`, keys, empty: '一條 law 都沒寫' };
+  });
+  const invKeys = D.invariants.map((v) => add(v.id, { type: 'inv', inv: v, tone: invTone(v),
+    k: `${v.id}${v.kind ? ` [${v.kind}]` : ''}`, name: v.title, n: `${invWord(v)} · ${v.source}` }));
+  const layerKeys = G.layers.map((l, i) => add(`層:${l.name}`, { type: 'layer', layer: l, tone: null,
+    k: `由內而外第 ${i + 1} 層`, name: l.name, w: l.what || '這一層裝什麼還沒寫' }));
+  const ioKeys = G.io.map((r, i) => {
+    const cited = r.contract.map((c) => lawInfo.get(c));
+    const tone = !r.contract.length ? 'idle' : cited.some((c) => !c || c.tone === 'stuck') ? 'stuck' : cited.every((c) => c.tone === 'done') ? 'done' : 'wait';
+    const key = add(`對外 I/O:${r.name || i + 1}`, { type: 'io', io: r, tone,
+      k: [r.direction, r.trust ? `信任 ${r.trust}` : ''].filter(Boolean).join(' · '), name: r.name, w: [r.type, r.entry ? `進入 ${r.entry}` : ''].filter(Boolean).join(' · '),
+      n: r.contract.length ? `契約 ${r.contract.join('、')}` : '契約欄沒有寫 law' });
+    for (const c of r.contract) if (lawInfo.has(c)) lawCites.push({ from: key, to: c });
+    return key;
+  });
+  const title = (kind, fallback) => (gate(kind) ? gate(kind).where : fallback);
+  const sections = [
+    { title: '全域 Law', note: '整個專案都不得違反的約束',
+      notes: [`領域不變量 ${invKeys.length} 條 · 層 ${layerKeys.length} 層 · 對外 I/O ${ioKeys.length} 列`],
+      groups: [
+        { title: title('領域不變量', '領域不變量'), note: gateNote('領域不變量'), keys: invKeys, red: gate('領域不變量') ? gate('領域不變量').red : 0, empty: '一條都還沒有' },
+        { title: title('架構', '架構:層'), note: gateNote('架構'), keys: layerKeys, red: gate('架構') ? gate('架構').red : 0, empty: '層表還沒有列' },
+        { title: title('契約', '契約:對外 I/O'), note: gateNote('契約'), keys: ioKeys, red: gate('契約') ? gate('契約').red : 0, empty: '對外 I/O 表還沒有列' },
+      ] },
+    { title: 'Scope Law', note: `只約束它住的那一${D.labels.measure}`,
+      notes: [`${D.docs.length} ${D.labels.measure} · law ${D.docs.reduce((s, d) => s + d.laws.total, 0)} 條`],
+      groups: scopeGroups, empty: `還沒有任何${D.labels.unit}` },
+  ];
+  // 一叢的顏色:那道 lint 紅了、或有一張紅的就是紅;有卡而且有顏色的全綠才是綠
+  const doneOf = (g) => {
+    const tones = g.keys.map((k) => lawInfo.get(k).tone).filter(Boolean);
+    return g.red || tones.includes('stuck') ? 'n' : tones.length && tones.every((t) => t === 'done') ? 'y' : '-';
+  };
+
+  const html = [];
+  sections.forEach((s, si) => {
+    html.push(`<div class="card lband" data-kind="lband" data-sec="${si}" style="width:${BAND_W}px">
+      <div class="t">${esc(s.title)}</div><div class="n">${esc(s.note)}</div>
+      ${s.notes.map((n) => `<div class="n">${esc(n)}</div>`).join('')}
+      ${s.groups.length ? '' : `<div class="n">${esc(s.empty)}</div>`}</div>`);
+    s.groups.forEach((g, gi) => {
+      html.push(`<div class="card lgroup" data-kind="lgroup" data-sec="${si}" data-grp="${gi}" data-done="${doneOf(g)}" style="width:${GROUP_W}px">
+        <div class="t">${esc(g.title)}</div>${g.note ? `<div class="n">${esc(g.note)}</div>` : ''}
+        ${g.keys.length ? '' : `<div class="n">${esc(g.empty)}</div>`}</div>`);
+      for (const key of g.keys) {
+        const c = lawInfo.get(key);
+        c.hay = [key, c.k, c.name, c.w, c.n, g.title].filter(Boolean).join(' ').toLowerCase();
+        html.push(`<div class="card lcard" data-kind="lcard" data-key="${esc(key)}"${c.tone ? ` data-tone="${c.tone}"` : ''} style="width:${LC_W}px">
+          <div class="k">${esc(c.k)}</div><div class="name">${esc(c.name)}</div>
+          ${c.w ? `<div class="w">${esc(c.w)}</div>` : ''}${c.n ? `<div class="n">${esc(c.n)}</div>` : ''}</div>`);
+      }
+    });
+  });
+  world3.insertAdjacentHTML('beforeend', html.join(''));
+  for (const el of world3.querySelectorAll('.card')) H.set(el, el.offsetHeight);
+  for (const el of world3.querySelectorAll('.lcard')) lawEls.set(el.dataset.key, el);
+
+  let y = 0;
+  const trees3 = [];
+  sections.forEach((s, si) => {
+    const bEl = world3.querySelector(`.lband[data-sec="${si}"]`);
+    const bBox = place(bEl, LEFT, y, BAND_W, lawBox);
+    const mine = [bBox];
+    const kidsOfBand = [];
+    y += bBox.h + GAP_DROP;
+    s.groups.forEach((g, gi) => {
+      if (gi) y += GAP_GROUP;
+      const gEl = world3.querySelector(`.lgroup[data-sec="${si}"][data-grp="${gi}"]`);
+      const gBox = place(gEl, LEFT + IND, y, GROUP_W, lawBox);
+      const els = g.keys.map((k) => lawEls.get(k));
+      const gr = grid(els, LEFT + IND + GROUP_W + GAP_COL, y, LC_W, lawBox, LAW_GRID);
+      y = Math.max(gBox.y + gBox.h, gr.bottom);
+      trees3.push({ from: gBox, kids: gr.rows, side: 'right' });
+      const kids = [gBox, ...els.map((el) => lawBox.get(el))];
+      lawZone.set(gEl, hull(kids));
+      mine.push(...kids);
+      kidsOfBand.push(entry(gBox));
+    });
+    trees3.push({ from: bBox, kids: kidsOfBand });
+    const zone = hull(mine);
+    lawZone.set(bEl, zone);
+    lawZones.push({ label: s.title, zone });
+    y = zone.y2 + GAP_BAND;
+  });
+
+  // 契約欄的弧線:從對外 I/O 那一列的右緣出去,繞到右邊,接進那條 law 的右緣
+  const ps = [`<defs>
+    <marker id="arrow3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--wire)"></path></marker>
+    <marker id="arrowLit3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--going)"></path></marker>
+  </defs>`, ...treeWires(trees3)];
+  const outs = new Map(); const used = new Map();
+  for (const c of lawCites) outs.set(c.from, (outs.get(c.from) || 0) + 1);
+  for (const c of lawCites) {
+    const a = lawBox.get(lawEls.get(c.from)); const b = lawBox.get(lawEls.get(c.to));
+    if (!a || !b) continue;
+    const i = used.get(c.from) || 0; used.set(c.from, i + 1);
+    const y1 = Math.round(a.y + a.h / 2 + (i - (outs.get(c.from) - 1) / 2) * 9);
+    const y2 = Math.round(b.y + b.h / 2);
+    const x1 = a.x + a.w; const x2 = b.x + b.w;
+    const bulge = Math.min(460, Math.max(70, Math.abs(y2 - y1) * 0.34 + Math.abs(x2 - x1) * 0.2));
+    ps.push(`<path class="cite" data-from="${esc(c.from)}" data-to="${esc(c.to)}" d="M ${x1} ${y1} C ${x1 + bulge} ${y1}, ${x2 + bulge} ${y2}, ${x2} ${y2}"></path>`);
+  }
+  lawTotalW = Math.max(0, ...[...lawBox.values()].map((b) => b.x + b.w)) + 80;
+  lawMaxY = Math.max(0, ...[...lawBox.values()].map((b) => b.y + b.h)) + 60;
+  links3.setAttribute('viewBox', `0 0 ${lawTotalW} ${lawMaxY}`);
+  links3.setAttribute('width', lawTotalW);
+  links3.setAttribute('height', lawMaxY);
+  links3.innerHTML = ps.join('');
+  world3.style.width = lawTotalW + 'px';
+  world3.style.height = lawMaxY + 'px';
+}
+buildLaws();
+
+// 三個視圖共用同一片畫布與同一套平移縮放;切換時各自記住自己的鏡頭
 const views = {
   tree: { world, links, box, totalW, maxY, zones, cam: null, hint: '拖曳平移 · 滾輪上下、Ctrl 滾輪縮放 · 點便利貼看細節 · 點區塊或里程碑縮放到那一叢 · 0 回到全景' },
   dag: { world: world2, links: links2, box: dagBox, totalW: dagTotalW, maxY: dagMaxY, zones: [], cam: null, hint: '左邊先做,右邊後做 · 點卡片看它依賴誰、誰等它 · 0 回到全景' },
+  laws: { world: world3, links: links3, box: lawBox, totalW: lawTotalW, maxY: lawMaxY, zones: lawZones, cam: null, hint: '上半是全域 Law,下半是 Scope Law · 點卡片看三行式與它守哪個對外 I/O · 點區塊或一叢縮放過去 · 0 回到全景' },
 };
 let cur = views.tree;
 world2.hidden = true;
+world3.hidden = true;
 
 // ── 小地圖 ──
 const canvas = document.getElementById('minimap');
@@ -716,8 +909,9 @@ function drawBase(dpr) {
   moy = (MH - cur.maxY * ms) / 2;
   for (const [el, r] of cur.box) {
     const kind = el.dataset.kind;
-    b.fillStyle = kind === 'note' || kind === 'dnode' ? cvar('--' + el.dataset.tone) : kind === 'band' ? cvar('--ink') : cvar('--wire');
-    b.globalAlpha = kind === 'note' || kind === 'dnode' ? 0.95 : 0.55;
+    const toned = (kind === 'note' || kind === 'dnode' || kind === 'lcard') && !!el.dataset.tone;
+    b.fillStyle = toned ? cvar('--' + el.dataset.tone) : kind === 'band' || kind === 'lband' ? cvar('--ink') : cvar('--wire');
+    b.globalAlpha = toned ? 0.95 : 0.55;
     b.fillRect(mox + r.x * ms, moy + r.y * ms, Math.max(1.5, r.w * ms), Math.max(1.5, r.h * ms));
   }
   b.globalAlpha = 1;
@@ -859,6 +1053,14 @@ function hit(t) {
   const dn = t.closest && t.closest('.dnode');
   if (dn) { dagSelect(dn.dataset.id === dagSelected ? null : dn.dataset.id); return; }
   if (cur === views.dag) { dagSelect(null); return; }
+  const lc = t.closest && t.closest('.lcard');
+  if (lc) { lawSelect(lc.dataset.key === lawSelected ? null : lc.dataset.key); return; }
+  if (cur === views.laws) {
+    const cluster = t.closest && t.closest('.lband, .lgroup');
+    if (cluster && lawZone.has(cluster)) zoomTo(lawZone.get(cluster));
+    else lawSelect(null);
+    return;
+  }
   const note = t.closest && t.closest('.note');
   if (note) { select(note.dataset.name === selected ? null : note.dataset.name); return; }
   const card = t.closest && t.closest('.band, .group');
@@ -950,7 +1152,7 @@ function openDoc(name) {
     <section><h3>${esc(D.labels.steps)}(簽名 ${d.signatures.matched}/${d.signatures.total} 對到,骨架 ${d.signatures.stub}${d.observations.total ? ` · 觀察點 ${d.observations.matched}/${d.observations.total}` : ''})</h3>
       <table><thead><tr><th>列</th><th>簽名 / 模組</th><th>狀態</th></tr></thead><tbody>${stepRows(d)}</tbody></table></section>
     <section><h3>Laws(通過 ${d.laws.green === null ? 'nan' : d.laws.green} / ${d.laws.total},翻成測試 ${d.laws.traced})</h3>
-      ${d.laws.total ? `<ul>${d.laws.items.map((l) => `<li><span class="dot ${dotOf(l.result)}"></span>${esc(l.id)} [${esc(l.kind)}] ${esc(l.title)} — ${esc(l.result)}</li>`).join('')}</ul>` : '<p class="empty">一條 law 都沒寫</p>'}</section>
+      ${d.laws.total ? `<ul>${d.laws.items.map((l, i) => `<li><span class="dot ${dotOf(l.result)}"></span>${lawLink(lawKeyOf.get(`${d.name}#${i}`), l.id)} [${esc(l.kind)}] ${esc(l.title)} — ${esc(l.result)}</li>`).join('')}</ul>` : '<p class="empty">一條 law 都沒寫</p>'}</section>
     ${d.examples.total ? `<section><h3>Examples</h3><ul>${d.examples.items.map((e) => `<li><span class="dot ${dotOf(e.result)}"></span>${esc(e.id)} 覆蓋 ${esc(e.covers.join('、'))} — ${esc(e.result)}</li>`).join('')}</ul></section>` : ''}
     <section><h3>關係</h3><ul>
       <li>引用了:${d.refs.length ? d.refs.map(linkTo).join('、') : '無'}</li>
@@ -969,8 +1171,11 @@ function select(name) {
   if (name) openDoc(name);
   else { docEl.hidden = true; homeEl.hidden = false; }
 }
+const clearSelection = () => { if (cur === views.dag) dagSelect(null); else if (cur === views.laws) lawSelect(null); else select(null); };
 docEl.addEventListener('click', (ev) => {
-  if (ev.target.classList.contains('back')) { if (cur === views.dag) dagSelect(null); else select(null); return; }
+  if (ev.target.classList.contains('back')) { clearSelection(); return; }
+  const lw = ev.target.closest('[data-law]');
+  if (lw) { if (cur !== views.laws) setView('laws'); lawSelect(lw.dataset.law); const b = lawBox.get(lawEls.get(lw.dataset.law)); if (b) zoomTo({ x1: b.x - 200, y1: b.y - 200, x2: b.x + b.w + 200, y2: b.y + b.h + 200 }); return; }
   const dg = ev.target.closest('[data-dag]');
   if (dg) { dagSelect(dg.dataset.dag); const el = dagNodeEls.get(dg.dataset.dag); const b = el && dagBox.get(el); if (b) zoomTo({ x1: b.x - 200, y1: b.y - 200, x2: b.x + b.w + 200, y2: b.y + b.h + 200 }); return; }
   const go = ev.target.closest('[data-go]');
@@ -978,7 +1183,7 @@ docEl.addEventListener('click', (ev) => {
 });
 document.addEventListener('keydown', (ev) => {
   if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'SELECT') return;
-  if (ev.key === 'Escape') { helpEl.hidden = true; if (cur === views.dag) dagSelect(null); else select(null); }
+  if (ev.key === 'Escape') { helpEl.hidden = true; clearSelection(); }
   if (ev.key === '0') fit();
 });
 
@@ -1032,6 +1237,73 @@ function dagSelect(id) {
   if (id) openDagNode(id);
   else { docEl.hidden = true; homeEl.hidden = false; }
 }
+// ── 約束視圖的選取 ──
+function lawLink(key, text) {
+  return key && lawInfo.has(key) ? `<button class="jump" data-law="${esc(key)}">${esc(text || key)}</button>` : esc(text || key || '');
+}
+function lawPaint() {
+  const rel = lawSelected ? new Set([lawSelected, ...lawCites.filter((c) => c.from === lawSelected).map((c) => c.to), ...lawCites.filter((c) => c.to === lawSelected).map((c) => c.from)]) : null;
+  for (const [key, el] of lawEls) {
+    el.classList.remove('sel', 'rel');
+    el.classList.toggle('dim', (!!query && !lawInfo.get(key).hay.includes(query)) || (!!rel && !rel.has(key)));
+    if (key === lawSelected) el.classList.add('sel');
+    else if (rel && rel.has(key)) el.classList.add('rel');
+  }
+  for (const p of links3.querySelectorAll('.cite')) {
+    const on = !!lawSelected && (p.dataset.from === lawSelected || p.dataset.to === lawSelected);
+    p.classList.toggle('lit', on);
+    p.classList.toggle('faded', !!lawSelected && !on);
+  }
+}
+function openLaw(key) {
+  const c = lawInfo.get(key);
+  homeEl.hidden = true; docEl.hidden = false; asideEl.hidden = false;
+  document.getElementById('side').setAttribute('aria-pressed', 'true');
+  docEl.scrollTop = 0; asideEl.scrollTop = 0;
+  const G = D.globalLaws || { gates: [] };
+  const gateLine = (kind) => { const g = G.gates.find((x) => x.kind === kind); return g ? `<p class="sub"><span class="dot ${g.red ? 'r' : 'g'}"></span>lint ${esc(g.gate)}:${esc(g.result)}</p>` : ''; };
+  const formal = (ls) => `<section><h3>三行式</h3>${ls && ls.length ? `<pre>${ls.map(esc).join('\n')}</pre>` : '<p class="empty">還沒有三行式</p>'}</section>`;
+  const guards = lawCites.filter((x) => x.to === key).map((x) => x.from);
+  const guardSec = `<section><h3>守哪個對外 I/O</h3>${guards.length ? `<ul>${guards.map((g) => `<li>${lawLink(g, lawInfo.get(g).name)}</li>`).join('')}</ul>` : '<p class="empty">沒有哪一列的契約欄寫到它</p>'}</section>`;
+  const dot = `<span class="dot" style="background:var(--${c.tone || 'wire'})"></span>`;
+  let body = '';
+  if (c.type === 'law') {
+    body = `<h2>${esc(key)}</h2>
+      <p class="sub">Scope Law${c.law.kind ? ` [${esc(c.law.kind)}]` : ''} · 只約束 ${linkTo(c.doc.name)}</p>
+      <p class="sub">${dot}<b>${esc(resultWord(c.law.result))}</b></p>
+      <p class="sub">${esc(c.law.title)}</p>${formal(c.law.lines)}${guardSec}`;
+  } else if (c.type === 'inv') {
+    body = `<h2>${esc(key)}</h2>
+      <p class="sub">全域 Law · 領域不變量${c.inv.kind ? ` [${esc(c.inv.kind)}]` : ''} · 整個專案都不得違反</p>
+      <p class="sub">${dot}<b>${esc(invWord(c.inv))}</b> — ${esc(c.inv.source)}</p>
+      <p class="sub">${esc(c.inv.title)}</p>${gateLine('領域不變量')}${formal(c.inv.lines)}${guardSec}`;
+  } else if (c.type === 'layer') {
+    body = `<h2>${esc(c.layer.name)}</h2>
+      <p class="sub">全域 Law · 架構 · ${esc(c.k)}</p>
+      <p class="sub">${esc(c.w)}</p>${gateLine('架構')}`;
+  } else {
+    const r = c.io;
+    const row = (name, value) => (value ? `<tr><td class="s">${esc(name)}</td><td>${value}</td></tr>` : '');
+    const contract = r.contract.map((x) => {
+      const t = lawInfo.get(x);
+      return `<li>${t ? `<span class="dot" style="background:var(--${t.tone})"></span>${lawLink(x)} ${esc(t.name)}` : `<span class="dot r"></span>${esc(x)} — 找不到這條 law`}</li>`;
+    });
+    body = `<h2>${esc(r.name)}</h2>
+      <p class="sub">全域 Law · 契約:對外 I/O</p>${gateLine('契約')}
+      <section><h3>這一列</h3><table><tbody>
+        ${row('方向', esc(r.direction))}${row('型別', r.type ? `<code>${esc(r.type)}</code>` : '')}${row('模組', r.module ? `<code>${esc(r.module)}</code>` : '')}
+        ${row('進入', r.entry ? linkTo(r.entry) : '')}${row('信任', esc(r.trust || ''))}${row('驗證', r.guard ? `<code>${esc(r.guard)}</code>` : '')}
+      </tbody></table></section>
+      <section><h3>契約(守這一端的 law)</h3>${contract.length ? `<ul>${contract.join('')}</ul>` : '<p class="empty">契約欄沒有寫 law</p>'}</section>`;
+  }
+  docEl.innerHTML = `<button class="back">返回</button>${body}`;
+}
+function lawSelect(key) {
+  lawSelected = key && lawInfo.has(key) ? key : null;
+  lawPaint();
+  if (lawSelected) openLaw(lawSelected);
+  else { docEl.hidden = true; homeEl.hidden = false; }
+}
 function setView(name) {
   const next = views[name];
   if (next === cur) return;
@@ -1039,7 +1311,9 @@ function setView(name) {
   cur.world.hidden = true;
   cur = next;
   cur.world.hidden = false;
-  document.body.classList.toggle('view-dag', cur === views.dag);
+  for (const v of Object.keys(views)) document.body.classList.toggle(`view-${v}`, v === name);
+  fillLegend(cur === views.laws);
+  setTopHeight();
   for (const b of document.querySelectorAll('.bar button[data-view]')) b.setAttribute('aria-pressed', String(b.dataset.view === name));
   document.getElementById('hint').textContent = cur.hint;
   docEl.hidden = true; homeEl.hidden = false;
@@ -1057,7 +1331,7 @@ for (const b of document.querySelectorAll('.bar button[data-filter]')) {
     paint();
   });
 }
-document.getElementById('q').addEventListener('input', (ev) => { query = ev.target.value.trim().toLowerCase(); paint(); dagPaint(); });
+document.getElementById('q').addEventListener('input', (ev) => { query = ev.target.value.trim().toLowerCase(); paint(); dagPaint(); lawPaint(); });
 const refmode = document.getElementById('refmode');
 const setRefMode = () => { links.setAttribute('class', `refs-${refmode.value}`); };
 refmode.addEventListener('change', setRefMode);

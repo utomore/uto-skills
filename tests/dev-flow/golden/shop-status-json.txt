@@ -3,7 +3,8 @@ $ devflow status --json --tests test.log
   "tool": "devflow",
   "labels": {
     "unit": "文檔",
-    "steps": "Steps"
+    "steps": "Steps",
+    "measure": "份文檔"
   },
   "vision": "小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。",
   "visionFull": "小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。",
@@ -139,11 +140,105 @@ $ devflow status --json --tests test.log
       "kind": "bound",
       "title": "任何一條路徑結算出來的金額都不為負",
       "formal": true,
+      "lines": [
+        "forall ls in MoneyList, d in Money",
+        "given settled(settle(ls, d))",
+        "|- cents(settle(ls, d)) >= 0"
+      ],
       "holds": true,
       "source": "測試 INV-1#LAW green",
       "tested": true
     }
   ],
+  "globalLaws": {
+    "gates": [
+      {
+        "kind": "架構",
+        "where": "架構:層",
+        "gate": "boundary",
+        "red": 0,
+        "result": "3 層,通過"
+      },
+      {
+        "kind": "契約",
+        "where": "契約:對外 I/O",
+        "gate": "io",
+        "red": 0,
+        "result": "4 列,通過;契約欄指到的 law 3 條,成立 3 條"
+      },
+      {
+        "kind": "領域不變量",
+        "where": "領域不變量",
+        "gate": "invariants",
+        "red": 0,
+        "result": "1 條,通過;成立 1 條"
+      }
+    ],
+    "layers": [
+      {
+        "name": "domain",
+        "what": "金額的型別與規則"
+      },
+      {
+        "name": "application",
+        "what": "把 domain 串成一條結帳或退款"
+      },
+      {
+        "name": "entry",
+        "what": "HTTP 路由"
+      }
+    ],
+    "io": [
+      {
+        "name": "POST /checkout",
+        "direction": "in",
+        "type": "RawBody",
+        "module": "src/entry/routes.ts",
+        "entry": "F-001-checkout",
+        "trust": "untrusted",
+        "guard": "parseCheckout",
+        "contract": [
+          "F-001#LAW-2"
+        ]
+      },
+      {
+        "name": "結帳結果",
+        "direction": "out",
+        "type": "HttpRes",
+        "module": "src/entry/routes.ts",
+        "entry": "F-001-checkout",
+        "trust": "trusted",
+        "guard": null,
+        "contract": [
+          "INV-1"
+        ]
+      },
+      {
+        "name": "POST /refund",
+        "direction": "in",
+        "type": "RawBody",
+        "module": "src/entry/routes.ts",
+        "entry": "F-002-refund",
+        "trust": "untrusted",
+        "guard": "parseRefund",
+        "contract": [
+          "F-002#LAW-2"
+        ]
+      },
+      {
+        "name": "退款結果",
+        "direction": "out",
+        "type": "HttpRes",
+        "module": "src/entry/routes.ts",
+        "entry": "F-002-refund",
+        "trust": "trusted",
+        "guard": null,
+        "contract": [
+          "INV-1"
+        ]
+      }
+    ]
+  },
   "bands": [
     {
       "id": "R-1",
@@ -211,37 +306,64 @@ $ devflow status --json --tests test.log
             "id": "LAW-1",
             "kind": "relation",
             "title": "訂單付的錢就是這張購物車的結算金額",
-            "result": "green"
+            "result": "green",
+            "lines": [
+              "forall raw in RawBody",
+              "|- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw))))"
+            ]
           },
           {
             "id": "LAW-2",
             "kind": "total",
             "title": "任何一段請求文字都得到一個結果,不拋例外",
-            "result": "green"
+            "result": "green",
+            "lines": [
+              "forall raw in RawBody",
+              "|- total(checkout(raw))"
+            ]
           },
           {
             "id": "LAW-3",
             "kind": "bound",
             "title": "成單時付款金額不為負",
-            "result": "green"
+            "result": "green",
+            "lines": [
+              "forall raw in RawBody",
+              "given paidCents(checkout(raw)) != -1",
+              "|- paidCents(checkout(raw)) >= 0"
+            ]
           },
           {
             "id": "LAW-4",
             "kind": "invariant",
             "title": "結算成功時金額不為負",
-            "result": "green"
+            "result": "green",
+            "lines": [
+              "forall ls in MoneyList, d in Money",
+              "given settled(settle(ls, d))",
+              "|- cents(settle(ls, d)) >= 0"
+            ]
           },
           {
             "id": "LAW-5",
             "kind": "identity",
             "title": "扣掉的金額是零時,結算金額等於各品項相加",
-            "result": "green"
+            "result": "green",
+            "lines": [
+              "forall ls in MoneyList",
+              "given settled(sumLines(ls))",
+              "|- cents(settle(ls, money(0, \"TWD\"))) == cents(sumLines(ls))"
+            ]
           },
           {
             "id": "LAW-6",
             "kind": "total",
             "title": "任何品項清單與任何一筆要扣的金額都得到一個 Settlement,不拋例外",
-            "result": "green"
+            "result": "green",
+            "lines": [
+              "forall ls in MoneyList, d in Money",
+              "|- total(settle(ls, d))"
+            ]
           }
         ]
       },
@@ -459,13 +581,21 @@ $ devflow status --json --tests test.log
             "id": "LAW-1",
             "kind": "relation",
             "title": "退回的錢就是這些品項扣掉手續費的結算金額",
-            "result": "green"
+            "result": "green",
+            "lines": [
+              "forall raw in RawBody",
+              "|- returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))"
+            ]
           },
           {
             "id": "LAW-2",
             "kind": "total",
             "title": "任何一段請求文字都得到一個結果,不拋例外",
-            "result": "green"
+            "result": "green",
+            "lines": [
+              "forall raw in RawBody",
+              "|- total(refund(raw))"
+            ]
           }
         ]
       },

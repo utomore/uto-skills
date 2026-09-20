@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { matchModule, matchesPattern, compareSignature, LAW_KINDS } from '../design.mjs';
 import { findSignature } from '../source.mjs';
-import { splitRow } from '../markdown.mjs';
+import { splitRow, stripTicks } from '../markdown.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const templatesDir = path.join(here, '..', '..', 'templates');
@@ -137,7 +137,8 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
   return { text: out.join('\n'), exitCode: 0, fullName };
 }
 
-const MILESTONE_TABLE = ['| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|'];
+const MILESTONE_TABLE = ['| 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |', '|---|---|---|---|'];
+const SIGNOFF_TABLE = ['## 驗收記錄', '', '| 日期 | 誰 | 憑據 | 結論 |', '|---|---|---|---|'];
 
 const relOf = (design, abs) => path.relative(design.root, abs).split(path.sep).join('/');
 const requirementFile = (design, q) => path.join(design.root, q.file);
@@ -259,7 +260,7 @@ export function invariantAdd(design, title, { kind = 'invariant' } = {}) {
 
 // requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]:鑄 M-n(全資料夾唯一),以全名 M-n-<slug> 加到該需求檔的里程碑表最後;表的列序就是先後。
 // slug 是這條里程碑的英文名,切片的分支 build/M-n-<slug> 與決策紀錄 journal/M-n-<slug>.md 都以它為鍵。
-export function milestoneAdd(design, reqId, slug, title, { bind = '' } = {}) {
+export function milestoneAdd(design, reqId, slug, title, { bind = '', verify = '' } = {}) {
   if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
   const req = design.requirements.requirements.find((q) => q.id === reqId);
   if (!req) return { text: `requirements/ 沒有 ${reqId};先 devflow requirement add`, exitCode: 1 };
@@ -275,7 +276,7 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '' } = {}) {
   const file = requirementFile(design, req);
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   const fullName = `${id}-${slug}`;
-  appendRow(lines, '里程碑', MILESTONE_TABLE, `| ${fullName} | ${title} | ${binds.length ? binds.join('、') : '-'} |`);
+  appendRow(lines, '里程碑', MILESTONE_TABLE, `| ${fullName} | ${title} | ${binds.length ? binds.join('、') : '-'} | ${verify ? `\`${verify.replace(/^`|`$/g, '')}\`` : '-'} |`);
   fs.writeFileSync(file, lines.join('\n'));
   // 綁的文檔已經被別條里程碑綁過:這條里程碑靠修訂它達成,REV 的依欄引用了這條里程碑才算數
   const revise = binds.filter((b) => design.requirements.requirements.some((q) => q.milestones.some((m) => m.binds.includes(b))));
@@ -287,6 +288,57 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '' } = {}) {
     exitCode: 0,
     id,
     fullName,
+  };
+}
+
+// requirement verify <M-n-<slug>> <指令>:把一道「跑起來看得到這條里程碑那一句話」的指令寫進里程碑表的怎麼驗欄。
+// 切片收尾時從決策紀錄的「Entry」搬過來:決策紀錄只活在 build 分支,人工審核要的手段得留在需求檔裡。
+export function milestoneVerify(design, fullName, command) {
+  if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
+  if (!command) return { text: `要一道指令:devflow requirement verify ${fullName || '<M-n-slug>'} "<跑起來看得到這一句的指令>"`, exitCode: 1 };
+  const req = design.requirements.requirements.find((q) => q.milestones.some((m) => m.fullName === fullName));
+  if (!req) return { text: `requirements/ 裡沒有里程碑 ${fullName || ''};引用一條里程碑一律寫全名 M-n-<slug>`, exitCode: 1 };
+  const file = requirementFile(design, req);
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  const i = lines.findIndex((l) => /^\s*\|/.test(l) && stripTicks(splitRow(l)[0]) === fullName);
+  if (i < 0) return { text: `${req.fullName} 的里程碑表裡找不到 ${fullName}`, exitCode: 1 };
+  const cells = splitRow(lines[i]);
+  while (cells.length < 4) cells.push('-');
+  cells[3] = `\`${command.replace(/^`|`$/g, '')}\``;
+  lines[i] = `| ${cells.join(' | ')} |`;
+  // 表頭還是三欄的樹:補上第四欄,舊的列填「-」
+  const head = lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === '里程碑');
+  if (head >= 0 && splitRow(lines[head]).length < 4) {
+    lines[head] = MILESTONE_TABLE[0];
+    lines[head + 1] = MILESTONE_TABLE[1];
+    for (let j = head + 2; j < lines.length && /^\s*\|/.test(lines[j]); j++) {
+      const c = splitRow(lines[j]);
+      while (c.length < 4) c.push('-');
+      lines[j] = `| ${c.join(' | ')} |`;
+    }
+  }
+  fs.writeFileSync(file, lines.join('\n'));
+  return { text: `${fullName} 的怎麼驗欄寫成 \`${command}\`(${relOf(design, file)});人工審核這條需求時 status 會把它印成步驟`, exitCode: 0 };
+}
+
+// requirement accept <R-n> --by <email> --evidence <一句>:把開發者親自審核的結果寫進需求檔的驗收記錄表。
+// 這是一條需求唯一能變成「已驗收」的路:status 只算證據齊了沒,達成與否只有人判得了。
+export function requirementAccept(design, reqId, { by = '', evidence = '', date = today() } = {}) {
+  if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
+  const req = design.requirements.requirements.find((q) => q.id === reqId);
+  if (!req) return { text: `requirements/ 沒有 ${reqId || ''}`, exitCode: 1 };
+  if (!by) return { text: `要寫是誰認的:devflow requirement accept ${reqId} --by <email> --evidence "<憑什麼認的,一句>"`, exitCode: 1 };
+  if (!evidence || /<[^>]*>/.test(evidence)) return { text: `要寫憑什麼認的(跑了哪道指令、看到什麼、測試綠幾條):devflow requirement accept ${reqId} --by ${by} --evidence "<一句>"`, exitCode: 1 };
+  const file = requirementFile(design, req);
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  appendRow(lines, '日期', SIGNOFF_TABLE, `| ${date} | ${by} | ${evidence} | 已驗收 |`);
+  fs.writeFileSync(file, lines.join('\n'));
+  return {
+    text: [
+      `${reqId} 記成已驗收(${date},${by};${relOf(design, file)}「驗收記錄」)`,
+      '人簽的是當時那一份證據:之後驗收測試翻紅、或里程碑被修訂動到,devflow status 會把它列成待重審,重驗過再跑一次這道指令',
+    ].join('\n'),
+    exitCode: 0,
   };
 }
 

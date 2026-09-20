@@ -31,8 +31,8 @@ $ devflow status --json
   "summary": {
     "requirements": 6,
     "requirementsHolding": 0,
-    "requirementsTested": 0,
-    "requirementsInferred": 0,
+    "requirementsPending": 0,
+    "requirementsRecheck": 1,
     "invariants": 4,
     "invariantsHolding": 0,
     "milestones": 7,
@@ -48,7 +48,7 @@ $ devflow status --json
   "headline": [
     {
       "label": "需求",
-      "value": "0 / 6 達成(測試 0、推得 0)"
+      "value": "0 / 6 已驗收 · 等人工審核 0 · 待重審 1"
     },
     {
       "label": "領域不變量",
@@ -82,13 +82,20 @@ $ devflow status --json
       "law": {
         "title": "任何輸入分數不為負",
         "formal": true,
-        "holds": null,
+        "holds": false,
         "source": "寫了三行卻沒有 R-2#ACCEPT 測試",
         "tested": false
       },
-      "note": "驗收未知 · 里程碑 0/0 達成",
+      "note": "審核:未知 · 里程碑 0/0 達成",
       "dependsOn": [],
       "built": false,
+      "state": "未知",
+      "evidence": null,
+      "signoff": null,
+      "verifySteps": [
+        "`npx tsc --noEmit`",
+        "看「任何輸入分數不為負」成不成立"
+      ],
       "achieved": false,
       "percent": null,
       "milestonesAchieved": 0,
@@ -105,12 +112,24 @@ $ devflow status --json
         "title": "看得到兩個數字",
         "formal": false,
         "holds": false,
-        "source": "M-1 還沒達成",
+        "source": "2026-09-07 已驗收,證據翻掉:里程碑 0 / 1 達成",
         "tested": false
       },
-      "note": "驗收未達成 · 里程碑 0/1 達成",
+      "note": "審核:待重審 · 里程碑 0/1 達成",
       "dependsOn": [],
       "built": false,
+      "state": "待重審",
+      "evidence": "里程碑 0 / 1 達成",
+      "signoff": {
+        "date": "2026-09-07",
+        "by": "dev@example.com",
+        "evidence": "當時兩個數字都看得到"
+      },
+      "verifySteps": [
+        "`npx tsc --noEmit`",
+        "M-1 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "看「看得到兩個數字」成不成立"
+      ],
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
@@ -136,13 +155,21 @@ $ devflow status --json
       "law": {
         "title": "進入點回的就是分數",
         "formal": true,
-        "holds": null,
+        "holds": false,
         "source": "寫了三行卻沒有 R-5#ACCEPT 測試",
         "tested": false
       },
-      "note": "驗收未知 · 里程碑 0/1 達成",
+      "note": "審核:未知 · 里程碑 0/1 達成",
       "dependsOn": [],
       "built": false,
+      "state": "未知",
+      "evidence": "里程碑 0 / 1 達成",
+      "signoff": null,
+      "verifySteps": [
+        "`npx tsc --noEmit`",
+        "M-4-entry 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "看「進入點回的就是分數」成不成立"
+      ],
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
@@ -172,9 +199,17 @@ $ devflow status --json
         "source": "M-5-third 還沒達成",
         "tested": false
       },
-      "note": "驗收未達成 · 里程碑 0/1 達成",
+      "note": "審核:建構中 · 里程碑 0/1 達成",
       "dependsOn": [],
       "built": false,
+      "state": "建構中",
+      "evidence": "里程碑 0 / 1 達成",
+      "signoff": null,
+      "verifySteps": [
+        "`npx tsc --noEmit`",
+        "M-5-third 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "看「看得到第三個數字」成不成立"
+      ],
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
@@ -204,9 +239,19 @@ $ devflow status --json
         "source": "驗收還是模板",
         "tested": false
       },
-      "note": "驗收未達成 · 里程碑 0/3 達成",
+      "note": "審核:未達成 · 里程碑 0/3 達成",
       "dependsOn": [],
       "built": false,
+      "state": "未達成",
+      "evidence": "里程碑 0 / 3 達成",
+      "signoff": null,
+      "verifySteps": [
+        "`npx tsc --noEmit`",
+        "M-1 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "M-3-plain 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "M-6 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "看「<一句可判定的話:這條需求達成時,什麼一定為真>」成不成立"
+      ],
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
@@ -262,11 +307,19 @@ $ devflow status --json
         "source": "M-2-score-too 還沒達成",
         "tested": false
       },
-      "note": "驗收未達成 · 里程碑 0/1 達成",
+      "note": "審核:建構中 · 里程碑 0/1 達成",
       "dependsOn": [
         "R-1"
       ],
       "built": false,
+      "state": "建構中",
+      "evidence": "里程碑 0 / 1 達成",
+      "signoff": null,
+      "verifySteps": [
+        "`npx tsc --noEmit`",
+        "M-2-score-too 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "看驗收那一句成不成立"
+      ],
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
@@ -389,7 +442,7 @@ $ devflow status --json
     {
       "id": "R-2",
       "title": "R-2 寫了三行卻沒有驗收測試,也沒有里程碑",
-      "note": "驗收未知 · 寫了三行卻沒有 R-2#ACCEPT 測試",
+      "note": "審核:未知 · 寫了三行卻沒有 R-2#ACCEPT 測試",
       "notes": [
         "優先 2",
         "里程碑 0/0 達成 · 完成度 -"
@@ -401,7 +454,7 @@ $ devflow status --json
     {
       "id": "R-3",
       "title": "R-3 里程碑編號撞到別條需求的",
-      "note": "驗收未達成 · M-1 還沒達成",
+      "note": "審核:待重審 · 2026-09-07 已驗收,證據翻掉:里程碑 0 / 1 達成",
       "notes": [
         "優先 2",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -419,7 +472,7 @@ $ devflow status --json
     {
       "id": "R-5",
       "title": "R-5 驗收引用了進入點與不存在的東西",
-      "note": "驗收未知 · 寫了三行卻沒有 R-5#ACCEPT 測試",
+      "note": "審核:未知 · 寫了三行卻沒有 R-5#ACCEPT 測試",
       "notes": [
         "優先 3",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -437,7 +490,7 @@ $ devflow status --json
     {
       "id": "R-9",
       "title": "R-9 檔名與 frontmatter 對不上的需求",
-      "note": "驗收未達成 · M-5-third 還沒達成",
+      "note": "審核:建構中 · M-5-third 還沒達成",
       "notes": [
         "優先 4",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -455,7 +508,7 @@ $ devflow status --json
     {
       "id": "R-1",
       "title": "R-1 分數算得出來",
-      "note": "驗收未達成 · 驗收還是模板",
+      "note": "審核:未達成 · 驗收還是模板",
       "notes": [
         "優先 high",
         "里程碑 0/3 達成 · 完成度 0%"
@@ -491,7 +544,7 @@ $ devflow status --json
     {
       "id": "R-4",
       "title": "R-4 沒有 frontmatter 的需求",
-      "note": "驗收未達成 · M-2-score-too 還沒達成",
+      "note": "審核:建構中 · M-2-score-too 還沒達成",
       "notes": [
         "優先 (沒填)",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -885,13 +938,18 @@ $ devflow status --json
     },
     {
       "where": "R-2",
-      "what": "驗收寫了三行卻沒有驗收測試,達成與否未知",
-      "fix": "dev-flow:build R-2(只派 qa 寫一條歸屬 \"R-2#ACCEPT\" 的測試);不能自動化就只留一句,由里程碑推"
+      "what": "驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核",
+      "fix": "dev-flow:build R-2(只派 qa 寫一條歸屬 \"R-2#ACCEPT\" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接"
     },
     {
       "where": "R-2",
       "what": "沒有任何里程碑",
       "fix": "dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>)"
+    },
+    {
+      "where": "R-3",
+      "what": "2026-09-07 已驗收,證據現在翻掉了(里程碑 0 / 1 達成)",
+      "fix": "先把紅的修回來,再 devflow requirement accept R-3 重簽一次;人簽過的是當時那份證據,不是永久的"
     },
     {
       "where": "M-1",
@@ -905,8 +963,8 @@ $ devflow status --json
     },
     {
       "where": "R-5",
-      "what": "驗收寫了三行卻沒有驗收測試,達成與否未知",
-      "fix": "dev-flow:build R-5(只派 qa 寫一條歸屬 \"R-5#ACCEPT\" 的測試);不能自動化就只留一句,由里程碑推"
+      "what": "驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核",
+      "fix": "dev-flow:build R-5(只派 qa 寫一條歸屬 \"R-5#ACCEPT\" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接"
     },
     {
       "where": ".design/requirements/R-6-mismatch.md",

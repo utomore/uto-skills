@@ -81,8 +81,9 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ## 5. 發 PR
 
 1. 再次確認 `git branch --show-current` 不是主線,push 要發 PR 的分支。
-2. 有決策紀錄就把每份決策紀錄的內容寫進 PR 內文,`git rm .lawful/journal/*.md` commit。
-3. 組好內容**直接 `gh pr create` 送出,不需先向開發者確認**(發完在 §6 回報大綱):
+2. **刪決策紀錄之前先把「Entry」留下來**:每份以里程碑全名為鍵的決策紀錄,把它「Entry」那道指令寫進那條里程碑的怎麼驗欄(`lawful requirement verify <M-n-slug> "<Entry 那道指令>"`)。決策紀錄不上主線,開發者審核這條需求時要的手段只剩這一欄(`pipelines.md`「需求的達成只有人判得了」)。
+3. 有決策紀錄就把每份決策紀錄的內容寫進 PR 內文,`git rm .lawful/journal/*.md` commit。
+4. 組好內容**直接 `gh pr create` 送出,不需先向開發者確認**(發完在 §6 回報大綱):
    - **標題**:英文 conventional commit 風格加全名,例 `feat: save and load game (P-001-save-write, P-002-save-load)`、`refactor: save-load references save-write's encode (P-002-save-load)`、立案分支 `plan: add replay requirement (R-2, M-3-replay-record)`
    - **內文**:繁體中文,章節固定:
 

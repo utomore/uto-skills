@@ -117,7 +117,8 @@ qa 交付後、派 refactor 之前,conductor 在現有的程式碼上跑一次 q
 
 - qa 讀的是那一條的三行、它引用到的每個簽名所在文檔的 Steps 表與最內層的匯出;領域不變量只引用最內層,就只讀最內層。產生器與斷言照「qa 的交付」,`|-` 行逐字翻。測試檔以 `R-n` / `INV-n` 命名,歸屬字串只放一個。
 - 這種測試紅的歸因不是某個 step 的實作:里程碑全部達成而驗收測試沒過,代表里程碑切漏了、或驗收寫錯;領域不變量紅,代表某一條切片違反了它。conductor 開 GAP(角色 conductor,目標寫 `R-n#ACCEPT` 或 `INV-n#LAW`)停下,需求的回 `dev-flow:require-design`,領域不變量的照仲裁歸因到違反它的那份文檔、或回 `dev-flow:global-laws`;不讓 qa 放寬斷言。
-- 只有一句話的驗收(沒有三行)沒有驗收測試,由里程碑全部達成推得;不派 qa。
+- 只有一句話的驗收(沒有三行)沒有驗收測試,證據改由里程碑全部達成承接;不派 qa。
+- **驗收測試全綠不等於這條需求達成**:它只是證據齊了。達成與否由開發者親自審核,conductor 不代簽、不在收尾時把需求算成達成(features.md「需求的達成只有人判得了」);`devflow status` 會把它列進「等決定」請開發者驗。
 
 ## qa 的交付
 
@@ -139,7 +140,7 @@ qa 交付後、派 refactor 之前,conductor 在現有的程式碼上跑一次 q
 - 寫決策紀錄的「Verification」與「合併時要看」(「決策紀錄」),連同所有改動 commit 在分支上;不合併、不發 PR,那是 `dev-flow:integrate` 的事。
 - 定錨區塊(tooling.md「收尾定錨」)。
 
-開發者的決定只在四個地方發生:立案與需求的對談(`dev-flow:kickoff` / `require-design`)、Law 對談(`dev-flow:scope-laws`,含全域的候選逐條說要不要;抽上去的批准在 `dev-flow:global-laws`)、回答 GAP、選定 law 的調整與確認修訂(scope law 在 `dev-flow:scope-laws`、全域 Law 在 `dev-flow:global-laws`,先看影響範圍再選選項;既有的 law 不動的修訂與它新增的 law 在 `dev-flow:scope-revise`,先看影響範圍再確認、新增的逐條拍板)、整合的仲裁(`dev-flow:integrate`)。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
+開發者的決定只在五個地方發生:**需求的驗收審核**(`devflow status` 列成「待審核」的那幾條,開發者照怎麼驗欄親自跑過再認,`devflow requirement accept` 落筆;沒有任何 skill 代得了這一關,features.md「需求的達成只有人判得了」)、立案與需求的對談(`dev-flow:kickoff` / `require-design`)、Law 對談(`dev-flow:scope-laws`,含全域的候選逐條說要不要;抽上去的批准在 `dev-flow:global-laws`)、回答 GAP、選定 law 的調整與確認修訂(scope law 在 `dev-flow:scope-laws`、全域 Law 在 `dev-flow:global-laws`,先看影響範圍再選選項;既有的 law 不動的修訂與它新增的 law 在 `dev-flow:scope-revise`,先看影響範圍再確認、新增的逐條拍板)、整合的仲裁(`dev-flow:integrate`)。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
 
 ## 仲裁
 

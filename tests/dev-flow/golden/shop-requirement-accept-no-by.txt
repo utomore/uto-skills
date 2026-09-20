@@ -1,0 +1,3 @@
+$ devflow requirement accept R-1 --evidence 跑過了
+要寫是誰認的:devflow requirement accept R-1 --by <email> --evidence "<憑什麼認的,一句>"
+exit 1

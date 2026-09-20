@@ -1,0 +1,3 @@
+$ devflow requirement verify M-2-refund
+要一道指令:devflow requirement verify M-2-refund "<跑起來看得到這一句的指令>"
+exit 1

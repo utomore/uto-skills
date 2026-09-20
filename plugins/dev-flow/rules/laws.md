@@ -11,7 +11,7 @@ law 是**不得違反**的約束;需求是**必須達成**的事,不是 law。�
 | 層 | 願景 → 需求 `R-n` → 里程碑 `M-n-<slug>`(features.md「願景、需求與里程碑」) | 全域 Law → scope law |
 | 判準 | 有做完的一天 | 沒有做完的一天,永遠要守 |
 | 誰談 | `dev-flow:require-design` | 全域 Law:從做出來的切片裡抽上去,`dev-flow:scope-laws` 談出候選、`dev-flow:global-laws` 落筆;scope law:`dev-flow:scope-laws`(第一次談,與既有 law 的調整)、`dev-flow:scope-revise`(修訂時只新增) |
-| 怎麼驗 | 需求的驗收(`R-n#ACCEPT` 測試);沒有測試時由里程碑全部達成推得(features.md「完成度」) | 每條 law 一條會失敗而現在通過的測試;架構與契約另有 lint |
+| 怎麼驗 | 開發者親自審核,記在需求檔的驗收記錄表;機器只出證據(`R-n#ACCEPT` 測試,或里程碑全部達成),證據齊了也要人簽(features.md「需求的達成只有人判得了」) | 每條 law 一條會失敗而現在通過的測試;架構與契約另有 lint |
 
 約束只有兩種範圍:
 

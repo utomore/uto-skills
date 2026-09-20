@@ -37,6 +37,14 @@ const CASES = [
   ['shop-requirement-milestone-unbound', 'shop', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通'], ['.design/requirements/R-1-money-correct.md']],
   ['shop-requirement-milestone-bad-slug', 'shop', ['requirement', 'milestone', 'R-1', '出貨走通', '一句話']],
   ['shop-requirement-milestone-missing-requirement', 'shop', ['requirement', 'milestone', 'R-9', 'ship', '出貨走通']],
+  // 人工審核:status 只算證據,已驗收那一列只由 requirement accept 寫;怎麼驗欄由 requirement verify 補(整合從決策紀錄的 Entry 搬過來)
+  ['shop-requirement-accept', 'shop', ['requirement', 'accept', 'R-1', '--by', 'dev@example.com', '--evidence', 'R-1#ACCEPT green,三條 demo 都跑過', '--date', DATE], ['.design/requirements/R-1-money-correct.md']],
+  ['shop-requirement-accept-no-by', 'shop', ['requirement', 'accept', 'R-1', '--evidence', '跑過了']],
+  ['shop-requirement-accept-no-evidence', 'shop', ['requirement', 'accept', 'R-1', '--by', 'dev@example.com']],
+  ['shop-requirement-accept-missing', 'shop', ['requirement', 'accept', 'R-9', '--by', 'dev@example.com', '--evidence', '跑過了']],
+  ['shop-requirement-verify', 'shop', ['requirement', 'verify', 'M-2-refund', 'npx ts-node demo/refund.ts --verbose'], ['.design/requirements/R-1-money-correct.md']],
+  ['shop-requirement-verify-missing', 'shop', ['requirement', 'verify', 'M-9-nope', 'npm run demo']],
+  ['shop-requirement-verify-no-command', 'shop', ['requirement', 'verify', 'M-2-refund']],
   ['shop-invariant-add', 'shop', ['invariant', 'add', '退回的錢不超過付過的錢', '--kind', 'bound'], ['.design/system.md']],
   ['shop-invariant-add-bad-kind', 'shop', ['invariant', 'add', '退回的錢不超過付過的錢', '--kind', 'nonsense']],
   // 綁一份已經被別條里程碑綁過的 feature:這條里程碑靠修訂它達成,下一步是 scope-revise,REV 的依欄寫這條里程碑的全名

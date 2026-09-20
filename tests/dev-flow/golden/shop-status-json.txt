@@ -36,8 +36,8 @@ $ devflow status --json --tests test.log
   "summary": {
     "requirements": 1,
     "requirementsHolding": 1,
-    "requirementsTested": 1,
-    "requirementsInferred": 0,
+    "requirementsPending": 0,
+    "requirementsRecheck": 0,
     "invariants": 1,
     "invariantsHolding": 1,
     "milestones": 3,
@@ -53,7 +53,7 @@ $ devflow status --json --tests test.log
   "headline": [
     {
       "label": "需求",
-      "value": "1 / 1 達成(測試 1、推得 0)"
+      "value": "1 / 1 已驗收 · 等人工審核 0"
     },
     {
       "label": "領域不變量",
@@ -88,12 +88,26 @@ $ devflow status --json --tests test.log
         "title": "任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額",
         "formal": true,
         "holds": true,
-        "source": "測試 R-1#ACCEPT green",
+        "source": "2026-09-07 dev@example.com",
         "tested": true
       },
-      "note": "驗收達成 · 里程碑 3/3 達成",
+      "note": "審核:已驗收 · 里程碑 3/3 達成",
       "dependsOn": [],
       "built": true,
+      "state": "已驗收",
+      "evidence": "測試 R-1#ACCEPT green;里程碑 3 / 3 達成",
+      "signoff": {
+        "date": "2026-09-07",
+        "by": "dev@example.com",
+        "evidence": "R-1#ACCEPT 與三條里程碑的 demo 都跑過,金額與手算相同"
+      },
+      "verifySteps": [
+        "`npx tsc --noEmit`",
+        "M-1-checkout `npx ts-node demo/checkout.ts`",
+        "M-2-refund `npx ts-node demo/refund.ts`",
+        "M-3-settle-total `npx ts-node demo/refund.ts --fee 999`",
+        "看「任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額」成不成立"
+      ],
       "achieved": true,
       "percent": 100,
       "milestonesAchieved": 3,
@@ -243,7 +257,7 @@ $ devflow status --json --tests test.log
     {
       "id": "R-1",
       "title": "R-1 每一筆結帳與退款的金額都算對",
-      "note": "驗收達成 · 測試 R-1#ACCEPT green",
+      "note": "審核:已驗收 · 2026-09-07 dev@example.com",
       "notes": [
         "優先 1:錢算對",
         "里程碑 3/3 達成 · 完成度 100%"
@@ -753,7 +767,7 @@ $ devflow status --json --tests test.log
   "warnings": [],
   "route": {
     "steps": [],
-    "note": "目前功能全部正常運作:每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑",
+    "note": "目前功能全部正常運作:每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑",
     "allDone": true
   }
 }

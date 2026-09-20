@@ -9,8 +9,8 @@ updated: 2026-09-05
   - forall w in World
   - |- decode (saveBytes w) == Right (toSave w)
 
-| 里程碑 | 做到什麼 | 綁定 |
-|---|---|---|
-| M-1-save-write | 存檔寫得出檔案 | P-001-save-write |
-| M-2-save-inspect | 存檔壞了看得出來 | - |
-| M-3-save-compact | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+| 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |
+|---|---|---|---|
+| M-1-save-write | 存檔寫得出檔案 | P-001-save-write | `cabal run save-demo -- write /tmp/a.sav` |
+| M-2-save-inspect | 存檔壞了看得出來 | - | - |
+| M-3-save-compact | 存檔檔案壓縮後不超過 1 MB | P-001-save-write | `cabal run save-demo -- size /tmp/a.sav` |

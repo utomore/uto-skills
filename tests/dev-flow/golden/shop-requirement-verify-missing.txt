@@ -1,0 +1,3 @@
+$ devflow requirement verify M-9-nope npm run demo
+requirements/ 裡沒有里程碑 M-9-nope;引用一條里程碑一律寫全名 M-n-<slug>
+exit 1

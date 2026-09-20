@@ -1,0 +1,61 @@
+module SaveGameSpec (spec) where
+
+import qualified Data.ByteString as BS
+import Data.List (nub)
+import Game.Save (saveBytes)
+import Game.Save.Codec (decode, encode)
+import Game.Save.Project (toSave)
+import Game.Save.Project.Internal (savedIds)
+import Game.Save.State
+import Game.World
+import Test.Hspec
+import Test.QuickCheck
+
+genEntity :: Gen Entity
+genEntity = Entity <$> (EntityId <$> choose (0, 10000)) <*> arbitrary <*> arbitrary
+
+genWorld :: Gen World
+genWorld = mkWorld <$> resize 200 (listOf genEntity)
+
+genSaveState :: Gen SaveState
+genSaveState = mkSaveState <$> resize 200 (listOf genSaved)
+  where
+    genSaved = SavedEntity <$> (EntityId <$> choose (0, 10000)) <*> arbitrary <*> arbitrary
+
+limited :: Testable prop => prop -> Property
+limited = withMaxSuccess 100 . property
+
+spec :: Spec
+spec = do
+  describe "R-1#LAW" $
+    it "decode (saveBytes w) == Right (toSave w)" $
+      limited $ forAll genWorld $ \w -> decode (saveBytes w) == Right (toSave w)
+
+  describe "P-001#LAW-1" $
+    it "decode (encode s) == Right s" $
+      limited $ forAll genSaveState $ \s -> decode (encode s) == Right s
+
+  describe "P-001#LAW-2" $
+    it "length (savedEntities (toSave w)) == entityCount w" $
+      limited $ forAll genWorld $ \w -> length (savedEntities (toSave w)) == entityCount w
+
+  describe "P-001#LAW-3" $
+    it "length (encode s) <= 64 + 128 * length (savedEntities s)" $
+      limited $ forAll genSaveState $ \s ->
+        BS.length (encode s) <= 64 + 128 * length (savedEntities s)
+
+  describe "P-001#LAW-4" $
+    it "nub (savedIds (toSave w)) == savedIds (toSave w)" $
+      limited $ forAll genWorld $ \w -> nub (savedIds (toSave w)) == savedIds (toSave w)
+
+  describe "P-001#LAW-5" $
+    it "decode (saveBytes w) == Right (toSave w)" $
+      limited $ forAll genWorld $ \w -> decode (saveBytes w) == Right (toSave w)
+
+  describe "P-001#EX-1" $
+    it "decode \"\" == Left EmptyInput" $
+      decode BS.empty `shouldBe` Left EmptyInput
+
+  describe "P-001#EX-2" $
+    it "toSave emptyWorld == emptySave" $
+      toSave emptyWorld `shouldBe` emptySave

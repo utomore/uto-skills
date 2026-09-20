@@ -33,24 +33,20 @@ const STDLIB = [
   'Functor', 'Applicative', 'Monad', 'Foldable', 'Traversable', 'Semigroup', 'Monoid', 'Generic', 'Typeable', 'TypeRep', 'SomeTypeRep', 'NFData',
   'Handle', 'IORef', 'STM', 'TVar', 'MVar', 'ExceptT', 'StateT', 'ReaderT', 'WriterT', 'MaybeT', 'ST', 'STRef',
   'Value', 'Object', 'Dynamic',
+  'ExitCode', 'UTCTime', 'NominalDiffTime', 'DiffTime', 'Day', 'StdGen', 'SomeException', 'IOException', 'Type', 'Constraint', 'Symbol', 'Nat',
 ];
 // 沒有形狀的型別:鍵名沒地方寫(aeson 的 Value / Object、Dynamic,與以它們為值的 Map)
 const SHAPELESS = /^(?:Value|Object|Dynamic)$|^(?:Map|HashMap)\s+\S+\s+(?:Value|Object)$/;
 
-// module 行的匯出清單:null = 沒寫匯出清單(整個模組都匯出);否則是名字的清單。
-// `Foo (..)` 收 Foo;`(<+>)` 收 <+>;`module X` 收 module:X。
-function exportList(clean) {
-  const m = /^module\s+[A-Z][\w.']*\s*/m.exec(clean);
-  if (!m) return null;
-  let i = m.index + m[0].length;
-  if (clean[i] !== '(') return null;
+// i 指著一個 ( :回它到配對的 ) 之間、最外層逗號切開的項目。
+// 只切最外層的逗號;型別後面的 (..) / (A, b) 是建構子與欄位清單。
+function parenItems(clean, i) {
   let depth = 0;
   let j = i;
   for (; j < clean.length; j++) {
     if (clean[j] === '(') depth++;
     else if (clean[j] === ')' && --depth === 0) break;
   }
-  // 只切最外層的逗號;型別後面的 (..) / (A, b) 是建構子與欄位清單
   const items = [];
   let cur = '';
   depth = 0;
@@ -63,8 +59,18 @@ function exportList(clean) {
     } else cur += c;
   }
   items.push(cur);
+  return items;
+}
+
+// module 行的匯出清單:null = 沒寫匯出清單(整個模組都匯出);否則是名字的清單。
+// `Foo (..)` 收 Foo;`(<+>)` 收 <+>;`module X` 收 module:X。
+function exportList(clean) {
+  const m = /^module\s+[A-Z][\w.']*\s*/m.exec(clean);
+  if (!m) return null;
+  const i = m.index + m[0].length;
+  if (clean[i] !== '(') return null;
   const out = [];
-  for (const raw of items) {
+  for (const raw of parenItems(clean, i)) {
     const item = raw.trim();
     if (!item) continue;
     const mod = /^module\s+([A-Z][\w.']*)/.exec(item);
@@ -89,9 +95,42 @@ function exportList(clean) {
   return out;
 }
 
+// 測試歸屬的標記:P-00x#LAW-n、P-00x#EX-n、R-n#ACCEPT(需求的驗收)、INV-n#LAW(領域不變量)。R-n#LAW 靜默當 R-n#ACCEPT 讀。
+const MARKER = 'P-\\d{3}#(?:LAW|EX)-\\d+|R-\\d+#(?:ACCEPT|LAW)|INV-\\d+#LAW';
+const canonMarker = (m) => m.replace(/^(R-\d+)#LAW$/, '$1#ACCEPT');
+
 function stripComments(src) {
   let s = src.replace(/\{-[\s\S]*?-\}/g, (m) => m.replace(/[^\n]/g, ' '));
   return s.split(/\r?\n/).map((l) => l.replace(/(^|\s)--.*$/, '$1')).join('\n');
+}
+
+// 欄位 0 的 data / newtype / type / class 宣告頭:[{ line, keyword, name, rest }]。
+// 接上縮排的接續行,切到本體開始(單獨的 =、where)為止,再去掉 context:最外層最後一個 => 以前的全部。
+// context 可以是一個字(Typeable s =>)、括號包住的一串、沒括號的多參數約束(Each Show ss =>),也可以自己佔好幾行。
+// rest 是去掉 context 與 family 之後的頭(名字開頭);instance 與中置運算子的宣告沒有名字,不收。
+function declHeads(clean) {
+  const lines = clean.split('\n');
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const m = /^(data|newtype|type|class)\b(.*)$/.exec(lines[i]);
+    if (!m) continue;
+    let text = m[2];
+    for (let j = i + 1; j < lines.length && /^[ \t]+\S/.test(lines[j]); j++) text += ' ' + lines[j];
+    const body = /(?<![=<])=(?![=>])|\bwhere\b/.exec(text);
+    if (body) text = text.slice(0, body.index);
+    let depth = 0;
+    let cut = 0;
+    for (let k = 0; k < text.length; k++) {
+      const c = text[k];
+      if (c === '(' || c === '[') depth++;
+      else if (c === ')' || c === ']') depth--;
+      else if (depth === 0 && c === '=' && text[k + 1] === '>') cut = k + 2;
+    }
+    const rest = text.slice(cut).replace(/^\s*family\b/, '').replace(/\s+/g, ' ').trim();
+    const name = /^([A-Z][\w']*)/.exec(rest);
+    if (name) out.push({ line: i, keyword: m[1], name: name[1], rest });
+  }
+  return out;
 }
 
 function normalize(t) {
@@ -129,8 +168,8 @@ function moduleOf(src, relPath) {
 export const haskell = {
   name: 'haskell',
   extensions: ['.hs'],
-  // 骨架的本體:錯誤訊息帶著 stage 的引用,基線的紅燈才看得出打到哪個 stub。
-  stub: (marker) => `error "${marker} stub"`,
+  // 未實作標記:修訂新增的 stage 先宣告、本體是它;錯誤訊息帶著 stage 的引用,首跑的紅燈才看得出打到哪個 stage。
+  stub: (marker) => `error "${marker} not implemented"`,
   ioModules: IO_MODULES,
   effectTypes: EFFECT_TYPES,
   stdlib: STDLIB,
@@ -141,10 +180,21 @@ export const haskell = {
   },
   // 欄位 0 宣告的型別名:data / newtype / type / class。
   typeNames(src) {
+    return declHeads(stripComments(src)).map((h) => h.name);
+  },
+  // import 清單裡點名的型別名:`import Data.Time.Clock (UTCTime)` 收 UTCTime,`Foo (..)` 收 Foo。
+  // 整個模組 import 進來的(沒有清單、或 hiding)看不出帶了哪些名字,不收。
+  importedTypes(src) {
+    const clean = stripComments(src);
     const out = [];
-    const re = /^(?:data|newtype|type|class)\s+(?:\([^)]*\)\s*=>\s*)?(?:[A-Z][\w.']*\s*=>\s*)?(?:family\s+)?([A-Z][\w']*)/gm;
+    const re = /^import\s+(?:qualified\s+)?(?:"[^"]*"\s+)?[A-Z][\w.']*(?:\s+qualified)?(?:\s+as\s+[A-Z][\w.']*)?\s*\(/gm;
     let m;
-    while ((m = re.exec(stripComments(src)))) out.push(m[1]);
+    while ((m = re.exec(clean))) {
+      for (const item of parenItems(clean, m.index + m[0].length - 1)) {
+        const name = /^\s*(?:type\s+)?([A-Z][\w']*)/.exec(item);
+        if (name) out.push(name[1]);
+      }
+    }
     return out;
   },
   // data / newtype 的建構子:= 與 | 右邊的大寫名字,GADT 的 where 底下 Ctor :: 的名字。
@@ -153,7 +203,7 @@ export const haskell = {
     const out = [];
     const clean = stripComments(src);
     // = 可以在宣告頭的下一行(縮排);每個 | 分支去掉存在量化的 forall 與 context 之後,第一個大寫名字是建構子。
-    const alg = /^(?:data|newtype)\s+(?:[^=\n]|\n[ \t])*?=\s*([^\n]*(?:\n[ \t]+\|[^\n]*)*)/gm;
+    const alg = /^(?:data|newtype)\s+(?:[^=\n]|=>|\n[ \t])*?=(?!>)\s*([^\n]*(?:\n[ \t]+\|[^\n]*)*)/gm;
     let m;
     while ((m = alg.exec(clean))) {
       for (const alt of m[1].split('|')) {
@@ -170,7 +220,7 @@ export const haskell = {
     }
     return out;
   },
-  // 本體還是骨架的頂層名字:等號右邊只有 undefined,或只有一個 error 呼叫。
+  // 本體還是未實作標記的頂層名字:等號右邊只有 undefined,或只有一個 error 呼叫。
   stubs(src) {
     const out = [];
     const re = /^([a-z_][\w']*|\([^()\s]+\))(?:\s+[\w'_]+|\s+_)*\s*=\s*(?:undefined|error\s+"[^"]*")\s*$/gm;
@@ -200,6 +250,7 @@ export const haskell = {
     const clean = stripComments(src);
     const lines = clean.split('\n');
     const mod = moduleOf(clean, relPath);
+    const heads = new Map(declHeads(clean).map((h) => [h.line, h]));
     const out = [];
     const NAME = "(?:[a-z_][\\w']*|\\([^()\\s]+\\))";
     const NAMES = `(${NAME}(?:\\s*,\\s*${NAME})*)`;
@@ -222,11 +273,10 @@ export const haskell = {
       const line = lines[i];
       if (/^\S/.test(line)) {
         // 欄位 0:重設區塊狀態
-        const c = /^class\b(.*)$/.exec(line);
-        if (c) {
+        const head = heads.get(i);
+        if (/^class\b/.test(line)) {
           block = 'class';
-          const nm = /\b([A-Z][\w']*)\s+[a-z]/.exec(c[1].replace(/^.*=>/, ''));
-          klass = nm ? nm[1] : null;
+          klass = head ? head.name : null;
           continue;
         }
         if (/^instance\b/.test(line)) {
@@ -234,7 +284,7 @@ export const haskell = {
           continue;
         }
         block = 'other';
-        const d = /^(?:data|newtype)\s+(?:\([^)]*\)\s*=>\s*)?([A-Z][\w']*(?:\s+(?:[a-z][\w']*|\([^)]*\)))*)/.exec(line);
+        const d = head && (head.keyword === 'data' || head.keyword === 'newtype') ? /^([A-Z][\w']*(?:\s+(?:[a-z][\w']*|\([^)]*\)))*)/.exec(head.rest) : null;
         record = d ? { head: d[1].replace(/\s*\([^)]*\)/g, (p) => ' ' + p.trim().replace(/^\(([a-z][\w']*).*$/, '$1')).replace(/\s+/g, ' ').trim() } : null;
       } else if (block === 'class') {
         let mm = methodRe.exec(line);
@@ -300,12 +350,12 @@ export const haskell = {
     const names = [...EFFECT_TYPES, ...extra].map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     return new RegExp(`(?<![\\w.'])(?:${names.join('|')})(?![\\w'])`).test(type);
   },
-  // 測試檔裡字串字面值 "P-00x#LAW-n" / "P-00x#EX-n" / "R-n#LAW" / "O-n#LAW";只認字串,測試輸出才對得回來
+  // 測試檔裡字串字面值 "P-00x#LAW-n" / "P-00x#EX-n" / "R-n#ACCEPT" / "INV-n#LAW";只認字串,測試輸出才對得回來
   testMarkers(src) {
     const out = [];
-    const re = /"(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)"/g;
+    const re = new RegExp(`"(${MARKER})"`, 'g');
     let m;
-    while ((m = re.exec(src))) out.push(m[1]);
+    while ((m = re.exec(src))) out.push(canonMarker(m[1]));
     return out;
   },
   // 簽名文字的比對用正規化:同 signatures 的 type 欄。
@@ -334,7 +384,8 @@ export const haskell = {
         continue;
       }
       const indent = line.search(/\S/);
-      const marked = /^\s*(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)\b(.*)$/.exec(line);
+      const hit = new RegExp(`^\\s*(${MARKER})\\b(.*)$`).exec(line);
+      const marked = hit ? [hit[0], canonMarker(hit[1]), hit[2]] : null;
       if (marked) {
         const v = verdictOf(marked[2]);
         if (v) {
@@ -352,8 +403,8 @@ export const haskell = {
         continue;
       }
       if (indent >= 0 && indent <= currentIndent) current = null;
-      const fail = /^\s*\d+\)\s+(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)/.exec(line);
-      if (fail) set(fail[1], 'red');
+      const fail = new RegExp(`^\\s*\\d+\\)\\s+(${MARKER})`).exec(line);
+      if (fail) set(canonMarker(fail[1]), 'red');
     }
     return results;
   },

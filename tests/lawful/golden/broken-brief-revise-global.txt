@@ -1,0 +1,125 @@
+$ lawful brief revise --tests stale.log --no-rules
+brief revise (沒有目標) @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# gaps.md(2 條,open 的 2 條:GAP-1、GAP-1)
+
+````markdown
+# GAP
+
+## GAP-1(P-001#LAW-1 / qa)
+- 模糊點:SaveState 的相等要不要忽略順序
+- 卡住的項目:P-001#LAW-1 的 property test 寫不出斷言
+- 需要回答什麼:兩個實體順序不同的 SaveState 算不算同一個
+- 狀態:open
+
+## GAP-1(P-001#toSave / impl)
+- 模糊點:toSave 要不要保留幽靈實體
+- 卡住的項目:P-001#toSave 的本體
+- 需要回答什麼:ghostView 為空的實體要不要進 SaveState
+- 狀態:open
+````
+
+# lawful lint global
+
+### lint boundary:13 條不合規
+- ✗ .lawful/modules.md:8 模組單元 Game.Save.Extra 住在 Game.Save 底下;單元不巢狀
+- ✗ .lawful/modules.md:9 模組單元 Game.FS 沒有職責;模組表劃的是範圍,一句話寫它負責什麼
+- ✗ .lawful/modules.md:10 模組單元 Game.Audio 的層「pure」不在 types / effect / core / shell 裡
+- ✗ src-core/Game/Save/Cmd.hs、src-effect/Game/Save/Cmd.hs 都叫 Game.Save.Cmd;一個模組名只准一個檔,編譯期會撞名
+- ✗ src/Game/FS/Tmp.hs 模組 Game.FS.Tmp 不在任何一層的原始碼根目錄底下;層是檔住在哪一棵樹
+- ✗ src-core/Game/Audio/Mixer.hs 的模組叫 Game.Audio.Mix,檔案位置要是 src-core/Game/Audio/Mix.hs
+- ✗ src-core/Game/Save/Codec.hs Game.Save.Codec import 了 Game.Save.Project.Internal;*.Internal 只准它自己的模組與測試 import
+- ✗ src-core/Game/Save/Codec.hs core 層的 Game.Save.Codec import 了 IO 模組 System.IO
+- ✗ src-core/Game/Save/Codec.hs:24 core 層的 Game.Save.Codec.dumpSave 簽名碰到效果:SaveState -> IO ()
+- ✗ src-core/Game/Save/Project.hs core 層的 Game.Save.Project 沒有匯出清單,整個模組都是公開的;stage 與觀察點以外的東西要收起來
+- ✗ src-core/Game/Util.hs 模組 Game.Util 不在模組表(未登記)
+- ✗ src-core/Game/World/Bump.hs 模組 Game.World.Bump 在 src-core/ 底下,模組表的 Game.World 沒有宣告 core 層
+- ✗ src-types/Game/Save/State.hs types 層的 Game.Save.State import 了 shell 層的 Game.FS
+- · 模組單元 Game.Save 的 effect 層還沒有程式碼(src-effect/ 底下是空的)
+- · 模組單元 Game.Save.Extra 還沒有程式碼(層 core)
+- · 模組單元 Game.Legacy 還沒有程式碼(層 core)
+### lint io:6 條不合規
+- ✗ .lawful/Cone.md:41 存檔檔案 的契約 P-001#LAW-9 不存在;契約欄寫守這一端的 law
+- ✗ .lawful/Cone.md:41 存檔檔案 的契約 INV-7 不在 Cone.md 的領域不變量裡
+- ✗ .lawful/Cone.md:41 存檔檔案 的契約「roundtrip」要是 P-00x#LAW-n 或 INV-n;沒有就寫 -
+- ✗ .lawful/Cone.md:42 讀檔 的方向「inn」要是 in 或 out
+- ✗ .lawful/Cone.md:42 讀檔 指到的 P-002-load-game 不存在
+- ✗ .lawful/Cone.md:42 讀檔 的模組 Game.Save.Codec 的檔不在 src-shell/ 底下;對外 I/O 只從 shell 進出
+### lint invariants:5 條不合規
+- ✗ .lawful/Cone.md:26 INV-2 |- 行的 decode 對不到 types 層匯出或標準函式庫;領域不變量只引用 types 層
+- ✗ .lawful/Cone.md:26 INV-2 |- 行的 encode 對不到 types 層匯出或標準函式庫;領域不變量只引用 types 層
+- ✗ .lawful/Cone.md:29 INV-3 種類「always」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute;第一行寫成 INV-3 [種類] 一句話
+- ✗ .lawful/Cone.md:26 INV-2 編號重複;配號只走 lawful invariant add
+- ✗ INV-2#LAW 寫了三行卻沒有測試;領域不變量只由測試判,沒有測試就是未知
+- · INV-1#LAW 還沒有三行式也沒有測試,成立與否未知;領域不變量只由測試判
+- · INV-3#LAW 還沒有三行式也沒有測試,成立與否未知;領域不變量只由測試判
+
+# lawful status 的需求、目標、等決定、警訊與建議路線(其餘各節要看再跑 lawful status)
+
+### lawful status
+願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
+需求 2 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 目標 3 個,達成 0 個 · 里程碑 4 條,達成 0 條 · 調整 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
+· 測試結果來自 stale.log
+
+#### 需求
+| 需求 | 一句話 | 驗收 | 目標 | 目標達成 | 里程碑達成 | 調整達成 |
+|---|---|---|---|---|---|---|
+| R-1 | 玩家存檔後能讀回同一個世界 | 未知(寫了三行卻沒有 R-1#ACCEPT 測試) | O-1、O-2 | 0/2 | 0/3 | 0/2 |
+| R-2 | 存檔壞了讀得出是哪裡壞 | 未達成(驗收還是模板) | - | 0/0 | 0/0 | 0/0 |
+
+#### 目標
+| 目標 | 需求 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
+|---|---|---|---|---|---|---|---|
+| O-1 | R-1 | 1 | 玩家存檔後能讀回同一個世界 | 2 | 0 | 0% | - |
+| O-2 | R-1 | 2 | 存檔壞了讀得出是哪裡壞 | 1 | 0 | 0% | 0/2 |
+| O-3 | R-7 | 9 | 存檔可以搬到別台機器 | 1 | 0 | 0% | - |
+- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
+- O-2 下一個里程碑:M-3 壞檔回報位置(P-002-load-game 不存在)
+- O-3 下一個里程碑:M-4 存檔不含絕對路徑(還沒有切片,也還沒有英文名)
+
+#### 3. 等決定
+- GAP-1(P-001#LAW-1 / qa):lawful:revise
+- GAP-1(P-001#toSave / impl):lawful:revise
+
+#### 6. 警訊
+| 哪裡 | 什麼事 | 怎麼辦 |
+|---|---|---|
+| R-1 | 驗收寫了三行卻沒有驗收測試,達成與否未知 | lawful:build R-1(只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試);不能自動化就只留一句,由建置路線推 |
+| R-2 | 驗收還是模板 | lawful:project 寫成可判定的一句 |
+| R-2 | 沒有任何目標 | lawful objective add <slug> <一句話> --requirement R-2 --priority <1-4> |
+| INV-1 | 還沒有三行式,成立與否未知 | lawful:law-design 在 types 層的型別出現後把它寫成三行(識別字只用 types 層的匯出與型別名) |
+| INV-2 | 寫了三行卻沒有測試,成立與否未知 | lawful:build INV-2(只派 qa 寫一條歸屬 "INV-2#LAW" 的測試) |
+| INV-3 | 還沒有三行式,成立與否未知 | lawful:law-design 在 types 層的型別出現後把它寫成三行(識別字只用 types 層的匯出與型別名) |
+| INV-2 | 還沒有三行式,成立與否未知 | lawful:law-design 在 types 層的型別出現後把它寫成三行(識別字只用 types 層的匯出與型別名) |
+| Cone.md | 沒有宣告優先 1 到 4 各代表什麼 | lawful:objective 在「專案約束」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
+| M-2 | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
+| .lawful/objectives/R-2-O-2-load-game.md | 檔名與 frontmatter 對不上(frontmatter:R-1 O-2) | 檔名 R-x-O-y-<slug> 的 R-x 與 O-y 要等於 frontmatter 的 requirement 與 id;目標換需求就改檔名 |
+| M-3 | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
+| RF-1 | 動到的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名 |
+| RF-2 | 動到的 P-001-game-save 不在 O-2 任何里程碑的綁定裡 | 優化路線不引入新 pipeline:只動本目標建置路線做出來的 pipeline;新能力開里程碑 |
+| O-3 | 需求 R-7 不在 Cone.md | 改成 Cone.md 裡有的 R-n,或 lawful requirement add 先立需求 |
+| O-3 | 優先「9」不是 1 到 4 | 改成 1(最高)到 4(最低) |
+| M-4 | 沒有英文名,切片開不了分支 | lawful:objective 把第一格寫成 M-4-<slug>(kebab-case 英文);切片的分支 build/M-4-<slug> 與決策紀錄以它為鍵 |
+| P-001-game-save#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| P-001-game-save#misroute | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
+| P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |
+| P-001-game-save | 測試輸出裡有 1 條結果(LAW-3)在這棵樹裡沒有測試承接,不算數 | 測試輸出與這棵樹對不上:重跑整套留檔再跑 status;測試真的不在就 lawful:build P-001-game-save |
+| GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
+| 全域 Law:架構 | lint boundary 13 條不合規 | lawful lint boundary |
+| 全域 Law:契約 | lint io 6 條不合規 | lawful lint io |
+| 全域 Law:領域不變量 | lint invariants 5 條不合規 | lawful lint invariants |
+
+#### 7. 建議路線
+1. 先回答 GAP-1、GAP-1(lawful:revise),卡住的 stage 才能重派
+2. lawful:build P-001-game-save(O-1 優先 1 · M-1 存檔寫得出檔案)
+3. lawful:build INV-2(只派 qa 寫 INV-2#LAW 的測試)
+exit 0

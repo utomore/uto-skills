@@ -2,7 +2,7 @@
 id: P-002
 description: 數一段文字的字數
 kind: IO 介面
-status: frozen
+status: verified
 updated: 2026-09-06
 ---
 # P-002-count-tally:數一段文字的字數

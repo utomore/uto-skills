@@ -11,9 +11,35 @@ updated: 2026-09-05
 
 ## 需求
 ### R-1:玩家存檔後能讀回同一個世界
-- Law:任一 World 存檔再讀回,可存檔的投影一模一樣
+- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
   - forall w in World
   - |- restore (saveGame w) == w
+
+### R-2:存檔壞了讀得出是哪裡壞
+- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區,各有一道 lint 自動確認(`lawful lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+- INV-1 [invariant] 存檔裡的實體 id 不重複
+- INV-2 [roundtrip] 可存檔的狀態收進什麼實體,就吐出什麼實體
+  - forall es in [SavedEntity]
+  - |- decode (encode (mkSaveState es)) == Right (mkSaveState es)
+- INV-3 [always] 實體的座標是有限的數
+- INV-2 [bound] 一個存檔最多一萬個實體
+
+### 架構:四層
+- types:`Game.World`(遊戲世界的不可變值,含渲染快取)、`Game.Save.State`(可存檔的投影)
+- effect:無
+- core:`Game.Save.Core.*`(投影與編解碼)
+- shell:`Game.Save.Host`(存檔進入點)、`Game.FS`(檔案系統)
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
+|---|---|---|---|---|---|
+| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-game-save | P-001#LAW-9、INV-7、roundtrip |
+| 讀檔 | inn | `SaveState` | `Game.Save.Codec` | P-002-load-game | - |
 
 ## 專案約束
 - 語言:haskell

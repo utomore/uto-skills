@@ -1,0 +1,3 @@
+$ lawful invariant add 存檔裡的實體 id 不重複 --kind always
+--kind「always」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute
+exit 1

@@ -1,7 +1,7 @@
 $ GIT_AUTHOR_EMAIL=bob@corp.com lawful claim save-load --description 把存檔讀回 World --kind 子流 --date 2026-09-05
 建了 .lawful/pipelines/P-200-save-load.md(status: draft,kind: 子流)
 P-200 配自 bob@corp.com 的號段 200-299,owner 寫進 frontmatter
-沒有 --milestone:這條 pipeline 還不朝向任何目標,lawful objective milestone 綁進去
+沒有 --milestone:這條 pipeline 還不朝向任何目標,lawful:objective 綁進一條里程碑
 exit 0
 --- .lawful/pipelines/P-200-save-load.md
 ---
@@ -15,7 +15,7 @@ updated: 2026-09-05
 # P-200-save-load:把存檔讀回 World
 
 ## Brief
-<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是 IO 介面。>
+<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 IO 介面,或它是 P-00y-<slug> 引用的子流。它讓 M-n-<slug> 往前哪一步。>
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -37,7 +37,7 @@ updated: 2026-09-05
 | EX-1 | `<expr>` | `<value>` | LAW-1 |
 
 ## 決定
-- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<SPK-00x-<slug> 或 ADR-00x-<slug>,無則省略>
+- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<ADR-00x-<slug>,無則省略>
 
 ## 修訂記錄
 無

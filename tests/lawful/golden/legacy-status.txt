@@ -2,7 +2,7 @@ $ lawful status
 · 缺 .lawful/Cone.md;這棵樹只有 system.md,lawful migrate cone --write 換過來
 
 # lawful status
-需求 0 條,Law 成立 0 條(測試 0、推得 0)· 目標 0 個,達成 0 個 · 里程碑 0 條,達成 0 條 · 調整 0 條,達成 0 條 · IO 介面 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+需求 0 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 目標 0 個,達成 0 個 · 里程碑 0 條,達成 0 條 · 調整 0 條,達成 0 條 · IO 介面 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 需求
@@ -12,8 +12,13 @@ $ lawful status
 - 沒有任何目標;lawful:objective 訂第一個
 - 沒有被任何里程碑綁定的 pipeline:P-001-save-write;它們不朝向任何目標
 
+## 全域 Law
+- 沒有 Cone.md
+
+- 領域不變量:無
+
 ## pipelines
-| pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
+| pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|---|
 | P-001-save-write | (沒填) | ready | 6 | 0 | 0 | 5 | 0/0 | 進行中 |
 

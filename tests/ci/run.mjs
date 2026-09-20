@@ -1,5 +1,5 @@
 // ci/dev-flow/contract.mjs 與 ci/lawful/contract.mjs 的回歸:--lint-only 對各自的夾具跑一次,看 exit code 與關鍵訊息;
-// 夾具原樣跑一輪,再複製到暫存目錄各動一刀(兩份 draft 同號、幽靈引用、frozen 文檔沒有測試)看擋不擋。
+// 夾具原樣跑一輪,再複製到暫存目錄各動一刀(兩份 draft 同號、幽靈引用、verified 文檔沒有測試)看擋不擋。
 // 建置與整套測試那兩步要專案自己的工具鏈,夾具沒有,不在這裡跑。
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -21,7 +21,7 @@ const CASES = [
   ['dev-flow', 'team', 0, ['## draft 文檔的紅(只印不擋)', 'F-100-wishlist', '✓ 契約對帳通過']],
   ['lawful', 'save-game', 0, ['✓ 契約對帳通過']],
   ['lawful', 'broken', 1, ['✗ test/SaveGameSpec.hs 引用的 P-001#LAW-7', '✗ 契約對帳有紅']],
-  // templated 的 draft(P-003)只印不擋;它另有 ready 文檔與需求 Law 的紅,整體仍紅
+  // templated 的 draft(P-003)只印不擋;它另有 ready 文檔的紅,整體仍紅
   ['lawful', 'templated', 1, ['## draft 文檔的紅(只印不擋)', 'P-003-report-tabulate', '✗ 契約對帳有紅']],
 ];
 
@@ -42,13 +42,13 @@ const MUTATED = [
     ['✗ test/settle.test.ts 引用的 A-001#LAW-9 文檔裡沒有(幽靈引用)', '✗ 契約對帳有紅']],
   ['lawful', 'save-game', '幽靈引用', (r) => fs.appendFileSync(path.join(r, 'test/SaveGameSpec.hs'), '\n  describe "P-001#LAW-9" $\n    it "holds" $ True `shouldBe` True\n'), 1,
     ['✗ test/SaveGameSpec.hs 引用的 P-001#LAW-9 文檔裡沒有(幽靈引用)', '✗ 契約對帳有紅']],
-  // verified(lawful 是 frozen)文檔的 law 沒有測試承接:擋;同一份改成 ready 就只印
+  // verified 文檔的 law 沒有測試承接:擋;同一份改成 ready 就只印
   ['dev-flow', 'shop', 'verified 的 A-001 沒有測試', (r) => fs.rmSync(path.join(r, 'test/settle.test.ts')), 1,
     ['## lint trace(幽靈引用、verified 文檔的 law):', '✗ A-001#LAW-1 沒有測試承接', '✗ 契約對帳有紅']],
   ['dev-flow', 'shop', 'ready 的 A-001 沒有測試', (r) => { fs.rmSync(path.join(r, 'test/settle.test.ts')); setStatus(r, '.design/abstracts/A-001-settle.md', 'ready'); }, 0,
     ['## lint trace 其餘(只印不擋):', '- · A-001#LAW-1 沒有測試承接', '✓ 契約對帳通過']],
-  ['lawful', 'frozen-ref', 'frozen 的 P-002 沒有測試', (r) => fs.rmSync(path.join(r, 'test/CountSpec.hs')), 1,
-    ['## lint trace(幽靈引用、frozen 文檔的 law):', '✗ P-002#LAW-1 沒有測試承接']],
+  ['lawful', 'verified-ref', 'verified 的 P-002 沒有測試', (r) => fs.rmSync(path.join(r, 'test/CountSpec.hs')), 1,
+    ['## lint trace(幽靈引用、verified 的 pipeline 的 law):', '✗ P-002#LAW-1 沒有測試承接']],
 ];
 
 let failed = 0;

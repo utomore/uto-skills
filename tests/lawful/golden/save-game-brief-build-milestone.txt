@@ -1,0 +1,195 @@
+$ lawful brief build M-1-save-write --tests test.log --no-rules
+brief build M-1-save-write @doc:15312847 rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# Cone.md「專案約束」
+
+- 語言:haskell
+- 建置:`cabal build`
+- 測試(整套):`cabal test`
+- 測試(子集):`cabal test --test-options='-m "P-001"'`
+- 模組前綴:`Game`
+- 原始碼根目錄:`src-<層>`
+- IO 模組追加:無
+- 效果型別追加:無
+- 忽略目錄:`old`
+- 號段:無
+- 套件與框架:cborg(CBOR 編解碼);不引入其他序列化套件
+- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+
+# 決策紀錄
+
+(.lawful/journal/ 裡沒有 M-1-save-write 的決策紀錄)
+
+# 目標檔:.lawful/objectives/R-1-O-1-save-roundtrip.md
+
+````markdown
+---
+id: O-1
+requirement: R-1
+priority: 1
+updated: 2026-09-05
+---
+# R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-1-save-write | 存檔寫得出檔案 | P-001-save-write |
+| M-2-save-inspect | 存檔壞了看得出來 | - |
+
+| 調整 | 做到什麼 | 動到 |
+|---|---|---|
+| RF-1 | 存檔檔案壓縮後不超過 1 MB | P-001-save-write |
+````
+
+# 這條里程碑的需求
+
+R-1:玩家存檔後能讀回同一個世界
+- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
+
+# 綁的 pipeline:.lawful/pipelines/P-001-save-write.md
+
+````markdown
+---
+id: P-001
+description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+kind: IO 介面
+status: ready
+updated: 2026-09-05
+---
+# P-001-save-write:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+
+## Brief
+玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
+流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString;進入點把它接到檔案系統。它是 IO 介面,兩端碰到 shell。
+
+## Stages
+| # | 簽名 | 做什麼 | 模組 | 層 |
+|---|---|---|---|---|
+| 1 | `toSave :: World -> SaveState` | 去掉快取,留可存欄位 | `Game.Save.Project` | core |
+| 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
+| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態,壞檔回錯誤 | `Game.Save.Codec` | core |
+| 4 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
+| o | `savedIds :: SaveState -> [EntityId]` | 觀察:投影後的實體 id | `Game.Save.Project.Internal` | core |
+| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Game.Save` | core |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Game.Save.Host` | shell |
+
+## Laws
+- LAW-1 [roundtrip] 存了再讀回到同一個狀態
+  - forall s in SaveState
+  - |- decode (encode s) == Right s
+- LAW-2 [invariant] 投影不丟實體
+  - forall w in World
+  - |- length (savedEntities (toSave w)) == entityCount w
+- LAW-3 [bound] 檔案大小跟實體數線性
+  - forall s in SaveState
+  - |- length (encode s) <= 64 + 128 * length (savedEntities s)
+- LAW-4 [invariant] 投影後實體 id 不重複
+  - forall w in World
+  - |- nub (savedIds (toSave w)) == savedIds (toSave w)
+- LAW-5 [roundtrip] 整條存出去的位元組解回來就是投影
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
+
+## Examples
+| # | 輸入 | 輸出 | 覆蓋 |
+|---|---|---|---|
+| EX-1 | `decode ""` | `Left EmptyInput` | LAW-1 |
+| EX-2 | `toSave emptyWorld` | `emptySave` | LAW-2 |
+
+## 決定
+- **存 SaveState 不存 World。** 否決:直接編碼 World。渲染快取是衍生資料,存進去會讓 roundtrip 對不上。
+- **格式用 CBOR。** 否決:JSON。證據:ADR-001-save-format
+
+## 修訂記錄
+無
+````
+
+# P-001-save-write 的逐條狀態
+
+### Stages
+- 1  toSave :: World -> SaveState  Game.Save.Project/core  未實作
+- 2  encode :: SaveState -> ByteString  Game.Save.Codec/core  未實作
+- 3  decode :: ByteString -> Either DecodeError SaveState  Game.Save.Codec/core  未實作
+- 4  writeSave :: FilePath -> ByteString -> IO ()  Game.FS/shell  未實作
+- o  savedIds :: SaveState -> [EntityId]  Game.Save.Project.Internal/core  在
+- =  saveBytes :: World -> ByteString  Game.Save/core  在
+- !  saveGame :: FilePath -> World -> IO ()  Game.Save.Host/shell  在
+
+### Laws
+- LAW-1 [roundtrip] 存了再讀回到同一個狀態  未跑
+- LAW-2 [invariant] 投影不丟實體  未跑
+- LAW-3 [bound] 檔案大小跟實體數線性  未跑
+- LAW-4 [invariant] 投影後實體 id 不重複  未跑
+- LAW-5 [roundtrip] 整條存出去的位元組解回來就是投影  未跑
+- EX-1 覆蓋 LAW-1  未跑
+- EX-2 覆蓋 LAW-2  未跑
+
+### GAP
+- 無
+
+### 引用
+- 引用了:無
+- 被引用:無
+
+文檔寫了 6 條簽名,程式碼裡有 6 條,未實作的 4 條 · 觀察點 1 個,程式碼裡有 1 個 · 寫了 5 條 law,通過 nan 條 · 未達成
+
+# gaps.md
+
+(還沒有 .lawful/gaps.md)
+
+# 專案根目錄的測試輸出
+
+- test-tasty.log  <新舊看檔案時間>
+- test.log  <新舊看檔案時間>
+
+# lawful status 裡講到 M-1-save-write 的每一行(整份報告要看再跑 lawful status)
+
+### lawful status
+願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
+需求 1 條,達成 1 條(測試 1、推得 0)· 領域不變量 1 條,成立 1 條 · 目標 1 個,達成 0 個 · 里程碑 2 條,達成 0 條 · 調整 1 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 4 個 · 還開著的 GAP 0 條
+· 測試結果來自 test.log
+
+#### 需求
+| 需求 | 一句話 | 驗收 | 目標 | 目標達成 | 里程碑達成 | 調整達成 |
+|---|---|---|---|---|---|---|
+| R-1 | 玩家存檔後能讀回同一個世界 | 達成(測試 R-1#ACCEPT green) | O-1 | 0/1 | 0/2 | 0/1 |
+
+#### 目標
+| 目標 | 需求 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
+|---|---|---|---|---|---|---|---|
+| O-1 | R-1 | 1 | 玩家存檔後能讀回同一個世界 | 2 | 0 | 0% | 0/1 |
+- O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-save-write 進行中)
+
+#### pipelines
+| pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
+|---|---|---|---|---|---|---|---|---|
+| P-001-save-write | IO 介面 | ready | 6 | 6 | 4 | 5 | 4/5 | 進行中 |
+
+#### 模組
+| 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
+|---|---|---|---|---|---|---|
+| Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、core、shell | - | P-001-save-write | 6 | 3 |
+| Game.FS | 檔案系統:原子寫檔 | shell | - | P-001-save-write | 1 | 1 |
+
+#### 1. 今天能開幾條線
+- P-001-save-write:lawful:build P-001-save-write(O-1 優先 1 · M-1 存檔寫得出檔案)
+
+#### 5. 待實作(按模組單元)
+  - Game.FS:P-001-save-write#writeSave(未實作)
+  - Game.Save.Codec:P-001-save-write#encode(未實作)、P-001-save-write#decode(未實作)
+  - Game.Save.Project:P-001-save-write#toSave(未實作)
+
+#### 7. 建議路線
+1. lawful:build P-001-save-write(O-1 優先 1 · M-1 存檔寫得出檔案)
+exit 0

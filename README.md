@@ -5,10 +5,10 @@ Claude Code 的 plugin marketplace:**spec 驅動開發**與**演講內容產生*
 | Plugin | 用途 | Skills | CLI |
 |---|---|---|---|
 | [dev-flow](#dev-flow) | 一般程式語言專案的需求導向開發:先貫通切片,再談 Law、寫測試、調整實作 | 13 | `devflow` |
-| [lawful](#lawful) | 純函數式專案(functional core / imperative shell)的 spec 驅動開發 | 13 | `lawful` |
+| [lawful](#lawful) | Haskell 這類純函數式專案(functional core / imperative shell)的需求導向開發,流程與 dev-flow 相同 | 13 | `lawful` |
 | [talk-flow](#talk-flow) | Marp 投影片的主軸、段落、實作與審查 | 6 | — |
 
-dev-flow 與 lawful 共用同一組地基:簽名住在程式碼裡、性質寫成三行的 law 並由 property test 承接、每條需求各有一句可判定的話、進度由 CLI 從程式碼與測試推導。兩者的順序不同:dev-flow 先用實作貫通一條垂直切片,再對著它談 Law;lawful 先定簽名與 law,再委派測試與實作。邊界也不同:前者由專案自己宣告(層由內而外),後者由純度決定(四層固定)。
+dev-flow 與 lawful 共用同一組地基:簽名住在程式碼裡、性質寫成三行的 law 並由 property test 承接、每條需求各有一句可判定的話、進度由 CLI 從程式碼與測試推導。兩者的流程與 skill 名稱相同:先用實作貫通一條垂直切片,再對著它談 Law,再委派測試與調整實作。差別在邊界:前者由專案自己宣告(層由內而外),後者由純度決定(四層固定)。
 
 ## 目錄
 
@@ -168,28 +168,27 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 
 ## lawful
 
-純函數式專案的 spec 驅動開發。文檔住 `.lawful/`,單位是 **pipeline**:input → 純轉換 → output 的資料流,兩端碰 shell 的是 IO 介面、只在純核心裡的是子流。
+Haskell 這類純函數式專案(functional core / imperative shell)的需求導向開發。流程、skill 名稱與 Law 的定義都與 dev-flow 相同:需求(必須達成)與全域 Law(不得違反)先講好,`spike-impl` 先貫通一條切片,`law-design` 對著它談 Law,`build` 帶 qa 與 refactor 讓每條 law 成立,`integrate` 是唯一發 PR 的出口。文檔住 `.lawful/`,單位是 **pipeline**:input → 純轉換 → output 的資料流,兩端碰 shell 的是 IO 介面、只在純核心裡的是子流。
 
 與 dev-flow 的差異:
 
-- **文檔先行**:一條 pipeline 先與開發者談出 Stages 的簽名與 laws、把型別與簽名的骨架寫進程式碼,拍板 `ready` 之後 conductor 才派 qa 與 impl;可行性另走 `spike`。
-
-- **四層固定**:`types ← effect ← core ← shell`,一層一棵原始碼樹(預設 `src-<層>`),各是建置系統的一個子函式庫,依賴方向由編譯器擋、`lint boundary` 再對一次。`=` 列是純的整條、`!` 列是 shell 進入點。
-- **模組單元先於 pipeline**:`modules.md` 一列一個單元(名字、職責、有哪幾層);要新單元先 `lawful module` 劃邊界再 claim。pipeline 的 slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列住的單元。
-- **Cone.md 取代 system.md**:願景、需求、專案約束(語言、三道指令、模組前綴、原始碼根目錄、硬性要求的套件、號段、優先各級)。
+- **四層固定**:`types ← effect ← core ← shell`,一層一棵原始碼樹(預設 `src-<層>`),各是建置系統的一個子函式庫,依賴方向由編譯器擋、`lint boundary` 再對一次。`=` 列是純的整條、`!` 列是 shell 進入點、`o` 列是觀察點。
+- **模組單元**:`modules.md` 一列一個單元(名字、職責、有哪幾層);切片要一個還沒有的單元或層,先 `lawful module` 劃邊界。pipeline 的 slug 是 `<領域名詞>-<動詞>`,領域名詞是 `=` 列住的單元。
+- **Cone.md**:願景、需求(R-n 與驗收)、全域 Law(領域不變量 INV-n、架構:四層、契約:對外 I/O)、專案約束(語言、三道指令、模組前綴、原始碼根目錄、硬性要求的套件、號段、優先各級)。領域不變量只引用 types 層。
 - **stage 之間不用無名容器**:`lint sig` 擋 aeson `Value` 這類型別,形狀要有名字。
+- 共用的東西是被引用的**子流** pipeline,沒有 abstract。
 
-Skills:`design`、`objective`、`module`、`pipeline`、`build`、`qa`、`impl`、`revise`、`status`、`audit`、`spike`、`integrate`、`study`。CLI `lawful` 的子命令與 `devflow` 相近(status、claim、lint、sync、section),另有 `module`、`rename`、`migrate cone`(只有 `system.md` 的樹換成 `Cone.md` 體系)與 `migrate from-dev-flow`。第一個 adapter 是 Haskell(認 hspec 與 tasty 兩種測試輸出)。
+Skills:`project`、`objective`、`module`、`spike-impl`、`law-design`、`build`、`qa`、`refactor`、`revise`、`integrate`、`status`、`audit`、`study`。CLI `lawful` 的子命令與 `devflow` 相同(status、claim、requirement / invariant / objective、lint、sync、section、brief),另有 `module`、`rename`、`migrate laws`(全域 Law 還沒收進 `Cone.md`、需求還寫著 Law 的樹)、`migrate cone`(只有 `system.md` 的樹)與 `migrate from-dev-flow`。adapter 是 Haskell(認 hspec 與 tasty 兩種測試輸出)。
 
 ```
 .lawful/
-├── Cone.md                         # 願景、需求、專案約束
-├── objectives/R-1-O-1-<slug>.md
-├── modules.md                      # 四層邊界、模組單元表、對外 I/O
+├── Cone.md                         # 願景、需求(R-n 與驗收)、全域 Law 三區、專案約束
+├── objectives/R-1-O-1-<slug>.md    # 一檔一個目標:優先、里程碑(M-n-<slug>)、調整(RF-n)
+├── modules.md                      # 模組單元表
 ├── pipelines/P-001-<slug>.md       # Brief、Stages、Laws、Examples、決定
 ├── gaps.md
 ├── adr/
-└── spikes/
+└── journal/M-1-<slug>.md           # 決策紀錄;只活在 build 分支,整合寫進 PR 後刪
 src-types/ src-effect/ src-core/ src-shell/   # 一層一棵樹
 ```
 

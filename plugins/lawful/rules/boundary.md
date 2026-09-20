@@ -1,6 +1,6 @@
 # 邊界
 
-functional core / imperative shell。邊界的唯一宣告是模組表;`lawful lint boundary` 拿 import 圖與簽名對它。
+functional core / imperative shell。邊界是全域 Law 的架構與契約兩類(laws.md「全域 Law」):四層各裝什麼與對外 I/O 表住 `Cone.md` 的「全域 Law」區,模組單元住 `modules.md`;`lawful lint boundary` 拿 import 圖與簽名對它們,`lawful lint io` 對對外 I/O 表。切片從第一行程式碼就守這一份。
 
 ## 四層
 
@@ -14,6 +14,18 @@ functional core / imperative shell。邊界的唯一宣告是模組表;`lawful l
 | **shell** | 真解譯器、`!` 列的進入點、平台驅動:唯一出現效果的地方 | 無 | 全部 |
 
 types / effect / core 的每個模組都有匯出清單;沒寫匯出清單的模組整個公開,`lint boundary` 算紅。
+
+這個專案在每一層裝什麼,各一句,寫在 `Cone.md`「全域 Law」區的 `### 架構:四層`:
+
+```markdown
+### 架構:四層
+- types:向量、矩陣、實體與元件的值型別
+- effect:畫面指令 `RenderCmd` 與它的純解譯器
+- core:碰撞偵測、步進、投影
+- shell:GL 真解譯器、視窗與檔案系統的進入點
+```
+
+四句給人看,工具不讀;工具查的是上面那張表的規則。沒有 effect 層的專案那一行寫「無」。
 
 ## 模組單元
 
@@ -29,27 +41,21 @@ src-shell/Weft/Render/GL.hs      Weft.Render.GL     shell   ← 同一個單元,
 src-types/Weft/Render/Color.hs   Weft.Render.Color  types
 ```
 
-- 一個單元在一層裡要幾個檔、叫什麼名字,由 pipeline 的 Stages 決定,規章不規定。
+- 一個單元在一層裡要幾個檔、叫什麼名字,由切片決定,規章不規定。
 - **門面**是與單元同名的那個模組(`src-effect/Weft/Render.hs`),把單元的公開面重新匯出。要不要有隨意,有就只能有一個。它預設住最上層,因為只有最上層 import 得到底下每一層、重新匯出得了整個單元;門面住哪一層,就只有那一層以上的消費者用得到這個名字,所以主要被下層消費的單元(型別給別人的 types 層用的)把門面放低一點。`lawful module --facade [層]` 建它。
 - 單元不巢狀:`Weft.Render` 在表上,`Weft.Render.View` 就不能另外列一列 —— 它是 `Weft.Render` 的一部分。
 - 一個模組名只准一個檔:同名的兩個檔(尤其分在兩棵樹裡)在子函式庫之間會撞名,`lint boundary` 算紅。
 - 檔案位置要對得上模組名:`Weft.Render.View` 的檔是 `<那一層的樹>/Weft/Render/View.hs`。
 - **模組前綴**與**原始碼根目錄**寫在 `Cone.md`「專案約束」。原始碼根目錄是一個帶 `<層>` 的樣式,預設 `src-<層>`。
 
-模組單元先劃、pipeline 後走:`lawful module` 只決定名字、範圍與有哪幾層,在每一層的樹裡開好資料夾,不放任何模組。單元裡的簽名一律由 pipeline 的 Stages 表長出來(`pipelines.md`「pipeline」),pipeline 要在既有單元裡加、改、搬東西不必回頭動模組表。宣告了層卻還沒有程式碼是架構先行的常態,`lint boundary` 列成訊息不算紅。
+模組單元先劃、程式碼後住進去:`lawful module` 只決定名字、範圍與有哪幾層,在每一層的樹裡開好資料夾,不放任何模組。立案時劃已經看得出來的單元;切片途中要一個還沒有的單元,`lawful:spike-impl` 先停下來跑 `lawful:module` 劃出來,再把模組寫進去。在既有單元裡加、改、搬模組不必回頭動模組表。宣告了層卻還沒有程式碼是常態,`lint boundary` 列成訊息不算紅。
 
 ## 模組表
 
-`.lawful/modules.md` 是邊界的唯一住處,不是進度表。三節:
+`.lawful/modules.md` 只有一張「模組單元」表,不是進度表:
 
 ```markdown
 # 模組表
-
-## 邊界
-- types:向量、矩陣、實體與元件的值型別
-- effect:畫面指令 `RenderCmd` 與它的純解譯器
-- core:碰撞偵測、步進、投影
-- shell:GL 真解譯器、視窗與檔案系統的進入點
 
 ## 模組單元
 | 模組 | 層 | 職責 |
@@ -58,17 +64,11 @@ src-types/Weft/Render/Color.hs   Weft.Render.Color  types
 | `Weft.Render` | types、effect、shell | 畫面指令的描述與它的真解譯器 |
 | `Weft.Physics` | types、effect、core | 剛體、碰撞偵測與步進 |
 | `Main` | shell | 可執行檔進入點 |
-
-## 對外 I/O
-| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
-|---|---|---|---|---|
-| 存檔檔案 | out | `ByteString` | `Weft.Save.Host` | P-001-save-write |
 ```
 
-- 「邊界」四層各一句,給人看,工具不讀。「對外 I/O」照下面「對外 I/O」那節。
-- 「模組單元」一列一個模組單元:模組欄是單元名,層欄是它有哪幾層(「、」分隔),職責欄一句話寫它負責什麼、範圍到哪。三欄都要填,`lint boundary` 對帳。
+- 一列一個模組單元:模組欄是單元名,層欄是它有哪幾層(「、」分隔),職責欄一句話寫它負責什麼、範圍到哪。三欄都要填,`lint boundary` 對帳。
 - 列由 `lawful module` 寫;既有程式碼用 `lawful modules --gen` 從模組名推出單元與層,職責欄留白由人填。
-- `lint boundary` 的紅:層欄的值不在四層裡;職責欄空的;單元住在另一個單元底下;程式碼有、表上沒有(未登記);模組的檔不在任何一棵原始碼樹底下;模組所在那棵樹的層沒有列在它那一列;檔案位置對不上模組名;同一個模組名有兩個檔。表上有、程式碼還沒有的單元或層列成訊息,不算紅。
+- `lint boundary` 的紅:層欄的值不在四層裡;職責欄空的;單元住在另一個單元底下;程式碼有、表上沒有(未登記);模組的檔不在任何一棵原始碼樹底下;模組所在那棵樹的層沒有列在它那一列;檔案位置對不上模組名;同一個模組名有兩個檔;types / effect / core 的簽名碰到效果型別或 import 了 IO 模組;import 的方向違反四層;非 shell 模組沒有匯出清單;production 模組 import 別人的 `*.Internal`。表上有、程式碼還沒有的單元或層列成訊息,不算紅。
 - 模組沒有完成狀態。模組的進度 = 它裝的所有 stage 的狀態:`lawful status --module M` 列出全專案哪些 pipeline 的哪些 stage 住在 M、簽名在不在、laws 綠了幾條;M 給單元名就是整個單元。
 
 ## 效果的判定
@@ -81,11 +81,20 @@ src-types/Weft/Render/Color.hs   Weft.Render.Color  types
 
 ## 對外 I/O
 
-`modules.md`「對外 I/O」表列出每個跨過 shell 邊界的入口與出口:名稱、方向、型別或效果 ADT、shell 模組、進入哪條 pipeline。
+`Cone.md`「全域 Law」區的 `### 契約:對外 I/O` 表列出每個跨過 shell 邊界的入口與出口;它是全域 Law 的契約一類:
 
-- 每條 IO 介面(frontmatter `kind: IO 介面`)的兩端都要對得到這張表的某一列;表上的 pipeline 必須是 IO 介面。
-- 表上的 shell 模組在模組表是 shell 層;型別與效果 ADT 住 types 或 effect,不住 shell。
-- `lawful lint io` 對帳以上三條。
+```markdown
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
+|---|---|---|---|---|---|
+| 存檔檔案 | out | `ByteString` | `Weft.Save.Host` | P-001-save-write | P-001#LAW-5 |
+| 讀檔檔案 | in | `ByteString` | `Weft.Save.Host` | P-002-save-load | - |
+```
+
+- **契約**:這一端對外面承諾了什麼、由哪條 law 守著(寫出去的檔一定讀得回來、對外的格式只增欄位不刪不改名)。寫那條 law:`P-00x#LAW-n` 或 `INV-n`,「、」分隔;沒有就「-」。只寫一句話而沒有 law 守著的契約不算數。
+- 每條 IO 介面(frontmatter `kind: IO 介面`)的兩端都要對得到這張表的某一列;表上的 pipeline 必須是 IO 介面。一條切片新的入口與出口,`lawful:spike-impl` 記在決策紀錄「Touched」,`lawful:law-design` claim 出 pipeline 之後補成表上的列。
+- 表上的 shell 模組在模組表是 shell 層、程式碼裡有;型別與效果 ADT 住 types 或 effect,不住 shell(邊界換了才不必跟著改)。
+- `lawful lint io` 對帳以上:方向是 in / out、pipeline 存在且是 IO 介面、shell 模組與型別住對層、每條 IO 介面至少一列、契約欄指到的 law 要存在。
 
 ## 測試與邊界
 

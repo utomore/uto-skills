@@ -11,7 +11,24 @@ frozen-ref 的兩條,再加一條剛 claim、Stages 與 Laws 都還是模板佔�
 
 ## 需求
 ### R-1:<一句話:誰在什麼情況下要得到什麼>
-- Law:<一句可判定的話:這條需求成立時,什麼一定為真>
+- 驗收:<一句可判定的話:這條需求成立時,什麼一定為真>
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區,各有一道 lint 自動確認(`lawful lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+無
+
+### 架構:四層
+- types:`App.Token`
+- effect:無
+- core:`App.Count`、`App.Report`
+- shell:`App.Report.Main`
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
+|---|---|---|---|---|---|
+| 輸入文字 | in | `Text` | `App.Report.Main` | P-001-report-render | - |
 
 ## 專案約束
 - 語言:haskell

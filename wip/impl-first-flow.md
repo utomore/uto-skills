@@ -176,4 +176,23 @@
 
 我自己定、已回報的:驗收這個詞與 `R-n#ACCEPT` 標記;全域 Law 的變更走 `plan/<slug>` 分支(與立案的變更同一條路),ADR 仍由 integrate 在收那條分支時寫;看板模板改成優先用 JSON 給的 `note`(兩個 plugin 的模板同步改、逐位元組相同),dev-flow 的看板因此不再出現「Law 成立」;CI 契約腳本多跑 `lint invariants`,「寫了三行卻沒有測試」只印不擋。
 
-lawful 還沒做:它仍是 Requirement Law / Objective Law 的體系,改的時候照這一節。
+## 12. lawful 落地紀錄(2026-09-20,分支 feat/lawful-brief,PR #77)
+
+開發者當天的三句話:「lawful skill 名稱也換掉,採用一樣的 spike-impl、law-design、build → qa、refactor」「功能收束」「requirement laws 必須改掉,與 dev-flow 一樣,這個 requirement 不能稱為 laws」。CLI 與規章的共同契約寫在 `wip/lawful-impl-first.md`。
+
+開發者拍板的一項(兩個既有決定互相衝突,問過):**全域 Law 三類全部搬進 `Cone.md`**,推翻 2026-09-14「邊界與對外 I/O 搬進 modules.md」;`modules.md` 只剩模組單元表。
+
+落地時我自己定的(實作級):
+
+- `design` 改名 `project`(立案之後不寫 pipeline,職責與 dev-flow:project 相同);`module` 照 §9 第 6 項保留;lawful 沒有 abstract,兩條 pipeline 寫了同一段能力時由 law-design 把它 claim 成子流。
+- 對外 I/O 表只補「契約」一欄(六欄),沒有 dev-flow 的信任與驗證兩欄:§8 只點名契約欄,lawful 的對外 I/O 本來就只從 shell 進出。
+- 領域不變量的三行只准引用 types 層的匯出與型別名(對應 dev-flow 的最內層)。
+- 未實作標記是 `error "P-00x#name not implemented"`;`undefined` 與只有一個 `error` 呼叫的本體都照認。
+- ADR 由 integrate 照模板手建(lawful 的 CLI 沒有 `claim adr`)。
+- `migrate laws`:沒綁 pipeline 的里程碑不替它取英文名(留給 lawful:objective);`.lawful/spikes/` 與測試裡的 `R-n#LAW` / `O-n#LAW` 只列成「人要判的」,不動。
+- 夾具 `frozen-ref` 改名 `verified-ref`;新增 `preflow`(換之前的長相)給 `migrate laws` 當輸入。
+- CLI 靜默容忍:`- Law:` 當驗收讀、`R-n#LAW` 當 `R-n#ACCEPT` 讀、`frozen` 當 `verified` 讀、Cone.md 沒有對應小區時接上 modules.md 的「對外 I/O」;status 對這樣的樹列警訊指到 `migrate laws`。
+
+做法:規章、skill 與模板的文字由分出去的一份照契約寫,CLI、夾具、測試由主線同時移植,最後以三道回歸、規章自查與「brief 點名的規章節都在」對帳。
+
+量測(headless、save-game 沙盒、sonnet):委派的 qa 1 輪 33 秒;`spike-impl M-2-save-inspect` 到前置檢查做完 1 輪 31 秒;單行的斜線叫用帶括號的自由文字注入正常。**參數跨行時注入不會跑**(模型照 SKILL.md 的退化路徑自己跑一次,輸出超過 30KB 被存成檔,多一輪 Read);dev-flow 同樣受影響。

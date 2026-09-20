@@ -8,7 +8,7 @@ updated: <YYYY-MM-DD>
 # P-00x-<slug>:<同 description>
 
 ## Brief
-<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是 IO 介面。>
+<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 IO 介面,或它是 P-00y-<slug> 引用的子流。它讓 M-n-<slug> 往前哪一步。>
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -30,7 +30,7 @@ updated: <YYYY-MM-DD>
 | EX-1 | `<expr>` | `<value>` | LAW-1 |
 
 ## 決定
-- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<SPK-00x-<slug> 或 ADR-00x-<slug>,無則省略>
+- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<ADR-00x-<slug>,無則省略>
 
 ## 修訂記錄
 無

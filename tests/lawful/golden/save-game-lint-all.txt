@@ -5,4 +5,5 @@ $ lawful lint all
 ## lint laws:通過
 ## lint trace:通過
 ## lint io:通過
+## lint invariants:通過
 exit 0

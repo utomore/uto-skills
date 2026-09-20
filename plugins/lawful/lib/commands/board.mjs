@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { analyze, counts, docState, holdsWord, moduleView, objectiveView, openLines, suggestRoutes, warnings } from './status.mjs';
+import { analyze, buildKeyOf, counts, docState, invariantView, metWord, moduleView, objectiveView, openLines, sliceLines, suggestRoutes, warnings } from './status.mjs';
 
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
 const TOKEN = '__STATUS_JSON__';
@@ -30,7 +30,6 @@ function examplesOf(x) {
 const lawJson = (law, state) => ({
   title: law ? law.title : '',
   formal: !!(law && law.formal),
-  inherits: law ? law.inherits : null,
   holds: state.holds,
   source: state.source,
   tested: !!state.tested,
@@ -39,12 +38,14 @@ const lawJson = (law, state) => ({
 export function statusJson(design, source, adapter, results, resultNote, building = new Set(), stale = new Set()) {
   const a = analyze(design, source, adapter, results);
   const ov = objectiveView(design, a);
-  const warns = warnings(design, a, ov, source, adapter, stale);
-  const route = suggestRoutes(design, a, ov, warns.length);
+  const inv = invariantView(design, a);
+  const warns = warnings(design, a, ov, source, adapter, stale, inv);
+  const route = suggestRoutes(design, a, ov, warns.length, building, inv);
+  const slices = sliceLines(ov, building);
   const { openable, inBuild, shared } = openLines(a, ov, building, design.modules ? design.modules.entries : []);
   const cone = design.cone;
   const mv = moduleView(design, source, a);
-  const n = counts(design, a, ov, mv);
+  const n = counts(design, a, ov, mv, inv);
   const unitNameOf = (module) => {
     const u = mv.units.find((e) => module === e.unit || module.startsWith(`${e.unit}.`));
     return u ? u.unit : null;
@@ -60,7 +61,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       description: x.p.description || '',
       state: docState(x),
       achieved: x.achieved,
-      building: building.has(x.p.fullName),
+      building: !!buildKeyOf(x, ov, building),
       requirement: at && at.o.req ? at.o.req.id : null,
       objective: at ? at.o.id : null,
       priority: at ? at.o.priority : null,
@@ -106,11 +107,10 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     title: `${o.id} ${o.title}`,
     notes: [
       `優先 ${o.priorityRaw || '(沒填)'}${o.priority && tierMeaning.has(o.priority) ? `:${tierMeaning.get(o.priority)}` : ''}`,
-      `Law ${holdsWord(o.lawState.holds)} · ${o.lawState.source}`,
       `里程碑 ${o.done}/${o.ms.length} 達成 · 完成度 ${o.pct == null ? '-' : `${o.pct}%`}${o.rfs.length ? ` · 調整 ${o.rfDone}/${o.rfs.length} 達成` : ''}`,
     ],
     columns: [
-      ...o.ms.map((m) => ({ title: `${m.id} ${m.title}${m.binds.length ? '' : '(待 claim)'}`, achieved: m.achieved, docs: m.binds })),
+      ...o.ms.map((m) => ({ title: `${m.id} ${m.title}${m.binds.length ? '' : '(還沒有切片)'}`, achieved: m.achieved, docs: m.binds })),
       ...o.rfs.map((rf) => ({ title: `${rf.id} ${rf.title}(調整,${rf.state})`, achieved: rf.achieved, docs: rf.touches })),
     ],
     empty: o.ms.length ? null : '沒有任何里程碑',
@@ -118,7 +118,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const bands = ov.reqs.map((q) => ({
     id: q.id,
     title: `${q.id} ${q.title}`,
-    note: `Law ${holdsWord(q.holds)} · ${q.source} · ${q.objectives.length} 個目標,達成 ${q.objectives.filter((o) => o.achieved).length} 個 · 里程碑 ${q.ms.filter((m) => m.achieved).length}/${q.ms.length} 達成`,
+    note: `驗收${metWord(q.holds)} · ${q.source} · ${q.objectives.length} 個目標,達成 ${q.objectives.filter((o) => o.achieved).length} 個 · 里程碑 ${q.ms.filter((m) => m.achieved).length}/${q.ms.length} 達成`,
     achieved: q.holds === true,
     bare: false,
     lanes: q.objectives.map(laneOf),
@@ -137,7 +137,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     requirementsInferred: n.requirementsInferred,
     objectives: n.objectives,
     objectivesAchieved: n.objectivesAchieved,
-    objectiveLawsHolding: n.objectiveLawsHolding,
+    invariants: n.invariants,
+    invariantsHolding: n.invariantsHolding,
     milestones: n.milestones,
     milestonesAchieved: n.milestonesAchieved,
     refinements: n.refinements,
@@ -165,8 +166,9 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     tests: resultNote,
     summary,
     headline: [
-      { label: '需求 Law', value: `${summary.requirementsHolding} / ${summary.requirements} 成立(測試 ${summary.requirementsTested}、推得 ${summary.requirementsInferred})` },
-      { label: '目標', value: `${summary.objectivesAchieved} / ${summary.objectives} 達成 · Law 成立 ${summary.objectiveLawsHolding}` },
+      { label: '需求', value: `${summary.requirementsHolding} / ${summary.requirements} 達成(測試 ${summary.requirementsTested}、推得 ${summary.requirementsInferred})` },
+      { label: '領域不變量', value: `${summary.invariantsHolding} / ${summary.invariants} 成立` },
+      { label: '目標', value: `${summary.objectivesAchieved} / ${summary.objectives} 達成` },
       { label: '里程碑', value: `${summary.milestonesAchieved} / ${summary.milestones} 達成` },
       { label: '調整', value: `${summary.refinementsAchieved} / ${summary.refinements} 達成` },
       { label: 'IO 介面', value: `${summary.ioFacesAchieved} / ${summary.ioFaces} 達成` },
@@ -178,8 +180,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     requirements: ov.reqs.map((q) => ({
       id: q.id,
       title: q.title,
-      law: lawJson(q.law, q),
-      implication: q.implication || '',
+      law: lawJson(q.accept, q),
+      note: `驗收${metWord(q.holds)} · ${q.objectives.length} 個目標 · 里程碑 ${q.ms.filter((m) => m.achieved).length}/${q.ms.length} 達成`,
       objectives: q.objectives.map((o) => o.id),
       built: q.built,
       milestonesAchieved: q.ms.filter((m) => m.achieved).length,
@@ -195,13 +197,15 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       requirement: o.requirement || null,
       priority: o.priority,
       priorityRaw: o.priorityRaw || null,
-      law: lawJson(o.law, o.lawState),
+      law: lawJson(null, { holds: o.achieved ? true : null, source: `里程碑 ${o.done}/${o.ms.length} 達成`, tested: false }),
+      note: `里程碑 ${o.done}/${o.ms.length} 達成`,
       achieved: o.achieved,
       milestonesAchieved: o.done,
       percent: o.pct,
-      milestones: o.ms.map((m) => ({ id: m.id, title: m.title, achieved: m.achieved, binds: m.binds })),
+      milestones: o.ms.map((m) => ({ id: m.id, name: m.fullName, title: m.title, achieved: m.achieved, binds: m.binds })),
       refinements: o.rfs.map((rf) => ({ id: rf.id, title: rf.title, touches: rf.touches, state: rf.state, achieved: rf.achieved })),
     })),
+    invariants: inv.map((v) => ({ id: v.id, kind: v.kind || null, title: v.title, formal: !!v.law.formal, holds: v.holds, source: v.source, tested: v.tested })),
     bands,
     modules: {
       units: mv.units.map((u) => ({
@@ -224,6 +228,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     lines: {
       openable: openable.map((x) => ({ name: x.p.fullName, tag: ov.tag(x.p.fullName) })),
       building: inBuild.map((x) => ({ name: x.p.fullName, tag: ov.tag(x.p.fullName) })),
+      slices: slices.openable.map((s) => ({ name: s.m.fullName, objective: s.o.id, title: s.m.title })),
+      slicesBuilding: slices.inBuild.map((s) => ({ name: s.m.fullName, objective: s.o.id, title: s.m.title })),
       shared: shared.map((s) => ({ a: s.a, b: s.b, units: s.units })),
     },
     gaps: a.openGaps.map((g) => ({ id: g.id, target: g.target, role: g.role })),

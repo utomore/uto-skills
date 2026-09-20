@@ -9,11 +9,25 @@ module Game.Save.State
   , emptySave
   , route
   , misroute
+  , Stamped (..)
+  , stampAll
   ) where
 
+import Data.Constraint.Each (Each)
+import Data.Proxy (Proxy)
+import Data.Tick
+  ( Tick
+  , firstTick
+  )
 import Game.World (EntityId)
 import Game.FS (writeSave)
 import Type.Reflection (SomeTypeRep)
+
+class Each Show ss => Stamped ss where
+  stamps :: Proxy ss -> [Int]
+
+stampAll :: Stamped ss => Proxy ss -> Tick -> [Int]
+stampAll p _ = stamps p
 
 data Lane = State | Command | Fact
   deriving stock (Eq, Show)

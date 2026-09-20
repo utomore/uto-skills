@@ -10,7 +10,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/features.md`「願景、需求、目標與路線」「完成度」、`rules/tooling.md`「CLI」「status 報告」「收尾定錨」。再讀 `.design/system.md` 的「願景」「需求」與「語言與工具」的優先那行、`.design/objectives/` 底下每一檔(有的話),跑 `devflow status` 看需求表、目標表與警訊。
+`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/features.md`「願景、需求、目標與路線」「完成度」、`rules/tooling.md`「CLI」「status 報告」「收尾定錨」。再讀 `.design/system.md` 的「願景」「需求」與「語言與工具」的優先那行、`.design/objectives/` 底下每一檔(有的話),跑 `devflow status` 看需求表、目標表與警訊。
 
 ## 輸入 / 產出
 

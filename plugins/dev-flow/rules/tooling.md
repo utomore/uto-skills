@@ -2,7 +2,7 @@
 
 ## CLI
 
-一支 CLI `devflow`,入口 `bin/devflow.mjs`。`<D>` 是 plugin 根目錄,一場對話解析一次:
+一支 CLI `devflow`,入口 `bin/devflow.mjs`。`<D>` 是 plugin 根目錄:載入 skill 時給的基準目錄往上兩層(`skills/<名字>/` 的上上層),規章在 `<D>/rules/`。被委派的角色從 conductor 的 prompt 拿 `<D>` 的實際路徑。手上沒有基準目錄時才用這道找:
 
 ```bash
 dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-flow/bin/devflow.mjs' 2>/dev/null | head -1)")"

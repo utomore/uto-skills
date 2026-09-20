@@ -34,6 +34,7 @@ const CASES = [
   ['save-game-status-module-unit', 'save-game', ['status', '--module', 'Game.Save', '--tests', 'test.log']],
   ['save-game-status-json', 'save-game', ['status', '--json', '--tests', 'test.log']],
   ['broken-status', 'broken', ['status']],
+  ['broken-status-stale-log', 'broken', ['status', '--tests', 'stale.log']],
   ['save-game-status-tasty', 'save-game', ['status', '--tests', 'test-tasty.log']],
   ['devflow-migrate', 'devflow', ['migrate', 'from-dev-flow', '.design', '--ignore', 'old']],
   ['refs-status', 'refs', ['status']],

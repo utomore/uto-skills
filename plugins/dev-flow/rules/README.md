@@ -63,7 +63,7 @@
 
 ## 每個 skill 讀什麼
 
-`<D>` 解析一次(tooling.md「CLI」);節用 `node "<D>/bin/devflow.mjs" section <檔> <節>…` 取,一次讀完。
+`<D>` 是 skill 的基準目錄往上兩層(tooling.md「CLI」);節用 `node "<D>/bin/devflow.mjs" section <檔> <節>…` 取,一次讀完。
 
 | skill | 必讀 |
 |---|---|

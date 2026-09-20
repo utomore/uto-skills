@@ -10,7 +10,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/roles.md` 全份、`rules/features.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「測試歸屬」「跑東西的紀律」「收尾定錨」。再讀目標文檔、`.design/journal/<鍵>.md`、`.design/modules.md`、`.design/system.md` 的「語言與工具」。
+`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/roles.md` 全份、`rules/features.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「測試歸屬」「跑東西的紀律」「收尾定錨」。再讀目標文檔、`.design/journal/<鍵>.md`、`.design/modules.md`、`.design/system.md` 的「語言與工具」。
 
 ## 輸入
 
@@ -41,6 +41,7 @@ user-invocable: true
 ## 委派 prompt 模板
 
 ```
+plugin 根目錄 <D>:<解析出來的實際路徑>(規章在它底下的 rules/)
 【委派模式】遵守 <D>/rules/roles.md「委派」:不提問、不寫共用檔、提到文檔寫全名、如實回報。
 你是 <qa | refactor> 角色,執行 dev-flow:<qa | refactor>。
 文檔:<全名>,檔:<路徑>

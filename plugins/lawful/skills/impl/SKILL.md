@@ -8,7 +8,7 @@ user-invocable: false
 
 ## 讀什麼
 
-`rules/roles.md`「三角色」「委派」、`rules/pipelines.md`「節」「提問(GAP)」、`rules/boundary.md`「四層」。再讀目標 pipeline 檔、骨架模組、types 層模組。
+`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/roles.md`「三角色」「委派」、`rules/pipelines.md`「節」「提問(GAP)」、`rules/boundary.md`「四層」。再讀目標 pipeline 檔、骨架模組、types 層模組。
 
 ## 輸入 / 產出
 

@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/tooling.md`「跑東西的紀律」「收尾定錨」;專案有 `.lawful/` 再加 `rules/boundary.md`「四層」「效果的判定」、`rules/pipelines.md`「pipeline」。本 skill 唯讀:不改程式碼、不建檔、不寫任何文檔,編號與 frontmatter 規格不讀。
+`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/tooling.md`「跑東西的紀律」「收尾定錨」;專案有 `.lawful/` 再加 `rules/boundary.md`「四層」「效果的判定」、`rules/pipelines.md`「pipeline」。本 skill 唯讀:不改程式碼、不建檔、不寫任何文檔,編號與 frontmatter 規格不讀。
 
 ## 目標
 

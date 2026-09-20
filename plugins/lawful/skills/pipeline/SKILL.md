@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」、`rules/roles.md`「骨架與基線」、`rules/boundary.md`「模組表」「效果的判定」、`rules/tooling.md`「CLI」「收尾定錨」。再讀 `.lawful/Cone.md`(它服務的那條需求與 Law)、`.lawful/modules.md`,以及 types 層模組的匯出(law 只准引用它們與 Stages 的簽名)。
+`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/pipelines.md`「pipeline」「編號與引用」「frontmatter 與 status」「節」「什麼要有 law」、`rules/roles.md`「骨架與基線」、`rules/boundary.md`「模組表」「效果的判定」、`rules/tooling.md`「CLI」「收尾定錨」。再讀 `.lawful/Cone.md`(它服務的那條需求與 Law)、`.lawful/modules.md`,以及 types 層模組的匯出(law 只准引用它們與 Stages 的簽名)。
 
 ## 輸入 / 產出
 

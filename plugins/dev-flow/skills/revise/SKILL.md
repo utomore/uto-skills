@@ -10,7 +10,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/features.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」「完成度」、`rules/laws.md`「影響範圍與選項」「全域 Law 的變更」「Law 與需求」「全域 Law」、`rules/roles.md`「分支與所有權」「首跑」、`rules/tooling.md`「收尾定錨」。再讀目標文檔與 `.design/gaps.md`;做的是調整就再讀那個目標檔(`.design/objectives/`)的那一列與它的需求(含驗收);改的是全域 Law 就讀 `.design/system.md` 全份。
+`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/features.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」「完成度」、`rules/laws.md`「影響範圍與選項」「全域 Law 的變更」「Law 與需求」「全域 Law」、`rules/roles.md`「分支與所有權」「首跑」、`rules/tooling.md`「收尾定錨」。再讀目標文檔與 `.design/gaps.md`;做的是調整就再讀那個目標檔(`.design/objectives/`)的那一列與它的需求(含驗收);改的是全域 Law 就讀 `.design/system.md` 全份。
 
 ## 前置
 

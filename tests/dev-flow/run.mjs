@@ -76,6 +76,7 @@ const CASES = [
   ['shaky-lint-ids', 'shaky', ['lint', 'ids']],
   ['shaky-status', 'shaky', ['status']],
   ['shaky-status-json', 'shaky', ['status', '--json']],
+  ['shaky-status-stale-log', 'shaky', ['status', '--tests', 'stale.log']],
   ['shaky-sync', 'shaky', ['sync', '--date', DATE], ['.design/features/F-001-score.md']],
   ['shaky-modules-gen', 'shaky', ['modules', '--gen'], ['.design/modules.md']],
   ['shaky-bad-lint', 'shaky', ['lint', 'nonsense']],

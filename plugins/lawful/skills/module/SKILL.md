@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/boundary.md`「模組單元」「模組表」「四層」、`rules/tooling.md`「CLI」「收尾定錨」。再讀 `.lawful/modules.md`(含「邊界」)與 `.lawful/Cone.md`「專案約束」。
+`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/boundary.md`「模組單元」「模組表」「四層」、`rules/tooling.md`「CLI」「收尾定錨」。再讀 `.lawful/modules.md`(含「邊界」)與 `.lawful/Cone.md`「專案約束」。
 
 ## 輸入 / 產出
 

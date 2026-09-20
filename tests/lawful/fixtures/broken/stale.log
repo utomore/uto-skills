@@ -1,0 +1,6 @@
+Running 1 test suites...
+Test suite spec: RUNNING...
+
+P-001#LAW-3
+  這條 law 在這棵樹裡沒有測試 [✔]
+    +++ OK, passed 100 tests.

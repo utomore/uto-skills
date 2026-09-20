@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.lawful/gaps.md`;做的是調整就再讀那個目標檔(`.lawful/objectives/`)的那一列與它的需求 Law。
+`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/pipelines.md`「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」、`rules/tooling.md`「收尾定錨」。再讀目標 pipeline 檔與 `.lawful/gaps.md`;做的是調整就再讀那個目標檔(`.lawful/objectives/`)的那一列與它的需求 Law。
 
 ## 輸入 / 產出
 

@@ -10,7 +10,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/roles.md`「分支與所有權」「決策紀錄」「整合」「仲裁」、`rules/features.md`「提問(GAP)」「完成度」「ADR」、`rules/laws.md`「全域 Law」、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀 `.design/system.md` 的「語言與工具」。專案沒有 `.design/` 的話規章都不必讀,照 git 與 PR 的部分做完即可。
+`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/roles.md`「分支與所有權」「決策紀錄」「整合」「仲裁」、`rules/features.md`「提問(GAP)」「完成度」「ADR」、`rules/laws.md`「全域 Law」、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀 `.design/system.md` 的「語言與工具」。專案沒有 `.design/` 的話規章都不必讀,照 git 與 PR 的部分做完即可。
 
 ## 輸入 / 產出
 

@@ -36,7 +36,8 @@ export function analyze(design, source, adapter, results) {
       const key = `${p.id}#${id}`;
       const traced = markers.has(key);
       const res = results ? results.get(key) : undefined;
-      return { key, traced, result: res || (traced ? '未跑' : '未翻譯') };
+      // 結果只認這棵樹裡有測試承接的標記:輸出裡有、樹裡沒有的是別的時間點留下的輸出
+      return { key, traced, orphan: !traced && !!res, result: traced ? res || '未跑' : '未翻譯' };
     };
     const laws = p.laws.map((l) => ({ ...l, ...mark(l.id) }));
     const examples = p.examples.map((e) => ({ ...e, ...mark(e.id) }));
@@ -442,6 +443,8 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
     for (const s of x.steps) if (s.state === '不一致') warn(`${p.fullName}#${s.name}`, '簽名與程式碼不一致', 'devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV');
     for (const s of x.steps) if (s.state === '搬家') warn(`${p.fullName}#${s.name}`, `程式碼在 ${s.hit.file}`, 'devflow sync');
     for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁:先歸因再改');
+    const orphans = [...x.laws, ...x.examples].filter((l) => l.orphan);
+    if (orphans.length) warn(p.fullName, `測試輸出裡有 ${orphans.length} 條結果(${orphans.map((l) => l.id).join('、')})在這棵樹裡沒有測試承接,不算數`, '測試輸出與這棵樹對不上:重跑整套留檔再跑 status;測試真的不在就 dev-flow:build ' + p.fullName);
   }
   for (const l of listed) {
     if (!design.docs.some((d) => d.fullName === l.fullName)) warn('system.md', `列了 ${l.fullName},features/ 沒有這個檔`, '刪那一列或 devflow claim');

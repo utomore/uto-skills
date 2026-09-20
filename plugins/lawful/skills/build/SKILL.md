@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<L>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/roles.md` 全份、`rules/pipelines.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀目標 pipeline 檔、`.lawful/modules.md`、`.lawful/Cone.md` 的「專案約束」。
+`<L>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<L>/rules/`。一次讀完:`rules/roles.md` 全份、`rules/pipelines.md`「提問(GAP)」「修訂(REV)」「完成度」、`rules/tooling.md`「CLI」「跑東西的紀律」「收尾定錨」。再讀目標 pipeline 檔、`.lawful/modules.md`、`.lawful/Cone.md` 的「專案約束」。
 
 ## 前置
 
@@ -31,6 +31,7 @@ user-invocable: true
 ## 委派 prompt 模板
 
 ```
+plugin 根目錄 <L>:<解析出來的實際路徑>(規章在它底下的 rules/)
 【委派模式】遵守 <L>/rules/roles.md「委派」:不提問、不寫共用檔、提到 pipeline 寫全名、如實回報。
 你是 <qa | impl> 角色,執行 lawful:<qa | impl>。
 pipeline:<全名>,檔:<路徑>

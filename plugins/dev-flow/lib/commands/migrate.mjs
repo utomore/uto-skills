@@ -330,7 +330,8 @@ export function migrateLaws(root, { write = false } = {}) {
   const rel = (p) => path.relative(root, p).split(path.sep).join('/');
   if (!fs.existsSync(sysFile)) return { text: `${rel(designDir)} 裡沒有 system.md;dev-flow:project 建它`, exitCode: 1 };
   const out = ['# migrate laws 帳本', ''];
-  const sysText = fs.readFileSync(sysFile, 'utf8');
+  // 比對「有沒有變」用 LF 的版本:CRLF 的工作樹不該被當成要換
+  const sysText = fs.readFileSync(sysFile, 'utf8').replace(/\r\n/g, '\n');
   let lines = sysText.split(/\r?\n/);
   const notes = [];
   // 需求:Law → 驗收,蘊含刪掉

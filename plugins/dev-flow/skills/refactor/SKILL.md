@@ -10,7 +10,7 @@ user-invocable: false
 
 ## 讀什麼
 
-`rules/roles.md`「角色」「分支與所有權」「委派」「切片」、`rules/features.md`「節」「提問(GAP)」、`rules/boundary.md`「層」「匯出」。再讀目標文檔全文、它的 Steps 指到的程式碼檔,與決策紀錄的「Faked / Unverified」(切片那一波才有)。
+`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/roles.md`「角色」「分支與所有權」「委派」「切片」、`rules/features.md`「節」「提問(GAP)」、`rules/boundary.md`「層」「匯出」。再讀目標文檔全文、它的 Steps 指到的程式碼檔,與決策紀錄的「Faked / Unverified」(切片那一波才有)。
 
 ## 輸入 / 產出
 

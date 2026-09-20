@@ -62,7 +62,7 @@
 
 ## 每個 skill 讀什麼
 
-`<L>` 解析一次(tooling.md「CLI」);節用 `node "<L>/bin/lawful.mjs" section <檔> <節>…` 取,一次讀完。
+`<L>` 是 skill 的基準目錄往上兩層(tooling.md「CLI」);節用 `node "<L>/bin/lawful.mjs" section <檔> <節>…` 取,一次讀完。
 
 | skill | 必讀 |
 |---|---|

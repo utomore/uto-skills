@@ -10,7 +10,7 @@ user-invocable: false
 
 ## 讀什麼
 
-`rules/roles.md`「角色」「委派」「驗收測試」「qa 的交付」、`rules/features.md`「節」「什麼要有 law」「提問(GAP)」、`rules/boundary.md`「測試與邊界」、`rules/tooling.md`「測試歸屬」。再讀目標文檔、最內層的檔案、Steps 上那幾條簽名在程式碼裡的宣告(簽名行與型別,不往下讀本體)。
+`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/roles.md`「角色」「委派」「驗收測試」「qa 的交付」、`rules/features.md`「節」「什麼要有 law」「提問(GAP)」、`rules/boundary.md`「測試與邊界」、`rules/tooling.md`「測試歸屬」。再讀目標文檔、最內層的檔案、Steps 上那幾條簽名在程式碼裡的宣告(簽名行與型別,不往下讀本體)。
 
 ## 輸入 / 產出
 

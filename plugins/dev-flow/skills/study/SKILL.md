@@ -8,7 +8,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<D>` 解析一次(`../../rules/tooling.md`「CLI」)。一次讀完:`../../rules/tooling.md`「跑東西的紀律」「收尾定錨」;要講 `.design/` 的樹再加 `../../rules/features.md`「`.design/`」。本 skill 不建檔,編號與 frontmatter 規格不讀。
+`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/tooling.md`「跑東西的紀律」「收尾定錨」;要講 `.design/` 的樹再加 `rules/features.md`「`.design/`」。本 skill 不建檔,編號與 frontmatter 規格不讀。
 
 **程式碼知識圖**:專案根目錄有 `graph.json`、或裝了 `knot` / `graphify` CLI 時可以拿它導航——找入口與 hub、型別的反向可達當資料流候選、最短路徑當呼叫鏈候選、`tests-of` 當使用範例。**圖只給「去哪裡看」,每一跳仍要打開檔案讀原文確認**;沒有圖就用一般搜尋,流程一個字不變。
 

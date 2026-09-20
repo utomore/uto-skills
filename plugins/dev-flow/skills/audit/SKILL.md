@@ -10,7 +10,7 @@ user-invocable: true
 
 ## 讀什麼
 
-`<D>` 解析一次(`rules/tooling.md`「CLI」)。一次讀完:`rules/tooling.md`「CLI」「status 報告」、`rules/boundary.md` 全份、`rules/features.md`「願景、需求、目標與路線」「節」「什麼要有 law」「完成度」「收整(abstract)」、`rules/laws.md`「Law 與需求」「全域 Law」「Law 怎麼談」。
+`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/tooling.md`「CLI」「status 報告」、`rules/boundary.md` 全份、`rules/features.md`「願景、需求、目標與路線」「節」「什麼要有 law」「完成度」「收整(abstract)」、`rules/laws.md`「Law 與需求」「全域 Law」「Law 怎麼談」。
 
 ## 步驟
 

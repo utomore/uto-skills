@@ -22,8 +22,8 @@ const HELP = `devflow <子命令> [選項]
   status --module <路徑或 目錄/**>     住在該檔案或目錄的所有 step 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
   status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
-  claim feature|adr <slug> [--description <句>] [--milestone <M-n>]
-                                       鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(編號或全名 M-n-<slug> 都行)
+  claim feature|adr <slug> [--description <句>] [--milestone <M-n-slug>]
+                                       鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(給全名 M-n-<slug>)
                                        配號看同一個 repo 的每一棵工作樹,別條 build 分支上 claim 走的號不重配
                                        system.md「語言與工具」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
   requirement add <slug> <一句話> --priority <1-4> [--accept <句>]
@@ -216,7 +216,7 @@ function main() {
 
   if (cmd === 'claim') {
     if (!sub || !rest[0]) {
-      console.error('用法:devflow claim feature|adr <slug> [--description <句>] [--milestone <M-n>]');
+      console.error('用法:devflow claim feature|adr <slug> [--description <句>] [--milestone <M-n-slug>]');
       return 1;
     }
     return emit(claim(design, sub, rest[0], { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined, milestone: typeof args.flags.milestone === 'string' ? args.flags.milestone : '' }));

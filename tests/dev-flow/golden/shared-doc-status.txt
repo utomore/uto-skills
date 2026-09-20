@@ -8,8 +8,8 @@ $ devflow status
 - 優先:1 = 標題一致;2 = 查得到;3 = 呈現;4 = 工具
 | 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
 |---|---|---|---|---|---|---|---|---|
-| R-1 | 1 | 同一段文字不管從建立還是改名寫進來,標題都一樣 | 未達成(M-1、M-2 還沒達成) | - | 2 | 0 | 0% | - |
-- R-1 下一個里程碑:M-1 建立筆記走通(F-001-create 進行中)
+| R-1 | 1 | 同一段文字不管從建立還是改名寫進來,標題都一樣 | 未達成(M-1-create、M-2-rename 還沒達成) | - | 2 | 0 | 0% | - |
+- R-1 下一個里程碑:M-1-create 建立筆記走通(F-001-create 進行中)
 
 ## 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
@@ -54,6 +54,6 @@ $ devflow status
 
 ## 8. 建議路線
 1. dev-flow:build A-001-title(共用文檔,F-001-create、F-002-rename 引用它)
-2. dev-flow:build F-001-create(R-1 優先 1 · M-1 建立筆記走通)
-3. dev-flow:build F-002-rename(R-1 優先 1 · M-2 筆記改名走通)
+2. dev-flow:build F-001-create(R-1 優先 1 · M-1-create 建立筆記走通)
+3. dev-flow:build F-002-rename(R-1 優先 1 · M-2-rename 筆記改名走通)
 exit 1

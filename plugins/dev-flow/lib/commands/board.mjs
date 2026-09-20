@@ -60,7 +60,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       building: !!buildKeyOf(x, ov, building),
       requirement: at ? at.q.id : null,
       priority: at ? at.q.priority : null,
-      milestone: at ? at.m.id : null,
+      milestone: at ? at.m.fullName : null,
       signatures: { total: x.sigTotal, matched: x.sigOk, stub: x.stubCount },
       observations: { total: x.obsTotal, matched: x.obsOk },
       laws: lawsOf(x),
@@ -105,7 +105,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     ],
     achieved: q.holds === true,
     columns: [
-      ...q.ms.map((m) => ({ title: `${m.id} ${m.title}${m.binds.length ? '' : '(還沒有切片)'}`, achieved: m.achieved, docs: m.binds })),
+      ...q.ms.map((m) => ({ title: `${m.fullName} ${m.title}${m.binds.length ? '' : '(還沒有切片)'}`, achieved: m.achieved, docs: m.binds })),
       ...q.rfs.map((rf) => ({ title: `${rf.id} ${rf.title}(調整,${rf.state})`, achieved: rf.achieved, docs: rf.touches })),
     ],
     empty: q.ms.length ? null : '沒有任何里程碑',

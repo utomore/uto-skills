@@ -9,7 +9,7 @@ $ lawful migrate requirements
 - .lawful/pipelines/P-001-save-write.md:kind「IO 介面」改成 io
 
 ## 人要判的
-- R-1:併了 2 個目標(O-1「玩家存檔後能讀回同一個世界」:M-1、M-2;O-2「玩家看得到自己有哪些存檔」:M-3),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求
+- R-1:併了 2 個目標(O-1「玩家存檔後能讀回同一個世界」:M-1-save-write、M-2;O-2「玩家看得到自己有哪些存檔」:M-3-save-list),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求
 - R-1:M-2 還沒綁 pipeline,英文名沒有來源;lawful:require-design 把第一格寫成 M-n-<slug>
 - R-2:沒有任何目標朝向它,檔名暫用 R-2-unnamed、沒有優先也沒有里程碑;lawful:require-design 補,改名要連檔名一起改
 - .lawful/objectives/R-9-O-3-save-cloud.md:對到的 R-9 不存在,留著沒動(里程碑 M-4-save-cloud);決定它屬於哪條需求,併進那個需求檔之後刪掉

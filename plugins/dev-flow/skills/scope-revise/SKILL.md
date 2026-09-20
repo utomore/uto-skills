@@ -29,7 +29,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 | 輸入 | 產出 |
 |---|---|
-| 一份 `verified` 的 feature 全名,加上來源:開發者要改簽名、型別、模組或層的歸屬,要加一個 step;Brief、決定或「做什麼」欄的描述要改;一條調整 `RF-n`(效能、大小、訊息、演算法);一條靠修訂這份既有的 feature 達成的里程碑 `M-n`(新的承諾用新增的 law 表達);bug(law 在而實作不符,或行為沒有 law 守著);開發者原本不在乎、現在要承諾的行為;答案不必調整既有 law 的 GAP;`lint sig` 報簽名不一致或跨層搬家而對的是程式碼那一邊 | 改過的原檔(原有的每條 law 意思一個字都沒變、原有 example 的輸入輸出沒變;新增的 law 與 example 往下接號)、一條 REV、連動的文檔、同步改過的宣告;然後接上 `dev-flow:build`,收尾時原有的與新增的每條 law 都綠、文檔回到 `verified` |
+| 一份 `verified` 的 feature 全名,加上來源:開發者要改簽名、型別、模組或層的歸屬,要加一個 step;Brief、決定或「做什麼」欄的描述要改;一條調整 `RF-n`(效能、大小、訊息、演算法);一條靠修訂這份既有的 feature 達成的里程碑 `M-n-<slug>`(新的承諾用新增的 law 表達);bug(law 在而實作不符,或行為沒有 law 守著);開發者原本不在乎、現在要承諾的行為;答案不必調整既有 law 的 GAP;`lint sig` 報簽名不一致或跨層搬家而對的是程式碼那一邊 | 改過的原檔(原有的每條 law 意思一個字都沒變、原有 example 的輸入輸出沒變;新增的 law 與 example 往下接號)、一條 REV、連動的文檔、同步改過的宣告;然後接上 `dev-flow:build`,收尾時原有的與新增的每條 law 都綠、文檔回到 `verified` |
 
 ## 前置
 
@@ -39,7 +39,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 - 一開始就知道這件事**要調整既有的 law**(改一條 law 的意思、放寬、換掉、刪掉;刪 step 連帶刪它的 law;既有 example 的輸入輸出要變)→ 整件走 `dev-flow:scope-laws`,不在這裡開頭。
 - step 只是在同一層內搬檔案 → 不是修訂:`devflow sync` 機械更新模組欄,不寫 REV、不重開。
 - 要刪一個 step、把重複的 step 改成引用、或整份文檔退役 → 都是刪既有的 law,`dev-flow:scope-laws`。要的是一個**可以獨立拿掉的新能力** → 新的里程碑,`dev-flow:require-design` 再 `dev-flow:spike-impl`。
-- 來源是一條靠修訂這份既有的 feature 達成的里程碑 `M-n`(`features.md`「願景、需求與里程碑」):它要是所在需求下一條還沒達成的里程碑;就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照「在哪做」的做法從主線開 `build/M-n-<slug>`),REV 的依欄寫 `M-n` 與它那一句,第 5 步重開文檔的同一個動作把這份文檔的全名填進那條里程碑的綁定欄。里程碑那一句要的新承諾用新增的 law 表達;非調整既有的 law 不可就走第 13 步。
+- 來源是一條靠修訂這份既有的 feature 達成的里程碑 `M-n-<slug>`(`features.md`「願景、需求與里程碑」):它要是所在需求下一條還沒達成的里程碑;就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照「在哪做」的做法從主線開 `build/M-n-<slug>`),REV 的依欄寫 `M-n-<slug>` 與它那一句,第 5 步重開文檔的同一個動作把這份文檔的全名填進那條里程碑的綁定欄。里程碑那一句要的新承諾用新增的 law 表達;非調整既有的 law 不可就走第 13 步。
 - 來源是調整 `RF-n`:那條 `RF-n` 要在某個需求檔的調整表上、動到的 feature 要是它列的、該需求的里程碑要已經全部達成;不是就停,回 `dev-flow:require-design`。調整動到多份 feature 時,每一份各一次修訂。
 - 一律改原檔,**不開第二份檔**。
 - **在哪做**(`roles.md`「分支與所有權」):文檔在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。一條切片非動到這份文檔的簽名不可而轉過來的 → 就在那條切片的工作樹上做,REV 的連動欄寫明。**開工時工作樹要乾淨,記下 `git rev-parse HEAD`**:放棄時靠它還原。
@@ -48,7 +48,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 文檔先行:先改條文,再改宣告,測試與實作交給 build(`features.md`「修訂(REV)」)。一次修訂一條 REV。
 
-1. **拿到來源的原句**:開發者的那一句話、`RF-n` 與它那一句、里程碑 `M-n` 與它那一句、GAP 的提問原句與開發者的回答、`lint sig` 的那一行。REV 的「依」欄要寫它(調整一定寫 `RF-n`,`devflow status` 靠它算調整的進度)。
+1. **拿到來源的原句**:開發者的那一句話、`RF-n` 與它那一句、里程碑 `M-n-<slug>` 與它那一句、GAP 的提問原句與開發者的回答、`lint sig` 的那一行。REV 的「依」欄要寫它(調整一定寫 `RF-n`,`devflow status` 靠它算調整的進度)。
 2. **先判既有的 law 動不動**,把這份文檔原有的每一條 law 與 example 過一遍:
    - 改完之後,有沒有哪一條既有 law 的三行除了識別字跟著改名之外還要改?有沒有哪個既有 example 的輸入或輸出要變?有沒有哪一條要放寬、換掉或刪掉才做得到這次要的東西?→ 任何一個「有」= 要調整既有的 law,走第 13 步(此時還沒動任何東西,直接轉交)。
    - 有沒有一段行為這次「不准變」,卻沒有任何一條 law 守著?(沒有 law 守著的行為不是承諾,refactor 可以自由改;開發者要它不變,就得有一條保護用的 law。)→ 有 = 這次要**新增**一條保護用的 law。
@@ -66,7 +66,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
    | 需求 | 這份文檔朝向哪條需求;它的驗收引用到的 law 都在保護欄裡,改完仍要達成 |
 
 4. **開發者確認**:把六項念給開發者,講清楚這次改什麼、不改什麼、要新增哪幾條 law、當下成本與可不可逆(簽名改了,下游都要跟;新增的 law 以後一直要守);「不改」永遠是一個選項。開發者對著這張表明確說了要,才往下;沉默、「你決定」都不算。
-5. **`verified` 重開**:`status` 改回 `ready`,在「決定」記一條為什麼。簽名跟著變、引用這一份的 `verified` 文檔同樣先重開。來源是里程碑 `M-n` 的,同一個動作把這份文檔的全名填進那條里程碑的綁定欄。
+5. **`verified` 重開**:`status` 改回 `ready`,在「決定」記一條為什麼。簽名跟著變、引用這一份的 `verified` 文檔同樣先重開。來源是里程碑 `M-n-<slug>` 的,同一個動作把這份文檔的全名填進那條里程碑的綁定欄。
 6. **量基準線**(來源是效能、大小這類看得到數字的調整):改之前量一次現況,指令與數字寫進 REV 那一句(「結帳一次走完不重算;基準線 2026-09-18 量到 3 次重算」);要寫成新的上界 law 的,基準線也寫進那條 law 的第一行(「p95 <= 100,基準線 2026-09-18 量到 400」)。
 7. **新增 law**(這次要新增才做;`laws.md`「Law 怎麼談」),與開發者一次一條談定,自己寫進 Laws 節:
    - 保護用的 law:拿現在跑出來的具體例子問「這是你要一直成立的嗎」;要 → 寫成純 ASCII 三行,它現在就成立,**首跑該綠**。先補保護,再改別的。
@@ -108,4 +108,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 邊界
 
-**不修改、不放寬、不替換、不刪除任何一條既有的 law**,不改既有 example 的輸入輸出,不刪 step(`dev-flow:scope-laws`,整件轉交);新增的 law 不准與既有的矛盾。不動全域 Law 區,層表也不動(`dev-flow:global-laws`);不改需求檔,調整 `RF-n` 的條目也不在這裡加(`dev-flow:require-design`;這裡只在來源是里程碑 `M-n` 時填它的綁定欄);不把重複的 step 改成引用、不退役文檔(`dev-flow:scope-laws`);不收還沒 `verified` 的文檔。不改本體的行為(refactor 去做);不寫測試。一次修訂一條 REV,不順便改別的;沒有影響範圍與開發者的確認不落筆;不替開發者決定要不要改、要不要多一條承諾——開發者說,你寫。不與 `dev-flow:scope-laws` 交錯:一件修訂從頭到尾只有一個修訂類的 skill 在跑。
+**不修改、不放寬、不替換、不刪除任何一條既有的 law**,不改既有 example 的輸入輸出,不刪 step(`dev-flow:scope-laws`,整件轉交);新增的 law 不准與既有的矛盾。不動全域 Law 區,層表也不動(`dev-flow:global-laws`);不改需求檔,調整 `RF-n` 的條目也不在這裡加(`dev-flow:require-design`;這裡只在來源是里程碑 `M-n-<slug>` 時填它的綁定欄);不把重複的 step 改成引用、不退役文檔(`dev-flow:scope-laws`);不收還沒 `verified` 的文檔。不改本體的行為(refactor 去做);不寫測試。一次修訂一條 REV,不順便改別的;沒有影響範圍與開發者的確認不落筆;不替開發者決定要不要改、要不要多一條承諾——開發者說,你寫。不與 `dev-flow:scope-laws` 交錯:一件修訂從頭到尾只有一個修訂類的 skill 在跑。

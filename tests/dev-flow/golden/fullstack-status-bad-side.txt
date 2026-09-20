@@ -11,9 +11,9 @@ $ devflow status --tests mobile=api.log
 | R-1 | 1 | 每一筆結帳的金額都算對 | 未知(測試 R-1#ACCEPT 未跑) | - | 1 | 0 | 0% | - |
 | R-2 | 1 | 任何一籃子都算得出不為負的總金額 | 未知(測試 R-2#ACCEPT 未跑) | - | 1 | 0 | 0% | - |
 | R-3 | 1 | 每一筆退款退回的錢都算對 | 未知(測試 R-3#ACCEPT 未跑) | R-1 | 1 | 0 | 0% | - |
-- R-1 下一個里程碑:M-1 結帳走通(F-001-checkout 進行中)
-- R-2 下一個里程碑:M-3 加品項與算總額走通(F-003-basket 進行中)
-- R-3 下一個里程碑:M-2 退款走通(F-002-refund 進行中)
+- R-1 下一個里程碑:M-1-checkout 結帳走通(F-001-checkout 進行中)
+- R-2 下一個里程碑:M-3-basket 加品項與算總額走通(F-003-basket 進行中)
+- R-3 下一個里程碑:M-2-refund 退款走通(F-002-refund 進行中)
 
 ## 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
@@ -32,7 +32,7 @@ $ devflow status --tests mobile=api.log
 | F-003-basket | feature | ready | 3 | 3 | 0 | 2 | nan/2 | 0 | 進行中 |
 
 ## 1. 今天能開幾條線
-- F-003-basket:dev-flow:build F-003-basket(R-2 優先 1 · M-3 加品項與算總額走通)
+- F-003-basket:dev-flow:build F-003-basket(R-2 優先 1 · M-3-basket 加品項與算總額走通)
 
 ## 2. 卡住的
 - F-002-refund 等 F-001-checkout(達成與否未知,給測試輸出)
@@ -54,5 +54,5 @@ $ devflow status --tests mobile=api.log
 - 無
 
 ## 8. 建議路線
-1. dev-flow:build F-003-basket(R-2 優先 1 · M-3 加品項與算總額走通)
+1. dev-flow:build F-003-basket(R-2 優先 1 · M-3-basket 加品項與算總額走通)
 exit 1

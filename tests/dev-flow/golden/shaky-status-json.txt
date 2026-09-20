@@ -159,7 +159,7 @@ $ devflow status --json
         "title": "看得到第三個數字",
         "formal": false,
         "holds": false,
-        "source": "M-5 還沒達成",
+        "source": "M-5-third 還沒達成",
         "tested": false
       },
       "note": "驗收未達成 · 里程碑 0/1 達成",
@@ -270,7 +270,7 @@ $ devflow status --json
         "title": "",
         "formal": false,
         "holds": false,
-        "source": "M-2 還沒達成",
+        "source": "M-2-score-too 還沒達成",
         "tested": false
       },
       "note": "驗收未達成 · 里程碑 0/1 達成",
@@ -376,7 +376,7 @@ $ devflow status --json
       "achieved": false,
       "columns": [
         {
-          "title": "M-4 進入點回得出分數(還沒有切片)",
+          "title": "M-4-entry 進入點回得出分數(還沒有切片)",
           "achieved": false,
           "docs": []
         }
@@ -386,7 +386,7 @@ $ devflow status --json
     {
       "id": "R-9",
       "title": "R-9 檔名與 frontmatter 對不上的需求",
-      "note": "驗收未達成 · M-5 還沒達成",
+      "note": "驗收未達成 · M-5-third 還沒達成",
       "notes": [
         "優先 4",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -394,7 +394,7 @@ $ devflow status --json
       "achieved": false,
       "columns": [
         {
-          "title": "M-5 第三個數字看得到(還沒有切片)",
+          "title": "M-5-third 第三個數字看得到(還沒有切片)",
           "achieved": false,
           "docs": []
         }
@@ -420,7 +420,7 @@ $ devflow status --json
           ]
         },
         {
-          "title": "M-3 一條普通的里程碑",
+          "title": "M-3-plain 一條普通的里程碑",
           "achieved": false,
           "docs": [
             "F-001-score"
@@ -458,7 +458,7 @@ $ devflow status --json
     {
       "id": "R-4",
       "title": "R-4 沒有 frontmatter 的需求",
-      "note": "驗收未達成 · M-2 還沒達成",
+      "note": "驗收未達成 · M-2-score-too 還沒達成",
       "notes": [
         "優先 (沒填)",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -466,7 +466,7 @@ $ devflow status --json
       "achieved": false,
       "columns": [
         {
-          "title": "M-2 分數也算得出來",
+          "title": "M-2-score-too 分數也算得出來",
           "achieved": false,
           "docs": [
             "F-001-score"

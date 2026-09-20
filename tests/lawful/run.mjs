@@ -73,7 +73,7 @@ const CASES = [
   ['save-game-module-bad-layer', 'save-game', ['module', 'Audio', '--layers', 'pure']],
   ['save-game-module-nested', 'save-game', ['module', 'Game.Save.Extra', '--layers', 'core', '--responsibility', '多的']],
   ['broken-module-no-responsibility', 'broken', ['module', 'Input', '--layers', 'types'], ['.lawful/modules.md']],
-  ['save-game-claim', 'save-game', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', 'subflow', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-002-save-load.md', '.lawful/requirements/R-1-save-roundtrip.md']],
+  ['save-game-claim', 'save-game', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', 'subflow', '--milestone', 'M-1-save-write', '--date', DATE], ['.lawful/pipelines/P-002-save-load.md', '.lawful/requirements/R-1-save-roundtrip.md']],
   ['save-game-claim-no-milestone', 'save-game', ['claim', 'save-load', '--description', '把存檔讀回 World', '--date', DATE], ['.lawful/pipelines/P-002-save-load.md']],
   ['save-game-claim-bad-kind', 'save-game', ['claim', 'save-load', '--kind', '介面']],
   ['save-game-claim-bad-domain', 'save-game', ['claim', 'game-load', '--description', '把存檔讀回 World']],

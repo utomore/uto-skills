@@ -147,14 +147,14 @@ $ lawful status --json --tests test.log
       "achieved": true,
       "columns": [
         {
-          "title": "M-1 存檔寫得出檔案",
+          "title": "M-1-save-write 存檔寫得出檔案",
           "achieved": false,
           "docs": [
             "P-001-save-write"
           ]
         },
         {
-          "title": "M-2 存檔壞了看得出來(還沒有切片)",
+          "title": "M-2-save-inspect 存檔壞了看得出來(還沒有切片)",
           "achieved": false,
           "docs": []
         },
@@ -283,7 +283,7 @@ $ lawful status --json --tests test.log
       "building": false,
       "requirement": "R-1",
       "priority": 1,
-      "milestone": "M-1",
+      "milestone": "M-1-save-write",
       "signatures": {
         "total": 6,
         "matched": 6,
@@ -463,7 +463,7 @@ $ lawful status --json --tests test.log
     "openable": [
       {
         "name": "P-001-save-write",
-        "tag": "R-1 優先 1 · M-1 存檔寫得出檔案"
+        "tag": "R-1 優先 1 · M-1-save-write 存檔寫得出檔案"
       }
     ],
     "building": [],
@@ -481,7 +481,7 @@ $ lawful status --json --tests test.log
   ],
   "route": {
     "steps": [
-      "lawful:build P-001-save-write(R-1 優先 1 · M-1 存檔寫得出檔案)"
+      "lawful:build P-001-save-write(R-1 優先 1 · M-1-save-write 存檔寫得出檔案)"
     ],
     "note": null,
     "allDone": false

@@ -127,14 +127,14 @@ $ devflow status --json --tests test.log
       "achieved": true,
       "columns": [
         {
-          "title": "M-1 結帳走通",
+          "title": "M-1-checkout 結帳走通",
           "achieved": true,
           "docs": [
             "F-001-checkout"
           ]
         },
         {
-          "title": "M-2 退款走通",
+          "title": "M-2-refund 退款走通",
           "achieved": true,
           "docs": [
             "F-002-refund"
@@ -156,7 +156,7 @@ $ devflow status --json --tests test.log
       "building": false,
       "requirement": "R-1",
       "priority": 1,
-      "milestone": "M-1",
+      "milestone": "M-1-checkout",
       "signatures": {
         "total": 5,
         "matched": 5,
@@ -404,7 +404,7 @@ $ devflow status --json --tests test.log
       "building": false,
       "requirement": "R-1",
       "priority": 1,
-      "milestone": "M-2",
+      "milestone": "M-2-refund",
       "signatures": {
         "total": 5,
         "matched": 5,

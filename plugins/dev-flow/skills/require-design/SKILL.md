@@ -48,7 +48,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
    - **沒有衝突** → 在回報裡寫一句「與 R-x…R-y 逐條對過,無衝突」,寫明對過哪幾條。
 6. **寫需求**:`devflow requirement add <slug> "<一句話>" --priority <1-4> [--accept "<句>"]`,slug 是 kebab-case 英文、講這條需求要得到什麼,檔名就是 `requirements/R-n-<slug>.md`。
 7. **當場切里程碑**:問「達成這條需求,使用者會依序看到哪幾個階段」。每一條都是一個**明確的階段性使用者驗收**:使用者看得到這個階段的成果,可以展示、或呼叫這個階段的功能;「做到什麼」那一句就是展示得出來的那一句(之後切片決策紀錄的「Entry」就是展示它的那道指令)。講不出怎麼展示的(「資料層做好」「重構完」)不是里程碑,併進看得到成果的那一條。**一條里程碑仍是一條垂直切片的範圍**:從一個對外入口貫通到出口;大到一次貫通不了就再切。照先後排,每條給一個 kebab-case 英文名,`devflow requirement milestone <R-n> <slug> "<一句話>"`,表上的第一格是全名 `M-n-<slug>`,切片的分支 `build/M-n-<slug>` 與決策紀錄以它為鍵;`status` 警訊列出沒有英文名的里程碑,把第一格補成全名。綁定欄留「-」:feature 在切片做完之後由 `dev-flow:scope-laws` claim 出來填進去,一條里程碑可以綁好幾份;要撐它的 feature 已經存在、而且已經做到這個階段,才在這裡 `--bind <F-00x-<slug>,…>`。**里程碑只綁 feature**。
-   - **里程碑可以綁既有的 feature**(`features.md`「願景、需求與里程碑」):這個階段不做出新的 feature、是靠修訂既有的 feature 做到的(整個專案的資料儲存換成資料庫,「訂單重啟後還在」靠修訂 `F-001-checkout` 達成)→ 跟開發者講定是哪一份,綁定欄仍留「-」:那份 feature 現在是 `verified`,先綁上去這條里程碑會被算成已經達成。綁定欄由做修訂的 skill 在重開那份文檔的同一個動作填上;回報裡把下一步寫好:`dev-flow:scope-revise <全名>`(既有的 law 不動,新的承諾用新增的 law 表達)或 `dev-flow:scope-laws <全名>`(要調整既有的 law),來源寫這條 `M-n`。需求寫的是誰得到什麼(重啟後資料不遺失);用哪個資料庫是決定(ADR)加上全域 Law 的變更(`dev-flow:global-laws`),不寫進需求。
+   - **里程碑可以綁既有的 feature**(`features.md`「願景、需求與里程碑」):這個階段不做出新的 feature、是靠修訂既有的 feature 做到的(整個專案的資料儲存換成資料庫,「訂單重啟後還在」靠修訂 `F-001-checkout` 達成)→ 跟開發者講定是哪一份,綁定欄仍留「-」:那份 feature 現在是 `verified`,先綁上去這條里程碑會被算成已經達成。綁定欄由做修訂的 skill 在重開那份文檔的同一個動作填上;回報裡把下一步寫好:`dev-flow:scope-revise <全名>`(既有的 law 不動,新的承諾用新增的 law 表達)或 `dev-flow:scope-laws <全名>`(要調整既有的 law),來源寫這條 `M-n-<slug>`。需求寫的是誰得到什麼(重啟後資料不遺失);用哪個資料庫是決定(ADR)加上全域 Law 的變更(`dev-flow:global-laws`),不寫進需求。
    - **依序,一次一條**:里程碑有順序、依序完成,全部達成,這條需求的建置就走完。一條需求一次只開它下一條還沒達成的里程碑;開發者要兩條線同時開工,那兩條線屬於不同、而且互不依賴的需求——一條需求裡需要平行,就拆成兩條需求;有依賴的,後面那條被前面那條擋住。
    - `status` 說里程碑全部達成而驗收沒過,是里程碑切漏了或驗收寫錯,回到這一步或第 3 步。
 8. **調整**:這條需求的里程碑全部達成之後,開發者要改既有 feature 的實作或行為品質(效能、大小、訊息、演算法)才開:一句「做到什麼」,`devflow requirement refinement <R-n> "<一句話>" --touch <F-00x-<slug>,…>`;動到的只能是這條需求的里程碑綁定過的 feature,要新能力就開里程碑,不開調整。每條調整之後需求仍要達成。調整的落地預設走 `dev-flow:scope-revise <它動到的全名>`(既有的 law 不動,需要新的 law 就在那裡新增;REV 的依欄引用 `RF-n`),它再接上 `dev-flow:build` 做回 `verified`;要調整既有的 law 才做得到的調整,整件走 `dev-flow:scope-laws <它動到的全名>`。
@@ -60,7 +60,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 回報需求幾條(各自的一句話、驗收、優先、依賴哪幾條、里程碑達成幾條;達成與否)、衝突檢查的結果(「與 R-x…R-y 逐條對過,無衝突」,或哪兩條衝突、影響範圍、開發者選了哪個選項)、里程碑幾條(各自的全名與展示得出來的那一句、幾條還沒有切片)、調整幾條(各什麼狀態)、綁了哪些 feature、哪些 feature 沒有被綁定;附定錨區塊(`tooling.md`「收尾定錨」)。
 
-`system.md`「全域 Law」三個小區還是模板 → 直接執行 `dev-flow:global-laws` 定全域 Law 三區,不等開發者另外下指令。三區都定了,下一步一律從最高優先的需求第一條沒達成的里程碑推:還沒有切片 → 變更先 `dev-flow:integrate`(`plan/<slug>`)合進主線,再 `dev-flow:spike-impl <M-n-slug>`(靠修訂既有的 feature 達成、沒有新的一段要貫通的,直接 `dev-flow:scope-revise <全名>` 或 `dev-flow:scope-laws <全名>`,來源寫這條 `M-n`);切片做完還沒有文檔或文檔還是 draft → `dev-flow:scope-laws <M-n-slug>`;已 ready → `dev-flow:build <M-n-slug>`;里程碑都達成而有待修訂的調整,`dev-flow:scope-revise <它動到的全名>`(要調整既有的 law 才做得到的,整件走 `dev-flow:scope-laws`)。
+`system.md`「全域 Law」三個小區還是模板 → 直接執行 `dev-flow:global-laws` 定全域 Law 三區,不等開發者另外下指令。三區都定了,下一步一律從最高優先的需求第一條沒達成的里程碑推:還沒有切片 → 變更先 `dev-flow:integrate`(`plan/<slug>`)合進主線,再 `dev-flow:spike-impl <M-n-slug>`(靠修訂既有的 feature 達成、沒有新的一段要貫通的,直接 `dev-flow:scope-revise <全名>` 或 `dev-flow:scope-laws <全名>`,來源寫這條 `M-n-<slug>`);切片做完還沒有文檔或文檔還是 draft → `dev-flow:scope-laws <M-n-slug>`;已 ready → `dev-flow:build <M-n-slug>`;里程碑都達成而有待修訂的調整,`dev-flow:scope-revise <它動到的全名>`(要調整既有的 law 才做得到的,整件走 `dev-flow:scope-laws`)。
 
 ## 邊界
 

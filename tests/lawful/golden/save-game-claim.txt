@@ -1,4 +1,4 @@
-$ lawful claim save-load --description 把存檔讀回 World --kind subflow --milestone M-1 --date 2026-09-05
+$ lawful claim save-load --description 把存檔讀回 World --kind subflow --milestone M-1-save-write --date 2026-09-05
 建了 .lawful/pipelines/P-002-save-load.md(status: draft,kind: subflow)
 綁進 M-1-save-write
 exit 0

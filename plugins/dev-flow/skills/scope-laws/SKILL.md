@@ -30,7 +30,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 | 情形 | 輸入 | 產出 |
 |---|---|---|
 | **切片剛做完**(主場景) | 里程碑全名 `M-n-<slug>`(它的 `build/` 工作樹上有一條 `verdict: feasible` 的切片與它的決策紀錄),或這條里程碑底下一份還是 `draft` 的 feature 全名 | 一份或幾份 `ready` 的 `features/F-00x-<slug>.md`,綁在這條里程碑上;四項討論的結論(寫成 law、記進「決定」、或列成給 `dev-flow:global-laws` 的變更提議);決策紀錄「Verification」的「首跑該紅」;然後接上 `dev-flow:build` |
-| **既有文檔的 law 要調整** | 一份已經拍板過的 feature 全名(含 `verified`),加上來源:開發者要修改、放寬、替換或刪除一條既有的 law,要刪一個有 law 的 step,回答一條答案要調整既有 law 的 GAP(含整合仲裁留下的、整合時「重複的 step 留哪一份」留下的),要調整既有的 law 才做得到的調整 `RF-n` 或里程碑 `M-n`(靠修訂這份既有的 feature 達成的那一種),或 `dev-flow:scope-revise` 放棄之後整件轉過來的修訂(連同它原本打算改的簽名、型別、實作,與它攤過的影響範圍) | 改過的原檔、**一條**裝下整件修訂的 REV(調整的 law、連帶的簽名、型別、模組、Examples、新增的 law)、連動的文檔、同步改過的宣告;然後接上 `dev-flow:build`,只重做 REV 點名的,收尾時文檔回到 `verified` |
+| **既有文檔的 law 要調整** | 一份已經拍板過的 feature 全名(含 `verified`),加上來源:開發者要修改、放寬、替換或刪除一條既有的 law,要刪一個有 law 的 step,回答一條答案要調整既有 law 的 GAP(含整合仲裁留下的、整合時「重複的 step 留哪一份」留下的),要調整既有的 law 才做得到的調整 `RF-n` 或里程碑 `M-n-<slug>`(靠修訂這份既有的 feature 達成的那一種),或 `dev-flow:scope-revise` 放棄之後整件轉過來的修訂(連同它原本打算改的簽名、型別、實作,與它攤過的影響範圍) | 改過的原檔、**一條**裝下整件修訂的 REV(調整的 law、連帶的簽名、型別、模組、Examples、新增的 law)、連動的文檔、同步改過的宣告;然後接上 `dev-flow:build`,只重做 REV 點名的,收尾時文檔回到 `verified` |
 | **文檔退役** | 一份用不到的 feature 全名(一次性的搬遷腳本跑完了、功能下架),加上開發者講的為什麼 | 刪掉的文檔、它的測試與程式碼;里程碑的綁定欄、`system.md` 的 Features 表與對外 I/O 表拿掉它;別份還在用的 step 連同 law 先搬到還活著的那一份;決策紀錄記為什麼退役,交給 `dev-flow:integrate` 寫成 ADR |
 
 ## 前置
@@ -44,7 +44,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 - **切片剛做完**:工作目錄是這條里程碑的工作樹 `../<repo>.worktrees/M-n-<slug>`;決策紀錄在、`verdict: feasible`。沒有切片 → `dev-flow:spike-impl`。先把主線合進來一次:`git fetch` 後 `git merge origin/<主線>`。約束對著最新的全域 Law 談;合不進來的衝突先解,解不了就停下回報。
 - **既有文檔的 law 要調整**:
   - 來源是調整 `RF-n`:調整預設走 `dev-flow:scope-revise`(需要新的 law 它自己新增);這裡只收要調整既有的 law 才做得到的調整,而且整件都在這裡做。那條 `RF-n` 要在某個需求檔的調整表上、動到的 feature 要是它列的、該需求的里程碑要已經全部達成;不是就停,回 `dev-flow:require-design`。要改簽名或加 step 讓它做到新能力的,不是調整,是新里程碑。
-  - 來源是一條靠修訂這份既有的 feature 達成的里程碑 `M-n`(`features.md`「願景、需求與里程碑」):它要是所在需求下一條還沒達成的里程碑;就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照 `roles.md`「分支與所有權」從主線開),REV 的依欄寫 `M-n` 與它那一句,重開文檔的同一個動作把這份文檔的全名填進那條里程碑的綁定欄。既有的 law 一條都不必動的,走 `dev-flow:scope-revise`。
+  - 來源是一條靠修訂這份既有的 feature 達成的里程碑 `M-n-<slug>`(`features.md`「願景、需求與里程碑」):它要是所在需求下一條還沒達成的里程碑;就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照 `roles.md`「分支與所有權」從主線開),REV 的依欄寫 `M-n-<slug>` 與它那一句,重開文檔的同一個動作把這份文檔的全名填進那條里程碑的綁定欄。既有的 law 一條都不必動的,走 `dev-flow:scope-revise`。
   - 目標文檔還不是 `verified`(切片那一波的 `draft` / `ready`:Law 談到一半、qa 或 refactor 開了 GAP、整合的仲裁退回來)→ 那一波的簽名、型別與 law 都在這裡改,law 動不動都一樣。
   - 一律改原檔。**不開第二份檔**:開了,原檔就停在它被寫下的那一天,三個月後沒有人知道它現在長什麼樣。
   - **在哪做**(`roles.md`「分支與所有權」):這份文檔還在一條沒整合的 `build/` 分支上 → 就在那棵工作樹上做。文檔已在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。`dev-flow:scope-revise` 放棄之後轉過來的,就在它開的那棵樹上做:先確認它已經還原(文檔是 `verified`、與它開工時的 HEAD 沒有差異),沒有還原乾淨就停下回報。
@@ -56,7 +56,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 **根據切片的決策紀錄談**:每一題的材料都從決策紀錄的六節與跑起來的行為來,不憑讀程式碼想像、不問抽象的性質。這是這份文檔第一次談約束,談得越完整,之後的修訂越少。
 
 1. **把切片跑起來**:決策紀錄「Entry」那道指令,親眼看一次行為;之後問開發者的每個例子都從這裡跑出來。
-2. **切文檔**:這一片裡有幾件「使用者做得到的事」,就是幾份 feature;一份一條資料流,從對外邊界進、從對外邊界出。跟開發者確認切法,每一份 `devflow claim feature <slug> --description <句> --milestone M-n`(綁定寫進這條里程碑所在的需求檔)。切片可以大,文檔不跟著變大(`features.md`「feature」)。以下每一份各做一次。
+2. **切文檔**:這一片裡有幾件「使用者做得到的事」,就是幾份 feature;一份一條資料流,從對外邊界進、從對外邊界出。跟開發者確認切法,每一份 `devflow claim feature <slug> --description <句> --milestone <M-n-slug>`(綁定寫進這條里程碑所在的需求檔)。切片可以大,文檔不跟著變大(`features.md`「feature」)。以下每一份各做一次。
 3. **Brief 與對外的兩端**:一句意圖、input、output、流向、它讓這條里程碑那一句話的哪一部分看得到。決策紀錄「Touched」的入口與出口,邊界與信任在「全域 Law」區已經講定的,補成 `system.md` 對外 I/O 表的列:信任、`untrusted` 入口的驗證 step(`boundary.md`「對外 I/O」)。
 4. **Steps 抄程式碼**:資料流上的每一步一列,簽名是程式碼裡對外匯出的那一個,照正規式寫;模組欄是實際的檔案,層欄與模組表一致。補 `=` 列(整條,住內層)與 `!` 列(進入點,住最外層)。
    - step 之間傳遞的值要是有名字的型別;切片裡用了無名容器(`dict`、`any` …)的地方,現在與開發者定型別,把宣告改到位、編得過。

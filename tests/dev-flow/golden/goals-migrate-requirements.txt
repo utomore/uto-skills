@@ -8,7 +8,7 @@ $ devflow migrate requirements --date 2026-09-07
 - .design/objectives/R-1-O-1-money-correct.md:刪
 
 ## 人要判的
-- R-1:併了 2 個目標(O-2「退款的金額算對」:M-2、M-3;O-1「結帳的金額算對」:M-1),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求
+- R-1:併了 2 個目標(O-2「退款的金額算對」:M-2-refund、M-3-partial-refund;O-1「結帳的金額算對」:M-1-checkout),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求
 - R-2:沒有任何目標朝向它,檔名暫用 R-2-unnamed、沒有優先也沒有里程碑;dev-flow:require-design 補,改名要連檔名一起改
 - .design/objectives/R-9-O-3-loyalty.md:對到的 R-9 不存在,留著沒動(里程碑 M-4-points);決定它屬於哪條需求,併進那個需求檔之後刪掉
 

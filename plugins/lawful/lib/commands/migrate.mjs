@@ -629,7 +629,7 @@ export function migrateRequirements(root, { write = false, date = new Date().toI
         ...(q.refinements.length ? ['', '| 調整 | 做到什麼 | 動到 |', '|---|---|---|', ...q.refinements.map((rf) => `| ${rf.id} | ${rf.title} | ${rf.touches.join('、') || '-'} |`)] : []),
       ].join('\n') + '\n';
       files.push({ name: `${q.fullName}.md`, content, q });
-      if (q.sources.length > 1) judge.push(`${q.id}:併了 ${q.sources.length} 個目標(${q.sources.map((o) => `${o.id}「${o.title}」:${o.milestones.map((m) => m.id).join('、') || '沒有里程碑'}`).join(';')}),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求`);
+      if (q.sources.length > 1) judge.push(`${q.id}:併了 ${q.sources.length} 個目標(${q.sources.map((o) => `${o.id}「${o.title}」:${o.milestones.map((m) => m.fullName).join('、') || '沒有里程碑'}`).join(';')}),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求`);
       if (!q.sources.length) judge.push(`${q.id}:沒有任何目標朝向它,檔名暫用 ${q.fullName}、沒有優先也沒有里程碑;lawful:require-design 補,改名要連檔名一起改`);
       else if (q.slug === 'unnamed') judge.push(`${q.id}:英文名沒有來源,檔名暫用 ${q.fullName};改名要連檔名一起改`);
       const bare = q.milestones.filter((m) => !m.slug).map((m) => m.id);

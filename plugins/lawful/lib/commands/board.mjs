@@ -64,7 +64,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       building: !!buildKeyOf(x, ov, building),
       requirement: at ? at.q.id : null,
       priority: at ? at.q.priority : null,
-      milestone: at ? at.m.id : null,
+      milestone: at ? at.m.fullName : null,
       signatures: { total: x.sigTotal, matched: x.sigOk, stub: x.stubCount },
       observations: { total: x.obsTotal, matched: x.obsOk },
       laws: lawsOf(x),
@@ -101,7 +101,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   // 沒被綁的 pipeline 自己成一個區塊
   const bound = new Set(ov.reqs.flatMap((q) => q.ms.flatMap((m) => m.binds)));
   const columnsOf = (ms, rfs) => [
-    ...ms.map((m) => ({ title: `${m.id} ${m.title}${m.binds.length ? '' : '(還沒有切片)'}`, achieved: m.achieved, docs: m.binds })),
+    ...ms.map((m) => ({ title: `${m.fullName} ${m.title}${m.binds.length ? '' : '(還沒有切片)'}`, achieved: m.achieved, docs: m.binds })),
     ...rfs.map((rf) => ({ title: `${rf.id} ${rf.title}(調整,${rf.state})`, achieved: rf.achieved, docs: rf.touches })),
   ];
   const bands = ov.reqs.map((q) => ({

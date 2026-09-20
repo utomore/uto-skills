@@ -83,8 +83,8 @@ export function claim(design, slug, { description = '', date = today(), mileston
   if (bad) return { text: bad, exitCode: 1 };
   kind = kindOf(kind);
   if (kind && !KINDS.includes(kind)) return { text: `--kind 要是 ${KINDS.join(' 或 ')},不是「${kind}」`, exitCode: 1 };
-  // --milestone 給編號 M-n 或全名 M-n-<slug> 都行
-  const ms = milestone ? design.requirements.requirements.flatMap((q) => q.milestones).find((m) => m.id === milestone || m.fullName === milestone) : null;
+  // --milestone 收全名 M-n-<slug>;只給編號也靜默認得。認到之後綁定用它的編號當鍵,印出來的一律是全名
+  const ms = milestone ? design.requirements.requirements.flatMap((q) => q.milestones).find((m) => m.fullName === milestone || m.id === milestone) : null;
   if (milestone && !ms) return { text: `requirements/ 沒有 ${milestone} 這條里程碑;先 lawful requirement milestone <R-n> <slug> <一句話>`, exitCode: 1 };
   if (milestone && (design.requirements.merged || design.objectivesFile)) return { text: NOT_MIGRATED, exitCode: 1 };
   // 別的工作樹上已經 claim 走的號也算:每條切片各自 claim,合進主線時才不會同號

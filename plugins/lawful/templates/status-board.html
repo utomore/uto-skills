@@ -1023,7 +1023,7 @@ function openDagNode(id) {
     <p class="sub"><span class="dot" style="background:var(--${n.tone})"></span>${esc(n.note)}</p>
     <section><h3>先要有(它依賴 ${n.deps.length} 個)</h3>${n.deps.length ? `<ul>${n.deps.map((e) => edgeRow(e, e.to)).join('')}</ul>` : '<p class="empty">不依賴任何一個,可以先做</p>'}</section>
     <section><h3>誰等它(${n.dependents.length} 個)</h3>${n.dependents.length ? `<ul>${n.dependents.map((e) => edgeRow(e, e.from)).join('')}</ul>` : '<p class="empty">沒有人等它</p>'}</section>
-    ${q ? `<section><h3>里程碑</h3>${q.milestones.length ? `<ul>${q.milestones.map((m) => `<li><span class="dot ${m.achieved ? 'g' : 'n'}"></span>${esc(m.id)} ${esc(m.title)}${m.binds.length ? ` — ${m.binds.map(linkTo).join('、')}` : '(還沒有切片)'}</li>`).join('')}</ul>` : '<p class="empty">沒有任何里程碑</p>'}</section>` : ''}
+    ${q ? `<section><h3>里程碑</h3>${q.milestones.length ? `<ul>${q.milestones.map((m) => `<li><span class="dot ${m.achieved ? 'g' : 'n'}"></span>${esc(m.name)} ${esc(m.title)}${m.binds.length ? ` — ${m.binds.map(linkTo).join('、')}` : '(還沒有切片)'}</li>`).join('')}</ul>` : '<p class="empty">沒有任何里程碑</p>'}</section>` : ''}
     ${q && q.refinements.length ? `<section><h3>調整</h3><ul>${q.refinements.map((rf) => `<li><span class="dot ${rf.achieved ? 'g' : 'n'}"></span>${esc(rf.id)} ${esc(rf.title)}(${esc(rf.state)})${rf.touches.length ? ` — ${rf.touches.map(linkTo).join('、')}` : ''}</li>`).join('')}</ul></section>` : ''}
     ${n.kind === 'shared' ? `<section><h3>${esc(D.labels.unit)}</h3><p class="sub">${linkTo(id)}</p></section>` : ''}`;
 }

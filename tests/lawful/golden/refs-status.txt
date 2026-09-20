@@ -10,10 +10,10 @@ $ lawful status
 - 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
 | 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
 |---|---|---|---|---|---|---|---|---|
-| R-1 | 1 | 輸入檔跑完整條 | 未達成(M-2 還沒達成) | R-2 | 1 | 0 | 0% | - |
-| R-2 | 2 | 一段文字讀得成一份正規化的文件 | 未達成(M-1 還沒達成) | - | 1 | 0 | 0% | - |
-- R-1 下一個里程碑:M-2 整條跑完(P-001-cli-run 進行中)
-- R-2 下一個里程碑:M-1 解析與正規化走通(P-002-syntax-parse 進行中、P-003-canon-normalize 進行中)
+| R-1 | 1 | 輸入檔跑完整條 | 未達成(M-2-cli-run 還沒達成) | R-2 | 1 | 0 | 0% | - |
+| R-2 | 2 | 一段文字讀得成一份正規化的文件 | 未達成(M-1-syntax-parse 還沒達成) | - | 1 | 0 | 0% | - |
+- R-1 下一個里程碑:M-2-cli-run 整條跑完(P-001-cli-run 進行中)
+- R-2 下一個里程碑:M-1-syntax-parse 解析與正規化走通(P-002-syntax-parse 進行中、P-003-canon-normalize 進行中)
 
 ## 全域 Law
 | 類別 | 住 Cone.md 的哪一區 | 自動確認 | 結果 |
@@ -41,8 +41,8 @@ $ lawful status
 - 還沒有任何 stage 住進去的單元:App.Doc
 
 ## 1. 今天能開幾條線
-- P-002-syntax-parse:lawful:build P-002-syntax-parse(R-2 優先 2 · M-1 解析與正規化走通)
-- P-003-canon-normalize:lawful:build P-003-canon-normalize(R-2 優先 2 · M-1 解析與正規化走通)
+- P-002-syntax-parse:lawful:build P-002-syntax-parse(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
+- P-003-canon-normalize:lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
 - P-002-syntax-parse 與 P-003-canon-normalize 的 stage 都住 `App.Syntax`:可以同時開,整合時這幾個模組單元的檔兩邊都動
 
 ## 2. 卡住的
@@ -63,7 +63,7 @@ $ lawful status
 | P-002-syntax-parse#shared | P-003-canon-normalize 也把 shared 列成 stage,兩邊都沒註明「見」 | 引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來 |
 
 ## 7. 建議路線
-1. lawful:build P-002-syntax-parse(R-2 優先 2 · M-1 解析與正規化走通)
-2. lawful:build P-003-canon-normalize(R-2 優先 2 · M-1 解析與正規化走通)
-3. lawful:build P-001-cli-run(R-1 優先 1 · M-2 整條跑完)
+1. lawful:build P-002-syntax-parse(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
+2. lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
+3. lawful:build P-001-cli-run(R-1 優先 1 · M-2-cli-run 整條跑完)
 exit 1

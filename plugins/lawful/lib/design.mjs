@@ -256,7 +256,7 @@ function routeTables(lines, offset) {
     t.rows.forEach((r, i) => {
       const cell = stripTicks((r[0] || '').trim());
       if (!cell || hasPlaceholder(cell)) return;
-      // 里程碑的第一格是全名 M-n-<slug>:M-n 是編號(全資料夾唯一,引用用它),slug 是切片分支 build/M-n-<slug> 的鍵
+      // 里程碑的第一格是全名 M-n-<slug>:M-n 是配號用的編號(全資料夾唯一),引用一條里程碑一律用全名;slug 是切片分支 build/M-n-<slug> 的鍵
       const mm = kind === '里程碑' ? /^(M-\d+)(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?$/.exec(cell) : null;
       const id = mm ? mm[1] : cell;
       const rowTitle = (r[1] || '').trim();

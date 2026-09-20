@@ -134,11 +134,11 @@ data World = World
 | 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
 |---|---|---|---|---|---|---|---|---|
 | R-1 | 1 | 玩家存檔後能讀回同一個世界 | 達成(測試 R-1#ACCEPT green) | - | 2 | 0 | 0% | 0/1 |
-- R-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-save-write 進行中)
+- R-1 下一個里程碑:M-1-save-write 存檔寫得出檔案(P-001-save-write 進行中)
 
 #### 1. 今天能開幾條線
-- P-001-save-write:lawful:build P-001-save-write(R-1 優先 1 · M-1 存檔寫得出檔案)
+- P-001-save-write:lawful:build P-001-save-write(R-1 優先 1 · M-1-save-write 存檔寫得出檔案)
 
 #### 7. 建議路線
-1. lawful:build P-001-save-write(R-1 優先 1 · M-1 存檔寫得出檔案)
+1. lawful:build P-001-save-write(R-1 優先 1 · M-1-save-write 存檔寫得出檔案)
 exit 0

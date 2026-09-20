@@ -40,7 +40,7 @@ description 住各文檔的 frontmatter,清單不重複。
 | 願景 | `system.md`「願景」 | 北極星:專案要交出的、世界上還沒有的東西;只有一個,立案時訂。它是方向,不是驗收清單:需求不對它逐句對照,順序來自依賴與必要性,不來自離它多近 |
 | 需求 | `requirements/R-n-<slug>.md`,一條需求一個檔;frontmatter `id`、`priority`、`updated`,標題 `# <全名>:<一句話>` | 一件使用者要得到的事,**必須達成**:一句話講誰在什麼情況下要得到什麼。各有一句**驗收**(`- 驗收:…`):可驗證、可判定的一句話,判這條需求達成了沒;最好有一條歸屬 `R-n#ACCEPT` 的驗收測試(roles.md「驗收測試」)。各有一級**優先**(frontmatter `priority`,1 到 4,1 最高)。需求不是 law:做到之前它本來就還沒達成。需求只在與開發者的討論裡成形,只由 `dev-flow:require-design` 寫。`R-n` 是流水號,永不重排,只是身分,不代表先後;slug 是 kebab-case 英文,講這條需求要得到什麼。至少一條 |
 | 優先各級 | `system.md`「語言與工具」一行 `- 優先:1 = …;2 = …;3 = …;4 = …` | 各級在這個專案代表什麼,專案自己定(例:1 = 主軸與它的直接前提;2 = 地基;3 = 呈現與存取;4 = 工具與詞彙);`devflow status` 印它,沒宣告列警訊 |
-| 里程碑 | 需求檔裡的表 `里程碑 \| 做到什麼 \| 綁定` | 這條需求的建置切成的階段,**有順序,依序完成;全部達成,這條需求的建置就走完**。第一格是全名 `M-n-<slug>`:`M-n` 全資料夾唯一(跨需求檔)、引用用它,slug 是 kebab-case 英文,切片的分支 `build/M-n-<slug>` 與決策紀錄以全名為鍵;表的列序就是先後。**綁定**欄是 feature 全名,「、」分隔,切片做出來的新 feature 或這個階段靠修訂做到的既有 feature 都可以;「-」的意思是**還沒有切片** |
+| 里程碑 | 需求檔裡的表 `里程碑 \| 做到什麼 \| 綁定` | 這條需求的建置切成的階段,**有順序,依序完成;全部達成,這條需求的建置就走完**。第一格是全名 `M-n-<slug>`:`M-n` 是配號用的編號,全資料夾唯一(跨需求檔);slug 是 kebab-case 英文,切片的分支 `build/M-n-<slug>` 與決策紀錄以全名為鍵;表的列序就是先後。**綁定**欄是 feature 全名,「、」分隔,切片做出來的新 feature 或這個階段靠修訂做到的既有 feature 都可以;「-」的意思是**還沒有切片** |
 | 調整 | 需求檔裡的表 `調整 \| 做到什麼 \| 動到` | 這條需求的里程碑全部達成之後,改既有 feature 的實作或行為品質(效能、大小、訊息、演算法),`RF-n` 全資料夾唯一(跨需求檔);**動到**欄是這條需求的里程碑綁定過的 feature 全名,「、」分隔。調整不引入新 feature:動到的 feature 不在這條需求任何里程碑的綁定裡就是警訊,新能力開里程碑。每一次調整之後需求仍要達成 |
 
 ```markdown
@@ -73,12 +73,13 @@ updated: 2026-09-07
 - **里程碑不管理約束**:它沒有 law、沒有測試標記;約束只住全域 Law 與 scope law(laws.md「Law 與需求」)。
 - 里程碑只綁 feature。綁定是里程碑對到文檔的唯一寫法,文檔經由它朝向需求。
 - 每份 feature 至少被一條里程碑綁定;沒被綁的 feature 不朝向任何需求,`devflow status` 列警訊。要它就由 `dev-flow:require-design` 收進一條里程碑,不要它就走文檔退役(「修訂(REV)」)。
-- 里程碑先於 feature 存在:需求剛談完時綁定欄都是「-」,`devflow status` 在該需求的「下一條里程碑」寫明還沒有切片,不是警訊。`dev-flow:spike-impl M-n-<slug>` 做出切片,`dev-flow:scope-laws` 再從切片 claim 出文檔(`devflow claim feature <slug> --milestone <M-n>`)填進綁定欄;一條里程碑可以綁好幾份 feature。綁到不存在的全名、或里程碑沒有英文名,才是警訊。
-- **里程碑可以綁既有的 feature**:一條里程碑不一定做出新的 feature。它讓使用者看得到的那個階段若是靠修訂既有的 feature 做到的,綁定欄就填那份既有的 feature;一份 feature 可以被不只一條里程碑綁定。這種里程碑的切片在 `build/M-n-<slug>` 分支上對既有文檔走修訂(「修訂(REV)」):既有的 law 不動、新的承諾用新增的 law 表達,走 `dev-flow:scope-revise <全名>`;要調整既有的 law,走 `dev-flow:scope-laws <全名>`。REV 的依欄寫 `M-n` 與它那一句;綁定欄由做修訂的那個 skill 在重開那份文檔的同一個動作填上,在那之前是「-」。達成的定義不變:綁定的每份 feature 都達成。
+- 里程碑先於 feature 存在:需求剛談完時綁定欄都是「-」,`devflow status` 在該需求的「下一條里程碑」寫明還沒有切片,不是警訊。`dev-flow:spike-impl M-n-<slug>` 做出切片,`dev-flow:scope-laws` 再從切片 claim 出文檔(`devflow claim feature <slug> --milestone <M-n-slug>`)填進綁定欄;一條里程碑可以綁好幾份 feature。綁到不存在的全名、或里程碑沒有英文名,才是警訊。
+- **里程碑可以綁既有的 feature**:一條里程碑不一定做出新的 feature。它讓使用者看得到的那個階段若是靠修訂既有的 feature 做到的,綁定欄就填那份既有的 feature;一份 feature 可以被不只一條里程碑綁定。這種里程碑的切片在 `build/M-n-<slug>` 分支上對既有文檔走修訂(「修訂(REV)」):既有的 law 不動、新的承諾用新增的 law 表達,走 `dev-flow:scope-revise <全名>`;要調整既有的 law,走 `dev-flow:scope-laws <全名>`。REV 的依欄寫 `M-n-<slug>` 與它那一句;綁定欄由做修訂的那個 skill 在重開那份文檔的同一個動作填上,在那之前是「-」。達成的定義不變:綁定的每份 feature 都達成。
   - 例:整個專案的資料儲存換成資料庫。需求寫的是誰得到什麼(「服務重啟後,已成立的訂單不遺失」);里程碑「訂單重啟後還在」靠修訂 `F-001-checkout` 達成,綁定欄填 `F-001-checkout`,「重啟後讀得回來」是它新增的一條 law。用哪個資料庫不是需求本身:它是決定(ADR),加上全域 Law 的變更(`dev-flow:global-laws`:對外 I/O 多一端、資料庫客戶端只准住最外層)與「語言與工具」的測試指令。
 - 調整走修訂:動到的每份 feature 各寫一條 REV,依欄引用 `RF-n`(「修訂(REV)」)。調整預設走 `dev-flow:scope-revise`(既有的 law 不動;效能要一條新的 `bound` law 才驗得了,就在那裡新增);要調整既有的 law 才做得到的調整,整件走 `dev-flow:scope-laws`;調整的進度由那幾條 REV 與 feature 的達成推,表上不寫狀態。
 - 進度不是欄位:里程碑達成 = 綁定的每份 feature 都達成;需求的建置進度 = 達成的里程碑 / 里程碑數;需求達成與否、調整達成與否照「完成度」;都由 `devflow status` 算。
-- 配號只走 `devflow requirement add`、`devflow requirement milestone`、`devflow requirement refinement`(需求面)與 `devflow invariant add`(領域不變量);`devflow claim feature --milestone <M-n>` 把新 feature 綁進里程碑。刪掉的號永久空缺。
+- **引用一條里程碑一律寫全名 `M-n-<slug>`**:REV 的依欄、決策紀錄、commit 訊息、PR 內文、回報與下一步的指令都是;`M-n` 是配號用的編號,不拿來引用。
+- 配號只走 `devflow requirement add`、`devflow requirement milestone`、`devflow requirement refinement`(需求面)與 `devflow invariant add`(領域不變量);`devflow claim feature --milestone <M-n-slug>` 把新 feature 綁進里程碑。刪掉的號永久空缺。
 - 建議路線與能開的線照需求的優先、需求編號、里程碑順序排;沒被綁的排最後。
 
 ## feature
@@ -102,7 +103,7 @@ feature 之間**可以互相引用**,不論它們屬於哪條需求:兩份 featu
 |---|---|---|
 | 需求 | `R-1`,檔 `requirements/R-1-<slug>.md` | `R-1`;它的驗收測試歸屬 `R-1#ACCEPT` |
 | 領域不變量 | `INV-1`,`system.md`「全域 Law」區「領域不變量」的清單項 | `INV-1`;它的測試歸屬 `INV-1#LAW` |
-| 里程碑 / 調整 | `M-1` / `RF-1`,需求檔裡的表,跨需求檔唯一;里程碑的第一格是全名 `M-1-<slug>` | `M-1`(分支與決策紀錄用全名 `M-1-<slug>`)/ `RF-1` |
+| 里程碑 / 調整 | `M-1` / `RF-1`,需求檔裡的表,跨需求檔唯一;里程碑的第一格是全名 `M-1-<slug>` | 全名 `M-1-<slug>`(分支與決策紀錄的鍵也是它)/ `RF-1` |
 | feature | `F-001`,檔 `features/F-001-<slug>.md` | 全名 `F-001-<slug>` |
 | step | 函數名 | `F-002#refresh`;別份文檔用它,在 Steps 表的模組欄註明「見 F-002-<slug>」 |
 | law / example / 修訂 | `LAW-1` / `EX-1` / `REV-1` | `F-002#LAW-1` |
@@ -251,7 +252,7 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
   - 連動:F-003-invoice 的 Steps 表引用了 `refresh`,同步改
 ```
 
-- 依:來源與那一句話(GAP 的提問原句、ADR 全名、`RF-n` 與它那一句、靠修訂這份文檔達成的里程碑 `M-n` 與它那一句、開發者的話、整合的仲裁選了什麼、整合時留了哪一份重複的 step)。調整(`RF-n`)一律從這裡進來:動到的每份 feature 各一條 REV,依欄寫 `RF-n`,`devflow status` 靠它算調整的進度;調整的保護一定含需求的驗收引用到的每條 law,優化不准讓需求退回未達成。
+- 依:來源與那一句話(GAP 的提問原句、ADR 全名、`RF-n` 與它那一句、靠修訂這份文檔達成的里程碑 `M-n-<slug>` 與它那一句、開發者的話、整合的仲裁選了什麼、整合時留了哪一份重複的 step)。調整(`RF-n`)一律從這裡進來:動到的每份 feature 各一條 REV,依欄寫 `RF-n`,`devflow status` 靠它算調整的進度;調整的保護一定含需求的驗收引用到的每條 law,優化不准讓需求退回未達成。
 - 保護:這次不准變的既有 law;要保護的行為還不是 LAW 的,做修訂的那個 skill 先與開發者把它補成 LAW 再修訂(新增的保護用 law 列在「動到」欄,註明首跑該綠)。**沒有 law 守著的「行為不變」等於沒有保護。**
 - 重委派:law 變了或新增了重派 qa,行為、簽名或型別變了重派 refactor;既有的 law 不動而簽名或型別變了,qa 只把既有測試裡的呼叫與建構改到對得上新的宣告,斷言不動,新增的 law 另寫新的測試。簽名或型別變了,做修訂的 skill 同步改程式碼裡的宣告、編得過,行為留給 refactor;修訂新增的 step,本體先是未實作標記(roles.md「首跑」)。測試只重跑 REV 點名的。
 - 動到與保護只寫還在檔上的條目;`updated` 改成修訂日期。

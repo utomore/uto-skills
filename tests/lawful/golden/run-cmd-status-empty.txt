@@ -8,8 +8,8 @@ $ lawful status --tests empty.log
 - 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
 | 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
 |---|---|---|---|---|---|---|---|---|
-| R-1 | 1 | 一段文字進來,報表算對 | 未達成(M-1、M-2 還沒達成) | - | 2 | 0 | 0% | - |
-- R-1 下一個里程碑:M-1 字數算得對(P-002-count-tally 進行中)
+| R-1 | 1 | 一段文字進來,報表算對 | 未達成(M-1-count-tally、M-2-report-render 還沒達成) | - | 2 | 0 | 0% | - |
+- R-1 下一個里程碑:M-1-count-tally 字數算得對(P-002-count-tally 進行中)
 
 ## 全域 Law
 | 類別 | 住 Cone.md 的哪一區 | 自動確認 | 結果 |
@@ -56,5 +56,5 @@ $ lawful status --tests empty.log
 | 全域 Law:契約 | lint io 1 條不合規 | lawful lint io |
 
 ## 7. 建議路線
-1. lawful:build P-001-report-render(R-1 優先 1 · M-2 報表印得出來)
+1. lawful:build P-001-report-render(R-1 優先 1 · M-2-report-render 報表印得出來)
 exit 1

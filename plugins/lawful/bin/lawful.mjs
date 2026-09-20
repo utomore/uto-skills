@@ -27,8 +27,8 @@ const HELP = `lawful <子命令> [選項]
                                        劃一個模組單元:模組表寫一列,它宣告的每一層在那棵原始碼樹裡開好資料夾。
                                        名稱沒有 . 就接上 Cone.md 的模組前綴;單元已經在表上就補上缺的層。層預設 types,core
                                        --facade 另外建一個與單元同名的門面模組,沒指定層就開在最上層(只有它 import 得到底下每一層);要讓下層的消費者也用得到這個名字就指定層。門面只准一個
-  claim <slug> [--description <句>] [--kind <io | subflow>] [--milestone <M-n>]
-                                       鑄號建 pipeline 檔(status: draft),綁進 --milestone 那條里程碑(編號或全名 M-n-<slug> 都行)。
+  claim <slug> [--description <句>] [--kind <io | subflow>] [--milestone <M-n-slug>]
+                                       鑄號建 pipeline 檔(status: draft),綁進 --milestone 那條里程碑(給全名 M-n-<slug>)。
                                        kind:io 是跨過 shell 的資料流(有進入點),subflow 是被別條 pipeline 引用的純資料流
                                        slug 是 <領域名詞>-<動詞或動名詞>:領域名詞是 = 列住的模組單元(去掉模組前綴、大駝峰拆成 kebab),要在模組表上
                                        號從每一棵工作樹的 pipeline 的最大號往上配;Cone.md「專案約束」有號段行時,從 git user.email 對到的區間內配,frontmatter 寫 owner
@@ -233,7 +233,7 @@ function main() {
 
   if (cmd === 'claim') {
     if (!sub) {
-      console.error('用法:lawful claim <slug> [--description <句>] [--kind <io | subflow>] [--milestone <M-n>]');
+      console.error('用法:lawful claim <slug> [--description <句>] [--kind <io | subflow>] [--milestone <M-n-slug>]');
       return 1;
     }
     return emit(claim(design, sub, { description: str(args.flags.description), date: str(args.flags.date) || undefined, milestone: str(args.flags.milestone), kind: str(args.flags.kind) }));

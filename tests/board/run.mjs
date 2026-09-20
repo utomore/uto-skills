@@ -346,7 +346,7 @@ async function run(page, label, expect) {
       const q = D.requirements.find((r) => r.id === dagSelected);
       const text = docEl.textContent;
       return { dagSelected, docOpen: !docEl.hidden, lit: document.querySelectorAll('#links2 .dep.lit').length, rows: docEl.querySelectorAll('section').length,
-        missing: q ? q.milestones.filter((m) => !text.includes(m.id + ' ' + m.title)).map((m) => m.id) : [] };
+        missing: q ? q.milestones.filter((m) => !text.includes(m.name + ' ' + m.title)).map((m) => m.name) : [] };
     })()`);
     check(`${label}:點相依圖的卡會選到它`, sel.dagSelected === dag.first.id && sel.docOpen, JSON.stringify(sel));
     check(`${label}:選了卡它的邊會亮`, sel.lit === dag.first.degree, `亮了 ${sel.lit} 條,這張卡有 ${dag.first.degree} 條邊`);

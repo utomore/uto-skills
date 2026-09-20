@@ -33,7 +33,7 @@
 - 開 `build/M-n-<slug>` 的前提:那條里程碑(含英文名)與它的需求檔(含驗收)都已在主線上;它是該需求下一條還沒達成的里程碑。
 - **宣告歸設計這一側,本體歸實作這一側**:Stages 上的簽名與它們用到的型別(建構子、欄位、匯出清單),切片定案後只有 `lawful:scope-laws` 與 `lawful:scope-revise` 能改;refactor 只動本體、私有 helper 與型別的內部表示。qa 與 refactor 非動宣告不可就是 GAP。
 - 分支上准動的東西只有自己的:這條里程碑範圍內的程式碼、從它 claim 出來的 pipeline、以 pipeline 全名命名的測試模組、本波要寫的驗收測試(以 `R-n` / `INV-n` 命名的測試模組)、共用檔裡自己那幾列(`modules.md` 自己要的那個模組單元、`Cone.md` 對外 I/O 表的新列、需求檔裡自己那條里程碑的綁定欄、建置設定登記自己模組與測試模組的那幾行)、`gaps.md` 追加、`journal/<鍵>.md`。
-- 不動:願景、需求檔的其餘部分(一句話、驗收那一句、優先、里程碑與調整的列)、全域 Law 區的領域不變量與四層那四句;別條已經在主線上的 pipeline 與它的 stage 本體、別人的測試模組。唯一的例外:需求的驗收或一條領域不變量還只有一句話、而這條切片剛好讓它引用得到的簽名出現了,`lawful:scope-laws` 與開發者把那一句話寫成三行;那一句話本身不改。切片非動到別條 pipeline 的簽名不可,那是那條 pipeline 的修訂:在同一棵工作樹上照 pipelines.md「修訂(REV)」分流(它既有的 law 不動走 `lawful:scope-revise`,要調整既有的 law 走 `lawful:scope-laws`),REV 的連動欄寫明。靠修訂既有的 pipeline 達成的里程碑(pipelines.md「願景、需求與里程碑」)照同一條:切片只貫通新的那一段(新的出入口、shell 的真解譯器),既有 pipeline 的條文由那個修訂的 skill 改、REV 的依欄寫 `M-n`,既有 stage 的本體由它接上的 build 帶 refactor 調。
+- 不動:願景、需求檔的其餘部分(一句話、驗收那一句、優先、里程碑與調整的列)、全域 Law 區的領域不變量與四層那四句;別條已經在主線上的 pipeline 與它的 stage 本體、別人的測試模組。唯一的例外:需求的驗收或一條領域不變量還只有一句話、而這條切片剛好讓它引用得到的簽名出現了,`lawful:scope-laws` 與開發者把那一句話寫成三行;那一句話本身不改。切片非動到別條 pipeline 的簽名不可,那是那條 pipeline 的修訂:在同一棵工作樹上照 pipelines.md「修訂(REV)」分流(它既有的 law 不動走 `lawful:scope-revise`,要調整既有的 law 走 `lawful:scope-laws`),REV 的連動欄寫明。靠修訂既有的 pipeline 達成的里程碑(pipelines.md「願景、需求與里程碑」)照同一條:切片只貫通新的那一段(新的出入口、shell 的真解譯器),既有 pipeline 的條文由那個修訂的 skill 改、REV 的依欄寫 `M-n-<slug>`,既有 stage 的本體由它接上的 build 帶 refactor 調。
 - 進 `lawful:scope-laws` 之前先把主線合進工作樹一次(`git merge origin/<主線>`):Law 對著最新的全域 Law 與別人剛合進去的 pipeline 談,衝突提早浮現。
 - `lawful claim` 配號時看同一個 repo 的每一棵工作樹,兩條切片各自 claim 不會配到同一個號;`gaps.md` 在分支上從主線最大號往上配。
 - 分支上的 commit 訊息帶鍵;切片、文檔、測試、調整、決策紀錄各自成 commit,整合時才對得出誰動了什麼。

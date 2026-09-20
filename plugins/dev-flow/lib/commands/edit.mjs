@@ -75,12 +75,12 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
   if (!spec) return { text: `claim 的類別只有 feature / adr,沒有「${kind}」`, exitCode: 1 };
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) return { text: `slug 要是 kebab-case 英文:${slug}`, exitCode: 1 };
   if (milestone && kind !== 'feature') return { text: '--milestone 只給 feature:里程碑綁的是 feature', exitCode: 1 };
-  // --milestone 給編號 M-n 或全名 M-n-<slug> 都行
+  // --milestone 收全名 M-n-<slug>;只給編號也靜默認得。認到之後 bound 是那條里程碑:綁定用它的編號當鍵,印出來的一律是全名
+  let bound = null;
   if (milestone) {
-    const hit = design.requirements.requirements.flatMap((q) => q.milestones).find((m) => m.id === milestone || m.fullName === milestone);
-    if (!hit) return { text: `requirements/ 沒有 ${milestone} 這條里程碑;先 devflow requirement milestone <R-n> <slug> <一句話>`, exitCode: 1 };
+    bound = design.requirements.requirements.flatMap((q) => q.milestones).find((m) => m.fullName === milestone || m.id === milestone) || null;
+    if (!bound) return { text: `requirements/ 沒有 ${milestone} 這條里程碑;先 devflow requirement milestone <R-n> <slug> <一句話>`, exitCode: 1 };
     if (design.requirements.merged || design.objectivesFile) return { text: NOT_MIGRATED, exitCode: 1 };
-    milestone = hit.id;
   }
   const dir = path.join(design.designDir, spec.dir);
   const nums = [];
@@ -129,9 +129,9 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
         out.push('system.md Features 表加了一列');
       } else out.push('system.md 沒有 ## Features 節,自己補一列');
     }
-    if (milestone) {
-      bindMilestone(design, milestone, fullName);
-      out.push(`綁進 ${milestone}`);
+    if (bound) {
+      bindMilestone(design, bound.id, fullName);
+      out.push(`綁進 ${bound.fullName}`);
     } else out.push('沒有 --milestone:這份 feature 還不朝向任何需求,dev-flow:require-design 綁進一條里程碑');
   }
   return { text: out.join('\n'), exitCode: 0, fullName };

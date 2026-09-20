@@ -32,7 +32,7 @@
 |---|---|
 | 願景、專案約束、優先各級 | pipelines.md「Cone.md」「願景、需求與里程碑」 |
 | 需求、`R-n`、需求檔 `requirements/R-n-<slug>.md`、驗收、`R-n#ACCEPT`、優先 | pipelines.md「願景、需求與里程碑」 |
-| 里程碑、`M-n`、全名 `M-n-<slug>`、階段性使用者驗收、依序一次一條、綁定、還沒有切片 | pipelines.md「願景、需求與里程碑」 |
+| 里程碑、`M-n`、全名 `M-n-<slug>`、引用寫全名、階段性使用者驗收、依序一次一條、綁定、還沒有切片 | pipelines.md「願景、需求與里程碑」 |
 | 調整、`RF-n`、動到、待修訂 | pipelines.md「願景、需求與里程碑」「修訂(REV)」 |
 | 需求的依賴、新需求的衝突檢查、里程碑綁既有的 pipeline | pipelines.md「願景、需求與里程碑」 |
 | 需求達成 / 未達成 / 未知、完成度、調整達成 | pipelines.md「完成度」 |

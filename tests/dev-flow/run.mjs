@@ -367,7 +367,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     const ok = before.includes('- M-3-ship:dev-flow:spike-impl M-3-ship(R-1 優先 1 · 出貨走通)')
       && opened.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片中') && !opened.includes('| build/M-3-ship | 已合進主線卻還在 |')
       && sliced.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片完成,等 dev-flow:scope-laws')
-      && claimed.includes('F-003-ship') && talking.includes('build/M-3-ship;Law 討論中')
+      && claimed.includes('F-003-ship') && claimed.includes('綁進 M-3-ship') && talking.includes('build/M-3-ship;Law 討論中')
       && other.includes('F-004-wishlist');
     git(main, 'worktree', 'remove', '--force', tree);
     fs.rmSync(base, { recursive: true, force: true });

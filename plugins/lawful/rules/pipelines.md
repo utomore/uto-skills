@@ -39,7 +39,7 @@ frontmatter:`language`(選 adapter)、`updated`。標題一行 `# <專案名>:<�
 | 願景 | `Cone.md`「願景」 | 北極星:專案要交出的、世界上還沒有的東西;只有一個,立案時訂。它是方向,不是驗收清單:需求不對它逐句對照,順序來自依賴與必要性,不來自離它多近 |
 | 需求 | `requirements/R-n-<slug>.md`,一條需求一個檔;frontmatter `id`、`priority`、`updated`,標題 `# <全名>:<一句話>` | 一件使用者要得到的事,**必須達成**:一句話講誰在什麼情況下要得到什麼。各有一句**驗收**(`- 驗收:…`):可驗證、可判定的一句話,判這條需求達成了沒;最好有一條歸屬 `R-n#ACCEPT` 的驗收測試(roles.md「驗收測試」)。各有一級**優先**(frontmatter `priority`,1 到 4,1 最高)。需求不是 law:做到之前它本來就還沒達成。需求只在與開發者的討論裡成形,只由 `lawful:require-design` 寫。`R-n` 是流水號,永不重排,只是身分,不代表先後;slug 是 kebab-case 英文,講這條需求要得到什麼。至少一條 |
 | 優先各級 | `Cone.md`「專案約束」一行 `- 優先:1 = …;2 = …;3 = …;4 = …` | 各級在這個專案代表什麼,專案自己定(例:1 = 主軸與它的直接前提;2 = 地基;3 = 呈現與存取;4 = 工具與詞彙);`lawful status` 印它,沒宣告列警訊 |
-| 里程碑 | 需求檔裡的表 `里程碑 \| 做到什麼 \| 綁定` | 這條需求的建置切成的階段,**有順序,依序完成;全部達成,這條需求的建置就走完**。第一格是全名 `M-n-<slug>`:`M-n` 全資料夾唯一(跨需求檔)、引用用它,slug 是 kebab-case 英文,切片的分支 `build/M-n-<slug>` 與決策紀錄以全名為鍵;表的列序就是先後。**綁定**欄是 pipeline 全名,「、」分隔,切片做出來的新 pipeline 或這個階段靠修訂做到的既有 pipeline 都可以;「-」的意思是**還沒有切片** |
+| 里程碑 | 需求檔裡的表 `里程碑 \| 做到什麼 \| 綁定` | 這條需求的建置切成的階段,**有順序,依序完成;全部達成,這條需求的建置就走完**。第一格是全名 `M-n-<slug>`:`M-n` 是配號用的編號,全資料夾唯一(跨需求檔);slug 是 kebab-case 英文,切片的分支 `build/M-n-<slug>` 與決策紀錄以全名為鍵;表的列序就是先後。**綁定**欄是 pipeline 全名,「、」分隔,切片做出來的新 pipeline 或這個階段靠修訂做到的既有 pipeline 都可以;「-」的意思是**還沒有切片** |
 | 調整 | 需求檔裡的表 `調整 \| 做到什麼 \| 動到` | 這條需求的里程碑全部達成之後,改既有 pipeline 的實作或行為品質(效能、大小、訊息、演算法),`RF-n` 全資料夾唯一(跨需求檔);**動到**欄是這條需求的里程碑綁定過的 pipeline 全名,「、」分隔。調整不引入新 pipeline:動到的 pipeline 不在這條需求任何里程碑的綁定裡就是警訊,新能力開里程碑。每一次調整之後需求仍要達成 |
 
 ```markdown
@@ -72,12 +72,13 @@ updated: 2026-09-05
 - **里程碑不管理約束**:它沒有 law、沒有測試標記;約束只住全域 Law 與 scope law(laws.md「Law 與需求」)。
 - 里程碑只綁 pipeline,`kind` 是 `io` 或 `subflow` 都可以;使用者看得到的階段通常綁一條 io pipeline,同一條切片做出來的 subflow 一起綁在同一條里程碑。綁定是里程碑對到 pipeline 的唯一寫法,pipeline 經由它朝向需求。
 - 每條 pipeline 至少被一條里程碑綁定;沒被綁的 pipeline 不朝向任何需求,`lawful status` 列警訊。要它就由 `lawful:require-design` 收進一條里程碑,不要它就走文檔退役(「修訂(REV)」)。
-- 里程碑先於 pipeline 存在:需求剛談完時綁定欄都是「-」,`lawful status` 在該需求的「下一條里程碑」寫明還沒有切片,不是警訊。`lawful:spike-impl M-n-<slug>` 做出切片,`lawful:scope-laws` 再從切片 claim 出 pipeline(`lawful claim <slug> --milestone <M-n>`)填進綁定欄;一條里程碑可以綁好幾條。綁到不存在的全名、或里程碑沒有英文名,才是警訊。
-- **里程碑可以綁既有的 pipeline**:一條里程碑不一定做出新的 pipeline。它讓使用者看得到的那個階段若是靠修訂既有的 pipeline 做到的,綁定欄就填那條既有的 pipeline;一條 pipeline 可以被不只一條里程碑綁定。這種里程碑的切片在 `build/M-n-<slug>` 分支上對既有 pipeline 走修訂(「修訂(REV)」):既有的 law 不動、新的承諾用新增的 law 表達,走 `lawful:scope-revise <全名>`;要調整既有的 law,走 `lawful:scope-laws <全名>`。REV 的依欄寫 `M-n` 與它那一句;綁定欄由做修訂的那個 skill 在重開那條 pipeline 的同一個動作填上,在那之前是「-」。達成的定義不變:綁定的每條 pipeline 都達成。
+- 里程碑先於 pipeline 存在:需求剛談完時綁定欄都是「-」,`lawful status` 在該需求的「下一條里程碑」寫明還沒有切片,不是警訊。`lawful:spike-impl M-n-<slug>` 做出切片,`lawful:scope-laws` 再從切片 claim 出 pipeline(`lawful claim <slug> --milestone <M-n-slug>`)填進綁定欄;一條里程碑可以綁好幾條。綁到不存在的全名、或里程碑沒有英文名,才是警訊。
+- **里程碑可以綁既有的 pipeline**:一條里程碑不一定做出新的 pipeline。它讓使用者看得到的那個階段若是靠修訂既有的 pipeline 做到的,綁定欄就填那條既有的 pipeline;一條 pipeline 可以被不只一條里程碑綁定。這種里程碑的切片在 `build/M-n-<slug>` 分支上對既有 pipeline 走修訂(「修訂(REV)」):既有的 law 不動、新的承諾用新增的 law 表達,走 `lawful:scope-revise <全名>`;要調整既有的 law,走 `lawful:scope-laws <全名>`。REV 的依欄寫 `M-n-<slug>` 與它那一句;綁定欄由做修訂的那個 skill 在重開那條 pipeline 的同一個動作填上,在那之前是「-」。達成的定義不變:綁定的每條 pipeline 都達成。
   - 例:存檔格式換版。需求寫的是誰得到什麼(「遊戲更新之後,玩家更新前存的檔還讀得回來」);里程碑「拿上一版存的檔在這一版讀出同一個世界」靠修訂 `P-002-save-load` 達成,綁定欄填 `P-002-save-load`,「帶著上一版版本號的存檔解得回同一個投影」是它新增的一條 law,原有的往返 law 不動。存檔用哪一種編碼、版本號放在哪裡不是需求本身:它是決定(ADR),加上全域 Law 的變更(`lawful:global-laws`:對外 I/O 表上存檔那一端的契約多一句「格式只增欄位,不刪、不改名」、指到守它的 law)與「專案約束」裡硬性要求的套件。
 - 調整走修訂:動到的每條 pipeline 各寫一條 REV,依欄引用 `RF-n`(「修訂(REV)」)。調整預設走 `lawful:scope-revise`(既有的 law 不動;效能要一條新的 `bound` law 才驗得了,就在那裡新增);要調整既有的 law 才做得到的調整,整件走 `lawful:scope-laws`;調整的進度由那幾條 REV 與 pipeline 的達成推,表上不寫狀態。
 - 進度不是欄位:里程碑達成 = 綁定的每條 pipeline 都達成;需求的建置進度 = 達成的里程碑 / 里程碑數;需求達成與否、調整達成與否照「完成度」;都由 `lawful status` 算。
-- 配號只走 `lawful requirement add`、`lawful requirement milestone`、`lawful requirement refinement`(需求面)與 `lawful invariant add`(領域不變量);`lawful claim <slug> --milestone <M-n>` 把新 pipeline 綁進里程碑。刪掉的號永久空缺。
+- **引用一條里程碑一律寫全名 `M-n-<slug>`**:REV 的依欄、決策紀錄、commit 訊息、PR 內文、回報與下一步的指令都是;`M-n` 是配號用的編號,不拿來引用。
+- 配號只走 `lawful requirement add`、`lawful requirement milestone`、`lawful requirement refinement`(需求面)與 `lawful invariant add`(領域不變量);`lawful claim <slug> --milestone <M-n-slug>` 把新 pipeline 綁進里程碑。刪掉的號永久空缺。
 - 建議路線與能開的線照需求的優先、需求編號、里程碑順序排;沒被綁的排最後。
 
 ## pipeline
@@ -102,7 +103,7 @@ pipeline 之間**可以互相引用**,不論它們屬於哪條需求:兩條 pipe
 |---|---|---|
 | 需求 | `R-1`,檔 `requirements/R-1-<slug>.md` | `R-1`;它的驗收測試歸屬 `R-1#ACCEPT` |
 | 領域不變量 | `INV-1`,`Cone.md`「全域 Law」區「領域不變量」的清單項 | `INV-1`;它的測試歸屬 `INV-1#LAW` |
-| 里程碑 / 調整 | `M-1` / `RF-1`,需求檔裡的表,跨需求檔唯一;里程碑的第一格是全名 `M-1-<slug>` | `M-1`(分支與決策紀錄用全名 `M-1-<slug>`)/ `RF-1` |
+| 里程碑 / 調整 | `M-1` / `RF-1`,需求檔裡的表,跨需求檔唯一;里程碑的第一格是全名 `M-1-<slug>` | 全名 `M-1-<slug>`(分支與決策紀錄的鍵也是它)/ `RF-1` |
 | pipeline | `P-001`,檔 `pipelines/P-001-<slug>.md` | 全名 `P-001-<slug>` |
 | stage | 函數名 | `P-002#candidates`;別條 pipeline 用它,在 Stages 表的模組欄註明「見 P-002-<slug>」 |
 | law / example / 修訂 | `LAW-1` / `EX-1` / `REV-1` | `P-002#LAW-1` |
@@ -254,7 +255,7 @@ typeclass 照同一套:給全專案實作或呼叫的抽象(碰撞的 `Shape`、
   - 連動:P-005-frame-step 的 Stages 表引用了 `step`,同步改
 ```
 
-- 依:來源與那一句話(GAP 的提問原句、ADR 全名、`RF-n` 與它那一句、靠修訂這條 pipeline 達成的里程碑 `M-n` 與它那一句、開發者的話、整合的仲裁選了什麼、整合時留了哪一份重複的 stage)。調整(`RF-n`)一律從這裡進來:動到的每條 pipeline 各一條 REV,依欄寫 `RF-n`,`lawful status` 靠它算調整的進度;調整的保護一定含需求的驗收引用到的每條 law,優化不准讓需求退回未達成。
+- 依:來源與那一句話(GAP 的提問原句、ADR 全名、`RF-n` 與它那一句、靠修訂這條 pipeline 達成的里程碑 `M-n-<slug>` 與它那一句、開發者的話、整合的仲裁選了什麼、整合時留了哪一份重複的 stage)。調整(`RF-n`)一律從這裡進來:動到的每條 pipeline 各一條 REV,依欄寫 `RF-n`,`lawful status` 靠它算調整的進度;調整的保護一定含需求的驗收引用到的每條 law,優化不准讓需求退回未達成。
 - 保護:這次不准變的既有 law;要保護的行為還不是 LAW 的,做修訂的那個 skill 先與開發者把它補成 LAW 再修訂(新增的保護用 law 列在「動到」欄,註明首跑該綠)。**沒有 law 守著的「行為不變」等於沒有保護。**
 - 重委派:law 變了或新增了重派 qa,行為、簽名或型別變了重派 refactor;既有的 law 不動而簽名或型別變了,qa 只把既有測試裡的呼叫與建構改到對得上新的宣告,斷言不動,新增的 law 另寫新的測試。簽名或型別變了,做修訂的 skill 同步改程式碼裡的宣告、編得過,行為留給 refactor;修訂新增的 stage,本體先是未實作標記(roles.md「首跑」)。測試只重跑 REV 點名的。
 - 連動:Stages 表引用到動到的簽名的每一條 pipeline,逐條同步;沒有寫「無」。

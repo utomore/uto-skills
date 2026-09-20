@@ -17,8 +17,6 @@ $ lawful status --json
     "requirementsHolding": 0,
     "requirementsTested": 0,
     "requirementsInferred": 0,
-    "objectives": 1,
-    "objectivesAchieved": 0,
     "invariants": 0,
     "invariantsHolding": 0,
     "milestones": 2,
@@ -45,10 +43,6 @@ $ lawful status --json
     {
       "label": "領域不變量",
       "value": "0 / 0 成立"
-    },
-    {
-      "label": "目標",
-      "value": "0 / 1 達成"
     },
     {
       "label": "里程碑",
@@ -82,7 +76,11 @@ $ lawful status --json
   "requirements": [
     {
       "id": "R-1",
+      "name": "R-1",
+      "file": ".lawful/Cone.md",
       "title": "輸入檔跑完整條",
+      "priority": 1,
+      "priorityRaw": "1",
       "law": {
         "title": "任一輸入檔解析、正規化後跑完不出錯",
         "formal": false,
@@ -90,37 +88,12 @@ $ lawful status --json
         "source": "O-1 還沒達成",
         "tested": false
       },
-      "note": "驗收未達成 · 1 個目標 · 里程碑 0/2 達成",
-      "objectives": [
-        "O-1"
-      ],
+      "note": "驗收未達成 · 里程碑 0/2 達成",
       "built": false,
-      "milestonesAchieved": 0,
-      "milestones": 2,
-      "refinementsAchieved": 0,
-      "refinements": 0
-    }
-  ],
-  "objectives": [
-    {
-      "id": "O-1",
-      "name": "R-1-O-1-cli-whole",
-      "file": ".lawful/objectives/R-1-O-1-cli-whole.md",
-      "title": "輸入檔跑完整條",
-      "requirement": "R-1",
-      "priority": 1,
-      "priorityRaw": "1",
-      "law": {
-        "title": "",
-        "formal": false,
-        "holds": null,
-        "source": "里程碑 0/2 達成",
-        "tested": false
-      },
-      "note": "里程碑 0/2 達成",
       "achieved": false,
-      "milestonesAchieved": 0,
       "percent": 0,
+      "milestonesAchieved": 0,
+      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-1",
@@ -150,39 +123,30 @@ $ lawful status --json
     {
       "id": "R-1",
       "title": "R-1 輸入檔跑完整條",
-      "note": "驗收未達成 · O-1 還沒達成 · 1 個目標,達成 0 個 · 里程碑 0/2 達成",
+      "note": "驗收未達成 · O-1 還沒達成",
+      "notes": [
+        "優先 1:讀寫的正確性",
+        "里程碑 0/2 達成 · 完成度 0%"
+      ],
       "achieved": false,
-      "bare": false,
-      "lanes": [
+      "columns": [
         {
-          "id": "O-1",
+          "title": "M-1 解析與正規化走通",
           "achieved": false,
-          "title": "O-1 輸入檔跑完整條",
-          "notes": [
-            "優先 1:讀寫的正確性",
-            "里程碑 0/2 達成 · 完成度 0%"
-          ],
-          "columns": [
-            {
-              "title": "M-1 解析與正規化走通",
-              "achieved": false,
-              "docs": [
-                "P-002-syntax-parse",
-                "P-003-canon-normalize"
-              ]
-            },
-            {
-              "title": "M-2 整條跑完",
-              "achieved": false,
-              "docs": [
-                "P-001-cli-run"
-              ]
-            }
-          ],
-          "empty": null
+          "docs": [
+            "P-002-syntax-parse",
+            "P-003-canon-normalize"
+          ]
+        },
+        {
+          "title": "M-2 整條跑完",
+          "achieved": false,
+          "docs": [
+            "P-001-cli-run"
+          ]
         }
       ],
-      "columns": []
+      "empty": null
     }
   ],
   "modules": {
@@ -303,7 +267,6 @@ $ lawful status --json
       "achieved": false,
       "building": false,
       "requirement": "R-1",
-      "objective": "O-1",
       "priority": 1,
       "milestone": "M-2",
       "signatures": {
@@ -409,7 +372,6 @@ $ lawful status --json
       "achieved": false,
       "building": false,
       "requirement": "R-1",
-      "objective": "O-1",
       "priority": 1,
       "milestone": "M-1",
       "signatures": {
@@ -501,7 +463,6 @@ $ lawful status --json
       "achieved": false,
       "building": false,
       "requirement": "R-1",
-      "objective": "O-1",
       "priority": 1,
       "milestone": "M-1",
       "signatures": {

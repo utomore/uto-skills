@@ -34,6 +34,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-f
 | `lint all` | 以上全部 |
 | `modules --gen` | 從程式碼補模組表缺的檔案,層欄留白 |
 | `section <file> <節>…` | 取節 |
+| `brief <skill> [<目標>] [--fingerprint] [--no-rules]` | 一個角色開工要的東西一次印完:規章的節、目標文檔、逐條狀態、Steps 上每條簽名與型別的宣告(`檔案:行號` 與原文,不含本體)、最內層、這個專案的測試怎麼寫;目標是文檔全名,qa 另收 `R-n` / `INV-n`(印它的三行與引用到的文檔)。skill 載入時由 SKILL.md 的注入行自動執行,輸出直接是 skill 內容的一部分。第一行是指紋 `brief <skill> <目標> @doc:<雜湊> rules:<雜湊>`,`--fingerprint` 只印它(conductor 對帳用);`--no-rules` 不重印規章的節(同一場裡目標文檔變過之後重跑用)。唯讀,永遠 exit 0,問題用文字講 |
 | `migrate laws [--write]` | `system.md` 沒有「## 全域 Law」區、或需求與目標檔寫著「- Law:」的樹:先印帳本,`--write` 才落地。「層」「對外 I/O」「領域不變量」三節收進「## 全域 Law」區的三個小區(缺的先寫「無」)、需求的「- Law:」改成「- 驗收:」、需求的蘊含說明與目標檔的「- Law:」刪掉;測試裡的歸屬標記不動 |
 | `migrate objectives [--write]` | 目標還擠在一份 `objectives.md` 的樹,換成 `system.md`「需求」與 `objectives/` 體系:先印帳本,`--write` 才落地。里程碑只有編號的列,英文名從它第一份綁定的 feature 推。每個目標生一條需求(一句話照抄、判準當驗收)寫進「需求」節、每個目標拆成 `objectives/R-x-O-y-<slug>.md`(slug 從第一條綁定的 feature 推)、「目的」併成「願景」第二段、優先各級那行搬進「語言與工具」,最後刪 `objectives.md` |
 | `migrate <.design>` | 盤點 `subsystems/` 體系的 `.design`,印一份帳本,不改任何檔:每份任務文檔的介面在程式碼裡對到幾條、四格 law 翻成三行草稿、共用簽名列成 abstract 候選、退場清單、人要判的清單 |

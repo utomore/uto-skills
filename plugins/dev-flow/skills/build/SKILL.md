@@ -30,26 +30,23 @@ user-invocable: true
 
 0. **基準線**:有 REV 的目標(修訂、收整)先在這棵樹上跑整套當基準線,輸出留檔。
 1. **對帳**:跑建置指令編得過、`devflow lint sig` 與 `devflow lint laws` 沒有紅、`devflow status --doc <全名>` 每列是「在」或「未實作」(修訂新增的 step)。有一列「找不到」「不一致」、或簽名裡的型別沒宣告過,就停:回報缺什麼,回 `dev-flow:law-design` 或 `dev-flow:revise`;不在這裡補宣告。
-2. **派 qa**(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板):給全名、文檔路徑、工作樹路徑、最內層的檔案清單、子集測試指令。測試檔以全名命名。**不給決策紀錄**:哪幾條該紅 qa 不必知道。
+2. **派 qa**(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板):只給角色、目標全名與工作樹路徑;文檔、宣告、最內層、子集測試指令、歸屬寫法由 qa 載入 skill 時的 `devflow brief` 給,你不查、不填。測試檔以全名命名。**不給決策紀錄**:哪幾條該紅 qa 不必知道。收回報先對指紋(`rules/roles.md`「委派」):`devflow brief qa <全名> --root <工作樹> --fingerprint` 與回報第一項一字不差,才往下。
 3. **首跑**(`rules/roles.md`「首跑」):qa 交付後,在現有的程式碼上跑一次它的測試,輸出留檔。決策紀錄「首跑該紅」列的 law、REV「動到」欄點名的 law、打到未實作標記的要紅;其餘要綠。該紅卻綠退回 qa;該綠卻紅照第 5 步歸因;一條紅都沒有就逐條拿 `|-` 行對測試的斷言。結果寫進決策紀錄「Verification」的「首跑」。環境跑不起來就明寫「本波 qa 紅綠未驗證」,不得默認通過。回報裡的 GAP 由你寫進 `.design/gaps.md` 配號,從主線最大號往上。commit。
-4. **派 refactor**(`dev-flow:refactor`,`model: "sonnet"`):給全名、文檔路徑、工作樹路徑、子集指令、**首跑紅的那幾條 law 的原文與歸因**、決策紀錄「Faked / Unverified」裡屬於這份文檔的列;**不給測試檔、不給測試碼**。首跑全綠而沒有假的東西要換,就不派。多語言專案的子集指令取這份文檔那一側的(Steps 模組路徑的目錄),派 qa 時同樣。
+4. **派 refactor**(`dev-flow:refactor`,`model: "sonnet"`):同一個模板,另給只有你知道的:**首跑紅的那幾條 law 的原文與歸因**、決策紀錄「Faked / Unverified」裡屬於這份文檔的列;**不給測試檔、不給測試碼**。首跑全綠而沒有假的東西要換,就不派。收回報同樣先對指紋。
 5. **判定**:跑本波子集。有紅走仲裁(`rules/roles.md`「仲裁」):每條紅先歸因到哪條 law 或 example,再照四分流處置;每輪只跑上一輪紅的加子集;同一份三輪仍紅停止並升級。commit。
-6. **驗收測試**(`rules/roles.md`「驗收測試」):本波全綠後 `devflow status --tests <log>`;這份文檔讓某條需求底下每個目標的建置路線都達成,而那條需求的驗收有三行式卻沒有 `R-n#ACCEPT` 測試,或 law-design 在這條分支上把一條領域不變量寫成了三行而沒有 `INV-n#LAW` 測試 → 同一條分支再派一次 qa(prompt 的「文檔」那行改成「驗收:R-n,三行原文」或「領域不變量:INV-n,三行原文」並列出它引用到的簽名所在的每份文檔路徑),測試檔以 `R-n` / `INV-n` 命名。紅不歸因到某個 step 的實作:開 GAP(角色 conductor,目標 `R-n#ACCEPT` 或 `INV-n#LAW`)停下,回 `dev-flow:objective` 或 `dev-flow:revise`。沒有這種情形就跳過。
+6. **驗收測試**(`rules/roles.md`「驗收測試」):本波全綠後 `devflow status --tests <log>`;這份文檔讓某條需求底下每個目標的建置路線都達成,而那條需求的驗收有三行式卻沒有 `R-n#ACCEPT` 測試,或 law-design 在這條分支上把一條領域不變量寫成了三行而沒有 `INV-n#LAW` 測試 → 同一條分支再派一次 qa(模板的目標寫 `R-n` 或 `INV-n`;三行原文與它引用到的文檔由 brief 給),測試檔以 `R-n` / `INV-n` 命名。紅不歸因到某個 step 的實作:開 GAP(角色 conductor,目標 `R-n#ACCEPT` 或 `INV-n#LAW`)停下,回 `dev-flow:objective` 或 `dev-flow:revise`。沒有這種情形就跳過。
 7. **整套一次**:跑整套,輸出留檔,`devflow status --tests <log>`、`devflow lint all`。領域不變量有紅 = 這條分支違反了全專案的規則,照仲裁歸因到是哪一份的實作。
 8. **收尾**(`rules/roles.md`「收尾」):open GAP 清單各附「需要回答什麼」;qa 與 refactor 自己決定的事整份列出;決策紀錄「Faked / Unverified」逐列對過(換成真的了,或有一條 open GAP);`status` 顯示達成就改 `verified`。照 `templates/journal.md` 寫決策紀錄的「Verification」與「合併時要看」(`rules/roles.md`「決策紀錄」):數字抄 `devflow status --doc <全名>`,動到的檔抄 `git diff --stat <base>..HEAD`,決定抄 qa 與 refactor 的回報。連同所有改動 commit。分支留著給 `dev-flow:integrate`。
 
 ## 委派 prompt 模板
 
 ```
-plugin 根目錄 <D>:<解析出來的實際路徑>(規章在它底下的 rules/)
-【委派模式】遵守 <D>/rules/roles.md「委派」:不提問、不寫共用檔、提到文檔寫全名、如實回報。
-你是 <qa | refactor> 角色,執行 dev-flow:<qa | refactor>。
-文檔:<全名>,檔:<路徑>
-工作樹:<路徑>(所有讀寫與指令都在這裡)
-最內層檔案:<清單>(qa 可讀;其餘程式碼 qa 只讀 Steps 上那幾條簽名的宣告)
-子集測試指令:<一行>
-歸屬寫法:<字串 "F-00x#LAW-n" 或識別字 f_00x__law_n,依語言>
-回報固定五項:改了哪些檔;完成了什麼(數字);自己決定的事;GAP 清單(局部序號,四欄);阻塞項。
+【委派模式】你是 <qa | refactor> 角色:不提問、不寫共用檔、提到文檔寫全名、如實回報。
+第一個動作:用 Skill 工具載入 dev-flow:<qa | refactor>,args 照抄下一行:
+<全名 | R-n | INV-n> --root <工作樹的絕對路徑>
+開工要的東西(規章、目標文檔、簽名與型別的宣告、最內層、測試怎麼寫、子集測試指令、歸屬寫法)都在載入結果裡,不必再找、不必再讀規章。
+工作樹:<工作樹的絕對路徑>(所有讀寫與指令都在這裡)
+回報固定六項:指紋(載入結果的第一行,照抄);改了哪些檔;完成了什麼(數字);自己決定的事;GAP 清單(局部序號,四欄);阻塞項。
 ```
 
 refactor 的 prompt 另加:現在不成立的 law 原文與歸因;決策紀錄「Faked / Unverified」裡要換成真的的列;禁止讀寫任何測試檔、禁止改 Steps 上的簽名與型別宣告、只跑子集、禁止改文檔。修訂目標另附基準線的綠紅數字當護欄,不要自己重跑整庫。

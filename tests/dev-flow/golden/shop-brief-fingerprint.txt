@@ -1,0 +1,3 @@
+$ devflow brief qa F-001-checkout --fingerprint
+brief qa F-001-checkout @doc:deb87e7d rules:<雜湊>
+exit 0

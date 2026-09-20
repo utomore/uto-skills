@@ -1,0 +1,12 @@
+$ devflow brief qa F-001 --no-rules
+brief qa F-001 @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 目標
+
+system.md 的 language 欄沒有可用的 adapter,程式碼對不了帳:宣告那幾塊印不出來。停下,回報。
+exit 0

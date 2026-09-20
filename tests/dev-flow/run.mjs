@@ -109,6 +109,22 @@ const CASES = [
   // subsystems/ 體系的遷移帳本
   ['legacy-migrate', 'legacy', ['migrate', '.design', '--language', 'typescript']],
   ['legacy-migrate-no-lang', 'legacy', ['migrate', '.design']],
+
+  // brief:一個角色開工要的東西一次印完。golden 用 --no-rules,才不會規章每改一次就跟著變;規章的節另外查(下面的「brief 的規章節」)
+  ['shop-brief-qa', 'shop', ['brief', 'qa', 'F-001-checkout', '--no-rules']],
+  ['shop-brief-qa-requirement', 'shop', ['brief', 'qa', 'R-1', '--no-rules']],
+  ['shop-brief-qa-invariant', 'shop', ['brief', 'qa', 'INV-1', '--no-rules']],
+  ['shop-brief-refactor', 'shop', ['brief', 'refactor', 'F-002-refund', '--no-rules']],
+  ['shop-brief-refactor-requirement', 'shop', ['brief', 'refactor', 'R-1', '--no-rules']],
+  ['shop-brief-fingerprint', 'shop', ['brief', 'qa', 'F-001-checkout', '--fingerprint']],
+  ['shop-brief-no-target', 'shop', ['brief', 'qa', '--no-rules']],
+  ['shop-brief-missing', 'shop', ['brief', 'qa', 'F-009-nope', '--no-rules']],
+  ['shop-brief-bad-skill', 'shop', ['brief', 'nope']],
+  ['py-brief-qa', 'py-svc', ['brief', 'qa', 'F-001-basket', '--no-rules']],
+  ['go-brief-qa', 'go-svc', ['brief', 'qa', 'F-001-queue', '--no-rules']],
+  ['rs-brief-qa', 'rs-svc', ['brief', 'qa', 'F-001-span', '--no-rules']],
+  ['fullstack-brief-qa', 'fullstack', ['brief', 'qa', 'F-003-basket', '--no-rules']],
+  ['blank-brief-qa', 'blank', ['brief', 'qa', 'F-001', '--no-rules']],
 ];
 
 function snapshot(root, files) {
@@ -131,6 +147,8 @@ for (const [name, fixture, argv, files, env] of CASES) {
   const r = spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '', ...env } });
   const envText = env ? Object.entries(env).map(([k, v]) => `${k}=${v} `).join('') : '';
   let actual = `$ ${envText}devflow ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
+  // brief 的指紋帶規章的雜湊:規章每改一次就變,golden 不追它
+  actual = actual.replace(/ rules:[0-9a-f]{8}/g, ' rules:<雜湊>');
   if (files) actual += snapshot(root, files) + '\n';
   if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
   const file = path.join(goldenDir, `${name}.txt`);
@@ -152,6 +170,20 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
+
+// brief 的規章節:每個 skill 點名的節都要真的在 rules/ 裡,節改了名這裡會紅
+{
+  const skills = (/skill:([^\n]+)/.exec(h.stdout) || [null, ''])[1].split('、').map((s) => s.trim()).filter(Boolean);
+  let ok = skills.length > 0;
+  for (const s of skills) {
+    const r = spawnSync(process.execPath, [bin, 'brief', s, '--root', path.join(here, 'fixtures', 'shop')], { encoding: 'utf8' });
+    if (r.status !== 0 || !/^brief /.test(r.stdout) || !/^### \S+\.md「/m.test(r.stdout) || /裡沒有「/.test(r.stdout)) ok = false;
+  }
+  if (!ok) {
+    failed++;
+    console.log('✗ brief 的規章節');
+  } else console.log('✓ brief 的規章節');
+}
 
 // --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事
 {

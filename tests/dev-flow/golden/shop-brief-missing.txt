@@ -1,0 +1,12 @@
+$ devflow brief qa F-009-nope --no-rules
+brief qa F-009-nope @doc:- rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 目標
+
+沒有 F-009-nope 這份文檔,也沒有這條需求或領域不變量;這棵樹有的是:F-001-checkout、F-002-refund、A-001-settle。停下,回報。
+exit 0

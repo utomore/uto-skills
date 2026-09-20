@@ -2,21 +2,26 @@
 name: qa
 description: dev-flow 的 qa 角色 — 只讀 feature 或 abstract 文檔、最內層的匯出與 Steps 上那幾條簽名的宣告,每條 law 一條 property test、每個 example 一條 example test,歸屬 "F-00x#LAW-n" 或 f_00x__law_n;conductor 指定一條需求的驗收或一條領域不變量時,讀它的三行與引用到的簽名所在文檔,寫一條歸屬 "R-n#ACCEPT"(需求的驗收)或 "INV-n#LAW"(領域不變量)的測試(識別字形式 r_n__accept / inv_n__law);產生器只用公開建構子、能縮小,案例數與尺寸有上限;不讀任何實作本體,不因為看到紅綠而改斷言;寫不出斷言就開 GAP。觸發詞:寫測試、qa、property test、性質測試、測試設計、驗收測試、dev-flow qa。Use when translating a document's laws and examples, or one requirement, objective or invariant Law, into tests without reading any implementation.
 user-invocable: false
+allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
 # dev-flow:qa — laws 翻成測試
 
 > **核心**:Translate the Law, not the code: every test MUST come from the Law text alone and MUST be able to fail.(翻譯的是 law,不是程式碼:每條測試只從 law 的原文來,而且要真的會失敗。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
-## 讀什麼
+## 開工 context
 
-`<D>` 是 plugin 根目錄,也就是本 skill 的基準目錄往上兩層;下面的 `rules/…` 都在 `<D>/rules/`。一次讀完:`rules/roles.md`「角色」「委派」「驗收測試」「qa 的交付」、`rules/features.md`「節」「什麼要有 law」「提問(GAP)」、`rules/boundary.md`「測試與邊界」、`rules/tooling.md`「測試歸屬」。再讀目標文檔、最內層的檔案、Steps 上那幾條簽名在程式碼裡的宣告(簽名行與型別,不往下讀本體)。
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief qa $ARGUMENTS`
+
+上面這一段是載入 skill 時跑 `devflow brief qa <目標> [--root <工作樹>]` 的輸出:規章的節、目標文檔(或那條需求的驗收、領域不變量的三行與它引用到的文檔)、逐條狀態、Steps 上每條簽名與型別的宣告、最內層、這個專案的測試怎麼寫。開工要的全部在這裡,不再另外讀規章、找宣告、翻別的測試檔;宣告那一塊只有簽名與型別,本體不在裡面,也不去開。第一行是指紋,回報的第一項照抄。
+
+看到的若是那道指令的原文而不是它的輸出,自己跑一次(`${CLAUDE_PLUGIN_ROOT}` 是本 skill 基準目錄往上兩層);目標文檔在這一場裡變過,重跑一次並加 `--no-rules`。
 
 ## 輸入 / 產出
 
 | 輸入 | 產出 |
 |---|---|
-| 文檔全名與路徑、最內層檔案清單、子集測試指令、歸屬寫法;或一條需求 / 目標 / 領域不變量的 Law 三行與它引用到的簽名所在文檔 | 一個測試檔;回報五項 |
+| Skill 的 args:`<文檔全名 \| R-n \| INV-n> --root <工作樹>`;其餘由開工 context 給 | 一個測試檔;回報六項 |
 
 ## 步驟
 
@@ -26,7 +31,7 @@ user-invocable: false
 4. **寫不出斷言**(law 讀不出唯一解釋、缺相等性、觀察點不在簽名上):停這一條,GAP 四欄寫進回報,局部序號;其餘照做。不猜、不看實作、不要求後門。
    - **驗收測試**(目標是一條需求 `R-n` 的驗收,或一條領域不變量 `INV-n`):只翻那一條,歸屬 `R-n#ACCEPT` / `INV-n#LAW`,一個測試檔以 `R-n` / `INV-n` 命名;識別字對到哪份文檔的 Steps 就讀那份的 Steps 表與最內層匯出,其餘不讀;領域不變量只引用最內層,就只讀最內層。斷言逐字照 `|-` 行;它跨過幾份文檔就呼叫幾份文檔的 `=` 列,不碰進入點。
 5. **只跑自己的測試檔一次**:確認編得過、跑得完、沒有跑爆。紅綠分佈照實回報,**不因為看到綠或紅而改斷言**:程式碼已經在,紅可能正是這條 law 要抓的東西,綠也可能是斷言恆真——哪幾條該紅由 conductor 在首跑驗,你不必知道。
-6. **回報五項**:改了哪些檔;law / example 各翻幾條、紅綠分佈;自己決定的事(產生器的分佈、尺寸);GAP 清單;阻塞項。
+6. **回報六項**:指紋(開工 context 的第一行,照抄);改了哪些檔;law / example 各翻幾條、紅綠分佈;自己決定的事(產生器的分佈、尺寸);GAP 清單;阻塞項。
 
 ## 邊界
 

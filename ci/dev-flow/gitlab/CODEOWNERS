@@ -7,5 +7,5 @@
 
 [design]
 .design/system.md        @architect
-.design/objectives/      @architect
+.design/requirements/    @architect
 .design/modules.md       @architect

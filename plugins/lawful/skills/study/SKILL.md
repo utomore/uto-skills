@@ -21,7 +21,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --args '$ARGUMENTS' --part 6 --of 6`
 
-上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief study` 的輸出:規章、`.lawful/` 現在有什麼、`Cone.md`「專案約束」、`modules.md` 全文;沒有 `.lawful/` 的專案只有規章。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief study` 的輸出:規章、`.lawful/` 現在有什麼、`Cone.md`「Constraint」、`modules.md` 全文;沒有 `.lawful/` 的專案只有規章。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
 目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief study --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
@@ -61,7 +61,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 工具箱
 
-**問什麼與語言無關,怎麼問由語言決定。** 下面第三欄是 Haskell 的寫法(目前唯一有 adapter 的語言,`tooling.md`「language adapter」);其他純函數語言(OCaml、F#、PureScript、Elm、Scala、Idris…)把第三欄換成它自己的等價物——建置描述檔、模組介面、REPL、型別搜尋——前兩欄與六層課程一個字不變。專案有 `.lawful/` 時 `Cone.md`「專案約束」的 `language` 就是答案,沒有就看建置檔決定。
+**問什麼與語言無關,怎麼問由語言決定。** 下面第三欄是 Haskell 的寫法(目前唯一有 adapter 的語言,`tooling.md`「language adapter」);其他純函數語言(OCaml、F#、PureScript、Elm、Scala、Idris…)把第三欄換成它自己的等價物——建置描述檔、模組介面、REPL、型別搜尋——前兩欄與六層課程一個字不變。專案有 `.lawful/` 時 `Cone.md`「Constraint」的 `language` 就是答案,沒有就看建置檔決定。
 
 **盤點**(不啟動編譯器,秒回;前兩課靠它就走得完):
 
@@ -143,7 +143,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 - 一句話講這專案解決什麼問題(有 `.lawful/` 就引 `Cone.md`「願景」與 `requirements/` 每個需求檔標題的那一句;沒有就從 README 與套件描述檔的簡介推)
 - 套件結構:切成幾個 library / 執行檔 / 測試套件、各自的原始碼目錄、每個目錄的職責一句話;講不出職責的就明講「還沒看」
 - **入口在哪**:程式從哪一行開始執行、它做的第一件事是什麼,附證據
-- 怎麼編、怎麼跑測試(`Cone.md`「專案約束」的三道指令;沒有就從描述檔的測試套件與 CI 設定讀)
+- 怎麼編、怎麼跑測試(`Cone.md`「Constraint」的三道指令;沒有就從描述檔的測試套件與 CI 設定讀)
 - 影響架構的依賴與打開的語言擴充:只講會改變讀法的那幾個,依賴清單不念
 - **課末選定主線 pipeline**:有 `.lawful/` 就從 `Cone.md`「契約:對外 I/O」表挑一條 io pipeline;沒有就提名一條「從入口進來、經過純轉換、寫出去」的完整執行,講明是推測,讓開發者確認或換掉——這條線之後每課都會用
 

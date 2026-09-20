@@ -25,7 +25,7 @@ const HELP = `devflow <子命令> [選項]
   claim feature|adr <slug> [--description <句>] [--milestone <M-n-slug>]
                                        鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(給全名 M-n-<slug>)
                                        配號看同一個 repo 的每一棵工作樹,別條 build 分支上 claim 走的號不重配
-                                       system.md「語言與工具」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
+                                       system.md「Constraint」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
   requirement add <slug> <一句話> --priority <1-4> [--accept <句>]
                                        鑄 R-n 建 requirements/R-n-<slug>.md:一件必須達成的事;優先 1 最高、4 最低;驗收(判它達成與否的那一句)沒給就留佔位符
   requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]
@@ -33,12 +33,12 @@ const HELP = `devflow <子命令> [選項]
                                        綁定的全名要是 features/ 裡有的 feature;綁一份已經被別條里程碑綁過的 feature,這條里程碑就靠修訂它達成:
                                        那份 feature 達成,而且它的修訂記錄裡有一條 REV 的依欄寫了這條里程碑的全名
   invariant add <一句話> [--kind <種類>]
-                                       鑄 INV-n 寫進 system.md「全域 Law」區的領域不變量:整個專案任何一份 feature 都不准違反的 law;種類沒給就是 invariant
+                                       鑄 INV-n 寫進 system.md「全域 Law」區的領域不變量:整個專案任何一份 feature 都不准違反的 law,從一條既有的 law 抽上去,三行接著從出處照搬;種類沒給就是 invariant
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
                                        ids:兩個檔案同號、號段行讀不懂或重疊、owner 的號不在自己的號段內;
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與引用別份文檔的 step;
                                        laws:文檔的 law 三行、種類、識別字、= 列有 law,與需求的驗收,名詞表(專案根目錄 CLAUDE.md 的「## 名詞」節)型別欄的型別在程式碼裡;trace:laws 與驗收 ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、契約、秘密字面值;
-                                       invariants:領域不變量的編號、種類、三行只引用最內層、寫了三行就有 INV-n#LAW 測試;
+                                       invariants:領域不變量的編號、種類、三行齊全而且只引用最內層、有 INV-n#LAW 測試;
                                        global:全域 Law 三類一次查完 = boundary(架構)+ io(契約)+ invariants(領域不變量)
   sync                                 同層搬家的 step,模組欄改成程式碼裡的實際檔案
   modules --gen                        從程式碼補模組表缺的檔案,層欄留白

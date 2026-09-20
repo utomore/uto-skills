@@ -19,7 +19,7 @@ const RULES = {
   'require-design': [['pipelines.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
   'global-laws': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['pipelines.md', ['節', '提問(GAP)', '完成度']], ['roles.md', ['分支與所有權', '驗收測試', '決策紀錄']], ['tooling.md', ['CLI', '收尾定錨']]],
   module: [['boundary.md', ['四層', '模組單元', '模組表']], ['tooling.md', ['CLI', '收尾定錨']]],
-  'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['pipelines.md', ['願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
+  'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['pipelines.md', ['Cone.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
   'scope-laws': [['pipelines.md', ['pipeline', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O', '效果的判定']], ['tooling.md', ['CLI', '收尾定錨']]],
   'scope-revise': [['pipelines.md', ['簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑']], ['boundary.md', ['模組表', '四層']], ['tooling.md', ['CLI', '收尾定錨']]],
   build: [['roles.md', '*'], ['pipelines.md', ['提問(GAP)', '修訂(REV)', '完成度']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
@@ -42,8 +42,8 @@ const BLOCKS = {
   'scope-laws': { milestone: ['branch', 'tree', 'requirement', 'cone', 'modules', 'journal', 'bound', 'typeslayer'], doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'cone', 'journal', 'gaps', 'lint', 'statusrows'] },
   'scope-revise': { doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'modules', 'gaps', 'lint', 'statusrows'] },
   build: { doc: ['branch', 'constraints', 'modules', 'journal', 'doc', 'detail', 'refs', 'lint', 'gaps', 'logs', 'statusrows'], milestone: ['branch', 'constraints', 'modules', 'journal', 'requirement', 'bound', 'lint', 'gaps', 'logs', 'statusrows'], top: ['branch', 'constraints', 'top', 'touched', 'gaps', 'logs', 'statusrows'] },
-  qa: { doc: ['doc', 'detail', 'declarations', 'typeslayer', 'testing'], top: ['top', 'touched', 'typeslayer', 'testing'] },
-  refactor: { doc: ['doc', 'detail', 'declarations', 'typeslayer', 'journal', 'files'] },
+  qa: { doc: ['doc', 'detail', 'declarations', 'typeslayer', 'constraints', 'testing'], top: ['top', 'touched', 'typeslayer', 'constraints', 'testing'] },
+  refactor: { doc: ['doc', 'detail', 'declarations', 'typeslayer', 'journal', 'files', 'constraints'] },
   integrate: { none: ['branch', 'journals', 'constraints', 'gaps'] },
   status: { none: ['constraints', 'logs'] },
   audit: { none: ['lintall', 'requirements', 'status', 'modules'] },
@@ -271,7 +271,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
     return srcCache.get(file);
   };
   const lawful_ = (rel) => path.join(root, '.lawful', rel);
-  const command = (key) => (cone && cone.commands[key]) || '(Cone.md「專案約束」沒有寫)';
+  const command = (key) => (cone && cone.commands[key]) || '(Cone.md「Constraint」沒有寫)';
   const typesModules = () => (source ? [...source.modules.values()].filter((m) => m.layer === 'types').sort((p, q) => p.module.localeCompare(q.module)) : []);
   const lintText = (results) => renderLint(results).text.split('\n').map((l) => l.replace(/^## /, '### '));
   // 對帳只留講到目標的那幾條(目標 pipeline,或里程碑綁的每一條 pipeline):全專案的紅是 audit 的事,不是這一波的事
@@ -460,9 +460,10 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
       if (!hit.length) out.push('# 引用到的 pipeline', '', inv ? '(領域不變量只引用 types 層,不引用任何 pipeline)' : '(三行裡的識別字沒有對到任何一條 pipeline 的 Stages)', '');
     },
 
+    // 硬性限制(寫程式與寫測試的角色照做)與工具要讀的那幾行,同一節
     constraints: () => {
-      const s = cone ? cone.sections.find((q) => q.title === '專案約束') : null;
-      out.push('# Cone.md「專案約束」', '', ...(s ? s.lines.filter((l) => l.trim()) : ['(Cone.md 沒有這一節)']), '');
+      const s = cone ? cone.sections.find((q) => q.title === 'Constraint') || cone.sections.find((q) => q.title === '專案約束') : null;
+      out.push('# Cone.md「Constraint」', '', ...(s ? s.lines.filter((l) => l.trim()) : ['(Cone.md 沒有這一節)']), '');
     },
 
     cone: () => out.push(...wholeFile('Cone.md(全份)', lawful_('Cone.md'), '(還沒有 .lawful/Cone.md)')),

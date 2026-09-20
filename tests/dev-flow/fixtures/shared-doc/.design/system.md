@@ -32,7 +32,7 @@ updated: 2026-09-07
 | POST /notes/rename | in | `HttpReq` | `src/entry/http.ts` | F-002-rename | untrusted | `normalize` | A-001#LAW-1 |
 | 改名結果 | out | `HttpRes` | `src/entry/http.ts` | F-002-rename | trusted | - | - |
 
-## 語言與工具
+## Constraint
 - 建置:`npx tsc --noEmit`
 - 測試(整套):`npx jest`
 - 測試(子集):`npx jest test/<檔名>`(以一份文檔選)

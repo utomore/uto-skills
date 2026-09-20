@@ -32,7 +32,9 @@ updated: 2026-09-05
 | 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-game-save | P-001#LAW-9、INV-7、roundtrip |
 | 讀檔 | inn | `SaveState` | `Game.Save.Codec` | P-002-load-game | - |
 
-## 專案約束
+## Constraint
+硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先)。開發者定,`lawful:kickoff` 寫,之後隨時回 `lawful:kickoff` 補或改;限制的類別可以自己加。
+- 套件與框架:無
 - 語言:haskell
 - 建置:`cabal build`
 - 測試(整套):`cabal test`
@@ -41,4 +43,3 @@ updated: 2026-09-05
 - 原始碼根目錄:`src-<層>`
 - IO 模組追加:無
 - 號段:amy@corp.com = 000-099;bob@corp.com = 050-149;carol@corp.com = 1x0-199
-- 套件與框架:無

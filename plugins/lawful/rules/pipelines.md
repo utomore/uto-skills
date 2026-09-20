@@ -1,12 +1,12 @@
 # pipeline 文檔
 
-文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過純 / IO 邊界的資料流。型別、簽名、模組匯出住程式碼;文檔引用,工具對帳。程式碼先到:一條里程碑先由 `lawful:spike-impl` 做成一條跑得通的垂直切片,`lawful:scope-laws` 再對著它與開發者逐條談出 laws,Stages 的簽名抄程式碼裡定下來的那一個(roles.md「五個階段」)。做之前就寫的只有願景、專案約束與需求(含驗收與切好的里程碑);其餘都等跑得通了再講——scope law 是對著切片談出來的,全域 Law 是從切片裡抽上去的(laws.md「全域 Law」)。**測試涵蓋到哪裡,這條 pipeline 的承諾就到哪裡**:沒有 law 守著的行為不是承諾,實作可以自由改。
+文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過純 / IO 邊界的資料流。型別、簽名、模組匯出住程式碼;文檔引用,工具對帳。程式碼先到:一條里程碑先由 `lawful:spike-impl` 做成一條跑得通的垂直切片,`lawful:scope-laws` 再對著它與開發者逐條談出 laws,Stages 的簽名抄程式碼裡定下來的那一個(roles.md「五個階段」)。做之前就寫的只有願景、Constraint 與需求(含驗收與切好的里程碑);其餘都等跑得通了再講——scope law 是對著切片談出來的,全域 Law 是從切片裡抽上去的(laws.md「全域 Law」)。**測試涵蓋到哪裡,這條 pipeline 的承諾就到哪裡**:沒有 law 守著的行為不是承諾,實作可以自由改。
 
 ## `.lawful/`
 
 ```
 .lawful/
-├── Cone.md            願景、全域 Law(領域不變量、架構:四層、契約:對外 I/O)、專案約束
+├── Cone.md            願景、全域 Law(領域不變量、架構:四層、契約:對外 I/O)、Constraint
 ├── requirements/R-n-<slug>.md     一條需求一個檔(「願景、需求與里程碑」)
 ├── modules.md         模組單元表(boundary.md「模組表」)
 ├── pipelines/P-00x-<slug>.md
@@ -42,10 +42,10 @@ frontmatter:`language`(選 adapter)、`updated`。標題一行 `# <專案名>:<�
 |---|---|
 | `## 願景` | 北極星:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼。第一段一到三句,後面可以展開替誰做什麼、明確不做什麼;立案時訂,不隨里程碑變;`lawful status` 把第一段印在第一行,還是模板就列警訊 |
 | `## 全域 Law` | **不得違反**的約束,整個專案的約束都看得到住在這一區(laws.md「全域 Law」);底下三個小區。立案開出來時是空的(四層那四行照建):每一條都是從做出來的切片裡抽上去的,`lawful:scope-laws` 談出候選、開發者批准、`lawful:global-laws` 落筆 |
-| `### 領域不變量` | `- INV-n [種類] 一句話` 一條一項,底下三行(開發者先立、types 層的型別還沒出現的那一句,先只有一句話);一條都沒有寫「無」 |
+| `### 領域不變量` | `- INV-n [種類] 一句話` 一條一項,底下三行;一條都沒有寫「無」 |
 | `### 架構:四層` | 清單四行 `- types:…`、`- effect:…`、`- core:…`、`- shell:…`,每層一句講這個專案在那一層裝什麼(boundary.md「四層」);四層是固定的,那一句在第一條切片做完之後由 `lawful:global-laws` 寫 |
 | `### 契約:對外 I/O` | 表:名稱、方向(in / out)、型別或效果 ADT、shell 模組、進入哪條 pipeline、契約(boundary.md「對外 I/O」);還沒有切片的時候只有表頭,每條切片的新列由 `lawful:scope-laws` 寫 |
-| `## 專案約束` | 使用者的硬性要求,清單:語言;三道指令:建置、整套測試、**子集測試**(每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令);模組前綴;原始碼根目錄(帶 `<層>` 的樣式,預設 `src-<層>`);IO 模組追加;效果型別追加(boundary.md「效果的判定」);忽略目錄(不掃的原始碼目錄,例如搬遷中的舊樹);號段;套件與框架(硬性要求的套件、框架、版本);優先(一行 `1 = …;2 = …;3 = …;4 = …`,各級在這個專案代表什麼)。其餘的列給人看,工具不讀 |
+| `## Constraint` | 硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定。清單,一項一行「類別:限制」——語言與版本、編譯器與執行環境、套件與框架(效果的寫法也在這裡:直接 `IO`、mtl、effectful 這類效果系統)、環境、命名與寫法(變數、函數、模組怎麼命名,格式與風格);類別可以自己加,沒有限制的類別寫「無」。由開發者定,`lawful:kickoff` 寫:立案時定得下來的先寫,之後隨時回 `lawful:kickoff` 補或改。它不是 law(laws.md「全域 Law」):不從切片裡抽、沒有三行、沒有測試;`lawful:spike-impl`、`lawful:qa` 與 `lawful:refactor` 動筆之前讀它、寫出來的每一行都照做。同一節也裝工具要讀的那幾行:語言;三道指令:建置、整套測試、**子集測試**(每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令);模組前綴;原始碼根目錄(帶 `<層>` 的樣式,預設 `src-<層>`);IO 模組追加;效果型別追加(boundary.md「效果的判定」);忽略目錄(不掃的原始碼目錄,例如搬遷中的舊樹);號段;優先(一行 `1 = …;2 = …;3 = …;4 = …`,各級在這個專案代表什麼)。其餘的列給人看,工具不讀 |
 
 其他一切不寫在 Cone.md:需求在 `requirements/`,模組單元在 `modules.md`,pipeline 清單就是 `pipelines/` 裡的檔,類別在各 pipeline 的 frontmatter;交付順序不寫在任何地方,由需求的優先、里程碑的順序與 pipeline 的引用推。
 
@@ -57,7 +57,7 @@ frontmatter:`language`(選 adapter)、`updated`。標題一行 `# <專案名>:<�
 |---|---|---|
 | 願景 | `Cone.md`「願景」 | 北極星:專案要交出的、世界上還沒有的東西;只有一個,立案時訂。它是方向,不是驗收清單:需求不對它逐句對照,順序來自依賴與必要性,不來自離它多近 |
 | 需求 | `requirements/R-n-<slug>.md`,一條需求一個檔;frontmatter `id`、`priority`、`updated`,標題 `# <全名>:<一句話>` | 一件使用者要得到的事,**必須達成**:一句話講誰在什麼情況下要得到什麼。各有一句**驗收**(`- 驗收:…`):可驗證、可判定的一句話,判這條需求達成了沒;最好有一條歸屬 `R-n#ACCEPT` 的驗收測試(roles.md「驗收測試」)。各有一級**優先**(frontmatter `priority`,1 到 4,1 最高)。需求不是 law:做到之前它本來就還沒達成。需求只在與開發者的討論裡成形,只由 `lawful:require-design` 寫。`R-n` 是流水號,永不重排,只是身分,不代表先後;slug 是 kebab-case 英文,講這條需求要得到什麼。至少一條 |
-| 優先各級 | `Cone.md`「專案約束」一行 `- 優先:1 = …;2 = …;3 = …;4 = …` | 各級在這個專案代表什麼,專案自己定(例:1 = 主軸與它的直接前提;2 = 地基;3 = 呈現與存取;4 = 工具與詞彙);`lawful status` 印它,沒宣告列警訊 |
+| 優先各級 | `Cone.md`「Constraint」一行 `- 優先:1 = …;2 = …;3 = …;4 = …` | 各級在這個專案代表什麼,專案自己定(例:1 = 主軸與它的直接前提;2 = 地基;3 = 呈現與存取;4 = 工具與詞彙);`lawful status` 印它,沒宣告列警訊 |
 | 里程碑 | 需求檔裡的表 `里程碑 \| 做到什麼 \| 綁定` | 這條需求的建置切成的階段,**有順序,依序完成;全部達成,這條需求的建置就走完**。第一格是全名 `M-n-<slug>`:`M-n` 是配號用的編號,全資料夾唯一(跨需求檔);slug 是 kebab-case 英文,切片的分支 `build/M-n-<slug>` 與決策紀錄以全名為鍵;表的列序就是先後。**綁定**欄是 pipeline 全名,「、」分隔,切片做出來的新 pipeline 或這個階段靠修訂做到的既有 pipeline 都可以;「-」的意思是**還沒有切片**。需求檔只有這一張表 |
 
 ```markdown
@@ -94,7 +94,7 @@ updated: 2026-09-05
   - 在那條 REV 出現之前,`lawful status` 顯示這條里程碑「待修訂」,下一步是對綁定的那條 pipeline 走修訂(「修訂(REV)」):既有的 law 不動、新的承諾(例如「不超過 1 MB」的上界,一條新的 `bound` law)用新增的 law 表達,走 `lawful:scope-revise <pipeline 全名>`;要調整既有的 law,走 `lawful:scope-laws <pipeline 全名>`。修訂在這條里程碑的 `build/M-n-<slug>` 分支上做,REV 的依欄寫 `M-n-<slug>` 與它那一句。綁定欄由 `lawful:require-design` 當場填,修訂的 skill 不碰需求檔。
   - 先後就是里程碑表的列序:它與做出新 pipeline 的里程碑排在同一張表,輪到它(它是這條需求下一條還沒達成的里程碑)才開工。修訂之後需求仍要達成:REV 的保護欄含需求的驗收引用到的每條 law;里程碑全部達成而驗收沒過是警訊(「完成度」)。
   - 例:上面需求檔的 `M-4-small-save`。`P-001-save-write` 最先由 `M-1-save-write` 綁定,`M-4-small-save` 排在它後面、綁同一條,是靠修訂達成的;`P-001-save-write` 的修訂記錄出現依欄寫 `M-4-small-save` 的 REV(新增一條 `bound` law 守「不超過 1 MB」)、pipeline 回到達成,`M-4-small-save` 才達成。
-  - 例:存檔格式換版。需求寫的是誰得到什麼(「遊戲更新之後,玩家更新前存的檔還讀得回來」);里程碑「拿上一版存的檔在這一版讀出同一個世界」靠修訂 `P-002-save-load` 達成,`lawful:require-design` 當場把 `P-002-save-load` 填進綁定欄,「帶著上一版版本號的存檔解得回同一個投影」是修訂時新增的一條 law,原有的往返 law 不動。存檔用哪一種編碼、版本號放在哪裡不是需求本身:它是決定(ADR),加上全域 Law 的變更(`lawful:global-laws`:對外 I/O 表上存檔那一端的契約多一句「格式只增欄位,不刪、不改名」、指到守它的 law)與「專案約束」裡硬性要求的套件。
+  - 例:存檔格式換版。需求寫的是誰得到什麼(「遊戲更新之後,玩家更新前存的檔還讀得回來」);里程碑「拿上一版存的檔在這一版讀出同一個世界」靠修訂 `P-002-save-load` 達成,`lawful:require-design` 當場把 `P-002-save-load` 填進綁定欄,「帶著上一版版本號的存檔解得回同一個投影」是修訂時新增的一條 law,原有的往返 law 不動。存檔用哪一種編碼、版本號放在哪裡不是需求本身:它是決定(ADR),加上全域 Law 的變更(`lawful:global-laws`:對外 I/O 表上存檔那一端的契約多一句「格式只增欄位,不刪、不改名」、指到守它的 law)與「Constraint」裡硬性要求的套件。
 - 進度不是欄位:里程碑達成與否、需求的建置進度(達成的里程碑 / 里程碑數)、需求達成與否照「完成度」;都由 `lawful status` 算。
 - **引用一條里程碑一律寫全名 `M-n-<slug>`**:REV 的依欄、決策紀錄、commit 訊息、PR 內文、回報與下一步的指令都是;`M-n` 是配號用的編號,不拿來引用。
 - 配號只走 `lawful requirement add`、`lawful requirement milestone`(需求面)與 `lawful invariant add`(領域不變量);`lawful claim <slug> --milestone <M-n-slug>` 把新 pipeline 綁進里程碑,`lawful requirement milestone … --bind <pipeline 全名>` 把既有的 pipeline 綁進新的里程碑。刪掉的號永久空缺。
@@ -135,7 +135,7 @@ pipeline 之間**可以互相引用**,不論它們屬於哪條需求:兩條 pipe
   - `lint sig` 對帳:同名簽名出現在兩條 pipeline 而沒有一邊註明「見」即紅;註明的那一條不存在、或它沒有這個 stage(或它自己也是引用)即紅。
 - 配號只走 `lawful claim`、`lawful requirement add / milestone`、`lawful invariant add`;刪掉的號永久空缺。
 - `lawful claim` 配號時看同一個 repo 的每一棵工作樹:每條切片住自己的 build 工作樹、各自 claim,別棵樹上 claim 走的號不重配。
-- `Cone.md`「專案約束」沒有號段行時,`lawful claim` 從全部 pipeline 的最大號往上配。有號段行時(每人一段,以 git 的 `user.email` 為鍵:`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),從自己區間內的最大號往上配,frontmatter 多一欄 `owner: <email>`;email 對不到任何區間、或區間用完,claim 停下,由架構負責人改號段行。號段只管 pipeline 與 ADR;需求、領域不變量、里程碑一律從最大號往上配(里程碑跨需求檔、跨工作樹)。
+- `Cone.md`「Constraint」沒有號段行時,`lawful claim` 從全部 pipeline 的最大號往上配。有號段行時(每人一段,以 git 的 `user.email` 為鍵:`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),從自己區間內的最大號往上配,frontmatter 多一欄 `owner: <email>`;email 對不到任何區間、或區間用完,claim 停下,由架構負責人改號段行。號段只管 pipeline 與 ADR;需求、領域不變量、里程碑一律從最大號往上配(里程碑跨需求檔、跨工作樹)。
 - `lint ids`:兩個檔案同號、號段行讀不懂或兩段重疊、`owner` 的號不在自己的區間內即紅。不同機器上各自 claim 時彼此看不到,同號在合進主線時才浮現,這條在 PR 的 CI 上跑。
 - pipeline 與 ADR 一律寫全名。
 - pipeline 的 slug 是 `<領域名詞>-<動詞或動名詞>`,kebab-case 英文,至少兩段。領域名詞是 `=` 列住的**模組單元**:去掉模組前綴、大駝峰拆成 kebab(`Game.ActionSequence` → `action-sequence`);後面接這條資料流做什麼(`inventory-step`、`render-compose`、`snapshot-rewind`、`save-write`)。`lawful claim` 建檔時查領域名詞對得上模組表。**編號是身分,slug 取了就不換**:`=` 列之後搬到別的模組單元,slug 照舊。

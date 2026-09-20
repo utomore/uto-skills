@@ -50,7 +50,13 @@ updated: 2026-09-05
 |---|---|---|---|---|---|
 | 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-write | P-001#LAW-5、INV-1 |
 
-## 專案約束
+## Constraint
+硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先)。開發者定,`lawful:kickoff` 寫,之後隨時回 `lawful:kickoff` 補或改;限制的類別可以自己加。
+- 語言與版本:Haskell,GHC2021
+- 編譯器與執行環境:GHC 9.6、cabal 3.10
+- 套件與框架:cborg(CBOR 編解碼);不引入其他序列化套件
+- 環境:無
+- 命名與寫法:型別與建構子 PascalCase、函數與變數 camelCase;模組一律寫匯出清單;smart constructor 以 `mk` 開頭
 - 語言:haskell
 - 建置:`cabal build`
 - 測試(整套):`cabal test`
@@ -61,7 +67,6 @@ updated: 2026-09-05
 - 效果型別追加:無
 - 忽略目錄:`old`
 - 號段:無
-- 套件與框架:cborg(CBOR 編解碼);不引入其他序列化套件
 - 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
 ````
 

@@ -151,6 +151,16 @@ def _private(x: int) -> int:
     return x
 ```
 
+# system.md「Constraint」
+
+- 建置:`python -m compileall cart`
+- 測試(整套):`pytest -v`
+- 測試(子集):`pytest -v tests/test_basket.py`
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 優先:1 = 算得對;2 = 進入點;3 = 呈現;4 = 工具
+
 # 測試怎麼寫
 
 - 子集測試指令:pytest -v tests/test_basket.py

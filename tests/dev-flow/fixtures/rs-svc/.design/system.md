@@ -27,7 +27,7 @@ updated: 2026-09-07
 | stdin 一行 | in | `Span` | `src/bin/cli.rs` | F-001-span | untrusted | `make` |
 | 區間寬度 | out | `u32` | `src/bin/cli.rs` | F-001-span | trusted | - |
 
-## 語言與工具
+## Constraint
 - 建置:`cargo build`
 - 測試(整套):`cargo test`
 - 測試(子集):`cargo test span`

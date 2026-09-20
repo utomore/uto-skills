@@ -68,7 +68,7 @@ export function nextNumber(design, nums, prefix) {
   const email = currentEmail(design.root);
   if (!email) return { error: 'Cone.md 有號段行,但 git 的 user.email 是空的;先 git config user.email <你的 email>,號段行要有這個 email 的區間' };
   const mine = ranges.filter((r) => r.email === email);
-  if (!mine.length) return { error: `Cone.md 的號段行沒有 ${email} 的區間;請架構負責人在「專案約束」的號段行加上一段,再 claim` };
+  if (!mine.length) return { error: `Cone.md 的號段行沒有 ${email} 的區間;請架構負責人在「Constraint」的號段行加上一段,再 claim` };
   for (const r of mine) {
     const lo = Math.max(r.lo, 1);
     const used = nums.filter((n) => n >= lo && n <= r.hi);
@@ -236,7 +236,7 @@ export function invariantAdd(design, title, { kind = 'invariant' } = {}) {
     lines.splice(from + 1, to - from - 1, ...body, item, '');
   }
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${id} 寫進 .lawful/Cone.md「全域 Law」的領域不變量`, `還沒有三行式:從切片抽上去的,把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名);types 層的型別還沒出現的先留一句話。有了三行,build 派 qa 寫歸屬 "${id}#LAW" 的測試`].join('\n'), exitCode: 0, id };
+  return { text: [`${id} 寫進 .lawful/Cone.md「全域 Law」的領域不變量`, `接著把出處那條 law 的三行照搬到它底下(識別字只用 types 層的匯出與型別名):沒有三行 lint invariants 即紅。有了三行,build 派 qa 寫歸屬 "${id}#LAW" 的測試`].join('\n'), exitCode: 0, id };
 }
 
 // requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]:鑄 M-n(全資料夾唯一),以全名 M-n-<slug> 加到該需求檔的里程碑表最後;表的列序就是先後。

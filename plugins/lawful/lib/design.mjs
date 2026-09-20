@@ -1,4 +1,4 @@
-// 一層一棵原始碼樹;Cone.md「專案約束」的「原始碼根目錄」是帶 <層> 的樣式,預設 src-<層>。
+// 一層一棵原始碼樹;Cone.md「Constraint」的「原始碼根目錄」是帶 <層> 的樣式,預設 src-<層>。
 export function layerRoot(cone, layer) {
   const pattern = (cone && cone.srcRoot) || 'src-<層>';
   return pattern.split('<層>').join(layer);
@@ -32,7 +32,7 @@ export function unitOfSlug(cone, entries, slug) {
   }
   return best;
 }
-// 讀 .lawful/ 成一棵樹:cone(願景、全域 Law 三區、專案約束)、requirements(需求:驗收、優先、里程碑)、modules(模組單元)、pipelines、gaps、journals。只讀不判;判在 commands/。
+// 讀 .lawful/ 成一棵樹:cone(願景、全域 Law 三區、Constraint)、requirements(需求:驗收、優先、里程碑)、modules(模組單元)、pipelines、gaps、journals。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
@@ -132,7 +132,7 @@ export function parseRanges(raw) {
   return out;
 }
 
-// 專案約束的清單項:指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先各級代表什麼。其餘的列是給人看的硬性要求,不機械讀。
+// Constraint的清單項:指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先各級代表什麼。其餘的列是給人看的硬性要求,不機械讀。
 function parseConstraints(lines, start) {
   const ioExtra = [];
   const effectExtra = [];
@@ -161,7 +161,7 @@ function parseConstraints(lines, start) {
   return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>', priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok', ranges: ranges.ranges, rangesErrors: ranges.errors, rangesLine: ranges.line };
 }
 
-// Cone.md:frontmatter(language、updated)與三節:願景、全域 Law、專案約束。
+// Cone.md:frontmatter(language、updated)與三節:願景、全域 Law、Constraint。
 export function readCone(lawfulDir, root) {
   const file = path.join(lawfulDir, 'Cone.md');
   const text = read(file);
@@ -171,7 +171,8 @@ export function readCone(lawfulDir, root) {
   // 節的 start 是 body 內的行號;加回 frontmatter 佔的行數,訊息才指到檔案的真實行
   const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
   for (const s of secs) s.start += offset;
-  const constraintsSec = findSection(secs, '專案約束');
+  // 硬性限制與工具要讀的那幾行住「## Constraint」;節名寫成「專案約束」的樹靜默照讀
+  const constraintsSec = findSection(secs, 'Constraint') || findSection(secs, '專案約束');
   const constraints = parseConstraints(constraintsSec ? constraintsSec.lines : [], constraintsSec ? constraintsSec.start : 0);
   // 願景:第一段是報告第一行印的那句;整節留給看板與 --json
   const visionSec = findSection(secs, '願景');

@@ -23,7 +23,7 @@ law 是**不得違反**的約束;需求是**必須達成**的事,不是 law。�
 - **任何程式碼都受全域 Law 加上它自己那份文檔的 scope law 約束。** 沒有第三種約束,也沒有哪一段程式碼不受全域 Law 管。
 - **law 只住這兩個地方。** 需求、里程碑、決策紀錄、GAP、ADR 裡都沒有 law;**里程碑不管理約束**:它沒有 law、沒有測試標記。決策紀錄的「Assumptions & Invariants」是談 law 的原料,開發者拍板寫進「Laws」節之前不是 law。
 - **law 不必朝向需求。** 文檔經由里程碑的綁定欄朝向需求;一條 scope law 不必指得出它滿足哪條需求。
-- **誰定哪一種**:一份文檔的 scope law 第一次由 `dev-flow:scope-laws` 對著 `dev-flow:spike-impl` 做出來的切片、根據切片的決策紀錄與開發者談出來,`dev-flow:build` 帶 qa 與 refactor 讓它成立。既有文檔(含 `verified`)的任何一條**既有的 law 要調整**(修改、放寬、替換、刪除),只在 `dev-flow:scope-laws`,整件修訂由它一手做到 `verified`。既有的 law 一條都不動、`verified` 文檔的簽名、型別、模組、層或實作要變,走 `dev-flow:scope-revise`:它可以**新增** law(保護用的、效能的新上界、新 step 的),不得修改、放寬、替換、刪除任何既有的 law(features.md「修訂(REV)」)。全域 Law 不在立案時憑空定,它是從做出來的切片裡抽上去的(「全域 Law」):`dev-flow:scope-laws` 對著切片談出候選,開發者逐條批准,`dev-flow:global-laws` 落筆;開發者事先就知道的硬規矩可以直接叫 `dev-flow:global-laws` 先立一句。之後的每一次變更由開發者提出、或由 `dev-flow:integrate` 提出建議而開發者批准,同樣一律由 `dev-flow:global-laws` 落筆(「全域 Law 的變更」)。
+- **誰定哪一種**:一份文檔的 scope law 第一次由 `dev-flow:scope-laws` 對著 `dev-flow:spike-impl` 做出來的切片、根據切片的決策紀錄與開發者談出來,`dev-flow:build` 帶 qa 與 refactor 讓它成立。既有文檔(含 `verified`)的任何一條**既有的 law 要調整**(修改、放寬、替換、刪除),只在 `dev-flow:scope-laws`,整件修訂由它一手做到 `verified`。既有的 law 一條都不動、`verified` 文檔的簽名、型別、模組、層或實作要變,走 `dev-flow:scope-revise`:它可以**新增** law(保護用的、效能的新上界、新 step 的),不得修改、放寬、替換、刪除任何既有的 law(features.md「修訂(REV)」)。全域 Law 不在立案時憑空定,它是從做出來的切片裡抽上去的(「全域 Law」):`dev-flow:scope-laws` 對著切片談出候選,開發者逐條批准,`dev-flow:global-laws` 落筆。之後的每一次變更由開發者提出、或由 `dev-flow:integrate` 提出建議而開發者批准,同樣一律由 `dev-flow:global-laws` 落筆(「全域 Law 的變更」)。
 - ADR 不是 law,記的是「為什麼」。ADR 的決定寫得成可執行形式(測試、lint、型別約束)時,約束進全域 Law,ADR 只留理由;寫不成的只留在 ADR(features.md「ADR」)。
 
 ## 全域 Law
@@ -46,9 +46,9 @@ law 是**不得違反**的約束;需求是**必須達成**的事,不是 law。�
 ```
 
 - 第一行 `INV-n [種類] 一句話`,種類與三行式照features.md「節」的 Laws;**三行的識別字只准是最內層的匯出、型別名與標準函式庫名**,`lint invariants` 對帳。提到某一份 feature 的 Steps 簽名,它就是那份 feature 的 scope law,不是領域不變量。
-- 只由測試判:有歸屬 `INV-n#LAW` 的測試就以它綠 / 紅為準;寫了三行卻沒有測試、或還只有一句話,都是「未知」,`devflow status` 列警訊、exit 1。從切片裡抽上去的那一條,落筆時三行就在(從出處那條 law 照搬),接下來的 build 派 qa 寫測試;開發者先立的那一句,最內層的型別還沒出現,先只留一句話,型別出現的那條切片由 `dev-flow:scope-laws` 把它寫成三行(不改那一句話),`dev-flow:build INV-n` 派 qa 寫測試(roles.md「驗收測試」)。
+- 只由測試判:有歸屬 `INV-n#LAW` 的測試就以它綠 / 紅為準;有三行而沒有測試是「未知」,`devflow status` 列警訊、exit 1。每一條落筆時三行就在(從出處那條 law 照搬),接下來的 build 派 qa 寫測試(roles.md「驗收測試」);沒有三行的領域不變量,`lint invariants` 即紅。
 - 准入四條,守住它不膨脹,新開的切片才不會被綁死:
-  1. **只由開發者批准而出生**:來源是 `dev-flow:scope-laws` 對著切片列的候選、開發者自己提的一句,或整合的仲裁提出建議(`dev-flow:integrate` 把兩條互斥的 law 提煉成上層的一條);每一種都要開發者明確批准,都由 `dev-flow:global-laws` 落筆。`dev-flow:spike-impl`、`dev-flow:scope-laws` 與 `dev-flow:scope-revise` 不新增(`dev-flow:scope-laws` 只列候選)。配號只走 `devflow invariant add`。
+  1. **只由開發者批准而出生**:來源是 `dev-flow:scope-laws` 對著切片列的候選、開發者自己點名的一條既有的 scope law,或整合的仲裁提出建議(`dev-flow:integrate` 把兩條互斥的 law 提煉成上層的一條);每一種都要開發者明確批准,都由 `dev-flow:global-laws` 落筆。`dev-flow:spike-impl`、`dev-flow:scope-laws` 與 `dev-flow:scope-revise` 不新增(`dev-flow:scope-laws` 只列候選)。配號只走 `devflow invariant add`。
   2. **只引用最內層共用的東西**(上面那一條)。
   3. **不只一份 feature 違反得了它才收**:它講的是最內層共用的東西,任何一份 feature 碰到那個型別都違反得了;只有出處那一份碰得到的,留在那一份當它的 scope law。
   4. **一定有可執行形式**:寫不成測試、lint 或型別約束的跨文檔決定是 ADR,不是 law;領域不變量驗一次就蓋住全部(一條 `INV-n#LAW` 的 property test)。
@@ -63,7 +63,7 @@ law 是**不得違反**的約束;需求是**必須達成**的事,不是 law。�
 
 `dev-flow:scope-laws` 把文檔談到 `ready` 之後:有開發者說了要的候選 → 先接上 `dev-flow:global-laws` 落筆,它寫完再接上 `dev-flow:build`;沒有候選 → 直接接上 `dev-flow:build`。build 替新的領域不變量派 qa 寫 `INV-n#LAW` 測試(roles.md「驗收測試」)。
 
-**不強迫、但允許先立**:開發者事先就知道的硬規矩(「金額一律用整數的分」),隨時可以叫 `dev-flow:global-laws` 先立一句;`dev-flow:kickoff` 不主動問。先立的領域不變量在最內層的型別出現之前只有一句話,`devflow status` 顯示它「還沒有三行式」。
+**law 只從實作裡抽出來。** 每一條全域 Law 都有出處:一份文檔的哪一條 law、或這一片的哪一段程式碼。沒有出處的句子不立——還沒有實際碰到的情況,訂不出好的約束;它講到的那一塊由哪條切片做出來,就在那條切片的 `dev-flow:scope-laws` 對著程式碼談。寫程式之前就定得下來的硬性規定(語言與版本、編譯器與執行環境、套件、環境、命名與寫法)不是 law,住 `system.md` 的「Constraint」節(features.md「`system.md`」),由 `dev-flow:kickoff` 寫。
 
 **變更**:
 
@@ -153,8 +153,8 @@ scope law 是對著跑得通的切片談出來的:開發者看得到行為,才�
 
 全域 Law 不住任何一份 feature,它的每一次落筆都在 `system.md` 的「全域 Law」區,都由 `dev-flow:global-laws` 做(一條切片在對外 I/O 表的新列除外,「全域 Law」),同樣先過「影響範圍與選項」:
 
-- **抽上去**(新增):候選來自 `dev-flow:scope-laws` 對著剛做完的切片列的那一份、或開發者自己提的一句。`dev-flow:global-laws` 拿到候選的原句與出處,照准入四條再判一次(「全域 Law」),攤影響範圍——專案的第一片多半各項是「無」,之後的片要列哪幾份既有的文檔違反得了它、哪幾條建構中的分支——選項照樣給,一定含「不抽,留在出處當 scope law」;開發者批准才落筆。領域不變量走 `devflow invariant add`,三行從出處那條 law 照搬,出處那條 law 從原文檔搬走;出處的文檔已經 `verified` 的,搬走它的 law 是調整既有的 law,先走 `dev-flow:scope-laws`。候選來自切片的,就在那條里程碑的 build 分支上落筆,與這一片一起經整合進主線;落筆後接上 `dev-flow:build`。
+- **抽上去**(新增):候選來自 `dev-flow:scope-laws` 對著剛做完的切片列的那一份、或開發者自己點名的一條既有的 scope law。`dev-flow:global-laws` 拿到候選的原句與出處,照准入四條再判一次(「全域 Law」),攤影響範圍——專案的第一片多半各項是「無」,之後的片要列哪幾份既有的文檔違反得了它、哪幾條建構中的分支——選項照樣給,一定含「不抽,留在出處當 scope law」;開發者批准才落筆。領域不變量走 `devflow invariant add`,三行從出處那條 law 照搬,出處那條 law 從原文檔搬走;出處的文檔已經 `verified` 的,搬走它的 law 是調整既有的 law,先走 `dev-flow:scope-laws`。候選來自切片的,就在那條里程碑的 build 分支上落筆,與這一片一起經整合進主線;落筆後接上 `dev-flow:build`。
 - **變更**(修改、放寬、替換、刪除),來源只有兩種:開發者自己提的,或 `dev-flow:integrate` 的變更建議經開發者明確批准(GAP 記著反例與批准的選項)。沒有批准就不動。
-- 變更與開發者先立的那一句,與立案、需求的變更走同一條路:`plan/<slug>` 分支,由 `dev-flow:integrate` 經 PR 合進主線(roles.md「分支與所有權」)。修改、放寬、替換、刪除直接改那一條。編號不重用,刪掉的號永久空缺。
+- 變更與立案、需求的變更走同一條路:`plan/<slug>` 分支,由 `dev-flow:integrate` 經 PR 合進主線(roles.md「分支與所有權」)。修改、放寬、替換、刪除直接改那一條。編號不重用,刪掉的號永久空缺。
 - **改完重新驗證受影響的工作**:領域不變量的句子或三行變了,它原本的測試作廢,`dev-flow:build INV-n` 重派 qa;`devflow lint global` 沒有紅;影響範圍裡每一份 `verified` 文檔重跑它的子集測試,紅的重開、各走一條 REV(它既有的 law 要跟著調整走 `dev-flow:scope-laws`,既有的 law 不動、只有實作要服從新的全域 Law 走 `dev-flow:scope-revise`);建構中的分支合進新的主線之後,從首跑起重跑。
 - 這條變更由 `dev-flow:integrate` 收進 PR,並留一條 ADR 記為什麼(features.md「ADR」)。

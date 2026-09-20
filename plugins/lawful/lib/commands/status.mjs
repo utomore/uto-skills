@@ -178,7 +178,7 @@ export function loadResults(design, adapter, flags, root) {
   }
   if (flags.run) {
     const cmd = design.cone && design.cone.commands['測試(整套)'];
-    if (!cmd) return { results: null, note: 'Cone.md「專案約束」沒有整套測試指令,--run 不知道跑什麼' };
+    if (!cmd) return { results: null, note: 'Cone.md「Constraint」沒有整套測試指令,--run 不知道跑什麼' };
     let out = '';
     let exit = 0;
     try {
@@ -284,13 +284,13 @@ export function requirementView(design, a) {
   return { reqs, rank, keyOf, tag, maker };
 }
 
-// 領域不變量:整個專案都不准違反的 law。只由測試判:有 INV-n#LAW 測試以它為準;寫了三行卻沒有測試、或還沒有三行式,都是未知。
+// 領域不變量:整個專案都不准違反的 law。只由測試判:有 INV-n#LAW 測試以它為準;沒有測試、或沒有三行(lint invariants 的紅),都是未知。
 export function invariantView(design, a) {
   return (design.cone ? design.cone.invariants : []).map((v) => {
     const test = a.lawTest(`${v.id}#LAW`);
     if (test) return { ...v, holds: verdict(test.result), source: `測試 ${test.key} ${test.result}`, tested: true };
-    if (v.law.formal) return { ...v, holds: null, source: `寫了三行卻沒有 ${v.id}#LAW 測試`, tested: false };
-    return { ...v, holds: null, source: '還沒有三行式', tested: false };
+    if (v.law.formal) return { ...v, holds: null, source: `沒有 ${v.id}#LAW 測試`, tested: false };
+    return { ...v, holds: null, source: '沒有三行', tested: false };
   });
 }
 
@@ -407,7 +407,7 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
   else if (design.objectivesFile && cone) warn('objectives.md', '里程碑還擠在一份 objectives.md 裡', 'lawful migrate requirements --write 換成 requirements/ 一條需求一個檔');
   for (const o of design.requirements.orphans || []) warn(o.file, `對到的需求 ${o.requirement} 不存在,它的里程碑沒有算進任何需求`, 'lawful migrate requirements 的帳本會列出它;決定它屬於哪條需求');
   if (!ov.reqs.length) warn(design.requirements.exists ? 'requirements/' : '.lawful/', '沒有任何需求', 'lawful:require-design 談第一條需求(至少一條)');
-  else if (cone && cone.priorityNoteState !== 'ok') warn('Cone.md', cone.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'lawful:require-design 在「專案約束」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」');
+  else if (cone && cone.priorityNoteState !== 'ok') warn('Cone.md', cone.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'lawful:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」');
   const seenM = new Set();
   for (const q of ov.reqs) {
     if (q.hasRefinementTable && !design.requirements.merged) warn(q.file, '還有調整表;調整就是一條綁既有 pipeline 的里程碑,需求檔只有一張里程碑表', 'lawful migrate requirements --write');
@@ -435,8 +435,8 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
   for (const n of unbound) warn(n, '沒有被任何里程碑綁定', '不朝向任何需求:lawful:require-design 綁進一條里程碑,或刪掉這條 pipeline');
   for (const v of inv) {
     if (v.holds === false) warn(v.id, `領域不變量未成立(${v.source})`, '有程式碼違反了它:仲裁那條紅,先歸因到是哪一條 pipeline 的實作再改');
-    else if (!v.law.formal) warn(v.id, '還沒有三行式,成立與否未知', 'lawful:global-laws 在 types 層的型別出現後把它寫成三行(識別字只用 types 層的匯出與型別名)');
-    else if (!v.tested) warn(v.id, '寫了三行卻沒有測試,成立與否未知', `lawful:build ${v.id}(只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試)`);
+    else if (!v.law.formal) warn(v.id, '沒有三行,成立與否未知', 'lawful:global-laws 把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名);沒有出處的不立,刪掉這一條');
+    else if (!v.tested) warn(v.id, '沒有測試,成立與否未知', `lawful:build ${v.id}(只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試)`);
   }
   for (const x of a.info.values()) {
     const p = x.p;

@@ -44,5 +44,5 @@ jobs:
 
       - run: cabal update
 
-      # 建置與整套測試的指令從 .lawful/Cone.md「專案約束」讀,不用在這裡重寫一次
+      # 建置與整套測試的指令從 .lawful/Cone.md「Constraint」讀,不用在這裡重寫一次
       - run: node .uto-skills/ci/lawful/contract.mjs

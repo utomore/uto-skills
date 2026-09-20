@@ -91,7 +91,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     };
   });
 
-  // system.md「語言與工具」那行「優先:1 = …;2 = …」拆成各級的意思,寫在需求的區塊上
+  // system.md「Constraint」那行「優先:1 = …;2 = …」拆成各級的意思,寫在需求的區塊上
   const tierMeaning = new Map();
   if (sys && sys.priorityNoteState === 'ok') for (const part of sys.priorityNote.split(/[;;]/)) {
     const m = /^\s*([1-4])\s*[=＝::]\s*(.+?)[。.]?\s*$/.exec(part);

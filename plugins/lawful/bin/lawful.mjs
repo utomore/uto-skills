@@ -18,7 +18,7 @@ const HELP = `lawful <子命令> [選項]
 子命令
   status [--tests <log> | --run]        派工報告:需求達成與否與它的里程碑完成度、需求之間的依賴、全域 Law 三類的結果、每條 pipeline 的完成度、
                                        能開的線(含還沒有切片的里程碑)、建構中的線走到哪一步、卡住的、警訊、建議路線。laws 綠幾條要有測試輸出:--tests 給留檔的輸出,
-                                       --run 在專案根目錄跑 Cone.md「專案約束」的整套指令
+                                       --run 在專案根目錄跑 Cone.md「Constraint」的整套指令
   status --pipeline <P-00x> | --module <M>
                                        一條 pipeline 的 stage 與 law 逐條狀態 / 住在該模組(或模組單元)的所有 stage
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
@@ -31,7 +31,7 @@ const HELP = `lawful <子命令> [選項]
                                        鑄號建 pipeline 檔(status: draft),綁進 --milestone 那條里程碑(給全名 M-n-<slug>)。
                                        kind:io 是跨過 shell 的資料流(有進入點),subflow 是被別條 pipeline 引用的純資料流
                                        slug 是 <領域名詞>-<動詞或動名詞>:領域名詞是 = 列住的模組單元(去掉模組前綴、大駝峰拆成 kebab),要在模組表上
-                                       號從每一棵工作樹的 pipeline 的最大號往上配;Cone.md「專案約束」有號段行時,從 git user.email 對到的區間內配,frontmatter 寫 owner
+                                       號從每一棵工作樹的 pipeline 的最大號往上配;Cone.md「Constraint」有號段行時,從 git user.email 對到的區間內配,frontmatter 寫 owner
   requirement add <slug> <一句話> --priority <1-4> [--accept <句>]
                                        鑄 R-n 建 requirements/R-n-<slug>.md:一件必須達成的事;優先 1 最高、4 最低;驗收(判它達成與否的那一句)沒給就留佔位符
   requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]

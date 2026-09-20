@@ -23,7 +23,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --args '$ARGUMENTS' --part 6 --of 6`
 
-上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief module` 的輸出:規章、`Cone.md`「專案約束」、`modules.md` 全文、`lint boundary` 的結果。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief module` 的輸出:規章、`Cone.md`「Constraint」、`modules.md` 全文、`lint boundary` 的結果。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
 目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief module --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
@@ -36,7 +36,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ## 前置
 
 - 沒有 `.lawful/Cone.md` → 停,先 `lawful:kickoff`。
-- `Cone.md`「專案約束」沒有模組前綴或原始碼根目錄 → 先問開發者這個專案的模組命名空間叫什麼、四層各自的原始碼根目錄怎麼命名(預設 `src-<層>`),寫進那一節。
+- `Cone.md`「Constraint」沒有模組前綴或原始碼根目錄 → 先問開發者這個專案的模組命名空間叫什麼、四層各自的原始碼根目錄怎麼命名(預設 `src-<層>`),寫進那一節。
 - 那四個根目錄還不是建置系統的子函式庫 → 先請開發者在建置設定裡各開一個、`build-depends` 照 types ← effect ← core ← shell 宣告;沒有這一步,層的相依方向只有 lint 擋得住,編譯器擋不住。
 - 要的東西在既有單元的範圍內、那一層也宣告過 → 不建新單元,直接把模組寫進去;單元裡加模組不必經過這裡。
 - 在哪做:立案時在主線的工作目錄(之後由 `lawful:integrate` 帶上 `plan/<slug>`);切片途中就在那條 `build/M-n-<slug>` 的工作樹上,`modules.md` 的這一列屬於這條分支(`roles.md`「分支與所有權」)。

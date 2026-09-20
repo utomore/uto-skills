@@ -20,14 +20,14 @@ $ lawful status
 |---|---|---|---|
 | 架構 | 全域 Law › 架構:四層 | lawful lint boundary | 四層,13 條不合規 |
 | 契約 | 全域 Law › 契約:對外 I/O | lawful lint io | 2 列,6 條不合規;契約欄指到的 law 3 條,成立 nan 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | lawful lint invariants | 4 條,5 條不合規;成立 nan 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | lawful lint invariants | 4 條,8 條不合規;成立 nan 條 |
 
 | 領域不變量 | 種類 | 一句話 | 成立 |
 |---|---|---|---|
-| INV-1 | invariant | 存檔裡的實體 id 不重複 | 未知(還沒有三行式) |
-| INV-2 | roundtrip | 可存檔的狀態收進什麼實體,就吐出什麼實體 | 未知(寫了三行卻沒有 INV-2#LAW 測試) |
-| INV-3 | always | 實體的座標是有限的數 | 未知(還沒有三行式) |
-| INV-2 | bound | 一個存檔最多一萬個實體 | 未知(還沒有三行式) |
+| INV-1 | invariant | 存檔裡的實體 id 不重複 | 未知(沒有三行) |
+| INV-2 | roundtrip | 可存檔的狀態收進什麼實體,就吐出什麼實體 | 未知(沒有 INV-2#LAW 測試) |
+| INV-3 | always | 實體的座標是有限的數 | 未知(沒有三行) |
+| INV-2 | bound | 一個存檔最多一萬個實體 | 未知(沒有三行) |
 
 ## pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
@@ -75,7 +75,7 @@ $ lawful status
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | CLAUDE.md:10 | 名詞「存檔」出現 2 列,名詞只定義一次 | lawful:require-design 與開發者講定哪一句是它的定義,留一列 |
-| Cone.md | 沒有宣告優先 1 到 4 各代表什麼 | lawful:require-design 在「專案約束」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
+| Cone.md | 沒有宣告優先 1 到 4 各代表什麼 | lawful:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
 | R-1 | 驗收寫了三行卻沒有驗收測試,達成與否未知 | lawful:build R-1(只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推 |
 | M-2-load-game | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
 | M-6 | 沒有英文名,REV 的依欄寫不出它的全名 | lawful:require-design 把第一格寫成 M-6-<slug>(kebab-case 英文);引用一條里程碑一律用全名 |
@@ -88,17 +88,17 @@ $ lawful status
 | .lawful/requirements/R-3-save-portable.md | 沒有 frontmatter | 照 templates/requirement.md 補 id、priority、updated |
 | R-3 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
 | R-3 | 沒有任何里程碑 | lawful:require-design 切里程碑(lawful requirement milestone R-3 <slug> <一句話>) |
-| INV-1 | 還沒有三行式,成立與否未知 | lawful:global-laws 在 types 層的型別出現後把它寫成三行(識別字只用 types 層的匯出與型別名) |
-| INV-2 | 寫了三行卻沒有測試,成立與否未知 | lawful:build INV-2(只派 qa 寫一條歸屬 "INV-2#LAW" 的測試) |
-| INV-3 | 還沒有三行式,成立與否未知 | lawful:global-laws 在 types 層的型別出現後把它寫成三行(識別字只用 types 層的匯出與型別名) |
-| INV-2 | 還沒有三行式,成立與否未知 | lawful:global-laws 在 types 層的型別出現後把它寫成三行(識別字只用 types 層的匯出與型別名) |
+| INV-1 | 沒有三行,成立與否未知 | lawful:global-laws 把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名);沒有出處的不立,刪掉這一條 |
+| INV-2 | 沒有測試,成立與否未知 | lawful:build INV-2(只派 qa 寫一條歸屬 "INV-2#LAW" 的測試) |
+| INV-3 | 沒有三行,成立與否未知 | lawful:global-laws 把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名);沒有出處的不立,刪掉這一條 |
+| INV-2 | 沒有三行,成立與否未知 | lawful:global-laws 把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名);沒有出處的不立,刪掉這一條 |
 | P-001-game-save#decode | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
 | P-001-game-save#misroute | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
 | P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |
 | GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
 | 全域 Law:架構 | lint boundary 13 條不合規 | lawful lint boundary |
 | 全域 Law:契約 | lint io 6 條不合規 | lawful lint io |
-| 全域 Law:領域不變量 | lint invariants 5 條不合規 | lawful lint invariants |
+| 全域 Law:領域不變量 | lint invariants 8 條不合規 | lawful lint invariants |
 
 ## 7. 建議路線
 1. 先回答 GAP-1、GAP-1(答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws),卡住的 stage 才能重派

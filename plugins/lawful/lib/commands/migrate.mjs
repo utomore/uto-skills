@@ -289,10 +289,10 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
 }
 
 // migrate cone [--write]:兩種不合規的樹換成 Cone.md 與 objectives/ 體系。先印帳本,--write 才落地。
-// 只有 system.md 的樹:願景與目的 → Cone.md「願景」(目的接成第二段);語言與工具與優先各級 → 「專案約束」;
+// 只有 system.md 的樹:願景與目的 → Cone.md「願景」(目的接成第二段);「語言與工具」與優先各級 → 「Constraint」;
 // 每個目標 → 一條需求(一句話照抄、判準當 Law);邊界與對外 I/O 表 → modules.md 的兩節;Pipelines 表的類別 → 各 pipeline frontmatter 的 kind;刪 system.md。
 // 目標還擠在 objectives.md 的樹:每個 ## O-n 拆成 objectives/R-x-O-n-<slug>.md(需求、優先進 frontmatter,判準變成「Law:繼承 R-x」),
-// 開頭的優先各級那行搬進 Cone.md「專案約束」;刪 objectives.md。
+// 開頭的優先各級那行搬進 Cone.md「Constraint」;刪 objectives.md。
 // 「## 全域 Law」區:領域不變量、架構:四層、契約:對外 I/O。boundary 是四層各一句的那幾行,ioTable 是對外 I/O 表(補上契約欄)。
 const LAYER_TEMPLATE = '- types:<裝什麼,一句>\n- effect:<指令 ADT 叫什麼,一句;沒有 effect 層寫「無」>\n- core:<純轉換住哪,一句>\n- shell:<進入點,一句>';
 const IO_HEAD = '| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |\n|---|---|---|---|---|---|';
@@ -405,11 +405,11 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
   return { priorityNote, objs };
 }
 
-// Cone.md「專案約束」補一行「- 優先:…」;已經有就不動
+// Cone.md「Constraint」補一行「- 優先:…」;已經有就不動
 function withPriorityNote(coneText, priorityNote) {
   if (!priorityNote || /^- 優先[::]/m.test(coneText)) return coneText;
   const lines = coneText.split(/\r?\n/);
-  const h = lines.findIndex((l) => /^## 專案約束\s*$/.test(l));
+  const h = lines.findIndex((l) => /^## (?:Constraint|專案約束)\s*$/.test(l));
   if (h < 0) return coneText;
   let end = h + 1;
   while (end < lines.length && !/^## /.test(lines[end])) end++;
@@ -442,7 +442,7 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
     const language = fm.language || '';
     const vision = sectionText(secs, '願景');
     const purpose = sectionText(secs, '目的');
-    const tools = sectionText(secs, '語言與工具');
+    const tools = sectionText(secs, 'Constraint') || sectionText(secs, '語言與工具');
     const boundary = sectionText(secs, '邊界');
     const ioText = sectionText(secs, '對外 I/O');
     const plSec = secs.find((x) => x.level === 2 && x.title === 'Pipelines');
@@ -466,10 +466,15 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
         : ['### R-1:<一句話:誰在什麼情況下要得到什麼>', '- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>']),
       '',
       ...globalZone(boundary, ioText),
-      '## 專案約束',
+      '## Constraint',
+      '硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先)。開發者定,`lawful:kickoff` 寫,之後隨時回 `lawful:kickoff` 補或改;限制的類別可以自己加。',
+      '- 語言與版本:<例如 Haskell GHC2021;無則「無」>',
+      '- 編譯器與執行環境:<例如 GHC 9.6、cabal 3.10;無則「無」>',
+      '- 套件與框架:<硬性要求或禁用的套件、框架與版本,效果的寫法(直接 IO、mtl、effectful);無則「無」>',
+      '- 環境:<作業系統、部署目標、容器;無則「無」>',
+      '- 命名與寫法:<變數、函數、模組怎麼命名,格式與風格;無則「無」>',
       `- 語言:${language || '<haskell | …>'}`,
       ...tools.split(/\r?\n/).filter((l) => l.trim() && !/^- 語言[::]/.test(l)),
-      '- 套件與框架:無',
       ...(split.priorityNote ? [`- 優先:${split.priorityNote}`] : []),
       '',
     ].join('\n');
@@ -496,7 +501,7 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
       const next = text.replace(/^(description:.*\r?\n)/m, `$1kind: ${kind}\n`);
       kindEdits.push({ abs, rel: rel(abs), kind, next, changed: next !== text });
     }
-    out.push(`- ${rel(coneFile)}:建,願景${purpose ? '(目的接成第二段)' : ''}、需求 ${reqs.length} 條(${reqs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : ',驗收留佔位符'}`).join('、') || '沒有目標,留一條模板'})、全域 Law 區(四層${boundary ? '' : '是模板'}、對外 I/O${ioText ? '' : '是模板'}、領域不變量寫「無」)、專案約束(語言與工具照搬${split.priorityNote ? ',優先各級那行搬進來' : ''})`);
+    out.push(`- ${rel(coneFile)}:建,願景${purpose ? '(目的接成第二段)' : ''}、需求 ${reqs.length} 條(${reqs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : ',驗收留佔位符'}`).join('、') || '沒有目標,留一條模板'})、全域 Law 區(四層${boundary ? '' : '是模板'}、對外 I/O${ioText ? '' : '是模板'}、領域不變量寫「無」)、Constraint(「語言與工具」那幾行照搬,限制那幾行留模板${split.priorityNote ? ',優先各級那行搬進來' : ''})`);
     out.push(`- ${rel(modFile)}:${modules === null ? '已經有「模組單元」節,不動' : '整理成只有「模組單元」表'}`);
     for (const e of kindEdits) out.push(`- ${e.rel}:frontmatter 補 kind: ${e.kind}${e.changed ? '' : '(找不到 description 行,要自己補)'}`);
     writes.push([coneFile, cone]);
@@ -507,7 +512,8 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
     const cone = fs.readFileSync(coneFile, 'utf8');
     const next = withPriorityNote(cone, split.priorityNote);
     if (next !== cone) {
-      out.push(`- ${rel(coneFile)}:「專案約束」補一行「- 優先:${split.priorityNote}」`);
+      const secName = (/^## (Constraint|專案約束)\s*$/m.exec(cone) || [])[1] || 'Constraint';
+      out.push(`- ${rel(coneFile)}:「${secName}」補一行「- 優先:${split.priorityNote}」`);
       writes.push([coneFile, next]);
     }
   }
@@ -837,7 +843,7 @@ export function migrateLaws(root, { write = false } = {}) {
   }
   const hasZone = lines.some((l) => /^## 全域 Law\s*$/.test(l));
   if (!hasZone) {
-    let at = lines.findIndex((l) => /^## 專案約束\s*$/.test(l));
+    let at = lines.findIndex((l) => /^## (?:Constraint|專案約束)\s*$/.test(l));
     if (at < 0) at = lines.length;
     lines.splice(at, 0, ...globalZone(boundary, ioText));
   } else if (boundary || ioText) {

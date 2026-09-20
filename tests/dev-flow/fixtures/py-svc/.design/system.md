@@ -27,7 +27,7 @@ updated: 2026-09-07
 | POST /basket | in | `str` | `cart/api.py` | F-001-basket | untrusted | `add_item` |
 | 總金額 | out | `str` | `cart/api.py` | F-001-basket | trusted | - |
 
-## 語言與工具
+## Constraint
 - 建置:`python -m compileall cart`
 - 測試(整套):`pytest -v`
 - 測試(子集):`pytest -v tests/test_basket.py`

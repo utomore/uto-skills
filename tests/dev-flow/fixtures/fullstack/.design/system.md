@@ -34,7 +34,7 @@ updated: 2026-09-07
 | POST /basket | in | `str` | `api/cart/api.py` | F-003-basket | untrusted | `add_item` |
 | 總金額 | out | `str` | `api/cart/api.py` | F-003-basket | trusted | - |
 
-## 語言與工具
+## Constraint
 - 建置:web = `npx tsc --noEmit -p web`;api = `python -m compileall api/cart`
 - 測試(整套):web = `npx jest --rootDir web`;api = `pytest -v api`
 - 測試(子集):web = `npx jest --rootDir web test/<檔名>`;api = `pytest -v api/tests/<檔名>`(以一份文檔選)

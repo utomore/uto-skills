@@ -17,7 +17,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief study --args '$ARGUMENTS' --part 4 --of 4`
 
-上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief study` 的輸出:規章、`.design/` 的樹、`system.md`「語言與工具」、`modules.md`。開工要讀的規章與專案現況都在這裡,不再另外讀。本 skill 不建檔,編號與 frontmatter 規格不讀。
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief study` 的輸出:規章、`.design/` 的樹、`system.md`「Constraint」、`modules.md`。開工要讀的規章與專案現況都在這裡,不再另外讀。本 skill 不建檔,編號與 frontmatter 規格不讀。
 
 目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief study --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 

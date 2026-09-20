@@ -289,11 +289,11 @@ $ devflow status --json
     {
       "id": "INV-1",
       "kind": "bound",
-      "title": "只有一句話、還沒有三行式的不變量",
+      "title": "沒有三行的不變量",
       "formal": false,
       "lines": [],
       "holds": null,
-      "source": "還沒有三行式",
+      "source": "沒有三行",
       "tested": false
     },
     {
@@ -306,7 +306,7 @@ $ devflow status --json
         "|- score(raw) >= 0"
       ],
       "holds": null,
-      "source": "寫了三行卻沒有 INV-2#LAW 測試",
+      "source": "沒有 INV-2#LAW 測試",
       "tested": false
     },
     {
@@ -316,7 +316,7 @@ $ devflow status --json
       "formal": false,
       "lines": [],
       "holds": null,
-      "source": "還沒有三行式",
+      "source": "沒有三行",
       "tested": false
     },
     {
@@ -326,7 +326,7 @@ $ devflow status --json
       "formal": false,
       "lines": [],
       "holds": null,
-      "source": "還沒有三行式",
+      "source": "沒有三行",
       "tested": false
     }
   ],
@@ -350,8 +350,8 @@ $ devflow status --json
         "kind": "領域不變量",
         "where": "領域不變量",
         "gate": "invariants",
-        "red": 4,
-        "result": "4 條,4 條不合規;成立 nan 條"
+        "red": 7,
+        "result": "4 條,7 條不合規;成立 nan 條"
       }
     ],
     "layers": [
@@ -881,7 +881,7 @@ $ devflow status --json
     {
       "where": "system.md",
       "what": "沒有宣告優先 1 到 4 各代表什麼",
-      "fix": "dev-flow:require-design 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」"
+      "fix": "dev-flow:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」"
     },
     {
       "where": "R-2",
@@ -970,23 +970,23 @@ $ devflow status --json
     },
     {
       "where": "INV-1",
-      "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "what": "沒有三行,成立與否未知",
+      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條"
     },
     {
       "where": "INV-2",
-      "what": "寫了三行卻沒有測試,成立與否未知",
+      "what": "沒有測試,成立與否未知",
       "fix": "dev-flow:build INV-2(只派 qa 寫一條歸屬 \"INV-2#LAW\" 的測試)"
     },
     {
       "where": "INV-2",
-      "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "what": "沒有三行,成立與否未知",
+      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條"
     },
     {
       "where": "INV-3",
-      "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "what": "沒有三行,成立與否未知",
+      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條"
     },
     {
       "where": "GAP-1",
@@ -1035,7 +1035,7 @@ $ devflow status --json
     },
     {
       "where": "全域 Law:領域不變量",
-      "what": "lint invariants 4 條不合規",
+      "what": "lint invariants 7 條不合規",
       "fix": "devflow lint invariants"
     }
   ],

@@ -23,7 +23,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa --args '$ARGUMENTS' --part 6 --of 6`
 
-上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief qa` 的輸出:規章、目標 pipeline 全文、逐條狀態、Stages 上每條簽名與型別的宣告(目標是 `R-n` / `INV-n` 時是那條需求的驗收、領域不變量的三行與它引用到的 pipeline 的 Stages 表與宣告)、types 層(行數上限以內的全文,其餘列匯出)、這個專案的測試怎麼寫(子集指令、歸屬寫法、現有測試檔的開頭)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief qa` 的輸出:規章、目標 pipeline 全文、逐條狀態、Stages 上每條簽名與型別的宣告(目標是 `R-n` / `INV-n` 時是那條需求的驗收、領域不變量的三行與它引用到的 pipeline 的 Stages 表與宣告)、types 層(行數上限以內的全文,其餘列匯出)、`Cone.md` 的「Constraint」節、這個專案的測試怎麼寫(子集指令、歸屬寫法、現有測試檔的開頭)。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
 目標:Skill 的 args:`<pipeline 全名 | R-n | INV-n> --root <工作樹>`。看到的若是那道指令的原文而不是它的輸出,自己跑一次:`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief qa <目標> --root <工作樹>`(`${CLAUDE_PLUGIN_ROOT}` 是本 skill 基準目錄往上兩層);目標 pipeline 在這一場裡變過,重跑一次並加 `--no-rules`。輸出的第一行是指紋,回報的第一項照抄它。
 
@@ -37,6 +37,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 步驟
 
+0. **照 Constraint 寫**:開工 context 的「Constraint」那一塊(語言與版本、套件與框架、環境、命名與寫法)有寫的每一項,測試檔照做:測試框架與輔助套件只用它允許的,測試、產生器與 helper 的命名與格式照它寫。它與 law 的斷言衝突(照它寫就翻不出那條 law)→ GAP,不自己放寬。
 1. **產生器**:每個 law 的 `forall` 定義域一個產生器,只用 types 層的 smart constructor 組合法值;尺寸有上限(`resize`),能縮小(反例要讀得懂,整合的仲裁會拿它給開發者看)。有 `given` 行的直接建構滿足前提的值;非過濾不可就宣告覆蓋率(`checkCoverage` 加 `cover`),沒宣告的過濾式測試視同恆真。組不出合法值 = GAP,指出缺的建構子。
 2. **每條 law 一條 property test**:`describe "P-00x#LAW-n"` 包住,歸屬字串只放一個;斷言逐字照 `|-` 行翻(`total` 種類是求值到正規形不拋例外);案例數上限(`withMaxSuccess 100` 這一級),整個模組有 timeout。`=` 列是效果描述的,拿 `o` 列的純解譯器跑,不碰 IO。
 3. **每個 example 一條 example test**:`describe "P-00x#EX-n"`,輸入輸出照表。

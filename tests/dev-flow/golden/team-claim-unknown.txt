@@ -1,5 +1,5 @@
 $ GIT_AUTHOR_EMAIL=carol@corp.com devflow claim feature ship --date 2026-09-07
-system.md 的號段行沒有 carol@corp.com 的區間;請架構負責人在「語言與工具」的號段行加上一段,再 claim
+system.md 的號段行沒有 carol@corp.com 的區間;請架構負責人在「Constraint」的號段行加上一段,再 claim
 exit 1
 --- .design/system.md
 ---
@@ -36,7 +36,7 @@ updated: 2026-09-07
 | POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` |
 | 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - |
 
-## 語言與工具
+## Constraint
 - 建置:`npx tsc --noEmit`
 - 測試(整套):`npx jest`
 - 測試(子集):`npx jest test/<檔名>`(以一份文檔選)

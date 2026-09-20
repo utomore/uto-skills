@@ -199,6 +199,16 @@ mod tests {
 }
 ```
 
+# system.md「Constraint」
+
+- 建置:`cargo build`
+- 測試(整套):`cargo test`
+- 測試(子集):`cargo test span`
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 優先:1 = 合併正確;2 = 進入點;3 = 呈現;4 = 工具
+
 # 測試怎麼寫
 
 - 子集測試指令:cargo test span

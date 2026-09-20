@@ -96,7 +96,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     };
   });
 
-  // Cone.md「專案約束」那行「優先:1 = …;2 = …」拆成各級的意思,寫在需求的區塊上
+  // Cone.md「Constraint」那行「優先:1 = …;2 = …」拆成各級的意思,寫在需求的區塊上
   const tierMeaning = new Map();
   if (cone && cone.priorityNoteState === 'ok') for (const part of cone.priorityNote.split(/[;;]/)) {
     const m = /^\s*([1-4])\s*[=＝::]\s*(.+?)[。.]?\s*$/.exec(part);

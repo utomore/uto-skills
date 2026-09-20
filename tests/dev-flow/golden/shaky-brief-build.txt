@@ -10,7 +10,7 @@ brief build F-001-score @doc:9f89d8b1 rules:<雜湊>
 
 (這個目錄不是 git repo 的根,也不是一棵工作樹)
 
-# system.md「語言與工具」
+# system.md「Constraint」
 
 - 建置:`npx tsc --noEmit`
 - 測試(整套):`npx jest`
@@ -198,14 +198,14 @@ updated: 2026-09-07
 |---|---|---|---|
 | 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,3 條不合規 |
 | 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 1 列,6 條不合規;契約欄指到的 law 3 條,成立 0 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 4 條,4 條不合規;成立 0 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 4 條,7 條不合規;成立 0 條 |
 
 | 領域不變量 | 種類 | 一句話 | 成立 |
 |---|---|---|---|
-| INV-1 | bound | 只有一句話、還沒有三行式的不變量 | 未知(還沒有三行式) |
-| INV-2 | invariant | 寫了三行卻沒有測試,而且引用了一份 feature 的簽名 | 未知(寫了三行卻沒有 INV-2#LAW 測試) |
-| INV-2 | invariant | 編號重複 | 未知(還沒有三行式) |
-| INV-3 | nonsense | 種類不合法 | 未知(還沒有三行式) |
+| INV-1 | bound | 沒有三行的不變量 | 未知(沒有三行) |
+| INV-2 | invariant | 寫了三行卻沒有測試,而且引用了一份 feature 的簽名 | 未知(沒有 INV-2#LAW 測試) |
+| INV-2 | invariant | 編號重複 | 未知(沒有三行) |
+| INV-3 | nonsense | 種類不合法 | 未知(沒有三行) |
 
 #### 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -243,7 +243,7 @@ updated: 2026-09-07
 |---|---|---|
 | system.md | 願景還是模板 | dev-flow:kickoff 訂願景 |
 | CLAUDE.md:10 | 名詞「分數」出現 2 列,名詞只定義一次 | dev-flow:require-design 與開發者講定哪一句是它的定義,留一列 |
-| system.md | 沒有宣告優先 1 到 4 各代表什麼 | dev-flow:require-design 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
+| system.md | 沒有宣告優先 1 到 4 各代表什麼 | dev-flow:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
 | R-2 | 驗收寫了三行卻沒有驗收測試,達成與否未知 | dev-flow:build R-2(只派 qa 寫一條歸屬 "R-2#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推 |
 | R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>) |
 | M-1 | 里程碑還是模板 | dev-flow:require-design 寫成一句話 |
@@ -261,10 +261,10 @@ updated: 2026-09-07
 | R-4 | 沒有驗收 | dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」 |
 | R-4 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
 | F-002-other | 沒有被任何里程碑綁定 | 不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature |
-| INV-1 | 還沒有三行式,成立與否未知 | dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
-| INV-2 | 寫了三行卻沒有測試,成立與否未知 | dev-flow:build INV-2(只派 qa 寫一條歸屬 "INV-2#LAW" 的測試) |
-| INV-2 | 還沒有三行式,成立與否未知 | dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
-| INV-3 | 還沒有三行式,成立與否未知 | dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名) |
+| INV-1 | 沒有三行,成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條 |
+| INV-2 | 沒有測試,成立與否未知 | dev-flow:build INV-2(只派 qa 寫一條歸屬 "INV-2#LAW" 的測試) |
+| INV-2 | 沒有三行,成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條 |
+| INV-3 | 沒有三行,成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條 |
 | GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
 | F-001-score | verified 而有 REV 卻沒有重開紀錄 | 在「決定」補一條重開 |
 | F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise |
@@ -275,7 +275,7 @@ updated: 2026-09-07
 | system.md | 列了 F-003-missing,features/ 沒有這個檔 | 刪那一列或 devflow claim |
 | 全域 Law:架構 | lint boundary 3 條不合規 | devflow lint boundary |
 | 全域 Law:契約 | lint io 6 條不合規 | devflow lint io |
-| 全域 Law:領域不變量 | lint invariants 4 條不合規 | devflow lint invariants |
+| 全域 Law:領域不變量 | lint invariants 7 條不合規 | devflow lint invariants |
 
 #### 8. 建議路線
 1. 先回答 GAP-1、GAP-1(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派

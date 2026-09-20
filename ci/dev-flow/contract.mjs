@@ -9,7 +9,7 @@
 //      其餘的 trace 紅與「領域不變量寫了三行卻沒有測試」只印不擋:測試可以晚一條 PR 才到(剛批准的領域不變量,測試在下一波 build);
 //      status: draft 文檔的紅只印不擋:draft 是還在討論的文檔,改成 ready 的那條 PR 起才擋;
 //      lint ids 查的是檔案本身,不看 status,兩份 draft 同號照擋)
-//   2. 跑 system.md「語言與工具」的建置指令
+//   2. 跑 system.md「Constraint」的建置指令
 //   3. 跑整套測試指令,輸出留檔(多語言專案每側一道)
 //   4. 拿測試輸出跑 devflow status 印一份派工報告(只印,exit code 不看:它答的是「全部達成了沒」,不是「這條 PR 對不對」)
 //
@@ -116,12 +116,12 @@ async function main() {
   const commands = sys ? sys.commands : {};
   heading('建置');
   const buildJobs = jobsOf(commands['建置']);
-  if (!buildJobs.length) console.log('· system.md「語言與工具」沒有建置指令,跳過');
+  if (!buildJobs.length) console.log('· system.md「Constraint」沒有建置指令,跳過');
   for (const j of buildJobs) if (run(j.cmd, root).exit) { failed = true; console.log(`✗ 建置失敗${j.dir ? `(${j.dir})` : ''}`); }
 
   heading('整套測試');
   const testJobs = jobsOf(commands['測試(整套)']);
-  if (!testJobs.length) console.log('· system.md「語言與工具」沒有整套測試指令,跳過');
+  if (!testJobs.length) console.log('· system.md「Constraint」沒有整套測試指令,跳過');
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'contract-'));
   const logs = [];
   for (const j of testJobs) {

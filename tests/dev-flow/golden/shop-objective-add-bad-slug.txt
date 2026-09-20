@@ -1,3 +1,0 @@
-$ devflow objective add Refund_Correct 退款也算對錢 --requirement R-1 --priority 2
-slug 要是 kebab-case 英文:Refund_Correct
-exit 1

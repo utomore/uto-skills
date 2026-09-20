@@ -1,0 +1,5 @@
+$ devflow requirement milestone R-1 login 登入走通
+· system.md 的 language 還是模板(<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>),填成 typescript / javascript / python / go / rust 其中一個
+
+requirements/ 沒有 R-1;先 devflow requirement add
+exit 1

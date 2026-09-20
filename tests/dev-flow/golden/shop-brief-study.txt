@@ -14,8 +14,8 @@ brief study (沒有目標) @doc:- rules:<雜湊>
   - F-001-checkout.md
   - F-002-refund.md
 - modules.md
-- objectives/
-  - R-1-O-1-money-correct.md
+- requirements/
+  - R-1-money-correct.md
 - system.md
 
 # system.md「語言與工具」

@@ -11,15 +11,13 @@ $ devflow status --json
   "priorityNote": null,
   "tests": "沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知",
   "summary": {
-    "requirements": 5,
+    "requirements": 6,
     "requirementsHolding": 0,
     "requirementsTested": 0,
     "requirementsInferred": 0,
     "invariants": 4,
     "invariantsHolding": 0,
-    "objectives": 6,
-    "objectivesAchieved": 0,
-    "milestones": 4,
+    "milestones": 6,
     "milestonesAchieved": 0,
     "refinements": 4,
     "refinementsAchieved": 0,
@@ -34,19 +32,15 @@ $ devflow status --json
   "headline": [
     {
       "label": "需求",
-      "value": "0 / 5 達成(測試 0、推得 0)"
+      "value": "0 / 6 達成(測試 0、推得 0)"
     },
     {
       "label": "領域不變量",
       "value": "0 / 4 成立"
     },
     {
-      "label": "目標",
-      "value": "0 / 6 達成"
-    },
-    {
       "label": "里程碑",
-      "value": "0 / 4 達成"
+      "value": "0 / 6 達成"
     },
     {
       "label": "調整",
@@ -71,50 +65,12 @@ $ devflow status --json
   ],
   "requirements": [
     {
-      "id": "R-3",
-      "title": "有兩個目標的需求",
-      "law": {
-        "title": "看得到兩個數字",
-        "formal": false,
-        "holds": false,
-        "source": "O-2、O-3 還沒達成",
-        "tested": false
-      },
-      "note": "驗收未達成 · 2 個目標 · 里程碑 0/1 達成",
-      "objectives": [
-        "O-2",
-        "O-3"
-      ],
-      "built": false,
-      "milestonesAchieved": 0,
-      "milestones": 1,
-      "refinementsAchieved": 0,
-      "refinements": 0
-    },
-    {
-      "id": "R-1",
-      "title": "分數算得出來",
-      "law": {
-        "title": "<一句可判定的話:這條需求成立時,什麼一定為真>",
-        "formal": false,
-        "holds": false,
-        "source": "驗收還是模板",
-        "tested": false
-      },
-      "note": "驗收未達成 · 2 個目標 · 里程碑 0/2 達成",
-      "objectives": [
-        "O-7",
-        "O-1"
-      ],
-      "built": false,
-      "milestonesAchieved": 0,
-      "milestones": 2,
-      "refinementsAchieved": 0,
-      "refinements": 4
-    },
-    {
       "id": "R-2",
-      "title": "寫了三行卻沒有驗收測試",
+      "name": "R-2-non-negative",
+      "file": ".design/requirements/R-2-non-negative.md",
+      "title": "寫了三行卻沒有驗收測試,也沒有里程碑",
+      "priority": 2,
+      "priorityRaw": "2",
       "law": {
         "title": "任何輸入分數不為負",
         "formal": true,
@@ -122,163 +78,35 @@ $ devflow status --json
         "source": "寫了三行卻沒有 R-2#ACCEPT 測試",
         "tested": false
       },
-      "note": "驗收未知 · 0 個目標 · 里程碑 0/0 達成",
-      "objectives": [],
+      "note": "驗收未知 · 里程碑 0/0 達成",
       "built": false,
-      "milestonesAchieved": 0,
-      "milestones": 0,
-      "refinementsAchieved": 0,
-      "refinements": 0
-    },
-    {
-      "id": "R-4",
-      "title": "沒有任何目標的需求",
-      "law": {
-        "title": "看得到第三個數字",
-        "formal": false,
-        "holds": false,
-        "source": "還沒有目標",
-        "tested": false
-      },
-      "note": "驗收未達成 · 0 個目標 · 里程碑 0/0 達成",
-      "objectives": [],
-      "built": false,
-      "milestonesAchieved": 0,
-      "milestones": 0,
-      "refinementsAchieved": 0,
-      "refinements": 0
-    },
-    {
-      "id": "R-5",
-      "title": "驗收引用了進入點與不存在的東西",
-      "law": {
-        "title": "進入點回的就是分數",
-        "formal": true,
-        "holds": null,
-        "source": "寫了三行卻沒有 R-5#ACCEPT 測試",
-        "tested": false
-      },
-      "note": "驗收未知 · 0 個目標 · 里程碑 0/0 達成",
-      "objectives": [],
-      "built": false,
-      "milestonesAchieved": 0,
-      "milestones": 0,
-      "refinementsAchieved": 0,
-      "refinements": 0
-    }
-  ],
-  "invariants": [
-    {
-      "id": "INV-1",
-      "kind": "bound",
-      "title": "只有一句話、還沒有三行式的不變量",
-      "formal": false,
-      "holds": null,
-      "source": "還沒有三行式",
-      "tested": false
-    },
-    {
-      "id": "INV-2",
-      "kind": "invariant",
-      "title": "寫了三行卻沒有測試,而且引用了一份 feature 的簽名",
-      "formal": true,
-      "holds": null,
-      "source": "寫了三行卻沒有 INV-2#LAW 測試",
-      "tested": false
-    },
-    {
-      "id": "INV-2",
-      "kind": "invariant",
-      "title": "編號重複",
-      "formal": false,
-      "holds": null,
-      "source": "還沒有三行式",
-      "tested": false
-    },
-    {
-      "id": "INV-3",
-      "kind": "nonsense",
-      "title": "種類不合法",
-      "formal": false,
-      "holds": null,
-      "source": "還沒有三行式",
-      "tested": false
-    }
-  ],
-  "objectives": [
-    {
-      "id": "O-4",
-      "name": "R-9-O-4-orphan",
-      "file": ".design/objectives/R-9-O-4-orphan.md",
-      "title": "需求不在 system.md 的目標",
-      "requirement": "R-9",
-      "priority": 1,
-      "priorityRaw": "1",
-      "law": {
-        "title": "",
-        "formal": false,
-        "holds": null,
-        "source": "里程碑 0/1 達成",
-        "tested": false
-      },
-      "note": "里程碑 0/1 達成",
       "achieved": false,
-      "milestonesAchieved": 0,
-      "percent": 0,
-      "milestones": [
-        {
-          "id": "M-2",
-          "name": "M-2-score-too",
-          "title": "分數也算得出來",
-          "achieved": false,
-          "binds": [
-            "F-001-score"
-          ]
-        }
-      ],
-      "refinements": []
-    },
-    {
-      "id": "O-2",
-      "name": "R-3-O-2-two-numbers",
-      "file": ".design/objectives/R-3-O-2-two-numbers.md",
-      "title": "沒有里程碑的目標",
-      "requirement": "R-3",
-      "priority": 2,
-      "priorityRaw": "2",
-      "law": {
-        "title": "",
-        "formal": false,
-        "holds": null,
-        "source": "里程碑 0/0 達成",
-        "tested": false
-      },
-      "note": "里程碑 0/0 達成",
-      "achieved": false,
-      "milestonesAchieved": 0,
       "percent": null,
+      "milestonesAchieved": 0,
+      "refinementsAchieved": 0,
       "milestones": [],
       "refinements": []
     },
     {
-      "id": "O-3",
-      "name": "R-3-O-3-other-number",
-      "file": ".design/objectives/R-3-O-3-other-number.md",
-      "title": "編號撞到的目標",
-      "requirement": "R-3",
-      "priority": 3,
-      "priorityRaw": "3",
+      "id": "R-3",
+      "name": "R-3-two-numbers",
+      "file": ".design/requirements/R-3-two-numbers.md",
+      "title": "里程碑編號撞到別條需求的",
+      "priority": 2,
+      "priorityRaw": "2",
       "law": {
-        "title": "",
+        "title": "看得到兩個數字",
         "formal": false,
-        "holds": null,
-        "source": "里程碑 0/1 達成",
+        "holds": false,
+        "source": "M-1 還沒達成",
         "tested": false
       },
-      "note": "里程碑 0/1 達成",
+      "note": "驗收未達成 · 里程碑 0/1 達成",
+      "built": false,
       "achieved": false,
-      "milestonesAchieved": 0,
       "percent": 0,
+      "milestonesAchieved": 0,
+      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-1",
@@ -291,56 +119,87 @@ $ devflow status --json
       "refinements": []
     },
     {
-      "id": "O-7",
-      "name": "R-1-O-6-mismatch",
-      "file": ".design/objectives/R-1-O-6-mismatch.md",
-      "title": "檔名與 frontmatter 對不上的目標",
-      "requirement": "R-1",
-      "priority": 4,
-      "priorityRaw": "4",
+      "id": "R-5",
+      "name": "R-5-entry-accept",
+      "file": ".design/requirements/R-5-entry-accept.md",
+      "title": "驗收引用了進入點與不存在的東西",
+      "priority": 3,
+      "priorityRaw": "3",
       "law": {
-        "title": "",
-        "formal": false,
+        "title": "進入點回的就是分數",
+        "formal": true,
         "holds": null,
-        "source": "里程碑 0/1 達成",
+        "source": "寫了三行卻沒有 R-5#ACCEPT 測試",
         "tested": false
       },
-      "note": "里程碑 0/1 達成",
+      "note": "驗收未知 · 里程碑 0/1 達成",
+      "built": false,
       "achieved": false,
-      "milestonesAchieved": 0,
       "percent": 0,
+      "milestonesAchieved": 0,
+      "refinementsAchieved": 0,
       "milestones": [
         {
-          "id": "M-3",
-          "name": "M-3-plain",
-          "title": "一條普通的里程碑",
+          "id": "M-4",
+          "name": "M-4-entry",
+          "title": "進入點回得出分數",
           "achieved": false,
-          "binds": [
-            "F-001-score"
-          ]
+          "binds": []
         }
       ],
       "refinements": []
     },
     {
-      "id": "O-1",
-      "name": "R-1-O-1-score",
-      "file": ".design/objectives/R-1-O-1-score.md",
-      "title": "算分",
-      "requirement": "R-1",
-      "priority": null,
-      "priorityRaw": "9",
+      "id": "R-9",
+      "name": "R-6-mismatch",
+      "file": ".design/requirements/R-6-mismatch.md",
+      "title": "檔名與 frontmatter 對不上的需求",
+      "priority": 4,
+      "priorityRaw": "4",
       "law": {
-        "title": "",
+        "title": "看得到第三個數字",
         "formal": false,
-        "holds": null,
-        "source": "里程碑 0/1 達成",
+        "holds": false,
+        "source": "M-5 還沒達成",
         "tested": false
       },
-      "note": "里程碑 0/1 達成",
+      "note": "驗收未達成 · 里程碑 0/1 達成",
+      "built": false,
       "achieved": false,
-      "milestonesAchieved": 0,
       "percent": 0,
+      "milestonesAchieved": 0,
+      "refinementsAchieved": 0,
+      "milestones": [
+        {
+          "id": "M-5",
+          "name": "M-5-third",
+          "title": "第三個數字看得到",
+          "achieved": false,
+          "binds": []
+        }
+      ],
+      "refinements": []
+    },
+    {
+      "id": "R-1",
+      "name": "R-1-score",
+      "file": ".design/requirements/R-1-score.md",
+      "title": "分數算得出來",
+      "priority": null,
+      "priorityRaw": "high",
+      "law": {
+        "title": "<一句可判定的話:這條需求達成時,什麼一定為真>",
+        "formal": false,
+        "holds": false,
+        "source": "驗收還是模板",
+        "tested": false
+      },
+      "note": "驗收未達成 · 里程碑 0/2 達成",
+      "built": false,
+      "achieved": false,
+      "percent": 0,
+      "milestonesAchieved": 0,
+      "refinementsAchieved": 0,
       "milestones": [
         {
           "id": "M-1",
@@ -351,6 +210,15 @@ $ devflow status --json
             "F-001-score",
             "A-001-lonely",
             "F-009-nope"
+          ]
+        },
+        {
+          "id": "M-3",
+          "name": "M-3-plain",
+          "title": "一條普通的里程碑",
+          "achieved": false,
+          "binds": [
+            "F-001-score"
           ]
         }
       ],
@@ -392,217 +260,225 @@ $ devflow status --json
       ]
     },
     {
-      "id": "O-5",
-      "name": "R-1-O-5-bare",
-      "file": ".design/objectives/R-1-O-5-bare.md",
-      "title": "沒有 frontmatter 的目標",
-      "requirement": null,
+      "id": "R-4",
+      "name": "R-4-third-number",
+      "file": ".design/requirements/R-4-third-number.md",
+      "title": "沒有 frontmatter 的需求",
       "priority": null,
       "priorityRaw": null,
       "law": {
         "title": "",
         "formal": false,
-        "holds": null,
-        "source": "里程碑 0/0 達成",
+        "holds": false,
+        "source": "M-2 還沒達成",
         "tested": false
       },
-      "note": "里程碑 0/0 達成",
+      "note": "驗收未達成 · 里程碑 0/1 達成",
+      "built": false,
       "achieved": false,
+      "percent": 0,
       "milestonesAchieved": 0,
-      "percent": null,
-      "milestones": [],
+      "refinementsAchieved": 0,
+      "milestones": [
+        {
+          "id": "M-2",
+          "name": "M-2-score-too",
+          "title": "分數也算得出來",
+          "achieved": false,
+          "binds": [
+            "F-001-score"
+          ]
+        }
+      ],
       "refinements": []
+    }
+  ],
+  "invariants": [
+    {
+      "id": "INV-1",
+      "kind": "bound",
+      "title": "只有一句話、還沒有三行式的不變量",
+      "formal": false,
+      "holds": null,
+      "source": "還沒有三行式",
+      "tested": false
+    },
+    {
+      "id": "INV-2",
+      "kind": "invariant",
+      "title": "寫了三行卻沒有測試,而且引用了一份 feature 的簽名",
+      "formal": true,
+      "holds": null,
+      "source": "寫了三行卻沒有 INV-2#LAW 測試",
+      "tested": false
+    },
+    {
+      "id": "INV-2",
+      "kind": "invariant",
+      "title": "編號重複",
+      "formal": false,
+      "holds": null,
+      "source": "還沒有三行式",
+      "tested": false
+    },
+    {
+      "id": "INV-3",
+      "kind": "nonsense",
+      "title": "種類不合法",
+      "formal": false,
+      "holds": null,
+      "source": "還沒有三行式",
+      "tested": false
     }
   ],
   "bands": [
     {
-      "id": "R-3",
-      "title": "R-3 有兩個目標的需求",
-      "note": "驗收未達成 · O-2、O-3 還沒達成 · 2 個目標,達成 0 個 · 里程碑 0/1 達成",
-      "achieved": false,
-      "bare": false,
-      "lanes": [
-        {
-          "id": "O-2",
-          "achieved": false,
-          "title": "O-2 沒有里程碑的目標",
-          "notes": [
-            "優先 2",
-            "里程碑 0/0 達成 · 完成度 -"
-          ],
-          "columns": [],
-          "empty": "沒有任何里程碑"
-        },
-        {
-          "id": "O-3",
-          "achieved": false,
-          "title": "O-3 編號撞到的目標",
-          "notes": [
-            "優先 3",
-            "里程碑 0/1 達成 · 完成度 0%"
-          ],
-          "columns": [
-            {
-              "title": "M-1 <一句話>(還沒有切片)",
-              "achieved": false,
-              "docs": []
-            }
-          ],
-          "empty": null
-        }
-      ],
-      "columns": []
-    },
-    {
-      "id": "R-1",
-      "title": "R-1 分數算得出來",
-      "note": "驗收未達成 · 驗收還是模板 · 2 個目標,達成 0 個 · 里程碑 0/2 達成",
-      "achieved": false,
-      "bare": false,
-      "lanes": [
-        {
-          "id": "O-7",
-          "achieved": false,
-          "title": "O-7 檔名與 frontmatter 對不上的目標",
-          "notes": [
-            "優先 4",
-            "里程碑 0/1 達成 · 完成度 0%"
-          ],
-          "columns": [
-            {
-              "title": "M-3 一條普通的里程碑",
-              "achieved": false,
-              "docs": [
-                "F-001-score"
-              ]
-            }
-          ],
-          "empty": null
-        },
-        {
-          "id": "O-1",
-          "achieved": false,
-          "title": "O-1 算分",
-          "notes": [
-            "優先 9",
-            "里程碑 0/1 達成 · 完成度 0% · 調整 0/4 達成"
-          ],
-          "columns": [
-            {
-              "title": "M-1 分數算得出來",
-              "achieved": false,
-              "docs": [
-                "F-001-score",
-                "A-001-lonely",
-                "F-009-nope"
-              ]
-            },
-            {
-              "title": "RF-1 動到了里程碑沒綁過的 feature(調整,待修訂)",
-              "achieved": false,
-              "docs": [
-                "F-002-other"
-              ]
-            },
-            {
-              "title": "RF-2 動到了不存在的 feature(調整,待修訂)",
-              "achieved": false,
-              "docs": [
-                "F-009-nope"
-              ]
-            },
-            {
-              "title": "RF-3 <一句話:改既有 feature 的哪一種品質>(調整,待修訂)",
-              "achieved": false,
-              "docs": [
-                "F-001-score"
-              ]
-            },
-            {
-              "title": "RF-3 編號撞到的調整,而且沒動到任何東西(調整,待修訂)",
-              "achieved": false,
-              "docs": []
-            }
-          ],
-          "empty": null
-        }
-      ],
-      "columns": []
-    },
-    {
       "id": "R-2",
-      "title": "R-2 寫了三行卻沒有驗收測試",
-      "note": "驗收未知 · 寫了三行卻沒有 R-2#ACCEPT 測試 · 0 個目標,達成 0 個 · 里程碑 0/0 達成",
+      "title": "R-2 寫了三行卻沒有驗收測試,也沒有里程碑",
+      "note": "驗收未知 · 寫了三行卻沒有 R-2#ACCEPT 測試",
+      "notes": [
+        "優先 2",
+        "里程碑 0/0 達成 · 完成度 -"
+      ],
       "achieved": false,
-      "bare": false,
-      "lanes": [],
-      "columns": []
+      "columns": [],
+      "empty": "沒有任何里程碑"
     },
     {
-      "id": "R-4",
-      "title": "R-4 沒有任何目標的需求",
-      "note": "驗收未達成 · 還沒有目標 · 0 個目標,達成 0 個 · 里程碑 0/0 達成",
+      "id": "R-3",
+      "title": "R-3 里程碑編號撞到別條需求的",
+      "note": "驗收未達成 · M-1 還沒達成",
+      "notes": [
+        "優先 2",
+        "里程碑 0/1 達成 · 完成度 0%"
+      ],
       "achieved": false,
-      "bare": false,
-      "lanes": [],
-      "columns": []
+      "columns": [
+        {
+          "title": "M-1 <一句話>(還沒有切片)",
+          "achieved": false,
+          "docs": []
+        }
+      ],
+      "empty": null
     },
     {
       "id": "R-5",
       "title": "R-5 驗收引用了進入點與不存在的東西",
-      "note": "驗收未知 · 寫了三行卻沒有 R-5#ACCEPT 測試 · 0 個目標,達成 0 個 · 里程碑 0/0 達成",
+      "note": "驗收未知 · 寫了三行卻沒有 R-5#ACCEPT 測試",
+      "notes": [
+        "優先 3",
+        "里程碑 0/1 達成 · 完成度 0%"
+      ],
       "achieved": false,
-      "bare": false,
-      "lanes": [],
-      "columns": []
-    },
-    {
-      "id": "no-req",
-      "title": "沒有對到需求",
-      "note": "2 個目標的需求欄對不到 system.md 的任何 R-n",
-      "achieved": false,
-      "bare": false,
-      "lanes": [
+      "columns": [
         {
-          "id": "O-4",
+          "title": "M-4 進入點回得出分數(還沒有切片)",
           "achieved": false,
-          "title": "O-4 需求不在 system.md 的目標",
-          "notes": [
-            "優先 1",
-            "里程碑 0/1 達成 · 完成度 0%"
-          ],
-          "columns": [
-            {
-              "title": "M-2 分數也算得出來",
-              "achieved": false,
-              "docs": [
-                "F-001-score"
-              ]
-            }
-          ],
-          "empty": null
-        },
-        {
-          "id": "O-5",
-          "achieved": false,
-          "title": "O-5 沒有 frontmatter 的目標",
-          "notes": [
-            "優先 (沒填)",
-            "里程碑 0/0 達成 · 完成度 -"
-          ],
-          "columns": [],
-          "empty": "沒有任何里程碑"
+          "docs": []
         }
       ],
-      "columns": []
+      "empty": null
+    },
+    {
+      "id": "R-9",
+      "title": "R-9 檔名與 frontmatter 對不上的需求",
+      "note": "驗收未達成 · M-5 還沒達成",
+      "notes": [
+        "優先 4",
+        "里程碑 0/1 達成 · 完成度 0%"
+      ],
+      "achieved": false,
+      "columns": [
+        {
+          "title": "M-5 第三個數字看得到(還沒有切片)",
+          "achieved": false,
+          "docs": []
+        }
+      ],
+      "empty": null
+    },
+    {
+      "id": "R-1",
+      "title": "R-1 分數算得出來",
+      "note": "驗收未達成 · 驗收還是模板",
+      "notes": [
+        "優先 high",
+        "里程碑 0/2 達成 · 完成度 0% · 調整 0/4 達成"
+      ],
+      "achieved": false,
+      "columns": [
+        {
+          "title": "M-1 分數算得出來",
+          "achieved": false,
+          "docs": [
+            "F-001-score",
+            "A-001-lonely",
+            "F-009-nope"
+          ]
+        },
+        {
+          "title": "M-3 一條普通的里程碑",
+          "achieved": false,
+          "docs": [
+            "F-001-score"
+          ]
+        },
+        {
+          "title": "RF-1 動到了里程碑沒綁過的 feature(調整,待修訂)",
+          "achieved": false,
+          "docs": [
+            "F-002-other"
+          ]
+        },
+        {
+          "title": "RF-2 動到了不存在的 feature(調整,待修訂)",
+          "achieved": false,
+          "docs": [
+            "F-009-nope"
+          ]
+        },
+        {
+          "title": "RF-3 <一句話:改既有 feature 的哪一種品質>(調整,待修訂)",
+          "achieved": false,
+          "docs": [
+            "F-001-score"
+          ]
+        },
+        {
+          "title": "RF-3 編號撞到的調整,而且沒動到任何東西(調整,待修訂)",
+          "achieved": false,
+          "docs": []
+        }
+      ],
+      "empty": null
+    },
+    {
+      "id": "R-4",
+      "title": "R-4 沒有 frontmatter 的需求",
+      "note": "驗收未達成 · M-2 還沒達成",
+      "notes": [
+        "優先 (沒填)",
+        "里程碑 0/1 達成 · 完成度 0%"
+      ],
+      "achieved": false,
+      "columns": [
+        {
+          "title": "M-2 分數也算得出來",
+          "achieved": false,
+          "docs": [
+            "F-001-score"
+          ]
+        }
+      ],
+      "empty": null
     },
     {
       "id": "loose",
-      "title": "不朝向任何目標",
+      "title": "不朝向任何需求",
       "note": "1 份 feature 沒有被任何里程碑綁定",
+      "notes": [],
       "achieved": false,
-      "bare": true,
-      "lanes": [],
       "columns": [
         {
           "title": "feature",
@@ -611,15 +487,15 @@ $ devflow status --json
             "F-002-other"
           ]
         }
-      ]
+      ],
+      "empty": null
     },
     {
       "id": "shared",
       "title": "共用",
       "note": "abstract 跟著引用它的 feature 達成",
+      "notes": [],
       "achieved": false,
-      "bare": true,
-      "lanes": [],
       "columns": [
         {
           "title": "被 feature 引用",
@@ -628,7 +504,8 @@ $ devflow status --json
             "A-002-single"
           ]
         }
-      ]
+      ],
+      "empty": null
     }
   ],
   "docs": [
@@ -641,10 +518,9 @@ $ devflow status --json
       "state": "卡 GAP-1、GAP-1",
       "achieved": false,
       "building": false,
-      "requirement": null,
-      "objective": "O-4",
-      "priority": 1,
-      "milestone": "M-2",
+      "requirement": "R-1",
+      "priority": null,
+      "milestone": "M-1",
       "signatures": {
         "total": 5,
         "matched": 2,
@@ -799,7 +675,6 @@ $ devflow status --json
       "achieved": false,
       "building": false,
       "requirement": null,
-      "objective": null,
       "priority": null,
       "milestone": null,
       "signatures": {
@@ -891,7 +766,6 @@ $ devflow status --json
       "achieved": false,
       "building": false,
       "requirement": "R-1",
-      "objective": "O-1",
       "priority": null,
       "milestone": "M-1",
       "signatures": {
@@ -978,7 +852,6 @@ $ devflow status --json
       "achieved": false,
       "building": false,
       "requirement": null,
-      "objective": null,
       "priority": null,
       "milestone": null,
       "signatures": {
@@ -1058,7 +931,18 @@ $ devflow status --json
   "lines": {
     "openable": [],
     "building": [],
-    "slices": [],
+    "slices": [
+      {
+        "name": "M-4-entry",
+        "requirement": "R-5",
+        "title": "進入點回得出分數"
+      },
+      {
+        "name": "M-5-third",
+        "requirement": "R-9",
+        "title": "第三個數字看得到"
+      }
+    ],
     "slicesBuilding": [],
     "shared": []
   },
@@ -1078,37 +962,117 @@ $ devflow status --json
     {
       "where": "system.md",
       "what": "願景還是模板",
-      "fix": "dev-flow:project 訂願景"
+      "fix": "dev-flow:kickoff 訂願景"
+    },
+    {
+      "where": "system.md",
+      "what": "沒有宣告優先 1 到 4 各代表什麼",
+      "fix": "dev-flow:require-design 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」"
+    },
+    {
+      "where": "R-2",
+      "what": "驗收寫了三行卻沒有驗收測試,達成與否未知",
+      "fix": "dev-flow:build R-2(只派 qa 寫一條歸屬 \"R-2#ACCEPT\" 的測試);不能自動化就只留一句,由里程碑推"
+    },
+    {
+      "where": "R-2",
+      "what": "沒有任何里程碑",
+      "fix": "dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>)"
+    },
+    {
+      "where": "M-1",
+      "what": "里程碑還是模板",
+      "fix": "dev-flow:require-design 寫成一句話"
+    },
+    {
+      "where": "M-1",
+      "what": "沒有英文名,切片開不了分支",
+      "fix": "dev-flow:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵"
+    },
+    {
+      "where": "R-5",
+      "what": "驗收寫了三行卻沒有驗收測試,達成與否未知",
+      "fix": "dev-flow:build R-5(只派 qa 寫一條歸屬 \"R-5#ACCEPT\" 的測試);不能自動化就只留一句,由里程碑推"
+    },
+    {
+      "where": ".design/requirements/R-6-mismatch.md",
+      "what": "檔名與 frontmatter 對不上(frontmatter:R-9)",
+      "fix": "檔名 R-n-<slug> 的 R-n 要等於 frontmatter 的 id"
     },
     {
       "where": "R-1",
       "what": "驗收還是模板",
-      "fix": "dev-flow:project 寫成可判定的一句"
+      "fix": "dev-flow:require-design 寫成可判定的一句"
     },
     {
-      "where": "R-2",
-      "what": "驗收寫了三行卻沒有驗收測試,達成與否未知",
-      "fix": "dev-flow:build R-2(只派 qa 寫一條歸屬 \"R-2#ACCEPT\" 的測試);不能自動化就只留一句,由建置路線推"
+      "where": "R-1",
+      "what": "優先「high」不是 1 到 4",
+      "fix": "改成 1(最高)到 4(最低)"
     },
     {
-      "where": "R-2",
-      "what": "沒有任何目標",
-      "fix": "devflow objective add <slug> <一句話> --requirement R-2 --priority <1-4>"
+      "where": "M-1",
+      "what": "里程碑編號重複",
+      "fix": "編號全資料夾唯一;配號只走 devflow requirement milestone"
+    },
+    {
+      "where": "M-1",
+      "what": "沒有英文名,切片開不了分支",
+      "fix": "dev-flow:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵"
+    },
+    {
+      "where": "M-1",
+      "what": "綁定的 A-001-lonely 是 abstract",
+      "fix": "改綁引用它的 feature;abstract 跟著 feature 達成"
+    },
+    {
+      "where": "M-1",
+      "what": "綁定的 F-009-nope 不存在",
+      "fix": "改成 features/ 裡有的全名,或刪這個綁定"
+    },
+    {
+      "where": "RF-1",
+      "what": "動到的 F-002-other 不在 R-1 任何里程碑的綁定裡",
+      "fix": "調整不引入新 feature:只動這條需求的里程碑做出來的 feature;新能力開里程碑"
+    },
+    {
+      "where": "RF-2",
+      "what": "動到的 F-009-nope 不存在",
+      "fix": "改成 features/ 裡有的全名"
+    },
+    {
+      "where": "RF-3",
+      "what": "調整還是模板",
+      "fix": "dev-flow:require-design 寫成一句話"
+    },
+    {
+      "where": "RF-3",
+      "what": "調整編號重複",
+      "fix": "編號全資料夾唯一;配號只走 devflow requirement refinement"
+    },
+    {
+      "where": "RF-3",
+      "what": "沒有動到任何文檔",
+      "fix": "動到欄填這條需求的里程碑綁定過的 feature 全名"
+    },
+    {
+      "where": ".design/requirements/R-4-third-number.md",
+      "what": "沒有 frontmatter",
+      "fix": "照 templates/requirement.md 補 id、priority、updated"
     },
     {
       "where": "R-4",
-      "what": "沒有任何目標",
-      "fix": "devflow objective add <slug> <一句話> --requirement R-4 --priority <1-4>"
+      "what": "沒有驗收",
+      "fix": "dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」"
     },
     {
-      "where": "R-5",
-      "what": "驗收寫了三行卻沒有驗收測試,達成與否未知",
-      "fix": "dev-flow:build R-5(只派 qa 寫一條歸屬 \"R-5#ACCEPT\" 的測試);不能自動化就只留一句,由建置路線推"
+      "where": "R-4",
+      "what": "優先「(沒填)」不是 1 到 4",
+      "fix": "改成 1(最高)到 4(最低)"
     },
     {
-      "where": "R-5",
-      "what": "沒有任何目標",
-      "fix": "devflow objective add <slug> <一句話> --requirement R-5 --priority <1-4>"
+      "where": "F-002-other",
+      "what": "沒有被任何里程碑綁定",
+      "fix": "不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature"
     },
     {
       "where": "INV-1",
@@ -1129,111 +1093,6 @@ $ devflow status --json
       "where": "INV-3",
       "what": "還沒有三行式,成立與否未知",
       "fix": "dev-flow:law-design 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
-    },
-    {
-      "where": "system.md",
-      "what": "沒有宣告優先 1 到 4 各代表什麼",
-      "fix": "dev-flow:objective 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」"
-    },
-    {
-      "where": "O-4",
-      "what": "需求 R-9 不在 system.md",
-      "fix": "改成 system.md 裡有的 R-n,或 devflow requirement add 先立需求"
-    },
-    {
-      "where": "O-2",
-      "what": "沒有任何里程碑",
-      "fix": "dev-flow:objective 補里程碑(devflow objective milestone <O-n> <slug> <一句話>)"
-    },
-    {
-      "where": "M-1",
-      "what": "里程碑還是模板",
-      "fix": "dev-flow:objective 寫成一句話"
-    },
-    {
-      "where": "M-1",
-      "what": "沒有英文名,切片開不了分支",
-      "fix": "dev-flow:objective 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵"
-    },
-    {
-      "where": ".design/objectives/R-1-O-6-mismatch.md",
-      "what": "檔名與 frontmatter 對不上(frontmatter:R-1 O-7)",
-      "fix": "檔名 R-x-O-y-<slug> 的 R-x 與 O-y 要等於 frontmatter 的 requirement 與 id;目標換需求就改檔名"
-    },
-    {
-      "where": "O-1",
-      "what": "優先「9」不是 1 到 4",
-      "fix": "改成 1(最高)到 4(最低)"
-    },
-    {
-      "where": "M-1",
-      "what": "里程碑編號重複",
-      "fix": "編號全資料夾唯一;配號只走 devflow objective milestone"
-    },
-    {
-      "where": "M-1",
-      "what": "沒有英文名,切片開不了分支",
-      "fix": "dev-flow:objective 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵"
-    },
-    {
-      "where": "M-1",
-      "what": "綁定的 A-001-lonely 是 abstract",
-      "fix": "改綁引用它的 feature;abstract 跟著 feature 達成"
-    },
-    {
-      "where": "M-1",
-      "what": "綁定的 F-009-nope 不存在",
-      "fix": "改成 features/ 裡有的全名,或刪這個綁定"
-    },
-    {
-      "where": "RF-1",
-      "what": "動到的 F-002-other 不在 O-1 任何里程碑的綁定裡",
-      "fix": "優化路線不引入新 feature:只動本目標建置路線做出來的 feature;新能力開里程碑"
-    },
-    {
-      "where": "RF-2",
-      "what": "動到的 F-009-nope 不存在",
-      "fix": "改成 features/ 裡有的全名"
-    },
-    {
-      "where": "RF-3",
-      "what": "調整還是模板",
-      "fix": "dev-flow:objective 寫成一句話"
-    },
-    {
-      "where": "RF-3",
-      "what": "調整編號重複",
-      "fix": "編號全資料夾唯一;配號只走 devflow objective refinement"
-    },
-    {
-      "where": "RF-3",
-      "what": "沒有動到任何文檔",
-      "fix": "動到欄填本目標里程碑綁定過的 feature 全名"
-    },
-    {
-      "where": ".design/objectives/R-1-O-5-bare.md",
-      "what": "沒有 frontmatter",
-      "fix": "照 templates/objective.md 補 id、requirement、priority、updated"
-    },
-    {
-      "where": "O-5",
-      "what": "沒有對到任何需求",
-      "fix": "dev-flow:objective 在 frontmatter 補 requirement: R-n;每個目標解決一條需求"
-    },
-    {
-      "where": "O-5",
-      "what": "優先「(沒填)」不是 1 到 4",
-      "fix": "改成 1(最高)到 4(最低)"
-    },
-    {
-      "where": "O-5",
-      "what": "沒有任何里程碑",
-      "fix": "dev-flow:objective 補里程碑(devflow objective milestone <O-n> <slug> <一句話>)"
-    },
-    {
-      "where": "F-002-other",
-      "what": "沒有被任何里程碑綁定",
-      "fix": "不朝向任何目標:dev-flow:objective 綁進一條里程碑,或刪掉這份 feature"
     },
     {
       "where": "A-002-single",
@@ -1293,10 +1152,12 @@ $ devflow status --json
   ],
   "route": {
     "steps": [
-      "先回答 GAP-1、GAP-1(dev-flow:revise),卡住的 step 才能重派",
+      "先回答 GAP-1、GAP-1(dev-flow:law-design;問的是全域 Law 就 dev-flow:glaws-revise),卡住的 step 才能重派",
       "dev-flow:law-design F-002-other(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
       "dev-flow:law-design A-001-lonely(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
       "dev-flow:law-design A-002-single(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
+      "dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)",
+      "dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)",
       "dev-flow:build INV-2(只派 qa 寫 INV-2#LAW 的測試)"
     ],
     "note": null,

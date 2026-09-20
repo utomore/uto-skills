@@ -3,7 +3,7 @@ $ devflow claim feature login --description 使用者以憑證換取工作階段
 
 建了 .design/features/F-001-login.md(status: draft)
 system.md Features 表加了一列
-沒有 --milestone:這份 feature 還不朝向任何目標,dev-flow:objective 綁進一條里程碑
+沒有 --milestone:這份 feature 還不朝向任何需求,dev-flow:require-design 綁進一條里程碑
 exit 0
 --- .design/features/F-001-login.md
 ---
@@ -53,16 +53,8 @@ updated: <YYYY-MM-DD>
 ## 願景
 <北極星,第一段一到三句:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼。後面可以展開:替誰做什麼、明確不做什麼;不隨里程碑變。>
 
-## 需求
-必須達成:一條需求是一件使用者要得到的事,驗收是判它達成與否的那一句。
-
-### R-1:<一句話:誰在什麼情況下要得到什麼>
-- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>
-  - forall <變數 in 定義域>
-  - |- <結論,識別字是某份 feature 的 Steps 簽名或最內層的匯出;寫不成表達式就只留上面那一句>
-
 ## 全域 Law
-不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准,一律由 `dev-flow:glaws-revise` 寫。
 
 ### 領域不變量
 - INV-1 [<invariant | identity | roundtrip | relation | bound | equiv | total | commute>] <一句話:整個專案任何一份 feature 都不准違反的領域規則;一條都沒有就這一區只寫「無」>

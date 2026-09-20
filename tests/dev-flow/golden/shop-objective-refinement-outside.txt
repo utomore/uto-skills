@@ -1,3 +1,0 @@
-$ devflow objective refinement O-1 結算改成串流 --touch A-001-settle
-A-001-settle 不在 O-1 任何里程碑的綁定裡;優化路線不引入新 feature,新能力開里程碑(devflow objective milestone)
-exit 1

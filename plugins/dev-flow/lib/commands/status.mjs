@@ -92,7 +92,7 @@ function mainRef(root) {
   return null;
 }
 
-// 建構中 = 有 build/<鍵> 分支,而且它還沒被合進主線。鍵是里程碑全名 M-n-<slug>(一條切片)、文檔全名(一次修訂)、或 R-n / O-n / INV-n(一條驗收測試)。
+// 建構中 = 有 build/<鍵> 分支,而且它還沒被合進主線。鍵是里程碑全名 M-n-<slug>(一條切片)、文檔全名(一次修訂)、或 R-n / INV-n(一條驗收測試)。
 // 合進主線的分支是做完了沒人收的殘留,不是有人在建;它列成警訊,清掉是整合的職責(roles.md「整合」)。
 // 只在專案根目錄有 .git 時問 git;沒有(夾具、匯出的樹)就一條都不算,報告不受環境影響。
 // phaseOf(工作樹根目錄, 鍵) 由呼叫端給:它讀那棵樹的 .design 與程式碼,回這條線走到哪一步(slicePhase)。
@@ -124,7 +124,7 @@ export function branchState(root, phaseOf = null) {
 // 還沒有決策紀錄 = 切片中;有決策紀錄而里程碑還沒綁文檔 = 切片完成;綁的文檔有 draft = Law 討論中;
 // 都拍板了而 law 還沒有測試歸屬 = Law 已定;有歸屬 = 調整中;都 verified = qa 與 refactor 做完、每條 law 成立。
 export function slicePhase(design, source, key) {
-  const m = design.objectives.objectives.flatMap((o) => o.milestones).find((ms) => ms.fullName === key || ms.id === key);
+  const m = design.requirements.requirements.flatMap((q) => q.milestones).find((ms) => ms.fullName === key || ms.id === key);
   const docs = m ? m.binds.map((b) => design.docs.find((d) => d.fullName === b)).filter(Boolean) : design.docs.filter((d) => d.fullName === key);
   if (!m && !docs.length) return '';
   if (!docs.length) return design.journals.some((j) => j.key === key) ? '切片完成,等 dev-flow:law-design' : '切片中';
@@ -198,23 +198,21 @@ const verdict = (result) => (result === 'green' ? true : result === 'red' ? fals
 export const holdsWord = (holds) => (holds === true ? '成立' : holds === false ? '未成立' : '未知');
 export const metWord = (met) => (met === true ? '達成' : met === false ? '未達成' : '未知');
 
-// 需求 → 目標 → 里程碑 / 調整 → 文檔。
-// 里程碑達成 = 綁定的每份 feature 都達成;目標完成度 = 達成的里程碑 / 里程碑數。
-// 目標達成 = 建置路線的里程碑全部達成。
-// 需求達成:有 R-n#ACCEPT 驗收測試以它為準;驗收寫了三行卻沒有測試是未知;一句話的驗收沒有測試 = 它底下每個目標都達成(推得),一個目標都沒有就未達成。
+// 需求 → 里程碑 / 調整 → 文檔。
+// 里程碑達成 = 綁定的每份 feature 都達成;里程碑依表上的順序走,全部達成 = 這條需求的建置走完(built)。
+// 需求達成:有 R-n#ACCEPT 驗收測試以它為準;驗收寫了三行卻沒有測試是未知;一句話的驗收沒有測試 = 里程碑全部達成(推得),一條里程碑都沒有就未達成。
 // 調整達成 = 動到的每份文檔都有一條 REV 引用它、都達成,而且需求仍達成。
-// rank 給每份文檔一個排序鍵(目標優先、目標順序、里程碑順序),建議路線與能開的線照它排;沒被綁的排最後。
-export function objectiveView(design, a) {
-  const sys = design.system;
-  const objs = design.objectives.objectives.map((o) => {
-    const ms = o.milestones.map((m) => {
+// rank 給每份文檔一個排序鍵(需求優先、需求順序、里程碑順序),建議路線與能開的線照它排;沒被綁的排最後。
+export function requirementView(design, a) {
+  const reqs = design.requirements.requirements.map((q) => {
+    const ms = q.milestones.map((m) => {
       const docs = m.binds.map((b) => ({ name: b, x: a.info.get(b) || null }));
       const achieved = docs.length > 0 && docs.every((d) => d.x && d.x.achieved);
       return { ...m, docs, achieved };
     });
     const done = ms.filter((m) => m.achieved).length;
     const built = ms.length > 0 && done === ms.length;
-    const rfs = o.refinements.map((rf) => {
+    const rfs = q.refinements.map((rf) => {
       const docs = rf.touches.map((name) => {
         const x = a.info.get(name) || null;
         return { name, x, revs: x ? x.p.revs.filter((r) => r.cites.includes(rf.id)) : [] };
@@ -229,13 +227,7 @@ export function objectiveView(design, a) {
         green: docs.length > 0 && docs.every((d) => d.x && d.x.achieved),
       };
     });
-    return { ...o, ms, done, pct: ms.length ? Math.round((done / ms.length) * 100) : null, achieved: built, rfs };
-  });
-  const sorted = [...objs].sort((x, y) => (x.priority || 5) - (y.priority || 5) || x.fullName.localeCompare(y.fullName));
-  // 需求:它底下的目標照優先排;需求本身照它最高優先的目標排
-  const reqs = (sys ? sys.requirements : []).map((q) => {
-    const os = sorted.filter((o) => o.requirement === q.id);
-    // 三行式的驗收只由測試判,沒有測試就是未知;一句話的驗收才由建置路線推
+    // 三行式的驗收只由測試判,沒有測試就是未知;一句話的驗收才由里程碑推
     const test = a.lawTest(`${q.id}#ACCEPT`);
     let holds;
     let source;
@@ -248,36 +240,29 @@ export function objectiveView(design, a) {
     } else if (q.accept && q.accept.formal) {
       holds = null;
       source = `寫了三行卻沒有 ${q.id}#ACCEPT 測試`;
-    } else if (!os.length) {
+    } else if (!ms.length) {
       holds = false;
-      source = '還沒有目標';
-    } else if (os.every((o) => o.achieved)) {
+      source = '還沒有里程碑';
+    } else if (built) {
       holds = true;
-      source = `推得:${os.map((o) => o.id).join('、')} 都達成`;
+      source = '推得:里程碑全部達成';
     } else {
       holds = false;
-      source = `${os.filter((o) => !o.achieved).map((o) => o.id).join('、')} 還沒達成`;
+      source = `${ms.filter((m) => !m.achieved).map((m) => m.id).join('、')} 還沒達成`;
     }
-    const ms = os.flatMap((o) => o.ms);
-    const rfs = os.flatMap((o) => o.rfs);
-    return { ...q, objectives: os, holds, source, tested: !!test, built: os.length > 0 && os.every((o) => o.achieved), ms, rfs, key: Math.min(...os.map((o) => o.priority || 5), 5) };
-  }).sort((x, y) => x.key - y.key || x.line - y.line);
-  const reqOf = new Map(reqs.map((q) => [q.id, q]));
-  for (const o of sorted) {
-    o.req = reqOf.get(o.requirement) || null;
-    for (const rf of o.rfs) {
-      rf.state = !rf.started ? '待修訂' : rf.cited && rf.green && o.req && o.req.holds === true ? '達成' : '進行中';
+    for (const rf of rfs) {
+      rf.state = !rf.started ? '待修訂' : rf.cited && rf.green && holds === true ? '達成' : '進行中';
       rf.achieved = rf.state === '達成';
     }
-    o.rfDone = o.rfs.filter((rf) => rf.achieved).length;
-  }
+    return { ...q, ms, done, pct: ms.length ? Math.round((done / ms.length) * 100) : null, built, rfs, rfDone: rfs.filter((rf) => rf.achieved).length, holds, source, tested: !!test };
+  }).sort((x, y) => (x.priority || 5) - (y.priority || 5) || Number(x.id.slice(2)) - Number(y.id.slice(2)) || x.fullName.localeCompare(y.fullName));
   const rank = new Map();
-  sorted.forEach((o, oi) => o.ms.forEach((m, mi) => m.binds.forEach((b) => {
-    if (!rank.has(b)) rank.set(b, { o, m, key: (o.priority || 5) * 1e6 + oi * 1e3 + mi });
+  reqs.forEach((q, qi) => q.ms.forEach((m, mi) => m.binds.forEach((b) => {
+    if (!rank.has(b)) rank.set(b, { q, m, key: (q.priority || 5) * 1e6 + qi * 1e3 + mi });
   })));
   const keyOf = (name) => (rank.has(name) ? rank.get(name).key : 9e9);
-  const tag = (name) => (rank.has(name) ? `${rank.get(name).o.id} 優先 ${rank.get(name).o.priority || '?'} · ${rank.get(name).m.id} ${rank.get(name).m.title}` : '沒有綁到任何目標');
-  return { objs: sorted, reqs, rank, keyOf, tag };
+  const tag = (name) => (rank.has(name) ? `${rank.get(name).q.id} 優先 ${rank.get(name).q.priority || '?'} · ${rank.get(name).m.id} ${rank.get(name).m.title}` : '沒有被任何里程碑綁定');
+  return { reqs, rank, keyOf, tag };
 }
 
 // 領域不變量:整個專案都不准違反的 law。只由測試判:有 INV-n#LAW 測試以它為準;寫了三行卻沒有測試、或還沒有三行式,都是未知。
@@ -315,15 +300,15 @@ export function globalView(design, a, source, adapter, inv = invariantView(desig
   ];
 }
 
-// 每個目標下一條還沒達成的里程碑,如果它還沒綁任何文檔,就是一條可以開的切片(要有英文名才有分支可開)
+// 每條需求下一條還沒達成的里程碑,如果它還沒綁任何文檔,就是一條可以開的切片(要有英文名才有分支可開)
 export function sliceLines(ov, building) {
-  const next = ov.objs.map((o) => ({ o, m: o.ms.find((m) => !m.achieved) })).filter((s) => s.m && !s.m.binds.length && s.m.slug);
+  const next = ov.reqs.map((q) => ({ q, m: q.ms.find((m) => !m.achieved) })).filter((s) => s.m && !s.m.binds.length && s.m.slug);
   return {
     openable: next.filter((s) => !building.has(s.m.fullName)),
     inBuild: next.filter((s) => building.has(s.m.fullName)),
   };
 }
-const sliceTag = (s) => `${s.o.id} 優先 ${s.o.priority || '?'} · ${s.m.title}`;
+const sliceTag = (s) => `${s.q.id} 優先 ${s.q.priority || '?'} · ${s.m.title}`;
 
 // 一份文檔是不是正在某條 build 分支上:它自己的(修訂那波),或綁它的那條里程碑的(切片那波)
 export function buildKeyOf(x, ov, building) {
@@ -368,61 +353,55 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
   const unbound = design.features.map((f) => f.fullName).filter((f) => !ov.rank.has(f));
   const warns = [];
   const warn = (where, what, fix) => warns.push([where, what, fix]);
-  if (!sys) warn('system.md', '不存在', 'dev-flow:project 立案');
+  if (!sys) warn('system.md', '不存在', 'dev-flow:kickoff 立案');
   else {
-    if (sys.visionState === 'missing') warn('system.md', '沒有 ## 願景 節', 'dev-flow:project 訂願景');
-    else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'dev-flow:project 訂願景');
-    if (sys.requirementsState === 'missing') warn('system.md', '沒有 ## 需求 節', design.legacyObjectives ? 'devflow migrate objectives --write' : 'dev-flow:project 訂需求');
-    else if (!sys.requirements.length) warn('system.md', '沒有任何需求', 'devflow requirement add <一句話> --accept <句>(至少一條)');
+    if (sys.visionState === 'missing') warn('system.md', '沒有 ## 願景 節', 'dev-flow:kickoff 訂願景');
+    else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'dev-flow:kickoff 訂願景');
     if (sys.globalState === 'missing') warn('system.md', '沒有 ## 全域 Law 區,看不出約束住在哪裡', 'devflow migrate laws --write');
   }
-  for (const q of ov.reqs) {
-    if (q.placeholder) warn(q.id, '需求還是模板', 'dev-flow:project 寫成一句話');
-    if (!q.accept) warn(q.id, '沒有驗收', 'dev-flow:project 補一句可判定的話,寫成「- 驗收:…」');
-    else if (q.accept.placeholder) warn(q.id, '驗收還是模板', 'dev-flow:project 寫成可判定的一句');
-    else if (q.accept.formal && !q.tested) warn(q.id, '驗收寫了三行卻沒有驗收測試,達成與否未知', `dev-flow:build ${q.id}(只派 qa 寫一條歸屬 "${q.id}#ACCEPT" 的測試);不能自動化就只留一句,由建置路線推`);
-    if (!q.objectives.length) warn(q.id, '沒有任何目標', `devflow objective add <slug> <一句話> --requirement ${q.id} --priority <1-4>`);
-    if (q.built && q.holds === false) warn(q.id, `建置路線全部達成,需求卻未達成(${q.source})`, '驗收沒過:先查驗收測試,缺的能力開里程碑(dev-flow:objective),做錯的走 dev-flow:revise');
-    for (const rf of q.rfs) if (rf.started && rf.cited && rf.green && q.holds === false) warn(rf.id, `優化後 ${q.id} 未達成(${q.source})`, '優化不准讓需求退回未達成:仲裁那條紅,或重開再修');
-  }
-  for (const v of inv) {
-    if (v.holds === false) warn(v.id, `領域不變量未成立(${v.source})`, '有程式碼違反了它:仲裁那條紅,先歸因到是哪一份 feature 的實作再改');
-    else if (!v.law.formal) warn(v.id, '還沒有三行式,成立與否未知', 'dev-flow:law-design 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)');
-    else if (!v.tested) warn(v.id, '寫了三行卻沒有測試,成立與否未知', `dev-flow:build ${v.id}(只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試)`);
-  }
-  if (design.legacyObjectives) warn('objectives.md', '目標還擠在一份檔裡', 'devflow migrate objectives --write 拆成 objectives/ 一個目標一個檔');
-  if (!ov.objs.length) warn(design.objectives.exists ? 'objectives/' : '.design/', '沒有任何目標', 'dev-flow:objective 訂第一個目標(至少一個)');
-  else if (sys && sys.priorityNoteState !== 'ok') warn('system.md', sys.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'dev-flow:objective 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」');
+  if (design.requirements.merged) warn('system.md', '需求還住在「## 需求」節,看不出每條需求的優先與里程碑', 'devflow migrate requirements --write 換成 requirements/ 一條需求一個檔');
+  else if (design.objectivesFile) warn('objectives.md', '里程碑還擠在一份 objectives.md 裡', 'devflow migrate requirements --write 換成 requirements/ 一條需求一個檔');
+  for (const o of design.requirements.orphans || []) warn(o.file, `對到的需求 ${o.requirement} 不存在,它的里程碑沒有算進任何需求`, 'devflow migrate requirements 的帳本會列出它;決定它屬於哪條需求');
+  if (!ov.reqs.length) warn(design.requirements.exists ? 'requirements/' : '.design/', '沒有任何需求', 'dev-flow:require-design 談第一條需求(至少一條)');
+  else if (sys && sys.priorityNoteState !== 'ok') warn('system.md', sys.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'dev-flow:require-design 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」');
   const seenM = new Set();
   const seenRf = new Set();
-  for (const o of ov.objs) {
-    if (!o.hasFrontmatter) warn(o.file, '沒有 frontmatter', '照 templates/objective.md 補 id、requirement、priority、updated');
-    else if (o.fileId !== o.id || (o.requirement && o.fileRequirement !== o.requirement)) warn(o.file, `檔名與 frontmatter 對不上(frontmatter:${o.requirement || '?'} ${o.id})`, '檔名 R-x-O-y-<slug> 的 R-x 與 O-y 要等於 frontmatter 的 requirement 與 id;目標換需求就改檔名');
-    if (o.placeholder) warn(o.id, '目標還是模板', 'dev-flow:objective 寫成一句話');
-    if (!o.requirement) warn(o.id, '沒有對到任何需求', 'dev-flow:objective 在 frontmatter 補 requirement: R-n;每個目標解決一條需求');
-    else if (sys && !o.req) warn(o.id, `需求 ${o.requirement} 不在 system.md`, '改成 system.md 裡有的 R-n,或 devflow requirement add 先立需求');
-    if (!o.priority) warn(o.id, `優先「${o.priorityRaw || '(沒填)'}」不是 1 到 4`, '改成 1(最高)到 4(最低)');
-    if (!o.ms.length) warn(o.id, '沒有任何里程碑', 'dev-flow:objective 補里程碑(devflow objective milestone <O-n> <slug> <一句話>)');
-    for (const m of o.ms) {
-      if (seenM.has(m.id)) warn(m.id, '里程碑編號重複', '編號全資料夾唯一;配號只走 devflow objective milestone');
+  for (const q of ov.reqs) {
+    if (!q.hasFrontmatter) warn(q.file, '沒有 frontmatter', '照 templates/requirement.md 補 id、priority、updated');
+    else if (q.fileId !== q.id) warn(q.file, `檔名與 frontmatter 對不上(frontmatter:${q.id})`, '檔名 R-n-<slug> 的 R-n 要等於 frontmatter 的 id');
+    if (q.placeholder) warn(q.id, '需求還是模板', 'dev-flow:require-design 寫成一句話');
+    if (!q.accept) warn(q.id, '沒有驗收', 'dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」');
+    else if (q.accept.placeholder) warn(q.id, '驗收還是模板', 'dev-flow:require-design 寫成可判定的一句');
+    else if (q.accept.formal && !q.tested) warn(q.id, '驗收寫了三行卻沒有驗收測試,達成與否未知', `dev-flow:build ${q.id}(只派 qa 寫一條歸屬 "${q.id}#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推`);
+    if (!q.priority) warn(q.id, `優先「${q.priorityRaw || '(沒填)'}」不是 1 到 4`, '改成 1(最高)到 4(最低)');
+    if (!q.ms.length) warn(q.id, '沒有任何里程碑', `dev-flow:require-design 切里程碑(devflow requirement milestone ${q.id} <slug> <一句話>)`);
+    if (q.built && q.holds === false) warn(q.id, `里程碑全部達成,需求卻未達成(${q.source})`, '驗收沒過:先查驗收測試;里程碑切漏了就 dev-flow:require-design 補一條,做錯的走 dev-flow:law-design 改那份文檔');
+    for (const m of q.ms) {
+      if (seenM.has(m.id)) warn(m.id, '里程碑編號重複', '編號全資料夾唯一;配號只走 devflow requirement milestone');
       seenM.add(m.id);
-      if (m.placeholder) warn(m.id, '里程碑還是模板', 'dev-flow:objective 寫成一句話');
-      if (!m.slug) warn(m.id, '沒有英文名,切片開不了分支', `dev-flow:objective 把第一格寫成 ${m.id}-<slug>(kebab-case 英文);切片的分支 build/${m.id}-<slug> 與決策紀錄以它為鍵`);
+      if (m.placeholder) warn(m.id, '里程碑還是模板', 'dev-flow:require-design 寫成一句話');
+      if (!m.slug) warn(m.id, '沒有英文名,切片開不了分支', `dev-flow:require-design 把第一格寫成 ${m.id}-<slug>(kebab-case 英文);切片的分支 build/${m.id}-<slug> 與決策紀錄以它為鍵`);
       for (const d of m.docs) {
         if (!d.x) warn(m.id, `綁定的 ${d.name} 不存在`, '改成 features/ 裡有的全名,或刪這個綁定');
         else if (d.x.p.kind === 'abstract') warn(m.id, `綁定的 ${d.name} 是 abstract`, '改綁引用它的 feature;abstract 跟著 feature 達成');
       }
     }
-    for (const rf of o.rfs) {
-      if (seenRf.has(rf.id)) warn(rf.id, '調整編號重複', '編號全資料夾唯一;配號只走 devflow objective refinement');
+    for (const rf of q.rfs) {
+      if (seenRf.has(rf.id)) warn(rf.id, '調整編號重複', '編號全資料夾唯一;配號只走 devflow requirement refinement');
       seenRf.add(rf.id);
-      if (rf.placeholder) warn(rf.id, '調整還是模板', 'dev-flow:objective 寫成一句話');
-      if (!rf.touches.length) warn(rf.id, '沒有動到任何文檔', '動到欄填本目標里程碑綁定過的 feature 全名');
+      if (rf.placeholder) warn(rf.id, '調整還是模板', 'dev-flow:require-design 寫成一句話');
+      if (!rf.touches.length) warn(rf.id, '沒有動到任何文檔', '動到欄填這條需求的里程碑綁定過的 feature 全名');
       for (const n of rf.missing) warn(rf.id, `動到的 ${n} 不存在`, '改成 features/ 裡有的全名');
-      for (const n of rf.outside) if (!rf.missing.includes(n)) warn(rf.id, `動到的 ${n} 不在 ${o.id} 任何里程碑的綁定裡`, '優化路線不引入新 feature:只動本目標建置路線做出來的 feature;新能力開里程碑');
+      for (const n of rf.outside) if (!rf.missing.includes(n)) warn(rf.id, `動到的 ${n} 不在 ${q.id} 任何里程碑的綁定裡`, '調整不引入新 feature:只動這條需求的里程碑做出來的 feature;新能力開里程碑');
+      if (rf.started && rf.cited && rf.green && q.holds === false) warn(rf.id, `調整後 ${q.id} 未達成(${q.source})`, '調整不准讓需求退回未達成:仲裁那條紅,或重開再修');
     }
   }
-  for (const f of unbound) warn(f, '沒有被任何里程碑綁定', '不朝向任何目標:dev-flow:objective 綁進一條里程碑,或刪掉這份 feature');
+  for (const f of unbound) warn(f, '沒有被任何里程碑綁定', '不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature');
+  for (const v of inv) {
+    if (v.holds === false) warn(v.id, `領域不變量未成立(${v.source})`, '有程式碼違反了它:仲裁那條紅,先歸因到是哪一份 feature 的實作再改');
+    else if (!v.law.formal) warn(v.id, '還沒有三行式,成立與否未知', 'dev-flow:law-design 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)');
+    else if (!v.tested) warn(v.id, '寫了三行卻沒有測試,成立與否未知', `dev-flow:build ${v.id}(只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試)`);
+  }
   const consumers = new Map(design.abstracts.map((x) => [x.fullName, []]));
   for (const d of design.docs) for (const s of d.steps) if (s.ref && consumers.has(s.ref)) consumers.get(s.ref).push(d.fullName);
   for (const [name, cs] of consumers) if (new Set(cs).size === 1) warn(name, `只有 ${cs[0]} 用它`, '收整沒有成立;dev-flow:abstract 搬回去,或找出第二個消費者');
@@ -456,26 +435,26 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
 // 建議路線:steps 是編號的那幾條,一條都沒有時 note 是那一句話
 export function suggestRoutes(design, a, ov, warnCount, building = new Set(), inv = invariantView(design, a)) {
   const steps = [];
-  if (a.openGaps.length) steps.push(`先回答 ${a.openGaps.map((g) => g.id).join('、')}(dev-flow:revise),卡住的 step 才能重派`);
+  if (a.openGaps.length) steps.push(`先回答 ${a.openGaps.map((g) => g.id).join('、')}(dev-flow:law-design;問的是全域 Law 就 dev-flow:glaws-revise),卡住的 step 才能重派`);
   const order = [...a.info.values()].filter((x) => !x.achieved && x.p.status === 'ready').sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || x.refs.length - y.refs.length);
   for (const x of order) steps.push(`dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);
   const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
   for (const x of drafts) steps.push(`dev-flow:law-design ${x.p.fullName}(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)`);
-  // 還沒有切片的里程碑:每個目標下一條,照目標優先排
+  // 還沒有切片的里程碑:每條需求下一條,照需求的優先排
   for (const s of sliceLines(ov, building).openable) steps.push(`dev-flow:spike-impl ${s.m.fullName}(${sliceTag(s)})`);
-  // 建置路線達成、驗收寫了三行卻沒有驗收測試的需求:build 只派 qa 寫那一條
-  for (const q of ov.reqs) if (q.built && q.accept && q.accept.formal && !q.tested) steps.push(`dev-flow:build ${q.id}(建置路線達成,只派 qa 寫 ${q.id}#ACCEPT 的驗收測試)`);
+  // 里程碑全部達成、驗收寫了三行卻沒有驗收測試的需求:build 只派 qa 寫那一條
+  for (const q of ov.reqs) if (q.built && q.accept && q.accept.formal && !q.tested) steps.push(`dev-flow:build ${q.id}(里程碑全部達成,只派 qa 寫 ${q.id}#ACCEPT 的驗收測試)`);
   for (const v of inv) if (v.law.formal && !v.tested) steps.push(`dev-flow:build ${v.id}(只派 qa 寫 ${v.id}#LAW 的測試)`);
-  // 優化路線:建置路線達成後才開,動到的 feature 先走 REV(依欄引用 RF-n),再 build
-  for (const o of ov.objs) if (o.achieved) for (const rf of o.rfs) if (rf.state === '待修訂' && !rf.missing.length) steps.push(`${rf.id} ${rf.title}:dev-flow:revise ${rf.touches.join('、')}(REV 的依欄引用 ${rf.id}),再 dev-flow:build`);
+  // 調整:里程碑全部達成後才開,動到的 feature 先走 REV(依欄引用 RF-n),再 build
+  for (const q of ov.reqs) if (q.built) for (const rf of q.rfs) if (rf.state === '待修訂' && !rf.missing.length) steps.push(`${rf.id} ${rf.title}:dev-flow:law-design ${rf.touches.join('、')}(REV 的依欄引用 ${rf.id}),之後自動接上 build`);
   const allDone = [...a.info.values()].every((x) => x.achieved) && !a.openGaps.length;
   const lawsFalse = [...ov.reqs.filter((q) => q.holds !== true).map((q) => `需求 ${q.id} ${metWord(q.holds)}(${q.source})`), ...inv.filter((v) => v.holds !== true).map((v) => `領域不變量 ${v.id} ${holdsWord(v.holds)}(${v.source})`)];
   let note = null;
   if (!steps.length) {
     const notDone = [...a.info.values()].filter((x) => !x.achieved);
-    if (!a.info.size) note = `還沒有任何文檔;${ov.objs.length ? 'dev-flow:objective 給第一條里程碑一個英文名,再 dev-flow:spike-impl <M-n-slug> 做第一條切片' : '先 dev-flow:objective 訂目標與里程碑,再 dev-flow:spike-impl <M-n-slug>'}`;
+    if (!a.info.size) note = `還沒有任何文檔;${ov.reqs.length ? 'dev-flow:require-design 給第一條里程碑一個英文名,再 dev-flow:spike-impl <M-n-slug> 做第一條切片' : '先 dev-flow:require-design 談需求、切里程碑,再 dev-flow:spike-impl <M-n-slug>'}`;
     else if (allDone && lawsFalse.length) note = `每份文檔達成,但${lawsFalse.join('、')}:先補上,不加新功能`;
-    else if (allDone && !warnCount) note = '目前功能全部正常運作:每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:devflow requirement add 或 dev-flow:objective';
+    else if (allDone && !warnCount) note = '目前功能全部正常運作:每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑';
     else if (allDone) note = `目前功能全部正常運作(每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP);警訊還有 ${warnCount} 條,照第 7 段的怎麼辦欄清,清完加新功能`;
     else if (notDone.some((x) => x.unknown || x.laws.some((l) => l.result === '未跑'))) note = `沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常`;
     else note = `沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 還沒達成:devflow status --doc <全名> 看哪一列還不在;不加新功能`;
@@ -483,11 +462,11 @@ export function suggestRoutes(design, a, ov, warnCount, building = new Set(), in
   return { steps, note, allDone: allDone && !lawsFalse.length };
 }
 
-// 需求、目標、里程碑、調整、feature、文檔的總數與達成數:報告的第二行與看板的數字同源
+// 需求、里程碑、調整、feature、文檔的總數與達成數:報告的第二行與看板的數字同源
 export function counts(design, a, ov, inv = invariantView(design, a)) {
   const features = design.features.map((f) => f.fullName);
-  const milestones = ov.objs.flatMap((o) => o.ms);
-  const rfs = ov.objs.flatMap((o) => o.rfs);
+  const milestones = ov.reqs.flatMap((q) => q.ms);
+  const rfs = ov.reqs.flatMap((q) => q.rfs);
   const todo = [...a.info.values()].flatMap((x) => x.steps.filter((s) => s.state === '找不到' || (s.hit && s.hit.stub)).map((s) => ({ ...s, doc: x.p.fullName })));
   return {
     requirements: ov.reqs.length,
@@ -496,8 +475,6 @@ export function counts(design, a, ov, inv = invariantView(design, a)) {
     requirementsInferred: ov.reqs.filter((q) => q.holds === true && !q.tested).length,
     invariants: inv.length,
     invariantsHolding: inv.filter((v) => v.holds === true).length,
-    objectives: ov.objs.length,
-    objectivesAchieved: ov.objs.filter((o) => o.achieved).length,
     milestones: milestones.length,
     milestonesAchieved: milestones.filter((m) => m.achieved).length,
     refinements: rfs.length,
@@ -516,7 +493,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
   const a = analyze(design, source, adapter, results);
   const out = [];
   const features = design.features.map((f) => f.fullName);
-  const ov = objectiveView(design, a);
+  const ov = requirementView(design, a);
   const inv = invariantView(design, a);
   const n = counts(design, a, ov, inv);
   const todo = n.todo;
@@ -525,35 +502,28 @@ export function statusReport(design, source, adapter, results, resultNote, build
 
   out.push('# devflow status');
   if (sys && sys.visionState === 'ok') out.push(`願景:${sys.vision}`);
-  out.push(`需求 ${n.requirements} 條,達成 ${n.requirementsHolding} 條(測試 ${n.requirementsTested}、推得 ${n.requirementsInferred})· 領域不變量 ${n.invariants} 條,成立 ${n.invariantsHolding} 條 · 目標 ${n.objectives} 個,達成 ${n.objectivesAchieved} 個 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · 調整 ${n.refinements} 條,達成 ${n.refinementsAchieved} 條 · feature ${n.features} 份,達成 ${n.featuresAchieved} 份 · abstract ${n.abstracts} 份 · 文檔共 ${n.docs} 份,達成 ${n.docsAchieved} 份 · 還沒實作的 step ${todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
+  out.push(`需求 ${n.requirements} 條,達成 ${n.requirementsHolding} 條(測試 ${n.requirementsTested}、推得 ${n.requirementsInferred})· 領域不變量 ${n.invariants} 條,成立 ${n.invariantsHolding} 條 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · 調整 ${n.refinements} 條,達成 ${n.refinementsAchieved} 條 · feature ${n.features} 份,達成 ${n.featuresAchieved} 份 · abstract ${n.abstracts} 份 · 文檔共 ${n.docs} 份,達成 ${n.docsAchieved} 份 · 還沒實作的 step ${todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## 需求');
-  if (!sys) out.push('- 沒有 system.md;dev-flow:project 建它');
-  else if (!ov.reqs.length) out.push(`- 沒有任何需求;${design.legacyObjectives ? 'devflow migrate objectives --write' : 'devflow requirement add <一句話> --accept <句>'}`);
+  if (!sys) out.push('- 沒有 system.md;dev-flow:kickoff 建它');
+  else if (!ov.reqs.length) out.push('- 沒有任何需求;dev-flow:require-design 談第一條');
   else {
-    out.push('| 需求 | 一句話 | 驗收 | 目標 | 目標達成 | 里程碑達成 | 調整達成 |', '|---|---|---|---|---|---|---|');
-    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.title} | ${metWord(q.holds)}(${q.source}) | ${q.objectives.map((o) => o.id).join('、') || '-'} | ${q.objectives.filter((o) => o.achieved).length}/${q.objectives.length} | ${q.ms.filter((m) => m.achieved).length}/${q.ms.length} | ${q.rfs.filter((rf) => rf.achieved).length}/${q.rfs.length} |`);
-  }
-  out.push('');
-  out.push('## 目標');
-  if (!ov.objs.length) out.push('- 沒有任何目標;dev-flow:objective 訂第一個');
-  else {
-    if (sys && sys.priorityNoteState === 'ok') out.push(`- 優先:${sys.priorityNote}`);
-    out.push('| 目標 | 需求 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |', '|---|---|---|---|---|---|---|---|');
-    for (const o of ov.objs) out.push(`| ${o.id} | ${o.requirement || '(沒填)'} | ${o.priorityRaw || '(沒填)'} | ${o.title} | ${o.ms.length} | ${o.done} | ${o.pct == null ? '-' : `${o.pct}%`} | ${o.rfs.length ? `${o.rfDone}/${o.rfs.length}` : '-'} |`);
-    for (const o of ov.objs) {
-      const next = o.ms.find((m) => !m.achieved);
+    if (sys.priorityNoteState === 'ok') out.push(`- 優先:${sys.priorityNote}`);
+    out.push('| 需求 | 優先 | 一句話 | 驗收 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |', '|---|---|---|---|---|---|---|---|');
+    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '(沒填)'} | ${q.title} | ${metWord(q.holds)}(${q.source}) | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} | ${q.rfs.length ? `${q.rfDone}/${q.rfs.length}` : '-'} |`);
+    for (const q of ov.reqs) {
+      const next = q.ms.find((m) => !m.achieved);
       const state = (d) => (!d.x ? '不存在' : d.x.achieved ? '達成' : d.x.gaps.length ? `卡 ${d.x.gaps.map((g) => g.id).join('、')}` : d.x.p.status === 'draft' ? '還是 draft' : '進行中');
-      if (next) out.push(`- ${o.id} 下一個里程碑:${next.id} ${next.title}${next.docs.length ? `(${next.docs.map((d) => `${d.name} ${state(d)}`).join('、')})` : (next.slug ? `(還沒有切片:dev-flow:spike-impl ${next.fullName})` : '(還沒有切片,也還沒有英文名)')}`);
+      if (next) out.push(`- ${q.id} 下一個里程碑:${next.id} ${next.title}${next.docs.length ? `(${next.docs.map((d) => `${d.name} ${state(d)}`).join('、')})` : (next.slug ? `(還沒有切片:dev-flow:spike-impl ${next.fullName})` : '(還沒有切片,也還沒有英文名)')}`);
       else {
-        const rf = o.rfs.find((r) => !r.achieved);
-        if (rf) out.push(`- ${o.id} 建置路線達成;下一個調整:${rf.id} ${rf.title}(${rf.state},動到 ${rf.touches.join('、') || '-'})`);
+        const rf = q.rfs.find((r) => !r.achieved);
+        if (rf) out.push(`- ${q.id} 里程碑全部達成;下一個調整:${rf.id} ${rf.title}(${rf.state},動到 ${rf.touches.join('、') || '-'})`);
       }
     }
   }
   const unbound = features.filter((f) => !ov.rank.has(f));
-  if (unbound.length) out.push(`- 沒有被任何里程碑綁定的 feature:${unbound.join('、')};它們不朝向任何目標`);
+  if (unbound.length) out.push(`- 沒有被任何里程碑綁定的 feature:${unbound.join('、')};它們不朝向任何需求`);
   out.push('');
   const glob = globalView(design, a, source, adapter, inv);
   out.push('## 全域 Law');
@@ -608,7 +578,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
   let deciding = 0;
   for (const g of a.openGaps) {
     deciding++;
-    out.push(`- ${g.id}(${g.target} / ${g.role}):dev-flow:revise`);
+    out.push(`- ${g.id}(${g.target} / ${g.role}):dev-flow:law-design;問的是全域 Law 就 dev-flow:glaws-revise`);
   }
   for (const x of a.info.values()) if (x.p.status === 'draft') {
     deciding++;

@@ -6,7 +6,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks } from '../markdown.mjs';
-import { parseSignature, renderSignature } from '../design.mjs';
+import os from 'node:os';
+import { parseSignature, renderSignature, readDesign } from '../design.mjs';
 import { readSource, findSignature } from '../source.mjs';
 import { pickAdapter, adapterNames } from '../adapters/index.mjs';
 
@@ -144,7 +145,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
   }
   for (const [stage, list] of [...byStage].sort()) {
     out.push(`- 階段 ${stage}`);
-    for (const t of list) out.push(`  - ${t.fullName} → \`devflow claim feature <slug>\`(F 與 E 在新樹裡都是 feature;這個階段先 devflow objective add 成一個目標、devflow objective milestone 切里程碑,feature 用 --milestone 綁進去)`);
+    for (const t of list) out.push(`  - ${t.fullName} → \`devflow claim feature <slug>\`(F 與 E 在新樹裡都是 feature;這個階段是某條需求的一條里程碑:dev-flow:require-design 談出需求、devflow requirement milestone 切里程碑,feature 用 --milestone 綁進去)`);
   }
   out.push('- 一份舊文檔不必然對一份新 feature:同一條使用者路徑上的幾份合成一條,共用的那幾個 step 抽成 abstract。');
 
@@ -172,7 +173,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
   return { text: out.join('\n'), exitCode: 0 };
 }
 
-// migrate objectives [--write]:目標還擠在一份 objectives.md 的樹,換成 system.md「需求」與 objectives/ 體系。先印帳本,--write 才落地。
+// 一份 objectives.md 的樹先拆開(splitObjectivesFile,只在 migrate requirements 的暫存複本上跑):
 // 每個 ## O-n → 一條需求(一句話照抄、判準當驗收)寫進 system.md「需求」,並拆成 objectives/R-x-O-n-<slug>.md(需求、優先進 frontmatter;
 // slug 從第一條綁定的 feature 推);開頭的優先各級那行搬進「語言與工具」;「目的」併成「願景」第二段;刪 objectives.md。
 function sectionRange(lines, title) {
@@ -224,7 +225,7 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
   return { priorityNote, objs };
 }
 
-export function migrateObjectives(root, { write = false, date = new Date().toISOString().slice(0, 10) } = {}) {
+function splitObjectivesFile(root, { write = false, date = new Date().toISOString().slice(0, 10) } = {}) {
   const designDir = path.join(root, '.design');
   const sysFile = path.join(designDir, 'system.md');
   const objFile = path.join(designDir, 'objectives.md');
@@ -294,6 +295,100 @@ export function migrateObjectives(root, { write = false, date = new Date().toISO
   fs.unlinkSync(objFile);
   out.push('', '都寫了;接著 devflow status 看警訊,需求的驗收由 dev-flow:project 對談補齊,目標檔的 slug 由 dev-flow:objective 定');
   return { text: out.join('\n'), exitCode: 0 };
+}
+
+// migrate requirements [--write]:需求住 system.md「## 需求」節、里程碑住 objectives/(或一份 objectives.md)的樹,
+// 換成 requirements/R-n-<slug>.md 一條需求一個檔(一句話、驗收、優先、里程碑表、調整表)。先印帳本,--write 才落地。
+// 併法與 CLI 照讀這種樹時同一支(design.mjs 的 mergeRequirements):slug 取第一個目標的,優先取最高的,里程碑與調整依(優先、目標號)串接。
+// 整件事先在暫存的 .design 複本上做完,--write 才把結果搬回來;對不到需求的目標檔留著不動,列給人判。
+export function migrateRequirements(root, { write = false, date = new Date().toISOString().slice(0, 10) } = {}) {
+  const designDir = path.join(root, '.design');
+  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
+  if (!fs.existsSync(path.join(designDir, 'system.md'))) return { text: `${rel(designDir)} 裡沒有 system.md;dev-flow:kickoff 建它`, exitCode: 1 };
+  if (fs.existsSync(path.join(designDir, 'requirements'))) return { text: `${rel(path.join(designDir, 'requirements'))} 已經在,這棵樹不用換`, exitCode: 0 };
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'devflow-migrate-'));
+  try {
+    const tmpDesign = path.join(tmpRoot, '.design');
+    fs.cpSync(designDir, tmpDesign, { recursive: true });
+    const out = ['# migrate requirements 帳本', ''];
+    const sysNotes = [];
+    const hadFile = fs.existsSync(path.join(tmpDesign, 'objectives.md'));
+    if (hadFile) {
+      const first = splitObjectivesFile(tmpRoot, { write: true, date });
+      const line = first.text.split('\n').find((l) => l.startsWith('- .design/system.md:'));
+      if (line && !/:不動$/.test(line)) sysNotes.push(line.replace(/^- \.design\/system\.md:/, ''));
+    }
+    const design = readDesign(tmpRoot);
+    const merged = design.requirements;
+    if (!merged.merged) return { text: `${rel(path.join(designDir, 'system.md'))} 沒有「## 需求」節,也沒有 objectives.md:沒有需求可換;dev-flow:require-design 談第一條`, exitCode: 0 };
+    // system.md:每條需求的原文(驗收連同三行)搬走,整節刪掉
+    const sysFile = path.join(tmpDesign, 'system.md');
+    const lines = fs.readFileSync(sysFile, 'utf8').replace(/\r\n/g, '\n').split('\n');
+    const range = sectionRange(lines, '需求');
+    const bodyOf = (id) => {
+      let at = -1;
+      for (let i = range.from + 1; i < range.to; i++) if (new RegExp(`^### ${id}\\s*[::]`).test(lines[i])) at = i;
+      if (at < 0) return [];
+      let stop = at + 1;
+      while (stop < range.to && !/^#{1,3} /.test(lines[stop])) stop++;
+      const body = dropLawItems(lines.slice(at + 1, stop), { rename: true }).lines;
+      while (body.length && !body[0].trim()) body.shift();
+      while (body.length && !body[body.length - 1].trim()) body.pop();
+      return body;
+    };
+    const files = [];
+    const judge = [];
+    for (const q of merged.requirements) {
+      if (q.placeholder) continue;
+      const body = bodyOf(q.id);
+      const accept = body.length ? body : ['- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>'];
+      const content = [
+        '---', `id: ${q.id}`, `priority: ${q.priority || '<1 到 4,1 最高>'}`, `updated: ${date}`, '---',
+        `# ${q.fullName}:${q.title}`, '', ...accept, '',
+        '| 里程碑 | 做到什麼 | 綁定 |', '|---|---|---|',
+        ...q.milestones.map((m) => `| ${m.fullName} | ${m.title} | ${m.binds.length ? m.binds.join('、') : '-'} |`),
+        ...(q.refinements.length ? ['', '| 調整 | 做到什麼 | 動到 |', '|---|---|---|', ...q.refinements.map((rf) => `| ${rf.id} | ${rf.title} | ${rf.touches.join('、') || '-'} |`)] : []),
+      ].join('\n') + '\n';
+      files.push({ name: `${q.fullName}.md`, content, q });
+      if (q.sources.length > 1) judge.push(`${q.id}:併了 ${q.sources.length} 個目標(${q.sources.map((o) => `${o.id}「${o.title}」:${o.milestones.map((m) => m.id).join('、') || '沒有里程碑'}`).join(';')}),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求`);
+      if (!q.sources.length) judge.push(`${q.id}:沒有任何目標朝向它,檔名暫用 ${q.fullName}、沒有優先也沒有里程碑;dev-flow:require-design 補,改名要連檔名一起改`);
+      else if (q.slug === 'unnamed') judge.push(`${q.id}:英文名沒有來源,檔名暫用 ${q.fullName};改名要連檔名一起改`);
+    }
+    for (const o of merged.orphans) judge.push(`${o.file}:對到的 ${o.requirement} 不存在,留著沒動(里程碑 ${o.milestones.map((m) => m.fullName).join('、') || '無'});決定它屬於哪條需求,併進那個需求檔之後刪掉`);
+    lines.splice(range.from, range.to - range.from);
+    const nextSys = lines.join('\n').replace(/\n{3,}/g, '\n\n');
+    sysNotes.push('「## 需求」節刪掉,需求搬進 requirements/');
+    out.push(`- .design/system.md:${sysNotes.join(';')}`);
+    for (const f of files) out.push(`- .design/requirements/${f.name}:建(優先 ${f.q.priority || '沒有'};里程碑 ${f.q.milestones.length} 條、調整 ${f.q.refinements.length} 條${f.q.sources.length ? `;併自 ${f.q.sources.map((o) => o.fullName).join('、')}` : ''})`);
+    if (hadFile) out.push('- .design/objectives.md:刪(先照每個 ## O-n 拆開,再併進它的需求)');
+    const used = merged.requirements.flatMap((q) => q.sources);
+    if (!hadFile) for (const o of used) out.push(`- ${o.file}:刪`);
+    out.push('', '## 人要判的', ...(judge.length ? judge.map((j) => `- ${j}`) : ['- 無']));
+    if (!write) {
+      out.push('', '以上只是帳本;devflow migrate requirements --write 才落地');
+      return { text: out.join('\n'), exitCode: 0 };
+    }
+    fs.writeFileSync(path.join(designDir, 'system.md'), nextSys);
+    const reqDir = path.join(designDir, 'requirements');
+    fs.mkdirSync(reqDir, { recursive: true });
+    for (const f of files) fs.writeFileSync(path.join(reqDir, f.name), f.content);
+    if (hadFile) {
+      fs.unlinkSync(path.join(designDir, 'objectives.md'));
+      // 拆出來而對不到需求的那幾份,留在 objectives/ 給人判
+      for (const o of merged.orphans) {
+        fs.mkdirSync(path.join(designDir, 'objectives'), { recursive: true });
+        fs.copyFileSync(path.join(tmpRoot, o.file), path.join(root, o.file));
+      }
+    } else {
+      for (const o of used) fs.unlinkSync(path.join(root, o.file));
+      const objDir = path.join(designDir, 'objectives');
+      if (fs.existsSync(objDir) && !fs.readdirSync(objDir).length) fs.rmdirSync(objDir);
+    }
+    out.push('', '都寫了;接著 devflow status 看警訊,「人要判的」與缺的驗收、優先由 dev-flow:require-design 對談補齊');
+    return { text: out.join('\n'), exitCode: 0 };
+  } finally {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  }
 }
 
 // migrate laws [--write]:Law 只剩「不得違反」的約束。先印帳本,--write 才落地。

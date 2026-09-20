@@ -11,16 +11,6 @@ updated: 2026-09-07
 
 夾具:證明多語言專案的 language 欄「目錄 = adapter」清單、每側一組指令、兩側各自的簽名與 import 對帳、兩份測試輸出各用自己的 adapter 解析後合併。
 
-## 需求
-### R-1:每一筆結帳與退款的金額都算對
-- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
-  - forall raw in RawBody
-  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
-### R-2:任何一籃子都算得出不為負的總金額
-- 驗收:任一品項清單的總金額不為負
-  - forall items in list
-  - |- total_cents(items) >= 0
-
 ## 全域 Law
 不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
 

@@ -1,6 +1,6 @@
 ---
 name: audit
-description: lawful 的稽核 — lawful lint all 與 status 的機械紅逐條分類(文檔錯還是程式碼錯),同層搬家跑 sync;對需求與目標(每條需求的驗收判得出來嗎、工作是不是集中在最高優先目標、有沒有 pipeline 不朝向任何目標、達成的里程碑是不是真的涵蓋它那句、調整有沒有偷渡新能力);人判每條 pipeline 的 laws 是承諾還是在描述程式碼、有沒有講到該講的性質,全域 Law 有沒有膨脹、邊界有沒有被繞過、卡住多久;產出一張「哪裡 / 什麼事 / 怎麼辦」表,不直接改契約。觸發詞:稽核、audit、檢查文檔、對帳、專案健檢、目標貼合、lawful audit、文檔與程式碼對不上。Use when checking that .lawful and the code still agree, that the work still heads toward the requirements and objectives, and that laws cover what matters.
+description: lawful(有 .lawful/ 的 Haskell 專案)的稽核:lint 與 status 的紅逐條分類(文檔錯還是程式碼錯)、需求與目標是否貼合、laws 與邊界的人工判斷,產出「哪裡、什麼事、怎麼辦」表,不直接改契約。觸發詞:稽核、audit、健檢、對帳、文檔與程式碼對不上、邊界檢查。Use when checking that .lawful and the code still agree and how healthy the project is.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

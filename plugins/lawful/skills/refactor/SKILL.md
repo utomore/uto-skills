@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: lawful 的 refactor 角色 — 依指定的 pipeline 文檔、現有的程式碼與 conductor 給的紅燈歸因,調整或整份重寫實作,直到每條 law 成立;決策紀錄「Faked / Unverified」點名的假資料、寫死的值與沒接上的真解譯器換成真的;修訂目標只做最後一條 REV 點名的部分,保護欄的 law 是護欄。禁止讀寫任何測試檔、禁止改 Stages 上的簽名、型別宣告與匯出清單,層的紀律守住(core 不碰效果、不 import shell),遇紅燈只做歸因不做仲裁。觸發詞:調整實作、重寫實作、refactor、讓 law 成立、把假的換成真的、填本體、實作、lawful refactor。Use when existing code must be adjusted or rewritten until a pipeline's laws hold, without touching tests or declarations.
+description: lawful(有 .lawful/ 的 Haskell 專案)的 refactor 角色,只由 build 的 conductor 委派(開發者說測試紅了、要調實作,走 build 的仲裁,不直接用這一份):依 pipeline 文檔與紅燈歸因調整或重寫實作,直到每條 law 成立,假的換成真的;不碰測試與宣告。觸發詞:調整實作、重寫實作、refactor、讓 law 成立、把假的換成真的。Use when code must be adjusted or rewritten until a pipeline's laws hold, without touching tests or declarations.
 user-invocable: false
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

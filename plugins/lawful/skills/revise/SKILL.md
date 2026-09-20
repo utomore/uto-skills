@@ -1,6 +1,6 @@
 ---
 name: revise
-description: lawful 的修訂 — 任何對既有 pipeline 的行為、簽名、層或效能承諾的改動都改原檔,文檔先行;經開發者批准的全域 Law 變更(新增、修改、放寬、替換、刪除)也只在這裡落筆。調整任何一條 law 之前,先把影響範圍逐項攤給開發者(直接動到、引用同一處的 law、連動的文檔、要重寫與重跑的測試、要重開的 verified pipeline 與要重驗的 build 分支、需求還達不達成),再給至少兩個選項(一定含「不改」,各附當下成本、之後的代價、可不可逆),開發者選了才落筆。回答 GAP(含整合仲裁留下的那一條)、把優化路線的調整(RF-n)落到它動到的 pipeline、把開發者原本不在乎而現在要承諾的行為補成 law、寫一條 REV(依 / 動到 / 保護 / 重委派 / 連動)、必要時把 verified 重開;簽名或型別變了就同步改程式碼的宣告,新增的 stage 先放未實作標記;收尾自動接上 lawful:build,只重做 REV 點名的;全域 Law 變更之後重新驗證受影響的工作;law 號永久空缺。觸發詞:修訂、回答 GAP、結 gap、改 law、改簽名、改行為、重開、改名、搬模組、改模組職責、加一層、調整、效能優化、補一條 law、放寬 law、改全域 Law、改領域不變量、刪不變量、revise、lawful revise。Use when an existing pipeline or a global Law must change, a GAP has been answered, or a refinement must be applied to the pipelines it touches.
+description: lawful(有 .lawful/ 的 Haskell 專案)的修訂:既有 pipeline 的行為、簽名或 law 要改,回答 GAP,落地調整 RF-n,或經批准的全域 Law 變更;先攤影響範圍與選項,開發者選了才改原檔、寫 REV,再自動接上 build。觸發詞:修訂、改契約、改 spec、改簽名、改行為、回答 gap、重開、改 law、放寬 law、改全域 Law、領域不變量、效能優化。Use when an existing pipeline or a global Law must change, a GAP was answered, or a refinement is applied.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

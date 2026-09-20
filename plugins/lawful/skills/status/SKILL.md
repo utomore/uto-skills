@@ -1,6 +1,6 @@
 ---
 name: status
-description: lawful 的派工報告 — 跑 lawful status(接上最近一次測試輸出),用人話講每條需求達成了沒、全域 Law 三類(架構、契約、領域不變量)有沒有被踩到、目標與里程碑的完成度、今天能開幾條線(能開的切片與能 build 的 pipeline)、建構中的每條分支走到哪一步(切片中、切片完成、Law 討論中、Law 已定、調整中、達成)、卡住的、等決定、牽動誰、待實作、警訊、建議路線,以及東西住在哪幾個模組單元;--pipeline / --module 追問單條或單模組,--html 把同一份報告畫成便利貼看板。觸發詞:進度、狀態、status、今天做什麼、派工、還差什麼、哪些卡住、看板、畫成圖、便利貼、lawful status、需求達成了沒。Use when the developer asks where the project stands or what to do next.
+description: lawful(有 .lawful/ 的 Haskell 專案)的派工報告:跑 lawful status,用人話講需求達成了沒、全域 Law 有沒有被踩到、目標與里程碑完成度、今天能開幾條線、每條分支走到哪一步、卡住的與建議路線;可畫成看板。觸發詞:進度、狀態、status、今天做什麼、派工、還差什麼、哪些卡住、看板。Use when the developer asks where the project stands or what to do next.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

@@ -1,6 +1,6 @@
 ---
 name: qa
-description: lawful 的 qa 角色 — 只讀 pipeline 文檔、types 層與 Stages 上那幾條簽名的宣告,每條 law 一條 property test、每個 example 一條 example test,歸屬字串 "P-00x#LAW-n";conductor 指定一條需求的驗收或一條領域不變量時,讀它的三行與引用到的簽名所在 pipeline,寫一條歸屬 "R-n#ACCEPT"(需求的驗收)或 "INV-n#LAW"(領域不變量)的測試;產生器只用 types 層的 smart constructor、能縮小,案例數與尺寸有上限;不讀任何實作本體,不因為看到紅綠而改斷言;寫不出斷言就開 GAP。觸發詞:寫測試、qa、property test、性質測試、測試設計、驗收測試、lawful qa。Use when translating a pipeline's laws and examples, or one requirement's acceptance or one domain invariant, into tests without reading any implementation.
+description: lawful(有 .lawful/ 的 Haskell 專案)的 qa 角色,只由 build 的 conductor 委派(開發者要補測試走 build):只讀 pipeline 文檔、types 層與宣告,每條 law 一條 property test、每個 example 一條 example test,或一條需求驗收、領域不變量的測試;不讀 core 與 shell 的本體。觸發詞:寫測試、qa、property test、性質測試、驗收測試。Use when translating laws and examples into tests without reading any implementation.
 user-invocable: false
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

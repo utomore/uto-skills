@@ -1,6 +1,6 @@
 ---
 name: project
-description: dev-flow 的立案 — 訪談後產出 .design/system.md(願景;需求——必須達成的事,各有一句可判定的驗收;全域 Law 一區——不得違反的約束,三類:領域不變量、架構的層、契約的對外 I/O 表含信任;語言與工具含三道指令與優先各級的宣告)、objectives/ 一個目標一個檔(每條需求至少一個目標,各有優先 1 到 4 與帶英文名的里程碑)與 modules.md 模組表。這是切片開工之前唯一先寫的東西:需求與它的驗收、全域 Law;全域 Law 的每一條由開發者定,立案之後的變更走 dev-flow:revise;feature 文檔不在這裡建,它們在切片做完之後由 dev-flow:law-design 談出來。觸發詞:立案、開新專案、專案願景、需求、系統設計、主架構、dev-flow project、建 .design、模組表、層、技術選型、領域不變量、全域 Law。Use when starting a project or reshaping its vision, requirements, global laws, layers and boundaries.
+description: dev-flow(有 .design/ 的專案)的立案:與開發者訪談出 system.md 的願景、需求與驗收、全域 Law(領域不變量、層、對外 I/O)、語言與工具,以及目標檔與模組表;切片開工之前唯一先寫的東西。觸發詞:立案、開新專案、願景、需求、系統設計、主架構、建 .design、模組表、層、技術選型。Use when starting a project or reshaping its vision, requirements, layers and boundaries.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---

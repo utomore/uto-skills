@@ -1,6 +1,6 @@
 ---
 name: study
-description: lawful 的專案導讀 — 帶開發者由上而下讀懂一個純函數式專案,六層縮放:全景(這是什麼、怎麼編、入口在哪)→ 純度地圖(types / effect / core / shell 四層落在哪幾棵原始碼樹與哪些模組單元、效果被推到哪裡)→ 設計理念(為什麼把效果描述成資料、為什麼這樣拆,區分文檔明載與推測)→ 型別(和積型別與 smart constructor 怎麼撐起資料流、哪些非法狀態被型別排除)→ 逐跳 trace(沿一條 pipeline 從進入點走到 output,每跳看型別怎麼變)→ 細讀(一個函數逐行、等式推理當桌上執行、REPL 當場跑、講得出它該有什麼性質);第 1 課選定一條主線 pipeline 貫穿六層,每個結論都附從原始碼讀出的 檔案:行號 片段作證明,一次一課、等開發者消化再往下。課程與語言無關,指令以 Haskell 為準,其他純函數語言換等價物。觸發詞:study、理解專案、學習專案、專案導讀、帶我看 code、trace code、code walkthrough、讀懂純函數專案、熟悉專案、onboarding。Use when guiding a developer top-down through an existing pure-functional codebase with code evidence, type-level tracing and line-level close reading.
+description: lawful 的專案導讀,給純函數式專案:帶開發者由上而下讀懂一個專案,六層縮放(全景 → 純度地圖 → 理念 → 型別 → trace → 細讀),每個結論附 檔案:行號 的原文,一次一課。觸發詞:study、理解專案、導讀、帶我看 code、trace code、熟悉專案、onboarding。Use when guiding a developer through a pure-functional codebase top-down with code evidence.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---

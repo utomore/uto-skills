@@ -102,7 +102,7 @@ function stripComments(src) {
 
 // 欄位 0 的 data / newtype / type / class 宣告頭:[{ line, keyword, name, rest }]。
 // 接上縮排的接續行,切到本體開始(單獨的 =、where)為止,再去掉 context:最外層最後一個 => 以前的全部。
-// context 可以是一個字(Typeable s =>)、括號包住的一串、沒括號的多參數約束(All IsSlice ss =>),也可以自己佔好幾行。
+// context 可以是一個字(Typeable s =>)、括號包住的一串、沒括號的多參數約束(Each Show ss =>),也可以自己佔好幾行。
 // rest 是去掉 context 與 family 之後的頭(名字開頭);instance 與中置運算子的宣告沒有名字,不收。
 function declHeads(clean) {
   const lines = clean.split('\n');

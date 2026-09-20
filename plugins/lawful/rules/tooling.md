@@ -25,7 +25,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*lawfu
 | `objective refinement <O-n> <一句話> --touch <全名,全名>` | 鑄 `RF-n`(全資料夾唯一)加進該目標檔的優化路線表;動到的全名要存在、而且是該目標某條里程碑綁定過的,否則停:優化路線不引入新 feature |
 | `lint ids` | 一檔一號:兩個檔案同號即紅;號段行讀不懂或兩段重疊即紅;有號段行時,寫了 `owner` 的 pipeline / spike / ADR 的號要在 owner 的區間內 |
 | `lint boundary` | import 與簽名 vs 模組表;types / effect / core 命中效果型別即紅;未登記模組、單元巢狀、檔不在任何一棵原始碼樹底下、所在那棵樹的層沒宣告、檔案位置對不上模組名、同一個模組名有兩個檔即紅;職責欄空的即紅;表上有而程式碼還沒有的單元或層列成訊息;非 shell 模組沒有匯出清單即紅;production 模組 import 別人的 `*.Internal` 即紅 |
-| `lint sig` | slug 的領域名詞要是 `=` 列住的模組單元(`=` 列還對不到單元時,至少要是表上的一個單元);Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;找不到的簽名即紅;簽名裡的型別在程式碼與標準函式庫都找不到即紅;stage 之間傳遞的值用了無名容器(aeson 的 `Value` …)即紅,`!` 列不查;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
+| `lint sig` | slug 的領域名詞要是 `=` 列住的模組單元(`=` 列還對不到單元時,至少要是表上的一個單元);Stages 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,逐字,且要在匯出清單裡;`=` 列與 `o` 列不在 shell、`!` 列在 shell、IO 介面恰好一列 `!`、子流沒有;找不到的簽名即紅;簽名裡的型別在程式碼的宣告、import 清單點名的名字與標準函式庫都找不到即紅;stage 之間傳遞的值用了無名容器(aeson 的 `Value` …)即紅,`!` 列不查;簽名一致但模組不同列「搬家」;同名簽名在兩條 pipeline 都沒註明「見」即紅 |
 | `sync` | 把「搬家」的 stage 模組欄改成程式碼的實際模組(同層才改,跨層列紅要走 REV) |
 | `lint laws` | pipeline 的 law:三行齊全、種類合法、`\|-` 的識別字對得到 Stages 簽名、types 層匯出或 adapter 的標準函式庫清單(字串字面值不算識別字)、`=` 列至少被一條 law 引用、`!` 列不被引用、example 指得到 law。需求與目標的 Law:一句話必填、不是模板;寫了三行就照同一套查,識別字可以是任何一條 pipeline 的 Stages 簽名,不准引用 `!` 列;繼承的需求要存在 |
 | `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅。需求與目標的 Law 寫了三行式卻沒有 `R-n#LAW` / `O-n#LAW` 測試即紅;一句話的沒有測試列成訊息 |
@@ -69,6 +69,7 @@ exit code:`status` 盤點 = 驗收(有未達成的 pipeline、open GAP、或需�
 | `signatures(file)`:頂層簽名(名字、型別文字、模組) | `lint sig`、`status` |
 | `exports(file)`:匯出清單;沒寫回 null | `lint sig`、`lint boundary` |
 | `typeNames(file)`:宣告的型別名 | `lint sig`、`lint io` |
+| `importedTypes(file)`:import 清單裡點名的型別名(外面來的型別靠它認) | `lint sig` |
 | `dataConstructors(file)`:`data` / `newtype` 的建構子名;簽名裡升格的 `'Ctor` 對它查 | `lint sig` |
 | `stubs(file)`:本體還是 `stub` 的名字 | `status` |
 | `imports(file)`:import 的模組 | `lint boundary` |
@@ -81,7 +82,7 @@ exit code:`status` 盤點 = 驗收(有未達成的 pipeline、open GAP、或需�
 | `modulePath(module)`:模組名 → 它在自己那棵原始碼樹底下的相對路徑 | `lint boundary`、`module --facade` |
 | `moduleFile(module)`:一個只有 module 宣告與空匯出清單的新檔 | `module --facade` |
 
-Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;匯出清單認 `Foo (..)`、`Foo (a, b)`、`(<+>)`、`module X`;型別名認 `data` / `newtype` / `type` / `class`;建構子認 `data` / `newtype` 的 `=` 與 `|` 右邊與 GADT `where` 底下的 `Ctor ::`,簽名裡 DataKinds 升格的 `'Ctor` 對它查;`import` 行;效果型別 `IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`、`TMVar`、`Chan` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`、`"R-n#LAW"`、`"O-n#LAW"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `error "P-00x#name stub"`,`undefined` 也算骨架;模組名的每一段是一層資料夾、最後一段加 `.hs`,前面接它那一層的原始碼根目錄;四棵樹在 `.cabal` 裡各是一個 sub-library,`build-depends` 只往下一層宣告。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
+Haskell adapter:`.hs`;簽名認欄位 0 的頂層簽名(含運算子、多行)、record 欄位(存取子型別 `Record -> 欄位型別`,Stages 表照這個寫)、`class` 底下的方法;不認 `instance` 底下的方法與函數本體 `where` 裡的區域函數;匯出清單認 `Foo (..)`、`Foo (a, b)`、`(<+>)`、`module X`;型別名認 `data` / `newtype` / `type` / `class` 的宣告頭(可以跨行),context 不論是一個約束、括號包住的一串、還是沒括號的多參數約束(`class All IsSlice ss => BuildContent ss`)都先去掉,名字是 `=>` 後面的那一個;import 清單點名的型別名認 `import M (T, U (..))`(清單可以跨行),整個模組 import 進來的與 `hiding` 不認,那種寫法的外部型別要在清單裡點名或帶模組前綴;建構子認 `data` / `newtype` 的 `=` 與 `|` 右邊與 GADT `where` 底下的 `Ctor ::`,簽名裡 DataKinds 升格的 `'Ctor` 對它查;`import` 行;效果型別 `IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`、`TMVar`、`Chan` 出現在簽名即效果;歸屬只認字串字面值 `"P-00x#LAW-n"`、`"R-n#LAW"`、`"O-n#LAW"`;測試輸出認 hspec(specdoc)與 tasty 兩種版面,標記可以是群組名或單一測試名;`stub` = `error "P-00x#name stub"`,`undefined` 也算骨架;模組名的每一段是一層資料夾、最後一段加 `.hs`,前面接它那一層的原始碼根目錄;四棵樹在 `.cabal` 裡各是一個 sub-library,`build-depends` 只往下一層宣告。沒有 adapter 的語言:`lint sig` 與 `lint boundary` 印「此語言尚無 adapter」跳過,其餘照常。
 
 ## 跑東西的紀律
 

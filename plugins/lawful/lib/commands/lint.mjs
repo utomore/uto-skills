@@ -110,20 +110,22 @@ export function lintBoundary(design, source, adapter) {
 export function lintSig(design, source, adapter) {
   const r = { title: 'lint sig', red: [], info: [] };
   const entries = design.modules ? design.modules.entries : [];
-  // 簽名裡的型別:自訂的(大寫開頭)要在程式碼裡宣告過,標準函式庫的 adapter 認得;帶模組前綴的與型別變數不查。
+  // 簽名裡的型別:自訂的(大寫開頭)要在程式碼裡宣告過;外面來的要在某個模組的 import 清單裡點名,或是 adapter 認得的標準函式庫;帶模組前綴的與型別變數不查。
   // 升格的建構子('Ctor,DataKinds)要是程式碼裡 data / newtype 的建構子;只看到前引號就放行會讓打錯字的 'Ctor 靜靜過關。
   // 無名容器(aeson 的 Value …)沒有地方寫形狀,stage 之間傳遞的值不准用;! 列接的是對外的東西,不查。
   const stdlib = new Set(adapter ? adapter.stdlib : []);
   const types = new Set();
+  const imported = new Set();
   const ctors = new Set();
   if (source) for (const m of source.modules.values()) {
     for (const t of m.typeNames) types.add(t);
+    for (const t of m.importedTypes || []) imported.add(t);
     for (const c of m.constructors || []) ctors.add(c);
   }
   const typeIds = (t) => [...String(t).matchAll(/'?[A-Za-z_][\w']*(?:\.[A-Za-z_][\w']*)*/g)].map((m) => m[0]);
   const typeKnown = (id) => {
     if (id.startsWith("'")) return ctors.has(id.slice(1)) || types.has(id.slice(1));
-    return id.includes('.') || !/^[A-Z]/.test(id) || types.has(id) || stdlib.has(id);
+    return id.includes('.') || !/^[A-Z]/.test(id) || types.has(id) || imported.has(id) || stdlib.has(id);
   };
   // 最外層的 -> 切開,每一段是一個參數或回傳
   const arrowParts = (t) => {
@@ -150,7 +152,7 @@ export function lintSig(design, source, adapter) {
     const parts = arrowParts(s.type).map((t) => t.replace(/^\((.*)\)$/, '$1').trim());
     if (source) for (const id of new Set(typeIds(s.type))) if (!typeKnown(id)) r.red.push(id.startsWith("'")
       ? `${at(p.file, s.line)} ${p.fullName}#${s.name} 簽名裡升格的建構子 ${id} 在程式碼找不到;升格的名字要是 data 的建構子,拍板前先宣告`
-      : `${at(p.file, s.line)} ${p.fullName}#${s.name} 簽名裡的型別 ${id} 在程式碼與標準函式庫都找不到;型別住程式碼,拍板前先宣告`);
+      : `${at(p.file, s.line)} ${p.fullName}#${s.name} 簽名裡的型別 ${id} 在程式碼、import 清單與標準函式庫都找不到;型別住程式碼,拍板前先宣告`);
     if (!s.runner) parts.forEach((t, i) => {
       if (shapeless(t)) r.red.push(`${at(p.file, s.line)} ${p.fullName}#${s.name} ${i === parts.length - 1 ? '回傳' : `第 ${i + 1} 個參數`}的型別 ${t} 沒有名字;stage 之間傳遞的值用有名字的型別,形狀才有地方住`);
     });

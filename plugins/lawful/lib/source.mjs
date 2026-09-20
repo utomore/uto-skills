@@ -50,6 +50,7 @@ export function readSource(root, adapter, ignore = [], cone = null) {
       signatures: adapter.signatures(src, f.rel),
       exports: adapter.exports ? adapter.exports(src) : null,
       typeNames: adapter.typeNames ? adapter.typeNames(src) : [],
+      importedTypes: adapter.importedTypes ? adapter.importedTypes(src) : [],
       constructors: adapter.dataConstructors ? adapter.dataConstructors(src) : [],
       stubs: new Set(adapter.stubs ? adapter.stubs(src) : []),
     });

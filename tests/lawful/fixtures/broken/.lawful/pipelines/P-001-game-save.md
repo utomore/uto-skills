@@ -26,6 +26,7 @@ updated: 2026-09-05
 | 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Game.Save.State` | types |
 | 11 | `route :: SomeTypeRep -> Some 'Command -> Lane` | 升格的建構子與 SomeTypeRep,不該紅 | `Game.Save.State` | types |
 | 12 | `misroute :: Some 'Commnad -> Lane` | 升格的建構子打錯字,要紅 | `Game.Save.State` | types |
+| 13 | `stampAll :: Stamped ss => Proxy ss -> Tick -> [Int]` | class 的 context 是沒括號的多參數約束、Tick 只在 import 清單裡點名,不該紅 | `Game.Save.State` | types |
 | o | `ghostView :: SaveState -> Int` | 觀察點,程式碼沒有,要紅 | `Game.Save.State` | types |
 | = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Game.Save.Host` | shell |
 

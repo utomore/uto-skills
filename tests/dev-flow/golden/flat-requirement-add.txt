@@ -1,3 +1,3 @@
-$ devflow requirement add 每一筆錢都查得到來源
-system.md 沒有 ## 需求 節;devflow migrate objectives --write 補上
+$ devflow requirement add money-traceable 每一筆錢都查得到來源 --priority 2
+這棵樹的需求與里程碑還沒有搬進 requirements/;先 devflow migrate requirements --write 換成一條需求一個檔
 exit 1

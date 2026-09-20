@@ -1,5 +1,5 @@
 // brief <skill> [<目標>]:一個 skill 開工要的東西一次印完——規章的節,加上這個 skill 在這個專案裡要看的那幾塊
-// (目標文檔、逐條狀態、宣告、目標檔與需求、決策紀錄、分支狀態、lint、status 報告 …)。
+// (目標文檔、逐條狀態、宣告、需求檔、決策紀錄、分支狀態、lint、status 報告 …)。
 // 唯讀;永遠 exit 0,問題用文字講(skill 載入時由 harness 執行,非 0 會被讀成載入失敗)。
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,32 +16,32 @@ const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 
 // 每個 skill 開工要讀的規章節;'*' 是整份。這張表是「誰讀什麼」的唯一來源。
 const RULES = {
-  project: [['features.md', ['`.design/`', 'system.md', '願景、需求、目標與路線']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['language adapter', '收尾定錨']]],
-  objective: [['features.md', ['願景、需求、目標與路線', '完成度']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
-  'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['features.md', ['願景、需求、目標與路線']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
-  'law-design': [['features.md', ['feature 與 abstract', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O']], ['tooling.md', ['CLI', '收尾定錨']]],
+  kickoff: [['features.md', ['`.design/`', 'system.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求']], ['boundary.md', ['模組表']], ['tooling.md', ['language adapter', '收尾定錨']]],
+  'require-design': [['features.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
+  'glaws-revise': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['features.md', ['提問(GAP)', '完成度']], ['roles.md', ['分支與所有權']], ['tooling.md', ['CLI', '收尾定錨']]],
+  'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['features.md', ['願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
+  'law-design': [['features.md', ['feature 與 abstract', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O']], ['tooling.md', ['CLI', '收尾定錨']]],
   build: [['roles.md', '*'], ['features.md', ['提問(GAP)', '修訂(REV)', '完成度']], ['tooling.md', ['CLI', '測試歸屬', '跑東西的紀律', '收尾定錨']]],
   qa: [['roles.md', ['角色', '委派', '驗收測試', 'qa 的交付']], ['features.md', ['節', '什麼要有 law', '提問(GAP)']], ['boundary.md', ['測試與邊界']], ['tooling.md', ['測試歸屬']]],
   refactor: [['roles.md', ['角色', '分支與所有權', '委派', '切片']], ['features.md', ['節', '提問(GAP)']], ['boundary.md', ['層', '匯出']]],
-  revise: [['features.md', ['frontmatter 與 status', '修訂(REV)', '提問(GAP)', '願景、需求、目標與路線', '完成度']], ['laws.md', ['影響範圍與選項', '全域 Law 的變更', 'Law 與需求', '全域 Law']], ['roles.md', ['分支與所有權', '首跑']], ['tooling.md', ['收尾定錨']]],
   abstract: [['features.md', ['收整(abstract)', 'feature 與 abstract', '修訂(REV)', '節']], ['laws.md', ['Law 怎麼談']], ['roles.md', ['分支與所有權']], ['boundary.md', ['層', '模組表']], ['tooling.md', ['CLI', '收尾定錨']]],
   integrate: [['roles.md', ['分支與所有權', '決策紀錄', '整合', '仲裁']], ['features.md', ['提問(GAP)', '完成度', 'ADR']], ['laws.md', ['全域 Law']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
-  status: [['tooling.md', ['CLI', 'status 報告', '收尾定錨']], ['features.md', ['願景、需求、目標與路線', '完成度']], ['laws.md', ['Law 與需求', '全域 Law']]],
-  audit: [['tooling.md', ['CLI', 'status 報告']], ['boundary.md', '*'], ['features.md', ['願景、需求、目標與路線', '節', '什麼要有 law', '完成度', '收整(abstract)']], ['laws.md', ['Law 與需求', '全域 Law', 'Law 怎麼談']]],
+  status: [['tooling.md', ['CLI', 'status 報告', '收尾定錨']], ['features.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求', '全域 Law']]],
+  audit: [['tooling.md', ['CLI', 'status 報告']], ['boundary.md', '*'], ['features.md', ['願景、需求與里程碑', '節', '什麼要有 law', '完成度', '收整(abstract)']], ['laws.md', ['Law 與需求', '全域 Law', 'Law 怎麼談']]],
   study: [['tooling.md', ['跑東西的紀律', '收尾定錨']], ['features.md', ['`.design/`']]],
 };
 
 // 每個 skill 的 brief 由哪幾塊組成,依目標的種類分:doc(文檔全名)、milestone(M-n-<slug>)、top(R-n / INV-n)、none(沒有目標)。
 // 沒列的種類 = 這個 skill 不收那種目標。
 const BLOCKS = {
-  project: { none: ['tree', 'system', 'modules'] },
-  objective: { none: ['system', 'objectives', 'status'] },
-  'spike-impl': { milestone: ['branch', 'tree', 'objective', 'system', 'modules', 'status'] },
-  'law-design': { milestone: ['branch', 'tree', 'objective', 'system', 'modules', 'journal', 'bound'] },
-  build: { doc: ['branch', 'tools', 'modules', 'journal', 'doc', 'detail', 'lint', 'gaps', 'logs', 'status'], milestone: ['branch', 'tools', 'modules', 'journal', 'objective', 'bound', 'lint', 'gaps', 'logs', 'status'], top: ['branch', 'tools', 'top', 'gaps', 'logs', 'status'] },
+  kickoff: { none: ['tree', 'system', 'modules'] },
+  'require-design': { none: ['system', 'requirements', 'status'], top: ['system', 'requirements', 'status'] },
+  'glaws-revise': { none: ['branch', 'system', 'requirements', 'gaps', 'lintglobal', 'status'], top: ['branch', 'system', 'requirements', 'gaps', 'lintglobal', 'status'] },
+  'spike-impl': { milestone: ['branch', 'tree', 'requirement', 'system', 'modules', 'status'] },
+  'law-design': { milestone: ['branch', 'tree', 'requirement', 'system', 'modules', 'journal', 'bound'], doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'system', 'journal', 'gaps', 'lint', 'status'] },
+  build: { doc: ['branch', 'tools', 'modules', 'journal', 'doc', 'detail', 'lint', 'gaps', 'logs', 'status'], milestone: ['branch', 'tools', 'modules', 'journal', 'requirement', 'bound', 'lint', 'gaps', 'logs', 'status'], top: ['branch', 'tools', 'top', 'gaps', 'logs', 'status'] },
   qa: { doc: ['doc', 'detail', 'declarations', 'innermost', 'testing'], top: ['top', 'touched', 'innermost', 'testing'] },
   refactor: { doc: ['doc', 'detail', 'declarations', 'files'] },
-  revise: { doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'objective', 'system', 'gaps', 'lintglobal', 'status'], top: ['branch', 'system', 'objectives', 'gaps', 'lintglobal', 'status'], none: ['branch', 'system', 'objectives', 'gaps', 'lintglobal', 'status'] },
   abstract: { none: ['branch', 'modules', 'steps'], doc: ['branch', 'modules', 'doc', 'detail', 'declarations', 'steps'] },
   integrate: { none: ['branch', 'journals', 'tools', 'gaps'] },
   status: { none: ['tools', 'logs'] },
@@ -258,9 +258,9 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
   // 目標的種類
   const x = target ? docs.find((v) => v.p.fullName === target || v.p.id === target) : null;
   const plainDoc = target && design && !x ? design.docs.find((d) => d.fullName === target || d.id === target) : null;
-  const objectives = design ? design.objectives.objectives : [];
-  const ms = target && /^M-\d+/.test(target) ? objectives.flatMap((o) => o.milestones.map((m) => ({ m, o }))).find(({ m }) => m.fullName === target || m.id === target) : null;
-  const req = sys && /^R-\d+$/.test(target) ? sys.requirements.find((r) => r.id === target) : null;
+  const requirements = design ? design.requirements.requirements : [];
+  const ms = target && /^M-\d+/.test(target) ? requirements.flatMap((q) => q.milestones.map((m) => ({ m, q }))).find(({ m }) => m.fullName === target || m.id === target) : null;
+  const req = /^R-\d+$/.test(target) ? requirements.find((r) => r.id === target) : null;
   const inv = sys && /^INV-\d+$/.test(target) ? sys.invariants.find((v) => v.id === target) : null;
   const top = req || inv ? { id: target, law: req ? req.accept : inv.law, title: req ? req.title : inv.title, kind: req ? '需求的驗收' : `領域不變量${inv.kind ? ` [${inv.kind}]` : ''}`, mark: req ? 'ACCEPT' : 'LAW' } : null;
   const topLines = top && top.law ? [top.law.forall, ...top.law.given, top.law.conclusion].filter(Boolean) : [];
@@ -269,7 +269,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
 
   const docAbs = x ? x.p.abs : plainDoc ? plainDoc.abs : null;
   const docText = docAbs ? fs.readFileSync(docAbs, 'utf8') : '';
-  const hashed = docAbs ? sha8(docText) : ms ? sha8(fs.readFileSync(ms.o.abs, 'utf8')) : top ? sha8(`${top.title}\n${topLines.join('\n')}`) : '-';
+  const hashed = docAbs ? sha8(docText) : ms ? sha8(ms.q.abs ? fs.readFileSync(ms.q.abs, 'utf8') : `${ms.q.title}\n${ms.m.fullName}`) : top ? sha8(`${top.title}\n${topLines.join('\n')}`) : '-';
   const print = `brief ${skill} ${name || '(沒有目標)'} @doc:${hashed} rules:${rules.hash}`;
   if (fingerprint) return say(print);
 
@@ -283,10 +283,10 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
   const plan = BLOCKS[skill];
   const accepts = Object.keys(plan).map((k) => KIND_WORD[k]).join('、');
   const stop = (msg) => say([...out, '# 目標', '', msg].join('\n'));
-  if (!design && !bare && skill !== 'project') return stop('這個目錄底下沒有 .design/:工作目錄不是專案根目錄,或 --root 沒指到工作樹。停下,回報。');
+  if (!design && !bare && skill !== 'kickoff') return stop('這個目錄底下沒有 .design/:工作目錄不是專案根目錄,或 --root 沒指到工作樹。停下,回報。');
   if (kind === 'missing') {
     const names = design.docs.map((d) => d.fullName);
-    const stones = objectives.flatMap((o) => o.milestones.map((m) => m.fullName));
+    const stones = requirements.flatMap((q) => q.milestones.map((m) => m.fullName));
     return stop(`這棵樹沒有 ${target}。文檔:${names.length ? names.join('、') : '(一份都沒有)'};里程碑:${stones.length ? stones.join('、') : '(一條都沒有)'}。停下,回報。`);
   }
   if (!plan[kind]) {
@@ -340,11 +340,12 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
     return d.slice(from < 0 ? 0 : from).map((l) => l.replace(/^## /, '### '));
   };
 
-  const requirementLines = (id) => {
-    const r = sys ? sys.requirements.find((q) => q.id === id) : null;
-    if (!r) return [`(system.md 裡沒有 ${id})`];
-    const acc = r.accept;
-    return [`${r.id}:${r.title}`, `- 驗收:${acc ? acc.title : '(還沒寫)'}`, ...(acc ? [acc.forall, ...acc.given, acc.conclusion].filter(Boolean).map((l) => `  - ${l}`) : [])];
+  // 一條需求的全部:需求檔全文;需求還住在 system.md「## 需求」節的樹,印讀到的那幾行
+  const requirementLines = (q) => {
+    if (q.abs) return wholeFile(`需求檔:${q.file}`, q.abs, '(讀不到)');
+    const acc = q.accept;
+    return [`# 需求:${q.id}(${q.file})`, '', `${q.id}:${q.title}`, `- 驗收:${acc ? acc.title : '(還沒寫)'}`, ...(acc ? [acc.forall, ...acc.given, acc.conclusion].filter(Boolean).map((l) => `  - ${l}`) : []),
+      ...q.milestones.map((m) => `- 里程碑 ${m.fullName}:${m.title}(綁定 ${m.binds.join('、') || '-'})`), ...q.refinements.map((rf) => `- 調整 ${rf.id}:${rf.title}(動到 ${rf.touches.join('、') || '-'})`), ''];
   };
 
   const block = {
@@ -446,31 +447,27 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
       out.push('');
     },
 
-    // 里程碑:它那個目標檔全文與它的需求;文檔:綁它的里程碑、動到它的調整與它們的需求
-    objective: () => {
-      if (ms) {
-        out.push(...wholeFile(`目標檔:${ms.o.file}`, ms.o.abs, '(讀不到)'));
-        out.push(`# 這條里程碑的需求`, '', ...requirementLines(ms.o.requirement), '');
-        return;
-      }
+    // 里程碑:它那條需求的需求檔全文;文檔:綁它的里程碑、動到它的調整,與那幾條需求的需求檔
+    requirement: () => {
+      if (ms) return out.push(...requirementLines(ms.q));
       const rows = [];
       const reqs = new Set();
-      for (const o of objectives) {
-        for (const m of o.milestones) if (m.binds.includes(name)) { rows.push(`- ${o.fullName} 的里程碑 ${m.fullName}:${m.title}(綁定 ${m.binds.join('、')})`); reqs.add(o.requirement); }
-        for (const rf of o.refinements) if (rf.touches.includes(name)) { rows.push(`- ${o.fullName} 的調整 ${rf.id}:${rf.title}(動到 ${rf.touches.join('、')})`); reqs.add(o.requirement); }
+      for (const q of requirements) {
+        for (const m of q.milestones) if (m.binds.includes(name)) { rows.push(`- ${q.fullName} 的里程碑 ${m.fullName}:${m.title}(綁定 ${m.binds.join('、')})`); reqs.add(q); }
+        for (const rf of q.refinements) if (rf.touches.includes(name)) { rows.push(`- ${q.fullName} 的調整 ${rf.id}:${rf.title}(動到 ${rf.touches.join('、')})`); reqs.add(q); }
       }
       out.push('# 這份文檔朝向哪裡', '', ...(rows.length ? rows : ['(沒有任何里程碑綁它,也沒有調整動到它)']), '');
-      for (const r of [...reqs].filter(Boolean).sort()) out.push(...requirementLines(r), '');
+      for (const q of reqs) out.push(...requirementLines(q));
     },
 
-    objectives: () => {
-      if (!objectives.length) return out.push('# 目標檔', '', '(objectives/ 底下一檔都沒有)', '');
-      for (const o of objectives) out.push(...wholeFile(`目標檔:${o.file}`, o.abs, '(讀不到)'));
+    requirements: () => {
+      if (!requirements.length) return out.push('# 需求檔', '', '(requirements/ 底下一檔都沒有)', '');
+      for (const q of requirements) out.push(...requirementLines(q));
     },
 
     // 決策紀錄的鍵是分支的鍵:里程碑全名、文檔全名、R-n / INV-n;文檔沒有自己的那一份就找綁它的里程碑的
     journal: () => {
-      const keys = [name, ...objectives.flatMap((o) => o.milestones).filter((m) => m.binds.includes(name)).map((m) => m.fullName)];
+      const keys = [name, ...requirements.flatMap((q) => q.milestones).filter((m) => m.binds.includes(name)).map((m) => m.fullName)];
       const j = design.journals.find((q) => keys.includes(q.key));
       if (j) out.push(...wholeFile(`決策紀錄:${j.file}`, path.join(root, j.file), '(讀不到)'));
       else out.push('# 決策紀錄', '', `(.design/journal/ 裡沒有 ${keys.join(' 或 ')} 的決策紀錄)`, '');

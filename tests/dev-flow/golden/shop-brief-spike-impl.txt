@@ -1,5 +1,5 @@
 $ devflow brief spike-impl M-1-checkout --tests test.log --no-rules
-brief spike-impl M-1-checkout @doc:8549fc91 rules:<雜湊>
+brief spike-impl M-1-checkout @doc:b41daaac rules:<雜湊>
 這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
 
 # 規章
@@ -18,33 +18,29 @@ brief spike-impl M-1-checkout @doc:8549fc91 rules:<雜湊>
   - F-001-checkout.md
   - F-002-refund.md
 - modules.md
-- objectives/
-  - R-1-O-1-money-correct.md
+- requirements/
+  - R-1-money-correct.md
 - system.md
 
-# 目標檔:.design/objectives/R-1-O-1-money-correct.md
+# 需求檔:.design/requirements/R-1-money-correct.md
 
 ````markdown
 ---
-id: O-1
-requirement: R-1
+id: R-1
 priority: 1
 updated: 2026-09-07
 ---
-# R-1-O-1-money-correct:每一筆結帳與退款的金額都算對
+# R-1-money-correct:每一筆結帳與退款的金額都算對
+
+- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+  - forall raw in RawBody
+  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
 | M-1-checkout | 結帳走通 | F-001-checkout |
 | M-2-refund | 退款走通 | F-002-refund |
 ````
-
-# 這條里程碑的需求
-
-R-1:每一筆結帳與退款的金額都算對
-- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
-  - forall raw in RawBody
-  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
 # system.md(全份)
 
@@ -59,12 +55,6 @@ updated: 2026-09-07
 小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
 
 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。
-
-## 需求
-### R-1:每一筆結帳與退款的金額都算對
-- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
-  - forall raw in RawBody
-  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
 ## 全域 Law
 不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
@@ -126,19 +116,14 @@ updated: 2026-09-07
 
 ### devflow status
 願景:小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
-需求 1 條,達成 1 條(測試 1、推得 0)· 領域不變量 1 條,成立 1 條 · 目標 1 個,達成 1 個 · 里程碑 2 條,達成 2 條 · 調整 0 條,達成 0 條 · feature 2 份,達成 2 份 · abstract 1 份 · 文檔共 3 份,達成 3 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+需求 1 條,達成 1 條(測試 1、推得 0)· 領域不變量 1 條,成立 1 條 · 里程碑 2 條,達成 2 條 · 調整 0 條,達成 0 條 · feature 2 份,達成 2 份 · abstract 1 份 · 文檔共 3 份,達成 3 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 #### 需求
-| 需求 | 一句話 | 驗收 | 目標 | 目標達成 | 里程碑達成 | 調整達成 |
-|---|---|---|---|---|---|---|
-| R-1 | 每一筆結帳與退款的金額都算對 | 達成(測試 R-1#ACCEPT green) | O-1 | 1/1 | 2/2 | 0/0 |
-
-#### 目標
 - 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
-| 目標 | 需求 | 優先 | 一句話 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
+| 需求 | 優先 | 一句話 | 驗收 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
 |---|---|---|---|---|---|---|---|
-| O-1 | R-1 | 1 | 每一筆結帳與退款的金額都算對 | 2 | 2 | 100% | - |
+| R-1 | 1 | 每一筆結帳與退款的金額都算對 | 達成(測試 R-1#ACCEPT green) | 2 | 2 | 100% | - |
 
 #### 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
@@ -183,5 +168,5 @@ updated: 2026-09-07
 - 無
 
 #### 8. 建議路線
-- 目前功能全部正常運作:每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:devflow requirement add 或 dev-flow:objective
+- 目前功能全部正常運作:每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑
 exit 0

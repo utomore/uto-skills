@@ -10,8 +10,8 @@ import { sectionCommand } from '../lib/commands/section.mjs';
 import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, invariantAdd, milestoneAdd, modulesGen, objectiveAdd, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
-import { migrate, migrateLaws, migrateObjectives } from '../lib/commands/migrate.mjs';
+import { claim, invariantAdd, milestoneAdd, modulesGen, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
+import { migrate, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
 
 const HELP = `devflow <子命令> [選項]
 
@@ -26,17 +26,15 @@ const HELP = `devflow <子命令> [選項]
                                        鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(編號或全名 M-n-<slug> 都行)
                                        配號看同一個 repo 的每一棵工作樹,別條 build 分支上 claim 走的號不重配
                                        system.md「語言與工具」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
-  requirement add <一句話> [--accept <句>]
-                                       鑄 R-n 寫進 system.md「需求」:一件必須達成的事;驗收(判它達成與否的那一句)沒給就留佔位符
+  requirement add <slug> <一句話> --priority <1-4> [--accept <句>]
+                                       鑄 R-n 建 requirements/R-n-<slug>.md:一件必須達成的事;優先 1 最高、4 最低;驗收(判它達成與否的那一句)沒給就留佔位符
+  requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]
+                                       鑄 M-n,以全名 M-n-<slug> 加在該需求檔的里程碑表最後(表的列序就是先後);slug 是 kebab-case 英文,切片的分支 build/M-n-<slug> 以它為鍵;
+                                       綁定的全名要是 features/ 裡有的 feature
+  requirement refinement <R-n> <一句話> --touch <全名,全名>
+                                       鑄 RF-n 加進該需求檔的調整表;動到的要是這條需求的里程碑綁定過的 feature
   invariant add <一句話> [--kind <種類>]
                                        鑄 INV-n 寫進 system.md「全域 Law」區的領域不變量:整個專案任何一份 feature 都不准違反的 law;種類沒給就是 invariant
-  objective add <slug> <一句話> --requirement <R-n> --priority <1-4>
-                                       鑄 O-n 建 objectives/R-n-O-n-<slug>.md;需求要是 system.md 裡有的;優先 1 最高、4 最低
-  objective milestone <O-n> <slug> <一句話> [--bind <全名,全名>]
-                                       鑄 M-n,以全名 M-n-<slug> 加進該目標檔的建置路線表;slug 是 kebab-case 英文,切片的分支 build/M-n-<slug> 以它為鍵;
-                                       綁定的全名要是 features/ 裡有的 feature
-  objective refinement <O-n> <一句話> --touch <全名,全名>
-                                       鑄 RF-n 加進該目標檔的優化路線表;動到的要是該目標里程碑綁定過的 feature
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
                                        ids:兩個檔案同號、號段行讀不懂或重疊、owner 的號不在自己的號段內;
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與 abstract 的消費者;
@@ -48,22 +46,22 @@ const HELP = `devflow <子命令> [選項]
   section <file> <節>… [--verify]      取 ## 節
   brief <skill> [<目標>] [--tests <log>] [--fingerprint] [--no-rules]
                                        一個 skill 開工要的東西一次印完:規章的節,加上它在這個專案裡要看的那幾塊(目標文檔、逐條狀態、Steps 上每條簽名與型別的宣告、
-                                       目標檔與需求、決策紀錄、分支與工作樹、lint、status 報告,依 skill 而定);目標是文檔全名、里程碑全名 M-n-<slug>、R-n / INV-n,或不給;
+                                       需求檔、決策紀錄、分支與工作樹、lint、status 報告,依 skill 而定);目標是文檔全名、里程碑全名 M-n-<slug>、R-n / INV-n,或不給;
                                        第一行是指紋(skill、目標、目標與規章的雜湊),--fingerprint 只印那一行,--no-rules 不重印規章的節(同一場裡文檔改過之後重跑用);
                                        --args '<一整串>' 是 skill 載入時的寫法:目標與旗標從那一串裡認,其餘的字不理;--part <k> [--of <N>] 只印第 k 段
                                        (整份切成每段不超過 28KB:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,SKILL.md 放 N 道各取一段);永遠 exit 0,問題用文字講
                                        skill:${briefSkills.join('、')}
-  migrate laws [--write]               system.md 沒有「## 全域 Law」區、或需求與目標檔寫著「- Law:」的樹:層、對外 I/O、領域不變量收進「## 全域 Law」區,
-                                       需求的那一句改成「- 驗收:」,目標檔的 Law 與需求的蘊含說明刪掉;先印帳本,--write 才落地
-  migrate objectives [--write]         目標還擠在一份 objectives.md 的樹:每個目標生一條需求寫進 system.md「需求」、拆成 objectives/ 一個目標一個檔、
-                                       目的併進願景第二段;先印帳本,--write 才落地
+  migrate laws [--write]               system.md 沒有「## 全域 Law」區、或需求寫著「- Law:」的樹:層、對外 I/O、領域不變量收進「## 全域 Law」區,
+                                       需求的那一句改成「- 驗收:」;先印帳本,--write 才落地
+  migrate requirements [--write]       需求還住在 system.md「## 需求」節、里程碑住 objectives/ 或一份 objectives.md 的樹:每條需求連同朝向它的里程碑與調整
+                                       併成 requirements/R-n-<slug>.md 一條一個檔,「## 需求」節與 objectives/ 刪掉;要人判的列在帳本裡;先印帳本,--write 才落地
   migrate <.design> [--language <adapter>] [--ignore <dir,dir>]
                                        盤點 subsystems/ 體系的 .design:每份舊文檔的介面在程式碼裡對到幾條、
                                        四格 law 翻成三行草稿、共用簽名列成 abstract 候選、退場清單;只印帳本,不改任何檔
 
 選項
   --root <dir>                         專案根目錄(預設目前目錄)
-  --date <YYYY-MM-DD>                  claim / objective add / sync / migrate objectives 寫進檔的日期(預設今天)
+  --date <YYYY-MM-DD>                  claim / requirement add / sync / migrate requirements 寫進檔的日期(預設今天)
 
 exit code:status 盤點 = 全部達成 0、否則 1;status --doc / --module = 查得到 0;lint 通過 0、有不合規 1。
 adapter:${adapterNames.join(', ')};system.md 的 language 欄選,一種語言寫它的名字,前後端各一種語言的專案寫 [<目錄> = <adapter>, <目錄> = <adapter>]。`;
@@ -131,7 +129,7 @@ function main() {
   }
 
   if (cmd === 'migrate' && sub === 'laws') return emit(migrateLaws(root, { write: !!args.flags.write }));
-  if (cmd === 'migrate' && sub === 'objectives') return emit(migrateObjectives(root, { write: !!args.flags.write, date: args.flags.date || undefined }));
+  if (cmd === 'migrate' && sub === 'requirements') return emit(migrateRequirements(root, { write: !!args.flags.write, date: args.flags.date || undefined }));
   if (cmd === 'migrate') {
     if (!sub) {
       console.error('用法:devflow migrate <.design 路徑> [--language <adapter>] [--ignore <dir,dir>]');
@@ -225,22 +223,16 @@ function main() {
   }
 
   if (cmd === 'requirement') {
-    if (sub === 'add' && rest[0]) return emit(requirementAdd(design, rest.join(' '), { accept: typeof args.flags.accept === 'string' ? args.flags.accept : '' }));
-    console.error('用法:devflow requirement add <一句話> [--accept <句>]');
+    if (sub === 'add' && rest[0] && rest[1]) return emit(requirementAdd(design, rest[0], rest.slice(1).join(' '), { accept: typeof args.flags.accept === 'string' ? args.flags.accept : '', priority: args.flags.priority, date: args.flags.date || undefined }));
+    if (sub === 'milestone' && rest[0] && rest[1] && rest[2]) return emit(milestoneAdd(design, rest[0], rest[1], rest.slice(2).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
+    if (sub === 'refinement' && rest[0] && rest[1]) return emit(refinementAdd(design, rest[0], rest.slice(1).join(' '), { touch: typeof args.flags.touch === 'string' ? args.flags.touch : '' }));
+    console.error('用法:devflow requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      devflow requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]\n      devflow requirement refinement <R-n> <一句話> --touch <全名,全名>');
     return 1;
   }
 
   if (cmd === 'invariant') {
     if (sub === 'add' && rest[0]) return emit(invariantAdd(design, rest.join(' '), { kind: typeof args.flags.kind === 'string' ? args.flags.kind : 'invariant' }));
     console.error('用法:devflow invariant add <一句話> [--kind <種類>]');
-    return 1;
-  }
-
-  if (cmd === 'objective') {
-    if (sub === 'add' && rest[0] && rest[1]) return emit(objectiveAdd(design, rest[0], rest.slice(1).join(' '), { requirement: typeof args.flags.requirement === 'string' ? args.flags.requirement : '', priority: args.flags.priority, date: args.flags.date || undefined }));
-    if (sub === 'milestone' && rest[0] && rest[1] && rest[2]) return emit(milestoneAdd(design, rest[0], rest[1], rest.slice(2).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
-    if (sub === 'refinement' && rest[0] && rest[1]) return emit(refinementAdd(design, rest[0], rest.slice(1).join(' '), { touch: typeof args.flags.touch === 'string' ? args.flags.touch : '' }));
-    console.error('用法:devflow objective add <slug> <一句話> --requirement <R-n> --priority <1-4>\n      devflow objective milestone <O-n> <slug> <一句話> [--bind <全名,全名>]\n      devflow objective refinement <O-n> <一句話> --touch <全名,全名>');
     return 1;
   }
 

@@ -9,12 +9,6 @@ updated: 2026-09-07
 
 夾具:證明 Python adapter 的簽名、匯出、import 與測試歸屬(含需求驗收測試歸屬的識別字形式)對得上。
 
-## 需求
-### R-1:任何一籃子都算得出不為負的總金額
-- 驗收:任一品項清單的總金額不為負
-  - forall items in list
-  - |- total_cents(items) >= 0
-
 ## 全域 Law
 不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
 

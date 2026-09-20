@@ -1,0 +1,17 @@
+$ devflow lint laws
+## lint laws:14 條不合規
+- ✗ .design/features/F-001-checkout.md LAW-1 |- 行的 cents 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/features/F-001-checkout.md LAW-1 forall 行的 RawBody 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/features/F-001-checkout.md LAW-2 forall 行的 RawBody 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/features/F-001-checkout.md LAW-3 forall 行的 RawBody 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/features/F-002-refund.md LAW-1 |- 行的 cents 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/features/F-002-refund.md LAW-1 forall 行的 RawBody 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/features/F-002-refund.md LAW-2 forall 行的 RawBody 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/abstracts/A-001-settle.md LAW-1 forall 行的 MoneyList 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/abstracts/A-001-settle.md LAW-1 forall 行的 Money 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/abstracts/A-001-settle.md LAW-2 |- 行的 money 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/abstracts/A-001-settle.md LAW-2 forall 行的 MoneyList 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/abstracts/A-001-settle.md LAW-3 forall 行的 MoneyList 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/abstracts/A-001-settle.md LAW-3 forall 行的 Money 對不到 Steps 簽名、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+- ✗ .design/system.md:13 R-1 驗收 forall 行的 RawBody 對不到 Steps 簽名(任何一份文檔的)、最內層的匯出、型別名或標準函式庫;真的需要就加進 system.md「Laws 詞彙追加」
+exit 1

@@ -1,0 +1,3 @@
+$ devflow requirement milestone R-1 ship 出貨走通
+這棵樹的需求與里程碑還沒有搬進 requirements/;先 devflow migrate requirements --write 換成一條需求一個檔
+exit 1

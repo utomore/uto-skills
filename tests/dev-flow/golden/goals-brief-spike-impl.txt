@@ -1,0 +1,190 @@
+$ devflow brief spike-impl M-3-partial-refund --no-rules
+brief spike-impl M-3-partial-refund @doc:9a2a4c65 rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 分支與工作樹
+
+(這個目錄不是 git repo 的根,也不是一棵工作樹)
+
+# .design/ 現在有什麼
+
+- abstracts/
+  - A-001-settle.md
+- features/
+  - F-001-checkout.md
+  - F-002-refund.md
+- modules.md
+- objectives/
+  - R-1-O-1-money-correct.md
+  - R-1-O-2-refund-correct.md
+  - R-9-O-3-loyalty.md
+- system.md
+
+# 需求:R-1(.design/system.md)
+
+R-1:每一筆結帳與退款的金額都算對
+- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+  - forall raw in RawBody
+  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
+- 里程碑 M-2-refund:退款走通(綁定 F-002-refund)
+- 里程碑 M-3-partial-refund:部分退款走通(綁定 -)
+- 里程碑 M-1-checkout:結帳走通(綁定 F-001-checkout)
+- 調整 RF-1:結帳一次走完不重算(動到 F-001-checkout)
+
+# system.md(全份)
+
+````markdown
+---
+language: typescript
+updated: 2026-09-07
+---
+# shop:購物車結帳與退款
+
+## 願景
+小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
+
+替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。
+
+## 需求
+### R-1:每一筆結帳與退款的金額都算對
+- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+  - forall raw in RawBody
+  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
+
+### R-2:店主隨時看得到今天收了多少錢
+- 驗收:店主查當日營收,看到的數字等於當日每一筆結帳減掉每一筆退款
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+- INV-1 [bound] 任何一條路徑結算出來的金額都不為負
+  - forall ls in MoneyList, d in Money
+  - given settled(settle(ls, d))
+  - |- cents(settle(ls, d)) >= 0
+
+### 架構:層
+由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。
+
+| 層 | 裝什麼 |
+|---|---|
+| domain | 金額的型別與規則 |
+| application | 把 domain 串成一條結帳或退款 |
+| entry | HTTP 路由 |
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約 |
+|---|---|---|---|---|---|---|---|
+| POST /checkout | in | `RawBody` | `src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` | F-001#LAW-2 |
+| 結帳結果 | out | `HttpRes` | `src/entry/routes.ts` | F-001-checkout | trusted | - | INV-1 |
+| POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` | F-002#LAW-2 |
+| 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - | INV-1 |
+
+## 語言與工具
+- 建置:`npx tsc --noEmit`
+- 測試(整套):`npx jest`
+- 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 號段:無
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+
+## Features
+| 全名 | 類別 |
+|---|---|
+| F-001-checkout | feature |
+| F-002-refund | feature |
+| A-001-settle | abstract |
+````
+
+# modules.md
+
+````markdown
+# 模組表
+
+| 路徑 | 層 |
+|---|---|
+| `src/domain/**` | domain |
+| `src/app/**` | application |
+| `src/entry/**` | entry |
+````
+
+# devflow status
+
+### devflow status
+願景:小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
+需求 2 條,達成 0 條(測試 0、推得 0)· 領域不變量 1 條,成立 0 條 · 里程碑 3 條,達成 0 條 · 調整 1 條,達成 0 條 · feature 2 份,達成 0 份 · abstract 1 份 · 文檔共 3 份,達成 0 份 · 還沒實作的 step 21 個 · 還開著的 GAP 0 條
+· 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
+
+#### 需求
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+| 需求 | 優先 | 一句話 | 驗收 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |
+|---|---|---|---|---|---|---|---|
+| R-1 | 1 | 每一筆結帳與退款的金額都算對 | 未知(寫了三行卻沒有 R-1#ACCEPT 測試) | 3 | 0 | 0% | 0/1 |
+| R-2 | (沒填) | 店主隨時看得到今天收了多少錢 | 未達成(還沒有里程碑) | 0 | 0 | - | - |
+- R-1 下一個里程碑:M-2 退款走通(F-002-refund 進行中)
+
+#### 全域 Law
+| 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
+|---|---|---|---|
+| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,3 條不合規 |
+| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 4 列,4 條不合規;契約欄指到的 law 3 條,成立 0 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 1 條,7 條不合規;成立 0 條 |
+
+| 領域不變量 | 種類 | 一句話 | 成立 |
+|---|---|---|---|
+| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 未知(寫了三行卻沒有 INV-1#LAW 測試) |
+
+#### 文檔
+| 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
+|---|---|---|---|---|---|---|---|---|---|
+| F-001-checkout | feature | verified | 5 | 0 | 0 | 3 | 0/0 | 1 | 等 A-001-settle |
+| F-002-refund | feature | verified | 5 | 0 | 0 | 2 | 0/0 | 1 | 等 A-001-settle |
+| A-001-settle | abstract | verified | 3 | 0 | 0 | 3 | 0/0 | 1 | 進行中 |
+
+#### 1. 今天能開幾條線
+- 無
+
+#### 2. 卡住的
+- F-001-checkout 等 A-001-settle(未達成,先建它)
+- F-002-refund 等 A-001-settle(未達成,先建它)
+
+#### 3. 等決定
+- 無
+
+#### 4. 牽動誰
+- A-001-settle ← F-001-checkout、F-002-refund
+
+#### 5. 待實作(按檔案)
+- src/app/checkout.ts:F-001-checkout#parseCheckout、F-001-checkout#toOrder、F-001-checkout#reqLines(觀察點)、F-001-checkout#reqDiscount(觀察點)、F-001-checkout#paidCents(觀察點)、F-001-checkout#checkout
+- src/app/refund.ts:F-002-refund#parseRefund、F-002-refund#toRefund、F-002-refund#refundLines(觀察點)、F-002-refund#refundFee(觀察點)、F-002-refund#returnedCents(觀察點)、F-002-refund#refund
+- src/domain/money.ts:F-001-checkout#settle、F-002-refund#settle、A-001-settle#sumLines、A-001-settle#subtract、A-001-settle#cents(觀察點)、A-001-settle#settled(觀察點)、A-001-settle#settle
+- src/entry/routes.ts:F-001-checkout#checkoutHandler、F-002-refund#refundHandler
+
+#### 6. 修訂熱點
+- F-001-checkout:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-sett」
+- F-002-refund:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-sett」
+- A-001-settle:REV 1 條,最後一條「REV-1(2026-09-07,依 dev-flow:refactor 收整):把 F-001-checkout 與 」
+- A-001-settle:2 份文檔引用它,改它要一起 REV
+
+#### 7. 警訊
+| 哪裡 | 什麼事 | 怎麼辦 |
+|---|---|---|
+| system.md | 需求還住在「## 需求」節,看不出每條需求的優先與里程碑 | devflow migrate requirements --write 換成 requirements/ 一條需求一個檔 |
+| .design/objectives/R-9-O-3-loyalty.md | 對到的需求 R-9 不存在,它的里程碑沒有算進任何需求 | devflow migrate requirements 的帳本會列出它;決定它屬於哪條需求 |
+| R-1 | 驗收寫了三行卻沒有驗收測試,達成與否未知 | dev-flow:build R-1(只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推 |
+| R-2 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
+| R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>) |
+| INV-1 | 寫了三行卻沒有測試,成立與否未知 | dev-flow:build INV-1(只派 qa 寫一條歸屬 "INV-1#LAW" 的測試) |
+| 全域 Law:架構 | lint boundary 3 條不合規 | devflow lint boundary |
+| 全域 Law:契約 | lint io 4 條不合規 | devflow lint io |
+| 全域 Law:領域不變量 | lint invariants 7 條不合規 | devflow lint invariants |
+
+#### 8. 建議路線
+1. dev-flow:build INV-1(只派 qa 寫 INV-1#LAW 的測試)
+exit 0

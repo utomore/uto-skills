@@ -1,5 +1,0 @@
-$ devflow objective add login-sees-own 使用者登入後看得到自己的東西 --requirement R-1 --priority 1
-· system.md 的 language 還是模板(<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>),填成 typescript / javascript / python / go / rust 其中一個
-
-system.md 沒有 R-1;先 devflow requirement add <一句話> --accept <句>
-exit 1

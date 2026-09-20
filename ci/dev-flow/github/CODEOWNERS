@@ -6,5 +6,5 @@
 # features/ 與 abstracts/ 的檔不在這裡:它們由 claim 的人負責,隊友互相 review 即可。
 
 .design/system.md        @architect
-.design/objectives/      @architect
+.design/requirements/    @architect
 .design/modules.md       @architect

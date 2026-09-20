@@ -307,7 +307,7 @@ export function lintLaws(design, source, adapter) {
     const mentioned = checkLawBody(where, law, allSteps, 'Steps 簽名(任何一份文檔的)');
     for (const n of mentioned) if (entries.has(n)) r.red.push(`${where} 的 |- 行引用了進入點 ${n};進入點只接線,它做的事由對外 I/O 表承接`);
   };
-  if (sys) for (const q of sys.requirements) checkTop(sys.file, q.id, q.accept, q.line);
+  for (const q of design.requirements.requirements) if (!q.placeholder) checkTop(q.file, q.id, q.accept, q.line);
   return r;
 }
 
@@ -352,11 +352,11 @@ export function lintTrace(design, source) {
     for (const l of p.laws) declared.add(`${p.id}#${l.id}`);
     for (const e of p.examples) declared.add(`${p.id}#${e.id}`);
   }
-  // 需求的驗收:寫了三行的只由驗收測試判,沒有測試即紅;一句話的沒有測試不算紅,由建置路線推。領域不變量的測試由 lint invariants 查,這裡只認得它的標記。
+  // 需求的驗收:寫了三行的只由驗收測試判,沒有測試即紅;一句話的沒有測試不算紅,由里程碑推。領域不變量的測試由 lint invariants 查,這裡只認得它的標記。
   const formal = new Set();
   const prose = new Set();
   const known = new Set();
-  if (design.system) for (const q of design.system.requirements) {
+  for (const q of design.requirements.requirements) {
     if (!q.accept || q.accept.placeholder) continue;
     (q.accept.formal ? formal : prose).add(`${q.id}#ACCEPT`);
   }
@@ -371,7 +371,7 @@ export function lintTrace(design, source) {
   }
   for (const d of [...declared].sort()) if (!seen.has(d)) r.red.push(`${d} 沒有測試承接(未翻譯)`);
   for (const d of [...formal].sort()) if (!seen.has(d)) r.red.push(`${d} 寫了三行卻沒有驗收測試;三行式的驗收只由測試判,沒有測試就是未知`);
-  for (const d of [...prose].sort()) if (!seen.has(d)) r.info.push(`${d} 沒有驗收測試,達成與否由建置路線推`);
+  for (const d of [...prose].sort()) if (!seen.has(d)) r.info.push(`${d} 沒有驗收測試,達成與否由里程碑推`);
   for (const [m, files] of seen) if (!declared.has(m) && !formal.has(m) && !prose.has(m) && !known.has(m)) r.red.push(`${files.join(', ')} 引用的 ${m} 文檔裡沒有(幽靈引用);刪掉的編號永久空缺,不重用`);
   return r;
 }

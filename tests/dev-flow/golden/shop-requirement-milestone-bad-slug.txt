@@ -1,0 +1,3 @@
+$ devflow requirement milestone R-1 出貨走通 一句話
+里程碑要一個 kebab-case 英文名:devflow requirement milestone R-1 <slug> <一句話>(拿到的是「出貨走通」)
+exit 1

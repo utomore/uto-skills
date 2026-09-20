@@ -1,3 +1,0 @@
-$ devflow objective refinement O-1 出貨改成批次 --touch F-009-nope
-動到的 F-009-nope 不存在;只能是 features/ 裡有的全名
-exit 1

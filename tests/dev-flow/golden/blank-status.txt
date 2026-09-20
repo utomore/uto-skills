@@ -2,16 +2,11 @@ $ devflow status
 · system.md 的 language 還是模板(<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>),填成 typescript / javascript / python / go / rust 其中一個
 
 # devflow status
-需求 1 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 目標 0 個,達成 0 個 · 里程碑 0 條,達成 0 條 · 調整 0 條,達成 0 條 · feature 0 份,達成 0 份 · abstract 0 份 · 文檔共 0 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+需求 0 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · 調整 0 條,達成 0 條 · feature 0 份,達成 0 份 · abstract 0 份 · 文檔共 0 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 需求
-| 需求 | 一句話 | 驗收 | 目標 | 目標達成 | 里程碑達成 | 調整達成 |
-|---|---|---|---|---|---|---|
-| R-1 | <一句話:誰在什麼情況下要得到什麼> | 未達成(驗收還是模板) | - | 0/0 | 0/0 | 0/0 |
-
-## 目標
-- 沒有任何目標;dev-flow:objective 訂第一個
+- 沒有任何需求;dev-flow:require-design 談第一條
 
 ## 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
@@ -47,12 +42,9 @@ $ devflow status
 ## 7. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| system.md | 願景還是模板 | dev-flow:project 訂願景 |
-| R-1 | 需求還是模板 | dev-flow:project 寫成一句話 |
-| R-1 | 驗收還是模板 | dev-flow:project 寫成可判定的一句 |
-| R-1 | 沒有任何目標 | devflow objective add <slug> <一句話> --requirement R-1 --priority <1-4> |
-| .design/ | 沒有任何目標 | dev-flow:objective 訂第一個目標(至少一個) |
+| system.md | 願景還是模板 | dev-flow:kickoff 訂願景 |
+| .design/ | 沒有任何需求 | dev-flow:require-design 談第一條需求(至少一條) |
 
 ## 8. 建議路線
-- 還沒有任何文檔;先 dev-flow:objective 訂目標與里程碑,再 dev-flow:spike-impl <M-n-slug>
+- 還沒有任何文檔;先 dev-flow:require-design 談需求、切里程碑,再 dev-flow:spike-impl <M-n-slug>
 exit 1

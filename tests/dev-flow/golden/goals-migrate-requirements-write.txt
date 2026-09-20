@@ -1,0 +1,121 @@
+$ devflow migrate requirements --write --date 2026-09-07
+# migrate requirements 帳本
+
+- .design/system.md:「## 需求」節刪掉,需求搬進 requirements/
+- .design/requirements/R-1-refund-correct.md:建(優先 1;里程碑 3 條、調整 1 條;併自 R-1-O-2-refund-correct、R-1-O-1-money-correct)
+- .design/requirements/R-2-unnamed.md:建(優先 沒有;里程碑 0 條、調整 0 條)
+- .design/objectives/R-1-O-2-refund-correct.md:刪
+- .design/objectives/R-1-O-1-money-correct.md:刪
+
+## 人要判的
+- R-1:併了 2 個目標(O-2「退款的金額算對」:M-2、M-3;O-1「結帳的金額算對」:M-1),里程碑照(優先、目標號)串接;順序不對就改表的列序,其實是兩件事就拆成兩條需求
+- R-2:沒有任何目標朝向它,檔名暫用 R-2-unnamed、沒有優先也沒有里程碑;dev-flow:require-design 補,改名要連檔名一起改
+- .design/objectives/R-9-O-3-loyalty.md:對到的 R-9 不存在,留著沒動(里程碑 M-4-points);決定它屬於哪條需求,併進那個需求檔之後刪掉
+
+都寫了;接著 devflow status 看警訊,「人要判的」與缺的驗收、優先由 dev-flow:require-design 對談補齊
+exit 0
+--- .design/system.md
+---
+language: typescript
+updated: 2026-09-07
+---
+# shop:購物車結帳與退款
+
+## 願景
+小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
+
+替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+- INV-1 [bound] 任何一條路徑結算出來的金額都不為負
+  - forall ls in MoneyList, d in Money
+  - given settled(settle(ls, d))
+  - |- cents(settle(ls, d)) >= 0
+
+### 架構:層
+由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。
+
+| 層 | 裝什麼 |
+|---|---|
+| domain | 金額的型別與規則 |
+| application | 把 domain 串成一條結帳或退款 |
+| entry | HTTP 路由 |
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約 |
+|---|---|---|---|---|---|---|---|
+| POST /checkout | in | `RawBody` | `src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` | F-001#LAW-2 |
+| 結帳結果 | out | `HttpRes` | `src/entry/routes.ts` | F-001-checkout | trusted | - | INV-1 |
+| POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` | F-002#LAW-2 |
+| 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - | INV-1 |
+
+## 語言與工具
+- 建置:`npx tsc --noEmit`
+- 測試(整套):`npx jest`
+- 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 號段:無
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+
+## Features
+| 全名 | 類別 |
+|---|---|
+| F-001-checkout | feature |
+| F-002-refund | feature |
+| A-001-settle | abstract |
+
+--- .design/requirements/R-1-refund-correct.md
+---
+id: R-1
+priority: 1
+updated: 2026-09-07
+---
+# R-1-refund-correct:每一筆結帳與退款的金額都算對
+
+- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+  - forall raw in RawBody
+  - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-2-refund | 退款走通 | F-002-refund |
+| M-3-partial-refund | 部分退款走通 | - |
+| M-1-checkout | 結帳走通 | F-001-checkout |
+
+| 調整 | 做到什麼 | 動到 |
+|---|---|---|
+| RF-1 | 結帳一次走完不重算 | F-001-checkout |
+
+--- .design/requirements/R-2-unnamed.md
+---
+id: R-2
+priority: <1 到 4,1 最高>
+updated: 2026-09-07
+---
+# R-2-unnamed:店主隨時看得到今天收了多少錢
+
+- 驗收:店主查當日營收,看到的數字等於當日每一筆結帳減掉每一筆退款
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+
+--- .design/objectives/R-1-O-1-money-correct.md
+(不存在)
+--- .design/objectives/R-9-O-3-loyalty.md
+---
+id: O-3
+requirement: R-9
+priority: 3
+updated: 2026-09-07
+---
+# R-9-O-3-loyalty:常客拿得到點數
+
+| 里程碑 | 做到什麼 | 綁定 |
+|---|---|---|
+| M-4-points | 結帳後看得到點數 | - |
+

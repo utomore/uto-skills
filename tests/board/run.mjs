@@ -13,9 +13,9 @@ const repo = path.join(here, '..', '..');
 
 const BOARDS = [
   { name: 'lawful', bin: ['plugins', 'lawful', 'bin', 'lawful.mjs'], root: ['tests', 'lawful', 'fixtures', 'refs'],
-    expect: { nodes: ['O-1'], edges: [] } },   // 三條 pipeline 都綁在同一個目標底下,互相引用不算目標之間的相依
+    expect: { nodes: ['R-1'], edges: [] } },   // 三條 pipeline 都綁在同一條需求的里程碑底下,互相引用不算需求之間的相依
   { name: 'dev-flow', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'shop'],
-    expect: { nodes: ['O-1', 'A-001-settle'], edges: ['A-001-settle>O-1'] } },   // 兩份 feature 都見 A-001,A-001 沒被綁:共用卡在左,O-1 在右
+    expect: { nodes: ['R-1', 'A-001-settle'], edges: ['A-001-settle>R-1'] } },   // 兩份 feature 都見 A-001,A-001 沒被綁:共用卡在左,R-1 在右
 ];
 
 let failed = 0;
@@ -204,9 +204,10 @@ const DAG = `(() => {
     if (a == null || b == null) dangling++;
     else if (!e.cycle && !(a < b)) backwards++;
   }
-  const grain = document.getElementById('grain').value;
-  const shared = [...dagGraph.nodes.values()].filter((n) => n.kind === 'shared').length;
-  const orphan = dagGraph.nodes.has('no-req') ? 1 : 0;
+  const kinds = [...dagGraph.nodes.values()].map((n) => n.kind);
+  const shared = kinds.filter((k) => k === 'shared').length;
+  // 底下有里程碑、卻不是任何一條需求的區塊(里程碑對不到需求)也自成一張卡
+  const stray = D.bands.filter((b) => !['loose', 'shared', 'empty'].includes(b.id) && !D.requirements.some((q) => q.id === b.id)).length;
   const first = [...dagNodeEls.entries()].map(([id, el]) => ({ id, el, degree: dagGraph.nodes.get(id).deps.length + dagGraph.nodes.get(id).dependents.length }))
     .sort((p, q) => q.degree - p.degree)[0];
   const r = first && first.el.getBoundingClientRect();
@@ -215,8 +216,10 @@ const DAG = `(() => {
     treeShown: vis(world), dagShown: vis(world2),
     filterShown: vis(document.querySelector('.bar button[data-filter]')),
     nodes: dagNodeEls.size, edges: dagGraph.edges.length, backwards, dangling, shared,
-    objectives: D.objectives.length, requirements: D.requirements.length + orphan,
-    expectNodes: (grain === 'objective' ? D.objectives.length : D.requirements.length + orphan) + shared,
+    requirements: D.requirements.length, stray,
+    expectNodes: D.requirements.length + stray + shared,
+    requirementCards: kinds.filter((k) => k === 'requirement').length,
+    grainControl: !!document.getElementById('grain'),
     first: first ? { id: first.id, degree: first.degree, x: r.x + r.width / 2, y: r.y + r.height / 2 } : null,
   };
 })()`;
@@ -269,24 +272,36 @@ async function run(page, label, expect) {
     }
   }
 
-  // 版面:每張卡片都比它自己的父卡片更右(沒有目標那一層的區塊,里程碑就直接掛在區塊底下)
+  // 樹只有四層:願景 → 需求的區塊 → 里程碑與調整 → 便利貼;一個區塊一張卡、一欄一張卡,優先與里程碑完成度寫在需求的區塊上
+  const shape = await page.evaluate(`(() => {
+    const bad = [];
+    const bands = [...document.querySelectorAll('.band')];
+    const groups = [...document.querySelectorAll('.group')];
+    const columns = D.bands.reduce((s, b) => s + b.columns.length, 0);
+    if (bands.length !== D.bands.length) bad.push('區塊畫了 ' + bands.length + ' 張,資料有 ' + D.bands.length + ' 個');
+    if (groups.length !== columns) bad.push('里程碑與調整畫了 ' + groups.length + ' 張,資料有 ' + columns + ' 欄');
+    const kinds = new Set([...document.querySelectorAll('#world .card')].map((el) => el.dataset.kind));
+    for (const k of kinds) if (!['vision', 'band', 'group', 'note'].includes(k)) bad.push('多了一層 ' + k);
+    D.bands.forEach((b, bi) => {
+      const text = bands[bi] ? bands[bi].textContent : '';
+      for (const n of [b.note, ...b.notes, b.empty].filter(Boolean)) if (!text.includes(n)) bad.push(b.id + ' 的區塊上少了「' + n + '」');
+    });
+    return bad;
+  })()`);
+  check(`${label}:樹是願景、需求的區塊、里程碑與調整、便利貼四層`, shape.length === 0, shape.join(' · '));
+
+  // 版面:每張卡片都比它自己的父卡片更右(里程碑與調整直接掛在需求的區塊底下)
   const askew = await page.evaluate(`(() => {
     const at = (el) => parseFloat(el.style.left);
     const one = (sel) => document.querySelector(sel);
     const bad = [];
     const vision = one('.vision');
     for (const b of document.querySelectorAll('.band')) {
-      if (vision && !(at(b) > at(vision))) bad.push('優先度區塊沒有比願景右');
-    }
-    for (const l of document.querySelectorAll('.lane')) {
-      const b = one('.band[data-band="' + l.dataset.band + '"]');
-      if (!(at(l) > at(b))) bad.push('目標 ' + l.dataset.lane + ' 沒有比它的優先度區塊右');
+      if (vision && !(at(b) > at(vision))) bad.push('需求的區塊沒有比願景右');
     }
     for (const g of document.querySelectorAll('.group')) {
-      const parent = g.dataset.lane === '-1'
-        ? one('.band[data-band="' + g.dataset.band + '"]')
-        : one('.lane[data-band="' + g.dataset.band + '"][data-lane="' + g.dataset.lane + '"]');
-      if (!(at(g) > at(parent))) bad.push('里程碑 ' + g.dataset.col + ' 沒有比它的父卡片右');
+      const parent = one('.band[data-band="' + g.dataset.band + '"]');
+      if (!(at(g) > at(parent))) bad.push('里程碑 ' + g.dataset.col + ' 沒有比它的需求區塊右');
     }
     const notes = [...document.querySelectorAll('.note')].map(at);
     const groups = [...document.querySelectorAll('.group')].map(at);
@@ -306,12 +321,14 @@ async function run(page, label, expect) {
   })()`);
   check(`${label}:骨架線沒有橫貫整張圖的橫幹`, widest <= 40, `最長的一條橫線 ${widest}px`);
 
-  // 相依頁籤:目標排成先後,每條邊的依賴在左、依賴它的在右;點卡片側欄換成它依賴誰、誰等它
+  // 相依頁籤:需求排成先後,每條邊的依賴在左、依賴它的在右;點卡片側欄換成它依賴誰、誰等它
   const tab = await page.evaluate(`(() => { const r = document.querySelector('.bar button[data-view="dag"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
   await page.click(tab.x, tab.y);
   const dag = await page.evaluate(DAG);
   check(`${label}:切到相依頁籤只看得到相依圖`, dag.on && !dag.treeShown && dag.dagShown, JSON.stringify(dag));
-  check(`${label}:每個目標一張卡,共用的那份自成一張`, dag.nodes === dag.expectNodes, `畫了 ${dag.nodes} 張,目標 ${dag.objectives} 個加共用 ${dag.shared} 份`);
+  check(`${label}:每條需求一張卡,共用的那份自成一張`, dag.nodes === dag.expectNodes && dag.requirementCards === dag.requirements,
+    `畫了 ${dag.nodes} 張(需求卡 ${dag.requirementCards} 張),需求 ${dag.requirements} 條加對不到需求的區塊 ${dag.stray} 個加共用 ${dag.shared} 份`);
+  check(`${label}:相依頁籤只有需求一種粒度,沒有切換的控制項`, !dag.grainControl);
   check(`${label}:邊的兩端都是畫出來的卡`, dag.dangling === 0, `${dag.dangling} 條邊接到沒畫的卡`);
   check(`${label}:依賴在左、依賴它的在右`, dag.backwards === 0, `${dag.backwards} 條邊的方向反了`);
   check(`${label}:樹那一頁的篩選在相依頁收起來`, !dag.filterShown);
@@ -323,18 +340,19 @@ async function run(page, label, expect) {
   }
   if (dag.first) {
     await page.click(dag.first.x, dag.first.y);
-    const sel = await page.evaluate(`(() => ({ dagSelected, docOpen: !docEl.hidden, lit: document.querySelectorAll('#links2 .dep.lit').length, rows: docEl.querySelectorAll('section').length }))()`);
+    const sel = await page.evaluate(`(() => {
+      const q = D.requirements.find((r) => r.id === dagSelected);
+      const text = docEl.textContent;
+      return { dagSelected, docOpen: !docEl.hidden, lit: document.querySelectorAll('#links2 .dep.lit').length, rows: docEl.querySelectorAll('section').length,
+        missing: q ? q.milestones.filter((m) => !text.includes(m.id + ' ' + m.title)).map((m) => m.id) : [] };
+    })()`);
     check(`${label}:點相依圖的卡會選到它`, sel.dagSelected === dag.first.id && sel.docOpen, JSON.stringify(sel));
     check(`${label}:選了卡它的邊會亮`, sel.lit === dag.first.degree, `亮了 ${sel.lit} 條,這張卡有 ${dag.first.degree} 條邊`);
+    check(`${label}:需求卡的側欄列出它的每一條里程碑`, sel.missing.length === 0, `少了 ${sel.missing.join('、')}`);
     await page.click(dag.first.x, dag.first.y);
     const un = await page.evaluate('({ dagSelected, homeOpen: !homeEl.hidden })');
     check(`${label}:再點一次會取消選取`, un.dagSelected === null && un.homeOpen);
   }
-  // 粒度切成需求:一條需求一張卡
-  await page.evaluate(`(() => { const g = document.getElementById('grain'); g.value = 'requirement'; g.dispatchEvent(new Event('change')); })()`);
-  const byReq = await page.evaluate(DAG);
-  check(`${label}:粒度切成需求後一條需求一張卡`, byReq.nodes === byReq.requirements + byReq.shared && byReq.backwards === 0 && byReq.dangling === 0,
-    `畫了 ${byReq.nodes} 張,需求 ${byReq.requirements} 條加共用 ${byReq.shared} 份,反向 ${byReq.backwards},懸空 ${byReq.dangling}`);
   // 切回樹:便利貼回來,相依圖收起來
   const treeTab = await page.evaluate(`(() => { const r = document.querySelector('.bar button[data-view="tree"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
   await page.click(treeTab.x, treeTab.y);

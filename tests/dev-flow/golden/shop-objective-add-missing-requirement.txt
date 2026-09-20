@@ -1,3 +1,0 @@
-$ devflow objective add refund-correct 退款也算對錢 --requirement R-9 --priority 2
-system.md 沒有 R-9;先 devflow requirement add <一句話> --accept <句>(有:R-1)
-exit 1

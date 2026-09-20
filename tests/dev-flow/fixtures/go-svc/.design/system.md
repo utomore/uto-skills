@@ -9,12 +9,6 @@ updated: 2026-09-07
 
 夾具:證明 Go adapter 的簽名(含接收者方法與多回傳值)、匯出、import 與子測試歸屬(含需求驗收測試歸屬的字串形式)對得上。
 
-## 需求
-### R-1:推進去的工作一個都不會少
-- 驗收:推一個 job 之後深度多一
-  - forall jobs in Job, j in Job
-  - |- Depth(Push(jobs, j)) == Depth(jobs) + 1
-
 ## 全域 Law
 不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
 

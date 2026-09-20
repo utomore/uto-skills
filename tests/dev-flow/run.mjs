@@ -25,27 +25,25 @@ const CASES = [
   ['shop-status-json', 'shop', ['status', '--json', '--tests', 'test.log']],
   ['shop-section', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', 'Laws']],
   ['shop-section-verify', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', '沒有的節', '--verify']],
-  ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--milestone', 'M-2-refund', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md', '.design/objectives/R-1-O-1-money-correct.md']],
+  ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--milestone', 'M-2-refund', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md', '.design/requirements/R-1-money-correct.md']],
   ['shop-claim-feature-no-milestone', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--date', DATE], ['.design/system.md']],
   ['shop-claim-feature-bad-milestone', 'shop', ['claim', 'feature', 'ship', '--milestone', 'M-9', '--date', DATE]],
-  ['shop-requirement-add', 'shop', ['requirement', 'add', '每一筆錢都查得到來源', '--accept', '任一筆訂單都查得到它的每一筆金額從哪一列品項來'], ['.design/system.md']],
-  ['shop-requirement-add-no-law', 'shop', ['requirement', 'add', '每一筆錢都查得到來源'], ['.design/system.md']],
-  ['shop-objective-add', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--requirement', 'R-1', '--priority', '2', '--date', DATE], ['.design/objectives/R-1-O-2-refund-correct.md']],
-  ['shop-objective-add-inherit', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--requirement', 'R-1', '--priority', '2', '--date', DATE], ['.design/objectives/R-1-O-2-refund-correct.md']],
-  ['shop-objective-add-bad-priority', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--requirement', 'R-1', '--priority', '7']],
-  ['shop-objective-add-bad-slug', 'shop', ['objective', 'add', 'Refund_Correct', '退款也算對錢', '--requirement', 'R-1', '--priority', '2']],
-  ['shop-objective-add-no-requirement', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--priority', '2']],
-  ['shop-objective-add-missing-requirement', 'shop', ['objective', 'add', 'refund-correct', '退款也算對錢', '--requirement', 'R-9', '--priority', '2']],
-  ['shop-objective-milestone', 'shop', ['objective', 'milestone', 'O-1', 'ship', '出貨走通', '--bind', 'F-002-refund'], ['.design/objectives/R-1-O-1-money-correct.md']],
-  ['shop-objective-milestone-unbound', 'shop', ['objective', 'milestone', 'O-1', 'ship', '出貨走通'], ['.design/objectives/R-1-O-1-money-correct.md']],
-  ['shop-objective-milestone-bad-slug', 'shop', ['objective', 'milestone', 'O-1', '出貨走通', '一句話']],
+  ['shop-requirement-add', 'shop', ['requirement', 'add', 'money-traceable', '每一筆錢都查得到來源', '--priority', '2', '--accept', '任一筆訂單都查得到它的每一筆金額從哪一列品項來', '--date', DATE], ['.design/requirements/R-2-money-traceable.md']],
+  ['shop-requirement-add-no-accept', 'shop', ['requirement', 'add', 'money-traceable', '每一筆錢都查得到來源', '--priority', '2', '--date', DATE], ['.design/requirements/R-2-money-traceable.md']],
+  ['shop-requirement-add-bad-priority', 'shop', ['requirement', 'add', 'money-traceable', '每一筆錢都查得到來源', '--priority', '7']],
+  ['shop-requirement-add-bad-slug', 'shop', ['requirement', 'add', 'Money_Traceable', '每一筆錢都查得到來源', '--priority', '2']],
+  ['shop-requirement-add-no-priority', 'shop', ['requirement', 'add', 'money-traceable', '每一筆錢都查得到來源']],
+  ['shop-requirement-milestone', 'shop', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通', '--bind', 'F-002-refund'], ['.design/requirements/R-1-money-correct.md']],
+  ['shop-requirement-milestone-unbound', 'shop', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通'], ['.design/requirements/R-1-money-correct.md']],
+  ['shop-requirement-milestone-bad-slug', 'shop', ['requirement', 'milestone', 'R-1', '出貨走通', '一句話']],
+  ['shop-requirement-milestone-missing-requirement', 'shop', ['requirement', 'milestone', 'R-9', 'ship', '出貨走通']],
   ['shop-invariant-add', 'shop', ['invariant', 'add', '退回的錢不超過付過的錢', '--kind', 'bound'], ['.design/system.md']],
   ['shop-invariant-add-bad-kind', 'shop', ['invariant', 'add', '退回的錢不超過付過的錢', '--kind', 'nonsense']],
-  ['shop-objective-refinement', 'shop', ['objective', 'refinement', 'O-1', '結帳一次走完不重算', '--touch', 'F-001-checkout'], ['.design/objectives/R-1-O-1-money-correct.md']],
-  ['shop-objective-refinement-outside', 'shop', ['objective', 'refinement', 'O-1', '結算改成串流', '--touch', 'A-001-settle']],
-  ['shop-objective-refinement-missing', 'shop', ['objective', 'refinement', 'O-1', '出貨改成批次', '--touch', 'F-009-nope']],
-  ['shop-objective-milestone-abstract', 'shop', ['objective', 'milestone', 'O-1', 'settle-shared', '結算共用', '--bind', 'A-001-settle']],
-  ['shop-objective-milestone-missing', 'shop', ['objective', 'milestone', 'O-1', 'ship', '出貨走通', '--bind', 'F-009-nope']],
+  ['shop-requirement-refinement', 'shop', ['requirement', 'refinement', 'R-1', '結帳一次走完不重算', '--touch', 'F-001-checkout'], ['.design/requirements/R-1-money-correct.md']],
+  ['shop-requirement-refinement-outside', 'shop', ['requirement', 'refinement', 'R-1', '結算改成串流', '--touch', 'A-001-settle']],
+  ['shop-requirement-refinement-missing', 'shop', ['requirement', 'refinement', 'R-1', '出貨改成批次', '--touch', 'F-009-nope']],
+  ['shop-requirement-milestone-abstract', 'shop', ['requirement', 'milestone', 'R-1', 'settle-shared', '結算共用', '--bind', 'A-001-settle']],
+  ['shop-requirement-milestone-missing', 'shop', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通', '--bind', 'F-009-nope']],
   ['shop-claim-abstract', 'shop', ['claim', 'abstract', 'audit-log', '--description', '共用的稽核紀錄', '--date', DATE], ['.design/abstracts/A-002-audit-log.md']],
   ['shop-claim-adr', 'shop', ['claim', 'adr', 'single-currency', '--description', '金額只在單一幣別內計算', '--date', DATE], ['.design/adr/ADR-001-single-currency.md']],
   ['shop-claim-bad-kind', 'shop', ['claim', 'bugfix', 'oops']],
@@ -61,9 +59,9 @@ const CASES = [
   ['blank-status', 'blank', ['status']],
   ['blank-lint-all', 'blank', ['lint', 'all']],
   ['blank-claim', 'blank', ['claim', 'feature', 'login', '--description', '使用者以憑證換取工作階段', '--date', DATE], ['.design/features/F-001-login.md', '.design/system.md']],
-  ['blank-requirement-add', 'blank', ['requirement', 'add', '使用者登入後看得到自己的東西', '--accept', '任一使用者登入後列出的東西都是自己的'], ['.design/system.md']],
+  ['blank-requirement-add', 'blank', ['requirement', 'add', 'login-sees-own', '使用者登入後看得到自己的東西', '--priority', '1', '--accept', '任一使用者登入後列出的東西都是自己的', '--date', DATE], ['.design/requirements/R-1-login-sees-own.md']],
   ['blank-invariant-add', 'blank', ['invariant', 'add', '任何人只看得到自己的東西'], ['.design/system.md']],
-  ['blank-objective-add', 'blank', ['objective', 'add', 'login-sees-own', '使用者登入後看得到自己的東西', '--requirement', 'R-1', '--priority', '1']],
+  ['blank-requirement-milestone', 'blank', ['requirement', 'milestone', 'R-1', 'login', '登入走通']],
 
   // shaky:每一種紅與警訊各出現一次
   ['shaky-lint-boundary', 'shaky', ['lint', 'boundary']],
@@ -97,14 +95,22 @@ const CASES = [
   ['fullstack-status-doc', 'fullstack', ['status', '--doc', 'F-003-basket', '--tests', 'web=web.log,api=api.log']],
   ['fullstack-status-module', 'fullstack', ['status', '--module', 'api/cart/basket.py', '--tests', 'web=web.log,api=api.log']],
 
-  // 目標還擠在一份 objectives.md 的樹:migrate objectives 拆檔、補需求節、目的併進願景
+  // flat:里程碑還擠在一份 objectives.md、system.md 也還沒有「全域 Law」區的樹;goals:需求住 system.md「## 需求」節、里程碑住 objectives/ 的樹
+  // (一條需求有兩個目標檔、一條沒有、一個目標檔對不到需求)。兩種樹 status 都照讀,migrate requirements 換成 requirements/
   ['flat-status', 'flat', ['status']],
   ['flat-migrate-laws', 'flat', ['migrate', 'laws']],
   ['flat-migrate-laws-write', 'flat', ['migrate', 'laws', '--write'], ['.design/system.md']],
   ['shop-migrate-laws', 'shop', ['migrate', 'laws']],
-  ['flat-migrate-objectives', 'flat', ['migrate', 'objectives']],
-  ['flat-migrate-objectives-write', 'flat', ['migrate', 'objectives', '--write', '--date', DATE], ['.design/system.md', '.design/objectives/R-1-O-1-checkout.md', '.design/objectives.md']],
-  ['flat-requirement-add', 'flat', ['requirement', 'add', '每一筆錢都查得到來源']],
+  ['flat-migrate-requirements', 'flat', ['migrate', 'requirements', '--date', DATE]],
+  ['flat-migrate-requirements-write', 'flat', ['migrate', 'requirements', '--write', '--date', DATE], ['.design/system.md', '.design/requirements/R-1-checkout.md', '.design/objectives.md']],
+  ['flat-requirement-add', 'flat', ['requirement', 'add', 'money-traceable', '每一筆錢都查得到來源', '--priority', '2']],
+  ['goals-status', 'goals', ['status']],
+  ['goals-lint-laws', 'goals', ['lint', 'laws']],
+  ['goals-migrate-requirements', 'goals', ['migrate', 'requirements', '--date', DATE]],
+  ['goals-migrate-requirements-write', 'goals', ['migrate', 'requirements', '--write', '--date', DATE], ['.design/system.md', '.design/requirements/R-1-refund-correct.md', '.design/requirements/R-2-unnamed.md', '.design/objectives/R-1-O-1-money-correct.md', '.design/objectives/R-9-O-3-loyalty.md']],
+  ['goals-requirement-milestone', 'goals', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通']],
+  ['goals-brief-spike-impl', 'goals', ['brief', 'spike-impl', 'M-3-partial-refund', '--no-rules']],
+  ['shop-migrate-requirements', 'shop', ['migrate', 'requirements']],
 
   // subsystems/ 體系的遷移帳本
   ['legacy-migrate', 'legacy', ['migrate', '.design', '--language', 'typescript']],
@@ -132,8 +138,9 @@ const CASES = [
   ['shop-brief-build-requirement', 'shop', ['brief', 'build', 'R-1', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-build-no-target', 'shop', ['brief', 'build', '--no-rules']],
   ['shaky-brief-build', 'shaky', ['brief', 'build', 'F-001-score', '--tests', 'stale.log', '--no-rules']],
-  ['shop-brief-revise', 'shop', ['brief', 'revise', 'F-002-refund', '--tests', 'test.log', '--no-rules']],
-  ['shop-brief-revise-global', 'shop', ['brief', 'revise', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-law-design-doc', 'shop', ['brief', 'law-design', 'F-002-refund', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-glaws-revise', 'shop', ['brief', 'glaws-revise', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-glaws-revise-invariant', 'shop', ['brief', 'glaws-revise', 'INV-1', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-law-design', 'shop', ['brief', 'law-design', 'M-2-refund', '--no-rules']],
   ['shop-brief-spike-impl', 'shop', ['brief', 'spike-impl', 'M-1-checkout', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-spike-impl-wrong-kind', 'shop', ['brief', 'spike-impl', 'F-001-checkout', '--no-rules']],
@@ -141,10 +148,10 @@ const CASES = [
   ['shop-brief-integrate', 'shop', ['brief', 'integrate', '--no-rules']],
   ['shop-brief-status', 'shop', ['brief', 'status', '--no-rules']],
   ['shop-brief-audit', 'shop', ['brief', 'audit', '--tests', 'test.log', '--no-rules']],
-  ['shop-brief-objective', 'shop', ['brief', 'objective', '--tests', 'test.log', '--no-rules']],
-  ['shop-brief-project', 'shop', ['brief', 'project', '--no-rules']],
+  ['shop-brief-require-design', 'shop', ['brief', 'require-design', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-kickoff', 'shop', ['brief', 'kickoff', '--no-rules']],
   ['shop-brief-study', 'shop', ['brief', 'study', '--no-rules']],
-  ['blank-brief-objective', 'blank', ['brief', 'objective', '--no-rules']],
+  ['blank-brief-require-design', 'blank', ['brief', 'require-design', '--no-rules']],
   // skill 載入時的寫法:整串參數是自由文字,目標與旗標從裡面認
   ['shop-brief-args', 'shop', ['brief', 'build', '--args', '幫我 build F-001-checkout (先看 log) --tests test.log --no-rules']],
   ['shop-brief-args-empty', 'shop', ['brief', 'status', '--args', '看板 --no-rules']],
@@ -191,7 +198,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/objective refinement/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/objective milestone <O-n> <slug>/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate objectives/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/requirement refinement <R-n>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
@@ -210,7 +217,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
   } else console.log('✓ brief 的規章節');
 
   // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
-  const TARGETS = { build: 'F-001-checkout', qa: 'F-001-checkout', refactor: 'F-002-refund', revise: 'F-002-refund', 'law-design': 'M-2-refund', 'spike-impl': 'M-1-checkout' };
+  const TARGETS = { build: 'F-001-checkout', qa: 'F-001-checkout', refactor: 'F-002-refund', 'law-design': 'M-2-refund', 'spike-impl': 'M-1-checkout' };
   let parted = skills.length > 0;
   for (const s of skills) {
     const run = (...extra) => spawnSync(process.execPath, [bin, 'brief', s, ...(TARGETS[s] ? [TARGETS[s]] : []), ...extra, '--root', path.join(here, 'fixtures', 'shop')], { encoding: 'utf8' }).stdout.replace(/\r\n/g, '\n');
@@ -227,6 +234,30 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     failed++;
     console.log('✗ brief 的分段');
   } else console.log('✓ brief 的分段');
+
+  // 每份 SKILL.md:skills/ 底下的資料夾與 brief 的 skill 名單一一對上;frontmatter 的 name 等於資料夾名;
+  // description 是單行的純量,裡面不准有「冒號加空白」(YAML 會讀成另一個鍵,整份 frontmatter 壞掉、skill 不會被載入);
+  // 四道注入行寫對;免批准的 allowed-tools 在 frontmatter
+  const skillsDir = path.join(here, '..', '..', 'plugins', 'dev-flow', 'skills');
+  const dirs = fs.readdirSync(skillsDir).filter((d) => fs.existsSync(path.join(skillsDir, d, 'SKILL.md'))).sort();
+  const wrong = [];
+  if (dirs.join(',') !== [...skills].sort().join(',')) wrong.push(`skills/ 是 ${dirs.join('、')};brief 的名單是 ${[...skills].sort().join('、')}`);
+  for (const s of dirs) {
+    const md = fs.readFileSync(path.join(skillsDir, s, 'SKILL.md'), 'utf8');
+    const fm = (/^---\r?\n([\s\S]*?)\r?\n---/.exec(md) || [, ''])[1];
+    const desc = (/^description: (.*)$/m.exec(fm) || [, ''])[1];
+    if (!new RegExp(`^name: ${s}$`, 'm').test(fm)) wrong.push(`${s}:name 不等於資料夾名`);
+    if (!desc || /: /.test(desc) || /^['"[{>|]/.test(desc)) wrong.push(`${s}:description 會讓 frontmatter 讀不成(空的、含「冒號加空白」、或以引號括號開頭)`);
+    const lines = md.split(/\r?\n/).filter((l) => l.startsWith('!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief '));
+    const want = [1, 2, 3, 4].map((k) => `!\`node "\${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief ${s} --args '$ARGUMENTS' --part ${k} --of 4\``);
+    if (lines.join('\n') !== want.join('\n')) wrong.push(`${s}:注入行不是四道 brief ${s} --part 1..4 --of 4`);
+    if (!/^allowed-tools: Bash\(node "\$\{CLAUDE_PLUGIN_ROOT\}\/bin\/devflow\.mjs":\*\)$/m.test(fm)) wrong.push(`${s}:frontmatter 沒有免批准的 allowed-tools`);
+  }
+  if (wrong.length) {
+    failed++;
+    console.log('✗ SKILL.md 的 frontmatter 與注入行');
+    for (const w of wrong) console.log(`  ${w}`);
+  } else console.log('✓ SKILL.md 的 frontmatter 與注入行');
 }
 
 // --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事
@@ -313,7 +344,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
     const devflow = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
     fs.cpSync(path.join(here, 'fixtures', 'shop'), main, { recursive: true });
-    devflow(main, 'objective', 'milestone', 'O-1', 'ship', '出貨走通');
+    devflow(main, 'requirement', 'milestone', 'R-1', 'ship', '出貨走通');
     git(main, 'init', '-b', 'main');
     git(main, 'add', '-A');
     git(main, 'commit', '-m', 'base');
@@ -326,7 +357,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     const claimed = devflow(tree, 'claim', 'feature', 'ship', '--milestone', 'M-3-ship', '--date', DATE).stdout;
     const talking = devflow(main, 'status', '--tests', 'test.log').stdout;
     const other = devflow(main, 'claim', 'feature', 'wishlist', '--date', DATE).stdout;
-    const ok = before.includes('- M-3-ship:dev-flow:spike-impl M-3-ship(O-1 優先 1 · 出貨走通)')
+    const ok = before.includes('- M-3-ship:dev-flow:spike-impl M-3-ship(R-1 優先 1 · 出貨走通)')
       && opened.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片中') && !opened.includes('| build/M-3-ship | 已合進主線卻還在 |')
       && sliced.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片完成,等 dev-flow:law-design')
       && claimed.includes('F-003-ship') && talking.includes('build/M-3-ship;Law 討論中')

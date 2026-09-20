@@ -191,7 +191,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/objective refinement/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/objective milestone <O-n> <slug>/.test(h.stdout) || /^s+spike/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate objectives/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || !/objective refinement/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/objective milestone <O-n> <slug>/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate objectives/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');

@@ -1,6 +1,6 @@
 $ lawful claim save-load --description 把存檔讀回 World --kind 子流 --milestone M-1 --date 2026-09-05
 建了 .lawful/pipelines/P-002-save-load.md(status: draft,kind: 子流)
-綁進 M-1
+綁進 M-1-save-write
 exit 0
 --- .lawful/pipelines/P-002-save-load.md
 ---
@@ -13,7 +13,7 @@ updated: 2026-09-05
 # P-002-save-load:把存檔讀回 World
 
 ## Brief
-<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 P-00y-<slug> 的第 n 個 stage,或它是 IO 介面。>
+<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它是 IO 介面,或它是 P-00y-<slug> 引用的子流。它讓 M-n-<slug> 往前哪一步。>
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -35,7 +35,7 @@ updated: 2026-09-05
 | EX-1 | `<expr>` | `<value>` | LAW-1 |
 
 ## 決定
-- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<SPK-00x-<slug> 或 ADR-00x-<slug>,無則省略>
+- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<ADR-00x-<slug>,無則省略>
 
 ## 修訂記錄
 無
@@ -49,12 +49,10 @@ updated: 2026-09-05
 ---
 # R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
 
-- Law:繼承 R-1
-
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| M-1 | 存檔寫得出檔案 | P-001-save-write、P-002-save-load |
-| M-2 | 存檔壞了看得出來 | - |
+| M-1-save-write | 存檔寫得出檔案 | P-001-save-write、P-002-save-load |
+| M-2-save-inspect | 存檔壞了看得出來 | - |
 
 | 調整 | 做到什麼 | 動到 |
 |---|---|---|

@@ -11,7 +11,24 @@ updated: 2026-09-05
 
 ## 需求
 ### R-1:一段文字進來,報表算對
-- Law:任一段文字的報表字數等於逐字計數
+- 驗收:任一段文字的報表字數等於逐字計數
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區,各有一道 lint 自動確認(`lawful lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+無
+
+### 架構:四層
+- types:`App.Token`
+- effect:無
+- core:`App.Count`、`App.Report`
+- shell:`App.Report.Main`
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
+|---|---|---|---|---|---|
+| 輸入文字 | in | `Text` | `App.Report.Main` | P-001-report-render | - |
 
 ## 專案約束
 - 語言:haskell

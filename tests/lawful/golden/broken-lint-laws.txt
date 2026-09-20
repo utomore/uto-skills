@@ -7,6 +7,6 @@ $ lawful lint laws
 - ✗ .lawful/pipelines/P-001-game-save.md:31 = 列 saveGame 沒有任何 law 引用;整條至少一條 law
 - ✗ .lawful/pipelines/P-001-game-save.md EX-2 指到的 LAW-9 不存在
 - ✗ .lawful/pipelines/P-001-game-save.md EX-3 沒有指到任何 law
-- ✗ .lawful/Cone.md:13 R-1 Law |- 行的 restore 對不到 Stages 簽名(任何一條 pipeline 的)、types 層匯出或標準函式庫
-- ✗ .lawful/objectives/R-7-O-3-unnamed.md:1 O-3 Law 沒有;一句可判定的話,寫成清單項「- Law:…」
+- ✗ .lawful/Cone.md:13 R-1 驗收 |- 行的 restore 對不到 Stages 簽名(任何一條 pipeline 的)、types 層匯出或標準函式庫
+- ✗ .lawful/Cone.md:18 R-2 驗收 還是模板
 exit 1

@@ -1,7 +1,7 @@
 $ lawful rename P-001-save-write save-store
 P-001-save-write → P-001-save-store:改名 .lawful/pipelines/P-001-save-write.md → .lawful/pipelines/P-001-save-store.md
 改了 .lawful/adr/ADR-001-save-format.md(2 處)
-改了 .lawful/modules.md(1 處)
+改了 .lawful/Cone.md(1 處)
 改了 .lawful/objectives/R-1-O-1-save-roundtrip.md(2 處)
 改了 .lawful/pipelines/P-001-save-write.md(1 處)
 改了 src-core/Game/Save/Codec.hs(1 處)
@@ -72,23 +72,12 @@ updated: 2026-09-05
 --- .lawful/modules.md
 # 模組表
 
-## 邊界
-- types:`Game.World`(遊戲世界的不可變值,含渲染快取)、`Game.Save.State`(可存檔的投影)
-- effect:無
-- core:`Game.Save.Core.*`(投影與編解碼)
-- shell:`Game.Save.Host`(存檔進入點)、`Game.FS`(檔案系統)
-
 ## 模組單元
 | 模組 | 層 | 職責 |
 |---|---|---|
 | `Game.World` | types | 遊戲世界的不可變值與它的實體 |
 | `Game.Save` | types、core、shell | 可存檔的投影、編解碼與存檔的進入點 |
 | `Game.FS` | shell | 檔案系統:原子寫檔 |
-
-## 對外 I/O
-| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline |
-|---|---|---|---|---|
-| 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-store |
 
 --- .lawful/objectives/R-1-O-1-save-roundtrip.md
 ---
@@ -99,12 +88,10 @@ updated: 2026-09-05
 ---
 # R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
 
-- Law:繼承 R-1
-
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
-| M-1 | 存檔寫得出檔案 | P-001-save-store |
-| M-2 | 存檔壞了看得出來 | - |
+| M-1-save-write | 存檔寫得出檔案 | P-001-save-store |
+| M-2-save-inspect | 存檔壞了看得出來 | - |
 
 | 調整 | 做到什麼 | 動到 |
 |---|---|---|

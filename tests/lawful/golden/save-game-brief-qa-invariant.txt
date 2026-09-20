@@ -1,0 +1,144 @@
+$ lawful brief qa INV-1 --no-rules
+brief qa INV-1 @doc:3d4b6611 rules:<雜湊>
+這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+
+# 規章
+
+(--no-rules:規章的節這一場已經給過,不重印)
+
+# 目標:INV-1(領域不變量 [roundtrip])
+
+INV-1:可存檔的狀態收進什麼實體,就吐出什麼實體
+```
+forall es in [SavedEntity]
+|- savedEntities (mkSaveState es) == es
+```
+
+# 引用到的 pipeline
+
+(領域不變量只引用 types 層,不引用任何 pipeline)
+
+# types 層
+
+### Game.Save.State  src-types/Game/Save/State.hs(35 行,全文)
+```haskell
+-- types 層:可存檔的投影。
+module Game.Save.State
+  ( SaveState
+  , SavedEntity (..)
+  , DecodeError (..)
+  , mkSaveState
+  , savedEntities
+  , emptySave
+  ) where
+
+import Game.World (EntityId)
+
+data SavedEntity = SavedEntity
+  { savedId :: EntityId
+  , savedX  :: Double
+  , savedY  :: Double
+  }
+  deriving (Eq, Show)
+
+newtype SaveState = SaveState
+  { savedEntities :: [SavedEntity]
+  }
+  deriving (Eq, Show)
+
+data DecodeError
+  = EmptyInput
+  | Malformed String
+  deriving (Eq, Show)
+
+mkSaveState :: [SavedEntity] -> SaveState
+mkSaveState = SaveState
+
+emptySave :: SaveState
+emptySave = SaveState []
+```
+
+### Game.World  src-types/Game/World.hs(40 行,全文)
+```haskell
+-- types 層:遊戲世界的不可變值。
+module Game.World
+  ( World
+  , Entity (..)
+  , EntityId (..)
+  , mkWorld
+  , entities
+  , entityCount
+  , emptyWorld
+  ) where
+
+newtype EntityId = EntityId Int
+  deriving (Eq, Ord, Show)
+
+data Entity = Entity
+  { entityId :: EntityId
+  , posX     :: Double
+  , posY     :: Double
+  }
+  deriving (Eq, Show)
+
+-- | 渲染快取是衍生資料,不進存檔。
+data World = World
+  { worldEntities :: [Entity]
+  , renderCache   :: [Int]
+  }
+  deriving (Show)
+
+mkWorld :: [Entity] -> World
+mkWorld es = World es []
+
+entities :: World -> [Entity]
+entities = worldEntities
+
+entityCount :: World -> Int
+entityCount = length . worldEntities
+
+emptyWorld :: World
+emptyWorld = mkWorld []
+```
+
+# 測試怎麼寫
+
+- 子集測試指令:cabal test --test-options='-m "P-001"'
+- 歸屬寫法:字串,"INV-1#LAW"(包住那一組測試的群組名)
+- 測試模組以 INV-1 命名
+- 現有的測試檔:test/SaveGameSpec.hs
+
+### 這個專案的測試長這樣:test/SaveGameSpec.hs 的開頭
+```haskell
+module SaveGameSpec (spec) where
+
+import qualified Data.ByteString as BS
+import Data.List (nub)
+import Game.Save (saveBytes)
+import Game.Save.Codec (decode, encode)
+import Game.Save.Project (toSave)
+import Game.Save.Project.Internal (savedIds)
+import Game.Save.State
+import Game.World
+import Test.Hspec
+import Test.QuickCheck
+
+genEntity :: Gen Entity
+genEntity = Entity <$> (EntityId <$> choose (0, 10000)) <*> arbitrary <*> arbitrary
+
+genWorld :: Gen World
+genWorld = mkWorld <$> resize 200 (listOf genEntity)
+
+genSaveState :: Gen SaveState
+genSaveState = mkSaveState <$> resize 200 (listOf genSaved)
+  where
+    genSaved = SavedEntity <$> (EntityId <$> choose (0, 10000)) <*> arbitrary <*> arbitrary
+
+limited :: Testable prop => prop -> Property
+limited = withMaxSuccess 100 . property
+
+spec :: Spec
+spec = do
+  describe "R-1#ACCEPT" $
+```
+exit 0

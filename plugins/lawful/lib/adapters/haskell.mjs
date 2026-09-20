@@ -95,6 +95,10 @@ function exportList(clean) {
   return out;
 }
 
+// 測試歸屬的標記:P-00x#LAW-n、P-00x#EX-n、R-n#ACCEPT(需求的驗收)、INV-n#LAW(領域不變量)。R-n#LAW 靜默當 R-n#ACCEPT 讀。
+const MARKER = 'P-\\d{3}#(?:LAW|EX)-\\d+|R-\\d+#(?:ACCEPT|LAW)|INV-\\d+#LAW';
+const canonMarker = (m) => m.replace(/^(R-\d+)#LAW$/, '$1#ACCEPT');
+
 function stripComments(src) {
   let s = src.replace(/\{-[\s\S]*?-\}/g, (m) => m.replace(/[^\n]/g, ' '));
   return s.split(/\r?\n/).map((l) => l.replace(/(^|\s)--.*$/, '$1')).join('\n');
@@ -164,8 +168,8 @@ function moduleOf(src, relPath) {
 export const haskell = {
   name: 'haskell',
   extensions: ['.hs'],
-  // 骨架的本體:錯誤訊息帶著 stage 的引用,基線的紅燈才看得出打到哪個 stub。
-  stub: (marker) => `error "${marker} stub"`,
+  // 未實作標記:修訂新增的 stage 先宣告、本體是它;錯誤訊息帶著 stage 的引用,首跑的紅燈才看得出打到哪個 stage。
+  stub: (marker) => `error "${marker} not implemented"`,
   ioModules: IO_MODULES,
   effectTypes: EFFECT_TYPES,
   stdlib: STDLIB,
@@ -216,7 +220,7 @@ export const haskell = {
     }
     return out;
   },
-  // 本體還是骨架的頂層名字:等號右邊只有 undefined,或只有一個 error 呼叫。
+  // 本體還是未實作標記的頂層名字:等號右邊只有 undefined,或只有一個 error 呼叫。
   stubs(src) {
     const out = [];
     const re = /^([a-z_][\w']*|\([^()\s]+\))(?:\s+[\w'_]+|\s+_)*\s*=\s*(?:undefined|error\s+"[^"]*")\s*$/gm;
@@ -346,12 +350,12 @@ export const haskell = {
     const names = [...EFFECT_TYPES, ...extra].map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     return new RegExp(`(?<![\\w.'])(?:${names.join('|')})(?![\\w'])`).test(type);
   },
-  // 測試檔裡字串字面值 "P-00x#LAW-n" / "P-00x#EX-n" / "R-n#LAW" / "O-n#LAW";只認字串,測試輸出才對得回來
+  // 測試檔裡字串字面值 "P-00x#LAW-n" / "P-00x#EX-n" / "R-n#ACCEPT" / "INV-n#LAW";只認字串,測試輸出才對得回來
   testMarkers(src) {
     const out = [];
-    const re = /"(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)"/g;
+    const re = new RegExp(`"(${MARKER})"`, 'g');
     let m;
-    while ((m = re.exec(src))) out.push(m[1]);
+    while ((m = re.exec(src))) out.push(canonMarker(m[1]));
     return out;
   },
   // 簽名文字的比對用正規化:同 signatures 的 type 欄。
@@ -380,7 +384,8 @@ export const haskell = {
         continue;
       }
       const indent = line.search(/\S/);
-      const marked = /^\s*(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)\b(.*)$/.exec(line);
+      const hit = new RegExp(`^\\s*(${MARKER})\\b(.*)$`).exec(line);
+      const marked = hit ? [hit[0], canonMarker(hit[1]), hit[2]] : null;
       if (marked) {
         const v = verdictOf(marked[2]);
         if (v) {
@@ -398,8 +403,8 @@ export const haskell = {
         continue;
       }
       if (indent >= 0 && indent <= currentIndent) current = null;
-      const fail = /^\s*\d+\)\s+(P-\d{3}#(?:LAW|EX)-\d+|[RO]-\d+#LAW)/.exec(line);
-      if (fail) set(fail[1], 'red');
+      const fail = new RegExp(`^\\s*\\d+\\)\\s+(${MARKER})`).exec(line);
+      if (fail) set(canonMarker(fail[1]), 'red');
     }
     return results;
   },

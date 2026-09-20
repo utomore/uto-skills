@@ -1,11 +1,13 @@
 ---
 name: integrate
-description: lawful 的整合 — 唯一發 PR 的出口。設計分支 design/<全名> 單獨一條直接發;幾條 build/<全名> 分支依開發日誌合成一條 integrate/<日期>-<slug> 分支:先清掉已合進主線的 build 分支與工作樹,讀每份日誌定順序與衝突預報,逐條 merge(清單型衝突兩邊都留、同一本體兩邊改就停)、GAP 撞號後合的往上移、整套跑一次、每份日誌宣稱達成的 pipeline 合併後仍要達成、合併後紅只歸因寫 GAP 不改碼,綠了把日誌寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)。觸發詞:整合、integrate、合併分支、merge build、發 PR、lawful integrate。Use when finished build branches should be merged into one integration branch, verified together, and sent as a pull request.
+description: lawful 的整合 — 把達成的 build 分支合成一條整合分支、每一條 law 都仍然成立才發 PR,是唯一發 PR 的出口。先確認當前分支(在主 branch 上有變更就先開新分支把它帶走,立案、目標、模組單元與全域 Law 的變更是 plan/<slug>,禁止從主 branch 直接發 PR)、清掉已合進主線的分支與工作樹、盤點候選(build/<鍵> 分支讀它的決策紀錄定順序與衝突預報,走不通的切片只收決策紀錄)、逐條 merge(清單型衝突兩邊都留)、跑建置與整套一次;兩條分支的 law 或假設互斥時不改碼,拿縮小後的反例一次一條問開發者(以 A 為主 / 收窄定義域 / 提煉上層 Law),把結果寫成 GAP 退回;整合不改任何一條 law:任何全域 Law 的修改、放寬、替換或刪除都必須經開發者明確批准,integrate 只能提出變更建議、不得自行決定變更、不直接修改全域 Law,經批准的變更由 revise 完成並重新驗證受影響的工作;決策紀錄裡不可逆又跨文檔的權衡升成 ADR、擋到實作的全域 Law 彙整進 PR;綠了把決策紀錄寫進 PR 內文並刪檔,gh pr create 直接送出(標題英文、內文繁中)並打上 labels。觸發詞:發 PR、pull request、整合、integrate、整合分支、合併分支、merge branch、合 build 分支、仲裁、寫 ADR、lawful integrate。Use when finished branches should be merged, verified together, arbitrated where their laws conflict, and sent as a pull request.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 ---
 
-# lawful:integrate — 幾條 build 分支合成一條 PR
+# lawful:integrate — 分支合成一條 PR
+
+> **核心**:Integration MUST NOT reduce Law satisfaction, and MUST NOT change a Law: it proposes, the developer approves, revise writes.(合併之前成立的每一條 law,合併之後都要仍然成立;做不到就不合,拿反例去問開發者。整合不改任何一條 law——scope law 與全域 Law 都一樣:只提變更建議,開發者明確批准,由 revise 落筆。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
 ## 開工 context
 
@@ -21,7 +23,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --args '$ARGUMENTS' --part 6 --of 6`
 
-上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief integrate` 的輸出:規章、分支與工作樹(目前分支、建構中與殘留的 build 分支、設計分支)、開發日誌清單、`Cone.md`「專案約束」、`gaps.md`;沒有 `.lawful/` 的專案只有分支那一塊。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令;沒有內容的那幾道是空的)是載入 skill 時跑 `lawful brief integrate` 的輸出:規章、分支與工作樹(目前分支、建構中與殘留的 build 分支、plan 分支)、決策紀錄清單、`Cone.md`「專案約束」、`gaps.md`;沒有 `.lawful/` 的專案只有分支那一塊。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
 目標:不必給;要合的分支從分支那一塊與開發者的話定。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief integrate --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<L>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
@@ -29,59 +31,107 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 | 輸入 | 產出 |
 |---|---|
-| 要合的分支(寫全名;沒指定就全部有日誌的 build 分支) | 一條整合分支、整套綠、PR 一條;日誌內容在 PR 裡。設計分支單獨一條,直接以它發 PR |
+| 要合的分支(寫鍵或分支名;沒指定就全部沒合進主線、已經達成的) | 一條整合分支、建置與整套綠、需要的 ADR、PR 一條;決策紀錄內容在 PR 裡 |
 
-## 前置
+## 0. 確認當前分支(必做,不得跳過)
 
-工作樹乾淨、`git fetch --all --prune` 過,`gh repo view --json defaultBranchRef` 確認主線名。當前分支是 `design/<全名>`:pipeline `status` 要是 `ready`、`lawful lint sig` 沒有紅,不是就停,回報「設計還沒拍板」;是就跳過第 0 到 4 步與第 6 步,第 5 步的判準換成建置編得過、`lawful lint all` 沒有紅、整套的紅只落在這條 pipeline REV「重委派」欄點名的 law 上(別的紅就停,回報),再第 7 步以這條分支發 PR,標題 `design: <一句> (<全名>)`,label `design`,內文「各條做了什麼與決定」抄 pipeline 檔的 Brief 與「決定」,達成欄寫「ready」。當前分支是主線:要與 origin 同步,收 build 分支。
+1. `git fetch --all --prune`;`gh repo view --json defaultBranchRef` 確認主線名,`git branch --show-current` 取得當前分支。
+2. 當前分支不是主線 → 進 §1,它自己也是候選。
+3. 當前分支是主線:**禁止從主線發 PR**。`git status --porcelain` 與 `git log origin/<主線>..HEAD --oneline` 盤點未提交的變更與領先 origin 的本地 commit。
+   - 兩者都空 → 主線乾淨,進 §1 收別的分支。
+   - 有東西 → 先開新分支把它帶走:只動 `.lawful/` 的 `Cone.md`、`objectives/`、`modules.md`(與 `lawful module` 開的空資料夾、空門面;立案、目標、模組單元與全域 Law 的變更)→ `plan/<slug>`;其餘從變更內容推斷是哪一條 pipeline 與哪個 type,`git switch -c <type>/<slug>`(如 `fix/P-002-save-load`);推斷不出來才用 AskUserQuestion 問分支名。未提交變更與領先的 commit 都跟著過去;接著 `git branch -f <主線> origin/<主線>` 把本地主線還原,避免主線留著沒發 PR 的 commit。未提交的變更在新分支上 commit(conventional commit 風格,訊息帶**pipeline 全名**或改了哪條需求、目標)。這條新分支進 §1。
+   - 主線乾淨,又沒有任何候選分支 → 沒有東西可發,回報後停止。
 
-## 步驟
+## 1. 清理與盤點
 
-0. **清理**:`git branch --merged <主線>` 裡的 `build/*` 分支,連同 `git worktree list` 裡對應的工作樹,`git worktree remove` 後 `git branch -d`。
-1. **候選與日誌**:`git branch --list 'build/*'`,每條 `git show <分支>:.lawful/journal/<全名>.md` 讀日誌;沒有日誌的不是候選,回報「還沒收尾」。開發者指定的只合那些。
-2. **順序與預報**:`lawful status` 的目標優先與里程碑順序排;被引用的子流排在消費者前。每條 `git diff --name-only <base>..<分支>`(`base` 從日誌抄),兩條以上都動的檔列成預報,對照各日誌「合併時要看」。
-3. **開整合分支**:`git switch -c integrate/<YYYY-MM-DD>-<slug>` 從主線。
-4. **逐條 merge**:`git merge --no-ff <分支>`。衝突照 `roles.md`「整合」三類處置:清單型與相鄰行兩邊都留;同一個簽名或本體兩邊都改,停下,回報哪條 stage、哪兩條分支。`gaps.md` 撞號,後合的往上移,一條 commit 記「移 GAP-n → GAP-m」。每條合完 commit 就是 merge commit 本身。
-5. **整套一次**:建置、`Cone.md`「專案約束」的整套指令,輸出留檔;`lawful status --tests <log>`、`lawful lint all`。判準:每份日誌宣稱達成的 pipeline 仍達成、日誌預期的變化如期發生、沒有新的紅與新的警訊。
-6. **合併後紅**:歸因不改碼(`roles.md`「整合」):law 屬於哪條 pipeline、它在自己的分支上綠不綠、哪幾條分支與它共用模組;寫成 GAP(角色 conductor)進 `.lawful/gaps.md`,commit,停下回報。候選分支超過一條才從主線另開臨時分支逐條重合、跑那條 pipeline 的子集,找出第一條讓它紅的,臨時分支刪掉。
-7. **發 PR**:全綠後把每份日誌的內容寫進 PR 內文,`git rm .lawful/journal/*.md` commit,push,`gh pr create` 直接送出:
-   - **標題**:英文 conventional commit 風格加全名,例 `feat: save and load game (P-001-save-game, P-002-load-game)`
+1. **清理**:`git branch --merged <主線>` 裡的 `build/*` 與 `plan/*` 分支(與主線同一個 sha、剛開還沒有 commit 的不算),連同 `git worktree list` 裡對應的工作樹,`git worktree remove` 後 `git branch -d`。
+2. **候選**:`git branch -a --no-merged <主線>`;開發者指定就只收那些。每條標出它是哪一種:
+   - **建構分支** `build/<鍵>`(鍵是里程碑全名、pipeline 全名或 `R-n` / `INV-n`):`git show <分支>:.lawful/journal/<鍵>.md` 讀決策紀錄。讀不到、或決策紀錄沒有「Verification」節 → 還沒收尾,不收,回報它走到哪一步(`lawful status` 的建構中那一行)。決策紀錄 `verdict: infeasible` → 走不通的切片,不合它的程式碼,§3 只把決策紀錄升成 ADR。
+   - **立案分支** `plan/<slug>`:只動 `.lawful/`(與空的模組單元資料夾);在那條分支上 `lawful lint all` 沒有新的紅才收。它排最前面。
+   - **其餘分支**:從分支名或 commit 訊息推出對應的**pipeline 全名**(寫 `P-001-save-write`,不要只寫 `P-001`——PR 描述會被沒讀過這條 pipeline 的人讀到);對不到就寫分支名。
+3. **順序**:`plan/` 最先;有決策紀錄的照 `lawful status` 的目標優先與里程碑順序排,被引用的子流排在消費者之前;其餘照開發者指定的順序,沒指定且推不出取捨才用 AskUserQuestion 問。
+4. **預報**:每條 `git diff --name-only <base>..<分支>`(有決策紀錄的 `base` 從決策紀錄抄,其餘用 `git merge-base`),兩條以上都動到的檔列成預報,對照各決策紀錄的「Touched」與「合併時要看」;兩份決策紀錄的「Assumptions & Invariants」對同一個型別或同一個模組各有一列的,先標出來——那是最可能互斥的地方。
+
+## 2. 整合
+
+1. 候選只有一條 → 直接用它,跳到 §3。
+2. 從主線開整合分支:`git switch -c integrate/<YYYY-MM-DD>-<slug>`。
+3. 依 §1 的順序逐條 `git merge --no-ff <分支>`。衝突照 `roles.md`「整合」三類處置:清單型(建置設定的模組清單、匯出清單、`gaps.md`、模組單元表、對外 I/O 表)與相鄰行的加法兩邊都留;同一個簽名或本體兩邊都改 → `git merge --abort`,這一條走 §4 的仲裁。`gaps.md` 撞號,後合的往上移,一條 commit 記「移 GAP-n → GAP-m」。每條合完的 commit 就是 merge commit 本身。
+
+## 3. 驗收
+
+1. 跑建置與整套測試(有 `.lawful/` 就是 `Cone.md`「專案約束」的那兩道),輸出留檔;有 `.lawful/` 再跑 `lawful status --tests <log>` 與 `lawful lint all`(`lint global` 的三道在裡面:架構、契約、領域不變量)。
+2. 判準:**每一條 law 都仍然成立**——每份決策紀錄宣稱達成的 pipeline 合併後仍達成、全域 Law 三類沒有新的紅、領域不變量全綠;原本達成的需求沒有退回未達成;決策紀錄「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。**帶著紅燈不發 PR。**
+3. **合併後紅**:歸因不改碼(`roles.md`「整合」):那條 law 屬於哪條 pipeline、它在自己的分支上綠不綠(看決策紀錄的「Verification」)、哪幾條分支與它共用模組。候選超過一條才從主線另開臨時分支逐條重合、跑那條 pipeline 的子集,找出第一條讓它紅的,臨時分支刪掉。分支綠、合併紅 → §4。
+4. **ADR**(`pipelines.md`「ADR」):每份決策紀錄「Decisions」表裡可逆欄為否、而且跨文檔欄為是的列,各問開發者一次要不要升 ADR;要就照 `templates/adr.md` 建 `adr/ADR-00x-<slug>.md`(號從 `adr/` 的最大號往上),四節從那一列與決策紀錄的「Goal / Scope」寫。走不通的切片:決策紀錄升成一條 ADR(情境 = 那條里程碑要做到什麼,決定 = 這個做法不走,否決的替代方案 = 試過的做法與卡住的地方,後果 = 下次之前要先知道的事),它的分支與工作樹刪掉。ADR commit 在要發 PR 的分支上。
+
+## 4. 仲裁(兩條分支的 law 或假設互斥)
+
+一次一條,用 AskUserQuestion 問開發者;整合者自己不改 law、不改本體、不現場合併兩邊的邏輯。選項是給開發者的**變更建議**:你不准自己選,也不准因為哪一個讓合併最快過就推它——讓合併過得去最省事的辦法永遠是把 law 改鬆。
+
+1. **呈現反例,不是兩段條文**:測試縮小後的那個輸入、那條 law 說結果該是什麼、合併後的程式碼算出什麼、兩邊各依哪一條 law 或決策紀錄「Assumptions & Invariants」的哪一列。合不起來的文字衝突同樣:兩邊各把那一段改成什麼、各為了哪條 law。
+2. **三個選項**,各附當下成本、之後的代價、可不可逆;你的傾向放第一個:
+   - **以 A 為主**:B 不進這次整合。A 合進主線後,B 的工作樹合入主線,`lawful:revise` 改 B 那條 law,再 build。
+   - **收窄定義域**:兩條 law 各自的 `forall` / `given` 排除對方的情境。兩條 pipeline 各一次 `lawful:revise`,只重派 qa 改那條測試;實作多半不必動。兩條分支都先退回。
+   - **提煉上層 Law**:建議立一條領域不變量,寫出那一句話與它過不過得了准入四條(`laws.md`「全域 Law」)。開發者明確批准後,由 `lawful:revise` 走「全域 Law 的變更」落筆,不是你;兩條分支都退回,各自 `lawful:revise` 讓自己的 law 服從它,再 build。它的 `plan/` 分支之後進來的那次整合,你替它寫一條 ADR 記為什麼。
+3. **寫下結果**:被退回的每條分支,在它的工作樹的 `.lawful/gaps.md` 加一條 GAP(角色 conductor,目標那條 law,「模糊點」寫反例,「需要回答什麼」寫開發者選的選項與原話)並 commit;那條分支從這次的候選拿掉。剩下的候選回 §2 重合。
+4. **全域 Law 的變更建議**:合併後紅的是全域 Law(`lawful lint global` 的紅、領域不變量的測試紅),或決策紀錄的 Constraint 欄顯示某一條全域 Law 逼出了沒道理的決定 → 照同一個格式提建議:反例、選項(一定含「不改,退回違反它的那條分支」)、各自的當下成本、之後的代價(放寬與刪除寫明之後哪些行為不再被擋)、可不可逆。**任何全域 Law 的修改、放寬、替換或刪除,都必須經開發者明確批准;你只能提出變更建議,不得自行決定變更,也不直接修改全域 Law。** 「明確」= 開發者對著那一條、那一個選項說了要。批准的選項寫成 GAP(角色 conductor,目標寫那條全域 Law,例 `INV-2`),告訴開發者下一步是 `lawful:revise`:它攤開完整的影響範圍、落筆、重新驗證受影響的工作。這次整合只合不受那條變更影響的分支。
+
+## 5. 發 PR
+
+1. 再次確認 `git branch --show-current` 不是主線,push 要發 PR 的分支。
+2. 有決策紀錄就把每份決策紀錄的內容寫進 PR 內文,`git rm .lawful/journal/*.md` commit。
+3. 組好內容**直接 `gh pr create` 送出,不需先向開發者確認**(發完在 §6 回報大綱):
+   - **標題**:英文 conventional commit 風格加全名,例 `feat: save and load game (P-001-save-write, P-002-save-load)`、立案分支 `plan: add replay requirement (R-2, M-3-replay-record)`
    - **內文**:繁體中文,章節固定:
 
      ```markdown
      ## 摘要
-     (兩句話:這批合了哪幾條 pipeline、讓哪個目標的哪條里程碑往前)
+     (兩句話:這批合了什麼、讓哪條需求的哪個目標的哪條里程碑達成、哪條需求因此達成;沒有 .lawful/ 的專案寫改了系統的哪個部分、為什麼)
 
-     ## 包含的 pipeline
-     | 全名 | 分支 | 目標 · 里程碑 | 達成 |
-     |---|---|---|---|
+     ## 包含什麼
+     | 全名 | 類別 | 分支 | 需求 · 目標 · 里程碑 | 達成 |
+     |---|---|---|---|---|
+     (類別欄寫 IO 介面或子流。立案分支:全名欄寫改了哪條需求、目標、里程碑、模組單元或全域 Law,達成欄寫「-」;對不到 pipeline 的分支:全名欄寫分支名,其餘欄寫「-」)
 
-     ## 各條做了什麼與決定
-     (每條一小節:日誌的「做了什麼」「決定」原文)
+     ## 做了什麼與決定
+     (每條分支一小節。有決策紀錄的抄決策紀錄的「Goal / Scope」「Decisions」與「Verification」原文;沒有決策紀錄的寫:動了哪個部分與為什麼、新增的依賴邊、實作層級決定、發現但沒做的事)
+
+     ## 仲裁與 ADR
+     - 仲裁:<哪兩條 law 互斥、反例、開發者選了什麼、哪條分支被退回>;無則「無」
+     - ADR:<ADR-00x-<slug>:一句>;走不通的切片也列在這裡;無則「無」
+
+     ## 全域 Law
+     - 擋到了實作的:<INV-n / 四層的規則 / 對外 I/O 的契約:哪條分支、擋掉了什麼做法>;抄各決策紀錄「Decisions」表裡 Constraint 欄指到全域 Law 的列;無則「無」
+     - 這次 PR 帶進來的變更:<INV-n / 四層 / 對外 I/O:改了什麼、開發者哪一句話批准的、ADR-00x>;只來自 `plan/` 分支上 revise 落筆的;無則「無」
+     - 提出而還沒批准的變更建議:<哪一條、反例、選項>;無則「無」
 
      ## 合併
-     - 順序:<分支順序與理由>
+     - 順序:<分支順序與理由>;單一分支寫「單一分支,不需整合」
      - 解掉的衝突:<檔、類型、怎麼解>;無則「無」
      - 移號:<GAP-n → GAP-m>;無則「無」
 
+     ## 對應文檔
+     - `.lawful/pipelines/P-001-save-write.md`;專案沒有 .lawful/ 寫「無」
+
      ## 測試結果
-     (整套指令、綠紅分佈、lawful status 的達成數字)
+     (實際跑的指令與結果;有 .lawful/ 時附 lawful status 的達成數字、需求達成數、全域 Law 三類的結果與領域不變量成立數)
 
      ## open GAP
      (各附「需要回答什麼」;無則「無」)
 
      ## 注意事項
-     (日誌「合併時要看」裡合併後仍要盯的事)
+     (決策紀錄「合併時要看」裡合併後仍要盯的事、還留著的「Faked / Unverified」;無則「無」)
 
      🤖 Generated with [Claude Code](https://claude.com/claude-code)
      ```
 
-   - **Labels**(英文):`build`;含 REV 的加 `revision`。Label 不存在先 `gh label create`。
+   - **Labels**(英文):立案分支 → `plan`、新的 pipeline → `feature`、含 REV 或修訂既有 pipeline → `revision`、只有驗收測試的 `build/R-n` / `build/INV-n` → `test`、帶 ADR → `adr`;混合就都打上。Label 不存在先 `gh label create <name>`。
 
-## 收尾
+## 6. 收尾
 
-回報 PR 網址、標題、包含的分支、解掉的衝突、測試結果;附定錨區塊(`tooling.md`「收尾定錨」),位置樹把本 PR 涵蓋的 pipeline 全部標出。下一步:PR 合併後 `lawful:status`;停在 GAP 的話 `lawful:revise`。
+回報 PR 網址、標題、內文各章節的重點摘要、包含的分支清單、labels、解掉的衝突、仲裁的結果與被退回的分支、寫了哪幾條 ADR、測試結果;附定錨區塊(`tooling.md`「收尾定錨」),位置樹把本 PR 涵蓋的 pipeline 全部標出,PR 內有變更卻對不到任何 pipeline 的檔案上偏離清單。下一步:PR 合併後 `lawful:status`;被退回的分支 `lawful:revise`(在它的工作樹上)。
 
 ## 邊界
 
-不寫實作、不寫測試、不補 law、不改任何 pipeline 檔;衝突不猜;帶著紅燈不發 PR;不合沒有日誌的分支。
+不寫實作、不寫測試、不補 law、不改任何 pipeline 的條文、不改任何本體;不寫 `Cone.md` 的「全域 Law」區:全域 Law 的新增、修改、放寬、替換、刪除你只提建議,開發者明確批准後由 `lawful:revise` 落筆;衝突不猜、互斥不自己裁;帶著紅燈不發 PR;不合沒有決策紀錄、或還沒達成的 `build/` 分支。

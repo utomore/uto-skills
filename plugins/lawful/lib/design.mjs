@@ -32,7 +32,7 @@ export function unitOfSlug(cone, entries, slug) {
   }
   return best;
 }
-// 讀 .lawful/ 成一棵樹:cone(願景、需求、專案約束)、objectives(目標、里程碑、調整)、modules(邊界、模組單元、對外 I/O)、pipelines、gaps、spikes。只讀不判;判在 commands/。
+// 讀 .lawful/ 成一棵樹:cone(願景、需求與驗收、全域 Law 三區、專案約束)、objectives(目標、里程碑、調整)、modules(模組單元)、pipelines、gaps、journals。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
@@ -56,7 +56,7 @@ export const ALLOWED_IMPORTS = {
   shell: ['types', 'effect', 'core', 'shell'],
 };
 export const LAW_KINDS = ['invariant', 'identity', 'roundtrip', 'relation', 'bound', 'equiv', 'total', 'commute'];
-export const STATUSES = ['draft', 'ready', 'frozen'];
+export const STATUSES = ['draft', 'ready', 'verified'];
 export const KINDS = ['IO 介面', '子流'];
 
 function read(p) {
@@ -67,12 +67,12 @@ function rel(root, p) {
   return path.relative(root, p).split(path.sep).join('/');
 }
 
-// 一個節裡的「Law」:清單項 `- Law:<一句話>`,子項可以是三行式(forall / given / |-)。
-// 沒有這一項回 null;有一句話但沒有三行是散文 law,由測試或蘊含承接。
-function parseLawItem(items) {
-  const it = items.find((i) => /^Law[::]/.test(i.text));
+// 需求的「驗收」:清單項 `- 驗收:<一句可判定的話>`,子項可以是三行式(forall / given / |-)。需求是必須達成的事,不是 law。
+// 沒有這一項回 null;有一句話但沒有三行,由驗收測試或建置路線承接。`- Law:` 靜默當同一項讀(written 記下實際寫的是哪個字,給 migrate laws 用)。
+function parseAcceptItem(items) {
+  const it = items.find((i) => /^(驗收|Law)[::]/.test(i.text));
   if (!it) return null;
-  const title = it.text.replace(/^Law[::]\s*/, '').trim();
+  const title = it.text.replace(/^(驗收|Law)[::]\s*/, '').trim();
   return {
     title,
     forall: it.children.find((c) => /^forall\b/.test(c)) || null,
@@ -80,8 +80,37 @@ function parseLawItem(items) {
     conclusion: it.children.find((c) => /^\|-/.test(c)) || null,
     formal: it.children.some((c) => /^(forall\b|\|-)/.test(c)),
     placeholder: hasPlaceholder(title),
-    inherits: (/^繼承\s*(R-\d+)/.exec(title) || [])[1] || null,
+    written: /^Law/.test(it.text) ? 'Law' : '驗收',
   };
+}
+
+// 一條三行式:{ title, forall, given, conclusion, formal, placeholder }
+function threeLines(title, children, placeholder) {
+  return {
+    title,
+    forall: children.find((c) => /^forall\b/.test(c)) || null,
+    given: children.filter((c) => /^given\b/.test(c)),
+    conclusion: children.find((c) => /^\|-/.test(c)) || null,
+    formal: children.some((c) => /^(forall\b|\|-)/.test(c)),
+    placeholder,
+  };
+}
+
+// 對外 I/O 表的列:名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約
+// 契約:守這一端的 law,寫 P-00x#LAW-n 或 INV-n,「、」分隔;沒有就「-」
+function ioRows(sec, offset = 0) {
+  const t = sec ? parseTable(sec.lines) : null;
+  if (!t) return [];
+  return t.rows.map((r, i) => ({
+    name: (r[0] || '').trim(),
+    direction: (r[1] || '').trim(),
+    type: stripTicks(r[2] || ''),
+    module: stripTicks(r[3] || ''),
+    pipeline: stripTicks(r[4] || ''),
+    contract: (r[5] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x)),
+    line: sec.start + offset + t.rowLines[i] + 2,
+    placeholder: hasPlaceholder(r[0]) || hasPlaceholder(r[4]),
+  })).filter((r) => !r.placeholder);
 }
 
 // 號段行:「a@x.com = 000-099;b@x.com = 100-199」,以 git 的 user.email 為鍵。佔位符或「無」是沒有號段;讀不懂的段落進 errors,由 lint ids 報。
@@ -129,7 +158,7 @@ function parseConstraints(lines, start) {
   return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>', priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok', ranges: ranges.ranges, rangesErrors: ranges.errors, rangesLine: ranges.line };
 }
 
-// Cone.md:frontmatter(language、updated)與三節:願景、需求、專案約束。
+// Cone.md:frontmatter(language、updated)與四節:願景、需求、全域 Law、專案約束。
 export function readCone(lawfulDir, root) {
   const file = path.join(lawfulDir, 'Cone.md');
   const text = read(file);
@@ -147,7 +176,7 @@ export function readCone(lawfulDir, root) {
   const visionFull = paragraphs.join(' ');
   const vision = paragraphs[0] || '';
   const visionState = !visionSec ? 'missing' : !visionFull || hasPlaceholder(visionFull) ? 'template' : 'ok';
-  // 需求:「## 需求」底下每個 ### R-n:<一句話> 一條;Law 是清單項,蘊含是清單項(一條需求有兩個以上目標時要有)
+  // 需求:「## 需求」底下每個 ### R-n:<一句話> 一條;驗收是清單項
   const reqSec = findSection(secs, '需求');
   const requirements = [];
   if (reqSec) {
@@ -157,18 +186,48 @@ export function readCone(lawfulDir, root) {
       const m = /^(R-\d+)\s*[::]\s*(.*)$/.exec(s.title);
       if (!m) continue;
       const items = parseList(s.lines);
-      const imp = items.find((it) => /^蘊含[::]/.test(it.text));
       requirements.push({
         id: m[1],
         title: m[2].trim(),
-        law: parseLawItem(items),
-        implication: imp ? imp.text.replace(/^蘊含[::]\s*/, '').trim() : '',
+        accept: parseAcceptItem(items),
+        // 蘊含說明不是需求的一部分;留著的樹由 status 指到 migrate laws
+        implied: items.some((it) => /^蘊含[::]/.test(it.text)),
         line: s.start + 1,
         placeholder: hasPlaceholder(m[2]),
       });
     }
   }
+
+  // 全域 Law 的三區住「## 全域 Law」底下的 ###:領域不變量、架構:四層、契約:對外 I/O
+  const globalSec = findSection(secs, '全域 Law');
+  const globalPart = (h3) => {
+    if (!globalSec) return null;
+    for (let i = secs.indexOf(globalSec) + 1; i < secs.length && secs[i].level > 2; i++) if (secs[i].level === 3 && secs[i].title === h3) return secs[i];
+    return null;
+  };
+  // 領域不變量:每條 `- INV-n [種類] 一句話`,子項可以是三行式;整個專案都不准違反,
+  // 三行的識別字只准是 types 層的匯出與型別名(lint invariants 對帳),測試歸屬 INV-n#LAW。
+  const invSec = globalPart('領域不變量');
+  const invariants = [];
+  if (invSec) for (const it of parseList(invSec.lines)) {
+    const head = /^(INV-\d+)\s*(?:\[([^\]]*)\])?\s*(.*)$/.exec(it.text);
+    if (!head) continue;
+    const at = invSec.lines.findIndex((l) => l.startsWith(`- ${head[1]} `) || l.trim() === `- ${head[1]}`);
+    const placeholder = hasPlaceholder(head[3]) || hasPlaceholder(head[2] || '');
+    invariants.push({ id: head[1], kind: (head[2] || '').trim(), title: head[3].trim(), law: threeLines(head[3].trim(), it.children, placeholder), line: invSec.start + (at < 0 ? 0 : at) + 2, placeholder });
+  }
+  // 架構:四層各一句(給人看;機械查的是原始碼樹與模組單元表)
+  const layerSec = globalPart('架構:四層');
+  // 契約:對外 I/O
+  const ioSec = globalPart('契約:對外 I/O');
   return {
+    invariants: invariants.filter((v) => !v.placeholder),
+    invariantsState: !invSec ? 'missing' : 'ok',
+    globalState: globalSec ? 'ok' : 'missing',
+    layerState: layerSec ? 'ok' : 'missing',
+    io: ioRows(ioSec),
+    ioState: ioSec ? 'ok' : 'missing',
+    ioFile: rel(root, file),
     file: rel(root, file),
     fm,
     language: fm.language || null,
@@ -208,11 +267,14 @@ export function readObjectives(lawfulDir, root) {
     for (const t of parseTables(lines)) {
       const kind = (t.header[0] || '').trim();
       t.rows.forEach((r, i) => {
-        const id = (r[0] || '').trim();
-        if (!id || hasPlaceholder(id)) return;
+        const cell = stripTicks((r[0] || '').trim());
+        if (!cell || hasPlaceholder(cell)) return;
+        // 里程碑的第一格是全名 M-n-<slug>:M-n 是編號(全資料夾唯一,引用用它),slug 是切片分支 build/M-n-<slug> 的鍵
+        const mm = kind === '里程碑' ? /^(M-\d+)(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?$/.exec(cell) : null;
+        const id = mm ? mm[1] : cell;
         const rowTitle = (r[1] || '').trim();
         const row = { id, title: rowTitle, line: offset + t.rowLines[i] + 1, placeholder: hasPlaceholder(rowTitle) };
-        if (kind === '里程碑') milestones.push({ ...row, binds: names(r[2]) });
+        if (kind === '里程碑') milestones.push({ ...row, slug: mm && mm[2] ? mm[2] : '', fullName: cell, binds: names(r[2]) });
         else if (kind === '調整') refinements.push({ ...row, touches: names(r[2]) });
       });
     }
@@ -220,6 +282,7 @@ export function readObjectives(lawfulDir, root) {
     const requirement = typeof fm.requirement === 'string' ? fm.requirement.trim() : '';
     return {
       file: rel(root, file),
+      abs: file,
       fullName: base,
       slug: m[3],
       fileRequirement: m[1],
@@ -231,7 +294,8 @@ export function readObjectives(lawfulDir, root) {
       requirement: hasPlaceholder(requirement) ? '' : requirement,
       priority: /^[1-4]$/.test(priorityRaw) ? Number(priorityRaw) : null,
       priorityRaw: hasPlaceholder(priorityRaw) ? '' : priorityRaw,
-      law: parseLawItem(items),
+      // 目標沒有 Law:達成 = 里程碑全部達成。檔裡還寫著「- Law:」的樹由 status 指到 migrate laws
+      lawItem: items.some((it) => /^Law[::]/.test(it.text)),
       milestones,
       refinements,
       line: 1,
@@ -241,8 +305,7 @@ export function readObjectives(lawfulDir, root) {
   return { dir: rel(root, dir), exists: true, objectives };
 }
 
-// 模組表:三節。「邊界」四層各一句(給人看);「模組單元」一列一個單元 [{ unit, layers, responsibility, line }];
-// 「對外 I/O」一列一個跨過 shell 的入口或出口 [{ name, direction, type, module, pipeline, line }]。
+// 模組表:「模組單元」一列一個單元 [{ unit, layers, responsibility, line }]。
 // 沒有「模組單元」節時,檔裡第一張表就是模組單元表。
 export function readModules(lawfulDir, root) {
   const file = path.join(lawfulDir, 'modules.md');
@@ -265,14 +328,9 @@ export function readModules(lawfulDir, root) {
       entries.push({ unit, layers, responsibility, line: base + t.rowLines[i] + 1, placeholder: isPlaceholder(unit) || hasPlaceholder(responsibility) });
     });
   }
+  // 「邊界」與「對外 I/O」住 Cone.md 的「全域 Law」區;寫在這一檔的靜默當同一區讀(readDesign 在 Cone.md 沒有對應小區時接上)
   const ioSec = findSection(secs, '對外 I/O');
-  const io = [];
-  if (ioSec) {
-    const it = parseTable(ioSec.lines);
-    if (it) it.rows.forEach((r, i) => io.push({ name: (r[0] || '').trim(), direction: (r[1] || '').trim(), type: stripTicks(r[2] || ''), module: stripTicks(r[3] || ''), pipeline: stripTicks(r[4] || ''), line: ioSec.start + offset + it.rowLines[i] + 2, placeholder: hasPlaceholder(r[0]) || hasPlaceholder(r[4]) }));
-  }
-  const boundarySec = findSection(secs, '邊界');
-  return { file: rel(root, file), entries, io: io.filter((r) => !r.placeholder), ioState: ioSec ? 'ok' : 'missing', boundaryState: boundarySec ? 'ok' : 'missing', sections: secs };
+  return { file: rel(root, file), entries, io: ioRows(ioSec, offset), ioState: ioSec ? 'ok' : 'missing', layerState: findSection(secs, '邊界') ? 'ok' : 'missing', sections: secs };
 }
 
 // 一個模組名屬於哪個模組單元:模組表上名字是它最長前綴的那一列;對不到回 null。
@@ -384,7 +442,8 @@ export function readPipeline(file, root) {
     slug: idM ? idM[2] : null,
     fm,
     hasFrontmatter,
-    status: fm.status || null,
+    // verified = 每條 law 都有一條會失敗、現在通過的測試守著;frozen 靜默當同一個字讀
+    status: fm.status === 'frozen' ? 'verified' : fm.status || null,
     // kind:IO 介面或子流;還是 <…> 佔位符算模板,沒寫算缺
     kind: KINDS.includes(kindRaw) ? kindRaw : null,
     kindRaw,
@@ -398,7 +457,8 @@ export function readPipeline(file, root) {
     examples: examples.filter((e) => !e.placeholder),
     template,
     decisions,
-    thawed: decisions ? decisions.lines.some((l) => /解凍/.test(l)) : false,
+    // 要改 verified 的 pipeline 先「重開」:決定節記一條為什麼
+    reopened: decisions ? decisions.lines.some((l) => /重開|解凍/.test(l)) : false,
     // 每條 REV 的第一行:依欄寫的來源(GAP、SPK / ADR、RF-n、開發者的話)都在這一行
     revs: revItems.map((it) => ({ ...it, cites: [...new Set((it.text.match(/RF-\d+/g) || []))] })),
   };
@@ -419,33 +479,18 @@ export function readGaps(lawfulDir, root) {
   return { file: rel(root, file), exists: true, gaps };
 }
 
-export function readSpikes(lawfulDir, root) {
-  const dir = path.join(lawfulDir, 'spikes');
+// 決策紀錄:journal/<鍵>.md,一條 build 分支一份,只活在分支上。鍵是里程碑全名、pipeline 全名、R-n 或 INV-n。
+export function readJournals(lawfulDir, root) {
+  const dir = path.join(lawfulDir, 'journal');
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((f) => /^SPK-\d{3}-.+\.md$/.test(f)).sort().map((f) => {
+  return fs.readdirSync(dir).filter((f) => /\.md$/.test(f)).sort().map((f) => {
     const file = path.join(dir, f);
-    const { fm, body } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
-    const secs = sections(body);
-    const rounds = secs.filter((s) => s.level === 3 && /^RND-\d+/.test(s.title)).map((s) => ({
-      id: /^(RND-\d+)/.exec(s.title)[1],
-      sha: (parseList(s.lines).find((i) => /^sha[::]/.test(i.text)) || { text: '' }).text.replace(/^sha[::]\s*/, '').trim(),
-    }));
-    const base = path.basename(f, '.md');
-    return {
-      file: rel(root, file),
-      abs: file,
-      fullName: base,
-      id: fm.id || base.slice(0, 7),
-      slug: base.slice(8),
-      status: fm.status || '',
-      verdict: fm.verdict || '',
-      feeds: Array.isArray(fm.feeds) ? fm.feeds : fm.feeds ? [fm.feeds] : [],
-      rounds,
-    };
+    const { fm } = parseFrontmatter(fs.readFileSync(file, 'utf8'));
+    return { file: rel(root, file), key: path.basename(f, '.md'), branch: typeof fm.branch === 'string' ? fm.branch.trim() : '', verdict: typeof fm.verdict === 'string' ? fm.verdict.trim() : '' };
   });
 }
 
-// 一檔一號的東西:pipeline、spike、ADR、目標。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
+// 一檔一號的東西:pipeline、ADR、目標。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
 export function readNumbered(lawfulDir, root) {
   const out = [];
   const scan = (sub, re) => {
@@ -460,7 +505,6 @@ export function readNumbered(lawfulDir, root) {
     }
   };
   scan('pipelines', /^(P-\d{3})-.+\.md$/);
-  scan('spikes', /^(SPK-\d{3})-.+\.md$/);
   scan('adr', /^(ADR-\d{3})-.+\.md$/);
   scan('objectives', /^R-\d+-(O-\d+)-.+\.md$/);
   return out;
@@ -473,19 +517,30 @@ export function readDesign(root) {
   const files = fs.existsSync(pipelinesDir)
     ? fs.readdirSync(pipelinesDir).filter((f) => /^P-\d{3}-.+\.md$/.test(f)).sort()
     : [];
+  const cone = readCone(lawfulDir, root);
+  const modules = readModules(lawfulDir, root);
+  // 對外 I/O 與四層的一句話住 Cone.md「全域 Law」區;那一區沒有對應的小區而 modules.md 有,就接上 modules.md 的
+  const ioFrom = cone && cone.ioState === 'ok' ? cone : modules && modules.ioState === 'ok' ? modules : null;
   return {
     root,
     lawfulDir,
     pipelinesDir,
-    cone: readCone(lawfulDir, root),
+    cone,
+    io: ioFrom ? ioFrom.io : [],
+    ioState: ioFrom ? 'ok' : 'missing',
+    ioFile: ioFrom === modules && modules ? modules.file : cone ? cone.file : '.lawful/Cone.md',
+    // 全域 Law 區還沒收齊的樹:lawful migrate laws 換過來
+    strayGlobal: !!(modules && (modules.ioState === 'ok' || modules.layerState === 'ok')),
     // 只有 system.md 體系的樹、或目標還擠在一份 objectives.md 裡:lawful migrate cone 換過來
     legacySystem: fs.existsSync(path.join(lawfulDir, 'system.md')),
     legacyObjectives: fs.existsSync(path.join(lawfulDir, 'objectives.md')),
     objectives: readObjectives(lawfulDir, root),
-    modules: readModules(lawfulDir, root),
+    modules,
     pipelines: files.map((f) => readPipeline(path.join(pipelinesDir, f), root)),
     gaps: readGaps(lawfulDir, root),
-    spikes: readSpikes(lawfulDir, root),
+    journals: readJournals(lawfulDir, root),
+    // spikes/ 不屬於這棵樹;還留著的由 migrate laws 列出來給人判
+    straySpikes: fs.existsSync(path.join(lawfulDir, 'spikes')),
     numbered: readNumbered(lawfulDir, root),
   };
 }

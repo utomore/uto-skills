@@ -1,7 +1,7 @@
 $ lawful rename P-001 save-store --dry-run
 P-001-save-write → P-001-save-store:會改名 .lawful/pipelines/P-001-save-write.md → .lawful/pipelines/P-001-save-store.md
 會改 .lawful/adr/ADR-001-save-format.md(2 處)
-會改 .lawful/modules.md(1 處)
+會改 .lawful/Cone.md(1 處)
 會改 .lawful/objectives/R-1-O-1-save-roundtrip.md(2 處)
 會改 .lawful/pipelines/P-001-save-write.md(1 處)
 會改 src-core/Game/Save/Codec.hs(1 處)

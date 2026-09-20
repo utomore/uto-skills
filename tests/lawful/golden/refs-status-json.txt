@@ -19,7 +19,8 @@ $ lawful status --json
     "requirementsInferred": 0,
     "objectives": 1,
     "objectivesAchieved": 0,
-    "objectiveLawsHolding": 0,
+    "invariants": 0,
+    "invariantsHolding": 0,
     "milestones": 2,
     "milestonesAchieved": 0,
     "refinements": 0,
@@ -38,12 +39,16 @@ $ lawful status --json
   },
   "headline": [
     {
-      "label": "需求 Law",
-      "value": "0 / 1 成立(測試 0、推得 0)"
+      "label": "需求",
+      "value": "0 / 1 達成(測試 0、推得 0)"
+    },
+    {
+      "label": "領域不變量",
+      "value": "0 / 0 成立"
     },
     {
       "label": "目標",
-      "value": "0 / 1 達成 · Law 成立 0"
+      "value": "0 / 1 達成"
     },
     {
       "label": "里程碑",
@@ -81,12 +86,11 @@ $ lawful status --json
       "law": {
         "title": "任一輸入檔解析、正規化後跑完不出錯",
         "formal": false,
-        "inherits": null,
         "holds": false,
-        "source": "O-1 的 Law 未成立",
+        "source": "O-1 還沒達成",
         "tested": false
       },
-      "implication": "",
+      "note": "驗收未達成 · 1 個目標 · 里程碑 0/2 達成",
       "objectives": [
         "O-1"
       ],
@@ -107,19 +111,20 @@ $ lawful status --json
       "priority": 1,
       "priorityRaw": "1",
       "law": {
-        "title": "繼承 R-1",
+        "title": "",
         "formal": false,
-        "inherits": "R-1",
-        "holds": false,
+        "holds": null,
         "source": "里程碑 0/2 達成",
         "tested": false
       },
+      "note": "里程碑 0/2 達成",
       "achieved": false,
       "milestonesAchieved": 0,
       "percent": 0,
       "milestones": [
         {
           "id": "M-1",
+          "name": "M-1-syntax-parse",
           "title": "解析與正規化走通",
           "achieved": false,
           "binds": [
@@ -129,6 +134,7 @@ $ lawful status --json
         },
         {
           "id": "M-2",
+          "name": "M-2-cli-run",
           "title": "整條跑完",
           "achieved": false,
           "binds": [
@@ -139,11 +145,12 @@ $ lawful status --json
       "refinements": []
     }
   ],
+  "invariants": [],
   "bands": [
     {
       "id": "R-1",
       "title": "R-1 輸入檔跑完整條",
-      "note": "Law 未成立 · O-1 的 Law 未成立 · 1 個目標,達成 0 個 · 里程碑 0/2 達成",
+      "note": "驗收未達成 · O-1 還沒達成 · 1 個目標,達成 0 個 · 里程碑 0/2 達成",
       "achieved": false,
       "bare": false,
       "lanes": [
@@ -153,7 +160,6 @@ $ lawful status --json
           "title": "O-1 輸入檔跑完整條",
           "notes": [
             "優先 1:讀寫的正確性",
-            "Law 未成立 · 里程碑 0/2 達成",
             "里程碑 0/2 達成 · 完成度 0%"
           ],
           "columns": [
@@ -595,6 +601,8 @@ $ lawful status --json
       }
     ],
     "building": [],
+    "slices": [],
+    "slicesBuilding": [],
     "shared": [
       {
         "a": "P-002-syntax-parse",

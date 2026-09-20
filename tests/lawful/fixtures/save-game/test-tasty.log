@@ -1,7 +1,9 @@
 Running 1 test suites...
 Test suite spec: RUNNING...
 save-game
-  R-1#LAW:                                          OK (0.04s)
+  R-1#ACCEPT:                                       OK (0.04s)
+        ✓ <interactive> passed 100 tests.
+  INV-1#LAW:                                        OK (0.01s)
         ✓ <interactive> passed 100 tests.
   P-001#LAW-1
     roundtrip:                                      OK (0.05s)

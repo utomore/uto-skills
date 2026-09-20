@@ -1,3 +1,3 @@
 $ lawful objective add save-repair 存檔壞了讀得出是哪裡壞 --requirement R-9 --priority 2
-Cone.md 沒有 R-9;先 lawful requirement add <一句話> --law <句>(有:R-1)
+Cone.md 沒有 R-9;先 lawful requirement add <一句話> --accept <句>(有:R-1)
 exit 1

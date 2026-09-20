@@ -58,7 +58,7 @@ export function readSource(root, adapter, ignore = [], cone = null) {
   return { modules, testFiles, duplicates };
 }
 
-// 命中帶三個程式碼事實:exported(匯出清單有它;沒寫匯出清單算 true)、stub(本體還是骨架)。
+// 命中帶三個程式碼事實:exported(匯出清單有它;沒寫匯出清單算 true)、stub(本體還是未實作標記)。
 export function findSignature(source, name) {
   const hits = [];
   for (const m of source.modules.values()) {

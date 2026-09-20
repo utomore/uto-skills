@@ -10,9 +10,9 @@ brief integrate (沒有目標) @doc:- rules:<雜湊>
 
 (這個目錄不是 git repo 的根,也不是一棵工作樹)
 
-# 開發日誌清單
+# 決策紀錄清單
 
-(這棵樹的 .lawful/journal/ 是空的;各條 build 分支的日誌在它們自己的分支上)
+(這棵樹的 .lawful/journal/ 是空的;各條 build 分支的決策紀錄在它們自己的工作樹上)
 
 # Cone.md「專案約束」
 

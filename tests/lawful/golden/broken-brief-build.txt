@@ -22,6 +22,10 @@ brief build P-001-game-save @doc:7ed007e8 rules:<雜湊>
 - 號段:amy@corp.com = 000-099;bob@corp.com = 050-149;carol@corp.com = 1x0-199
 - 套件與框架:無
 
+# 決策紀錄
+
+(.lawful/journal/ 裡沒有 P-001-game-save 或 M-1-game-save 的決策紀錄)
+
 # 目標 pipeline:.lawful/pipelines/P-001-game-save.md
 
 ````markdown
@@ -98,13 +102,13 @@ updated: 2026-09-05
 
 ### Stages
 - 1  toSave :: World -> SaveState  Game.Save.Project/core  搬家 → Game.Save.Codec
-- 2  encode :: SaveState -> ByteString  Game.Save.Codec/core  骨架
+- 2  encode :: SaveState -> ByteString  Game.Save.Codec/core  未實作
 - 3  decode :: ByteString -> Either DecodeError SaveState  Game.Save.Codec/core  不一致
 - 4  compress :: Ghost -> Value  Game.Save.Zip/core  找不到  見 P-002-compression
-- 5  writeSave :: FilePath -> ByteString -> IO ()  Game.FS/shell  骨架
+- 5  writeSave :: FilePath -> ByteString -> IO ()  Game.FS/shell  未實作
 - 6  checksum :: ByteString -> Int  Game.FS/core  找不到
 - 7  persistEncode :: a -> ByteString  Game.Save.Class/core  在
-- 8  (<+>) :: SaveState -> SaveState -> SaveState  Game.Save.Class/core  骨架
+- 8  (<+>) :: SaveState -> SaveState -> SaveState  Game.Save.Class/core  未實作
 - 9  go :: [SaveState] -> SaveState  Game.Save.Class/core  找不到
 - 10  savedDropped :: SaveState -> [(String, Int)]  Game.Save.State/types  在
 - 11  route :: SomeTypeRep -> Some 'Command -> Lane  Game.Save.State/types  在
@@ -133,7 +137,7 @@ updated: 2026-09-05
 - 引用了:P-002-compression
 - 被引用:無
 
-文檔寫了 14 條簽名,程式碼裡有 9 條,還是骨架的 5 條 · 觀察點 1 個,程式碼裡有 0 個 · 寫了 7 條 law,通過 nan 條 · 未達成
+文檔寫了 14 條簽名,程式碼裡有 9 條,未實作的 5 條 · 觀察點 1 個,程式碼裡有 0 個 · 寫了 7 條 law,通過 nan 條 · 未達成
 
 # 引用的 pipeline:P-002-compression
 
@@ -148,19 +152,19 @@ updated: 2026-09-05
     文檔:decode :: ByteString -> Either DecodeError SaveState
     程式碼:decode :: ByteString -> Maybe SaveState(src-core/Game/Save/Codec.hs:21)
 - ✗ .lawful/pipelines/P-001-game-save.md:20 compress 引用的 P-002-compression 不存在
-- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 簽名裡的型別 Ghost 在程式碼、import 清單與標準函式庫都找不到;型別住程式碼,拍板前先宣告
+- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 簽名裡的型別 Ghost 在程式碼、import 清單與標準函式庫都找不到;型別住程式碼,Stages 的簽名照程式碼抄
 - ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 回傳的型別 Value 沒有名字;stage 之間傳遞的值用有名字的型別,形狀才有地方住
-- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 程式碼裡找不到;骨架在設計階段就要寫進程式碼
+- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
 - ✗ .lawful/pipelines/P-001-game-save.md:22 checksum 寫 core 層,模組表的 Game.FS 只宣告了 shell 層
 - ✗ .lawful/pipelines/P-001-game-save.md:22 checksum 寫 core 層,Game.FS 的檔在 src-shell/ 底下
-- ✗ .lawful/pipelines/P-001-game-save.md:22 P-001-game-save#checksum 程式碼裡找不到;骨架在設計階段就要寫進程式碼
-- ✗ .lawful/pipelines/P-001-game-save.md:25 P-001-game-save#go 程式碼裡找不到;骨架在設計階段就要寫進程式碼
+- ✗ .lawful/pipelines/P-001-game-save.md:22 P-001-game-save#checksum 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
+- ✗ .lawful/pipelines/P-001-game-save.md:25 P-001-game-save#go 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
 - ✗ src-types/Game/Save/State.hs:47 P-001-game-save#savedDropped 程式碼裡有,但 Game.Save.State 沒有匯出它;stage 與觀察點都要是匯出的簽名
-- ✗ .lawful/pipelines/P-001-game-save.md:28 P-001-game-save#misroute 簽名裡升格的建構子 'Commnad 在程式碼找不到;升格的名字要是 data 的建構子,拍板前先宣告
+- ✗ .lawful/pipelines/P-001-game-save.md:28 P-001-game-save#misroute 簽名裡升格的建構子 'Commnad 在程式碼找不到;升格的名字要是 data 的建構子
 - ✗ .lawful/pipelines/P-001-game-save.md:28 P-001-game-save#misroute 簽名不一致
     文檔:misroute :: Some 'Commnad -> Lane
     程式碼:misroute :: Some 'Command -> Lane(src-types/Game/Save/State.hs:41)
-- ✗ .lawful/pipelines/P-001-game-save.md:30 P-001-game-save#ghostView 程式碼裡找不到;骨架在設計階段就要寫進程式碼
+- ✗ .lawful/pipelines/P-001-game-save.md:30 P-001-game-save#ghostView 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
 - ✗ .lawful/pipelines/P-001-game-save.md:31 = 列 saveGame 在 shell 層;= 列是純的整條(core 或 effect),shell 的進入點另列成 ! 列
 - · P-001-game-save#toSave 搬家:文檔 Game.Save.Project → 程式碼 Game.Save.Codec(lawful sync 可改)
 ### lint laws:這條 pipeline 7 條不合規(全專案 9 條)
@@ -198,14 +202,14 @@ updated: 2026-09-05
 
 ### lawful status
 願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-需求 1 條,Law 成立 0 條(測試 0、推得 0)· 目標 3 個,達成 0 個 · 里程碑 4 條,達成 0 條 · 調整 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
+需求 2 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 目標 3 個,達成 0 個 · 里程碑 4 條,達成 0 條 · 調整 2 條,達成 0 條 · IO 介面 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
 · 測試結果來自 stale.log
 
 #### 目標
 - O-1 下一個里程碑:M-1 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
 
 #### pipelines
-| pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 還是骨架的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
+| pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|---|
 | P-001-game-save | IO 介面 | ready | 14 | 9 | 5 | 7 | 0/2 | 卡 GAP-1、GAP-1 |
 
@@ -224,17 +228,17 @@ updated: 2026-09-05
 - GAP-1(P-001#toSave / impl):lawful:revise
 
 #### 5. 待實作(按模組單元)
-  - Game.FS:P-001-game-save#writeSave(骨架)、P-001-game-save#checksum
-  - Game.Save.Class:P-001-game-save#(<+>)(骨架)、P-001-game-save#go
-  - Game.Save.Codec:P-001-game-save#encode(骨架)、P-001-game-save#decode(骨架)
-  - Game.Save.Project:P-001-game-save#toSave(骨架)
+  - Game.FS:P-001-game-save#writeSave(未實作)、P-001-game-save#checksum
+  - Game.Save.Class:P-001-game-save#(<+>)(未實作)、P-001-game-save#go
+  - Game.Save.Codec:P-001-game-save#encode(未實作)、P-001-game-save#decode(未實作)
+  - Game.Save.Project:P-001-game-save#toSave(未實作)
   - Game.Save.State:P-001-game-save#ghostView(觀察點)
   - Game.Save.Zip:P-001-game-save#compress
 
 #### 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| RF-2 | 動到的 P-001-game-save 不在 O-2 任何里程碑的綁定裡 | 優化路線不引入新 feature:只動本目標建置路線做出來的 pipeline;新能力開里程碑 |
+| RF-2 | 動到的 P-001-game-save 不在 O-2 任何里程碑的綁定裡 | 優化路線不引入新 pipeline:只動本目標建置路線做出來的 pipeline;新能力開里程碑 |
 | P-001-game-save#decode | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
 | P-001-game-save#misroute | 簽名與程式碼不一致 | lint sig 看兩邊;誰對就改另一邊,改文檔走 REV |
 | P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |

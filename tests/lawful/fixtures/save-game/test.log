@@ -2,8 +2,11 @@ Build profile: -w ghc-9.14.1 -O1
 Running 1 test suites...
 Test suite spec: RUNNING...
 
-R-1#LAW
+R-1#ACCEPT
   decode (saveBytes w) == Right (toSave w) [✔]
+    +++ OK, passed 100 tests.
+INV-1#LAW
+  savedEntities (mkSaveState es) == es [✔]
     +++ OK, passed 100 tests.
 P-001#LAW-1
   decode (encode s) == Right s [✔]
@@ -38,5 +41,5 @@ Failures:
 Randomized with seed 1234
 
 Finished in 0.0412 seconds
-7 examples, 1 failure
+8 examples, 1 failure
 Test suite spec: FAIL

@@ -6,10 +6,10 @@ brief qa R-1 @doc:014e5db6 rules:<雜湊>
 
 (--no-rules:規章的節這一場已經給過,不重印)
 
-# 目標:R-1(需求的 Law)
+# 目標:R-1(需求的驗收)
 
 R-1:玩家存檔後能讀回同一個世界
-Law:任一 World 存檔再讀回,可存檔的投影一模一樣
+驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
 ```
 forall w in World
 |- decode (saveBytes w) == Right (toSave w)
@@ -27,12 +27,12 @@ forall w in World
 | = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Game.Save` | core |
 | ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Game.Save.Host` | shell |
 
-### 1 `toSave`  src-core/Game/Save/Project.hs:9  骨架
+### 1 `toSave`  src-core/Game/Save/Project.hs:9  未實作
 ```haskell
 toSave :: World -> SaveState
 ```
 
-### 3 `decode`  src-core/Game/Save/Codec.hs:14  骨架
+### 3 `decode`  src-core/Game/Save/Codec.hs:14  未實作
 ```haskell
 decode
   :: ByteString
@@ -132,7 +132,7 @@ emptyWorld = mkWorld []
 # 測試怎麼寫
 
 - 子集測試指令:cabal test --test-options='-m "P-001"'
-- 歸屬寫法:字串,"R-1#LAW"(包住那一組測試的群組名)
+- 歸屬寫法:字串,"R-1#ACCEPT"(包住那一組測試的群組名)
 - 測試模組以 R-1 命名
 - 現有的測試檔:test/SaveGameSpec.hs
 
@@ -167,6 +167,6 @@ limited = withMaxSuccess 100 . property
 
 spec :: Spec
 spec = do
-  describe "R-1#LAW" $
+  describe "R-1#ACCEPT" $
 ```
 exit 0

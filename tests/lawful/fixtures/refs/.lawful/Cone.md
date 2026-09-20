@@ -11,7 +11,24 @@ updated: 2026-09-05
 
 ## 需求
 ### R-1:輸入檔跑完整條
-- Law:任一輸入檔解析、正規化後跑完不出錯
+- 驗收:任一輸入檔解析、正規化後跑完不出錯
+
+## 全域 Law
+不得違反:整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區,各有一道 lint 自動確認(`lawful lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+
+### 領域不變量
+無
+
+### 架構:四層
+- types:`App.Doc`
+- effect:無
+- core:`App.Syntax`、`App.Canon`、`App.Cli`
+- shell:`App.Cli.Main`
+
+### 契約:對外 I/O
+| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
+|---|---|---|---|---|---|
+| 輸入檔 | in | `Text` | `App.Cli.Main` | P-001-cli-run | - |
 
 ## 專案約束
 - 語言:<haskell | …>

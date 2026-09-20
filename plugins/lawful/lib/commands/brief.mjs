@@ -1,5 +1,5 @@
 // brief <skill> [<目標>]:一個 skill 開工要的東西一次印完——規章的節,加上這個 skill 在這個專案裡要看的那幾塊
-// (目標 pipeline、逐條狀態、Stages 上每條簽名與型別的宣告、types 層、Cone.md、目標檔、開發日誌、分支狀態、lint、status 報告 …)。
+// (目標 pipeline、逐條狀態、Stages 上每條簽名與型別的宣告、types 層、Cone.md、目標檔、決策紀錄、分支狀態、lint、status 報告 …)。
 // 唯讀;永遠 exit 0,問題用文字講(skill 載入時由 harness 執行,非 0 會被讀成載入失敗)。
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,50 +9,50 @@ import { fileURLToPath } from 'node:url';
 import { parseFrontmatter, sections } from '../markdown.mjs';
 import { findType } from '../source.mjs';
 import { analyze, branchState, pipelineDetail } from './status.mjs';
-import { lintAll, lintBoundary, lintLaws, lintSig, renderLint } from './lint.mjs';
+import { lintAll, lintBoundary, lintGlobal, lintLaws, lintSig, renderLint } from './lint.mjs';
 
 const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 // 每個 skill 開工要讀的規章節;'*' 是整份。這張表是「誰讀什麼」的唯一來源。
 const RULES = {
-  module: [['boundary.md', ['四層', '模組單元', '模組表']], ['tooling.md', ['CLI', '收尾定錨']]],
-  design: [['pipelines.md', ['`.lawful/`', 'Cone.md', '願景、需求、目標與路線', 'ADR']], ['boundary.md', '*'], ['tooling.md', ['language adapter', '收尾定錨']]],
+  project: [['pipelines.md', ['`.lawful/`', 'Cone.md', '願景、需求、目標與路線']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['language adapter', '收尾定錨']]],
   objective: [['pipelines.md', ['願景、需求、目標與路線', '完成度']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
-  pipeline: [['pipelines.md', ['pipeline', '編號與引用', 'frontmatter 與 status', '節', '什麼要有 law']], ['roles.md', ['分支與所有權', '骨架與基線']], ['boundary.md', ['模組表', '效果的判定']], ['tooling.md', ['CLI', '收尾定錨']]],
+  module: [['boundary.md', ['四層', '模組單元', '模組表']], ['tooling.md', ['CLI', '收尾定錨']]],
+  'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['pipelines.md', ['願景、需求、目標與路線']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
+  'law-design': [['pipelines.md', ['pipeline', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O', '效果的判定']], ['tooling.md', ['CLI', '收尾定錨']]],
   build: [['roles.md', '*'], ['pipelines.md', ['提問(GAP)', '修訂(REV)', '完成度']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
-  integrate: [['roles.md', ['分支與所有權', '開發日誌', '整合', '仲裁']], ['pipelines.md', ['提問(GAP)', '完成度']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
-  qa: [['roles.md', ['三角色', '委派', '骨架與基線', '驗收測試', 'qa 的交付']], ['pipelines.md', ['節', '什麼要有 law', '提問(GAP)']], ['boundary.md', ['測試與邊界']]],
-  impl: [['roles.md', ['三角色', '委派']], ['pipelines.md', ['節', '提問(GAP)']], ['boundary.md', ['四層']]],
-  revise: [['pipelines.md', ['frontmatter 與 status', '修訂(REV)', '提問(GAP)', '願景、需求、目標與路線']], ['roles.md', ['分支與所有權', '骨架與基線']], ['tooling.md', ['收尾定錨']]],
-  status: [['tooling.md', ['CLI', 'status 報告', '跑東西的紀律', '收尾定錨']], ['pipelines.md', ['願景、需求、目標與路線', '完成度']]],
-  audit: [['tooling.md', ['CLI', 'status 報告', '收尾定錨']], ['boundary.md', '*'], ['pipelines.md', ['願景、需求、目標與路線', '節', '什麼要有 law', '完成度']]],
-  spike: [['pipelines.md', ['spike']], ['roles.md', ['委派', 'spike']], ['tooling.md', ['跑東西的紀律']]],
+  qa: [['roles.md', ['角色', '委派', '驗收測試', 'qa 的交付']], ['pipelines.md', ['節', '什麼要有 law', '提問(GAP)']], ['boundary.md', ['測試與邊界']]],
+  refactor: [['roles.md', ['角色', '分支與所有權', '委派', '切片']], ['pipelines.md', ['節', '提問(GAP)']], ['boundary.md', ['四層']]],
+  revise: [['pipelines.md', ['frontmatter 與 status', '修訂(REV)', '提問(GAP)', '願景、需求、目標與路線', '完成度']], ['laws.md', ['影響範圍與選項', '全域 Law 的變更', 'Law 與需求', '全域 Law']], ['roles.md', ['分支與所有權', '首跑']], ['tooling.md', ['收尾定錨']]],
+  integrate: [['roles.md', ['分支與所有權', '決策紀錄', '整合', '仲裁']], ['pipelines.md', ['提問(GAP)', '完成度', 'ADR']], ['laws.md', ['全域 Law']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
+  status: [['tooling.md', ['CLI', 'status 報告', '跑東西的紀律', '收尾定錨']], ['pipelines.md', ['願景、需求、目標與路線', '完成度']], ['laws.md', ['Law 與需求', '全域 Law']]],
+  audit: [['tooling.md', ['CLI', 'status 報告', '收尾定錨']], ['boundary.md', '*'], ['pipelines.md', ['願景、需求、目標與路線', '節', '什麼要有 law', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', 'Law 怎麼談']]],
   study: [['tooling.md', ['跑東西的紀律', '收尾定錨']], ['boundary.md', ['四層', '效果的判定']], ['pipelines.md', ['pipeline']]],
 };
 
-// 每個 skill 的 brief 由哪幾塊組成,依目標的種類分:doc(pipeline 全名)、top(R-n / O-n)、rf(RF-n)、spike(SPK-00x)、none(沒有目標)。
+// 每個 skill 的 brief 由哪幾塊組成,依目標的種類分:doc(pipeline 全名)、milestone(M-n-<slug>)、top(R-n / INV-n)、rf(RF-n)、none(沒有目標)。
 // 沒列的種類 = 這個 skill 不收那種目標。
 const BLOCKS = {
-  module: { none: ['constraints', 'modules', 'lintboundary'] },
-  design: { none: ['tree', 'cone', 'objectives', 'modules'] },
+  project: { none: ['tree', 'cone', 'modules'] },
   objective: { none: ['cone', 'objectives', 'statusgoals'] },
-  pipeline: { doc: ['branch', 'doc', 'detail', 'objective', 'constraints', 'modules', 'typeslayer', 'refs', 'lint'], none: ['branch', 'cone', 'objectives', 'modules', 'typeslayer'] },
-  build: { doc: ['branch', 'constraints', 'doc', 'detail', 'refs', 'lint', 'gaps', 'logs', 'statusrows'], top: ['branch', 'constraints', 'top', 'touched', 'gaps', 'logs', 'statusrows'] },
-  integrate: { none: ['branch', 'journals', 'constraints', 'gaps'] },
+  module: { none: ['constraints', 'modules', 'lintboundary'] },
+  'spike-impl': { milestone: ['branch', 'tree', 'objective', 'cone', 'modules', 'statusrows'] },
+  'law-design': { milestone: ['branch', 'tree', 'objective', 'cone', 'modules', 'journal', 'bound', 'typeslayer'] },
+  build: { doc: ['branch', 'constraints', 'journal', 'doc', 'detail', 'refs', 'lint', 'gaps', 'logs', 'statusrows'], milestone: ['branch', 'constraints', 'journal', 'objective', 'bound', 'gaps', 'logs', 'statusrows'], top: ['branch', 'constraints', 'top', 'touched', 'gaps', 'logs', 'statusrows'] },
   qa: { doc: ['doc', 'detail', 'declarations', 'typeslayer', 'testing'], top: ['top', 'touched', 'typeslayer', 'testing'] },
-  impl: { doc: ['doc', 'detail', 'declarations', 'typeslayer', 'files'] },
-  revise: { doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'objective', 'gaps', 'lint', 'statusrows'], rf: ['branch', 'refinement', 'gaps', 'statusrows'], none: ['branch', 'gaps', 'statusgoals'] },
+  refactor: { doc: ['doc', 'detail', 'declarations', 'typeslayer', 'journal', 'files'] },
+  revise: { doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'objective', 'gaps', 'lint', 'statusrows'], rf: ['branch', 'refinement', 'gaps', 'statusrows'], top: ['branch', 'top', 'touched', 'cone', 'gaps', 'lintglobal', 'statusrows'], none: ['branch', 'gaps', 'lintglobal', 'statusgoals'] },
+  integrate: { none: ['branch', 'journals', 'constraints', 'gaps'] },
   status: { none: ['constraints', 'logs'] },
   audit: { none: ['lintall', 'status'] },
-  spike: { none: ['spikes'], spike: ['spikedoc', 'spikes'] },
   study: { none: ['tree', 'constraints', 'modules'] },
 };
-const KIND_WORD = { doc: '一條 pipeline 的全名 P-00x-<slug>', top: 'R-n 或 O-n', rf: '一條調整 RF-n', spike: '一份 spike 的編號 SPK-00x', none: '不給目標' };
+const KIND_WORD = { doc: '一條 pipeline 的全名 P-00x-<slug>', milestone: '一條里程碑的全名 M-n-<slug>', top: 'R-n 或 INV-n', rf: '一條調整 RF-n', none: '不給目標' };
 export const briefSkills = Object.keys(RULES);
 
 const INLINE_LINES = 400; // types 層內嵌的總行數上限;超過的模組只列匯出
 const TYPE_LINES = 40;    // 一個型別宣告最多印幾行
-const TARGET_RE = /^(?:P-\d{3}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?|SPK-\d{3}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?|R-\d+|O-\d+|RF-\d+)$/;
+const TARGET_RE = /^(?:P-\d{3}(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?|M-\d+(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?|R-\d+|INV-\d+|RF-\d+)$/;
 
 // skill 載入時 $ARGUMENTS 是一整串自由文字(可能是開發者打的一句話):從裡面認出目標與旗標,其餘的字不理
 export function parseBriefArgs(raw) {
@@ -222,18 +222,16 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
   // 目標的種類
   const x = target && /^P-\d{3}/.test(target) ? docs.find((v) => v.p.fullName === target || v.p.id === target) : null;
   const req = cone && /^R-\d+$/.test(target) ? cone.requirements.find((r) => r.id === target) : null;
-  const obj = /^O-\d+$/.test(target) ? objectives.find((o) => o.id === target) : null;
+  const inv = cone && /^INV-\d+$/.test(target) ? cone.invariants.find((v) => v.id === target) : null;
   const rf = /^RF-\d+$/.test(target) ? objectives.flatMap((o) => o.refinements.map((r) => ({ r, o }))).find(({ r }) => r.id === target) : null;
-  const spk = design && /^SPK-\d{3}/.test(target) ? design.spikes.find((s) => s.fullName === target || s.id === target) : null;
+  const ms = /^M-\d+/.test(target) ? objectives.flatMap((o) => o.milestones.map((m) => ({ m, o }))).find(({ m }) => m.fullName === target || m.id === target) : null;
   const reqOf = (id) => (cone ? cone.requirements.find((r) => r.id === id) : null);
-  // 目標的 Law 寫「繼承 R-n」時,三行是那條需求的
-  const objLaw = obj && obj.law && obj.law.inherits ? (reqOf(obj.law.inherits) || {}).law || obj.law : obj ? obj.law : null;
-  const top = req ? { id: req.id, title: req.title, law: req.law, kind: '需求的 Law' } : obj ? { id: obj.id, title: obj.title, law: objLaw, kind: `目標的 Law${obj.law && obj.law.inherits ? `(繼承 ${obj.law.inherits})` : ''}` } : null;
+  const top = req ? { id: req.id, title: req.title, law: req.accept, kind: '需求的驗收', mark: 'ACCEPT' } : inv ? { id: inv.id, title: inv.title, law: inv.law, kind: `領域不變量${inv.kind ? ` [${inv.kind}]` : ''}`, mark: 'LAW' } : null;
   const topLines = top && top.law ? [top.law.forall, ...top.law.given, top.law.conclusion].filter(Boolean) : [];
-  const kind = !target ? 'none' : x ? 'doc' : top ? 'top' : rf ? 'rf' : spk ? 'spike' : 'missing';
-  const name = x ? x.p.fullName : spk ? spk.fullName : target;
+  const kind = !target ? 'none' : x ? 'doc' : ms ? 'milestone' : top ? 'top' : rf ? 'rf' : 'missing';
+  const name = x ? x.p.fullName : ms ? ms.m.fullName : target;
 
-  const docAbs = x ? path.join(root, x.p.file) : spk ? spk.abs : rf ? path.join(root, rf.o.file) : null;
+  const docAbs = x ? path.join(root, x.p.file) : ms ? ms.o.abs : rf ? path.join(root, rf.o.file) : null;
   const docText = docAbs ? fs.readFileSync(docAbs, 'utf8') : '';
   const hashed = docAbs ? sha8(docText) : top ? sha8(`${top.title}\n${top.law ? top.law.title : ''}\n${topLines.join('\n')}`) : '-';
   const print = `brief ${skill} ${name || '(沒有目標)'} @doc:${hashed} rules:${rules.hash}`;
@@ -249,10 +247,11 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
   const plan = BLOCKS[skill];
   const accepts = Object.keys(plan).map((k) => KIND_WORD[k]).join('、');
   const stop = (msg) => say([...out, '# 目標', '', msg].join('\n'));
-  if (!design && !bare && skill !== 'design') return stop('這個目錄底下沒有 .lawful/:工作目錄不是專案根目錄,或 --root 沒指到工作樹。停下,回報。');
+  if (!design && !bare && skill !== 'project') return stop('這個目錄底下沒有 .lawful/:工作目錄不是專案根目錄,或 --root 沒指到工作樹。停下,回報。');
   if (kind === 'missing') {
     const names = design ? design.pipelines.map((p) => p.fullName) : [];
-    return stop(`這棵樹沒有 ${target}。pipeline:${names.length ? names.join('、') : '(一條都沒有)'};需求:${cone && cone.requirements.length ? cone.requirements.map((r) => r.id).join('、') : '(一條都沒有)'};目標:${objectives.length ? objectives.map((o) => o.id).join('、') : '(一個都沒有)'}。停下,回報。`);
+    const stones = objectives.flatMap((o) => o.milestones.map((m) => m.fullName));
+    return stop(`這棵樹沒有 ${target}。pipeline:${names.length ? names.join('、') : '(一條都沒有)'};里程碑:${stones.length ? stones.join('、') : '(一條都沒有)'};需求:${cone && cone.requirements.length ? cone.requirements.map((r) => r.id).join('、') : '(一條都沒有)'};領域不變量:${cone && cone.invariants.length ? cone.invariants.map((v) => v.id).join('、') : '(一條都沒有)'}。停下,回報。`);
   }
   if (!plan[kind]) {
     if (kind === 'none') return stop(`目標未指定;lawful:${skill} 的目標是${accepts}。定出目標之後跑一次:lawful brief ${skill} <目標> [--root <工作樹>] --no-rules`);
@@ -260,7 +259,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
   }
   // 沒有 adapter 的語言:qa 與 impl 沒有宣告開不了工;其餘的 skill 照印,讀程式碼的那幾塊各留一行說明
   const CODE_BLOCKS = ['declarations', 'typeslayer', 'testing', 'files', 'touched'];
-  if (!source && (skill === 'qa' || skill === 'impl')) return stop('Cone.md 的 language 欄沒有可用的 adapter,程式碼對不了帳:宣告與 types 層那幾塊印不出來。停下,回報。');
+  if (!source && (skill === 'qa' || skill === 'refactor')) return stop('Cone.md 的 language 欄沒有可用的 adapter,程式碼對不了帳:宣告與 types 層那幾塊印不出來。停下,回報。');
 
   const lang = adapter ? adapter.name : '';
   const srcCache = new Map();
@@ -357,7 +356,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
     const used = new Set();
     for (const s of stages) for (const t of typeNamesIn(s.type)) for (const h of findType(source, t)) used.add(h.module);
     const mods = typesModules().sort((p, q) => (used.has(q.module) ? 1 : 0) - (used.has(p.module) ? 1 : 0) || p.module.localeCompare(q.module));
-    let budget = skill === 'pipeline' ? 0 : INLINE_LINES;
+    let budget = skill === 'law-design' ? 0 : INLINE_LINES;
     typesPlanned = mods.map((m) => {
       const lines = srcLines(m.file);
       const inline = lines.length <= budget;
@@ -373,11 +372,11 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
     return d.slice(from < 0 ? 0 : from).map((l) => l.replace(/^## /, '### '));
   };
 
-  const lawLines = (law) => (!law ? ['- Law:(還沒寫)'] : [`- Law:${law.title}`, ...[law.forall, ...law.given, law.conclusion].filter(Boolean).map((l) => `  - ${l}`)]);
   const requirementLines = (id) => {
     const r = reqOf(id);
     if (!r) return [`(Cone.md 裡沒有 ${id})`];
-    return [`${r.id}:${r.title}`, ...lawLines(r.law), ...(r.implication ? [`- 蘊含:${r.implication}`] : [])];
+    const acc = r.accept;
+    return [`${r.id}:${r.title}`, `- 驗收:${acc ? acc.title : '(還沒寫)'}`, ...(acc ? [acc.forall, ...acc.given, acc.conclusion].filter(Boolean).map((l) => `  - ${l}`) : [])];
   };
 
   // 三行裡的識別字對到哪條 pipeline 的 Stages(不含引用別條的那幾列)
@@ -393,7 +392,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
 
     declarations: () => {
       out.push('# 宣告', '');
-      out.push(skill === 'qa' ? '只有宣告,沒有本體:測試從這裡、types 層與文檔寫,不打開 core 與 shell 的本體。' : skill === 'impl' ? 'Stages 上的簽名與型別宣告不准改;要填的本體在下面「要開的檔」。' : 'Stages 上每條簽名與型別現在在程式碼裡的宣告。', '');
+      out.push(skill === 'qa' ? '只有宣告,沒有本體:測試從這裡、types 層與文檔寫,不打開 core 與 shell 的本體。' : skill === 'refactor' ? 'Stages 上的簽名與型別宣告不准改;要調的本體在下面「要開的檔」。' : 'Stages 上每條簽名與型別現在在程式碼裡的宣告。', '');
       declarations(x.stages);
     },
 
@@ -411,7 +410,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
 
     testing: () => {
       const id = top ? top.id : x.p.id;
-      const marks = top ? ['LAW'] : ['LAW-1', 'EX-1'];
+      const marks = top ? [top.mark] : ['LAW-1', 'EX-1'];
       out.push('# 測試怎麼寫', '');
       out.push(`- 子集測試指令:${command('測試(子集)')}`);
       out.push(`- 歸屬寫法:字串,${marks.map((m) => `"${id}#${m}"`).join('、')}(包住那一組測試的群組名)`);
@@ -427,9 +426,10 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
     files: () => {
       out.push('# 要開的檔', '');
       const stubs = x.stages.filter((s) => s.hit && s.hit.stub);
+      // 假的、寫死的、沒接上的在決策紀錄「Faked / Unverified」(上面那一塊);這裡只有未實作標記
       for (const f of [...new Set(x.stages.filter((s) => !s.ref).map((s) => (s.hit ? s.hit.file : s.module)).filter(Boolean))]) {
         const mine = stubs.filter((s) => s.hit.file === f).map((s) => s.name);
-        out.push(`- ${f}${mine.length ? `  還是骨架的:${mine.join('、')}` : ''}`);
+        out.push(`- ${f}${mine.length ? `  本體還是未實作標記的:${mine.join('、')}` : ''}`);
       }
       for (const r of x.refs) {
         const y = a.info.get(r);
@@ -441,10 +441,9 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
     },
 
     top: () => {
-      out.push(`# 目標:${top.id}(${top.kind})`, '', `${top.id}:${top.title}`, ...(top.law ? [`Law:${top.law.title}`] : []));
-      if (!topLines.length) out.push('', '這一條的 Law 只有一句話,沒有三行式:寫不出可判定的斷言。停下,回報。', '');
+      out.push(`# 目標:${top.id}(${top.kind})`, '', `${top.id}:${top.title}`, ...(req && top.law ? [`驗收:${top.law.title}`] : []));
+      if (!topLines.length) out.push('', '這一條只有一句話,沒有三行式:寫不出可判定的斷言。', '');
       else out.push(...fence('', topLines), '');
-      if (obj) out.push(...wholeFile(`目標檔:${obj.file}`, path.join(root, obj.file), '(讀不到)'));
     },
 
     // 三行裡的識別字對到哪條 pipeline 的 Stages,就印那條的 Stages 表與宣告
@@ -456,7 +455,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
         if (sec) out.push(...sec.lines.filter((l) => l.trim()), '');
         declarations(t.stages);
       }
-      if (!hit.length) out.push('# 引用到的 pipeline', '', '(三行裡的識別字沒有對到任何一條 pipeline 的 Stages)', '');
+      if (!hit.length) out.push('# 引用到的 pipeline', '', inv ? '(領域不變量只引用 types 層,不引用任何 pipeline)' : '(三行裡的識別字沒有對到任何一條 pipeline 的 Stages)', '');
     },
 
     constraints: () => {
@@ -483,10 +482,15 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
 
     // 綁這條 pipeline 的里程碑、動到它的調整,與它們的需求
     objective: () => {
+      if (ms) {
+        out.push(...wholeFile(`目標檔:${ms.o.file}`, ms.o.abs, '(讀不到)'));
+        out.push('# 這條里程碑的需求', '', ...requirementLines(ms.o.requirement), '');
+        return;
+      }
       const rows = [];
       const reqs = new Set();
       for (const o of objectives) {
-        for (const m of o.milestones) if (m.binds.includes(name)) { rows.push(`- ${o.fullName}(優先 ${o.priority == null ? '沒填' : o.priority})的里程碑 ${m.id}:${m.title}(綁定 ${m.binds.join('、')})`); reqs.add(o.requirement); }
+        for (const m of o.milestones) if (m.binds.includes(name)) { rows.push(`- ${o.fullName}(優先 ${o.priority == null ? '沒填' : o.priority})的里程碑 ${m.fullName}:${m.title}(綁定 ${m.binds.join('、')})`); reqs.add(o.requirement); }
         for (const r of o.refinements) if (r.touches.includes(name)) { rows.push(`- ${o.fullName} 的調整 ${r.id}:${r.title}(動到 ${r.touches.join('、')})`); reqs.add(o.requirement); }
       }
       out.push('# 這條 pipeline 朝向哪裡', '', ...(rows.length ? rows : ['(沒有任何里程碑綁它,也沒有調整動到它)']), '');
@@ -511,16 +515,30 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
       }
     },
 
+    // 決策紀錄的鍵是分支的鍵:里程碑全名、pipeline 全名、R-n / INV-n;pipeline 沒有自己的那一份就找綁它的里程碑的
+    journal: () => {
+      const keys = [name, ...objectives.flatMap((o) => o.milestones).filter((m) => m.binds.includes(name)).map((m) => m.fullName)];
+      const j = design.journals.find((q) => keys.includes(q.key));
+      if (j) out.push(...wholeFile(`決策紀錄:${j.file}`, path.join(root, j.file), '(讀不到)'));
+      else out.push('# 決策紀錄', '', `(.lawful/journal/ 裡沒有 ${keys.join(' 或 ')} 的決策紀錄)`, '');
+    },
+
     journals: () => {
-      out.push('# 開發日誌清單', '');
-      const dir = lawful_('journal');
-      const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort() : [];
-      if (!files.length) return out.push('(這棵樹的 .lawful/journal/ 是空的;各條 build 分支的日誌在它們自己的分支上)', '');
-      for (const f of files) {
-        const { fm } = parseFrontmatter(fs.readFileSync(path.join(dir, f), 'utf8'));
-        out.push(`- .lawful/journal/${f}${fm.pipeline ? `  pipeline ${fm.pipeline}` : ''}${fm.branch ? `  分支 ${fm.branch}` : ''}${fm.base ? `  base ${fm.base}` : ''}`);
-      }
+      out.push('# 決策紀錄清單', '');
+      if (!design || !design.journals.length) return out.push('(這棵樹的 .lawful/journal/ 是空的;各條 build 分支的決策紀錄在它們自己的工作樹上)', '');
+      for (const j of design.journals) out.push(`- ${j.file}  鍵 ${j.key}${j.branch ? `  分支 ${j.branch}` : ''}${j.verdict ? `  verdict ${j.verdict}` : ''}`);
       out.push('');
+    },
+
+    // 里程碑綁的每一條 pipeline:全文、逐條狀態、lint 裡講到它的
+    bound: () => {
+      if (!ms.m.binds.length) return out.push('# 這條里程碑綁的 pipeline', '', '(綁定欄還是空的:切片做完、law-design claim 出 pipeline 之後才有)', '');
+      for (const b of ms.m.binds) {
+        const d = design.pipelines.find((q) => q.fullName === b);
+        if (!d) { out.push(`# 綁的 pipeline:${b}`, '', '(pipelines/ 裡沒有這一條)', ''); continue; }
+        out.push(...wholeFile(`綁的 pipeline:${d.file}`, path.join(root, d.file), '(讀不到)'));
+        out.push(`# ${b} 的逐條狀態`, '', ...detailOf(b), '');
+      }
     },
 
     gaps: () => {
@@ -533,6 +551,8 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
 
     lintall: () => out.push('# lawful lint all', '', ...lintText(lintAll(design, source, adapter)), ''),
 
+    lintglobal: () => out.push('# lawful lint global', '', ...lintText(lintGlobal(design, source, adapter)), ''),
+
     lintboundary: () => out.push('# lawful lint boundary', '', ...lintText([lintBoundary(design, source, adapter)]), ''),
 
     status: () => out.push('# lawful status', '', ...(statusText ? statusLines().map((l) => l.replace(/^(#+) /, '##$1 ')) : ['(沒有接上 status)']), ''),
@@ -542,7 +562,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
 
     // 報告裡講到目標的每一行:它在 pipelines 表的那一列、能不能開、卡在哪、誰引用它、它的警訊
     statusrows: () => {
-      const keys = x ? [x.p.fullName, `${x.p.id}#`] : rf ? [rf.r.id, rf.o.id, ...rf.r.touches] : top ? [top.id, ...(obj ? [obj.requirement] : objectives.filter((o) => o.requirement === top.id).map((o) => o.id))].filter(Boolean) : [];
+      const keys = x ? [x.p.fullName, `${x.p.id}#`] : ms ? [ms.m.id, ms.o.id, ms.o.requirement, ...ms.m.binds].filter(Boolean) : rf ? [rf.r.id, rf.o.id, ...rf.r.touches] : top ? [top.id, ...objectives.filter((o) => o.requirement === top.id).map((o) => o.id)] : [];
       const rows = statusRows(keys.map((k) => (/^[A-Z]+-\d+$/.test(k) ? new RegExp(`(?<![\\w-])${k}(?![\\w])`) : k)));
       out.push(`# lawful status 裡講到 ${name} 的每一行(整份報告要看再跑 lawful status)`, '', ...rows, '');
     },
@@ -579,17 +599,6 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
       }
     },
 
-    spikedoc: () => out.push(`# 目標 spike:${spk.file}`, '', '````markdown', docText.replace(/\r\n/g, '\n').replace(/\s+$/, ''), '````', ''),
-
-    spikes: () => {
-      out.push('# 現有的 spike', '');
-      if (!design.spikes.length) out.push('(.lawful/spikes/ 底下一份都沒有;第一份是 SPK-001)');
-      for (const s of design.spikes) out.push(`- ${s.fullName}  status ${s.status || '(沒填)'}${s.verdict ? `  verdict ${s.verdict}` : ''}${s.feeds.length ? `  feeds ${s.feeds.join('、')}` : ''}  ${s.rounds.length} 輪`);
-      const dir = path.join(root, 'spike');
-      const kept = fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort() : [];
-      out.push(`- 專案根目錄 spike/ 底下還在的資料夾:${kept.length ? kept.join('、') : '無'}`, '');
-    },
-
     branch: () => {
       out.push('# 分支與工作樹', '');
       if (!fs.existsSync(path.join(root, '.git'))) return out.push('(這個目錄不是 git repo 的根,也不是一棵工作樹)', '');
@@ -603,8 +612,8 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
       out.push(`- 與上游:${up ? (([behind, ahead]) => `落後 ${behind}、超前 ${ahead}`)(up[0].split(/\s+/)) : '沒有設上游'}`);
       const wts = git(root, 'git worktree list') || [];
       out.push(`- 工作樹清單:`, ...wts.map((l) => `  - ${l}`));
-      const others = (git(root, 'git branch --list "design/*" --format="%(refname:short)"') || []);
-      out.push(`- 設計分支:${others.length ? others.join('、') : '無'}`);
+      const others = (git(root, 'git branch --list "plan/*" --format="%(refname:short)"') || []);
+      out.push(`- plan 分支:${others.length ? others.join('、') : '無'}`);
       const st = branchState(root);
       out.push(`- 建構中的 build 分支:${st.building.size ? [...st.building].sort().map((k) => `build/${k}`).join('、') : '無'}`);
       out.push(`- 已合進主線卻還在的 build 分支:${st.stale.size ? [...st.stale].sort().map((k) => `build/${k}`).join('、') : '無'}`, '');

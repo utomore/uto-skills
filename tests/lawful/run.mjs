@@ -25,6 +25,14 @@ const CASES = [
   ['broken-lint-sig', 'broken', ['lint', 'sig']],
   ['broken-lint-laws', 'broken', ['lint', 'laws']],
   ['broken-lint-trace', 'broken', ['lint', 'trace']],
+  ['broken-lint-io', 'broken', ['lint', 'io']],
+  ['broken-lint-invariants', 'broken', ['lint', 'invariants']],
+  ['save-game-lint-global', 'save-game', ['lint', 'global']],
+  // preflow:需求寫著 Law、目標有 Law、邊界與對外 I/O 住 modules.md、里程碑只有編號、frozen、還留著 spikes/ 的樹,給 migrate laws 當輸入
+  ['preflow-status', 'preflow', ['status', '--tests', 'test.log']],
+  ['preflow-migrate-laws', 'preflow', ['migrate', 'laws']],
+  ['preflow-migrate-laws-write', 'preflow', ['migrate', 'laws', '--write'], ['.lawful/Cone.md', '.lawful/modules.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md', '.lawful/pipelines/P-001-save-write.md']],
+  ['save-game-migrate-laws', 'save-game', ['migrate', 'laws']],
   ['save-game-section', 'save-game', ['section', '.lawful/pipelines/P-001-save-write.md', 'Brief', 'Laws']],
   ['save-game-section-verify', 'save-game', ['section', '.lawful/pipelines/P-001-save-write.md', 'Brief', '沒有的節', '--verify']],
   ['save-game-status', 'save-game', ['status']],
@@ -40,8 +48,8 @@ const CASES = [
   ['refs-status', 'refs', ['status']],
   ['refs-status-json', 'refs', ['status', '--json']],
   ['refs-lint-sig', 'refs', ['lint', 'sig']],
-  ['frozen-ref-status', 'frozen-ref', ['status']],
-  ['frozen-ref-status-tests', 'frozen-ref', ['status', '--tests', 'test.log']],
+  ['verified-ref-status', 'verified-ref', ['status']],
+  ['verified-ref-status-tests', 'verified-ref', ['status', '--tests', 'test.log']],
   ['run-cmd-status-run', 'run-cmd', ['status', '--run']],
   ['run-cmd-status-empty', 'run-cmd', ['status', '--tests', 'empty.log']],
   ['templated-status', 'templated', ['status', '--tests', 'test.log']],
@@ -65,11 +73,13 @@ const CASES = [
   ['save-game-rename', 'save-game', ['rename', 'P-001-save-write', 'save-store'], ['.lawful/pipelines/P-001-save-write.md', '.lawful/pipelines/P-001-save-store.md', '.lawful/modules.md', '.lawful/objectives/R-1-O-1-save-roundtrip.md', 'src-core/Game/Save.hs']],
   ['save-game-rename-bad-domain', 'save-game', ['rename', 'P-001', 'game-store']],
   ['save-game-rename-missing', 'save-game', ['rename', 'P-009', 'save-store']],
-  ['save-game-requirement-add', 'save-game', ['requirement', 'add', '舊版存檔在新版讀得回來', '--law', '任一舊版存檔,新版讀回的投影與舊版一樣'], ['.lawful/Cone.md']],
-  ['save-game-requirement-add-no-law', 'save-game', ['requirement', 'add', '舊版存檔在新版讀得回來'], ['.lawful/Cone.md']],
-  ['templated-requirement-add', 'templated', ['requirement', 'add', '報表印得出來', '--law', '任一段文字都印得出一份報表'], ['.lawful/Cone.md']],
-  ['save-game-objective-add', 'save-game', ['objective', 'add', 'save-repair', '存檔壞了讀得出是哪裡壞', '--requirement', 'R-1', '--priority', '2', '--law', '任一壞掉的存檔,錯誤指得出位置', '--date', DATE], ['.lawful/objectives/R-1-O-2-save-repair.md']],
-  ['save-game-objective-add-inherit', 'save-game', ['objective', 'add', 'save-repair', '存檔壞了讀得出是哪裡壞', '--requirement', 'R-1', '--priority', '2', '--date', DATE], ['.lawful/objectives/R-1-O-2-save-repair.md']],
+  ['save-game-requirement-add', 'save-game', ['requirement', 'add', '換了版本的存檔在新版讀得回來', '--accept', '任一前一版的存檔,新版讀回的投影與前一版一樣'], ['.lawful/Cone.md']],
+  ['save-game-requirement-add-no-accept', 'save-game', ['requirement', 'add', '換了版本的存檔在新版讀得回來'], ['.lawful/Cone.md']],
+  ['templated-requirement-add', 'templated', ['requirement', 'add', '報表印得出來', '--accept', '任一段文字都印得出一份報表'], ['.lawful/Cone.md']],
+  ['save-game-invariant-add', 'save-game', ['invariant', 'add', '存檔裡的實體 id 不重複'], ['.lawful/Cone.md']],
+  ['save-game-invariant-add-bad-kind', 'save-game', ['invariant', 'add', '存檔裡的實體 id 不重複', '--kind', 'always']],
+  ['templated-invariant-add', 'templated', ['invariant', 'add', '報表的行數不為負', '--kind', 'bound'], ['.lawful/Cone.md']],
+  ['save-game-objective-add', 'save-game', ['objective', 'add', 'save-repair', '存檔壞了讀得出是哪裡壞', '--requirement', 'R-1', '--priority', '2', '--date', DATE], ['.lawful/objectives/R-1-O-2-save-repair.md']],
   ['save-game-objective-add-bad-slug', 'save-game', ['objective', 'add', 'Save_Repair', '存檔壞了讀得出是哪裡壞', '--requirement', 'R-1', '--priority', '2']],
   ['save-game-objective-add-no-requirement', 'save-game', ['objective', 'add', 'save-repair', '存檔壞了讀得出是哪裡壞', '--priority', '2']],
   ['save-game-objective-add-missing-requirement', 'save-game', ['objective', 'add', 'save-repair', '存檔壞了讀得出是哪裡壞', '--requirement', 'R-9', '--priority', '2']],
@@ -79,43 +89,42 @@ const CASES = [
   ['legacy-migrate-cone', 'legacy', ['migrate', 'cone']],
   ['legacy-migrate-cone-write', 'legacy', ['migrate', 'cone', '--write', '--date', DATE], ['.lawful/Cone.md', '.lawful/objectives/R-1-O-1-save-write.md', '.lawful/objectives.md', '.lawful/modules.md', '.lawful/pipelines/P-001-save-write.md', '.lawful/system.md']],
   ['legacy-status', 'legacy', ['status']],
-  ['save-game-objective-milestone', 'save-game', ['objective', 'milestone', 'O-1', '讀檔還原世界', '--bind', 'P-001-save-write'], ['.lawful/objectives/R-1-O-1-save-roundtrip.md']],
-  ['save-game-objective-milestone-missing', 'save-game', ['objective', 'milestone', 'O-1', '讀檔還原世界', '--bind', 'P-002-save-load']],
-  ['save-game-objective-milestone-unbound', 'save-game', ['objective', 'milestone', 'O-1', '存檔壞了看得出來'], ['.lawful/objectives/R-1-O-1-save-roundtrip.md']],
+  ['save-game-objective-milestone', 'save-game', ['objective', 'milestone', 'O-1', 'save-load', '讀檔還原世界', '--bind', 'P-001-save-write'], ['.lawful/objectives/R-1-O-1-save-roundtrip.md']],
+  ['save-game-objective-milestone-missing', 'save-game', ['objective', 'milestone', 'O-1', 'save-load', '讀檔還原世界', '--bind', 'P-002-save-load']],
+  ['save-game-objective-milestone-unbound', 'save-game', ['objective', 'milestone', 'O-1', 'save-repair', '存檔壞了修得回來'], ['.lawful/objectives/R-1-O-1-save-roundtrip.md']],
+  ['save-game-objective-milestone-bad-slug', 'save-game', ['objective', 'milestone', 'O-1', '存檔壞了修得回來']],
   ['templated-objective-add', 'templated', ['objective', 'add', 'report-print', '報表印得出來', '--requirement', 'R-1', '--priority', '1']],
   ['broken-sync', 'broken', ['sync', '--date', DATE], ['.lawful/pipelines/P-001-game-save.md']],
   ['broken-modules-gen', 'broken', ['modules', '--gen'], ['.lawful/modules.md']],
-  ['broken-spike-close-dry', 'broken', ['spike', 'close', 'SPK-001', '--dry-run']],
-  ['broken-spike-close', 'broken', ['spike', 'close', 'SPK-001'], ['spike/SPK-001-cbor-size/Main.hs']],
-  ['broken-spike-close-open', 'broken', ['spike', 'close', 'SPK-002']],
   // brief:一個 skill 開工要的東西一次印完。golden 用 --no-rules,才不會規章每改一次就跟著變;規章的節另外查(下面的「brief 的規章節」)
   ['save-game-brief-qa', 'save-game', ['brief', 'qa', 'P-001-save-write', '--no-rules']],
   ['save-game-brief-qa-requirement', 'save-game', ['brief', 'qa', 'R-1', '--no-rules']],
-  ['save-game-brief-qa-objective', 'save-game', ['brief', 'qa', 'O-1', '--no-rules']],
-  ['save-game-brief-impl', 'save-game', ['brief', 'impl', 'P-001', '--no-rules']],
-  ['save-game-brief-impl-wrong-kind', 'save-game', ['brief', 'impl', 'R-1', '--no-rules']],
+  ['save-game-brief-qa-invariant', 'save-game', ['brief', 'qa', 'INV-1', '--no-rules']],
+  ['save-game-brief-refactor', 'save-game', ['brief', 'refactor', 'P-001', '--no-rules']],
+  ['save-game-brief-refactor-wrong-kind', 'save-game', ['brief', 'refactor', 'R-1', '--no-rules']],
   ['save-game-brief-fingerprint', 'save-game', ['brief', 'qa', 'P-001-save-write', '--fingerprint']],
   ['save-game-brief-no-target', 'save-game', ['brief', 'qa', '--no-rules']],
   ['save-game-brief-missing', 'save-game', ['brief', 'qa', 'P-009-nope', '--no-rules']],
   ['save-game-brief-bad-skill', 'save-game', ['brief', 'nope']],
   // 有 status 那一塊的案例一律明講 --tests:沒講的時候 brief 會照檔案時間自己挑根目錄的那一份,而檔案時間每台機器不同
   ['save-game-brief-build', 'save-game', ['brief', 'build', 'P-001-save-write', '--tests', 'test.log', '--no-rules']],
+  ['save-game-brief-build-milestone', 'save-game', ['brief', 'build', 'M-1-save-write', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-build-requirement', 'save-game', ['brief', 'build', 'R-1', '--tests', 'test.log', '--no-rules']],
   ['broken-brief-build', 'broken', ['brief', 'build', 'P-001-game-save', '--tests', 'stale.log', '--no-rules']],
-  ['save-game-brief-pipeline', 'save-game', ['brief', 'pipeline', 'P-001-save-write', '--no-rules']],
-  ['save-game-brief-pipeline-no-target', 'save-game', ['brief', 'pipeline', '--no-rules']],
-  ['templated-brief-pipeline', 'templated', ['brief', 'pipeline', 'P-001', '--no-rules']],
+  ['save-game-brief-spike-impl', 'save-game', ['brief', 'spike-impl', 'M-2-save-inspect', '--tests', 'test.log', '--no-rules']],
+  ['save-game-brief-spike-impl-wrong-kind', 'save-game', ['brief', 'spike-impl', 'P-001-save-write', '--no-rules']],
+  ['save-game-brief-law-design', 'save-game', ['brief', 'law-design', 'M-1-save-write', '--no-rules']],
+  ['templated-brief-law-design', 'templated', ['brief', 'law-design', 'M-1', '--no-rules']],
   ['refs-brief-revise', 'refs', ['brief', 'revise', 'P-002', '--tests', 'none.log', '--no-rules']],
   ['save-game-brief-revise-refinement', 'save-game', ['brief', 'revise', 'RF-1', '--tests', 'test.log', '--no-rules']],
+  ['save-game-brief-revise-invariant', 'save-game', ['brief', 'revise', 'INV-1', '--tests', 'test.log', '--no-rules']],
   ['broken-brief-revise-global', 'broken', ['brief', 'revise', '--tests', 'stale.log', '--no-rules']],
   ['save-game-brief-objective', 'save-game', ['brief', 'objective', '--tests', 'test.log', '--no-rules']],
-  ['save-game-brief-design', 'save-game', ['brief', 'design', '--no-rules']],
+  ['save-game-brief-project', 'save-game', ['brief', 'project', '--no-rules']],
   ['save-game-brief-module', 'save-game', ['brief', 'module', '--no-rules']],
   ['save-game-brief-integrate', 'save-game', ['brief', 'integrate', '--no-rules']],
   ['save-game-brief-status', 'save-game', ['brief', 'status', '--no-rules']],
   ['save-game-brief-audit', 'save-game', ['brief', 'audit', '--tests', 'test.log', '--no-rules']],
-  ['broken-brief-spike', 'broken', ['brief', 'spike', '--no-rules']],
-  ['broken-brief-spike-doc', 'broken', ['brief', 'spike', 'SPK-002', '--no-rules']],
   ['save-game-brief-study', 'save-game', ['brief', 'study', '--no-rules']],
   // skill 載入時 $ARGUMENTS 是自由文字:目標與旗標從裡面認,其餘的字不理
   ['save-game-brief-args', 'save-game', ['brief', 'build', '--args', '幫我 build P-001-save-write (先看 log) --tests test.log --no-rules']],
@@ -163,7 +172,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/invariant add/.test(h.stdout) || !/objective milestone <O-n> <slug>/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
@@ -182,7 +191,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   } else console.log('✓ brief 的規章節');
 
   // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
-  const TARGETS = { build: 'P-001-save-write', qa: 'P-001-save-write', impl: 'P-001-save-write', revise: 'P-001-save-write', pipeline: 'P-001-save-write' };
+  const TARGETS = { build: 'P-001-save-write', qa: 'P-001-save-write', refactor: 'P-001-save-write', revise: 'P-001-save-write', 'law-design': 'M-1-save-write', 'spike-impl': 'M-2-save-inspect' };
   const PARTS = [1, 2, 3, 4, 5, 6];
   let parted = skills.length > 0;
   for (const s of skills) {

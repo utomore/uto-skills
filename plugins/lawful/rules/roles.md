@@ -6,7 +6,7 @@
 
 | 階段 | 核心(這個階段的每一個判斷都服從它) | 誰 | 在哪 | 產出 |
 |---|---|---|---|---|
-| **立案** | Only what can be judged true before any code exists gets written: the vision, the project constraints and Requirements with their acceptance.(只寫做之前就判得出真假的東西:願景、專案約束、需求與它的驗收) | 開發者依序與 `lawful:kickoff`(開樹、願景、專案約束、已經看得出來的模組單元)、`lawful:require-design`(需求與里程碑)對談;之後要多劃一個模組單元走 `lawful:module` | `plan/<slug>` 分支,經 PR 合進主線 | `Cone.md`(願景、專案約束;「全域 Law」區四層照建,領域不變量、每一層「裝什麼」那一句與對外 I/O 表是空的,等切片長出來)、`requirements/`(需求與它的驗收、優先、里程碑 `M-n-<slug>`)、模組單元表 |
+| **立案** | Only what can be judged true before any code exists gets written: the vision, the project constraints and Requirements with their acceptance.(只寫做之前就判得出真假的東西:願景、Constraint、需求與它的驗收) | 開發者依序與 `lawful:kickoff`(開樹、願景、Constraint、已經看得出來的模組單元)、`lawful:require-design`(需求與里程碑)對談;之後要多劃一個模組單元走 `lawful:module` | `plan/<slug>` 分支,經 PR 合進主線 | `Cone.md`(願景、Constraint;「全域 Law」區四層照建,領域不變量、每一層「裝什麼」那一句與對外 I/O 表是空的,等切片長出來)、`requirements/`(需求與它的驗收、優先、里程碑 `M-n-<slug>`)、模組單元表 |
 | **切片** | The slice MUST make the milestone's Goal observably true end to end, MUST NOT violate a global Law, and MUST record every decision and every fake.(讓里程碑那一句話看得到地成真;不違反全域 Law——區裡有什麼就守什麼;每個決定與每一處假都留下紀錄) | `lawful:spike-impl`,主 session 自己做 | 這條里程碑自己的分支 `build/M-n-<slug>` 與工作樹,從這一步開 | 從 shell 的進入點貫通到出口、跑得通的程式碼,與決策紀錄(「切片」「決策紀錄」) |
 | **Law** | scope-laws designs scope Laws only. A Law MUST be falsifiable and MUST be the developer's decision; it never describes what the code happens to do.(law 必須講得出怎樣算違反,而且是開發者拍板的承諾,不是把程式碼念一遍) | 開發者與 `lawful:scope-laws` 對談,根據切片的決策紀錄;談出全域的候選時接著與 `lawful:global-laws` | 同一棵工作樹 | 從切片 claim 出來的 pipeline:Stages 抄程式碼、約束逐條談出來(資料交互、資料儲存在哪、外部串接方法、軟體架構四項都問到,laws.md「Law 怎麼談」)、laws 逐條拍板,`ready`;這一片在對外 I/O 表的新列;整個專案都該守的列成候選,開發者批准後由 `lawful:global-laws` 抽進 `Cone.md`「全域 Law」區(laws.md「全域 Law」) |
 | **建構** | A pipeline is Verified only when every Law is guarded by a test that can fail and now passes; nobody bends a Law, a test or a declaration to get green.(每條 law 都有一條會失敗、現在通過的測試守著,才叫 verified;不為了變綠去動 law、測試或宣告) | `lawful:build` 的 conductor 帶 qa 與 refactor;scope-laws 與 scope-revise 收尾時自動接上 | 同一棵工作樹 | 測試(含剛抽上去的領域不變量的 `INV-n#LAW`)、調整過的實作(含剛抽上去的全域 Law 留下的 `lint boundary` 紅)、REV、決策紀錄的「Verification」;每條 law 成立才算達成,conductor 改 `verified` |
@@ -34,7 +34,7 @@
 - **專案的第一條切片單獨走完**:主線的「全域 Law」三個小區都還是空的時候(沒有領域不變量、四層「裝什麼」那一句一層都還沒寫、對外 I/O 表沒有列),一次只開一條切片;它做完、它的全域 Law 抽出來、合進主線之後,才開第二條。兩片同時長,會各長各的型別與邊界。第二片起,從第一行程式碼就守全域 Law。`lawful status` 在三個小區都是空的、而且已經有一條切片的分支在建構中時,「今天能開幾條線」不列別的切片,改印「專案的第一條切片單獨走完」那一句。
 - **宣告歸設計這一側,本體歸實作這一側**:Stages 上的簽名與它們用到的型別(建構子、欄位、匯出清單),切片定案後只有 `lawful:scope-laws` 與 `lawful:scope-revise` 能改;refactor 只動本體、私有 helper 與型別的內部表示。qa 與 refactor 非動宣告不可就是 GAP。
 - 分支上准動的東西只有自己的:這條里程碑範圍內的程式碼、從它 claim 出來的 pipeline、以 pipeline 全名命名的測試模組、本波要寫的驗收測試(以 `R-n` / `INV-n` 命名的測試模組)、共用檔裡自己那幾列(`modules.md` 自己要的那個模組單元、`Cone.md` 對外 I/O 表的新列、需求檔裡自己那條里程碑的綁定欄、建置設定登記自己模組與測試模組的那幾行)、`gaps.md` 追加、`journal/<鍵>.md`;以及從這一片抽上去的全域 Law——開發者批准之後由 `lawful:global-laws` 在這條分支上落筆的領域不變量與四層「裝什麼」那幾句(laws.md「全域 Law」)。
-- 不動:願景、需求檔的其餘部分(一句話、驗收那一句、優先、里程碑的列)、全域 Law 區既有的條目(領域不變量、已經寫了的那幾句「裝什麼」、對外 I/O 表既有的列;要改只經 `lawful:global-laws`,開發者批准才動);別條已經在主線上的 pipeline 與它的 stage 本體、別人的測試模組。唯一的例外:需求的驗收或一條領域不變量還只有一句話、而這條切片剛好讓它引用得到的簽名出現了,`lawful:scope-laws` 與開發者把那一句話寫成三行;那一句話本身不改。切片非動到別條 pipeline 的簽名不可,那是那條 pipeline 的修訂:在同一棵工作樹上照 pipelines.md「修訂(REV)」分流(它既有的 law 不動走 `lawful:scope-revise`,要調整既有的 law 走 `lawful:scope-laws`),REV 的連動欄寫明。靠修訂達成的里程碑(pipelines.md「願景、需求與里程碑」)照同一條:既有 pipeline 的條文由那個修訂的 skill 在 `build/M-n-<slug>` 上改、REV 的依欄寫里程碑的全名 `M-n-<slug>`,既有 stage 的本體由它接上的 build 帶 refactor 調;需求檔不動,綁定欄在 `lawful:require-design` 切出這條里程碑的當場就填好了。這條里程碑另外要一段新的貫通(新的出入口、shell 的真解譯器)時,`lawful:spike-impl` 在同一條分支上只貫通新的那一段。
+- 不動:願景、需求檔的其餘部分(一句話、驗收那一句、優先、里程碑的列)、全域 Law 區既有的條目(領域不變量、已經寫了的那幾句「裝什麼」、對外 I/O 表既有的列;要改只經 `lawful:global-laws`,開發者批准才動);別條已經在主線上的 pipeline 與它的 stage 本體、別人的測試模組。唯一的例外:需求的驗收還只有一句話、而這條切片剛好讓它引用得到的簽名出現了,`lawful:scope-laws` 與開發者把那一句話寫成三行;那一句話本身不改。切片非動到別條 pipeline 的簽名不可,那是那條 pipeline 的修訂:在同一棵工作樹上照 pipelines.md「修訂(REV)」分流(它既有的 law 不動走 `lawful:scope-revise`,要調整既有的 law 走 `lawful:scope-laws`),REV 的連動欄寫明。靠修訂達成的里程碑(pipelines.md「願景、需求與里程碑」)照同一條:既有 pipeline 的條文由那個修訂的 skill 在 `build/M-n-<slug>` 上改、REV 的依欄寫里程碑的全名 `M-n-<slug>`,既有 stage 的本體由它接上的 build 帶 refactor 調;需求檔不動,綁定欄在 `lawful:require-design` 切出這條里程碑的當場就填好了。這條里程碑另外要一段新的貫通(新的出入口、shell 的真解譯器)時,`lawful:spike-impl` 在同一條分支上只貫通新的那一段。
 - 進 `lawful:scope-laws` 之前先把主線合進工作樹一次(`git merge origin/<主線>`):Law 對著最新的全域 Law 與別人剛合進去的 pipeline 談,衝突提早浮現。
 - `lawful claim` 配號時看同一個 repo 的每一棵工作樹,兩條切片各自 claim 不會配到同一個號;`gaps.md` 在分支上從主線最大號往上配。
 - 分支上的 commit 訊息帶鍵;切片、文檔、測試、調整過的實作、決策紀錄各自成 commit,整合時才對得出誰動了什麼。
@@ -43,10 +43,10 @@
 
 | 角色 | 讀什麼 | 做什麼 | 不准 |
 |---|---|---|---|
-| **spike-impl**(主 session) | 那條里程碑與它的需求檔(一句話、驗收)、全域 Law(laws.md「全域 Law」)、`Cone.md` 的四層與對外 I/O、`modules.md`、既有程式碼 | 貫通一條垂直切片、要新的模組單元時先劃(`lawful:module`)、寫決策紀錄 | 寫 pipeline 文檔與 law;寫帶歸屬的測試;新增全域 Law;為了跑得通而違反四層的規則 |
+| **spike-impl**(主 session) | 那條里程碑與它的需求檔(一句話、驗收)、全域 Law(laws.md「全域 Law」)、`Cone.md` 的四層與對外 I/O、`Cone.md` 的「Constraint」節、`modules.md`、既有程式碼 | 貫通一條垂直切片、要新的模組單元時先劃(`lawful:module`)、寫決策紀錄 | 寫 pipeline 文檔與 law;寫帶歸屬的測試;新增全域 Law;為了跑得通而違反四層的規則 |
 | **conductor** | 目標 pipeline、模組表、決策紀錄、測試結果 | 對帳、先派 qa、驗首跑、再派 refactor、跑測試、仲裁、寫 GAP、收尾 | 寫測試、寫實作、補 law、替 qa 與 refactor 做他們的決定 |
-| **qa** | 目標 pipeline、types 層、Stages 上那幾條簽名的宣告;寫驗收測試時是那條驗收或領域不變量,與它引用到的簽名所在的每條 pipeline | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器;需求的驗收或領域不變量一條測試(「驗收測試」) | 讀 effect、core 與 shell 的本體;讀那一條沒引用到的別條 pipeline;改程式碼;要求後門 |
-| **refactor** | 目標 pipeline、現有程式碼、決策紀錄的「Faked / Unverified」、conductor 給的紅燈歸因 | 調整或重寫實作,直到每條 law 成立;假的換成真的;必要的私有 helper | 讀寫測試;改 Stages 上的簽名與型別宣告;改文檔 |
+| **qa** | 目標 pipeline、types 層、Stages 上那幾條簽名的宣告、`Cone.md` 的「Constraint」節;寫驗收測試時是那條驗收或領域不變量,與它引用到的簽名所在的每條 pipeline | 每條 law 一條 property test、每個 example 一條 example test,標歸屬;產生器;需求的驗收或領域不變量一條測試(「驗收測試」) | 讀 effect、core 與 shell 的本體;讀那一條沒引用到的別條 pipeline;改程式碼;要求後門 |
+| **refactor** | 目標 pipeline、現有程式碼、決策紀錄的「Faked / Unverified」、conductor 給的紅燈歸因、`Cone.md` 的「Constraint」節 | 調整或重寫實作,直到每條 law 成立;假的換成真的;必要的私有 helper | 讀寫測試;改 Stages 上的簽名與型別宣告;改文檔 |
 
 qa 與 refactor 互不可見。qa 先、refactor 後,不平行:首跑要在 refactor 動手之前的程式碼上驗。互動模式下同一個人依序扮演,隔離靠紀律;看過另一邊就如實說。
 
@@ -110,7 +110,7 @@ qa 交付後、派 refactor 之前,conductor 在現有的程式碼上跑一次 q
 
 | 時機 | 誰派、在哪 |
 |---|---|
-| 一條 pipeline 的 build 本波全綠後,`lawful status` 顯示它讓某條需求的里程碑全部達成,而那條需求的驗收有三行式卻沒有測試;或這條分支上多了一條有三行式而沒有測試的領域不變量(`lawful:global-laws` 從這一片抽上去的,或 `lawful:scope-laws` 把先立的那一句寫成了三行) | 同一條 build 分支上再派一次 qa,目標是那一條;綠了才收尾。抽上去的那條 law 在出處的 pipeline 已經有測試的,這一波的 qa 把它搬進以 `INV-n` 命名的測試模組、歸屬改成 `INV-n#LAW` |
+| 一條 pipeline 的 build 本波全綠後,`lawful status` 顯示它讓某條需求的里程碑全部達成,而那條需求的驗收有三行式卻沒有測試;或這條分支上多了一條有三行式而沒有測試的領域不變量(`lawful:global-laws` 從這一片抽上去的) | 同一條 build 分支上再派一次 qa,目標是那一條;綠了才收尾。抽上去的那條 law 在出處的 pipeline 已經有測試的,這一波的 qa 把它搬進以 `INV-n` 命名的測試模組、歸屬改成 `INV-n#LAW` |
 | 里程碑早就全部達成、驗收還沒有測試;領域不變量有三行卻沒有測試(`status` 的警訊與建議路線列 `lawful:build R-n` / `INV-n`) | `lawful:build` 的目標直接是那一條:開 `build/R-n` 或 `build/INV-n` 分支,不派 refactor,只派 qa 寫那一條,跑整套一次,寫決策紀錄,交給 `lawful:integrate` |
 
 - qa 讀的是那一條的三行、它引用到的每個簽名所在 pipeline 的 Stages 表與 types 層;領域不變量只引用 types 層,就只讀 types 層。產生器與斷言照「qa 的交付」,`|-` 行逐字翻,拿純的整條與觀察點跑,不碰 IO。測試模組以 `R-n` / `INV-n` 命名,歸屬字串只放一個。
@@ -159,7 +159,7 @@ qa 與 refactor 只做歸因,裁決由 conductor。
 |---|---|---|
 | spike-impl | 離場前整套 | 1 |
 | qa | 自己寫的測試模組 | 1 |
-| refactor | 本條 pipeline 的子集(`Cone.md`「專案約束」的子集指令) | 互動 1;委派 0 |
+| refactor | 本條 pipeline 的子集(`Cone.md`「Constraint」的子集指令) | 互動 1;委派 0 |
 | conductor 收到 qa | 首跑:qa 的測試在現有的程式碼上 | 1 |
 | conductor 判定 | 本波子集 | 1 |
 | conductor 仲裁每輪 | 上一輪紅的那幾條 + 本波子集 | 每輪 1 |
@@ -180,7 +180,7 @@ qa 與 refactor 只做歸因,裁決由 conductor。
 | frontmatter | `key`、`branch`、`base`(開分支時主線的 sha)、`verdict`(`feasible` / `infeasible`)、`updated` | 整合 |
 | Goal / Scope | 這份紀錄服務的需求與里程碑那一句、這一片做到了什麼、屬於這條里程碑卻明確沒做的 | scope-laws |
 | Entry | 怎麼把它跑起來看到行為,一道指令 | scope-laws 拿它產生例子問開發者 |
-| Decisions | 表,一列一個決定:`Decision`(為了達成這條里程碑決定了什麼)、`Reason`(為什麼,一句)、`Constraint`(這個決定受什麼約束:全域 Law 的哪一條(領域不變量、四層的規則、對外 I/O 的契約)、需求的驗收或外部系統;沒有寫「-」)、否決的做法、可逆、跨文檔 | scope-laws 把只關一條 pipeline 的搬進那條的「決定」;整合把不可逆又跨文檔的升 ADR,把 Constraint 指到全域 Law 的彙整成瘦身的證據 |
+| Decisions | 表,一列一個決定:`Decision`(為了達成這條里程碑決定了什麼)、`Reason`(為什麼,一句)、`Constraint`(這個決定受什麼約束:全域 Law 的哪一條(領域不變量、四層的規則、對外 I/O 的契約)、`Cone.md`「Constraint」節的哪一項、需求的驗收或外部系統;沒有寫「-」)、否決的做法、可逆、跨文檔 | scope-laws 把只關一條 pipeline 的搬進那條的「決定」;整合把不可逆又跨文檔的升 ADR,把 Constraint 指到全域 Law 的彙整成瘦身的證據 |
 | Assumptions & Invariants | 表:這一片當成成立的前提(一句可判定的話)、來源(刻意 / 順手)、在哪 | law 的直接來源:scope-laws 的題目清單,「順手」的就是開發者還沒被問過的 |
 | Faked / Unverified | 表:什麼是假的、在哪、真的該是什麼 | refactor 的待辦;收尾時逐列對 |
 | Touched | 動到的模組(各標層與模組單元)、共用型別、新的對外 I/O、建置設定 | scope-laws 補對外 I/O 表;整合的衝突預報 |

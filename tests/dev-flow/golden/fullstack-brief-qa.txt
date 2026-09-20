@@ -192,6 +192,16 @@ export function cents(s: Settlement): number {
 }
 ```
 
+# system.md「Constraint」
+
+- 建置:web = `npx tsc --noEmit -p web`;api = `python -m compileall api/cart`
+- 測試(整套):web = `npx jest --rootDir web`;api = `pytest -v api`
+- 測試(子集):web = `npx jest --rootDir web test/<檔名>`;api = `pytest -v api/tests/<檔名>`(以一份文檔選)
+- IO 模組追加:無
+- Laws 詞彙追加:無
+- 忽略目錄:無
+- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+
 # 測試怎麼寫
 
 - 子集測試指令:pytest -v api/tests/<檔名>

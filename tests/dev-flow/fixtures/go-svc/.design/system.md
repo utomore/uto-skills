@@ -27,7 +27,7 @@ updated: 2026-09-07
 | stdin 一行 | in | `Job` | `cmd/main.go` | F-001-queue | untrusted | `Push` |
 | 佇列深度 | out | `int` | `cmd/main.go` | F-001-queue | trusted | - |
 
-## 語言與工具
+## Constraint
 - 建置:`go build ./...`
 - 測試(整套):`go test -v ./...`
 - 測試(子集):`go test -v ./internal/queue`

@@ -46,7 +46,7 @@ src-types/Game/Render/Color.hs   Game.Render.Color  types
 - 單元不巢狀:`Game.Render` 在表上,`Game.Render.View` 就不能另外列一列 —— 它是 `Game.Render` 的一部分。
 - 一個模組名只准一個檔:同名的兩個檔(尤其分在兩棵樹裡)在子函式庫之間會撞名,`lint boundary` 算紅。
 - 檔案位置要對得上模組名:`Game.Render.View` 的檔是 `<那一層的樹>/Game/Render/View.hs`。
-- **模組前綴**與**原始碼根目錄**寫在 `Cone.md`「專案約束」。原始碼根目錄是一個帶 `<層>` 的樣式,預設 `src-<層>`。
+- **模組前綴**與**原始碼根目錄**寫在 `Cone.md`「Constraint」。原始碼根目錄是一個帶 `<層>` 的樣式,預設 `src-<層>`。
 
 模組單元先劃、程式碼後住進去:`lawful module` 只決定名字、範圍與有哪幾層,在每一層的樹裡開好資料夾,不放任何模組。立案時(`lawful:kickoff`)劃已經看得出來的單元;切片途中要一個還沒有的單元,`lawful:spike-impl` 先停下來跑 `lawful:module` 劃出來,再把模組寫進去。在既有單元裡加、改、搬模組不必回頭動模組表。宣告了層卻還沒有程式碼是常態,`lint boundary` 列成訊息不算紅。
 
@@ -73,9 +73,9 @@ src-types/Game/Render/Color.hs   Game.Render.Color  types
 
 ## 效果的判定
 
-- 簽名是否碰到效果由 adapter 的 `isEffectful` 判:效果型別出現在簽名(Haskell:`IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`);`Cone.md`「專案約束」的「效果型別追加」可加(例如專案自己的 `App` monad)。
+- 簽名是否碰到效果由 adapter 的 `isEffectful` 判:效果型別出現在簽名(Haskell:`IO`、`IOE`、`MonadIO`、`MonadUnliftIO`、`STM`、`IORef`、`MVar`、`TVar`);`Cone.md`「Constraint」的「效果型別追加」可加(例如專案自己的 `App` monad)。
 - 效果系統的描述型別(`Eff es`、`Sem r`、`Free f`、自家的指令 ADT)不是效果:它是純資料,住 effect;帶著 `IOE :> es` 這種執行能力的才算效果。
-- IO 模組黑名單由 adapter 的 `ioModules` 給預設:繞過型別系統的逃生口(`unsafePerformIO`、`Debug.Trace`、FFI)與只有效果的模組;有純 API 的模組(`System.Random` 的 `StdGen`、`Data.Time` 的 `UTCTime`)不在名單上,它們的效果由簽名擋。`Cone.md`「專案約束」可追加。
+- IO 模組黑名單由 adapter 的 `ioModules` 給預設:繞過型別系統的逃生口(`unsafePerformIO`、`Debug.Trace`、FFI)與只有效果的模組;有純 API 的模組(`System.Random` 的 `StdGen`、`Data.Time` 的 `UTCTime`)不在名單上,它們的效果由簽名擋。`Cone.md`「Constraint」可追加。
 - 效果的**描述**是純資料,住 effect;**執行**它的真解譯器住 shell。同一個效果在同一個單元的兩層各有一個名字,不共用模組。
 - 每個效果描述配一個**純解譯器**(把描述跑在記憶體裡的資料上:`Map FilePath ByteString` 當檔案系統、固定序列當時鐘),住 effect 或 core。它是觀察點:io pipeline `=` 列的 law 靠它寫,qa 不必碰 IO。
 

@@ -175,7 +175,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
 
 // 一份 objectives.md 的樹先拆開(splitObjectivesFile,只在 migrate requirements 的暫存複本上跑):
 // 每個 ## O-n → 一條需求(一句話照抄、判準當驗收)寫進 system.md「需求」,並拆成 objectives/R-x-O-n-<slug>.md(需求、優先進 frontmatter;
-// slug 從第一條綁定的 feature 推);開頭的優先各級那行搬進「語言與工具」;「目的」併成「願景」第二段;刪 objectives.md。
+// slug 從第一條綁定的 feature 推);開頭的優先各級那行搬進「Constraint」;「目的」併成「願景」第二段;刪 objectives.md。
 function sectionRange(lines, title) {
   const from = lines.findIndex((l) => new RegExp(`^## ${title}\\s*$`).test(l));
   if (from < 0) return null;
@@ -267,14 +267,14 @@ function splitObjectivesFile(root, { write = false, date = new Date().toISOStrin
     }
     notes.push(`需求 ${split.objs.length} 條(${split.objs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : ',驗收留佔位符'}`).join('、') || '沒有目標,留一條模板'})`);
   }
-  // 「語言與工具」補一行優先
+  // 「Constraint」補一行優先
   if (split.priorityNote && !/^- 優先[::]/m.test(lines.join('\n'))) {
-    const t = sectionRange(lines, '語言與工具');
+    const t = sectionRange(lines, 'Constraint') || sectionRange(lines, '語言與工具');
     if (t) {
       let end = t.to;
       while (end > t.from + 1 && !lines[end - 1].trim()) end--;
       lines.splice(end, 0, `- 優先:${split.priorityNote}`);
-      notes.push('優先各級那行搬進「語言與工具」');
+      notes.push(`優先各級那行搬進「${lines[t.from].replace(/^## /, '').trim()}」`);
     }
   }
   const next = lines.join('\n').replace(/\n{3,}/g, '\n\n');

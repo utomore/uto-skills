@@ -25,7 +25,7 @@ node ci/lawful/contract.mjs [--root <專案根目錄>] [--lint-only]
 | 1 契約對帳 | `lint trace` 的幽靈引用(測試引用的編號文檔裡沒有)與 `status: verified` 的 pipeline 沒有測試承接的 law | 擋:幽靈引用什麼時候都是錯;verified 是建置全綠後才改的,它的 law 理應都有測試 |
 | 1 契約對帳 | `lint trace` 其餘(`ready` 的 pipeline 的 law 還沒翻譯、需求的驗收還沒有驗收測試)與領域不變量寫了三行卻沒有測試 | 只印:測試可以晚一條 PR 才到(剛批准的領域不變量,測試在下一波 build) |
 | 1 契約對帳 | `status: draft` 的 pipeline 的紅 | 只印:draft 是還在討論的文檔,改成 `ready` 的那條 PR 起才擋;`lint ids` 查的是檔案本身,兩條 draft 同號照擋 |
-| 2 建置 | `Cone.md`「專案約束」的建置指令 | 擋 |
+| 2 建置 | `Cone.md`「Constraint」的建置指令 | 擋 |
 | 3 整套測試 | 宣告的整套測試指令,輸出留檔 | 擋 |
 | 4 派工報告 | 拿測試輸出跑 `lawful status` | 只印:它答的是「全部達成了沒」,不是「這條 PR 對不對」 |
 
@@ -63,7 +63,7 @@ GitLab 的 merge trains 對應 GitHub 的 merge queue,同樣等到需要再開�
 
 **PR 只有一條新的 draft pipeline,CI 會紅嗎?** 不會。draft 的紅只印不擋。改成 `ready` 的那條 PR 起,它的每一列都要對得上程式碼。
 
-**只改立案的 PR(`plan/<slug>`:需求、里程碑、全域 Law)會紅嗎?** 不會。它只動 `.lawful/`;里程碑還沒有切片、領域不變量還只有一句話,都是警訊不是紅。
+**只改立案的 PR(`plan/<slug>`:需求、里程碑、全域 Law)會紅嗎?** 不會。它只動 `.lawful/`;里程碑還沒有切片是警訊不是紅。
 
 **一條里程碑的 PR 什麼時候才進得來?** 它在自己的 `build/M-n-<slug>` 分支上從切片做到每條 law 成立,`lawful:integrate` 才收它、整套綠了才發 PR;CI 看到的已經是達成的狀態,每一列都要對得上程式碼。
 

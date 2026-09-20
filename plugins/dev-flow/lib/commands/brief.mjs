@@ -19,7 +19,7 @@ const RULES = {
   kickoff: [['features.md', ['`.design/`', 'system.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求']], ['boundary.md', ['模組表']], ['tooling.md', ['language adapter', '收尾定錨']]],
   'require-design': [['features.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
   'global-laws': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['features.md', ['節', '提問(GAP)', '完成度']], ['roles.md', ['分支與所有權', '驗收測試', '決策紀錄']], ['tooling.md', ['CLI', '收尾定錨']]],
-  'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['features.md', ['願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
+  'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['features.md', ['system.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
   'scope-laws': [['features.md', ['feature', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O']], ['tooling.md', ['CLI', '收尾定錨']]],
   'scope-revise': [['features.md', ['簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑']], ['boundary.md', ['模組表', '層']], ['tooling.md', ['CLI', '收尾定錨']]],
   build: [['roles.md', '*'], ['features.md', ['提問(GAP)', '修訂(REV)', '完成度']], ['tooling.md', ['CLI', '測試歸屬', '跑東西的紀律', '收尾定錨']]],
@@ -41,8 +41,8 @@ const BLOCKS = {
   'scope-laws': { milestone: ['branch', 'tree', 'requirement', 'system', 'modules', 'journal', 'bound'], doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'system', 'journal', 'gaps', 'lint', 'status'] },
   'scope-revise': { doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'modules', 'gaps', 'lint', 'status'] },
   build: { doc: ['branch', 'tools', 'modules', 'journal', 'doc', 'detail', 'lint', 'gaps', 'logs', 'status'], milestone: ['branch', 'tools', 'modules', 'journal', 'requirement', 'bound', 'lint', 'gaps', 'logs', 'status'], top: ['branch', 'tools', 'top', 'gaps', 'logs', 'status'] },
-  qa: { doc: ['doc', 'detail', 'declarations', 'innermost', 'testing'], top: ['top', 'touched', 'innermost', 'testing'] },
-  refactor: { doc: ['doc', 'detail', 'declarations', 'files'] },
+  qa: { doc: ['doc', 'detail', 'declarations', 'innermost', 'tools', 'testing'], top: ['top', 'touched', 'innermost', 'tools', 'testing'] },
+  refactor: { doc: ['doc', 'detail', 'declarations', 'files', 'tools'] },
   integrate: { none: ['branch', 'journals', 'tools', 'gaps'] },
   status: { none: ['tools', 'logs'] },
   audit: { none: ['lintall', 'requirements', 'status', 'modules'] },
@@ -382,7 +382,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
       const ident = IDENT_STYLE.has(side.name);
       const form = (m) => (ident ? `${id}#${m}`.toLowerCase().replace(/-/g, '_').replace(/#/g, '__') : `"${id}#${m}"`);
       out.push('# 測試怎麼寫', '');
-      out.push(`- 子集測試指令:${commandFor(design, '測試(子集)', side) || '(system.md「語言與工具」沒有寫)'}`);
+      out.push(`- 子集測試指令:${commandFor(design, '測試(子集)', side) || '(system.md「Constraint」沒有寫)'}`);
       out.push(`- 歸屬寫法:${ident ? '識別字' : '字串'},${marks.map(form).join('、')}`);
       out.push(`- 測試檔以 ${top ? top.id : x.p.fullName} 命名`);
       // 範例優先挑別的目標的測試:這個目標自己的測試正是 qa 要寫的東西
@@ -400,7 +400,7 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
         const y = a.info.get(r);
         if (y) out.push(`- 引用的 ${r}:文檔 ${y.p.file};程式碼 ${[...new Set(y.steps.map((s) => (s.hit ? s.hit.file : s.module)))].join('、')}`);
       }
-      out.push(`- 子集測試指令:${commandFor(design, '測試(子集)', side) || '(system.md「語言與工具」沒有寫)'}`);
+      out.push(`- 子集測試指令:${commandFor(design, '測試(子集)', side) || '(system.md「Constraint」沒有寫)'}`);
       const tests = source.testFiles.filter((t) => !t.inline).map((t) => t.file).sort();
       out.push(`- 測試檔(不准讀、不准寫):${tests.length ? tests.join('、') : '(還沒有)'}`, '');
     },
@@ -425,9 +425,10 @@ export function briefCommand(root, design, source, adapter, skill, target, { fin
       if (!hit.length && req) out.push('# 引用到的文檔', '', '(三行裡的識別字沒有對到任何一份文檔的 Steps)', '');
     },
 
+    // 硬性限制(寫程式與寫測試的角色照做)與工具要讀的那幾行,同一節
     tools: () => {
-      const s = sys ? sys.sections.find((q) => q.title === '語言與工具') : null;
-      out.push('# system.md「語言與工具」', '', ...(s ? s.lines.filter((l) => l.trim()) : ['(system.md 沒有這一節)']), '');
+      const s = sys ? sys.sections.find((q) => q.title === 'Constraint') || sys.sections.find((q) => q.title === '語言與工具') : null;
+      out.push('# system.md「Constraint」', '', ...(s ? s.lines.filter((l) => l.trim()) : ['(system.md 沒有這一節)']), '');
     },
 
     system: () => out.push(...wholeFile('system.md(全份)', design_('system.md'), '(還沒有 .design/system.md)')),

@@ -11,7 +11,7 @@ updated: 2026-09-07
 不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
 
 ### 領域不變量
-- INV-1 [bound] 只有一句話、還沒有三行式的不變量
+- INV-1 [bound] 沒有三行的不變量
 - INV-2 [invariant] 寫了三行卻沒有測試,而且引用了一份 feature 的簽名
   - forall raw in Raw
   - |- score(raw) >= 0
@@ -30,7 +30,7 @@ updated: 2026-09-07
 |---|---|---|---|---|---|---|---|
 | POST /score | in | `Raw` | `src/entry/api.ts` | F-001-score | untrusted | - | F-001#LAW-9、INV-9、冪等 |
 
-## 語言與工具
+## Constraint
 - 建置:`npx tsc --noEmit`
 - 測試(整套):`npx jest`
 - 測試(子集):`npx jest test/<檔名>`

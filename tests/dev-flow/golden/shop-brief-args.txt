@@ -10,8 +10,14 @@ brief build F-001-checkout @doc:09ec92e0 rules:<雜湊>
 
 (這個目錄不是 git repo 的根,也不是一棵工作樹)
 
-# system.md「語言與工具」
+# system.md「Constraint」
 
+硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(三道指令、追加清單、忽略目錄、號段、優先)。開發者定,`dev-flow:kickoff` 寫,之後隨時回 `dev-flow:kickoff` 補或改;限制的類別可以自己加。
+- 語言與版本:TypeScript 5.4,`strict` 全開
+- 編譯器與執行環境:Node 20
+- 套件與框架:測試只用 jest;金額運算不准引入浮點數的函式庫
+- 環境:無
+- 命名與寫法:型別 PascalCase、函數與變數 camelCase、檔名 kebab-case;讀出整數分的函數以 `Cents` 結尾
 - 建置:`npx tsc --noEmit`
 - 測試(整套):`npx jest`
 - 測試(子集):`npx jest test/<檔名>`(以一份文檔選)

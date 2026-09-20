@@ -6,7 +6,7 @@
 
 ```
 .design/
-├── system.md          願景、全域 Law(領域不變量、架構:層、契約:對外 I/O)、語言與工具、Features 清單
+├── system.md          願景、全域 Law(領域不變量、架構:層、契約:對外 I/O)、Constraint、Features 清單
 ├── requirements/R-n-<slug>.md     一條需求一個檔(「願景、需求與里程碑」)
 ├── modules.md         模組表(boundary.md「模組表」)
 ├── features/F-00x-<slug>.md
@@ -42,10 +42,10 @@ frontmatter:`language`(選 adapter;前後端各一種語言的專案寫 `[<目�
 |---|---|
 | `## 願景` | 北極星。第一段一到三句:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼;後面可以展開替誰做什麼、明確不做什麼。立案時訂,不隨里程碑變;`devflow status` 把第一段印在第一行,還是模板就列警訊 |
 | `## 全域 Law` | **不得違反**的約束,整個專案的約束都看得到住在這一區(laws.md「全域 Law」);底下三個小區。立案開出來時三個小區都是空的:每一條都是從做出來的切片裡抽上去的,`dev-flow:scope-laws` 談出候選、開發者批准、`dev-flow:global-laws` 落筆 |
-| `### 領域不變量` | `- INV-n [種類] 一句話` 一條一項,底下三行(開發者先立、最內層的型別還沒出現的那一句,先只有一句話);一條都沒有寫「無」 |
+| `### 領域不變量` | `- INV-n [種類] 一句話` 一條一項,底下三行;一條都沒有寫「無」 |
 | `### 架構:層` | 表,由內而外(boundary.md「層」);還沒有層的時候只有表頭 |
 | `### 契約:對外 I/O` | 表:名稱、方向(in / out)、型別、模組、進入哪份 feature、信任(trusted / untrusted)、驗證、契約(boundary.md「對外 I/O」);還沒有切片的時候只有表頭,每條切片的新列由 `dev-flow:scope-laws` 寫 |
-| `## 語言與工具` | 三道指令:建置、整套測試、**子集測試**;每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令;多語言專案每側一段「<目錄> = `指令`」以 ; 分隔。IO 模組追加、Laws 詞彙追加(law 會用到但不是簽名也不是型別名的字)、忽略目錄;一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼 |
+| `## Constraint` | 硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定。清單,一項一行「類別:限制」——語言與版本、編譯器與執行環境、套件與框架、環境、命名與寫法(變數、函數、檔案怎麼命名,格式與風格);類別可以自己加,沒有限制的類別寫「無」。由開發者定,`dev-flow:kickoff` 寫:立案時定得下來的先寫,之後隨時回 `dev-flow:kickoff` 補或改。它不是 law(laws.md「全域 Law」):不從切片裡抽、沒有三行、沒有測試;`dev-flow:spike-impl`、`dev-flow:qa` 與 `dev-flow:refactor` 動筆之前讀它、寫出來的每一行都照做。同一節也裝工具要讀的那幾行:三道指令:建置、整套測試、**子集測試**;每道指令是該列第一個反引號區段,反引號外的文字是給人看的說明;指令在專案根目錄執行,要換目錄就寫進指令;多語言專案每側一段「<目錄> = `指令`」以 ; 分隔。IO 模組追加、Laws 詞彙追加(law 會用到但不是簽名也不是型別名的字)、忽略目錄;一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼 |
 | `## Features` | 表:全名、類別(`feature`)。`devflow status` 的分母;交付順序不寫在這裡,由需求的優先、里程碑的順序與文檔的引用推 |
 
 description 住各文檔的 frontmatter,清單不重複。
@@ -58,7 +58,7 @@ description 住各文檔的 frontmatter,清單不重複。
 |---|---|---|
 | 願景 | `system.md`「願景」 | 北極星:專案要交出的、世界上還沒有的東西;只有一個,立案時訂。它是方向,不是驗收清單:需求不對它逐句對照,順序來自依賴與必要性,不來自離它多近 |
 | 需求 | `requirements/R-n-<slug>.md`,一條需求一個檔;frontmatter `id`、`priority`、`updated`,標題 `# <全名>:<一句話>` | 一件使用者要得到的事,**必須達成**:一句話講誰在什麼情況下要得到什麼。各有一句**驗收**(`- 驗收:…`):可驗證、可判定的一句話,判這條需求達成了沒;最好有一條歸屬 `R-n#ACCEPT` 的驗收測試(roles.md「驗收測試」)。各有一級**優先**(frontmatter `priority`,1 到 4,1 最高)。需求不是 law:做到之前它本來就還沒達成。需求只在與開發者的討論裡成形,只由 `dev-flow:require-design` 寫。`R-n` 是流水號,永不重排,只是身分,不代表先後;slug 是 kebab-case 英文,講這條需求要得到什麼。至少一條 |
-| 優先各級 | `system.md`「語言與工具」一行 `- 優先:1 = …;2 = …;3 = …;4 = …` | 各級在這個專案代表什麼,專案自己定(例:1 = 主軸與它的直接前提;2 = 地基;3 = 呈現與存取;4 = 工具與詞彙);`devflow status` 印它,沒宣告列警訊 |
+| 優先各級 | `system.md`「Constraint」一行 `- 優先:1 = …;2 = …;3 = …;4 = …` | 各級在這個專案代表什麼,專案自己定(例:1 = 主軸與它的直接前提;2 = 地基;3 = 呈現與存取;4 = 工具與詞彙);`devflow status` 印它,沒宣告列警訊 |
 | 里程碑 | 需求檔裡的表 `里程碑 \| 做到什麼 \| 綁定` | 這條需求的建置切成的階段,**有順序,依序完成;全部達成,這條需求的建置就走完**。第一格是全名 `M-n-<slug>`:`M-n` 是配號用的編號,全資料夾唯一(跨需求檔);slug 是 kebab-case 英文,切片的分支 `build/M-n-<slug>` 與決策紀錄以全名為鍵;表的列序就是先後。**綁定**欄是 feature 全名,「、」分隔,切片做出來的新 feature 或這個階段靠修訂做到的既有 feature 都可以;「-」的意思是**還沒有切片**。需求檔只有這一張表 |
 
 ```markdown
@@ -95,7 +95,7 @@ updated: 2026-09-07
   - 在那條 REV 出現之前,`devflow status` 顯示這條里程碑「待修訂」,下一步是對綁定的那份文檔走修訂(「修訂(REV)」):既有的 law 不動、新的承諾(例如「一秒內完成」的上界,一條新的 `bound` law)用新增的 law 表達,走 `dev-flow:scope-revise <文檔全名>`;要調整既有的 law,走 `dev-flow:scope-laws <文檔全名>`。修訂在這條里程碑的 `build/M-n-<slug>` 分支上做,REV 的依欄寫 `M-n-<slug>` 與它那一句。綁定欄由 `dev-flow:require-design` 當場填,修訂的 skill 不碰需求檔。
   - 先後就是里程碑表的列序:它與做出新 feature 的里程碑排在同一張表,輪到它(它是這條需求下一條還沒達成的里程碑)才開工。修訂之後需求仍要達成:REV 的保護欄含需求的驗收引用到的每條 law;里程碑全部達成而驗收沒過是警訊(「完成度」)。
   - 例:上面需求檔的 `M-4-fast-checkout`。`F-001-checkout` 最先由 `M-1-checkout` 綁定,`M-4-fast-checkout` 排在它後面、綁同一份,是靠修訂達成的;`F-001-checkout` 的修訂記錄出現依欄寫 `M-4-fast-checkout` 的 REV(新增一條 `bound` law 守「一秒內」)、文檔回到達成,`M-4-fast-checkout` 才達成。
-  - 例:整個專案的資料儲存換成資料庫。需求寫的是誰得到什麼(「服務重啟後,已成立的訂單不遺失」);里程碑「訂單重啟後還在」靠修訂 `F-001-checkout` 達成,`dev-flow:require-design` 當場把 `F-001-checkout` 填進綁定欄,「重啟後讀得回來」是修訂時新增的一條 law。用哪個資料庫不是需求本身:它是決定(ADR),加上全域 Law 的變更(`dev-flow:global-laws`:對外 I/O 多一端、資料庫客戶端只准住最外層)與「語言與工具」的測試指令。
+  - 例:整個專案的資料儲存換成資料庫。需求寫的是誰得到什麼(「服務重啟後,已成立的訂單不遺失」);里程碑「訂單重啟後還在」靠修訂 `F-001-checkout` 達成,`dev-flow:require-design` 當場把 `F-001-checkout` 填進綁定欄,「重啟後讀得回來」是修訂時新增的一條 law。用哪個資料庫不是需求本身:它是決定(ADR),加上全域 Law 的變更(`dev-flow:global-laws`:對外 I/O 多一端、資料庫客戶端只准住最外層)與「Constraint」的測試指令。
 - 進度不是欄位:里程碑達成與否、需求的建置進度(達成的里程碑 / 里程碑數)、需求達成與否照「完成度」;都由 `devflow status` 算。
 - **引用一條里程碑一律寫全名 `M-n-<slug>`**:REV 的依欄、決策紀錄、commit 訊息、PR 內文、回報與下一步的指令都是;`M-n` 是配號用的編號,不拿來引用。
 - 配號只走 `devflow requirement add`、`devflow requirement milestone`(需求面)與 `devflow invariant add`(領域不變量);`devflow claim feature --milestone <M-n-slug>` 把新 feature 綁進里程碑,`devflow requirement milestone … --bind <feature 全名>` 把既有的 feature 綁進新的里程碑。刪掉的號永久空缺。
@@ -135,7 +135,7 @@ feature 之間**可以互相引用**,不論它們屬於哪條需求:兩份 featu
   - `lint sig` 對帳:同名簽名出現在兩份文檔而沒有一邊註明「見」即紅;註明的那一份不存在、或它沒有這個 step(或它自己也是引用)即紅。
 - 配號只走 `devflow claim`、`devflow requirement add / milestone`、`devflow invariant add`;刪掉的號永久空缺。
 - `devflow claim` 配號時看同一個 repo 的每一棵工作樹:每條切片住自己的 build 工作樹、各自 claim,別棵樹上 claim 走的號不重配。
-- `system.md`「語言與工具」沒有號段行時,`devflow claim` 從該類別全部文檔的最大號往上配。有號段行時(每人一段,以 git 的 `user.email` 為鍵:`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),從自己區間內的最大號往上配,frontmatter 多一欄 `owner: <email>`;email 對不到任何區間、或區間用完,claim 停下,由架構負責人改號段行。號段只管 feature 與 ADR;需求、領域不變量、里程碑一律從最大號往上配(里程碑跨需求檔、跨工作樹)。
+- `system.md`「Constraint」沒有號段行時,`devflow claim` 從該類別全部文檔的最大號往上配。有號段行時(每人一段,以 git 的 `user.email` 為鍵:`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),從自己區間內的最大號往上配,frontmatter 多一欄 `owner: <email>`;email 對不到任何區間、或區間用完,claim 停下,由架構負責人改號段行。號段只管 feature 與 ADR;需求、領域不變量、里程碑一律從最大號往上配(里程碑跨需求檔、跨工作樹)。
 - `lint ids`:兩個檔案同號、號段行讀不懂或兩段重疊、`owner` 的號不在自己的區間內即紅。不同機器上各自 claim 時彼此看不到,同號在合進主線時才浮現,這條在 PR 的 CI 上跑。
 - feature 與 ADR 一律寫全名。
 - slug 是 kebab-case 英文,講資料流做什麼。

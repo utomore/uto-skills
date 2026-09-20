@@ -1,7 +1,7 @@
 $ lawful migrate cone --write --date 2026-09-05
 # migrate cone 帳本
 
-- .lawful/Cone.md:建,願景(目的接成第二段)、需求 1 條(R-1 ← O-1)、全域 Law 區(四層、對外 I/O、領域不變量寫「無」)、專案約束(語言與工具照搬,優先各級那行搬進來)
+- .lawful/Cone.md:建,願景(目的接成第二段)、需求 1 條(R-1 ← O-1)、全域 Law 區(四層、對外 I/O、領域不變量寫「無」)、Constraint(「語言與工具」那幾行照搬,限制那幾行留模板,優先各級那行搬進來)
 - .lawful/modules.md:整理成只有「模組單元」表
 - .lawful/pipelines/P-001-save-write.md:frontmatter 補 kind: io
 - .lawful/objectives/R-1-O-1-save-write.md:建(O-1;需求配 R-1;slug 從第一條綁定的 pipeline 推,不對就改檔名)
@@ -43,7 +43,13 @@ updated: 2026-09-05
 |---|---|---|---|---|---|
 | 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-write | - |
 
-## 專案約束
+## Constraint
+硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先)。開發者定,`lawful:kickoff` 寫,之後隨時回 `lawful:kickoff` 補或改;限制的類別可以自己加。
+- 語言與版本:<例如 Haskell GHC2021;無則「無」>
+- 編譯器與執行環境:<例如 GHC 9.6、cabal 3.10;無則「無」>
+- 套件與框架:<硬性要求或禁用的套件、框架與版本,效果的寫法(直接 IO、mtl、effectful);無則「無」>
+- 環境:<作業系統、部署目標、容器;無則「無」>
+- 命名與寫法:<變數、函數、模組怎麼命名,格式與風格;無則「無」>
 - 語言:haskell
 - 建置:`cabal build`
 - 測試(整套):`cabal test`
@@ -53,7 +59,6 @@ updated: 2026-09-05
 - IO 模組追加:無
 - 效果型別追加:無
 - 忽略目錄:`old`
-- 套件與框架:無
 - 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
 
 --- .lawful/objectives/R-1-O-1-save-write.md

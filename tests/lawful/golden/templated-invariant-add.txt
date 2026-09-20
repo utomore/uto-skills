@@ -1,6 +1,6 @@
 $ lawful invariant add 報表的行數不為負 --kind bound
 INV-1 寫進 .lawful/Cone.md「全域 Law」的領域不變量
-還沒有三行式:從切片抽上去的,把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名);types 層的型別還沒出現的先留一句話。有了三行,build 派 qa 寫歸屬 "INV-1#LAW" 的測試
+接著把出處那條 law 的三行照搬到它底下(識別字只用 types 層的匯出與型別名):沒有三行 lint invariants 即紅。有了三行,build 派 qa 寫歸屬 "INV-1#LAW" 的測試
 exit 0
 --- .lawful/Cone.md
 ---
@@ -31,7 +31,9 @@ frozen-ref 的兩條,再加一條剛 claim、Stages 與 Laws 都還是模板佔�
 |---|---|---|---|---|---|
 | 輸入文字 | in | `Text` | `App.Report.Main` | P-001-report-render | - |
 
-## 專案約束
+## Constraint
+硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先)。開發者定,`lawful:kickoff` 寫,之後隨時回 `lawful:kickoff` 補或改;限制的類別可以自己加。
+- 套件與框架:無
 - 語言:haskell
 - 建置:`cabal build`
 - 測試(整套):`cabal test`
@@ -40,5 +42,4 @@ frozen-ref 的兩條,再加一條剛 claim、Stages 與 Laws 都還是模板佔�
 - IO 模組追加:無
 - 效果型別追加:無
 - 忽略目錄:無
-- 套件與框架:無
 

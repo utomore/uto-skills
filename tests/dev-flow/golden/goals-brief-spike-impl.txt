@@ -82,7 +82,7 @@ updated: 2026-09-07
 | POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` | F-002#LAW-2 |
 | 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - | INV-1 |
 
-## 語言與工具
+## Constraint
 - 建置:`npx tsc --noEmit`
 - 測試(整套):`npx jest`
 - 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
@@ -135,7 +135,7 @@ updated: 2026-09-07
 
 | 領域不變量 | 種類 | 一句話 | 成立 |
 |---|---|---|---|
-| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 未知(寫了三行卻沒有 INV-1#LAW 測試) |
+| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 未知(沒有 INV-1#LAW 測試) |
 
 #### 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -174,7 +174,7 @@ updated: 2026-09-07
 | R-1 | 驗收寫了三行卻沒有驗收測試,達成與否未知 | dev-flow:build R-1(只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推 |
 | R-2 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
 | R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>) |
-| INV-1 | 寫了三行卻沒有測試,成立與否未知 | dev-flow:build INV-1(只派 qa 寫一條歸屬 "INV-1#LAW" 的測試) |
+| INV-1 | 沒有測試,成立與否未知 | dev-flow:build INV-1(只派 qa 寫一條歸屬 "INV-1#LAW" 的測試) |
 | 全域 Law:架構 | lint boundary 3 條不合規 | devflow lint boundary |
 | 全域 Law:契約 | lint io 4 條不合規 | devflow lint io |
 | 全域 Law:領域不變量 | lint invariants 7 條不合規 | devflow lint invariants |

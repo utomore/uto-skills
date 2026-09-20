@@ -19,7 +19,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief integrate --args '$ARGUMENTS' --part 4 --of 4`
 
-上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief integrate` 的輸出:規章、分支與工作樹(建構中的與已合進主線卻還在的 build 分支都列了)、這棵樹的決策紀錄清單、`system.md`「語言與工具」、`gaps.md`;專案沒有 `.design/` 時只有分支那一塊,規章不必讀,照 git 與 PR 的部分做完即可。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief integrate` 的輸出:規章、分支與工作樹(建構中的與已合進主線卻還在的 build 分支都列了)、這棵樹的決策紀錄清單、`system.md`「Constraint」、`gaps.md`;專案沒有 `.design/` 時只有分支那一塊,規章不必讀,照 git 與 PR 的部分做完即可。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
 目標:不必給。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief integrate --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
@@ -56,7 +56,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 3. 驗收
 
-1. 跑建置與整套測試(有 `.design/` 就是 `system.md`「語言與工具」的那兩道),輸出留檔;有 `.design/` 再跑 `devflow status --tests <log>`(多語言專案每側一份:`--tests <目錄>=<log>,<目錄>=<log>`)與 `devflow lint all`(`lint global` 的三道在裡面:架構、契約、領域不變量)。
+1. 跑建置與整套測試(有 `.design/` 就是 `system.md`「Constraint」的那兩道),輸出留檔;有 `.design/` 再跑 `devflow status --tests <log>`(多語言專案每側一份:`--tests <目錄>=<log>,<目錄>=<log>`)與 `devflow lint all`(`lint global` 的三道在裡面:架構、契約、領域不變量)。
 2. 判準:**每一條 law 都仍然成立**——每份決策紀錄宣稱達成的文檔合併後仍達成、全域 Law 三類沒有新的紅、領域不變量全綠;原本達成的需求沒有退回未達成;決策紀錄「合併時要看」預期的變化如期發生;沒有新的紅、沒有新的警訊。**帶著紅燈不發 PR。**
 3. **重複的 step**(`roles.md`「整合」、`features.md`「編號與引用」):`lint sig` 報同名簽名在兩份文檔都沒註明「見」= 兩條切片平行開工、各寫了一份同樣的 step。一個 step 與它的 law 只住一份文檔:用 AskUserQuestion 問開發者留哪一份(你的傾向放第一個,預設留先合進主線的那一份),各附當下成本與之後的代價。另一份的分支不進這次整合:在它的工作樹的 `.design/gaps.md` 加一條 GAP(角色 conductor,目標那個 step,「需要回答什麼」寫留了哪一份與開發者的原話)並 commit;留著的那一份合進主線後,它的工作樹合入主線,`dev-flow:scope-laws <它的全名>` 刪掉自己的那個 step 與它的 law、改成引用,再 build。你不改條文。剩下的候選回 §2 重合。
 4. **合併後紅**:歸因不改碼(`roles.md`「整合」):那條 law 屬於哪份文檔、它在自己的分支上綠不綠(看決策紀錄的「Verification」)、哪幾條分支與它共用檔案。候選超過一條才從主線另開臨時分支逐條重合、跑那份文檔的子集,找出第一條讓它紅的,臨時分支刪掉。分支綠、合併紅 → §4。
@@ -101,7 +101,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
      ## 全域 Law
      - 擋到了實作的:<INV-n / 層的規則 / 對外 I/O 的契約:哪條分支、擋掉了什麼做法>;抄各決策紀錄「Decisions」表裡 Constraint 欄指到全域 Law 的列;無則「無」
-     - 這次 PR 帶進來的:<INV-n / 層 / 對外 I/O:從哪條切片的哪條 law 抽上去的、或改了什麼;開發者哪一句話批准的;ADR-00x(有的話)>;只來自 global-laws 落筆的(build 分支上從切片抽上去的、`plan/` 分支上的變更與先立的那一句);無則「無」
+     - 這次 PR 帶進來的:<INV-n / 層 / 對外 I/O:從哪條切片的哪條 law 抽上去的、或改了什麼;開發者哪一句話批准的;ADR-00x(有的話)>;只來自 global-laws 落筆的(build 分支上從切片抽上去的、`plan/` 分支上的變更);無則「無」
      - 提出而還沒批准的變更建議:<哪一條、反例、選項>;無則「無」
 
      ## 合併

@@ -185,7 +185,7 @@ export function loadResults(design, adapter, flags, root) {
   }
   if (flags.run) {
     const cmd = design.system && design.system.commands['測試(整套)'];
-    if (!cmd) return { results: null, note: 'system.md「語言與工具」沒有整套測試指令,--run 不知道跑什麼' };
+    if (!cmd) return { results: null, note: 'system.md「Constraint」沒有整套測試指令,--run 不知道跑什麼' };
     // 字串:一道指令跑全部,每一側都掃它的輸出;物件:每側一道,各在專案根目錄跑、各用自己的 adapter 掃
     const jobs = typeof cmd === 'string' ? [{ dir: '', cmd }] : Object.entries(cmd).map(([dir, c]) => ({ dir, cmd: c }));
     const notes = [];
@@ -292,14 +292,14 @@ export function requirementView(design, a) {
   return { reqs, rank, keyOf, tag, maker };
 }
 
-// 領域不變量:整個專案都不准違反的 law。只由測試判:有 INV-n#LAW 測試以它為準;寫了三行卻沒有測試、或還沒有三行式,都是未知。
+// 領域不變量:整個專案都不准違反的 law。只由測試判:有 INV-n#LAW 測試以它為準;沒有測試、或沒有三行(lint invariants 的紅),都是未知。
 export function invariantView(design, a) {
   const sys = design.system;
   return (sys ? sys.invariants : []).map((v) => {
     const test = a.lawTest(`${v.id}#LAW`);
     if (test) return { ...v, holds: verdict(test.result), source: `測試 ${test.key} ${test.result}`, tested: true };
-    if (v.law.formal) return { ...v, holds: null, source: `寫了三行卻沒有 ${v.id}#LAW 測試`, tested: false };
-    return { ...v, holds: null, source: '還沒有三行式', tested: false };
+    if (v.law.formal) return { ...v, holds: null, source: `沒有 ${v.id}#LAW 測試`, tested: false };
+    return { ...v, holds: null, source: '沒有三行', tested: false };
   });
 }
 
@@ -413,7 +413,7 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
   else if (design.objectivesFile) warn('objectives.md', '里程碑還擠在一份 objectives.md 裡', 'devflow migrate requirements --write 換成 requirements/ 一條需求一個檔');
   for (const o of design.requirements.orphans || []) warn(o.file, `對到的需求 ${o.requirement} 不存在,它的里程碑沒有算進任何需求`, 'devflow migrate requirements 的帳本會列出它;決定它屬於哪條需求');
   if (!ov.reqs.length) warn(design.requirements.exists ? 'requirements/' : '.design/', '沒有任何需求', 'dev-flow:require-design 談第一條需求(至少一條)');
-  else if (sys && sys.priorityNoteState !== 'ok') warn('system.md', sys.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'dev-flow:require-design 在「語言與工具」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」');
+  else if (sys && sys.priorityNoteState !== 'ok') warn('system.md', sys.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'dev-flow:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」');
   const seenM = new Set();
   for (const q of ov.reqs) {
     if (q.hasRefinementTable && !design.requirements.merged) warn(q.file, '還有調整表;調整就是一條綁既有文檔的里程碑,需求檔只有一張里程碑表', 'devflow migrate requirements --write');
@@ -444,8 +444,8 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
   for (const f of unbound) warn(f, '沒有被任何里程碑綁定', '不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature');
   for (const v of inv) {
     if (v.holds === false) warn(v.id, `領域不變量未成立(${v.source})`, '有程式碼違反了它:仲裁那條紅,先歸因到是哪一份 feature 的實作再改');
-    else if (!v.law.formal) warn(v.id, '還沒有三行式,成立與否未知', 'dev-flow:global-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)');
-    else if (!v.tested) warn(v.id, '寫了三行卻沒有測試,成立與否未知', `dev-flow:build ${v.id}(只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試)`);
+    else if (!v.law.formal) warn(v.id, '沒有三行,成立與否未知', 'dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條');
+    else if (!v.tested) warn(v.id, '沒有測試,成立與否未知', `dev-flow:build ${v.id}(只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試)`);
   }
   for (const n of [...stale].sort()) warn(`build/${n}`, '已合進主線卻還在', 'dev-flow:integrate 開頭會清掉它;或 git worktree remove <工作樹> 後 git branch -d build/' + n);
   const gapIds = new Map();

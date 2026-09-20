@@ -31,5 +31,5 @@ contract:
     # 專案自己的依賴
     - npm ci
   script:
-    # 建置與整套測試的指令從 .design/system.md「語言與工具」讀,不用在這裡重寫一次
+    # 建置與整套測試的指令從 .design/system.md「Constraint」讀,不用在這裡重寫一次
     - node .uto-skills/ci/dev-flow/contract.mjs

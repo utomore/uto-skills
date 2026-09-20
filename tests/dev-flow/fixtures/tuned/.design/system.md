@@ -35,7 +35,7 @@ updated: 2026-09-07
 | POST /refund | in | `RawBody` | `src/entry/routes.ts` | F-002-refund | untrusted | `parseRefund` | F-002#LAW-2 |
 | 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - | INV-1 |
 
-## 語言與工具
+## Constraint
 - 建置:`npx tsc --noEmit`
 - 測試(整套):`npx jest`
 - 測試(子集):`npx jest test/<檔名>`(以一份文檔選)

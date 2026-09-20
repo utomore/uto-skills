@@ -1,4 +1,4 @@
-// 讀 .design/ 成一棵樹:system(願景、全域 Law 三區——領域不變量、架構的層、契約的對外 I/O——、語言與工具、Features)、requirements(需求:驗收、優先、里程碑)、modules、features、abstracts、gaps、journals。只讀不判;判在 commands/。
+// 讀 .design/ 成一棵樹:system(願景、全域 Law 三區——領域不變量、架構的層、契約的對外 I/O——、Constraint、Features)、requirements(需求:驗收、優先、里程碑)、modules、features、abstracts、gaps、journals。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
@@ -150,7 +150,8 @@ export function readSystem(designDir, root) {
   const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
   for (const s of secs) s.start += offset;
 
-  const tools = findSection(secs, '語言與工具');
+  // 硬性限制與工具要讀的那幾行住「## Constraint」;節名寫成「語言與工具」的樹靜默照讀
+  const tools = findSection(secs, 'Constraint') || findSection(secs, '語言與工具');
   const commands = {};
   const ioExtra = [];
   const vocab = [];

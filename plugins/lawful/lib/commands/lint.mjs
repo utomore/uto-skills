@@ -340,7 +340,7 @@ export function lintLaws(design, source, adapter) {
 }
 
 // 全域 Law 三類各一道:架構 = boundary、契約 = io、領域不變量 = invariants
-// 領域不變量:編號不重複、種類合法、三行只引用 types 層的匯出與型別名、寫了三行就有 INV-n#LAW 測試
+// 領域不變量:編號不重複、種類合法、三行齊全(沒有即紅)而且只引用 types 層的匯出與型別名、有 INV-n#LAW 測試
 export function lintInvariants(design, source, adapter) {
   const r = { title: 'lint invariants', red: [], info: [] };
   const cone = design.cone;
@@ -354,6 +354,7 @@ export function lintInvariants(design, source, adapter) {
     seenInv.add(v.id);
     if (!LAW_KINDS.includes(v.kind)) r.red.push(`${where} 種類「${v.kind}」不在 ${LAW_KINDS.join(' / ')};第一行寫成 ${v.id} [種類] 一句話`);
     if (v.law.formal) checkLawBody(r, where, v.law, new Set(), typesExports, stdlib, 'types 層的型別');
+    else r.red.push(`${where} 沒有三行;領域不變量是從一條 law 抽上去的,把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名),沒有出處的不立`);
   }
   if (source) {
     const seen = new Set(source.testFiles.flatMap((t) => t.markers));
@@ -361,8 +362,7 @@ export function lintInvariants(design, source, adapter) {
     for (const v of [...cone.invariants].sort((m, k) => Number(k.law.formal) - Number(m.law.formal))) {
       if (seen.has(`${v.id}#LAW`) || done.has(v.id)) continue;
       done.add(v.id);
-      if (v.law.formal) r.red.push(`${v.id}#LAW 寫了三行卻沒有測試;領域不變量只由測試判,沒有測試就是未知`);
-      else r.info.push(`${v.id}#LAW 還沒有三行式也沒有測試,成立與否未知;領域不變量只由測試判`);
+      if (v.law.formal) r.red.push(`${v.id}#LAW 沒有測試;領域不變量只由測試判,沒有測試就是未知`);
     }
   }
   return r;

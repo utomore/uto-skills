@@ -26,7 +26,9 @@ frozen-ref 的兩條,再加一條剛 claim、Stages 與 Laws 都還是模板佔�
 |---|---|---|---|---|---|
 | 輸入文字 | in | `Text` | `App.Report.Main` | P-001-report-render | - |
 
-## 專案約束
+## Constraint
+硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先)。開發者定,`lawful:kickoff` 寫,之後隨時回 `lawful:kickoff` 補或改;限制的類別可以自己加。
+- 套件與框架:無
 - 語言:haskell
 - 建置:`cabal build`
 - 測試(整套):`cabal test`
@@ -35,4 +37,3 @@ frozen-ref 的兩條,再加一條剛 claim、Stages 與 Laws 都還是模板佔�
 - IO 模組追加:無
 - 效果型別追加:無
 - 忽略目錄:無
-- 套件與框架:無

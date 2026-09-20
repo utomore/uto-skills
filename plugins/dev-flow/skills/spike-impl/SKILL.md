@@ -19,7 +19,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief spike-impl --args '$ARGUMENTS' --part 4 --of 4`
 
-上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief spike-impl` 的輸出:規章、分支與工作樹(有沒有 remote 也在裡面)、`.design/` 的樹、這條里程碑所在的需求檔全文(一句話、驗收、里程碑表)、`system.md` 全份、`modules.md`、status 報告(能開的線在裡面)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief spike-impl` 的輸出:規章、分支與工作樹(有沒有 remote 也在裡面)、`.design/` 的樹、這條里程碑所在的需求檔全文(一句話、驗收、里程碑表)、`system.md` 全份(「全域 Law」區與「Constraint」節都在裡面)、`modules.md`、status 報告(能開的線在裡面)。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
 目標:里程碑全名 `M-n-<slug>`。上面寫「目標未指定」就先定出目標,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief spike-impl <目標> --no-rules`;同一場裡目標文檔變過也這樣重跑。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
@@ -27,7 +27,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 | 輸入 | 產出 |
 |---|---|
-| 一條里程碑的全名 `M-n-<slug>`;它的需求(一句話與驗收);全域 Law(`system.md`「全域 Law」區:領域不變量、層的兩條規則、對外 I/O 的信任邊界)——區裡有什麼就守什麼,專案的第一片就是用來長出它的 | `build/M-n-<slug>` 分支與工作樹上一條跑得通的切片,與 `.design/journal/M-n-<slug>.md` |
+| 一條里程碑的全名 `M-n-<slug>`;它的需求(一句話與驗收);全域 Law(`system.md`「全域 Law」區:領域不變量、層的兩條規則、對外 I/O 的信任邊界)——區裡有什麼就守什麼,專案的第一片就是用來長出它的;`system.md`「Constraint」節的硬性限制(語言與版本、編譯器與執行環境、套件、環境、命名與寫法) | `build/M-n-<slug>` 分支與工作樹上一條跑得通的切片,與 `.design/journal/M-n-<slug>.md` |
 
 ## 前置
 
@@ -39,9 +39,9 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ## 步驟
 
 0. **開分支**:`git worktree add -b build/M-n-<slug> ../<repo>.worktrees/M-n-<slug> HEAD`,記下 HEAD 的 sha(決策紀錄的 `base`)。之後每道指令的工作目錄都是這棵工作樹。
-1. **先定落點,再寫第一行**:這一片從對外 I/O 的哪個入口進來、哪個出口出去;會新增哪些檔案、各住哪一層。新檔案當場登記進 `.design/modules.md`。`untrusted` 的入口,第一個碰到資料的就是驗證。**全域 Law 區有什麼就守什麼**,從第一行程式碼起;專案的第一片就是用來長出它的:層表還沒有列 → 新檔案照樣登記、層欄留白,檔案怎麼分目錄照你判斷最站得住的分法做,並在決策紀錄「Decisions」記一列為什麼這樣分(`dev-flow:scope-laws` 拿它與開發者把層講定);對外 I/O 表還沒有列 → 跨過邊界的每一端記進「Touched」,內容由系統外面決定的入口照樣先驗證再用。
+1. **先定落點,再寫第一行**:先讀 `system.md` 的「Constraint」節(`features.md`「`system.md`」):語言與版本、編譯器與執行環境、套件與框架、環境、命名與寫法,有寫的每一項從第一行程式碼起照做——不換語言版本、不加它禁用的套件、命名與格式照它寫;它擋掉了一個做法就記進「Decisions」的 Constraint 欄,不自己放寬,要改由開發者回 `dev-flow:kickoff` 改。這一片從對外 I/O 的哪個入口進來、哪個出口出去;會新增哪些檔案、各住哪一層。新檔案當場登記進 `.design/modules.md`。`untrusted` 的入口,第一個碰到資料的就是驗證。**全域 Law 區有什麼就守什麼**,從第一行程式碼起;專案的第一片就是用來長出它的:層表還沒有列 → 新檔案照樣登記、層欄留白,檔案怎麼分目錄照你判斷最站得住的分法做,並在決策紀錄「Decisions」記一列為什麼這樣分(`dev-flow:scope-laws` 拿它與開發者把層講定);對外 I/O 表還沒有列 → 跨過邊界的每一端記進「Touched」,內容由系統外面決定的入口照樣先驗證再用。
 2. **貫通**:由外而內打通一條最短的路,再由內而外補實。簽名、步驟怎麼拆、資料結構,邊做邊定,不先寫文檔。取型別名、函式名時照專案根目錄 `CLAUDE.md`「## 名詞」節上的名詞(表上叫「訂單」的東西,型別就叫 `Order`,不另外發明一個叫法);這一節只讀不寫。需要假的就假(假資料、寫死的值、沒接上的外部系統),**每假一處就在決策紀錄「Faked / Unverified」記一列**。
-3. **記決定,不記過程**:決策紀錄是為了達成這條里程碑的 Goal / Scope 而產生的實作決策,不是流水帳。二選一的地方記進「Decisions」一列:Decision(決定了什麼)、Reason(為什麼)、Constraint(受什麼約束:全域 Law 的哪一條——領域不變量、層的規則、對外 I/O 的契約——、需求的驗收或外部系統;全域 Law 擋掉了一個做法,就寫在這裡)、否決的做法、可不可逆、跨不跨文檔。程式碼裡當成成立的前提記進「Assumptions & Invariants」,刻意守的寫「刻意」,只是寫起來剛好這樣的寫「順手」。試了幾次、先寫哪個檔不記。
+3. **記決定,不記過程**:決策紀錄是為了達成這條里程碑的 Goal / Scope 而產生的實作決策,不是流水帳。二選一的地方記進「Decisions」一列:Decision(決定了什麼)、Reason(為什麼)、Constraint(受什麼約束:全域 Law 的哪一條——領域不變量、層的規則、對外 I/O 的契約——、`system.md`「Constraint」節的哪一項、需求的驗收或外部系統;全域 Law 或 Constraint 擋掉了一個做法,就寫在這裡)、否決的做法、可不可逆、跨不跨文檔。程式碼裡當成成立的前提記進「Assumptions & Invariants」,刻意守的寫「刻意」,只是寫起來剛好這樣的寫「順手」。試了幾次、先寫哪個檔不記。
 4. **碰到別人的東西**:要改別份已經在主線上的文檔的簽名或型別 → 停那一項,它是那份文檔的修訂(它既有的 law 不動走 `dev-flow:scope-revise <那份文檔的全名>`,要調整它既有的 law 走 `dev-flow:scope-laws <那份文檔的全名>`;在同一棵工作樹上),記進「Goal / Scope」的「明確沒做」或先去修訂再回來。用得到別份文檔已經有的 step → 直接呼叫既有的程式碼,不另寫一份;在「Touched」記下用了哪一份的哪個 step,`dev-flow:scope-laws` 會把它寫成引用(`features.md`「編號與引用」)。這條里程碑讓使用者看得到的階段是靠修訂既有的 feature 做到的 → 這裡只貫通新的那一段(新的出入口、最外層的客戶端),既有 step 的改動走上面那兩個修訂的 skill,來源寫這條 `M-n-<slug>`(`features.md`「願景、需求與里程碑」)。
 5. **離場四項**(`rules/roles.md`「切片」),逐項驗:
    - 「Entry」那道指令跑得起來,看得到里程碑那一句話的行為;

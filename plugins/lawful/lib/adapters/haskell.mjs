@@ -345,7 +345,7 @@ export const haskell = {
     while ((m = re.exec(clean))) out.push(m[1]);
     return out;
   },
-  // extra:Cone.md「專案約束」的「效果型別追加」。
+  // extra:Cone.md「Constraint」的「效果型別追加」。
   isEffectful(type, extra = []) {
     const names = [...EFFECT_TYPES, ...extra].map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     return new RegExp(`(?<![\\w.'])(?:${names.join('|')})(?![\\w'])`).test(type);

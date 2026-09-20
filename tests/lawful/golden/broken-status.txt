@@ -1,17 +1,19 @@
 $ lawful status
 # lawful status
 願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-需求 4 條,達成 0 條(測試 0、推得 0)· 領域不變量 4 條,成立 0 條 · 里程碑 6 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
+需求 5 條,已驗收 0 條 · 等人工審核 0 條 · 待重審 1 條 · 領域不變量 4 條,成立 0 條 · 里程碑 7 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
 · 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
 
 ## 需求
-| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
+| 需求 | 優先 | 一句話 | 審核 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|---|---|
 | R-1 | 1 | 玩家存檔後能讀回同一個世界 | 未知(寫了三行卻沒有 R-1#ACCEPT 測試) | - | 3 | 0 | 0% |
-| R-9 | 3 | 玩家看得到自己有哪些存檔 | 未達成(M-5-save-list 還沒達成) | - | 1 | 0 | 0% |
+| R-5 | 2 | 玩家在遊戲裡翻得到每一份存檔 | 未知(測試 R-5#ACCEPT 未跑;里程碑 0 / 1 達成) | - | 1 | 0 | 0% |
+| R-9 | 3 | 玩家看得到自己有哪些存檔 | 待重審(2026-09-05 已驗收,證據翻掉:里程碑 0 / 1 達成) | - | 1 | 0 | 0% |
 | R-2 | 9 | 存檔壞了讀得出是哪裡壞 | 未達成(驗收還是模板) | - | 2 | 0 | 0% |
 | R-3 | (沒填) | 存檔可以搬到別台機器 | 未達成(還沒有里程碑) | - | 0 | 0 | - |
 - R-1 下一個里程碑:M-1-game-save 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
+- R-5 下一個里程碑:M-7-save-browse 存檔清單翻得到每一份(還沒有切片:lawful:spike-impl M-7-save-browse)
 - R-9 下一個里程碑:M-5-save-list 存檔列得出來(還沒有切片:lawful:spike-impl M-5-save-list)
 - R-2 下一個里程碑:M-1-load-report 壞檔回報位置(還沒有切片:lawful:spike-impl M-1-load-report)
 
@@ -47,6 +49,7 @@ $ lawful status
 - 程式碼有、模組表沒有:Game.Util;lawful modules --gen 再填職責
 
 ## 1. 今天能開幾條線
+- M-7-save-browse:lawful:spike-impl M-7-save-browse(R-5 優先 2 · 存檔清單翻得到每一份)
 - M-5-save-list:lawful:spike-impl M-5-save-list(R-9 優先 3 · 存檔列得出來)
 - M-1-load-report:lawful:spike-impl M-1-load-report(R-2 優先 ? · 壞檔回報位置)
 
@@ -55,6 +58,11 @@ $ lawful status
 - P-001#toSave 停在 GAP-1(impl 提)
 
 ## 3. 等決定
+- R-9 待重審:玩家看得到自己有哪些存檔
+  - 驗收那一句:存檔資料夾裡的每一份存檔都列得出來
+  - 證據:里程碑 0 / 1 達成
+  - 怎麼驗:`cabal build` → M-5-save-list 沒有怎麼驗欄(lawful:require-design 補一道指令) → 看「存檔資料夾裡的每一份存檔都列得出來」成不成立
+  - 認可:lawful requirement accept R-9 --by <你的 email> --evidence "<憑什麼認的,一句>"
 - GAP-1(P-001#LAW-1 / qa):答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws
 - GAP-1(P-001#toSave / impl):答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws
 
@@ -76,11 +84,12 @@ $ lawful status
 |---|---|---|
 | CLAUDE.md:10 | 名詞「存檔」出現 2 列,名詞只定義一次 | lawful:require-design 與開發者講定哪一句是它的定義,留一列 |
 | Cone.md | 沒有宣告優先 1 到 4 各代表什麼 | lawful:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
-| R-1 | 驗收寫了三行卻沒有驗收測試,達成與否未知 | lawful:build R-1(只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推 |
+| R-1 | 驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核 | lawful:build R-1(只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接 |
 | M-2-load-game | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
 | M-6 | 沒有英文名,REV 的依欄寫不出它的全名 | lawful:require-design 把第一格寫成 M-6-<slug>(kebab-case 英文);引用一條里程碑一律用全名 |
 | M-6 | 綁定的 P-009-nope 不存在 | 改成 pipelines/ 裡有的全名,或刪這個綁定 |
 | .lawful/requirements/R-4-save-list.md | 檔名與 frontmatter 對不上(frontmatter:R-9) | 檔名 R-n-<slug> 的 R-n 要等於 frontmatter 的 id |
+| R-9 | 2026-09-05 已驗收,證據現在翻掉了(里程碑 0 / 1 達成) | 先把紅的修回來,再 lawful requirement accept R-9 重簽一次;人簽過的是當時那份證據,不是永久的 |
 | R-2 | 驗收還是模板 | lawful:require-design 寫成可判定的一句 |
 | R-2 | 優先「9」不是 1 到 4 | 改成 1(最高)到 4(最低) |
 | M-1-load-report | 里程碑編號重複 | 編號全資料夾唯一;配號只走 lawful requirement milestone |
@@ -103,7 +112,8 @@ $ lawful status
 ## 7. 建議路線
 1. 先回答 GAP-1、GAP-1(答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws),卡住的 stage 才能重派
 2. lawful:build P-001-game-save(R-1 優先 1 · M-1-game-save 存檔寫得出檔案)
-3. lawful:spike-impl M-5-save-list(R-9 優先 3 · 存檔列得出來)
-4. lawful:spike-impl M-1-load-report(R-2 優先 ? · 壞檔回報位置)
-5. lawful:build INV-2(只派 qa 寫 INV-2#LAW 的測試)
+3. lawful:spike-impl M-7-save-browse(R-5 優先 2 · 存檔清單翻得到每一份)
+4. lawful:spike-impl M-5-save-list(R-9 優先 3 · 存檔列得出來)
+5. lawful:spike-impl M-1-load-report(R-2 優先 ? · 壞檔回報位置)
+6. lawful:build INV-2(只派 qa 寫 INV-2#LAW 的測試)
 exit 1

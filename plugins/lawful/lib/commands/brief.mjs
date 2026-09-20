@@ -16,18 +16,18 @@ const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 // 每個 skill 開工要讀的規章節;'*' 是整份。這張表是「誰讀什麼」的唯一來源。
 const RULES = {
   kickoff: [['pipelines.md', ['`.lawful/`', 'Cone.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求']], ['boundary.md', ['模組單元', '模組表']], ['tooling.md', ['language adapter', '收尾定錨']]],
-  'require-design': [['pipelines.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
+  'require-design': [['pipelines.md', ['願景、需求與里程碑', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
   'global-laws': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['pipelines.md', ['節', '提問(GAP)', '完成度']], ['roles.md', ['分支與所有權', '驗收測試', '決策紀錄']], ['tooling.md', ['CLI', '收尾定錨']]],
   module: [['boundary.md', ['四層', '模組單元', '模組表']], ['tooling.md', ['CLI', '收尾定錨']]],
   'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['pipelines.md', ['Cone.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
   'scope-laws': [['pipelines.md', ['pipeline', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O', '效果的判定']], ['tooling.md', ['CLI', '收尾定錨']]],
   'scope-revise': [['pipelines.md', ['簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑']], ['boundary.md', ['模組表', '四層']], ['tooling.md', ['CLI', '收尾定錨']]],
-  build: [['roles.md', '*'], ['pipelines.md', ['提問(GAP)', '修訂(REV)', '完成度']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
+  build: [['roles.md', '*'], ['pipelines.md', ['提問(GAP)', '修訂(REV)', '需求的達成只有人判得了', '完成度']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
   qa: [['roles.md', ['角色', '委派', '驗收測試', 'qa 的交付']], ['pipelines.md', ['節', '什麼要有 law', '提問(GAP)']], ['boundary.md', ['測試與邊界']]],
   refactor: [['roles.md', ['角色', '分支與所有權', '委派', '切片']], ['pipelines.md', ['節', '提問(GAP)']], ['boundary.md', ['四層']]],
-  integrate: [['roles.md', ['分支與所有權', '決策紀錄', '整合', '仲裁']], ['pipelines.md', ['提問(GAP)', '完成度', 'ADR']], ['laws.md', ['全域 Law']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
-  status: [['tooling.md', ['CLI', 'status 報告', '跑東西的紀律', '收尾定錨']], ['pipelines.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求', '全域 Law']]],
-  audit: [['tooling.md', ['CLI', 'status 報告', '收尾定錨']], ['boundary.md', '*'], ['pipelines.md', ['願景、需求與里程碑', '節', '什麼要有 law', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', 'Law 怎麼談']]],
+  integrate: [['roles.md', ['分支與所有權', '決策紀錄', '整合', '仲裁']], ['pipelines.md', ['提問(GAP)', '需求的達成只有人判得了', '完成度', 'ADR']], ['laws.md', ['全域 Law']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
+  status: [['tooling.md', ['CLI', 'status 報告', '跑東西的紀律', '收尾定錨']], ['pipelines.md', ['願景、需求與里程碑', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law']]],
+  audit: [['tooling.md', ['CLI', 'status 報告', '收尾定錨']], ['boundary.md', '*'], ['pipelines.md', ['願景、需求與里程碑', '節', '什麼要有 law', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', 'Law 怎麼談']]],
   study: [['tooling.md', ['跑東西的紀律', '收尾定錨']], ['boundary.md', ['四層', '效果的判定']], ['pipelines.md', ['pipeline']]],
 };
 

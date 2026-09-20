@@ -1,0 +1,28 @@
+$ lawful requirement accept R-1 --by dev@example.com --evidence R-1#ACCEPT green,存檔讀回一模一樣 --date 2026-09-05
+R-1 記成已驗收(2026-09-05,dev@example.com;.lawful/requirements/R-1-save-roundtrip.md「驗收記錄」)
+人簽的是當時那一份證據:之後驗收測試翻紅、或里程碑被修訂動到,lawful status 會把它列成待重審,重驗過再跑一次這道指令
+exit 0
+--- .lawful/requirements/R-1-save-roundtrip.md
+---
+id: R-1
+priority: 1
+updated: 2026-09-05
+---
+# R-1-save-roundtrip:玩家存檔後能讀回同一個世界
+
+- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
+  - forall w in World
+  - |- decode (saveBytes w) == Right (toSave w)
+
+| 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |
+|---|---|---|---|
+| M-1-save-write | 存檔寫得出檔案 | P-001-save-write | `cabal run save-demo -- write /tmp/a.sav` |
+| M-2-save-inspect | 存檔壞了看得出來 | - | - |
+| M-3-save-compact | 存檔檔案壓縮後不超過 1 MB | P-001-save-write | `cabal run save-demo -- size /tmp/a.sav` |
+
+## 驗收記錄
+
+| 日期 | 誰 | 憑據 | 結論 |
+|---|---|---|---|
+| 2026-09-05 | dev@example.com | R-1#ACCEPT green,存檔讀回一模一樣 | 已驗收 |
+

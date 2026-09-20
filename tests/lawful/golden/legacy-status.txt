@@ -2,7 +2,7 @@ $ lawful status
 · 缺 .lawful/Cone.md;這棵樹只有 system.md,lawful migrate cone --write 換過來
 
 # lawful status
-需求 0 條,達成 0 條(測試 0、推得 0)· 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · io pipeline 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+需求 0 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · io pipeline 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 需求

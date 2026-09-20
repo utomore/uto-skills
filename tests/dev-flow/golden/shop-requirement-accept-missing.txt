@@ -1,0 +1,3 @@
+$ devflow requirement accept R-9 --by dev@example.com --evidence 跑過了
+requirements/ 沒有 R-9
+exit 1

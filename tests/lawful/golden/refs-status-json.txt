@@ -23,8 +23,8 @@ $ lawful status --json
   "summary": {
     "requirements": 2,
     "requirementsHolding": 0,
-    "requirementsTested": 0,
-    "requirementsInferred": 0,
+    "requirementsPending": 0,
+    "requirementsRecheck": 0,
     "invariants": 0,
     "invariantsHolding": 0,
     "milestones": 3,
@@ -44,7 +44,7 @@ $ lawful status --json
   "headline": [
     {
       "label": "需求",
-      "value": "0 / 2 達成(測試 0、推得 0)"
+      "value": "0 / 2 已驗收 · 等人工審核 0"
     },
     {
       "label": "領域不變量",
@@ -90,11 +90,20 @@ $ lawful status --json
         "source": "M-2-cli-run、M-3-parse-line-number 還沒達成",
         "tested": false
       },
-      "note": "驗收未達成 · 里程碑 0/2 達成",
+      "note": "審核:建構中 · 里程碑 0/2 達成",
       "dependsOn": [
         "R-2"
       ],
       "built": false,
+      "state": "建構中",
+      "evidence": "里程碑 0 / 2 達成",
+      "signoff": null,
+      "verifySteps": [
+        "`無`",
+        "M-2-cli-run 沒有怎麼驗欄(lawful:require-design 補一道指令)",
+        "M-3-parse-line-number 沒有怎麼驗欄(lawful:require-design 補一道指令)",
+        "看「任一輸入檔解析、正規化後跑完不出錯」成不成立"
+      ],
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
@@ -137,9 +146,17 @@ $ lawful status --json
         "source": "M-1-syntax-parse 還沒達成",
         "tested": false
       },
-      "note": "驗收未達成 · 里程碑 0/1 達成",
+      "note": "審核:建構中 · 里程碑 0/1 達成",
       "dependsOn": [],
       "built": false,
+      "state": "建構中",
+      "evidence": "里程碑 0 / 1 達成",
+      "signoff": null,
+      "verifySteps": [
+        "`無`",
+        "M-1-syntax-parse 沒有怎麼驗欄(lawful:require-design 補一道指令)",
+        "看「任一段文字解析、正規化後得到一份文件或一個講得出位置的錯誤」成不成立"
+      ],
       "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
@@ -219,7 +236,7 @@ $ lawful status --json
     {
       "id": "R-1",
       "title": "R-1 輸入檔跑完整條",
-      "note": "驗收未達成 · M-2-cli-run、M-3-parse-line-number 還沒達成",
+      "note": "審核:建構中 · M-2-cli-run、M-3-parse-line-number 還沒達成",
       "notes": [
         "優先 1:讀寫的正確性",
         "里程碑 0/2 達成 · 完成度 0%"
@@ -246,7 +263,7 @@ $ lawful status --json
     {
       "id": "R-2",
       "title": "R-2 一段文字讀得成一份正規化的文件",
-      "note": "驗收未達成 · M-1-syntax-parse 還沒達成",
+      "note": "審核:建構中 · M-1-syntax-parse 還沒達成",
       "notes": [
         "優先 2:使用者看得到的",
         "里程碑 0/1 達成 · 完成度 0%"

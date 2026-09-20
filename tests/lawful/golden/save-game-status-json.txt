@@ -35,9 +35,9 @@ $ lawful status --json --tests test.log
   "tests": "測試結果來自 test.log",
   "summary": {
     "requirements": 1,
-    "requirementsHolding": 1,
-    "requirementsTested": 1,
-    "requirementsInferred": 0,
+    "requirementsHolding": 0,
+    "requirementsPending": 1,
+    "requirementsRecheck": 0,
     "invariants": 1,
     "invariantsHolding": 1,
     "milestones": 3,
@@ -57,7 +57,7 @@ $ lawful status --json --tests test.log
   "headline": [
     {
       "label": "需求",
-      "value": "1 / 1 達成(測試 1、推得 0)"
+      "value": "0 / 1 已驗收 · 等人工審核 1"
     },
     {
       "label": "領域不變量",
@@ -99,14 +99,24 @@ $ lawful status --json --tests test.log
       "law": {
         "title": "任一 World 存檔再讀回,可存檔的投影一模一樣",
         "formal": true,
-        "holds": true,
-        "source": "測試 R-1#ACCEPT green",
+        "holds": false,
+        "source": "證據齊:測試 R-1#ACCEPT green;里程碑 0 / 3 達成;等人工審核",
         "tested": true
       },
-      "note": "驗收達成 · 里程碑 0/3 達成",
+      "note": "審核:待審核 · 里程碑 0/3 達成",
       "dependsOn": [],
       "built": false,
-      "achieved": true,
+      "state": "待審核",
+      "evidence": "測試 R-1#ACCEPT green;里程碑 0 / 3 達成",
+      "signoff": null,
+      "verifySteps": [
+        "`cabal build`",
+        "M-1-save-write `cabal run save-demo -- write /tmp/a.sav`",
+        "M-2-save-inspect 沒有怎麼驗欄(lawful:require-design 補一道指令)",
+        "M-3-save-compact `cabal run save-demo -- size /tmp/a.sav`",
+        "看「任一 World 存檔再讀回,可存檔的投影一模一樣」成不成立"
+      ],
+      "achieved": false,
       "percent": 0,
       "milestonesAchieved": 0,
       "milestones": [
@@ -221,12 +231,12 @@ $ lawful status --json --tests test.log
     {
       "id": "R-1",
       "title": "R-1 玩家存檔後能讀回同一個世界",
-      "note": "驗收達成 · 測試 R-1#ACCEPT green",
+      "note": "審核:待審核 · 證據齊:測試 R-1#ACCEPT green;里程碑 0 / 3 達成;等人工審核",
       "notes": [
         "優先 1:讀寫的正確性",
         "里程碑 0/3 達成 · 完成度 0%"
       ],
-      "achieved": true,
+      "achieved": false,
       "columns": [
         {
           "title": "M-1-save-write 存檔寫得出檔案",
@@ -578,6 +588,11 @@ $ lawful status --json --tests test.log
   "gaps": [],
   "warnings": [
     {
+      "where": "R-1",
+      "what": "等人工審核,M-2-save-inspect 沒有「怎麼驗」欄,審的人沒有手段可以跑",
+      "fix": "切片收尾時 lawful:integrate 會把決策紀錄的 Entry 那道指令寫進怎麼驗欄;現在補:lawful requirement verify <M-n-slug> \"<指令>\""
+    },
+    {
       "where": "P-001#EX-2",
       "what": "測試紅",
       "fix": "仲裁:先歸因再改"
@@ -585,7 +600,8 @@ $ lawful status --json --tests test.log
   ],
   "route": {
     "steps": [
-      "lawful:build P-001-save-write(R-1 優先 1 · M-1-save-write 存檔寫得出檔案)"
+      "lawful:build P-001-save-write(R-1 優先 1 · M-1-save-write 存檔寫得出檔案)",
+      "請開發者親自審核 R-1(測試 R-1#ACCEPT green;里程碑 0 / 3 達成;怎麼驗見第 3 段),認可了才 lawful requirement accept R-1 --by <email> --evidence \"<一句>\""
     ],
     "note": null,
     "allDone": false

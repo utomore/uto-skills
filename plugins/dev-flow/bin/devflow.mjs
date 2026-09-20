@@ -10,7 +10,7 @@ import { sectionCommand } from '../lib/commands/section.mjs';
 import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
-import { claim, invariantAdd, milestoneAdd, modulesGen, requirementAdd, sync } from '../lib/commands/edit.mjs';
+import { claim, invariantAdd, milestoneAdd, milestoneVerify, modulesGen, requirementAccept, requirementAdd, sync } from '../lib/commands/edit.mjs';
 import { migrate, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
 
 const HELP = `devflow <子命令> [選項]
@@ -28,10 +28,16 @@ const HELP = `devflow <子命令> [選項]
                                        system.md「Constraint」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
   requirement add <slug> <一句話> --priority <1-4> [--accept <句>]
                                        鑄 R-n 建 requirements/R-n-<slug>.md:一件必須達成的事;優先 1 最高、4 最低;驗收(判它達成與否的那一句)沒給就留佔位符
-  requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]
+  requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>] [--verify <指令>]
                                        鑄 M-n,以全名 M-n-<slug> 加在該需求檔的里程碑表最後(表的列序就是先後);slug 是 kebab-case 英文,切片的分支 build/M-n-<slug> 以它為鍵;
                                        綁定的全名要是 features/ 裡有的 feature;綁一份已經被別條里程碑綁過的 feature,這條里程碑就靠修訂它達成:
-                                       那份 feature 達成,而且它的修訂記錄裡有一條 REV 的依欄寫了這條里程碑的全名
+                                       那份 feature 達成,而且它的修訂記錄裡有一條 REV 的依欄寫了這條里程碑的全名;
+                                       --verify 是一道跑起來看得到這一句話的指令,寫進怎麼驗欄,人工審核這條需求時 status 印成步驟
+  requirement verify <M-n-slug> <指令>  把那道指令寫進里程碑表的怎麼驗欄;切片收尾時從決策紀錄的「Entry」搬過來(決策紀錄只活在 build 分支,審核的手段要留在需求檔裡)
+  requirement accept <R-n> --by <email> --evidence <一句>
+                                       把開發者親自審核的結果寫進需求檔的「驗收記錄」表:一條需求唯一能算已驗收的路。
+                                       status 只算證據齊了沒(驗收測試綠,或沒有驗收測試而里程碑全部達成),達成與否一律由人判;
+                                       簽過之後證據翻掉,status 列成待重審,重驗過再跑一次
   invariant add <一句話> [--kind <種類>]
                                        鑄 INV-n 寫進 system.md「全域 Law」區的領域不變量:整個專案任何一份 feature 都不准違反的 law,從一條既有的 law 抽上去,三行接著從出處照搬;種類沒給就是 invariant
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
@@ -225,8 +231,10 @@ function main() {
 
   if (cmd === 'requirement') {
     if (sub === 'add' && rest[0] && rest[1]) return emit(requirementAdd(design, rest[0], rest.slice(1).join(' '), { accept: typeof args.flags.accept === 'string' ? args.flags.accept : '', priority: args.flags.priority, date: args.flags.date || undefined }));
-    if (sub === 'milestone' && rest[0] && rest[1] && rest[2]) return emit(milestoneAdd(design, rest[0], rest[1], rest.slice(2).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '' }));
-    console.error('用法:devflow requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      devflow requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]');
+    if (sub === 'milestone' && rest[0] && rest[1] && rest[2]) return emit(milestoneAdd(design, rest[0], rest[1], rest.slice(2).join(' '), { bind: typeof args.flags.bind === 'string' ? args.flags.bind : '', verify: typeof args.flags.verify === 'string' ? args.flags.verify : '' }));
+    if (sub === 'verify' && rest[0]) return emit(milestoneVerify(design, rest[0], rest.slice(1).join(' ')));
+    if (sub === 'accept' && rest[0]) return emit(requirementAccept(design, rest[0], { by: typeof args.flags.by === 'string' ? args.flags.by : '', evidence: typeof args.flags.evidence === 'string' ? args.flags.evidence : '', date: args.flags.date || undefined }));
+    console.error('用法:devflow requirement add <slug> <一句話> --priority <1-4> [--accept <句>]\n      devflow requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>] [--verify <指令>]\n      devflow requirement verify <M-n-slug> <指令>\n      devflow requirement accept <R-n> --by <email> --evidence <一句>');
     return 1;
   }
 

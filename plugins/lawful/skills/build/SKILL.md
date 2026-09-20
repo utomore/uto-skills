@@ -69,7 +69,7 @@ refactor 的 prompt 另加:禁止讀寫任何測試檔、禁止改 Stages 上的
 
 ## 收尾
 
-定錨區塊(`tooling.md`「收尾定錨」)。這條里程碑綁的每條 pipeline 都達成 = 這條里程碑正式達成,下一步 `lawful:integrate`(要合的分支寫鍵);別條需求還有能開的線就先開(`lawful:spike-impl <M-n-slug>`),幾條一起整合;同一條需求的下一條里程碑等這一條整合進主線之後才開;`status` 列了沒有驗收測試的需求或沒有測試的領域不變量,就 `lawful:build R-n` / `INV-n`。
+定錨區塊(`tooling.md`「收尾定錨」)。這條里程碑綁的每條 pipeline 都達成 = 這條里程碑正式達成,下一步 `lawful:integrate`(要合的分支寫鍵);別條需求還有能開的線就先開(`lawful:spike-impl <M-n-slug>`),幾條一起整合;同一條需求的下一條里程碑等這一條整合進主線之後才開;`status` 列了沒有驗收測試的需求或沒有測試的領域不變量,就 `lawful:build R-n` / `INV-n`。**需求達成與否不在這裡結案**:驗收測試全綠只代表證據齊了,`status` 會把它列成「待審核」,由開發者親自驗過、`lawful requirement accept` 才算數(`rules/pipelines.md`「需求的達成只有人判得了」);conductor 不代簽,回報裡寫明「等你驗收 R-n」。
 
 ## 邊界
 

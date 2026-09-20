@@ -8,3 +8,4 @@ spec = do
   describe "P-001#LAW-2" $ it "keeps entities" pending
   describe "P-001#LAW-7" $ it "ghost" pending
   describe "P-001#EX-1" $ it "empty input" pending
+  describe "R-5#ACCEPT" $ it "lists every save" pending

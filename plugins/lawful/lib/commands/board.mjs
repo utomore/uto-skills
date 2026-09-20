@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { analyze, buildKeyOf, counts, docState, globalView, invariantView, metWord, moduleView, openLines, requirementView, reviseLines, sliceLines, suggestRoutes, warnings } from './status.mjs';
+import { analyze, buildKeyOf, counts, docState, globalView, invariantView, metWord, moduleView, openLines, requirementView, reviseLines, sliceLines, suggestRoutes, verifySteps, warnings } from './status.mjs';
 
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
 const TOKEN = '__STATUS_JSON__';
@@ -109,7 +109,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const bands = ov.reqs.map((q) => ({
     id: q.id,
     title: `${q.id} ${q.title}`,
-    note: `驗收${metWord(q.holds)} · ${q.source}`,
+    note: `審核:${q.state} · ${q.source}`,
     notes: [
       `優先 ${q.priorityRaw || '(沒填)'}${q.priority && tierMeaning.has(q.priority) ? `:${tierMeaning.get(q.priority)}` : ''}`,
       `里程碑 ${q.done}/${q.ms.length} 達成 · 完成度 ${q.pct == null ? '-' : `${q.pct}%`}`,
@@ -125,8 +125,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const summary = {
     requirements: n.requirements,
     requirementsHolding: n.requirementsHolding,
-    requirementsTested: n.requirementsTested,
-    requirementsInferred: n.requirementsInferred,
+    requirementsPending: n.requirementsPending,
+    requirementsRecheck: n.requirementsRecheck,
     invariants: n.invariants,
     invariantsHolding: n.invariantsHolding,
     milestones: n.milestones,
@@ -156,7 +156,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     tests: resultNote,
     summary,
     headline: [
-      { label: '需求', value: `${summary.requirementsHolding} / ${summary.requirements} 達成(測試 ${summary.requirementsTested}、推得 ${summary.requirementsInferred})` },
+      { label: '需求', value: `${summary.requirementsHolding} / ${summary.requirements} 已驗收 · 等人工審核 ${summary.requirementsPending}${summary.requirementsRecheck ? ` · 待重審 ${summary.requirementsRecheck}` : ''}` },
       { label: '領域不變量', value: `${summary.invariantsHolding} / ${summary.invariants} 成立` },
       { label: '里程碑', value: `${summary.milestonesAchieved} / ${summary.milestones} 達成` },
       { label: 'io pipeline', value: `${summary.ioFacesAchieved} / ${summary.ioFaces} 達成` },
@@ -173,9 +173,13 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       priority: q.priority,
       priorityRaw: q.priorityRaw || null,
       law: lawJson(q.accept, q),
-      note: `驗收${metWord(q.holds)} · 里程碑 ${q.done}/${q.ms.length} 達成`,
+      note: `審核:${q.state} · 里程碑 ${q.done}/${q.ms.length} 達成`,
       dependsOn: q.dependsOn,
       built: q.built,
+      state: q.state,
+      evidence: q.evidence || null,
+      signoff: q.signoff ? { date: q.signoff.date, by: q.signoff.by, evidence: q.signoff.evidence } : null,
+      verifySteps: verifySteps(design, q),
       achieved: q.holds === true,
       percent: q.pct,
       milestonesAchieved: q.done,

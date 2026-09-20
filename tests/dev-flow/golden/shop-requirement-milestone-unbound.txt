@@ -13,10 +13,16 @@ updated: 2026-09-07
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
-| 里程碑 | 做到什麼 | 綁定 |
-|---|---|---|
-| M-1-checkout | 結帳走通 | F-001-checkout |
-| M-2-refund | 退款走通 | F-002-refund |
-| M-3-settle-total | 手續費大過要退的金額也結得出來 | F-001-checkout |
-| M-4-ship | 出貨走通 | - |
+| 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |
+|---|---|---|---|
+| M-1-checkout | 結帳走通 | F-001-checkout | `npx ts-node demo/checkout.ts` |
+| M-2-refund | 退款走通 | F-002-refund | `npx ts-node demo/refund.ts` |
+| M-3-settle-total | 手續費大過要退的金額也結得出來 | F-001-checkout | `npx ts-node demo/refund.ts --fee 999` |
+| M-4-ship | 出貨走通 | - | - |
+
+## 驗收記錄
+
+| 日期 | 誰 | 憑據 | 結論 |
+|---|---|---|---|
+| 2026-09-07 | dev@example.com | R-1#ACCEPT 與三條里程碑的 demo 都跑過,金額與手算相同 | 已驗收 |
 

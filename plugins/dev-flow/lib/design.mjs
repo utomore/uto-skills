@@ -310,18 +310,33 @@ export function readSystem(designDir, root) {
   };
 }
 
-// 里程碑表(里程碑 | 做到什麼 | 綁定):需求檔唯一的一張表。
+// 里程碑表(里程碑 | 做到什麼 | 綁定 | 怎麼驗):需求檔的里程碑表。
 // 綁定欄是 feature 全名,「、」分隔;綁定是里程碑對到文檔的唯一寫法,完成度從綁定的文檔推。里程碑表的列序就是先後。
+// 怎麼驗欄是一道跑起來看得到這條里程碑那一句話的指令;人工審核時 status 把它印成步驟。沒有這一欄或寫「-」都是還沒有。
 // 表頭第一格是「調整」的表(調整 | 做到什麼 | 動到)靜默照讀:每一列讀成一條里程碑,接在里程碑表之後——
 // 編號與全名都是 RF-n、沒有英文名、綁定 = 「動到」欄、fromRefinement 為真(做到什麼還是模板佔位符的列不算);hasRefinementTable 講這個檔有那張表(migrate requirements 換掉它)。
 function routeTables(lines, offset) {
   const names = (cell) => (cell || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
+  const one = (cell) => {
+    const v = (cell || '').trim();
+    return !v || /^[-—–]$/.test(v) || hasPlaceholder(v) ? '' : v;
+  };
   const milestones = [];
   const fromRefinements = [];
+  const signoffs = [];
   let hasRefinementTable = false;
   for (const t of parseTables(lines)) {
     const kind = (t.header[0] || '').trim();
     if (kind === '調整') hasRefinementTable = true;
+    // 驗收記錄表(日期 | 誰 | 憑據 | 結論):人工審核的結果,一次審核一列,只由 devflow requirement accept 寫
+    if (kind === '日期') {
+      t.rows.forEach((r, i) => {
+        const date = one(r[0]);
+        if (!date) return;
+        signoffs.push({ date, by: one(r[1]), evidence: one(r[2]), verdict: one(r[3]), line: offset + t.rowLines[i] + 1 });
+      });
+      continue;
+    }
     t.rows.forEach((r, i) => {
       const cell = stripTicks((r[0] || '').trim());
       if (!cell || hasPlaceholder(cell)) return;
@@ -330,11 +345,11 @@ function routeTables(lines, offset) {
       const id = mm ? mm[1] : cell;
       const rowTitle = (r[1] || '').trim();
       const row = { id, title: rowTitle, line: offset + t.rowLines[i] + 1, placeholder: hasPlaceholder(rowTitle) };
-      if (kind === '里程碑') milestones.push({ ...row, slug: mm && mm[2] ? mm[2] : '', fullName: cell, binds: names(r[2]) });
-      else if (kind === '調整' && !row.placeholder) fromRefinements.push({ ...row, slug: '', fullName: cell, binds: names(r[2]), fromRefinement: true });
+      if (kind === '里程碑') milestones.push({ ...row, slug: mm && mm[2] ? mm[2] : '', fullName: cell, binds: names(r[2]), verify: stripTicks(one(r[3])) });
+      else if (kind === '調整' && !row.placeholder) fromRefinements.push({ ...row, slug: '', fullName: cell, binds: names(r[2]), verify: '', fromRefinement: true });
     });
   }
-  return { milestones: [...milestones, ...fromRefinements], hasRefinementTable };
+  return { milestones: [...milestones, ...fromRefinements], hasRefinementTable, signoffs };
 }
 
 const priorityOf = (fm) => {
@@ -425,6 +440,7 @@ export function mergeRequirements(sectionRequirements, objectives, dir) {
       priorityRaw: top ? String(top.priority) : '',
       milestones: [...os.flatMap((o) => o.milestones.filter((m) => !m.fromRefinement)), ...os.flatMap((o) => o.milestones.filter((m) => m.fromRefinement))],
       hasRefinementTable: os.some((o) => o.hasRefinementTable),
+      signoffs: [],
       line: q.line,
       placeholder: q.placeholder,
       sources: os,

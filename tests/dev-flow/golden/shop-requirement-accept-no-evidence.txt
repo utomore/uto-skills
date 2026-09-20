@@ -1,0 +1,3 @@
+$ devflow requirement accept R-1 --by dev@example.com
+要寫憑什麼認的(跑了哪道指令、看到什麼、測試綠幾條):devflow requirement accept R-1 --by dev@example.com --evidence "<一句>"
+exit 1

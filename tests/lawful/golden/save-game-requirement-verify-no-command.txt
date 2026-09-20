@@ -1,0 +1,3 @@
+$ lawful requirement verify M-2-save-inspect
+要一道指令:lawful requirement verify M-2-save-inspect "<跑起來看得到這一句的指令>"
+exit 1

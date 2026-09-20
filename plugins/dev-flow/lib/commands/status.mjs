@@ -204,6 +204,8 @@ export function loadResults(design, adapter, flags, root) {
 const verdict = (result) => (result === 'green' ? true : result === 'red' ? false : null);
 export const holdsWord = (holds) => (holds === true ? '成立' : holds === false ? '未成立' : '未知');
 export const metWord = (met) => (met === true ? '達成' : met === false ? '未達成' : '未知');
+// 人工審核過的那一條需求在驗收記錄表的結論欄寫這個字;只由 devflow requirement accept 寫
+export const SIGNED = '已驗收';
 
 // 文檔 → 做出它的里程碑:綁這份文檔的里程碑裡,M-n 編號最小的那一條(編號是流水號、永不重排,需求的優先怎麼改都不換人)。
 // 其餘綁它的每一條都是靠修訂它達成的;從調整表讀來的列(RF-n)一律算靠修訂的。同號時取先讀到的那一條。
@@ -222,7 +224,19 @@ export function makerOf(design) {
 // 其餘綁它的里程碑是靠修訂它達成的:那份文檔要達成,而且它的修訂記錄裡有一條 REV 的依欄引用了這條里程碑(比對編號)。
 // 里程碑達成 = 綁定的每份 feature 各照各的規則都成立;里程碑依表上的順序走,全部達成 = 這條需求的建置走完(built)。
 // 里程碑的狀態字:達成;待修訂 = 靠修訂的那幾份文檔還沒有任何一份有引用它的 REV;其餘是進行中。
-// 需求達成:有 R-n#ACCEPT 驗收測試以它為準;驗收寫了三行卻沒有測試是未知;一句話的驗收沒有測試 = 里程碑全部達成(推得),一條里程碑都沒有就未達成。
+// 需求達成與否只由人判:機器算的是證據齊了沒(驗收測試綠,或沒有驗收測試而里程碑全部達成),證據齊了印「待審核」等人,
+// 人在驗收記錄表上簽了才是「已驗收」;簽過之後證據翻掉是「待重審」。任何情況下 status 都不自己把一條需求算成達成。
+// 一條需求的驗收手段:建置指令,接每條里程碑「怎麼驗」欄那道指令,最後是驗收那一句要看的結果。
+// 還沒有怎麼驗欄的里程碑照實說,不編一道指令出來。
+export function verifySteps(design, q) {
+  const cmd = design.system ? design.system.commands['建置'] : null;
+  const build = typeof cmd === 'string' ? cmd : cmd ? Object.entries(cmd).map(([d, v]) => `${d} = ${v}`).join(';') : '';
+  const steps = build ? [`\`${build}\``] : [];
+  for (const m of q.ms) steps.push(m.verify ? `${m.fullName} \`${m.verify}\`` : `${m.fullName} 沒有怎麼驗欄(dev-flow:require-design 補一道指令)`);
+  steps.push(`看${q.accept ? `「${q.accept.title}」` : '驗收那一句'}成不成立`);
+  return steps;
+}
+
 // rank 給每份文檔一個排序鍵(需求優先、需求順序、里程碑順序),建議路線與能開的線照它排;沒被綁的排最後。rank 只管排序與標籤,不拿來判誰做出文檔。
 export function requirementView(design, a) {
   const sorted = [...design.requirements.requirements].sort((x, y) => (x.priority || 5) - (y.priority || 5) || Number(x.id.slice(2)) - Number(y.id.slice(2)) || x.fullName.localeCompare(y.fullName));
@@ -242,30 +256,49 @@ export function requirementView(design, a) {
     });
     const done = ms.filter((m) => m.achieved).length;
     const built = ms.length > 0 && done === ms.length;
-    // 三行式的驗收只由測試判,沒有測試就是未知;一句話的驗收才由里程碑推
+    // 機器只判證據齊了沒:驗收測試綠,或沒有驗收測試而里程碑全部達成。達成與否由人判,寫在驗收記錄表裡。
     const test = a.lawTest(`${q.id}#ACCEPT`);
-    let holds;
+    const signoff = [...(q.signoffs || [])].reverse().find((s) => s.verdict === SIGNED) || null;
+    const evidence = [];
+    let ready;
+    if (test) {
+      evidence.push(`測試 ${test.key} ${test.result}`);
+      ready = test.result === 'green' ? true : test.result === 'red' ? false : null;
+    }
+    if (ms.length) evidence.push(`里程碑 ${done} / ${ms.length} 達成`);
+    if (!test) ready = ms.length ? built : false;
+    const ev = evidence.join(';');
+    let state;
     let source;
     if (q.accept && q.accept.placeholder) {
-      holds = false;
+      state = '未達成';
       source = '驗收還是模板';
-    } else if (test) {
-      holds = verdict(test.result);
-      source = `測試 ${test.key} ${test.result}`;
-    } else if (q.accept && q.accept.formal) {
-      holds = null;
+    } else if (!test && q.accept && q.accept.formal) {
+      state = '未知';
       source = `寫了三行卻沒有 ${q.id}#ACCEPT 測試`;
+    } else if (ready === null) {
+      state = '未知';
+      source = ev;
+    } else if (ready && signoff) {
+      state = SIGNED;
+      source = `${signoff.date} ${signoff.by || '沒寫誰'}`;
+    } else if (ready) {
+      state = '待審核';
+      source = `證據齊:${ev};等人工審核`;
+    } else if (signoff) {
+      state = '待重審';
+      source = `${signoff.date} 已驗收,證據翻掉:${ev}`;
+    } else if (test && test.result === 'red') {
+      state = '未達成';
+      source = `測試 ${test.key} red`;
     } else if (!ms.length) {
-      holds = false;
+      state = '未達成';
       source = '還沒有里程碑';
-    } else if (built) {
-      holds = true;
-      source = '推得:里程碑全部達成';
     } else {
-      holds = false;
+      state = '建構中';
       source = `${ms.filter((m) => !m.achieved).map((m) => m.fullName).join('、')} 還沒達成`;
     }
-    return { ...q, ms, done, pct: ms.length ? Math.round((done / ms.length) * 100) : null, built, holds, source, tested: !!test };
+    return { ...q, ms, done, pct: ms.length ? Math.round((done / ms.length) * 100) : null, built, state, holds: state === SIGNED, ready, evidence: ev, signoff, source, tested: !!test };
   });
   const rank = new Map();
   reqs.forEach((q, qi) => q.ms.forEach((m, mi) => m.binds.forEach((b) => {
@@ -422,10 +455,12 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
     if (q.placeholder) warn(q.id, '需求還是模板', 'dev-flow:require-design 寫成一句話');
     if (!q.accept) warn(q.id, '沒有驗收', 'dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」');
     else if (q.accept.placeholder) warn(q.id, '驗收還是模板', 'dev-flow:require-design 寫成可判定的一句');
-    else if (q.accept.formal && !q.tested) warn(q.id, '驗收寫了三行卻沒有驗收測試,達成與否未知', `dev-flow:build ${q.id}(只派 qa 寫一條歸屬 "${q.id}#ACCEPT" 的測試);不能自動化就只留一句,由里程碑推`);
+    else if (q.accept.formal && !q.tested) warn(q.id, '驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核', `dev-flow:build ${q.id}(只派 qa 寫一條歸屬 "${q.id}#ACCEPT" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接`);
     if (!q.priority) warn(q.id, `優先「${q.priorityRaw || '(沒填)'}」不是 1 到 4`, '改成 1(最高)到 4(最低)');
     if (!q.ms.length) warn(q.id, '沒有任何里程碑', `dev-flow:require-design 切里程碑(devflow requirement milestone ${q.id} <slug> <一句話>)`);
-    if (q.built && q.holds === false) warn(q.id, `里程碑全部達成,需求卻未達成(${q.source})`, '驗收沒過:先查驗收測試;里程碑切漏了就 dev-flow:require-design 補一條,做錯的改那份文檔(要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise)');
+    if (q.built && q.state === '未達成') warn(q.id, `里程碑全部達成,證據卻不成立(${q.source})`, '驗收沒過:先查驗收測試;里程碑切漏了就 dev-flow:require-design 補一條,做錯的改那份文檔(要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise)');
+    if (q.state === '待重審') warn(q.id, `${q.signoff.date} 已驗收,證據現在翻掉了(${q.evidence})`, `先把紅的修回來,再 devflow requirement accept ${q.id} 重簽一次;人簽過的是當時那份證據,不是永久的`);
+    if (q.state === '待審核' && q.ms.some((m) => !m.verify)) warn(q.id, `等人工審核,${q.ms.filter((m) => !m.verify).map((m) => m.fullName).join('、')} 沒有「怎麼驗」欄,審的人沒有手段可以跑`, '切片收尾時 dev-flow:integrate 會把決策紀錄的 Entry 那道指令寫進怎麼驗欄;現在補:devflow requirement verify <M-n-slug> "<指令>"');
     for (const m of q.ms) {
       // seenM 以編號比對(編號全資料夾唯一);印給人看的「哪裡」欄一律是全名
       if (seenM.has(m.id)) warn(m.fullName, '里程碑編號重複', '編號全資料夾唯一;配號只走 devflow requirement milestone');
@@ -491,16 +526,18 @@ export function suggestRoutes(design, a, ov, warnCount, building = new Set(), in
   if (slices.held.length) steps.push(`${firstSliceNote(slices.holdKey)}(等著的:${slices.held.map((s) => s.m.fullName).join('、')})`);
   // 里程碑全部達成、驗收寫了三行卻沒有驗收測試的需求:build 只派 qa 寫那一條
   for (const q of ov.reqs) if (q.built && q.accept && q.accept.formal && !q.tested) steps.push(`dev-flow:build ${q.id}(里程碑全部達成,只派 qa 寫 ${q.id}#ACCEPT 的驗收測試)`);
+  // 證據齊了的需求:機器到此為止,達成與否只有人判得了
+  for (const q of ov.reqs) if (q.state === '待審核') steps.push(`請開發者親自審核 ${q.id}(${q.evidence};怎麼驗見第 3 段),認可了才 devflow requirement accept ${q.id} --by <email> --evidence "<一句>"`);
   for (const v of inv) if (v.law.formal && !v.tested) steps.push(`dev-flow:build ${v.id}(只派 qa 寫 ${v.id}#LAW 的測試)`);
   const allDone = [...a.info.values()].every((x) => x.achieved) && !a.openGaps.length;
-  const lawsFalse = [...ov.reqs.filter((q) => q.holds !== true).map((q) => `需求 ${q.id} ${metWord(q.holds)}(${q.source})`), ...inv.filter((v) => v.holds !== true).map((v) => `領域不變量 ${v.id} ${holdsWord(v.holds)}(${v.source})`)];
+  const lawsFalse = [...ov.reqs.filter((q) => q.holds !== true).map((q) => `需求 ${q.id} ${q.state}(${q.source})`), ...inv.filter((v) => v.holds !== true).map((v) => `領域不變量 ${v.id} ${holdsWord(v.holds)}(${v.source})`)];
   let note = null;
   if (!steps.length) {
     const notDone = [...a.info.values()].filter((x) => !x.achieved);
     if (!a.info.size) note = `還沒有任何文檔;${ov.reqs.length ? 'dev-flow:require-design 給第一條里程碑一個英文名,再 dev-flow:spike-impl <M-n-slug> 做第一條切片' : '先 dev-flow:require-design 談需求、切里程碑,再 dev-flow:spike-impl <M-n-slug>'}`;
     else if (allDone && lawsFalse.length) note = `每份文檔達成,但${lawsFalse.join('、')}:先補上,不加新功能`;
-    else if (allDone && !warnCount) note = '目前功能全部正常運作:每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑';
-    else if (allDone) note = `目前功能全部正常運作(每份文檔達成、每條需求達成、每條領域不變量成立、測試全綠、沒有 open GAP);警訊還有 ${warnCount} 條,照第 7 段的怎麼辦欄清,清完加新功能`;
+    else if (allDone && !warnCount) note = '目前功能全部正常運作:每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑';
+    else if (allDone) note = `目前功能全部正常運作(每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP);警訊還有 ${warnCount} 條,照第 7 段的怎麼辦欄清,清完加新功能`;
     else if (notDone.some((x) => x.unknown || x.laws.some((l) => l.result === '未跑'))) note = `沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常`;
     else note = `沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 還沒達成:devflow status --doc <全名> 看哪一列還不在;不加新功能`;
   }
@@ -515,8 +552,8 @@ export function counts(design, a, ov, inv = invariantView(design, a)) {
   return {
     requirements: ov.reqs.length,
     requirementsHolding: ov.reqs.filter((q) => q.holds === true).length,
-    requirementsTested: ov.reqs.filter((q) => q.holds === true && q.tested).length,
-    requirementsInferred: ov.reqs.filter((q) => q.holds === true && !q.tested).length,
+    requirementsPending: ov.reqs.filter((q) => q.state === '待審核').length,
+    requirementsRecheck: ov.reqs.filter((q) => q.state === '待重審').length,
     invariants: inv.length,
     invariantsHolding: inv.filter((v) => v.holds === true).length,
     milestones: milestones.length,
@@ -544,7 +581,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
 
   out.push('# devflow status');
   if (sys && sys.visionState === 'ok') out.push(`願景:${sys.vision}`);
-  out.push(`需求 ${n.requirements} 條,達成 ${n.requirementsHolding} 條(測試 ${n.requirementsTested}、推得 ${n.requirementsInferred})· 領域不變量 ${n.invariants} 條,成立 ${n.invariantsHolding} 條 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · feature ${n.features} 份,達成 ${n.featuresAchieved} 份 ${n.abstracts ? `· 不被里程碑綁定的共用文檔 ${n.abstracts} 份 ` : ''}· 文檔共 ${n.docs} 份,達成 ${n.docsAchieved} 份 · 還沒實作的 step ${todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
+  out.push(`需求 ${n.requirements} 條,已驗收 ${n.requirementsHolding} 條 · 等人工審核 ${n.requirementsPending} 條${n.requirementsRecheck ? ` · 待重審 ${n.requirementsRecheck} 條` : ''} · 領域不變量 ${n.invariants} 條,成立 ${n.invariantsHolding} 條 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · feature ${n.features} 份,達成 ${n.featuresAchieved} 份 ${n.abstracts ? `· 不被里程碑綁定的共用文檔 ${n.abstracts} 份 ` : ''}· 文檔共 ${n.docs} 份,達成 ${n.docsAchieved} 份 · 還沒實作的 step ${todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## 需求');
@@ -552,8 +589,8 @@ export function statusReport(design, source, adapter, results, resultNote, build
   else if (!ov.reqs.length) out.push('- 沒有任何需求;dev-flow:require-design 談第一條');
   else {
     if (sys.priorityNoteState === 'ok') out.push(`- 優先:${sys.priorityNote}`);
-    out.push('| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |', '|---|---|---|---|---|---|---|---|');
-    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '(沒填)'} | ${q.title} | ${metWord(q.holds)}(${q.source}) | ${q.dependsOn.join('、') || '-'} | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} |`);
+    out.push('| 需求 | 優先 | 一句話 | 審核 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |', '|---|---|---|---|---|---|---|---|');
+    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '(沒填)'} | ${q.title} | ${q.state}(${q.source}) | ${q.dependsOn.join('、') || '-'} | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} |`);
     for (const q of ov.reqs) {
       const next = q.ms.find((m) => !m.achieved);
       // 靠修訂達成的那一份:還沒有 REV 引用這條里程碑是「待修訂」,有了就看文檔自己走到哪
@@ -619,6 +656,15 @@ export function statusReport(design, source, adapter, results, resultNote, build
 
   out.push('', '## 3. 等決定');
   let deciding = 0;
+  // 證據齊了的需求:機器判不了它達成,把證據與驗收手段攤出來請人親自審核
+  for (const q of ov.reqs.filter((x) => x.state === '待審核' || x.state === '待重審')) {
+    deciding++;
+    out.push(`- ${q.id} ${q.state}:${q.title}`);
+    out.push(`  - 驗收那一句:${q.accept ? q.accept.title : '(沒有驗收)'}`);
+    out.push(`  - 證據:${q.evidence || '無'}`);
+    out.push(`  - 怎麼驗:${verifySteps(design, q).join(' → ')}`);
+    out.push(`  - 認可:devflow requirement accept ${q.id} --by <你的 email> --evidence "<憑什麼認的,一句>"`);
+  }
   for (const g of a.openGaps) {
     deciding++;
     out.push(`- ${g.id}(${g.target} / ${g.role}):答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws`);

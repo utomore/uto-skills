@@ -328,13 +328,21 @@ export function globalView(design, a, source, adapter, inv = invariantView(desig
 }
 
 // 每條需求下一條還沒達成的里程碑,如果它還沒綁任何文檔,就是一條可以開的切片(要有英文名才有分支可開)
-export function sliceLines(ov, building) {
+// 專案的第一條切片單獨走完:全域 Law 三區都還是空的、而且已經有一條切片的分支在建構中,別的切片等它(holdKey 是那條分支的鍵,held 是等著的那幾條)
+export function sliceLines(ov, building, design = null) {
   const next = ov.reqs.map((q) => ({ q, m: q.ms.find((m) => !m.achieved) })).filter((s) => s.m && !s.m.binds.length && s.m.slug);
+  const open = next.filter((s) => !building.has(s.m.fullName));
+  const sys = design ? design.system : null;
+  const empty = !!sys && !sys.invariants.length && !sys.layers.length && !sys.io.length;
+  const holdKey = empty ? [...building].filter((k) => /^M-\d+/.test(k)).sort()[0] || null : null;
   return {
-    openable: next.filter((s) => !building.has(s.m.fullName)),
+    openable: holdKey ? [] : open,
+    held: holdKey ? open : [],
+    holdKey,
     inBuild: next.filter((s) => building.has(s.m.fullName)),
   };
 }
+export const firstSliceNote = (key) => `專案的第一條切片單獨走完:build/${key} 抽出全域 Law 並合進主線之後才開下一條`;
 const sliceTag = (s) => `${s.q.id} 優先 ${s.q.priority || '?'} · ${s.m.title}`;
 
 // 每條需求下一條還沒達成的里程碑,如果它靠修訂既有的文檔達成、而其中還有文檔沒有任何一條 REV 引用它,就是一條待修訂的線(toRevise 是那幾份)
@@ -478,7 +486,9 @@ export function suggestRoutes(design, a, ov, warnCount, building = new Set(), in
   // 靠修訂既有的文檔達成、還沒有 REV 引用它的里程碑:每條需求下一條,照需求的優先排
   for (const s of reviseLines(ov, building).openable) steps.push(`${reviseHint(s.m)}(${s.q.id} 優先 ${s.q.priority || '?'} · ${s.m.fullName} ${s.m.title}),之後自動接上 build`);
   // 還沒有切片的里程碑:每條需求下一條,照需求的優先排
-  for (const s of sliceLines(ov, building).openable) steps.push(`dev-flow:spike-impl ${s.m.fullName}(${sliceTag(s)})`);
+  const slices = sliceLines(ov, building, design);
+  for (const s of slices.openable) steps.push(`dev-flow:spike-impl ${s.m.fullName}(${sliceTag(s)})`);
+  if (slices.held.length) steps.push(`${firstSliceNote(slices.holdKey)}(等著的:${slices.held.map((s) => s.m.fullName).join('、')})`);
   // 里程碑全部達成、驗收寫了三行卻沒有驗收測試的需求:build 只派 qa 寫那一條
   for (const q of ov.reqs) if (q.built && q.accept && q.accept.formal && !q.tested) steps.push(`dev-flow:build ${q.id}(里程碑全部達成,只派 qa 寫 ${q.id}#ACCEPT 的驗收測試)`);
   for (const v of inv) if (v.law.formal && !v.tested) steps.push(`dev-flow:build ${v.id}(只派 qa 寫 ${v.id}#LAW 的測試)`);
@@ -575,12 +585,13 @@ export function statusReport(design, source, adapter, results, resultNote, build
 
   out.push('', '## 1. 今天能開幾條線');
   const { openable, inBuild, shared } = openLines(a, ov, building);
-  const slices = sliceLines(ov, building);
+  const slices = sliceLines(ov, building, design);
   const revisions = reviseLines(ov, building);
-  if (!openable.length && !slices.openable.length && !revisions.openable.length) out.push('- 無');
+  if (!openable.length && !slices.openable.length && !revisions.openable.length && !slices.held.length) out.push('- 無');
   for (const x of openable) out.push(`- ${x.p.fullName}:dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);
   for (const s of revisions.openable) out.push(`- ${s.m.fullName}:${reviseHint(s.m)}(${sliceTag(s)})`);
   for (const s of slices.openable) out.push(`- ${s.m.fullName}:dev-flow:spike-impl ${s.m.fullName}(${sliceTag(s)})`);
+  if (slices.held.length) out.push(`- ${firstSliceNote(slices.holdKey)}(等著的:${slices.held.map((s) => s.m.fullName).join('、')})`);
   for (const x of inBuild) out.push(`- ${x.p.fullName}:建構中,分支 build/${buildKeyOf(x, ov, building)}${phase(buildKeyOf(x, ov, building))};收尾後 dev-flow:integrate`);
   for (const s of revisions.inBuild) out.push(`- ${s.m.fullName}:建構中,分支 build/${s.key}${phase(s.key)}`);
   for (const s of slices.inBuild) out.push(`- ${s.m.fullName}:建構中,分支 build/${s.m.fullName}${phase(s.m.fullName)}`);

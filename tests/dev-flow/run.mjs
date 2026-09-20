@@ -161,6 +161,8 @@ const CASES = [
   ['shop-brief-scope-revise-milestone', 'shop', ['brief', 'scope-revise', 'M-2-refund', '--no-rules']],
   ['shop-brief-global-laws', 'shop', ['brief', 'global-laws', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-global-laws-invariant', 'shop', ['brief', 'global-laws', 'INV-1', '--tests', 'test.log', '--no-rules']],
+  // scope-laws 帶著全域的候選接過來:目標是那條里程碑,候選的出處(它綁的文檔全文與逐條狀態)與決策紀錄都在
+  ['shop-brief-global-laws-milestone', 'shop', ['brief', 'global-laws', 'M-2-refund', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-scope-laws', 'shop', ['brief', 'scope-laws', 'M-2-refund', '--no-rules']],
   ['shop-brief-spike-impl', 'shop', ['brief', 'spike-impl', 'M-1-checkout', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-spike-impl-wrong-kind', 'shop', ['brief', 'spike-impl', 'F-001-checkout', '--no-rules']],
@@ -456,6 +458,73 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
       console.log([before, opened, sliced, claimed, talking, other].map((t) => t.split('\n').filter((l) => /M-4-ship|F-00[34]/.test(l)).join('\n')).join('\n---\n'));
     } else console.log('✓ 切片的工作樹');
   }
+}
+
+// 專案的第一條切片單獨走完:全域 Law 三區都還是空的、而且已經有一條切片的分支在建構中,別條需求的切片不列成能開的線,改印那一句;
+// 全域 Law 區有了東西(這裡立一條領域不變量)就照常列
+{
+  const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
+  if (!hasGit) console.log('· 沒有 git,跳過第一條切片的檢查');
+  else {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'first-'));
+    const main = path.join(base, 'repo');
+    const tree = path.join(base, 'repo.worktrees', 'M-1-login');
+    const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
+    const devflow = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+    fs.cpSync(path.join(here, 'fixtures', 'blank'), main, { recursive: true });
+    devflow(main, 'requirement', 'add', 'login-sees-own', '使用者登入後看得到自己的東西', '--priority', '1', '--accept', '任一使用者登入後列出的東西都是自己的', '--date', DATE);
+    devflow(main, 'requirement', 'add', 'export-own', '使用者匯出自己的東西', '--priority', '2', '--accept', '匯出的檔案裡只有自己的東西', '--date', DATE);
+    devflow(main, 'requirement', 'milestone', 'R-1', 'login', '登入走通');
+    devflow(main, 'requirement', 'milestone', 'R-2', 'export', '匯出走通');
+    git(main, 'init', '-b', 'main');
+    git(main, 'add', '-A');
+    git(main, 'commit', '-m', 'base');
+    const before = devflow(main, 'status').stdout;
+    git(main, 'worktree', 'add', '-b', 'build/M-1-login', tree, 'HEAD');
+    const opened = devflow(main, 'status').stdout;
+    devflow(main, 'invariant', 'add', '任何人只看得到自己的東西');
+    const released = devflow(main, 'status').stdout;
+    const NOTE = '專案的第一條切片單獨走完:build/M-1-login 抽出全域 Law 並合進主線之後才開下一條(等著的:M-2-export)';
+    const LINE = '- M-2-export:dev-flow:spike-impl M-2-export(';
+    const ok = before.includes('- M-1-login:dev-flow:spike-impl M-1-login(') && before.includes(LINE) && !before.includes('專案的第一條切片單獨走完')
+      && opened.includes('- M-1-login:建構中,分支 build/M-1-login') && !opened.includes(LINE) && !opened.includes('dev-flow:spike-impl M-2-export(') && opened.includes(`- ${NOTE}`) && new RegExp(`^\\d+\\. ${NOTE.replace(/[()]/g, '\\$&')}$`, 'm').test(opened)
+      && released.includes(LINE) && !released.includes('專案的第一條切片單獨走完');
+    git(main, 'worktree', 'remove', '--force', tree);
+    fs.rmSync(base, { recursive: true, force: true });
+    if (!ok) {
+      failed++;
+      console.log('✗ 第一條切片單獨走完');
+      console.log([before, opened, released].map((t) => t.split('\n').filter((l) => /M-[12]-|第一條切片/.test(l)).join('\n')).join('\n---\n'));
+    } else console.log('✓ 第一條切片單獨走完');
+  }
+}
+
+// 層表還沒有列的樹(層還沒從第一條切片抽上去):lint boundary 印一行說明而不紅;lint sig 不拿層欄對層表與模組表;
+// lint laws 讓 law 引用程式碼裡任何一個匯出。層表一有列,模組表的層欄空著就照常紅
+{
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'devflow-nolayers-'));
+  fs.cpSync(path.join(here, 'fixtures', 'shop'), tmp, { recursive: true });
+  const run = (...argv) => spawnSync(process.execPath, [bin, ...argv, '--root', tmp], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+  const sysFile = path.join(tmp, '.design', 'system.md');
+  const modFile = path.join(tmp, '.design', 'modules.md');
+  const sysText = fs.readFileSync(sysFile, 'utf8');
+  fs.writeFileSync(modFile, fs.readFileSync(modFile, 'utf8').replace(/^(\| `src\/[^|]*\|)[^|\r\n]*\|/gm, '$1  |'));
+  const withLayers = run('lint', 'boundary');
+  fs.writeFileSync(sysFile, sysText.replace(/^\| (?:domain|application|entry) \|.*\r?\n/gm, ''));
+  const boundary = run('lint', 'boundary');
+  const sig = run('lint', 'sig');
+  const laws = run('lint', 'laws');
+  const status = run('status', '--tests', 'test.log');
+  fs.rmSync(tmp, { recursive: true, force: true });
+  const ok = withLayers.status === 1 && /不在 system\.md 的層表裡/.test(withLayers.stdout)
+    && boundary.status === 0 && /「架構:層」表沒有列,沒有依賴方向可對/.test(boundary.stdout)
+    && sig.status === 0 && laws.status === 0
+    && status.stdout.includes('| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 0 層,通過 |') && !status.stdout.includes('| 全域 Law:架構 |');
+  if (!ok) {
+    failed++;
+    console.log('✗ 層表還沒有列的樹');
+    console.log([withLayers, boundary, sig, laws].map((r) => `exit ${r.status}\n${r.stdout.trimEnd()}`).join('\n---\n'));
+  } else console.log('✓ 層表還沒有列的樹');
 }
 
 // 靠修訂達成的里程碑也可以是 build 分支的鍵:綁的文檔還沒有引用它的 REV 是「待修訂」(不因為文檔本來就 verified 而算做完、也不因為沒有決策紀錄而算切片中),

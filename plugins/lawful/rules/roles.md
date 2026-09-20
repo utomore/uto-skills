@@ -1,20 +1,20 @@
 # 角色
 
-> 需求(必須達成)與全域 Law(不得違反)先講好,其餘都等跑得通了再講。程式碼先到,pipeline 文檔是對著它談出來的承諾,測試是承諾的投影;兩邊對不上,先懷疑文檔。
+> 需求(必須達成)先講好,其餘都等跑得通了再講:不得違反的約束——scope law 與全域 Law——都是對著做出來的切片談出來的。程式碼先到,pipeline 文檔是對著它談出來的承諾,測試是承諾的投影;兩邊對不上,先懷疑文檔。
 
 ## 五個階段
 
 | 階段 | 核心(這個階段的每一個判斷都服從它) | 誰 | 在哪 | 產出 |
 |---|---|---|---|---|
-| **立案** | Only what can be judged true before any code exists gets written: Requirements with their acceptance, global Laws, the shell boundary.(只寫做之前就判得出真假的東西) | 開發者依序與 `lawful:kickoff`(開樹、願景、專案約束、已經看得出來的模組單元)、`lawful:require-design`(需求與里程碑)、`lawful:global-laws`(全域 Law 三區)對談;之後要多劃一個模組單元走 `lawful:module` | `plan/<slug>` 分支,經 PR 合進主線 | `Cone.md`(願景、全域 Law 三區:領域不變量、架構的四層、契約的對外 I/O;專案約束)、`requirements/`(需求與它的驗收、優先、里程碑 `M-n-<slug>`)、模組單元表 |
-| **切片** | The slice MUST make the milestone's Goal observably true end to end, MUST NOT violate a global Law, and MUST record every decision and every fake.(讓里程碑那一句話看得到地成真;不違反全域 Law;每個決定與每一處假都留下紀錄) | `lawful:spike-impl`,主 session 自己做 | 這條里程碑自己的分支 `build/M-n-<slug>` 與工作樹,從這一步開 | 從 shell 的進入點貫通到出口、跑得通的程式碼,與決策紀錄(「切片」「決策紀錄」) |
-| **Law** | scope-laws designs scope Laws only. A Law MUST be falsifiable and MUST be the developer's decision; it never describes what the code happens to do.(law 必須講得出怎樣算違反,而且是開發者拍板的承諾,不是把程式碼念一遍) | 開發者與 `lawful:scope-laws` 對談,根據切片的決策紀錄 | 同一棵工作樹 | 從切片 claim 出來的 pipeline:Stages 抄程式碼、約束逐條談出來(資料交互、資料儲存在哪、外部串接方法、軟體架構四項都問到,laws.md「Law 怎麼談」)、laws 逐條拍板,`ready` |
-| **建構** | A pipeline is Verified only when every Law is guarded by a test that can fail and now passes; nobody bends a Law, a test or a declaration to get green.(每條 law 都有一條會失敗、現在通過的測試守著,才叫 verified;不為了變綠去動 law、測試或宣告) | `lawful:build` 的 conductor 帶 qa 與 refactor;scope-laws 與 scope-revise 收尾時自動接上 | 同一棵工作樹 | 測試、調整過的實作、REV、決策紀錄的「Verification」;每條 law 成立才算達成,conductor 改 `verified` |
+| **立案** | Only what can be judged true before any code exists gets written: the vision, the project constraints and Requirements with their acceptance.(只寫做之前就判得出真假的東西:願景、專案約束、需求與它的驗收) | 開發者依序與 `lawful:kickoff`(開樹、願景、專案約束、已經看得出來的模組單元)、`lawful:require-design`(需求與里程碑)對談;之後要多劃一個模組單元走 `lawful:module` | `plan/<slug>` 分支,經 PR 合進主線 | `Cone.md`(願景、專案約束;「全域 Law」區四層照建,領域不變量、每一層「裝什麼」那一句與對外 I/O 表是空的,等切片長出來)、`requirements/`(需求與它的驗收、優先、里程碑 `M-n-<slug>`)、模組單元表 |
+| **切片** | The slice MUST make the milestone's Goal observably true end to end, MUST NOT violate a global Law, and MUST record every decision and every fake.(讓里程碑那一句話看得到地成真;不違反全域 Law——區裡有什麼就守什麼;每個決定與每一處假都留下紀錄) | `lawful:spike-impl`,主 session 自己做 | 這條里程碑自己的分支 `build/M-n-<slug>` 與工作樹,從這一步開 | 從 shell 的進入點貫通到出口、跑得通的程式碼,與決策紀錄(「切片」「決策紀錄」) |
+| **Law** | scope-laws designs scope Laws only. A Law MUST be falsifiable and MUST be the developer's decision; it never describes what the code happens to do.(law 必須講得出怎樣算違反,而且是開發者拍板的承諾,不是把程式碼念一遍) | 開發者與 `lawful:scope-laws` 對談,根據切片的決策紀錄;談出全域的候選時接著與 `lawful:global-laws` | 同一棵工作樹 | 從切片 claim 出來的 pipeline:Stages 抄程式碼、約束逐條談出來(資料交互、資料儲存在哪、外部串接方法、軟體架構四項都問到,laws.md「Law 怎麼談」)、laws 逐條拍板,`ready`;這一片在對外 I/O 表的新列;整個專案都該守的列成候選,開發者批准後由 `lawful:global-laws` 抽進 `Cone.md`「全域 Law」區(laws.md「全域 Law」) |
+| **建構** | A pipeline is Verified only when every Law is guarded by a test that can fail and now passes; nobody bends a Law, a test or a declaration to get green.(每條 law 都有一條會失敗、現在通過的測試守著,才叫 verified;不為了變綠去動 law、測試或宣告) | `lawful:build` 的 conductor 帶 qa 與 refactor;scope-laws 與 scope-revise 收尾時自動接上 | 同一棵工作樹 | 測試(含剛抽上去的領域不變量的 `INV-n#LAW`)、調整過的實作(含剛抽上去的全域 Law 留下的 `lint boundary` 紅)、REV、決策紀錄的「Verification」;每條 law 成立才算達成,conductor 改 `verified` |
 | **整合** | Integration MUST NOT reduce Law satisfaction, and MUST NOT change a Law: it proposes, the developer approves, scope-laws or global-laws writes.(合併之前成立的每一條 law,合併之後都要仍然成立;整合不改任何一條 law,只提建議,開發者批准,scope law 由 scope-laws、全域 Law 由 global-laws 落筆) | `lawful:integrate` | 整合分支 | 幾條達成的分支合成一條、整套綠、仲裁、ADR、PR |
 
 每個 skill 的 SKILL.md 開頭也有自己那一句核心;步驟與核心衝突時,核心贏,停下回報。
 
-一條里程碑從切片到達成都在同一條分支、同一棵工作樹上;它綁的每條 pipeline 都 `verified`,才是可以被整合的狀態。一條需求一次只開它下一條還沒達成的里程碑;互不依賴的需求,里程碑可以同時各開一條,有依賴的被它依賴的那一條擋住(pipelines.md「願景、需求與里程碑」)。主線指 origin 的主線,只透過整合 PR 前進,本地主線不領先它。
+一條里程碑從切片到達成都在同一條分支、同一棵工作樹上,順序是**切片 → 談約束 → 抽全域 → build**:`lawful:spike-impl` 先做出一片,`lawful:scope-laws` 對著它把約束談成 scope law 並列出全域的候選,有候選就由 `lawful:global-laws` 經開發者批准抽進「全域 Law」區(沒有候選跳過這一站),`lawful:build` 再讓程式碼滿足 scope law 與全域 Law。它綁的每條 pipeline 都 `verified`,才是可以被整合的狀態。一條需求一次只開它下一條還沒達成的里程碑;互不依賴的需求,里程碑可以同時各開一條,有依賴的被它依賴的那一條擋住(pipelines.md「願景、需求與里程碑」)。主線指 origin 的主線,只透過整合 PR 前進,本地主線不領先它。
 
 既有 pipeline 的改動是另一條路,文檔先行(pipelines.md「修訂(REV)」):要調整(修改、放寬、替換、刪除)既有的 law 走 `lawful:scope-laws`(既有 pipeline 的 law 要調整的那一種情形,整件修訂一手包辦);law 不動、或只新增 law,而 `verified` 的 pipeline 的簽名、型別、模組或實作要變走 `lawful:scope-revise`(原有的每條 law 修訂前後都成立,pipeline 從 `verified` 回到 `verified`);刪 stage、兩條重複的 stage 留一份另一條改成引用、文檔退役,都是刪既有的 law,走 `lawful:scope-laws`。兩者各自開 `build/<全名>`(靠修訂達成的里程碑,就在它的 `build/M-n-<slug>` 上做),改完條文同樣自動接上 build;一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止。全域 Law 的變更走 `lawful:global-laws`(laws.md「全域 Law 的變更」);需求、驗收與里程碑的條目走 `lawful:require-design`。
 
@@ -31,9 +31,10 @@
 
 - `build/` 分支一律從與 origin 同步的主線 HEAD 開(`git fetch` 後 `git status -sb` 沒有 ahead / behind、工作樹乾淨),工作樹住 repo 的兄弟目錄 `../<repo>.worktrees/<鍵>`;之後每個角色都在這棵樹上做,指令的工作目錄也是它。分支存在、而且還沒合進主線,就代表這條線有人在做,`lawful status` 把它列成建構中,並從那棵工作樹讀它走到哪一步;已經合進主線卻還在的分支是沒人收的殘留,`status` 列成警訊,由整合清掉。
 - 開 `build/M-n-<slug>` 的前提:那條里程碑(含英文名)與它的需求檔(含驗收)都已在主線上;它是該需求下一條還沒達成的里程碑。
+- **專案的第一條切片單獨走完**:主線的「全域 Law」三個小區都還是空的時候(沒有領域不變量、四層「裝什麼」那一句一層都還沒寫、對外 I/O 表沒有列),一次只開一條切片;它做完、它的全域 Law 抽出來、合進主線之後,才開第二條。兩片同時長,會各長各的型別與邊界。第二片起,從第一行程式碼就守全域 Law。`lawful status` 在三個小區都是空的、而且已經有一條切片的分支在建構中時,「今天能開幾條線」不列別的切片,改印「專案的第一條切片單獨走完」那一句。
 - **宣告歸設計這一側,本體歸實作這一側**:Stages 上的簽名與它們用到的型別(建構子、欄位、匯出清單),切片定案後只有 `lawful:scope-laws` 與 `lawful:scope-revise` 能改;refactor 只動本體、私有 helper 與型別的內部表示。qa 與 refactor 非動宣告不可就是 GAP。
-- 分支上准動的東西只有自己的:這條里程碑範圍內的程式碼、從它 claim 出來的 pipeline、以 pipeline 全名命名的測試模組、本波要寫的驗收測試(以 `R-n` / `INV-n` 命名的測試模組)、共用檔裡自己那幾列(`modules.md` 自己要的那個模組單元、`Cone.md` 對外 I/O 表的新列、需求檔裡自己那條里程碑的綁定欄、建置設定登記自己模組與測試模組的那幾行)、`gaps.md` 追加、`journal/<鍵>.md`。
-- 不動:願景、需求檔的其餘部分(一句話、驗收那一句、優先、里程碑的列)、全域 Law 區的領域不變量與四層那四句;別條已經在主線上的 pipeline 與它的 stage 本體、別人的測試模組。唯一的例外:需求的驗收或一條領域不變量還只有一句話、而這條切片剛好讓它引用得到的簽名出現了,`lawful:scope-laws` 與開發者把那一句話寫成三行;那一句話本身不改。切片非動到別條 pipeline 的簽名不可,那是那條 pipeline 的修訂:在同一棵工作樹上照 pipelines.md「修訂(REV)」分流(它既有的 law 不動走 `lawful:scope-revise`,要調整既有的 law 走 `lawful:scope-laws`),REV 的連動欄寫明。靠修訂達成的里程碑(pipelines.md「願景、需求與里程碑」)照同一條:既有 pipeline 的條文由那個修訂的 skill 在 `build/M-n-<slug>` 上改、REV 的依欄寫里程碑的全名 `M-n-<slug>`,既有 stage 的本體由它接上的 build 帶 refactor 調;需求檔不動,綁定欄在 `lawful:require-design` 切出這條里程碑的當場就填好了。這條里程碑另外要一段新的貫通(新的出入口、shell 的真解譯器)時,`lawful:spike-impl` 在同一條分支上只貫通新的那一段。
+- 分支上准動的東西只有自己的:這條里程碑範圍內的程式碼、從它 claim 出來的 pipeline、以 pipeline 全名命名的測試模組、本波要寫的驗收測試(以 `R-n` / `INV-n` 命名的測試模組)、共用檔裡自己那幾列(`modules.md` 自己要的那個模組單元、`Cone.md` 對外 I/O 表的新列、需求檔裡自己那條里程碑的綁定欄、建置設定登記自己模組與測試模組的那幾行)、`gaps.md` 追加、`journal/<鍵>.md`;以及從這一片抽上去的全域 Law——開發者批准之後由 `lawful:global-laws` 在這條分支上落筆的領域不變量與四層「裝什麼」那幾句(laws.md「全域 Law」)。
+- 不動:願景、需求檔的其餘部分(一句話、驗收那一句、優先、里程碑的列)、全域 Law 區既有的條目(領域不變量、已經寫了的那幾句「裝什麼」、對外 I/O 表既有的列;要改只經 `lawful:global-laws`,開發者批准才動);別條已經在主線上的 pipeline 與它的 stage 本體、別人的測試模組。唯一的例外:需求的驗收或一條領域不變量還只有一句話、而這條切片剛好讓它引用得到的簽名出現了,`lawful:scope-laws` 與開發者把那一句話寫成三行;那一句話本身不改。切片非動到別條 pipeline 的簽名不可,那是那條 pipeline 的修訂:在同一棵工作樹上照 pipelines.md「修訂(REV)」分流(它既有的 law 不動走 `lawful:scope-revise`,要調整既有的 law 走 `lawful:scope-laws`),REV 的連動欄寫明。靠修訂達成的里程碑(pipelines.md「願景、需求與里程碑」)照同一條:既有 pipeline 的條文由那個修訂的 skill 在 `build/M-n-<slug>` 上改、REV 的依欄寫里程碑的全名 `M-n-<slug>`,既有 stage 的本體由它接上的 build 帶 refactor 調;需求檔不動,綁定欄在 `lawful:require-design` 切出這條里程碑的當場就填好了。這條里程碑另外要一段新的貫通(新的出入口、shell 的真解譯器)時,`lawful:spike-impl` 在同一條分支上只貫通新的那一段。
 - 進 `lawful:scope-laws` 之前先把主線合進工作樹一次(`git merge origin/<主線>`):Law 對著最新的全域 Law 與別人剛合進去的 pipeline 談,衝突提早浮現。
 - `lawful claim` 配號時看同一個 repo 的每一棵工作樹,兩條切片各自 claim 不會配到同一個號;`gaps.md` 在分支上從主線最大號往上配。
 - 分支上的 commit 訊息帶鍵;切片、文檔、測試、調整過的實作、決策紀錄各自成 commit,整合時才對得出誰動了什麼。
@@ -70,7 +71,7 @@ spike-impl、scope-laws 與 scope-revise 不委派:貫通切片要看得到整�
 `lawful:spike-impl` 的任務是讓一條里程碑那一句話成真:從 shell 的進入點貫通到出口,能跑、看得到行為。它同時是可行性驗證——做不做得到、做得到的話長什麼樣,跑過才知道,不猜、不拿去問開發者。
 
 - 輸入:那條里程碑與它的需求檔(一句話與驗收:里程碑全部走完要讓它達成)、全域 Law、`Cone.md` 的四層與對外 I/O、`modules.md` 的模組單元。簽名、stage 怎麼拆、放哪個模組,都是這一步邊做邊定的事。
-- **全域 Law 從第一行程式碼就守**,不留到整合:新模組住在某個模組單元宣告過的那一層的樹裡(要一個還沒有的單元,先 `lawful:module` 劃出來);types / effect / core 的簽名不出現效果型別、不 import IO 模組;import 的方向是 types ← effect ← core ← shell;對外 I/O 只在 shell;types / effect / core 的模組有匯出清單。純度與依賴方向事後補等於重寫。
+- **全域 Law 區有什麼就守什麼,從第一行程式碼起**,不留到整合:新模組住在某個模組單元宣告過的那一層的樹裡(要一個還沒有的單元,先 `lawful:module` 劃出來);types / effect / core 的簽名不出現效果型別、不 import IO 模組;import 的方向是 types ← effect ← core ← shell;對外 I/O 只在 shell;types / effect / core 的模組有匯出清單。純度與依賴方向事後補等於重寫。四層的規則是固定的,專案的第一片也照守;其餘的全域 Law 由第一片長出來(「分支與所有權」:第一條切片單獨走完):四層「裝什麼」那一句還沒寫時,每一層實際放了什麼在決策紀錄「Decisions」記一列;對外 I/O 表還沒有列時,跨過 shell 的每一端記進「Touched」。`lawful:scope-laws` 拿這兩處與開發者把那四句與每一端的契約講定。
 - 效果用描述:要碰外界的步驟,在 effect 層寫成指令 ADT 並配一個純解譯器,真解譯器住 shell(boundary.md「效果的判定」);之後 law 才有純的東西可以講。
 - 可以假:假資料、寫死的值、沒接上的真解譯器。**每一處都記進決策紀錄「Faked / Unverified」**;沒記的假比沒做還糟,它會被當成達成。
 - 自己的煙霧測試可以寫,不標歸屬,算內部測試(`lint trace` 照列);law 的測試是 qa 的事。
@@ -109,7 +110,7 @@ qa 交付後、派 refactor 之前,conductor 在現有的程式碼上跑一次 q
 
 | 時機 | 誰派、在哪 |
 |---|---|
-| 一條 pipeline 的 build 本波全綠後,`lawful status` 顯示它讓某條需求的里程碑全部達成,而那條需求的驗收有三行式卻沒有測試;或 scope-laws 在這條分支上把一條領域不變量寫成了三行 | 同一條 build 分支上再派一次 qa,目標是那一條;綠了才收尾 |
+| 一條 pipeline 的 build 本波全綠後,`lawful status` 顯示它讓某條需求的里程碑全部達成,而那條需求的驗收有三行式卻沒有測試;或這條分支上多了一條有三行式而沒有測試的領域不變量(`lawful:global-laws` 從這一片抽上去的,或 `lawful:scope-laws` 把先立的那一句寫成了三行) | 同一條 build 分支上再派一次 qa,目標是那一條;綠了才收尾。抽上去的那條 law 在出處的 pipeline 已經有測試的,這一波的 qa 把它搬進以 `INV-n` 命名的測試模組、歸屬改成 `INV-n#LAW` |
 | 里程碑早就全部達成、驗收還沒有測試;領域不變量有三行卻沒有測試(`status` 的警訊與建議路線列 `lawful:build R-n` / `INV-n`) | `lawful:build` 的目標直接是那一條:開 `build/R-n` 或 `build/INV-n` 分支,不派 refactor,只派 qa 寫那一條,跑整套一次,寫決策紀錄,交給 `lawful:integrate` |
 
 - qa 讀的是那一條的三行、它引用到的每個簽名所在 pipeline 的 Stages 表與 types 層;領域不變量只引用 types 層,就只讀 types 層。產生器與斷言照「qa 的交付」,`|-` 行逐字翻,拿純的整條與觀察點跑,不碰 IO。測試模組以 `R-n` / `INV-n` 命名,歸屬字串只放一個。
@@ -137,7 +138,7 @@ qa 交付後、派 refactor 之前,conductor 在現有的程式碼上跑一次 q
 - 寫決策紀錄的「Verification」與「合併時要看」(「決策紀錄」),連同所有改動 commit 在分支上;不合併、不發 PR,那是 `lawful:integrate` 的事。
 - 定錨區塊(tooling.md「收尾定錨」)。
 
-開發者的決定只在四個地方發生:立案與需求的對談(`lawful:kickoff` / `require-design` / `module`)、Law 對談(`lawful:scope-laws`)、回答 GAP、選定 law 的調整與確認修訂(scope law 在 `lawful:scope-laws`、全域 Law 在 `lawful:global-laws`,先看影響範圍再選選項;既有的 law 不動的修訂與它新增的 law 在 `lawful:scope-revise`,先看影響範圍再確認、新增的逐條拍板)、整合的仲裁(`lawful:integrate`)。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
+開發者的決定只在四個地方發生:立案與需求的對談(`lawful:kickoff` / `require-design` / `module`)、Law 對談(`lawful:scope-laws`,含全域的候選逐條說要不要;抽上去的批准在 `lawful:global-laws`)、回答 GAP、選定 law 的調整與確認修訂(scope law 在 `lawful:scope-laws`、全域 Law 在 `lawful:global-laws`,先看影響範圍再選選項;既有的 law 不動的修訂與它新增的 law 在 `lawful:scope-revise`,先看影響範圍再確認、新增的逐條拍板)、整合的仲裁(`lawful:integrate`)。開發者只說,文檔一律由 skill 寫。build 不替開發者做契約級決定,也不事後追認。
 
 ## 仲裁
 

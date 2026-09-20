@@ -10,20 +10,20 @@ law 是**不得違反**的約束;需求是**必須達成**的事,不是 law。�
 |---|---|---|
 | 層 | 願景 → 需求 `R-n` → 里程碑 `M-n-<slug>`(pipelines.md「願景、需求與里程碑」) | 全域 Law → scope law |
 | 判準 | 有做完的一天 | 沒有做完的一天,永遠要守 |
-| 誰談 | `lawful:require-design` | 全域 Law:`lawful:global-laws`;scope law:`lawful:scope-laws`(第一次談,與既有 law 的調整)、`lawful:scope-revise`(修訂時只新增) |
+| 誰談 | `lawful:require-design` | 全域 Law:從做出來的切片裡抽上去,`lawful:scope-laws` 談出候選、`lawful:global-laws` 落筆;scope law:`lawful:scope-laws`(第一次談,與既有 law 的調整)、`lawful:scope-revise`(修訂時只新增) |
 | 怎麼驗 | 需求的驗收(`R-n#ACCEPT` 測試);沒有測試時由里程碑全部達成推得(pipelines.md「完成度」) | 每條 law 一條會失敗而現在通過的測試;架構與契約另有 lint |
 
 約束只有兩種範圍:
 
 | 詞 | 意思 | 住哪裡 | 誰判 |
 |---|---|---|---|
-| 全域 Law(Global Law) | **不得違反**的約束,整個專案每一行程式碼都要守,從 `lawful:spike-impl` 的第一行起 | `Cone.md`「全域 Law」區,三類各一小區 | 每類一道 lint,`lawful lint global` 一次查完;領域不變量另有 `INV-n#LAW` 測試 |
+| 全域 Law(Global Law) | **不得違反**的約束,整個專案每一行程式碼都要守:區裡有的每一條,從 `lawful:spike-impl` 的第一行起 | `Cone.md`「全域 Law」區,三類各一小區 | 每類一道 lint,`lawful lint global` 一次查完;領域不變量另有 `INV-n#LAW` 測試 |
 | Scope Law | **不得違反**的約束,範圍是一條 pipeline:只約束那一條的 Stages。規章裡單寫 law,指的就是它 | 那條 pipeline 的「Laws」節;一個 stage 的 law 只住它住的那一條,引用它的 pipeline 不重寫(pipelines.md「編號與引用」) | 歸屬 `P-00x#LAW-n` 的測試 |
 
 - **任何程式碼都受全域 Law 加上它自己那條 pipeline 的 scope law 約束。** 沒有第三種約束,也沒有哪一段程式碼不受全域 Law 管。
 - **law 只住這兩個地方。** 需求、里程碑、決策紀錄、GAP、ADR 裡都沒有 law;**里程碑不管理約束**:它沒有 law、沒有測試標記。決策紀錄的「Assumptions & Invariants」是談 law 的原料,開發者拍板寫進「Laws」節之前不是 law。
 - **law 不必朝向需求。** pipeline 經由里程碑的綁定欄朝向需求;一條 scope law 不必指得出它滿足哪條需求。
-- **誰定哪一種**:一條 pipeline 的 scope law 第一次由 `lawful:scope-laws` 對著 `lawful:spike-impl` 做出來的切片、根據切片的決策紀錄與開發者談出來,`lawful:build` 帶 qa 與 refactor 讓它成立。既有 pipeline(含 `verified`)的任何一條**既有的 law 要調整**(修改、放寬、替換、刪除),只在 `lawful:scope-laws`,整件修訂由它一手做到 `verified`。既有的 law 一條都不動、`verified` 的 pipeline 的簽名、型別、模組、層或實作要變,走 `lawful:scope-revise`:它可以**新增** law(保護用的、效能的新上界、新 stage 的),不得修改、放寬、替換、刪除任何既有的 law(pipelines.md「修訂(REV)」)。全域 Law 的每一條由開發者定,第一次定義三區與之後的每一次變更,由開發者提出、或由 `lawful:integrate` 提出建議而開發者批准,一律由 `lawful:global-laws` 落筆(「全域 Law 的變更」)。
+- **誰定哪一種**:一條 pipeline 的 scope law 第一次由 `lawful:scope-laws` 對著 `lawful:spike-impl` 做出來的切片、根據切片的決策紀錄與開發者談出來,`lawful:build` 帶 qa 與 refactor 讓它成立。既有 pipeline(含 `verified`)的任何一條**既有的 law 要調整**(修改、放寬、替換、刪除),只在 `lawful:scope-laws`,整件修訂由它一手做到 `verified`。既有的 law 一條都不動、`verified` 的 pipeline 的簽名、型別、模組、層或實作要變,走 `lawful:scope-revise`:它可以**新增** law(保護用的、效能的新上界、新 stage 的),不得修改、放寬、替換、刪除任何既有的 law(pipelines.md「修訂(REV)」)。全域 Law 不在立案時憑空定,它是從做出來的切片裡抽上去的(「全域 Law」):`lawful:scope-laws` 對著切片談出候選,開發者逐條批准,`lawful:global-laws` 落筆;開發者事先就知道的硬規矩可以直接叫 `lawful:global-laws` 先立一句。之後的每一次變更由開發者提出、或由 `lawful:integrate` 提出建議而開發者批准,同樣一律由 `lawful:global-laws` 落筆(「全域 Law 的變更」)。
 - ADR 不是 law,記的是「為什麼」。ADR 的決定寫得成可執行形式(測試、lint、型別約束)時,約束進全域 Law,ADR 只留理由;寫不成的只留在 ADR(pipelines.md「ADR」)。
 
 ## 全域 Law
@@ -45,12 +45,24 @@ law 是**不得違反**的約束;需求是**必須達成**的事,不是 law。�
 ```
 
 - 第一行 `INV-n [種類] 一句話`,種類與三行式照 pipelines.md「節」的 Laws;**三行的識別字只准是 types 層的匯出、型別名與標準函式庫名**,`lint invariants` 對帳。提到某一條 pipeline 的 Stages 簽名,它就是那條 pipeline 的 scope law,不是領域不變量。
-- 只由測試判:有歸屬 `INV-n#LAW` 的測試就以它綠 / 紅為準;寫了三行卻沒有測試、或還只有一句話,都是「未知」,`lawful status` 列警訊、exit 1。第一次定義時 types 層的型別還沒出現,先只留一句話;型別出現的那條切片,`lawful:scope-laws` 把它寫成三行(不改那一句話),`lawful:build INV-n` 派 qa 寫測試(roles.md「驗收測試」)。
+- 只由測試判:有歸屬 `INV-n#LAW` 的測試就以它綠 / 紅為準;寫了三行卻沒有測試、或還只有一句話,都是「未知」,`lawful status` 列警訊、exit 1。從切片裡抽上去的那一條,落筆時三行就在(從出處那條 law 照搬),接下來的 build 派 qa 寫測試;開發者先立的那一句,types 層的型別還沒出現,先只留一句話,型別出現的那條切片由 `lawful:scope-laws` 把它寫成三行(不改那一句話),`lawful:build INV-n` 派 qa 寫測試(roles.md「驗收測試」)。
 - 准入四條,守住它不膨脹,新開的切片才不會被綁死:
-  1. **只由開發者批准而出生**:`lawful:global-laws` 的對談(立案後第一次定義三區,或之後開發者自己提的),或整合的仲裁提出建議、開發者批准(`lawful:integrate` 把兩條互斥的 law 提煉成上層的一條),同樣由 `lawful:global-laws` 落筆。`lawful:spike-impl`、`lawful:scope-laws` 與 `lawful:scope-revise` 不新增。配號只走 `lawful invariant add`。
+  1. **只由開發者批准而出生**:來源是 `lawful:scope-laws` 對著切片列的候選、開發者自己提的一句,或整合的仲裁提出建議(`lawful:integrate` 把兩條互斥的 law 提煉成上層的一條);每一種都要開發者明確批准,都由 `lawful:global-laws` 落筆。`lawful:spike-impl`、`lawful:scope-laws` 與 `lawful:scope-revise` 不新增(`lawful:scope-laws` 只列候選)。配號只走 `lawful invariant add`。
   2. **只引用 types 層共用的東西**(上面那一條)。
-  3. **至少兩條 pipeline 違反得了它才收**;只有一條違反得了的,搬回那一條 pipeline 當它的 scope law。
-  4. **一定有可執行形式**:寫不成測試、lint 或型別約束的跨 pipeline 決定是 ADR,不是 law。
+  3. **不只一條 pipeline 違反得了它才收**:它講的是 types 層共用的東西,任何一條 pipeline 碰到那個型別都違反得了;只有出處那一條碰得到的,留在那一條當它的 scope law。
+  4. **一定有可執行形式**:寫不成測試、lint 或型別約束的跨 pipeline 決定是 ADR,不是 law;領域不變量驗一次就蓋住全部(一條 `INV-n#LAW` 的 property test)。
+
+**怎麼來的:從切片裡抽上去。** 全域 Law 不在立案時憑空定。三類都有真正的程式碼約束——領域不變量的三行要引用 types 層的型別,四層每一層裝什麼要看實際放進去的東西,對外 I/O 表的每一格要對到 shell 模組、型別、pipeline 與 law——程式碼還不在的時候只能猜。所以與 scope law 同一個樣子:先做出一片,`lawful:scope-laws` 對著它談(四項:資料交互、資料儲存在哪、外部串接方法、軟體架構),約束定下來,build 讓程式碼滿足它。立案開出來的「全域 Law」區:領域不變量「無」、對外 I/O 表只有表頭;四層與它們的規則是 plugin 固定的,`lawful:kickoff` 照樣建好,只有每一層「裝什麼」那一句空著。這是正常的,不是警訊;專案的第一條切片就是用來長出它的(roles.md「分支與所有權」:第一條切片單獨走完)。
+
+| 類別 | 誰談出來 | 誰落筆 |
+|---|---|---|
+| 領域不變量 | `lawful:scope-laws` 談完這一片的 law 之後多問一輪「這幾條裡,哪幾條整個專案都該守」,照准入四條判(只講 types 層的型別、不只這一條違反得了、驗一次蓋住全部),符合的列成候選;開發者逐條說要不要,不整批追認 | `lawful:global-laws`:照准入四條再判一次、攤影響範圍、開發者批准才寫(`lawful invariant add`);三行從出處那條 law 照搬、識別字改成只用 types 層的匯出與型別名;出處那條 law 從原本那條 pipeline 的「Laws」節搬走(pipeline 此時還沒 `verified`,在同一條 build 分支上直接改,不是修訂) |
+| 架構:四層 | 四層是固定的,`lawful:kickoff` 建好,不談;每一層「裝什麼」那一句,由 `lawful:scope-laws` 的「軟體架構」那一項對著這一片實際放進那一層的東西與開發者講定,列成候選 | `lawful:global-laws`:`### 架構:四層` 那四行裡的那一句,`modules.md` 跟著對得上;講定的與這一片的放法不同而留下的 `lint boundary` 紅,由接下來的 build 把程式碼調到成立 |
+| 契約:對外 I/O | `lawful:scope-laws` 的「外部串接方法」那一項:這一片跨過 shell 的那幾端,每一端對外面承諾什麼當場與開發者講定 | 這一片的新列由 `lawful:scope-laws` 直接寫(boundary.md「對外 I/O」);改既有的列(換契約、換型別或效果 ADT)由 `lawful:global-laws` |
+
+`lawful:scope-laws` 把 pipeline 談到 `ready` 之後:有開發者說了要的候選 → 先接上 `lawful:global-laws` 落筆,它寫完再接上 `lawful:build`;沒有候選 → 直接接上 `lawful:build`。build 替新的領域不變量派 qa 寫 `INV-n#LAW` 測試(roles.md「驗收測試」)。
+
+**不強迫、但允許先立**:開發者事先就知道的硬規矩(「實體 id 一律不重複」),隨時可以叫 `lawful:global-laws` 先立一句;`lawful:kickoff` 不主動問。先立的領域不變量在 types 層的型別出現之前只有一句話,`lawful status` 顯示它「還沒有三行式」。
 
 **變更**:
 
@@ -60,7 +72,7 @@ law 是**不得違反**的約束;需求是**必須達成**的事,不是 law。�
 
 ## Law 怎麼談
 
-scope law 是對著跑得通的切片談出來的:開發者看得到行為,才答得出要什麼、不要什麼。`lawful:scope-laws` 的對談照這一節,`lawful:scope-revise` 在修訂裡新增的 law 也照這一節一次一條談定;兩者都只寫 scope law,不新增、不改全域 Law。
+scope law 是對著跑得通的切片談出來的:開發者看得到行為,才答得出要什麼、不要什麼。`lawful:scope-laws` 的對談照這一節,`lawful:scope-revise` 在修訂裡新增的 law 也照這一節一次一條談定;兩者都只寫 scope law,不新增、不改全域 Law(`lawful:scope-laws` 把談出來該全專案守的列成候選,「全域 Law」)。
 
 候選 law 三個來源,兩邊對不上的地方就是要問的題目:
 
@@ -79,7 +91,7 @@ scope law 是對著跑得通的切片談出來的:開發者看得到行為,才�
 | 資料交互 | 這一片與別條 pipeline、別的模組單元之間交換什麼資料;誰是來源、誰只是讀;格式是 types 層哪個有名字的型別;驗證(smart constructor、解析)在哪一個 stage 做、下游可以假設什麼 |
 | 資料儲存在哪 | 狀態住記憶體裡的值、檔案還是外部服務;哪一個效果描述寫它、哪一個只讀;兩處都存的以誰為準;寫到一半失敗、資料遺失時怎麼辦;純解譯器拿什麼當它的替身 |
 | 外部串接方法 | 碰哪個外部系統、走什麼協定;它寫成哪個效果 ADT、真解譯器住 shell 的哪個模組;失敗、重試、逾時各怎麼處理;重送會不會做兩次;回來的內容信任誰、在哪個 stage 驗證 |
-| 軟體架構 | 這一片的 stage 各住哪個模組單元的哪一層、依賴方向對不對;效果的描述集中在哪幾個 stage、`=` 列是不是純的;這一片用到的 stage 有沒有已經住在別條 pipeline 的——有就引用,不重寫;別條也會用到的那一段要不要拆成一條 subflow |
+| 軟體架構 | 這一片的 stage 各住哪個模組單元的哪一層、依賴方向對不對;效果的描述集中在哪幾個 stage、`=` 列是不是純的;這一片用到的 stage 有沒有已經住在別條 pipeline 的——有就引用,不重寫;別條也會用到的那一段要不要拆成一條 subflow;四層「裝什麼」那一句還有哪一層空著,就對著這一片實際放進那一層的東西把它講定 |
 
 四項談出來的結論各有去處:
 
@@ -87,8 +99,11 @@ scope law 是對著跑得通的切片談出來的:開發者看得到行為,才�
 |---|---|
 | 這條 pipeline 要一直守的事,講得出一個讓它變假的實作 | 寫成這條的 scope law |
 | 只關這條 pipeline 的取捨(為什麼存這裡、為什麼這樣接) | 這條的「決定」 |
-| 碰到全域的:「全域 Law」區還沒講定的對外邊界(這一片接了一個沒講過的外部系統)或某一端的契約要變、四層那四句要變、整個專案都要守的規則 | 不寫進這條,也不動「全域 Law」區;列成給 `lawful:global-laws` 的變更提議(哪一條、為什麼、這一片的哪個決定逼出來的),由開發者決定要不要走。邊界已經講定的那幾端,這一片的入口與出口照 boundary.md「對外 I/O」補成表上的列,不算變更 |
+| 這一片跨過 shell 的那幾端(「外部串接方法」談出來的:入口、出口、碰的外部系統) | 寫成 `Cone.md` 對外 I/O 表的新列(boundary.md「對外 I/O」):這一端對外面承諾什麼當場與開發者講定,契約欄填守它的 law;這一片的新列由 `lawful:scope-laws` 直接寫 |
+| 四層「裝什麼」那一句還空著的層(「軟體架構」談出來的) | 對著這一片實際放進那一層的東西與開發者把那一句講定,列成給 `lawful:global-laws` 的候選;四層與它們的規則是固定的,不談 |
+| 要改既有的全域 Law:對外 I/O 表既有的某一端契約要換,已經寫了的那幾句「裝什麼」要變,既有的領域不變量要變 | 不寫進這條,也不動「全域 Law」區;列成給 `lawful:global-laws` 的候選(哪一條、為什麼、這一片的哪個決定逼出來的),由開發者決定要不要走 |
 | 這一片用到、已經住在別條 pipeline 的 stage | 這條的 Stages 表引用它(模組欄註明「見 <那條 pipeline 的全名>」),它的 law 不重寫;要對它多一條承諾,列成那一條的修訂(pipelines.md「修訂(REV)」),不寫進這條 |
+
 **一次一條,用切片跑出來的例子問**,不問抽象的性質:
 
 ```
@@ -108,7 +123,8 @@ scope law 是對著跑得通的切片談出來的:開發者看得到行為,才�
 - 三行寫不出來,代表少一個觀察點(投影、存取子、效果描述的純解譯器):補 `o` 列並在程式碼裡匯出它(boundary.md「效果的判定」「測試與邊界」)。
 - 答「不准」而現有的型別裝不下(存檔格式沒有地方記版本):當場與開發者定型別要多什麼,`lawful:scope-laws` 把型別的宣告改到位、編得過;行為留給 refactor。型別與簽名歸設計這一側,本體歸 refactor(roles.md「分支與所有權」)。
 - 開發者逐條拍板,不整批追認;一條 pipeline 的 law 多到談不完,就是這條切得太大,拆成兩條。
-- 談的過程中冒出來、卻不屬於這條 pipeline 的(別條的行為、整個專案的規則),記在回報裡,不寫進這條;整個專案的規則是給開發者的全域 Law 變更建議,批准了由 `lawful:global-laws` 落筆(「全域 Law」)。
+- 談的過程中冒出來、卻不屬於這條 pipeline 的別條的行為,記在回報裡,不寫進這條。
+- **談完這一片的 law,多問一輪全域的候選**(`lawful:scope-laws`,切片剛做完的那一種):把剛談定的 law 逐條問「這幾條裡,哪幾條整個專案都該守」,照「全域 Law」的准入四條判,符合的列成領域不變量的候選(原句、出處的 pipeline 全名與 law 編號、改成只用 types 層的匯出與型別名之後的三行);開發者逐條說要不要,不整批追認。候選不在這裡落筆:那條 law 照樣留在這條 pipeline 的「Laws」節、照樣拍板,`lawful:global-laws` 落筆時才搬走。
 
 ## 影響範圍與選項
 
@@ -135,10 +151,10 @@ scope law 是對著跑得通的切片談出來的:開發者看得到行為,才�
 
 ## 全域 Law 的變更
 
-全域 Law 不住任何一條 pipeline,它的每一次落筆都在 `Cone.md` 的「全域 Law」區,都由 `lawful:global-laws` 做,同樣先過「影響範圍與選項」:
+全域 Law 不住任何一條 pipeline,它的每一次落筆都在 `Cone.md` 的「全域 Law」區,都由 `lawful:global-laws` 做(一條切片在對外 I/O 表的新列除外,「全域 Law」),同樣先過「影響範圍與選項」:
 
-- **第一次定義**:立案之後三區還是模板,`lawful:global-laws` 逐區與開發者談(領域不變量、架構的四層各裝什麼、契約的對外 I/O);領域不變量走 `lawful invariant add`,每條過准入四條(「全域 Law」)。此時沒有既有的 pipeline,影響範圍各項寫「無」;選項照樣給,一定含「不立這一條」。
-- **之後的變更**(新增、修改、放寬、替換、刪除),來源只有兩種:開發者自己提的,或 `lawful:integrate` 的變更建議經開發者明確批准(GAP 記著反例與批准的選項)。沒有批准就不動。
-- 與立案、需求的變更走同一條路:`plan/<slug>` 分支,由 `lawful:integrate` 經 PR 合進主線(roles.md「分支與所有權」)。新增走 `lawful invariant add`;修改、放寬、替換、刪除直接改那一條。編號不重用,刪掉的號永久空缺。四層那四句與對外 I/O 表的變更同理,`modules.md` 跟著改到 `lawful lint boundary` 沒有紅。
+- **抽上去**(新增):候選來自 `lawful:scope-laws` 對著剛做完的切片列的那一份、或開發者自己提的一句。`lawful:global-laws` 拿到候選的原句與出處,照准入四條再判一次(「全域 Law」),攤影響範圍——專案的第一片多半各項是「無」,之後的片要列哪幾條既有的 pipeline 違反得了它、哪幾條建構中的分支——選項照樣給,一定含「不抽,留在出處當 scope law」;開發者批准才落筆。領域不變量走 `lawful invariant add`,三行從出處那條 law 照搬,出處那條 law 從原本的 pipeline 搬走;出處的 pipeline 已經 `verified` 的,搬走它的 law 是調整既有的 law,先走 `lawful:scope-laws`。候選來自切片的,就在那條里程碑的 build 分支上落筆,與這一片一起經整合進主線;落筆後接上 `lawful:build`。
+- **變更**(修改、放寬、替換、刪除),來源只有兩種:開發者自己提的,或 `lawful:integrate` 的變更建議經開發者明確批准(GAP 記著反例與批准的選項)。沒有批准就不動。
+- 變更與開發者先立的那一句,與立案、需求的變更走同一條路:`plan/<slug>` 分支,由 `lawful:integrate` 經 PR 合進主線(roles.md「分支與所有權」)。修改、放寬、替換、刪除直接改那一條。編號不重用,刪掉的號永久空缺。四層那四句與對外 I/O 表的變更同理,`modules.md` 跟著改到 `lawful lint boundary` 沒有紅。
 - **改完重新驗證受影響的工作**:領域不變量的句子或三行變了,它原本的測試作廢,`lawful:build INV-n` 重派 qa;`lawful lint global` 沒有紅;影響範圍裡每一條 `verified` 的 pipeline 重跑它的子集測試,紅的重開、各走一條 REV(它既有的 law 要跟著調整走 `lawful:scope-laws`,既有的 law 不動、只有實作要服從新的全域 Law 走 `lawful:scope-revise`);建構中的分支合進新的主線之後,從首跑起重跑。
 - 這條變更由 `lawful:integrate` 收進 PR,並留一條 ADR 記為什麼(pipelines.md「ADR」)。

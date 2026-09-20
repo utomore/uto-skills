@@ -38,7 +38,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 - 沒有 `.lawful/Cone.md`、或願景還是模板 → 停,先跑 `lawful:kickoff`。
 - `lawful status` 警訊說 `Cone.md` 不存在、需求不住 `requirements/`、或 `Cone.md` 沒有「## 全域 Law」區 → 停,回 `lawful:kickoff` 的前置處理。
 - `lawful status` 警訊說專案根目錄的 `CLAUDE.md` 沒有「## 名詞」節 → 停,回 `lawful:kickoff` 補上這一節。
-- 開發者講的是一件**沒有做完的一天、永遠要守**的事(實體 id 不重複、core 不准碰 IO)→ 那不是需求,是 law(`laws.md`「Law 與需求」):整個專案都要守的走 `lawful:global-laws`;只關一條 pipeline 的,要調整(修改、放寬、替換、刪除)既有的 law 走 `lawful:scope-laws`,既有的 law 不動、只是替 `verified` 的 pipeline 新增一條走 `lawful:scope-revise`。需求面的條目(需求、驗收、優先、里程碑)才在這裡。
+- 開發者講的是一件**沒有做完的一天、永遠要守**的事(實體 id 不重複、core 不准碰 IO)→ 那不是需求,是 law(`laws.md`「Law 與需求」):整個專案都要守、事先就知道的硬規矩,可以叫 `lawful:global-laws` 先立一句(其餘的全域 Law 從切片裡抽上去);只關一條 pipeline 的,要調整(修改、放寬、替換、刪除)既有的 law 走 `lawful:scope-laws`,既有的 law 不動、只是替 `verified` 的 pipeline 新增一條走 `lawful:scope-revise`。需求面的條目(需求、驗收、優先、里程碑)才在這裡。
 - 開發者要的是「一條資料流」而不是「誰要得到什麼」→ 那是一條里程碑的範圍:這裡先問出它讓哪條需求的使用者看得到什麼、切成里程碑,再 `lawful:spike-impl <M-n-slug>` 做出切片、`lawful:scope-laws` 談出 pipeline。
 
 ## 步驟
@@ -72,7 +72,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 回報需求幾條(各自的一句話、驗收、優先、依賴哪幾條、里程碑達成幾條;達成與否)、名詞表的變動(新講定哪幾個名詞與各自的定義;改了哪個名詞的定義、影響範圍、開發者選了改還是不改、因此列成下一步的 law 調整;沒有變動寫「無」)、衝突檢查的結果(「與 R-x…R-y 逐條對過,無衝突」,或哪兩條衝突、影響範圍、開發者選了哪個選項)、里程碑幾條(各自的全名與展示得出來的那一句、幾條還沒有切片、哪幾條靠修訂達成與各自綁哪一條、幾條待修訂)、綁了哪些 pipeline、哪些 pipeline 沒有被綁定;附定錨區塊(`tooling.md`「收尾定錨」)。
 
-`Cone.md`「全域 Law」三個小區還是模板 → 直接執行 `lawful:global-laws` 定全域 Law 三區,不等開發者另外下指令。三區都定了,下一步一律從最高優先的需求第一條沒達成的里程碑推:還沒有切片 → 變更先 `lawful:integrate`(`plan/<slug>`)合進主線,再 `lawful:spike-impl <M-n-slug>`;待修訂(靠修訂達成的里程碑)→ 變更同樣先合進主線,再 `lawful:scope-revise <pipeline 全名>`(既有的 law 不動)或 `lawful:scope-laws <pipeline 全名>`(要調整既有的 law),來源寫這條 `M-n-<slug>`;切片做完還沒有 pipeline 或 pipeline 還是 draft → `lawful:scope-laws <M-n-slug>`;已 ready → `lawful:build <M-n-slug>`。
+下一步一律從最高優先的需求第一條沒達成的里程碑推(「全域 Law」三個小區是空的也一樣:全域 Law 是從第一條切片裡抽上去的,不先定):還沒有切片 → 變更先 `lawful:integrate`(`plan/<slug>`)合進主線,再 `lawful:spike-impl <M-n-slug>`;待修訂(靠修訂達成的里程碑)→ 變更同樣先合進主線,再 `lawful:scope-revise <pipeline 全名>`(既有的 law 不動)或 `lawful:scope-laws <pipeline 全名>`(要調整既有的 law),來源寫這條 `M-n-<slug>`;切片做完還沒有 pipeline 或 pipeline 還是 draft → `lawful:scope-laws <M-n-slug>`;已 ready → `lawful:build <M-n-slug>`。
 
 ## 邊界
 

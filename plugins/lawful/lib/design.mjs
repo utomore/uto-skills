@@ -222,6 +222,12 @@ export function readCone(lawfulDir, root) {
   }
   // 架構:四層各一句(給人看;機械查的是原始碼樹與模組單元表)
   const layerSec = globalPart('架構:四層');
+  // 哪幾層已經寫了「裝什麼」那一句:四層是固定的,那一句從第一條切片抽上去,在那之前是佔位符
+  const layerNotes = {};
+  if (layerSec) for (const it of parseList(layerSec.lines)) {
+    const m = /^(types|effect|core|shell)\s*[::]\s*(.*)$/.exec(it.text);
+    if (m && m[2].trim() && !hasPlaceholder(m[2])) layerNotes[m[1]] = m[2].trim();
+  }
   // 契約:對外 I/O
   const ioSec = globalPart('契約:對外 I/O');
   return {
@@ -229,6 +235,7 @@ export function readCone(lawfulDir, root) {
     invariantsState: !invSec ? 'missing' : 'ok',
     globalState: globalSec ? 'ok' : 'missing',
     layerState: layerSec ? 'ok' : 'missing',
+    layerNotes,
     io: ioRows(ioSec),
     ioState: ioSec ? 'ok' : 'missing',
     ioFile: rel(root, file),

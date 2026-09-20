@@ -43,9 +43,13 @@ function layerIndex(system, name) {
 export function lintBoundary(design, source, adapter) {
   const r = { title: 'lint boundary', red: [], info: [] };
   const sys = design.system;
-  if (!sys || !sys.layers.length) {
-    const has = sys && sys.sections.some((x) => x.level === 2 && x.title === '層');
-    r.red.push(has ? 'system.md「全域 Law」區的「架構:層」表還是模板,依賴方向沒有宣告' : 'system.md「全域 Law」區沒有「架構:層」表,依賴方向沒有宣告');
+  if (!sys || sys.layersState === 'missing') {
+    r.red.push('system.md「全域 Law」區沒有「架構:層」表,依賴方向沒有宣告');
+    return r;
+  }
+  // 層表沒有列:層從第一條切片抽上去,在那之前沒有依賴方向可對,不是紅
+  if (!sys.layers.length) {
+    r.info.push('「架構:層」表沒有列,沒有依賴方向可對;層由 dev-flow:scope-laws 對著切片談出候選、dev-flow:global-laws 落筆');
     return r;
   }
   if (!design.modules || !design.modules.entries.length) {
@@ -134,10 +138,10 @@ export function lintSig(design, source, adapter) {
       if (layerNames.length && !layerNames.includes(s.layer)) r.red.push(`${at(p.file, s.line)} ${s.name} 的層「${s.layer}」不在 system.md 的層表裡`);
       if (sys && s.whole && s.layer === sys.outermost) r.red.push(`${at(p.file, s.line)} = 列 ${s.name} 在最外層;整條住內層,對外那一段另列成 ! 列`);
       if (sys && s.observe && s.layer === sys.outermost) r.red.push(`${at(p.file, s.line)} 觀察點 ${s.name} 在最外層;law 要看的量不該只有跨出邊界才看得到`);
-      if (sys && s.entry && s.layer !== sys.outermost) r.red.push(`${at(p.file, s.line)} ! 列 ${s.name} 不在最外層(${sys.outermost});進入點是對外邊界那一段`);
+      if (sys && sys.outermost && s.entry && s.layer !== sys.outermost) r.red.push(`${at(p.file, s.line)} ! 列 ${s.name} 不在最外層(${sys.outermost});進入點是對外邊界那一段`);
       const entry = entries.length ? matchModule(entries, s.module) : null;
       if (entries.length && !entry) r.red.push(`${at(p.file, s.line)} ${s.name} 的模組 ${s.module} 不在模組表`);
-      else if (entry && entry.layer !== s.layer) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,模組表說 ${s.module} 是 ${entry.layer} 層`);
+      else if (entry && layerNames.length && entry.layer !== s.layer) r.red.push(`${at(p.file, s.line)} ${s.name} 寫 ${s.layer} 層,模組表說 ${s.module} 是 ${entry.layer} 層`);
       if (s.ref && !design.docs.some((q) => q.fullName === s.ref)) r.red.push(`${at(p.file, s.line)} ${s.name} 引用的 ${s.ref} 不存在`);
       // 一個 step 與它的 law 只住在一份文檔;別的文檔引用它。被引用的那份要真的有這個 step,而且不是它自己也在引用別人
       if (s.ref) {
@@ -225,6 +229,9 @@ function lawContext(design, source, adapter) {
       const e = matchModule(design.modules.entries, m.file);
       if (e && e.layer === innermost) for (const s of m.signatures) innerExports.add(s.name);
     }
+  } else if (source && sys && !sys.layers.length) {
+    // 層表還沒有列(層從第一條切片抽上去):還沒有「最內層」可分,程式碼裡匯出的函數 law 都引用得到
+    for (const m of source.files.values()) for (const s of m.signatures) innerExports.add(s.name);
   }
   const stdlib = new Set((Array.isArray(adapter) ? adapter : adapter ? [adapter] : []).flatMap((a) => (a.adapter || a).stdlib));
   const vocab = new Set(sys ? sys.vocab : []);

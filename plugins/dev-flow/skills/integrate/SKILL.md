@@ -101,7 +101,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
      ## 全域 Law
      - 擋到了實作的:<INV-n / 層的規則 / 對外 I/O 的契約:哪條分支、擋掉了什麼做法>;抄各決策紀錄「Decisions」表裡 Constraint 欄指到全域 Law 的列;無則「無」
-     - 這次 PR 帶進來的變更:<INV-n / 層 / 對外 I/O:改了什麼、開發者哪一句話批准的、ADR-00x>;只來自 `plan/` 分支上 global-laws 落筆的;無則「無」
+     - 這次 PR 帶進來的:<INV-n / 層 / 對外 I/O:從哪條切片的哪條 law 抽上去的、或改了什麼;開發者哪一句話批准的;ADR-00x(有的話)>;只來自 global-laws 落筆的(build 分支上從切片抽上去的、`plan/` 分支上的變更與先立的那一句);無則「無」
      - 提出而還沒批准的變更建議:<哪一條、反例、選項>;無則「無」
 
      ## 合併

@@ -7,7 +7,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 # dev-flow:kickoff — 開樹與願景
 
-> **核心**:Kickoff opens the tree and fixes only the north star and the toolchain; Requirements and global Laws are each settled in their own dialogue, never here.(開樹,只訂北極星與工具鏈;需求與全域 Law 各有自己的對談,不在這裡談。) 步驟與這一句衝突時,這一句贏:停下,回報。
+> **核心**:Kickoff opens the tree and fixes only the north star and the toolchain; Requirements are settled in their own dialogue and global Laws are extracted from finished slices, neither of them here.(開樹,只訂北極星與工具鏈;需求有自己的對談,全域 Law 是從做出來的切片裡抽上去的,兩者都不在這裡談。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
 ## 開工 context
 
@@ -27,7 +27,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 | 輸入 | 產出 |
 |---|---|
-| 開發者的意圖、既有程式碼(有的話) | `.design/system.md`(願景、語言與工具填好;「全域 Law」三個小區與 Features 表還是模板)、`.design/modules.md`(路徑欄的骨架)、專案根目錄 `CLAUDE.md` 的「## 名詞」節(願景裡已經出現的領域名詞);然後接上 `dev-flow:require-design` |
+| 開發者的意圖、既有程式碼(有的話) | `.design/system.md`(願景、語言與工具填好;「全域 Law」三個小區照模板是空的:領域不變量「無」、層表與對外 I/O 表只有表頭;Features 表還是模板)、`.design/modules.md`(路徑欄的骨架)、專案根目錄 `CLAUDE.md` 的「## 名詞」節(願景裡已經出現的領域名詞);然後接上 `dev-flow:require-design` |
 
 ## 前置
 
@@ -37,25 +37,26 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 - 需求不住 `requirements/` 的樹(`system.md` 有「## 需求」節,里程碑住 `objectives/` 的各檔或一份 `objectives.md`)、或需求檔還帶調整表的樹(調整表的每一列換成一條綁既有 feature 的里程碑)→ `devflow migrate requirements` 印帳本,帳本列的「人要判的」(里程碑串接的順序、沒有里程碑的需求、無處可去的里程碑、沒有英文名的里程碑)帶開發者逐項判,再 `--write`。
 - `devflow status` 警訊說 `system.md` 沒有「## 全域 Law」區、或需求寫著「- Law:」→ `devflow migrate laws` 印帳本再 `--write`。兩道遷移可以接連跑,先後都行。
 - 專案根目錄的 `CLAUDE.md` 沒有「## 名詞」節(檔案不存在也算;`devflow status` 的警訊會講)→ 照更新模式補上:照步驟 2 建這一節,把願景與既有需求裡已經在用的領域名詞照步驟 3 的「名詞」那一題與開發者逐個講定。
-- 要談的是需求或里程碑 → 不在這裡,走 `dev-flow:require-design`。要定或要改的是全域 Law(領域不變量、層、對外 I/O)→ 不在這裡,走 `dev-flow:global-laws`。
+- 要談的是需求或里程碑 → 不在這裡,走 `dev-flow:require-design`。要改的是既有的全域 Law(領域不變量、層、對外 I/O)→ 不在這裡,走 `dev-flow:global-laws`。
 
 ## 步驟
 
 1. **看現況。** 有 `.design/system.md` 就是更新模式:只改開發者點名的部分(`system.md` 的願景、語言與工具,模組表,`CLAUDE.md` 的名詞節),其餘不動。沒有就建。
-2. **開樹**:`.design/system.md` 照 `templates/system.md` 建(四節:願景、全域 Law、語言與工具、Features;「全域 Law」底下三個小區先留模板,等 `dev-flow:global-laws`)、`.design/modules.md` 照 `templates/modules.md` 建。`requirements/` 不在這裡建:第一條需求由 `dev-flow:require-design` 走 CLI 建檔。
+2. **開樹**:`.design/system.md` 照 `templates/system.md` 建(四節:願景、全域 Law、語言與工具、Features;「全域 Law」底下三個小區照模板留著——領域不變量寫「無」、層表與對外 I/O 表只有表頭:全域 Law 是從做出來的切片裡抽上去的(`laws.md`「Law 與需求」),這裡不問、不填)、`.design/modules.md` 照 `templates/modules.md` 建。`requirements/` 不在這裡建:第一條需求由 `dev-flow:require-design` 走 CLI 建檔。
    - **名詞節**(這一節一定要在,`features.md`「`.design/`」):專案根目錄沒有 `CLAUDE.md` → 建一份,只放 `# <專案名>` 與照 `templates/glossary.md` 寫的「## 名詞」節;已經有 `CLAUDE.md` 而沒有這一節 → 在檔尾補這一節。`CLAUDE.md` 是開發者自己的檔:這一節以外的內容一個字都不准動。
 3. **訪談,一題一題問,不確定就再問**。只問做之前就講得清楚、做完也不會變的東西:
    - **願景**先問:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼,第一段一到三句;後面可以展開替誰做什麼、明確不做什麼。訂不出來就先不往下。寫進 `## 願景`;它是北極星,不是驗收清單,之後的需求不對它逐句對照。
    - **名詞**:把願景裡已經出現的領域名詞逐個挑出來(更新模式再加上既有需求的一句話、驗收、里程碑那一句裡已經在用的),一個一個問開發者「它是什麼、不是什麼」,一句話講定,寫進 `CLAUDE.md`「## 名詞」節的表;只有一兩個也行,之後的由 `dev-flow:require-design` 補。「型別」欄:程式碼裡已經有對應的型別就寫型別名,還沒有就寫 `-`。名詞的定義只寫在這張表,不另外寫進 `system.md`。
    - **語言與工具**:語言(決定 adapter;前後端各一種語言就問各住哪個目錄,寫成 `[<目錄> = <adapter>, …]`,`tooling.md`「language adapter」);建置、整套測試、子集測試三道指令(多語言專案每側一組)——子集指令從 CI 設定、`Makefile`、`package.json` 或測試框架說明找,找不到問一次。這一行不問,之後每個角色都只會退回去跑整庫。IO 模組追加、忽略目錄有就填,沒有寫「無」。兩人以上會平行 claim 的專案再問號段:每人一段、以 git 的 `user.email` 為鍵(`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),新人加入時加一段;單人寫「無」。「優先」那一行留給 `dev-flow:require-design`。
-4. **模組表的骨架**:有程式碼就 `devflow modules --gen` 生成一個檔一列;沒有程式碼就先列預期的目錄。層欄留白:層是全域 Law 的架構一類,由 `dev-flow:global-laws` 與開發者定了層表之後填。
-5. `devflow status`:願景與名詞節的警訊要清掉;沒有需求、全域 Law 三區還是模板的警訊在這一步是正常的,交給後面兩個 skill。變更 commit。
-6. **接上 require-design**:直接執行 `dev-flow:require-design`,與開發者談第一批需求並當場切成里程碑,不等開發者另外下指令;需求定完,它接上 `dev-flow:global-laws` 定全域 Law 三區。
+   - **不主動問全域 Law**:領域不變量、層、對外 I/O 都等第一條切片做出來再對著它談。開發者自己提到一條事先就知道的硬規矩(「金額一律用整數的分」)→ 告訴他可以叫 `dev-flow:global-laws` 先立一句,不在這裡寫。
+4. **模組表的骨架**:有程式碼就 `devflow modules --gen` 生成一個檔一列;沒有程式碼就先列預期的目錄。層欄留白:層表由 `dev-flow:global-laws` 在第一條切片談完約束之後落筆,層欄那時一起填。
+5. `devflow status`:願景與名詞節的警訊要清掉;沒有需求的警訊在這一步是正常的,交給 `dev-flow:require-design`。「全域 Law」三個小區是空的不是警訊。變更 commit。
+6. **接上 require-design**:直接執行 `dev-flow:require-design`,與開發者談第一批需求並當場切成里程碑,不等開發者另外下指令。
 
 ## 收尾
 
-回報願景一句、名詞表寫進了哪幾個名詞(`CLAUDE.md` 是新建的還是在檔尾補的)、語言與三道指令、建了哪些檔、模組表幾個檔案還沒填層;附定錨區塊(`tooling.md`「收尾定錨」)。接上 require-design 之後的收尾由它做。需求與全域 Law 三區都定完,才推薦切片:`dev-flow:integrate`(把立案以 `plan/<slug>` 分支合進主線),再 `dev-flow:spike-impl <最高優先需求第一條里程碑的全名>`。
+回報願景一句、名詞表寫進了哪幾個名詞(`CLAUDE.md` 是新建的還是在檔尾補的)、語言與三道指令、建了哪些檔、模組表幾個檔案還沒填層;附定錨區塊(`tooling.md`「收尾定錨」)。接上 require-design 之後的收尾由它做。需求定完,才推薦切片:`dev-flow:integrate`(把立案以 `plan/<slug>` 分支合進主線),再 `dev-flow:spike-impl <最高優先需求第一條里程碑的全名>`。
 
 ## 邊界
 
-不談需求、驗收、優先與里程碑(`dev-flow:require-design`);不談、不寫任何一條全域 Law,也不填層表與對外 I/O 表(`dev-flow:global-laws`);不建 feature、不寫 Steps 與 laws(那是切片之後 `dev-flow:scope-laws` 的事);不寫任何程式碼;不開 ADR;不替開發者決定願景、名詞的定義與語言。專案根目錄的 `CLAUDE.md` 只寫它的「## 名詞」節,這一節以外的內容一個字都不准動。
+不談需求、驗收、優先與里程碑(`dev-flow:require-design`);不問、不談、不寫任何一條全域 Law,也不填層表與對外 I/O 表(它們從切片裡抽上去,`dev-flow:scope-laws` 談、`dev-flow:global-laws` 落筆);不建 feature、不寫 Steps 與 laws(那是切片之後 `dev-flow:scope-laws` 的事);不寫任何程式碼;不開 ADR;不替開發者決定願景、名詞的定義與語言。專案根目錄的 `CLAUDE.md` 只寫它的「## 名詞」節,這一節以外的內容一個字都不准動。

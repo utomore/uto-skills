@@ -8,15 +8,13 @@ updated: <YYYY-MM-DD>
 <北極星,第一段一到三句:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼。後面可以展開替誰做什麼、明確不做什麼;不隨里程碑變。>
 
 ## 全域 Law
-不得違反:整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區,各有一道 lint 自動確認(`lawful lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准,一律由 `lawful:global-laws` 寫。
+不得違反:整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區,各有一道 lint 自動確認(`lawful lint global` 一次查完)。每一條都是從做出來的切片裡抽上來的:`lawful:scope-laws` 對著切片談出候選,開發者明確批准,`lawful:global-laws` 落筆;修改、放寬、替換或刪除同樣要開發者明確批准,一律由 `lawful:global-laws` 寫。
 
 ### 領域不變量
-- INV-1 [<invariant | identity | roundtrip | relation | bound | equiv | total | commute>] <一句話:整個專案任何一條 pipeline 都不准違反的領域規則;一條都沒有就這一區只寫「無」>
-  - forall <變數 in types 層的型別>
-  - |- <結論,識別字只用 types 層的匯出與型別名;型別還沒出現就只留上面那一句>
+無
 
 ### 架構:四層
-依賴方向 types ← effect ← core ← shell;效果只出現在 shell。每層一句講這個專案在那一層裝什麼。
+依賴方向 types ← effect ← core ← shell;效果只出現在 shell。每層一句講這個專案在那一層裝什麼;那一句在第一條切片做完之後由 `lawful:global-laws` 寫。
 
 - types:<裝什麼,一句>
 - effect:<指令 ADT 叫什麼,一句;沒有 effect 層寫「無」>
@@ -24,11 +22,10 @@ updated: <YYYY-MM-DD>
 - shell:<進入點,一句>
 
 ### 契約:對外 I/O
-跨過 shell 的每個入口與出口,與守這一端的 law。
+跨過 shell 的每個入口與出口,與守這一端的 law(`P-00x#LAW-n` 或 `INV-n`,沒有寫 `-`)。
 
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
 |---|---|---|---|---|---|
-| <名稱> | in | `<Type>` | `<Module>` | P-00x-<slug> | <守這一端的 law:P-00x#LAW-n 或 INV-n;沒有寫 -> |
 
 ## 專案約束
 - 語言:<haskell | …>

@@ -17,7 +17,7 @@ const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const RULES = {
   kickoff: [['pipelines.md', ['`.lawful/`', 'Cone.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求']], ['boundary.md', ['模組單元', '模組表']], ['tooling.md', ['language adapter', '收尾定錨']]],
   'require-design': [['pipelines.md', ['願景、需求與里程碑', '完成度']], ['laws.md', ['Law 與需求']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
-  'global-laws': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['pipelines.md', ['提問(GAP)', '完成度']], ['roles.md', ['分支與所有權']], ['tooling.md', ['CLI', '收尾定錨']]],
+  'global-laws': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['pipelines.md', ['節', '提問(GAP)', '完成度']], ['roles.md', ['分支與所有權', '驗收測試', '決策紀錄']], ['tooling.md', ['CLI', '收尾定錨']]],
   module: [['boundary.md', ['四層', '模組單元', '模組表']], ['tooling.md', ['CLI', '收尾定錨']]],
   'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['pipelines.md', ['願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
   'scope-laws': [['pipelines.md', ['pipeline', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O', '效果的判定']], ['tooling.md', ['CLI', '收尾定錨']]],
@@ -36,7 +36,7 @@ const RULES = {
 const BLOCKS = {
   kickoff: { none: ['tree', 'cone', 'modules'] },
   'require-design': { none: ['cone', 'requirements', 'statusgoals'], top: ['cone', 'requirements', 'statusgoals'] },
-  'global-laws': { none: ['branch', 'cone', 'requirements', 'modules', 'gaps', 'lintglobal', 'statusgoals'], top: ['branch', 'top', 'touched', 'cone', 'requirements', 'modules', 'gaps', 'lintglobal', 'statusrows'] },
+  'global-laws': { none: ['branch', 'cone', 'requirements', 'modules', 'gaps', 'lintglobal', 'statusgoals'], top: ['branch', 'top', 'touched', 'cone', 'requirements', 'modules', 'gaps', 'lintglobal', 'statusrows'], milestone: ['branch', 'cone', 'requirement', 'modules', 'journal', 'bound', 'typeslayer', 'gaps', 'lintglobal', 'statusrows'] },
   module: { none: ['constraints', 'modules', 'lintboundary'] },
   'spike-impl': { milestone: ['branch', 'tree', 'requirement', 'cone', 'modules', 'statusrows'] },
   'scope-laws': { milestone: ['branch', 'tree', 'requirement', 'cone', 'modules', 'journal', 'bound', 'typeslayer'], doc: ['branch', 'doc', 'detail', 'declarations', 'refs', 'requirement', 'cone', 'journal', 'gaps', 'lint', 'statusrows'] },

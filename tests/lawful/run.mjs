@@ -135,6 +135,8 @@ const CASES = [
   ['save-game-brief-scope-revise-wrong-kind', 'save-game', ['brief', 'scope-revise', 'M-1-save-write', '--no-rules']],
   ['save-game-brief-global-laws-invariant', 'save-game', ['brief', 'global-laws', 'INV-1', '--tests', 'test.log', '--no-rules']],
   ['broken-brief-global-laws', 'broken', ['brief', 'global-laws', '--tests', 'stale.log', '--no-rules']],
+  // scope-laws 帶著全域的候選接過來:目標是那條里程碑,候選的出處(它綁的 pipeline 全文與逐條狀態)與決策紀錄都在
+  ['save-game-brief-global-laws-milestone', 'save-game', ['brief', 'global-laws', 'M-1-save-write', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-require-design', 'save-game', ['brief', 'require-design', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-kickoff', 'save-game', ['brief', 'kickoff', '--no-rules']],
   ['save-game-brief-module', 'save-game', ['brief', 'module', '--no-rules']],
@@ -456,6 +458,52 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
       console.log('✗ 靠修訂達成的里程碑的工作樹');
       console.log([before, opened, revised, inTree].map((t) => t.split('\n').filter((l) => /M-4-tally-unicode/.test(l)).join('\n')).join('\n---\n'));
     } else console.log('✓ 靠修訂達成的里程碑的工作樹');
+  }
+}
+
+// 專案的第一條切片單獨走完:一棵剛照模板開出來的樹(領域不變量「無」、四層「裝什麼」那一句還是佔位符、對外 I/O 表只有表頭),
+// 已經有一條切片的分支在建構中時,別條需求的切片不列成能開的線,改印那一句;全域 Law 區有了東西(這裡立一條領域不變量)就照常列。
+// 空的全域 Law 區不紅、不列警訊
+{
+  const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
+  if (!hasGit) console.log('· 沒有 git,跳過第一條切片的檢查');
+  else {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'first-'));
+    const main = path.join(base, 'repo');
+    const tree = path.join(base, 'repo.worktrees', 'M-1-save');
+    const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
+    const lawful = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+    const templates = path.join(here, '..', '..', 'plugins', 'lawful', 'templates');
+    fs.mkdirSync(path.join(main, '.lawful'), { recursive: true });
+    fs.writeFileSync(path.join(main, '.lawful', 'Cone.md'), fs.readFileSync(path.join(templates, 'Cone.md'), 'utf8').replace(/^language: .*$/m, 'language: haskell').replace(/^- 語言:.*$/m, '- 語言:haskell'));
+    fs.copyFileSync(path.join(templates, 'modules.md'), path.join(main, '.lawful', 'modules.md'));
+    lawful(main, 'requirement', 'add', 'save-roundtrip', '存出去的世界讀得回來', '--priority', '1', '--accept', '任一個世界存檔再讀檔都還原', '--date', DATE);
+    lawful(main, 'requirement', 'add', 'world-report', '世界的現況印得出來', '--priority', '2', '--accept', '任一個世界都印得出一份報表', '--date', DATE);
+    lawful(main, 'requirement', 'milestone', 'R-1', 'save', '存檔走通');
+    lawful(main, 'requirement', 'milestone', 'R-2', 'report', '報表走通');
+    git(main, 'init', '-b', 'main');
+    git(main, 'add', '-A');
+    git(main, 'commit', '-m', 'base');
+    const before = lawful(main, 'status').stdout;
+    const lintGlobal = lawful(main, 'lint', 'global');
+    git(main, 'worktree', 'add', '-b', 'build/M-1-save', tree, 'HEAD');
+    const opened = lawful(main, 'status').stdout;
+    lawful(main, 'invariant', 'add', '任何一個世界裡實體 id 都不重複');
+    const released = lawful(main, 'status').stdout;
+    const NOTE = '專案的第一條切片單獨走完:build/M-1-save 抽出全域 Law 並合進主線之後才開下一條(等著的:M-2-report)';
+    const LINE = '- M-2-report:lawful:spike-impl M-2-report(';
+    const ok = before.includes('- M-1-save:lawful:spike-impl M-1-save(') && before.includes(LINE) && !before.includes('專案的第一條切片單獨走完')
+      && !before.includes('| 全域 Law:') && lintGlobal.status === 0
+      && opened.includes('- M-1-save:建構中,分支 build/M-1-save') && !opened.includes('lawful:spike-impl M-2-report(') && opened.includes(`- ${NOTE}`) && new RegExp(`^\\d+\\. ${NOTE.replace(/[()]/g, '\\$&')}$`, 'm').test(opened)
+      && released.includes(LINE) && !released.includes('專案的第一條切片單獨走完');
+    git(main, 'worktree', 'remove', '--force', tree);
+    fs.rmSync(base, { recursive: true, force: true });
+    if (!ok) {
+      failed++;
+      console.log('✗ 第一條切片單獨走完');
+      console.log(`lint global exit ${lintGlobal.status}\n${lintGlobal.stdout.trimEnd()}`);
+      console.log([before, opened, released].map((t) => t.split('\n').filter((l) => /M-[12]-|第一條切片|全域 Law:/.test(l)).join('\n')).join('\n---\n'));
+    } else console.log('✓ 第一條切片單獨走完');
   }
 }
 

@@ -63,7 +63,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 6. **靠修訂達成的里程碑有沒有偷渡新能力**:它那一句是使用者看得到、量得到的嗎;依欄引用它的 REV 有沒有把需求的驗收引用的 law 列進保護;修訂加進來的若是一個可以獨立拿掉的新能力,它該是一條做出新 pipeline 的里程碑。
 7. **一個 stage 是不是只住一條 pipeline**(`pipelines.md`「編號與引用」):`lint sig` 報的同名未註明 → 同一個 stage 與它的 law 在兩條 pipeline 各寫了一次,後做的那一條該改成引用,`lawful:scope-laws <它的全名>`;沒有任何里程碑綁、也沒有任何 pipeline 引用的 pipeline → 問開發者要不要退役。
 8. **law 講的是承諾,還是在描述程式碼**(`laws.md`「Law 怎麼談」):每條 pipeline 抽幾條 law,問「寫得出一個讓它變假的實作嗎」。寫不出來的那一條只是把實作念了一遍,它的測試是同義反覆——列出來走 `lawful:scope-laws` 重談(那是調整既有的 law)。反過來,程式碼裡使用者看得到、卻沒有任何 law 守著的行為,列成「目前不是承諾」給開發者過目,不替他決定要不要承諾;要承諾就是新增一條,走 `lawful:scope-revise`。需求與 law 有沒有放錯邊:寫成需求卻沒有做完的一天的、寫成 law 卻有做完的一天的,列出來(`laws.md`「Law 與需求」)。
-9. **全域 Law 有沒有膨脹**(`laws.md`「全域 Law」):每條領域不變量過一次准入四條——只引用 types 層嗎、兩條以上的 pipeline 違反得了它嗎、有測試嗎;只有一條 pipeline 碰得到的,列出來建議搬回那條。三類約束是不是都看得到住在 `Cone.md` 的「全域 Law」區;有沒有約束散在需求檔、ADR、決策紀錄或某條 pipeline 的「決定」裡卻沒有可執行形式。這一題只出建議:任何全域 Law 的變更都要開發者明確批准,由 `lawful:global-laws` 落筆。
+9. **全域 Law 有沒有膨脹**(`laws.md`「全域 Law」):每條領域不變量過一次准入四條——只引用 types 層嗎、不只一條 pipeline 違反得了它嗎、有測試嗎;只有一條 pipeline 碰得到的,列出來建議搬回那條。反過來看有沒有該抽而沒抽的:同一條 law 在幾條 pipeline 各寫了一次、講的只是 types 層的型別,列成給 `lawful:global-laws` 的候選;還沒有任何切片的專案,「全域 Law」三個小區是空的是正常的,不列。三類約束是不是都看得到住在 `Cone.md` 的「全域 Law」區;有沒有約束散在需求檔、ADR、決策紀錄或某條 pipeline 的「決定」裡卻沒有可執行形式。這一題只出建議:任何全域 Law 的變更都要開發者明確批准,由 `lawful:global-laws` 落筆。
 
 三句話回答「最高優先的需求離達成還差什麼、有沒有東西在往別的方向走、哪條需求還沒達成、哪條全域 Law 被踩到或還立不住」。需求本身對不對不在這裡判,那是開發者在 `lawful:require-design` 答的。
 

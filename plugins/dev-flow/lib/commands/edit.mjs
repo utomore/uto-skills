@@ -224,7 +224,7 @@ export function requirementAdd(design, slug, title, { accept = '', priority, dat
 }
 
 // invariant add <一句話> [--kind <種類>]:鑄 INV-n,寫進 system.md「全域 Law」區的「領域不變量」尾端;區裡沒有這一小節就補在區的最前面。
-// 領域不變量是開發者批准的決定,只由 glaws-revise 寫;整個專案任何一份 feature 都不准違反,三行的識別字只用最內層的匯出與型別名。
+// 領域不變量是開發者批准的決定,只由 global-laws 寫;整個專案任何一份 feature 都不准違反,三行的識別字只用最內層的匯出與型別名。
 export function invariantAdd(design, title, { kind = 'invariant' } = {}) {
   if (!title || /<[^>]*>/.test(title)) return { text: '領域不變量要一句話:整個專案都不准違反的是什麼', exitCode: 1 };
   if (!design.system) return { text: '沒有 .design/system.md;dev-flow:kickoff 先建它', exitCode: 1 };
@@ -306,7 +306,7 @@ export function refinementAdd(design, reqId, title, { touch = '' } = {}) {
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   appendRow(lines, '調整', REFINEMENT_TABLE, `| ${id} | ${title} | ${touches.join('、')} |`);
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${id} 寫進 ${req.fullName},動到 ${touches.join('、')}`, `下一步:dev-flow:law-design ${touches[0]},REV 的依欄引用 ${id};調整達成 = 動到的每份都有一條 REV 引用它、都達成,而且 ${reqId} 仍達成`].join('\n'), exitCode: 0, id };
+  return { text: [`${id} 寫進 ${req.fullName},動到 ${touches.join('、')}`, `下一步:dev-flow:scope-revise ${touches[0]}(既有的 law 不動、可以新增,REV 的依欄引用 ${id};要調整既有的 law 才做得到,整件改走 dev-flow:scope-laws);調整達成 = 動到的每份都有一條 REV 引用它、都達成,而且 ${reqId} 仍達成`].join('\n'), exitCode: 0, id };
 }
 
 // 同層搬家的 step,把模組欄改成程式碼裡的實際檔案。

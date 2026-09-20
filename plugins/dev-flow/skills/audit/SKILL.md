@@ -31,17 +31,17 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 | 紅 | 處置 |
 |---|---|
-| 簽名不一致 | 看兩邊誰對:文檔錯走 `dev-flow:law-design`(既有文檔要改),程式碼錯列給 refactor |
+| 簽名不一致 | 看兩邊誰對:文檔錯走 `dev-flow:scope-revise`(既有的 law 不動,改簽名;文檔還沒 `verified` 走 `dev-flow:scope-laws`),程式碼錯列給 refactor |
 | 同層搬家 | 直接 `devflow sync` |
 | 未登記檔案 | `devflow modules --gen` 再請開發者填層 |
 | 沒匯出的 step、內層 import 外層、非最外層 import IO 模組 | 結構問題,列給開發者 |
-| law 的識別字對不到 | 少一個觀察點 → 補 `o` 列走 `dev-flow:law-design`;真的是專案詞彙 → `system.md`「Laws 詞彙追加」 |
+| law 的識別字對不到 | 少一個觀察點 → 補 `o` 列:`verified` 的文檔走 `dev-flow:scope-revise`,還在切片那一波的走 `dev-flow:scope-laws`;真的是專案詞彙 → `system.md`「Laws 詞彙追加」 |
 | 幽靈引用 | 測試還在守一條已經不存在的 law,刪測試 |
 | 未翻譯 | 那條 law 沒有測試,下一波 build 派 qa |
 | 需求的驗收或領域不變量寫了三行卻沒有測試 | `dev-flow:build R-n` / `INV-n`,只派 qa(`roles.md`「驗收測試」) |
-| `lint global` 的紅(架構、契約、領域不變量) | 不得違反的約束被踩到:先歸因到哪一份 feature 的程式碼違反了它,改程式碼;覺得該改的是那條全域 Law,列成給開發者的變更建議(`dev-flow:glaws-revise` 落筆),不自己改 |
-| 領域不變量的三行引用了某份 feature 的簽名 | 它不是全專案的規則:搬回那份 feature 當它的 scope law(`dev-flow:glaws-revise` 刪那一條、`dev-flow:law-design` 補進那份文檔;全域 Law 的變更要開發者批准),或改成只引用最內層 |
-| 對外 I/O 表的契約欄指不到 law | 那一端的承諾沒有 law 守著:補 law 走 `dev-flow:law-design`,或由 `dev-flow:glaws-revise` 把契約欄改回「-」 |
+| `lint global` 的紅(架構、契約、領域不變量) | 不得違反的約束被踩到:先歸因到哪一份 feature 的程式碼違反了它,改程式碼;覺得該改的是那條全域 Law,列成給開發者的變更建議(`dev-flow:global-laws` 落筆),不自己改 |
+| 領域不變量的三行引用了某份 feature 的簽名 | 它不是全專案的規則:搬回那份 feature 當它的 scope law(`dev-flow:global-laws` 刪那一條、`dev-flow:scope-revise` 在那份文檔新增一條;全域 Law 的變更要開發者批准),或改成只引用最內層 |
+| 對外 I/O 表的契約欄指不到 law | 那一端的承諾沒有 law 守著:新增一條 law 走 `dev-flow:scope-revise`,或由 `dev-flow:global-laws` 把契約欄改回「-」 |
 
 `sync` 與 `modules --gen` 是你可以直接做的兩個機械動作,其餘一律回報。
 
@@ -55,8 +55,8 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 4. **誰不朝向任何需求**:沒被任何里程碑綁定的 feature、沒有里程碑的需求、沒有優先的需求、綁到不存在的檔或 abstract 的里程碑(`status` 的警訊)。
 5. **達成說的是實話嗎**:每條達成的里程碑,它綁定的 feature 是不是真的涵蓋「做到什麼」那一句;綁得太少的里程碑,達成是假的。
 6. **調整有沒有偷渡新 feature**:每條調整動到的都是這條需求的里程碑綁定過的 feature 嗎、它的 REV 有沒有把需求的驗收引用的 law 列進保護。
-7. **law 講的是承諾,還是在描述程式碼**(`laws.md`「Law 怎麼談」):每份文檔抽幾條 law,問「寫得出一個讓它變假的實作嗎」。寫不出來的那一條只是把實作念了一遍,它的測試是同義反覆——列出來走 `dev-flow:law-design` 重談。反過來,程式碼裡使用者看得到、卻沒有任何 law 守著的行為,列成「目前不是承諾」給開發者過目,不替他決定要不要承諾。需求與 law 有沒有放錯邊:寫成需求卻沒有做完的一天的、寫成 law 卻有做完的一天的,列出來(`laws.md`「Law 與需求」)。
-8. **全域 Law 有沒有膨脹**(`laws.md`「全域 Law」):每條領域不變量過一次准入四條——只引用最內層嗎、兩份以上的 feature 違反得了它嗎、有測試嗎;只有一份 feature 碰得到的,列出來建議搬回那份 feature。三類約束是不是都看得到住在 `system.md` 的「全域 Law」區;有沒有約束散在需求檔、ADR、決策紀錄或某份 feature 的「決定」裡卻沒有可執行形式。這一題只出建議:任何全域 Law 的變更都要開發者明確批准,由 `dev-flow:glaws-revise` 落筆。
+7. **law 講的是承諾,還是在描述程式碼**(`laws.md`「Law 怎麼談」):每份文檔抽幾條 law,問「寫得出一個讓它變假的實作嗎」。寫不出來的那一條只是把實作念了一遍,它的測試是同義反覆——列出來走 `dev-flow:scope-laws` 重談(那是調整既有的 law)。反過來,程式碼裡使用者看得到、卻沒有任何 law 守著的行為,列成「目前不是承諾」給開發者過目,不替他決定要不要承諾;要承諾就是新增一條,走 `dev-flow:scope-revise`。需求與 law 有沒有放錯邊:寫成需求卻沒有做完的一天的、寫成 law 卻有做完的一天的,列出來(`laws.md`「Law 與需求」)。
+8. **全域 Law 有沒有膨脹**(`laws.md`「全域 Law」):每條領域不變量過一次准入四條——只引用最內層嗎、兩份以上的 feature 違反得了它嗎、有測試嗎;只有一份 feature 碰得到的,列出來建議搬回那份 feature。三類約束是不是都看得到住在 `system.md` 的「全域 Law」區;有沒有約束散在需求檔、ADR、決策紀錄或某份 feature 的「決定」裡卻沒有可執行形式。這一題只出建議:任何全域 Law 的變更都要開發者明確批准,由 `dev-flow:global-laws` 落筆。
 
 三句話回答「最高優先的需求離達成還差什麼、有沒有東西在往別的方向走、哪條需求還沒達成、哪條全域 Law 被踩到或還立不住」。
 
@@ -67,7 +67,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 1. **改最多次的是哪幾份**:REV 條數最多的三份。同一份反覆 REV 代表當初的切法不對——問「這三次 REV 動的是不是同一個東西」,是的話那個東西該被抽成 abstract 或該重切 feature。
 2. **改動半徑最大的是哪一份**:被最多文檔引用的 abstract。它的每一次 REV 都要連動全部消費者,值得問「它是不是承擔了太多不相干的事」。
 3. **收整成立了沒**:只有一個消費者的 abstract(`status` 的警訊)→ 搬回去;`lint sig` 報的同名未註明 → 該走 `dev-flow:abstract`。
-4. **卡多久了**:open 的 GAP、`status` 列成建構中的 `build/` 分支各走到哪一步、停了多久(分支最後一個 commit 距今多久)。卡著的 GAP 擋著整份文檔達成;切片完成卻一直沒有進 law-design 的分支,是一片沒有人認領的程式碼。
+4. **卡多久了**:open 的 GAP、`status` 列成建構中的 `build/` 分支各走到哪一步、停了多久(分支最後一個 commit 距今多久)。卡著的 GAP 擋著整份文檔達成;切片完成卻一直沒有進 scope-laws 的分支,是一片沒有人認領的程式碼。
 
 三句話回答「現在最不穩的是哪裡、為什麼、要動什麼」。
 
@@ -86,7 +86,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ### 6. 報告
 
-一張表:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`dev-flow:law-design F-00x-<slug>`、`dev-flow:abstract`、`dev-flow:require-design`、`dev-flow:glaws-revise`、`devflow sync`)。每列先答 `tooling.md`「收尾定錨」下一步的四題:答得出必要性(不做它哪條需求停在哪條里程碑、哪條功能無法正常運作)的列成「必要」,答不出的列成「提議」,兩段分開;架構級的列要寫出現在的架構解決不了的那個具體問題。前面加四句話的結論:對帳幾條紅、最高優先的需求差什麼、最不穩的是哪裡、安全上最值得動的是哪一條。必要段是空的,結論第一句明寫「目前功能全部正常運作,可以加新功能」。
+一張表:哪裡 / 什麼事 / 怎麼辦,怎麼辦欄寫具體命令(`dev-flow:scope-laws F-00x-<slug>`、`dev-flow:scope-revise F-00x-<slug>`、`dev-flow:abstract`、`dev-flow:require-design`、`dev-flow:global-laws`、`devflow sync`)。每列先答 `tooling.md`「收尾定錨」下一步的四題:答得出必要性(不做它哪條需求停在哪條里程碑、哪條功能無法正常運作)的列成「必要」,答不出的列成「提議」,兩段分開;架構級的列要寫出現在的架構解決不了的那個具體問題。前面加四句話的結論:對帳幾條紅、最高優先的需求差什麼、最不穩的是哪裡、安全上最值得動的是哪一條。必要段是空的,結論第一句明寫「目前功能全部正常運作,可以加新功能」。
 
 ## 收尾
 
@@ -94,4 +94,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 邊界
 
-只有 `sync` 與 `modules --gen` 可以直接做;文檔的契約(簽名、scope law)一律走 `dev-flow:law-design` 或 `dev-flow:abstract`,全域 Law(領域不變量、層、對外 I/O)走 `dev-flow:glaws-revise`,需求、驗收、里程碑與調整一律走 `dev-flow:require-design`,願景走 `dev-flow:kickoff`;不寫測試、不寫實作、不自己補 law。
+只有 `sync` 與 `modules --gen` 可以直接做;文檔的契約(簽名、scope law)照一句話分流:要調整(修改、放寬、替換、刪除)既有的 law 走 `dev-flow:scope-laws`,law 不動、或只新增 law,而文檔或實作要變走 `dev-flow:scope-revise`,兩份以上的共同部分走 `dev-flow:abstract`;全域 Law(領域不變量、層、對外 I/O)走 `dev-flow:global-laws`,需求、驗收、里程碑與調整一律走 `dev-flow:require-design`,願景走 `dev-flow:kickoff`;不寫測試、不寫實作、不自己補 law。

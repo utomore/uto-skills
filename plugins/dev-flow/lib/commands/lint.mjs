@@ -117,7 +117,7 @@ export function lintSig(design, source, adapter) {
   };
 
   for (const p of design.docs) {
-    if (p.template.steps) r.red.push(`${p.file} Steps 表還是模板(${p.template.steps} 列佔位符);dev-flow:law-design 照程式碼寫成真的簽名`);
+    if (p.template.steps) r.red.push(`${p.file} Steps 表還是模板(${p.template.steps} 列佔位符);dev-flow:scope-laws 照程式碼寫成真的簽名`);
     if (!p.steps.length) {
       if (!p.template.steps) r.red.push(`${p.file} 沒有 Steps 表`);
       continue;

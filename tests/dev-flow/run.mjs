@@ -138,10 +138,12 @@ const CASES = [
   ['shop-brief-build-requirement', 'shop', ['brief', 'build', 'R-1', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-build-no-target', 'shop', ['brief', 'build', '--no-rules']],
   ['shaky-brief-build', 'shaky', ['brief', 'build', 'F-001-score', '--tests', 'stale.log', '--no-rules']],
-  ['shop-brief-law-design-doc', 'shop', ['brief', 'law-design', 'F-002-refund', '--tests', 'test.log', '--no-rules']],
-  ['shop-brief-glaws-revise', 'shop', ['brief', 'glaws-revise', '--tests', 'test.log', '--no-rules']],
-  ['shop-brief-glaws-revise-invariant', 'shop', ['brief', 'glaws-revise', 'INV-1', '--tests', 'test.log', '--no-rules']],
-  ['shop-brief-law-design', 'shop', ['brief', 'law-design', 'M-2-refund', '--no-rules']],
+  ['shop-brief-scope-laws-doc', 'shop', ['brief', 'scope-laws', 'F-002-refund', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-scope-revise', 'shop', ['brief', 'scope-revise', 'F-002-refund', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-scope-revise-milestone', 'shop', ['brief', 'scope-revise', 'M-2-refund', '--no-rules']],
+  ['shop-brief-global-laws', 'shop', ['brief', 'global-laws', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-global-laws-invariant', 'shop', ['brief', 'global-laws', 'INV-1', '--tests', 'test.log', '--no-rules']],
+  ['shop-brief-scope-laws', 'shop', ['brief', 'scope-laws', 'M-2-refund', '--no-rules']],
   ['shop-brief-spike-impl', 'shop', ['brief', 'spike-impl', 'M-1-checkout', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-spike-impl-wrong-kind', 'shop', ['brief', 'spike-impl', 'F-001-checkout', '--no-rules']],
   ['shop-brief-abstract', 'shop', ['brief', 'abstract', '--no-rules']],
@@ -217,7 +219,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
   } else console.log('✓ brief 的規章節');
 
   // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
-  const TARGETS = { build: 'F-001-checkout', qa: 'F-001-checkout', refactor: 'F-002-refund', 'law-design': 'M-2-refund', 'spike-impl': 'M-1-checkout' };
+  const TARGETS = { build: 'F-001-checkout', qa: 'F-001-checkout', refactor: 'F-002-refund', 'scope-revise': 'F-002-refund', 'scope-laws': 'M-2-refund', 'spike-impl': 'M-1-checkout' };
   let parted = skills.length > 0;
   for (const s of skills) {
     const run = (...extra) => spawnSync(process.execPath, [bin, 'brief', s, ...(TARGETS[s] ? [TARGETS[s]] : []), ...extra, '--root', path.join(here, 'fixtures', 'shop')], { encoding: 'utf8' }).stdout.replace(/\r\n/g, '\n');
@@ -359,7 +361,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     const other = devflow(main, 'claim', 'feature', 'wishlist', '--date', DATE).stdout;
     const ok = before.includes('- M-3-ship:dev-flow:spike-impl M-3-ship(R-1 優先 1 · 出貨走通)')
       && opened.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片中') && !opened.includes('| build/M-3-ship | 已合進主線卻還在 |')
-      && sliced.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片完成,等 dev-flow:law-design')
+      && sliced.includes('- M-3-ship:建構中,分支 build/M-3-ship;切片完成,等 dev-flow:scope-laws')
       && claimed.includes('F-003-ship') && talking.includes('build/M-3-ship;Law 討論中')
       && other.includes('F-004-wishlist');
     git(main, 'worktree', 'remove', '--force', tree);

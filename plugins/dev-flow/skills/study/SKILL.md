@@ -166,7 +166,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 - 開發者中途問「那 X 是什麼」:當場回答,附證據,答完回到原課的下一步,不整個跑題
 - 開發者要求「直接講完不要停」:可以把多課合併輸出,但每課格式不變、證據不減、來源標記不省
 - 大型專案的盤點(找所有入口、列出所有層之間的依賴邊)可委派 Explore subagent 回報**清單與位置**,但呈現給開發者的每一段證據都要自己打開讀過——subagent 的摘要不是證據
-- 發現看起來像缺陷或設計問題的地方:講一句、標 [推測],建議之後走 `dev-flow:audit` 或 `dev-flow:law-design`(既有文檔要改),不在導讀中展開分析
+- 發現看起來像缺陷或設計問題的地方:講一句、標 [推測],建議之後走 `dev-flow:audit`,或走修訂(要調整既有的 law 是 `dev-flow:scope-laws`,既有的 law 不動是 `dev-flow:scope-revise`),不在導讀中展開分析
 
 ## 收尾
 

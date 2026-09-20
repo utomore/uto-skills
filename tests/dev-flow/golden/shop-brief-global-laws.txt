@@ -1,5 +1,5 @@
-$ devflow brief glaws-revise INV-1 --tests test.log --no-rules
-brief glaws-revise INV-1 @doc:949a3fe7 rules:<雜湊>
+$ devflow brief global-laws --tests test.log --no-rules
+brief global-laws (沒有目標) @doc:- rules:<雜湊>
 這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
 
 # 規章

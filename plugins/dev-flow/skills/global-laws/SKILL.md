@@ -1,27 +1,27 @@
 ---
-name: glaws-revise
-description: dev-flow(有 .design/ 的專案)的全域 Law 修訂:system.md「全域 Law」區(領域不變量、層、對外 I/O)的第一次定義,與之後每一次新增、修改、放寬、替換、刪除;先攤影響範圍與選項,開發者明確批准才落筆,落筆後重新驗證受影響的工作。觸發詞:全域 Law、global law、領域不變量、invariant、定層、改層、對外 I/O、信任邊界、放寬全域 Law、刪不變量。Use when global Laws are first defined, or one must be added, changed, relaxed, replaced or removed.
+name: global-laws
+description: dev-flow(有 .design/ 的專案)定與改全域 Law 的地方:system.md「全域 Law」區(領域不變量、層、對外 I/O)的第一次定義,與之後每一次新增、修改、放寬、替換、刪除;先攤影響範圍與選項,開發者明確批准才落筆,落筆後重新驗證受影響的工作。觸發詞:全域 Law、global law、領域不變量、invariant、定層、改層、對外 I/O、信任邊界、放寬全域 Law、刪不變量。Use when global Laws are first defined, or one must be added, changed, relaxed, replaced or removed.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ---
 
-# dev-flow:glaws-revise — 全域 Law 的定義與變更
+# dev-flow:global-laws — 定全域 Law,改全域 Law
 
 > **核心**:A global Law is written or changed only after the developer has seen its full impact and explicitly approved one option; afterwards every affected piece of work is re-verified.(全域 Law 要立、要改,開發者先看過完整的影響範圍、對著一個選項明確說了要,才落筆;落筆之後重新驗證每一份受影響的工作。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
 ## 開工 context
 
-!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief glaws-revise --args '$ARGUMENTS' --part 1 --of 4`
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief global-laws --args '$ARGUMENTS' --part 1 --of 4`
 
-!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief glaws-revise --args '$ARGUMENTS' --part 2 --of 4`
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief global-laws --args '$ARGUMENTS' --part 2 --of 4`
 
-!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief glaws-revise --args '$ARGUMENTS' --part 3 --of 4`
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief global-laws --args '$ARGUMENTS' --part 3 --of 4`
 
-!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief glaws-revise --args '$ARGUMENTS' --part 4 --of 4`
+!`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief global-laws --args '$ARGUMENTS' --part 4 --of 4`
 
-上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief glaws-revise` 的輸出:規章、分支與工作樹、`system.md` 全份(「全域 Law」三個小區都在裡面)、`modules.md`、每個需求檔、`gaps.md`、`lint global` 的結果與 status 報告(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。
+上面這幾段(一份輸出切成幾段,每段一道指令)是載入 skill 時跑 `devflow brief global-laws` 的輸出:規章、分支與工作樹、`system.md` 全份(「全域 Law」三個小區都在裡面)、`modules.md`、每個需求檔、`gaps.md`、`lint global` 的結果與 status 報告(影響範圍從這幾塊攤)。開工要讀的規章與專案現況都在這裡,不再另外讀。
 
-目標:不必給;要改的是某一條領域不變量就給 `INV-n`。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief glaws-revise --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
+目標:不必給;要改的是某一條領域不變量就給 `INV-n`。專案現況在這一場裡變過、要重看,再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief global-laws --no-rules`。看到的若是那道指令的原文而不是它的輸出,自己跑一次(不加 `--no-rules`)。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
 ## 輸入 / 產出
 
@@ -32,7 +32,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 ## 前置
 
 - 沒有 `.design/system.md` → `dev-flow:kickoff`。`system.md` 沒有「## 全域 Law」區 → 回 `dev-flow:kickoff` 的前置處理。
-- 要改的是**一份文檔的 scope law**、簽名或行為,要回答的 GAP 目標是某份文檔的 law,要落地的是調整 `RF-n` → 不在這裡,走 `dev-flow:law-design`(既有文檔要改的那一種情形)。
+- 要改的是**一份文檔**的 scope law、簽名或實作,要回答的 GAP 目標是某份文檔,要落地的是調整 `RF-n` → 不在這裡:要調整(修改、放寬、替換、刪除)既有的 scope law 走 `dev-flow:scope-laws`;law 不動、或只新增 law,而文檔或實作要變(含 `RF-n`)走 `dev-flow:scope-revise`。
 - 開發者講的是一件**有做完的一天**的事 → 那是需求,走 `dev-flow:require-design`(`laws.md`「Law 與需求」)。
 - 變更的來源只有兩種:開發者自己提的,或 `dev-flow:integrate` 的變更建議**經開發者明確批准**。沒有批准就停,不動。
 - **在哪做**:與立案、需求的變更走同一條路——在主線的工作樹上落筆、commit,由 `dev-flow:integrate` 帶上 `plan/<slug>` 分支經 PR 合進主線(`roles.md`「分支與所有權」)。
@@ -45,7 +45,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 1. **領域不變量**:這個領域裡有沒有永遠為真、任何一份功能都不准違反的事(錢不憑空產生或消失、庫存不為負、狀態不倒退)。從需求檔的一句話與驗收找候選,一條一條問,每條過准入四條(`laws.md`「全域 Law」):兩份以上的功能違反得了它嗎?之後寫得成測試嗎?只有一份功能會碰到的,留給那份 feature 當 scope law。要的就 `devflow invariant add "<一句話>" --kind <種類>`;一條都沒有就這一小區寫「無」。最內層的型別還沒出現,先只留一句話。**寧少勿多**:每多一條,之後每一條切片都多一道束縛。
 2. **架構:層**:這個專案由內而外分幾層、各叫什麼、各裝什麼。規則只有兩條(`boundary.md`「層」),層名由專案自己取;小工具一層也行。寫進「架構:層」表,再把 `modules.md` 的層欄填上、同層的合併成 `目錄/**`,到 `devflow lint boundary` 沒有紅。層怎麼切,表本身就是決定,不另開 ADR。
-3. **契約:對外 I/O**:這個系統會跨過哪些對外邊界(HTTP、CLI、檔案、第三方服務)、每一端**信任誰**(內容由系統外面決定的是 `untrusted`)。已經有程式碼的入口與出口列成表上的列;還沒有的,把邊界在哪、信任誰跟開發者講定,列由 `dev-flow:law-design` 在切片做完後補。
+3. **契約:對外 I/O**:這個系統會跨過哪些對外邊界(HTTP、CLI、檔案、第三方服務)、每一端**信任誰**(內容由系統外面決定的是 `untrusted`)。已經有程式碼的入口與出口列成表上的列;還沒有的,把邊界在哪、信任誰跟開發者講定,列由 `dev-flow:scope-laws` 在切片做完後補。
 4. `devflow lint global`、`devflow status`:三類沒有紅,「全域 Law」區的警訊只剩領域不變量「還沒有三行式」(此時是正常的)。變更 commit。
 
 ## 全域 Law 的變更
@@ -69,7 +69,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 5. **重新驗證受影響的工作**,逐項回報結果:
    - `devflow lint global` 沒有紅;
    - 領域不變量的句子或三行變了,它原本的測試作廢 → `dev-flow:build INV-n` 重派 qa;刪掉的那一條,它的測試檔一起刪(否則是幽靈引用);
-   - 影響範圍裡每一份 `verified` 文檔重跑它的子集測試;紅的重開、各走一次 `dev-flow:law-design` 的修訂;
+   - 影響範圍裡每一份 `verified` 文檔重跑它的子集測試;紅的重開、各走一次修訂(它既有的 law 要跟著調整走 `dev-flow:scope-laws`,既有的 law 不動、只有實作要服從新的全域 Law 走 `dev-flow:scope-revise`);
    - 建構中的分支:在它的決策紀錄所在分支的 `gaps.md` 留一條 GAP(角色 conductor,目標寫那條全域 Law),它合進新的主線之後從首跑起重跑。
 6. 為什麼變更,由 `dev-flow:integrate` 收這條 `plan/` 分支時寫成 ADR;這裡在回報裡留下 ADR 要用的四節材料(情境、決定、否決的選項、後果)。
 
@@ -79,4 +79,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 邊界
 
-一次變更一條全域 Law;不順便改別的;沒有影響範圍與選項不落筆;不替開發者決定要不要立、要不要改、選哪一個——開發者說,你寫。不碰任何一份 feature 或 abstract 的條文、簽名與 scope law(`dev-flow:law-design`);不寫需求、驗收與里程碑(`dev-flow:require-design`);不寫測試、不改程式碼的本體。
+一次變更一條全域 Law;不順便改別的;沒有影響範圍與選項不落筆;不替開發者決定要不要立、要不要改、選哪一個——開發者說,你寫。不碰任何一份 feature 或 abstract 的條文、簽名與 scope law(`dev-flow:scope-laws`、`dev-flow:scope-revise`);不寫需求、驗收與里程碑(`dev-flow:require-design`);不寫測試、不改程式碼的本體。

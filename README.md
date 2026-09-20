@@ -4,7 +4,7 @@ Claude Code 的 plugin marketplace:**spec 驅動開發**與**演講內容產生*
 
 | Plugin | 用途 | Skills | CLI |
 |---|---|---|---|
-| [dev-flow](#dev-flow) | 一般程式語言專案的需求導向開發:先貫通切片,再談 Law、寫測試、調整實作 | 13 | `devflow` |
+| [dev-flow](#dev-flow) | 一般程式語言專案的需求導向開發:先貫通切片,再談 Law、寫測試、調整實作 | 14 | `devflow` |
 | [lawful](#lawful) | Haskell 這類純函數式專案(functional core / imperative shell)的需求導向開發,流程與 dev-flow 相同 | 13 | `lawful` |
 | [talk-flow](#talk-flow) | Marp 投影片的主軸、段落、實作與審查 | 6 | — |
 
@@ -64,9 +64,10 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 - **feature 是文檔單位**:一段從對外邊界進、從對外邊界出的資料流,一份 `F-00x-<slug>.md` 就是它的唯一真相。切片可以大,文檔不跟著變大;沒有子系統這一層,沒有 bug 文檔:bug 就是某條 law 在現況下不成立。
 - **簽名住在程式碼裡**:Steps 表每一列是一條正規式簽名 `name(T1, T2): R`,抄程式碼裡定下來的那一個,`lint sig` 對帳。`=` 列是整條、`o` 列是觀察點、`!` 列是進入點。
 - **law 是純 ASCII 三行**:`forall` / `given` / `|-`,識別字只能是 Steps 的簽名、最內層的匯出或型別名;`given` 的呼叫先發生,命令式的時序也寫得出來。每條 law 由一條 property test 承接,測試以 `F-00x#LAW-n` 宣告歸屬。
-- **需求是必須達成,law 是不得違反**:判準是這件事有沒有做完的一天,有 = 需求,沒有 = law。需求附一句驗收,由歸屬 `R-n#ACCEPT` 的驗收測試、或里程碑全部達成判它達成了沒。law 只有兩種範圍:**全域 Law** 住 `system.md` 的「全域 Law」一區,整個專案都要守;**scope law** 住一份 feature 或 abstract 的「Laws」節,只約束那一份,`law-design` 是它的唯一入口。任何程式碼都受全域 Law 加上它自己那份文檔的 scope law 約束。需求、里程碑、決策紀錄、ADR 裡都沒有 law;里程碑不管理約束,law 也不必朝向需求。
+- **需求是必須達成,law 是不得違反**:判準是這件事有沒有做完的一天,有 = 需求,沒有 = law。需求附一句驗收,由歸屬 `R-n#ACCEPT` 的驗收測試、或里程碑全部達成判它達成了沒。law 只有兩種範圍:**全域 Law** 住 `system.md` 的「全域 Law」一區,整個專案都要守;**scope law** 住一份 feature 或 abstract 的「Laws」節,只約束那一份,由 `scope-laws` 對著切片談出來,之後要調整既有的 law 也只在它。任何程式碼都受全域 Law 加上它自己那份文檔的 scope law 約束。需求、里程碑、決策紀錄、ADR 裡都沒有 law;里程碑不管理約束,law 也不必朝向需求。
 - **全域 Law 三類,住同一區,各有一道 lint 自動確認**:領域不變量 `INV-n` 只引用最內層共用的東西,由歸屬 `INV-n#LAW` 的測試長駐守著(`lint invariants`);架構的層由內而外、內層不准 import 外層、最外層是唯一能做對外 I/O 的層(`lint boundary`);契約的對外 I/O 表帶信任、驗證與契約,`untrusted` 的入口必須指名驗證 step(`lint io`)。`lint global` 三道一次查完,`status` 的「全域 Law」表印每一類現在的結果。
-- **全域 Law 的變更要開發者明確批准**:任何全域 Law 的修改、放寬、替換或刪除,都必須經開發者明確批准;`integrate` 只能提出變更建議,不得自行決定變更,也不直接修改全域 Law;經批准的變更由 `glaws-revise` 完成,完成後重新驗證受影響的工作。調整任何一條 law 之前(scope law 在 `law-design`,全域 Law 在 `glaws-revise`),先攤影響範圍(動到哪幾條、哪些文檔連動、哪些測試重寫、哪些 `verified` 要重開、哪些分支要重驗、需求還達不達成),再給至少兩個選項(一定含「不改」),開發者選了才落筆。
+- **全域 Law 的變更要開發者明確批准**:任何全域 Law 的修改、放寬、替換或刪除,都必須經開發者明確批准;`integrate` 只能提出變更建議,不得自行決定變更,也不直接修改全域 Law;經批准的變更由 `global-laws` 完成,完成後重新驗證受影響的工作。調整任何一條 law 之前(scope law 在 `scope-laws`,全域 Law 在 `global-laws`),先攤影響範圍(動到哪幾條、哪些文檔連動、哪些測試重寫、哪些 `verified` 要重開、哪些分支要重驗、需求還達不達成),再給至少兩個選項(一定含「不改」),開發者選了才落筆。
+- **改既有的東西,一句話分流**:要調整(修改、放寬、替換、刪除)既有的 law → `scope-laws`;law 不動、或只新增 law,而文檔或實作要變 → `scope-revise`;全域 Law → `global-laws`;需求面的條目 → `require-design`。一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止;GAP 的結案與調整 `RF-n` 的落地照同一句(`RF-n` 預設走 `scope-revise`)。
 - **三層「為什麼」**:`system.md` 的願景(北極星);`requirements/` 一檔一條需求(必須達成:一句話、一句可判定的驗收、優先 1 到 4);需求檔裡的里程碑(依序完成,全部達成這條需求的建置就走完;一條需求一次只開下一條,要平行就拆成兩條需求)。里程碑走完之後的調整(`RF-n`)只動既有 feature 的品質。
 - **abstract 是收整出來的**:切片各切各的,兩份以上 feature 長出同一段東西,`abstract` 抽成 `A-00x`,被動到的每一份記一條 REV;少於兩個消費者就該搬回去。feature 之間不互相引用。
 - **進度不是欄位**:`status` 只有 `draft` / `ready` / `verified` 三格,都是人才知道的決定;做到哪、每條分支走到哪一步、需求達成了沒、全域 Law 有沒有被踩到、下一步做什麼,由 `devflow status` 從檔案、程式碼與測試推。
@@ -74,19 +75,21 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 ### 工作流程
 
 ```
-/kickoff ──▶ /require-design ──▶ /glaws-revise ──▶ /spike-impl ──▶ /law-design ──▶ /build ──▶ /integrate
- 開樹         需求與驗收           全域 Law 三區      貫通一條切片     對著切片談 Law    qa → 首跑     合成一條 PR
- 願景         當場切里程碑         開發者批准才落筆   決策紀錄         拍板才 ready      → refactor    仲裁、ADR
- 語言與工具                                               └──────── 同一條 build/M-n-<slug> 工作樹 ────────┘
-                                                                          ▲
-                                                        /law-design ──────┘  既有文檔的改動:文檔先行,留 REV,自動接上 build
+/kickoff ──▶ /require-design ──▶ /global-laws ──▶ /spike-impl ──▶ /scope-laws ──▶ /build ──▶ /integrate
+ 開樹         需求與驗收           全域 Law 三區            貫通一條切片     根據決策紀錄談約束      qa → 首跑     合成一條 PR
+ 願景         當場切里程碑         開發者批准才落筆         決策紀錄         拍板才 ready            → refactor    仲裁、ADR
+ 語言與工具                                                     └──────────── 同一條 build/M-n-<slug> 工作樹 ────────────┘
+                                                                                      ▲
+                                        /scope-laws(要調整既有的 law)──────────┤  既有文檔的改動:文檔先行,留 REV,
+                                        /scope-revise(law 不動或只新增,verified → verified)─┘  自動接上 build 做回 verified
 ```
 
-- 立案三步(`kickoff` → `require-design` → `glaws-revise`)只寫做之前就講得清楚的東西,經 `integrate` 以 `plan/<slug>` 分支發 PR 合進主線。需求只在與開發者的討論裡成形,里程碑在談需求的當場切好;全域 Law 的每一條都由開發者批准。
+- 立案三步(`kickoff` → `require-design` → `global-laws`)只寫做之前就講得清楚的東西,經 `integrate` 以 `plan/<slug>` 分支發 PR 合進主線。需求只在與開發者的討論裡成形,里程碑在談需求的當場切好;全域 Law 的每一條都由開發者批准。
 - 切片(`spike-impl`)從對外入口貫通到出口,同時是可行性驗證;從第一行程式碼就守全域 Law,可以假、但每一處都記進決策紀錄;走不通也是答案,整合時升成 ADR。
-- Law(`law-design`)是 scope law 的唯一入口:切片剛做完,把它拆成 feature,Steps 抄程式碼,laws 逐條拍板;既有文檔要改(回答 GAP、落地調整),先攤影響範圍與選項、改原檔、留 REV。兩種情形收尾都自動接上 build。
+- Law(`scope-laws`):切片剛做完,根據切片的決策紀錄把它拆成 feature,Steps 抄程式碼,與開發者把約束談出來——資料交互、資料儲存在哪、外部串接方法、軟體架構四項逐項問到——laws 逐條拍板;碰到全域的事不在這裡寫,列成給 `global-laws` 的變更提議。既有文檔的 law 要調整(修改、放寬、替換、刪除)也只在這裡:先攤影響範圍與選項,連帶的簽名、型別、實作一手包辦,留一條 REV。兩種情形收尾都自動接上 build。
+- 修訂(`scope-revise`):既有的 law 一條都不動,改 `verified` 文檔的簽名、型別、模組與層的歸屬、描述,或落地調整 `RF-n` 的實作品質;可以新增 law(保護用的、新的上界、新 step 的)。攤影響範圍、開發者確認、重開、留 REV、自動接上 build,收尾時原有的每條 law 仍然綠、文檔回到 `verified`。非調整既有的 law 不可就放棄並還原,替開發者寫好一行 `/dev-flow:scope-laws <全名> <原因>`,整件交過去。
 - 建構(`build`)由 conductor 帶兩個互不可見的角色:`qa` 只讀文檔寫測試;conductor 在現有的程式碼上驗首跑(該紅的紅、該綠的綠);`refactor` 不讀測試,調整或整份重寫實作直到每條 law 成立。不同需求的里程碑同時各開一條。
-- 整合(`integrate`)是唯一發 PR 的出口:每一條 law 都仍然成立才發;兩條分支的 law 互斥時不改碼,拿縮小後的反例問開發者三選一(以 A 為主 / 收窄定義域 / 提煉上層 Law);它不改任何一條 law,只提變更建議,批准的 scope law 由 `law-design`、全域 Law 由 `glaws-revise` 落筆;不可逆又跨文檔的權衡升成 ADR。
+- 整合(`integrate`)是唯一發 PR 的出口:每一條 law 都仍然成立才發;兩條分支的 law 互斥時不改碼,拿縮小後的反例問開發者三選一(以 A 為主 / 收窄定義域 / 提煉上層 Law);它不改任何一條 law,只提變更建議,批准的 scope law 由 `scope-laws`、全域 Law 由 `global-laws` 落筆;不可逆又跨文檔的權衡升成 ADR。
 - 隨時可跑:`status` 派工報告、`audit` 稽核、`study` 專案導讀。
 
 ### Skills
@@ -95,9 +98,10 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 |---|---|
 | `/kickoff` | 專案的第一個命令:開 `.design/` 的樹,訪談出 `system.md` 的願景、語言與工具,與 `modules.md` 的骨架;不談需求也不談全域 Law,收尾自動接上 `require-design` |
 | `/require-design` | 與開發者一次一條談需求:一句話、驗收、優先,當場切成依序完成的里程碑(每條是使用者看得到、展示得出來的階段,有英文名);之後加需求、改驗收、重排、加調整 `RF-n`、把沒被綁定的 feature 收進里程碑也走這裡 |
-| `/glaws-revise` | 全域 Law 一區三類(領域不變量、架構的層、契約的對外 I/O)的第一次定義與之後每一次新增、修改、放寬、替換、刪除:先攤影響範圍與選項,開發者明確批准才落筆,落筆後重新驗證受影響的工作 |
+| `/global-laws` | 全域 Law 一區三類(領域不變量、架構的層、契約的對外 I/O)的第一次定義與之後每一次新增、修改、放寬、替換、刪除:先攤影響範圍與選項,開發者明確批准才落筆,落筆後重新驗證受影響的工作 |
 | `/spike-impl` | 一條里程碑:開 `build/M-n-<slug>` 工作樹,貫通一條跑得通的垂直切片,留下決策紀錄(Goal / Scope、Decisions:Decision / Reason / Constraint、Assumptions & Invariants、Faked / Unverified、Touched);走不通就記下為什麼 |
-| `/law-design` | scope law 的唯一入口。對著切片:claim 出 feature、Steps 抄程式碼、與開發者一次一條談 Law、記下首跑該紅,拍板改 `ready`;既有文檔要改:回答 GAP、落地調整、先攤影響範圍與選項、改原檔、寫一條 REV、必要時重開。兩者都自動接上 build |
+| `/scope-laws` | 談約束,與既有 law 的調整。對著切片、根據決策紀錄:claim 出 feature、Steps 抄程式碼、資料交互 / 資料儲存在哪 / 外部串接方法 / 軟體架構四項逐項問到、與開發者一次一條談 Law、記下首跑該紅,拍板改 `ready`;碰到全域的列成給 `global-laws` 的變更提議。既有文檔的 law 要修改、放寬、替換、刪除:先攤影響範圍與選項、`verified` 先重開、連帶的簽名、型別、實作一手包辦、寫一條 REV。兩者都自動接上 build |
+| `/scope-revise` | 既有的 law 不動的修訂,verified → verified:改 `verified` 文檔的簽名、型別、模組與層的歸屬、描述,或落地調整 `RF-n`(效能、大小、訊息、演算法);可以新增 law,不得修改、放寬、替換、刪除既有的。攤影響範圍、開發者確認、重開、寫 REV(保護欄是原有的每一條 law 與 example)、自動接上 build;非調整既有的 law 不可就放棄並還原,寫好一行指令整件交給 `scope-laws` |
 | `/build` | conductor:對帳 → 派 qa → 首跑 → 派 refactor → 仲裁 → 驗收測試 → 整套 → 決策紀錄;目標也可以直接是 `R-n` / `INV-n`(只派 qa 寫那一條測試) |
 | `dev-flow:qa` | 委派角色:每條 law 一條 property test、每個 example 一條 example test;禁止讀任何實作本體 |
 | `dev-flow:refactor` | 委派角色:調整或重寫實作直到每條 law 成立,假的換成真的;禁止讀寫測試、禁止改簽名與型別宣告 |

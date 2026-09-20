@@ -36,18 +36,18 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 - 只有 `subsystems/` 體系的 `.design/` → `devflow migrate .design --language <adapter>` 印帳本,帶開發者逐項判,再照本 skill 建新樹。
 - 需求不住 `requirements/` 的樹(`system.md` 有「## 需求」節,里程碑住 `objectives/` 的各檔或一份 `objectives.md`)→ `devflow migrate requirements` 印帳本,帳本列的「人要判的」(里程碑串接的順序、沒有里程碑的需求、無處可去的里程碑)帶開發者逐項判,再 `--write`。
 - `devflow status` 警訊說 `system.md` 沒有「## 全域 Law」區、或需求寫著「- Law:」→ `devflow migrate laws` 印帳本再 `--write`。兩道遷移可以接連跑,先後都行。
-- 要談的是需求、里程碑或調整 → 不在這裡,走 `dev-flow:require-design`。要定或要改的是全域 Law(領域不變量、層、對外 I/O)→ 不在這裡,走 `dev-flow:glaws-revise`。
+- 要談的是需求、里程碑或調整 → 不在這裡,走 `dev-flow:require-design`。要定或要改的是全域 Law(領域不變量、層、對外 I/O)→ 不在這裡,走 `dev-flow:global-laws`。
 
 ## 步驟
 
 1. **看現況。** 有 `.design/system.md` 就是更新模式:只改開發者點名的節(願景、語言與工具、模組表),其餘不動。沒有就建。
-2. **開樹**:`.design/system.md` 照 `templates/system.md` 建(四節:願景、全域 Law、語言與工具、Features;「全域 Law」底下三個小區先留模板,等 `dev-flow:glaws-revise`)、`.design/modules.md` 照 `templates/modules.md` 建。`requirements/` 不在這裡建:第一條需求由 `dev-flow:require-design` 走 CLI 建檔。
+2. **開樹**:`.design/system.md` 照 `templates/system.md` 建(四節:願景、全域 Law、語言與工具、Features;「全域 Law」底下三個小區先留模板,等 `dev-flow:global-laws`)、`.design/modules.md` 照 `templates/modules.md` 建。`requirements/` 不在這裡建:第一條需求由 `dev-flow:require-design` 走 CLI 建檔。
 3. **訪談,一題一題問,不確定就再問**。只問做之前就講得清楚、做完也不會變的東西:
    - **願景**先問:這個專案要交出的、世界上還沒有的東西是什麼,替誰改變了什麼,第一段一到三句;後面可以展開替誰做什麼、明確不做什麼。訂不出來就先不往下。寫進 `## 願景`;它是北極星,不是驗收清單,之後的需求不對它逐句對照。
    - **語言與工具**:語言(決定 adapter;前後端各一種語言就問各住哪個目錄,寫成 `[<目錄> = <adapter>, …]`,`tooling.md`「language adapter」);建置、整套測試、子集測試三道指令(多語言專案每側一組)——子集指令從 CI 設定、`Makefile`、`package.json` 或測試框架說明找,找不到問一次。這一行不問,之後每個角色都只會退回去跑整庫。IO 模組追加、忽略目錄有就填,沒有寫「無」。兩人以上會平行 claim 的專案再問號段:每人一段、以 git 的 `user.email` 為鍵(`- 號段:a@corp.com = 000-099;b@corp.com = 100-199`),新人加入時加一段;單人寫「無」。「優先」那一行留給 `dev-flow:require-design`。
-4. **模組表的骨架**:有程式碼就 `devflow modules --gen` 生成一個檔一列;沒有程式碼就先列預期的目錄。層欄留白:層是全域 Law 的架構一類,由 `dev-flow:glaws-revise` 與開發者定了層表之後填。
+4. **模組表的骨架**:有程式碼就 `devflow modules --gen` 生成一個檔一列;沒有程式碼就先列預期的目錄。層欄留白:層是全域 Law 的架構一類,由 `dev-flow:global-laws` 與開發者定了層表之後填。
 5. `devflow status`:願景的警訊要清掉;沒有需求、全域 Law 三區還是模板的警訊在這一步是正常的,交給後面兩個 skill。變更 commit。
-6. **接上 require-design**:直接執行 `dev-flow:require-design`,與開發者談第一批需求並當場切成里程碑,不等開發者另外下指令;需求定完,它接上 `dev-flow:glaws-revise` 定全域 Law 三區。
+6. **接上 require-design**:直接執行 `dev-flow:require-design`,與開發者談第一批需求並當場切成里程碑,不等開發者另外下指令;需求定完,它接上 `dev-flow:global-laws` 定全域 Law 三區。
 
 ## 收尾
 
@@ -55,4 +55,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 邊界
 
-不談需求、驗收、優先與里程碑(`dev-flow:require-design`);不談、不寫任何一條全域 Law,也不填層表與對外 I/O 表(`dev-flow:glaws-revise`);不建 feature、不寫 Steps 與 laws(那是切片之後 `dev-flow:law-design` 的事);不寫任何程式碼;不開 ADR;不替開發者決定願景與語言;不建 abstract(那是 `dev-flow:abstract` 從既有 feature 收整出來的,不是先驗地切出來的)。
+不談需求、驗收、優先與里程碑(`dev-flow:require-design`);不談、不寫任何一條全域 Law,也不填層表與對外 I/O 表(`dev-flow:global-laws`);不建 feature、不寫 Steps 與 laws(那是切片之後 `dev-flow:scope-laws` 的事);不寫任何程式碼;不開 ADR;不替開發者決定願景與語言;不建 abstract(那是 `dev-flow:abstract` 從既有 feature 收整出來的,不是先驗地切出來的)。

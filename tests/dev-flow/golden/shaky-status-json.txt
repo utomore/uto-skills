@@ -1077,7 +1077,7 @@ $ devflow status --json
     {
       "where": "INV-1",
       "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:law-design 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "fix": "dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
     },
     {
       "where": "INV-2",
@@ -1087,12 +1087,12 @@ $ devflow status --json
     {
       "where": "INV-2",
       "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:law-design 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "fix": "dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
     },
     {
       "where": "INV-3",
       "what": "還沒有三行式,成立與否未知",
-      "fix": "dev-flow:law-design 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
+      "fix": "dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
     },
     {
       "where": "A-002-single",
@@ -1112,12 +1112,12 @@ $ devflow status --json
     {
       "where": "F-001-score#weigh",
       "what": "簽名與程式碼不一致",
-      "fix": "devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV"
+      "fix": "devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise"
     },
     {
       "where": "F-001-score#weigh",
       "what": "簽名與程式碼不一致",
-      "fix": "devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 REV"
+      "fix": "devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise"
     },
     {
       "where": "F-001-score#score",
@@ -1152,10 +1152,10 @@ $ devflow status --json
   ],
   "route": {
     "steps": [
-      "先回答 GAP-1、GAP-1(dev-flow:law-design;問的是全域 Law 就 dev-flow:glaws-revise),卡住的 step 才能重派",
-      "dev-flow:law-design F-002-other(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
-      "dev-flow:law-design A-001-lonely(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
-      "dev-flow:law-design A-002-single(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
+      "先回答 GAP-1、GAP-1(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派",
+      "dev-flow:scope-laws F-002-other(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
+      "dev-flow:scope-laws A-001-lonely(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
+      "dev-flow:scope-laws A-002-single(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
       "dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)",
       "dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)",
       "dev-flow:build INV-2(只派 qa 寫 INV-2#LAW 的測試)"

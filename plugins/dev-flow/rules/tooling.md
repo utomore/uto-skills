@@ -20,11 +20,11 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-f
 | `requirement add <slug> <一句話> --priority <1-4> [--accept <句>]` | 鑄 `R-n`,從模板建 `requirements/R-n-<slug>.md`(slug 是 kebab-case 英文,講這條需求要得到什麼);優先 1 最高、4 最低;驗收沒給就留佔位符並提醒。只由 `dev-flow:require-design` 在與開發者談過之後用 |
 | `requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]` | 鑄 `M-n`(全資料夾唯一,跨需求檔、跨工作樹),以全名 `M-n-<slug>` 接在該需求檔里程碑表的最後;slug 是 kebab-case 英文,切片的分支與決策紀錄以全名為鍵;綁定的全名要是 `features/` 裡有的 feature,abstract 或不存在的都拒絕 |
 | `requirement refinement <R-n> <一句話> --touch <全名,全名>` | 鑄 `RF-n`(全資料夾唯一,跨需求檔)加進該需求檔的調整表;動到的全名要存在、而且是該需求某條里程碑綁定過的,否則停:調整不引入新 feature |
-| `invariant add <一句話> [--kind <種類>]` | 鑄 `INV-n` 寫進 `system.md`「全域 Law」區的「領域不變量」(區裡沒有這一小區就補在區的最前面);種類沒給就是 `invariant`。只在開發者批准之後、由 `dev-flow:glaws-revise` 用(laws.md「全域 Law」) |
+| `invariant add <一句話> [--kind <種類>]` | 鑄 `INV-n` 寫進 `system.md`「全域 Law」區的「領域不變量」(區裡沒有這一小區就補在區的最前面);種類沒給就是 `invariant`。只在開發者批准之後、由 `dev-flow:global-laws` 用(laws.md「全域 Law」) |
 | `lint ids` | 一檔一號:兩個檔案同號即紅;號段行讀不懂或兩段重疊即紅;有號段行時,寫了 `owner` 的 feature / abstract / ADR 的號要在 owner 的區間內 |
 | `lint boundary` | 全域 Law 的**架構**一類。import 方向 vs 層表;內層 import 外層即紅;非最外層 import IO 模組即紅;未登記與幽靈檔案即紅 |
 | `lint sig` | Steps 簽名(含 `o` 列與 `!` 列)vs 程式碼簽名,而且要匯出;`=` 列與 `o` 列不在最外層、`!` 列在最外層、feature 恰好一列 `!`、abstract 沒有;abstract 沒有消費者即紅;feature 引用 feature 即紅;同名簽名在兩份文檔都沒註明「見」即紅;找不到的簽名即紅;簽名裡的型別在程式碼與標準函式庫都找不到即紅;step 之間傳遞的值用了無名容器(`dict`、`any`、`interface{}` …)即紅,`!` 列不查;簽名一致但檔案不同列「搬家」 |
-| `sync` | 把「搬家」的 step 模組欄改成程式碼裡的實際檔案(同層才改,跨層列紅要走 REV) |
+| `sync` | 把「搬家」的 step 模組欄改成程式碼裡的實際檔案(同層才改,跨層列紅要走 REV:`dev-flow:scope-revise`) |
 | `lint laws` | 文檔的 scope law:三行齊全、種類合法、`\|-` 的識別字對得到 Steps 簽名 / 最內層匯出 / 型別名 / 標準函式庫 / `system.md` 的詞彙追加、`=` 列至少被一條 law 引用、`!` 列不被引用、example 指得到 law。需求的驗收:一句話必填、不是模板;寫了三行就照同一套查,識別字可以是任何一份文檔的 Steps 簽名,不准引用 `!` 列 |
 | `lint trace` | laws / examples ↔ 測試歸屬:未翻譯、幽靈引用即紅;沒有歸屬的測試檔列成內部測試,不算紅。需求的驗收寫了三行式卻沒有 `R-n#ACCEPT` 測試即紅;一句話的沒有測試列成訊息 |
 | `lint io` | 全域 Law 的**契約**一類。對外 I/O 表:方向、feature 存在且是 feature、模組在最外層且程式碼裡有、信任欄、`untrusted` 的入口有驗證 step、契約欄指到的 law 存在;文檔的秘密字面值;最外層沒登記的出入口 |
@@ -33,7 +33,7 @@ dirname "$(dirname "$(find ~/.claude/plugins . -maxdepth 8 -type f -path '*dev-f
 | `lint all` | 以上全部 |
 | `modules --gen` | 從程式碼補模組表缺的檔案,層欄留白 |
 | `section <file> <節>…` | 取節 |
-| `brief <skill> [<目標>] [--tests <log>] [--fingerprint] [--no-rules]` | 一個 skill 開工要的東西一次印完:它要讀的規章節,加上它在這個專案裡要看的那幾塊——目標文檔、逐條狀態、Steps 上每條簽名與型別的宣告(`檔案:行號` 與原文,不含本體)、最內層、這個專案的測試怎麼寫(qa);要開的檔(refactor);分支與工作樹、決策紀錄、目標文檔朝向的那條里程碑與它的需求檔全文、`lint sig` 與 `lint laws`、`gaps.md`(build、law-design、spike-impl、abstract、integrate);`system.md` 全份、每個需求檔、`lint global`、`gaps.md` 與 status 報告(glaws-revise);每個需求檔、`lint all` 與 status 報告(audit、require-design);`.design/` 現在有哪些檔、`system.md` 與 `modules.md`(kickoff)。目標是文檔全名、里程碑全名 `M-n-<slug>`、`R-n` / `INV-n`,或不給,依 skill 而定;給錯種類就講它收哪幾種。每份 SKILL.md 的「開工 context」在載入時自動執行它,輸出直接是 skill 內容的一部分;那裡的寫法是 `--args '<載入時的整串參數>'`,目標與旗標從那一串裡認,其餘的字不理。第一行是指紋 `brief <skill> <目標> @doc:<雜湊> rules:<雜湊>`,`--fingerprint` 只印它(conductor 對帳用);`--no-rules` 不重印規章的節(同一場裡重跑用);`--tests` 接上測試輸出,status 報告那一塊才有紅綠。唯讀,永遠 exit 0,問題用文字講 |
+| `brief <skill> [<目標>] [--tests <log>] [--fingerprint] [--no-rules]` | 一個 skill 開工要的東西一次印完:它要讀的規章節,加上它在這個專案裡要看的那幾塊——目標文檔、逐條狀態、Steps 上每條簽名與型別的宣告(`檔案:行號` 與原文,不含本體)、最內層、這個專案的測試怎麼寫(qa);要開的檔(refactor);分支與工作樹、決策紀錄、目標文檔朝向的那條里程碑與它的需求檔全文、`lint sig` 與 `lint laws`、`gaps.md`(build、scope-laws、scope-revise、spike-impl、abstract、integrate);`system.md` 全份、每個需求檔、`lint global`、`gaps.md` 與 status 報告(global-laws);每個需求檔、`lint all` 與 status 報告(audit、require-design);`.design/` 現在有哪些檔、`system.md` 與 `modules.md`(kickoff)。目標是文檔全名、里程碑全名 `M-n-<slug>`、`R-n` / `INV-n`,或不給,依 skill 而定;給錯種類就講它收哪幾種。每份 SKILL.md 的「開工 context」在載入時自動執行它,輸出直接是 skill 內容的一部分;那裡的寫法是 `--args '<載入時的整串參數>'`,目標與旗標從那一串裡認,其餘的字不理。第一行是指紋 `brief <skill> <目標> @doc:<雜湊> rules:<雜湊>`,`--fingerprint` 只印它(conductor 對帳用);`--no-rules` 不重印規章的節(同一場裡重跑用);`--tests` 接上測試輸出,status 報告那一塊才有紅綠。唯讀,永遠 exit 0,問題用文字講 |
 | `migrate laws [--write]` | `system.md` 沒有「## 全域 Law」區、或需求寫著「- Law:」的樹:先印帳本,`--write` 才落地。「層」「對外 I/O」「領域不變量」三節收進「## 全域 Law」區的三個小區(缺的先寫「無」)、需求的「- Law:」改成「- 驗收:」、需求的蘊含說明刪掉;測試裡的歸屬標記不動 |
 | `migrate requirements [--write]` | 需求不住 `requirements/` 的樹(`system.md` 有「## 需求」節):先印帳本,`--write` 才落地。每條需求寫成一個 `requirements/R-n-<slug>.md`(一句話、驗收、優先、里程碑表、調整表),`system.md` 的「## 需求」節整節刪掉;帳本另列人要判的:里程碑串接的順序對不對(或者該拆成兩條需求)、沒有里程碑的需求、無處可去的里程碑。與 `migrate laws` 可以接連跑,先後都行 |
 | `migrate <.design>` | 盤點 `subsystems/` 體系的 `.design`,印一份帳本,不改任何檔:每份任務文檔的介面在程式碼裡對到幾條、四格 law 翻成三行草稿、共用簽名列成 abstract 候選、退場清單、人要判的清單 |
@@ -57,7 +57,7 @@ exit code:`status` 盤點 = 驗收(有未達成的文檔、open GAP、需求未�
 5. 待實作:按檔案列找不到的 step、本體還是未實作標記的 step
 6. 修訂熱點:REV 條數最多的三份與最後一條、被兩份以上引用的 abstract。**這一段答的是穩定度**:一直在改的地方就是設計還沒收斂的地方
 7. 警訊:願景還是模板、需求不住 `requirements/`(提示 `migrate requirements`)、沒有需求、`system.md` 沒有「## 全域 Law」區(提示 `migrate laws`)、優先各級代表什麼沒有宣告、需求沒有優先或優先不在 1 到 4、需求檔沒有 frontmatter 或檔名與 frontmatter 對不上、需求沒有里程碑、需求或它的驗收還是模板、驗收寫了三行卻沒有驗收測試(達成與否未知)、里程碑全部達成而驗收沒過(里程碑切漏了,或驗收寫錯)、調整之後需求未達成、全域 Law 三類各自那一道 lint 有不合規、領域不變量未成立(有程式碼違反了它)、還沒有三行式或寫了三行卻沒有測試、里程碑沒有英文名、里程碑綁到不存在的檔或 abstract、里程碑或調整編號重複、調整動到不存在的或這條需求的里程碑沒綁過的 feature、feature 沒有被任何里程碑綁定、`verified` 而紅、REV 沒重開紀錄、只有一個消費者的 abstract、簽名不一致、GAP 編號重複(兩條 build 分支各自配了同一個號,整合時後合的往上移)、`build/<鍵>` 分支已合進主線卻還在(整合開頭會清掉)、還是模板
-8. 建議路線:從最高優先的需求第一條沒達成的里程碑推。先回答 GAP、再 build 能開的線(照需求的優先、里程碑順序排,每條附需求與里程碑)、`draft` 的文檔走 `dev-flow:law-design` 把 Law 談完、還沒有切片的里程碑走 `dev-flow:spike-impl`(先收在途的,再開新的)、里程碑全部達成而驗收寫了三行卻沒有驗收測試的需求、寫了三行卻沒有測試的領域不變量走 `dev-flow:build R-n` / `INV-n`(只派 qa)、里程碑全部達成的需求底下待修訂的調整走 `dev-flow:law-design <它動到的全名>`。沒有可派的線時分三種:文檔全部達成而某條需求未達成或某條領域不變量不是成立,寫哪一條與判定來源,先補上;全部達成且每條需求達成、每條領域不變量成立寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾份沒達成、缺什麼輸入,不催加新功能
+8. 建議路線:從最高優先的需求第一條沒達成的里程碑推。先回答 GAP(答案要調整既有的 law 走 `dev-flow:scope-laws`,既有的 law 不動或只新增走 `dev-flow:scope-revise`,問的是全域 Law 走 `dev-flow:global-laws`)、再 build 能開的線(照需求的優先、里程碑順序排,每條附需求與里程碑)、`draft` 的文檔走 `dev-flow:scope-laws` 把 Law 談完、還沒有切片的里程碑走 `dev-flow:spike-impl`(先收在途的,再開新的)、里程碑全部達成而驗收寫了三行卻沒有驗收測試的需求、寫了三行卻沒有測試的領域不變量走 `dev-flow:build R-n` / `INV-n`(只派 qa)、里程碑全部達成的需求底下待修訂的調整走 `dev-flow:scope-revise <它動到的全名>`(既有的 law 不動,需要新的 law 就在那裡新增;要調整既有的 law 才做得到的調整,整件走 `dev-flow:scope-laws`)。沒有可派的線時分三種:文檔全部達成而某條需求未達成或某條領域不變量不是成立,寫哪一條與判定來源,先補上;全部達成且每條需求達成、每條領域不變量成立寫「目前功能全部正常運作,可以加新功能」;沒達成寫哪幾份沒達成、缺什麼輸入,不催加新功能
 
 分母是 `system.md`「Features」表的份數、「全域 Law」區領域不變量的條數,以及 `requirements/` 的檔數與各檔的里程碑與調整數。
 
@@ -118,7 +118,7 @@ exit code:`status` 盤點 = 驗收(有未達成的文檔、open GAP、需求未�
 
 1. **位置樹**:願景一行 → 全域 Law 一行(三類各有沒有紅)→ 每條需求一行(優先、達成 / 未達成 / 未知、里程碑達成 n / m)→ 每條里程碑一行(達成 / 進行中 / 未開工)與每條調整一行(達成 / 進行中 / 待修訂)→ 綁定的 feature → 目前文檔展開到 step 與 law,各標簽名在不在、law 綠不綠;引用到的 abstract 掛在它底下;沒被任何里程碑綁定的 feature 掛在最後的「沒有需求」底下。目前節點標 `◀ 目前`。全部寫全名。
 2. **完成度**三行:需求(最高優先還沒達成的需求 R-n · 里程碑達成 n / m · 驗收達成與否;全域 Law 三類有沒有紅)、產品(feature 達成 n / m · 文檔達成 n / m · 待實作 step n)、本次(目前文檔簽名 m / n · laws g / k)。數字只來自 `devflow status` 與實際跑過的測試;沒跑寫「沿用 <哪一次>」或「未跑」。
-3. **主軸檢查**:本次對應哪條需求的哪條里程碑或調整、哪份文檔的哪個 step 或 law;偏離清單(做的事不在任何里程碑的範圍裡、調整動到了里程碑沒綁過的 feature、比最高優先需求的里程碑先做了低優先的、同一條需求同時開了兩條里程碑、簽名與 Steps 不符、內層 import 外層、測試後門、未登記檔案、open GAP、切片裡有假的東西沒記進決策紀錄、law 只是在描述程式碼現在做了什麼、在 `dev-flow:glaws-revise` 之外動了全域 Law、在 `dev-flow:require-design` 之外寫了需求、兩份 feature 寫了同一段而沒走 `dev-flow:abstract`),每條附位置與建議;沒有寫「無」。
+3. **主軸檢查**:本次對應哪條需求的哪條里程碑或調整、哪份文檔的哪個 step 或 law;偏離清單(做的事不在任何里程碑的範圍裡、調整動到了里程碑沒綁過的 feature、比最高優先需求的里程碑先做了低優先的、同一條需求同時開了兩條里程碑、簽名與 Steps 不符、內層 import 外層、測試後門、未登記檔案、open GAP、切片裡有假的東西沒記進決策紀錄、law 只是在描述程式碼現在做了什麼、在 `dev-flow:scope-laws` 與 `dev-flow:abstract` 的收整之外調整了既有的 scope law、一件修訂由兩個修訂類的 skill 交錯著做、在 `dev-flow:global-laws` 之外動了全域 Law、在 `dev-flow:require-design` 之外寫了需求、兩份 feature 寫了同一段而沒走 `dev-flow:abstract`),每條附位置與建議;沒有寫「無」。
 4. **下一步**:一條具體命令(參數寫全名),附下面四題的答案;最多兩條替代,各附同四題,外加一句為什麼不是第一。下一步必須從樹上推得出來。
    - **必要性**:不做它,樹上哪條需求停在哪條里程碑、哪份文檔的哪個 step 或 law、哪條功能因此無法正常運作。答不出具體的一份與一條,它就不是下一步,也排不進替代。
    - **替代為什麼排後面**:需求的優先較低、等一個決定、等別份先達成、只是清警訊;寫明是哪一個。

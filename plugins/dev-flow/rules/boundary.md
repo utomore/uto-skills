@@ -73,7 +73,7 @@ step 與觀察點都要是**該檔案對外匯出的名字**,程式碼才對得�
 - **信任**:`untrusted` = 這一端的內容由系統外面決定(使用者輸入、第三方回應、讀進來的檔案);`trusted` = 由系統自己產生。
 - **驗證**:`untrusted` 的 `in` 列必須指名一個做驗證的 step,而那個 step 要在該 feature 的 Steps 表裡。`in` 之後第一個碰到資料的東西就是它。
 - **契約**:這一端對外面承諾了什麼、由哪條 law 守著(重送同一個請求不會做第二次、對外的事件只增欄位不刪不改名)。寫那條 law:`F-00x#LAW-n` 或 `INV-n`,「、」分隔;沒有就「-」。只寫一句話而沒有 law 守著的契約不算數。
-- 每份 feature 的兩端都要對得到這張表;表上的文檔必須是 feature,不能是 abstract。一條切片新的入口與出口,`dev-flow:spike-impl` 記在決策紀錄「Touched」,`dev-flow:law-design` claim 出 feature 之後補成表上的列。
+- 每份 feature 的兩端都要對得到這張表;表上的文檔必須是 feature,不能是 abstract。一條切片新的入口與出口,`dev-flow:spike-impl` 記在決策紀錄「Touched」,`dev-flow:scope-laws` claim 出 feature 之後補成表上的列。
 - 表上的模組在模組表是最外層;型別不住最外層(邊界換了才不必跟著改)。
 
 `devflow lint io` 對帳以上(契約欄指到的 law 要存在),外加三條安全:

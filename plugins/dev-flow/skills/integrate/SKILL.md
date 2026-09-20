@@ -7,7 +7,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 # dev-flow:integrate — 分支合成一條 PR
 
-> **核心**:Integration MUST NOT reduce Law satisfaction, and MUST NOT change a Law: it proposes, the developer approves, law-design or glaws-revise writes.(合併之前成立的每一條 law,合併之後都要仍然成立;做不到就不合,拿反例去問開發者。整合不改任何一條 law——scope law 與全域 Law 都一樣:只提變更建議,開發者明確批准,scope law 由 law-design、全域 Law 由 glaws-revise 落筆。) 步驟與這一句衝突時,這一句贏:停下,回報。
+> **核心**:Integration MUST NOT reduce Law satisfaction, and MUST NOT change a Law: it proposes, the developer approves, scope-laws or global-laws writes.(合併之前成立的每一條 law,合併之後都要仍然成立;做不到就不合,拿反例去問開發者。整合不改任何一條 law——scope law 與全域 Law 都一樣:只提變更建議,開發者明確批准,scope law 由 scope-laws、全域 Law 由 global-laws 落筆。) 步驟與這一句衝突時,這一句贏:停下,回報。
 
 ## 開工 context
 
@@ -67,11 +67,11 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 1. **呈現反例,不是兩段條文**:測試縮小後的那個輸入、那條 law 說結果該是什麼、合併後的程式碼算出什麼、兩邊各依哪一條 law 或決策紀錄「Assumptions & Invariants」的哪一列。合不起來的文字衝突同樣:兩邊各把那一段改成什麼、各為了哪條 law。
 2. **三個選項**,各附當下成本、之後的代價、可不可逆;你的傾向放第一個:
-   - **以 A 為主**:B 不進這次整合。A 合進主線後,B 的工作樹合入主線,`dev-flow:law-design` 改 B 那條 law,再 build。
-   - **收窄定義域**:兩條 law 各自的 `forall` / `given` 排除對方的情境。兩份文檔各一次 `dev-flow:law-design` 的修訂,只重派 qa 改那條測試;實作多半不必動。兩條分支都先退回。
-   - **提煉上層 Law**:建議立一條領域不變量,寫出那一句話與它過不過得了准入四條(`laws.md`「全域 Law」)。開發者明確批准後,由 `dev-flow:glaws-revise` 走「全域 Law 的變更」落筆,不是你;兩條分支都退回,各自 `dev-flow:law-design` 讓自己的 law 服從它,再 build。它的 `plan/` 分支之後進來的那次整合,你替它寫一條 ADR 記為什麼。
-3. **寫下結果**:被退回的每條分支,在它的工作樹的 `.design/gaps.md` 加一條 GAP(角色 conductor,目標那條 law,「模糊點」寫反例,「需要回答什麼」寫開發者選的選項與原話)並 commit;那條分支從這次的候選拿掉。剩下的候選回 §2 重合。
-4. **全域 Law 的變更建議**:合併後紅的是全域 Law(`devflow lint global` 的紅、領域不變量的測試紅),或決策紀錄的 Constraint 欄顯示某一條全域 Law 逼出了沒道理的決定 → 照同一個格式提建議:反例、選項(一定含「不改,退回違反它的那條分支」)、各自的當下成本、之後的代價(放寬與刪除寫明之後哪些行為不再被擋)、可不可逆。**任何全域 Law 的修改、放寬、替換或刪除,都必須經開發者明確批准;你只能提出變更建議,不得自行決定變更,也不直接修改全域 Law。** 「明確」= 開發者對著那一條、那一個選項說了要。批准的選項寫成 GAP(角色 conductor,目標寫那條全域 Law,例 `INV-2`),告訴開發者下一步是 `dev-flow:glaws-revise`:它攤開完整的影響範圍、落筆、重新驗證受影響的工作。這次整合只合不受那條變更影響的分支。
+   - **以 A 為主**:B 不進這次整合。A 合進主線後,B 的工作樹合入主線,`dev-flow:scope-laws` 改 B 那條 law,再 build。
+   - **收窄定義域**:兩條 law 各自的 `forall` / `given` 排除對方的情境。兩份文檔各一次 `dev-flow:scope-laws` 的修訂,只重派 qa 改那條測試;實作多半不必動。兩條分支都先退回。
+   - **提煉上層 Law**:建議立一條領域不變量,寫出那一句話與它過不過得了准入四條(`laws.md`「全域 Law」)。開發者明確批准後,由 `dev-flow:global-laws` 走「全域 Law 的變更」落筆,不是你;兩條分支都退回,各自 `dev-flow:scope-laws` 讓自己的 law 服從它,再 build。它的 `plan/` 分支之後進來的那次整合,你替它寫一條 ADR 記為什麼。
+3. **寫下結果**:被退回的每條分支,在它的工作樹的 `.design/gaps.md` 加一條 GAP(角色 conductor,目標那條 law,「模糊點」寫反例,「需要回答什麼」寫開發者選的選項與原話)並 commit;那條分支從這次的候選拿掉。仲裁的結果都是調整既有的 law,所以被退回的分支之後走 `dev-flow:scope-laws <全名>`,整件修訂由它一手做到 `verified`(既有的 law 不動的修訂才是 `dev-flow:scope-revise`)。剩下的候選回 §2 重合。
+4. **全域 Law 的變更建議**:合併後紅的是全域 Law(`devflow lint global` 的紅、領域不變量的測試紅),或決策紀錄的 Constraint 欄顯示某一條全域 Law 逼出了沒道理的決定 → 照同一個格式提建議:反例、選項(一定含「不改,退回違反它的那條分支」)、各自的當下成本、之後的代價(放寬與刪除寫明之後哪些行為不再被擋)、可不可逆。**任何全域 Law 的修改、放寬、替換或刪除,都必須經開發者明確批准;你只能提出變更建議,不得自行決定變更,也不直接修改全域 Law。** 「明確」= 開發者對著那一條、那一個選項說了要。批准的選項寫成 GAP(角色 conductor,目標寫那條全域 Law,例 `INV-2`),告訴開發者下一步是 `dev-flow:global-laws`:它攤開完整的影響範圍、落筆、重新驗證受影響的工作。這次整合只合不受那條變更影響的分支。
 
 ## 5. 發 PR
 
@@ -99,7 +99,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
      ## 全域 Law
      - 擋到了實作的:<INV-n / 層的規則 / 對外 I/O 的契約:哪條分支、擋掉了什麼做法>;抄各決策紀錄「Decisions」表裡 Constraint 欄指到全域 Law 的列;無則「無」
-     - 這次 PR 帶進來的變更:<INV-n / 層 / 對外 I/O:改了什麼、開發者哪一句話批准的、ADR-00x>;只來自 `plan/` 分支上 glaws-revise 落筆的;無則「無」
+     - 這次 PR 帶進來的變更:<INV-n / 層 / 對外 I/O:改了什麼、開發者哪一句話批准的、ADR-00x>;只來自 `plan/` 分支上 global-laws 落筆的;無則「無」
      - 提出而還沒批准的變更建議:<哪一條、反例、選項>;無則「無」
 
      ## 合併
@@ -126,8 +126,8 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 6. 收尾
 
-回報 PR 網址、標題、內文各章節的重點摘要、包含的分支清單、labels、解掉的衝突、仲裁的結果與被退回的分支、寫了哪幾條 ADR、測試結果;附定錨區塊(`tooling.md`「收尾定錨」),位置樹把本 PR 涵蓋的文檔全部標出,PR 內有變更卻對不到任何文檔的檔案上偏離清單。下一步:PR 合併後 `dev-flow:status`;被退回的分支 `dev-flow:law-design <那份文檔的全名>`(在它的工作樹上);批准了的全域 Law 變更 `dev-flow:glaws-revise`;兩份 feature 寫了同一段的 `dev-flow:abstract`。
+回報 PR 網址、標題、內文各章節的重點摘要、包含的分支清單、labels、解掉的衝突、仲裁的結果與被退回的分支、寫了哪幾條 ADR、測試結果;附定錨區塊(`tooling.md`「收尾定錨」),位置樹把本 PR 涵蓋的文檔全部標出,PR 內有變更卻對不到任何文檔的檔案上偏離清單。下一步:PR 合併後 `dev-flow:status`;被退回的分支 `dev-flow:scope-laws <那份文檔的全名>`(在它的工作樹上);批准了的全域 Law 變更 `dev-flow:global-laws`;兩份 feature 寫了同一段的 `dev-flow:abstract`。
 
 ## 邊界
 
-不寫實作、不寫測試、不補 law、不改任何 feature 與 abstract 的條文、不改任何本體;不寫 `system.md` 的「全域 Law」區:全域 Law 的新增、修改、放寬、替換、刪除你只提建議,開發者明確批准後由 `dev-flow:glaws-revise` 落筆;不寫需求檔(`dev-flow:require-design`);衝突不猜、互斥不自己裁;帶著紅燈不發 PR;不合沒有決策紀錄、或還沒達成的 `build/` 分支。
+不寫實作、不寫測試、不補 law、不改任何 feature 與 abstract 的條文、不改任何本體;不寫 `system.md` 的「全域 Law」區:全域 Law 的新增、修改、放寬、替換、刪除你只提建議,開發者明確批准後由 `dev-flow:global-laws` 落筆;不寫需求檔(`dev-flow:require-design`);衝突不猜、互斥不自己裁;帶著紅燈不發 PR;不合沒有決策紀錄、或還沒達成的 `build/` 分支。

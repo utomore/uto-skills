@@ -1,6 +1,6 @@
 # feature 文檔
 
-文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過對外邊界的資料流。型別、簽名、匯出住程式碼;文檔引用,工具對帳。程式碼先到:一條里程碑先由 `dev-flow:spike-impl` 做成一條跑得通的垂直切片,`dev-flow:law-design` 再對著它與開發者逐條談出 laws,Steps 的簽名抄程式碼裡定下來的那一個(roles.md「五個階段」)。做之前就寫的只有需求(含驗收與切好的里程碑)、全域 Law(對外 I/O 的信任邊界是其中的契約一類);其餘都等跑得通了再講。**測試涵蓋到哪裡,這份功能的承諾就到哪裡**:沒有 law 守著的行為不是承諾,實作可以自由改。
+文檔只寫程式碼裝不下的東西:測試存在之前的 laws、為什麼這樣決定、跨過對外邊界的資料流。型別、簽名、匯出住程式碼;文檔引用,工具對帳。程式碼先到:一條里程碑先由 `dev-flow:spike-impl` 做成一條跑得通的垂直切片,`dev-flow:scope-laws` 再對著它與開發者逐條談出 laws,Steps 的簽名抄程式碼裡定下來的那一個(roles.md「五個階段」)。做之前就寫的只有需求(含驗收與切好的里程碑)、全域 Law(對外 I/O 的信任邊界是其中的契約一類);其餘都等跑得通了再講。**測試涵蓋到哪裡,這份功能的承諾就到哪裡**:沒有 law 守著的行為不是承諾,實作可以自由改。
 
 ## `.design/`
 
@@ -72,8 +72,8 @@ updated: 2026-09-07
 - **里程碑不管理約束**:它沒有 law、沒有測試標記;約束只住全域 Law 與 scope law(laws.md「Law 與需求」)。
 - 里程碑綁的是 feature;abstract 跟著引用它的 feature 達成,不綁。綁定是里程碑對到文檔的唯一寫法,文檔經由它朝向需求。
 - 每份 feature 至少被一條里程碑綁定;沒被綁的 feature 不朝向任何需求,`devflow status` 列警訊。要它就由 `dev-flow:require-design` 收進一條里程碑,不要它就刪檔。
-- 里程碑先於 feature 存在:需求剛談完時綁定欄都是「-」,`devflow status` 在該需求的「下一條里程碑」寫明還沒有切片,不是警訊。`dev-flow:spike-impl M-n-<slug>` 做出切片,`dev-flow:law-design` 再從切片 claim 出文檔(`devflow claim feature <slug> --milestone <M-n>`)填進綁定欄;一條里程碑可以綁好幾份 feature。綁到不存在的全名、或里程碑沒有英文名,才是警訊。
-- 調整走修訂:動到的每份 feature 各寫一條 REV,依欄引用 `RF-n`(「修訂(REV)」);調整的進度由那幾條 REV 與 feature 的達成推,表上不寫狀態。
+- 里程碑先於 feature 存在:需求剛談完時綁定欄都是「-」,`devflow status` 在該需求的「下一條里程碑」寫明還沒有切片,不是警訊。`dev-flow:spike-impl M-n-<slug>` 做出切片,`dev-flow:scope-laws` 再從切片 claim 出文檔(`devflow claim feature <slug> --milestone <M-n>`)填進綁定欄;一條里程碑可以綁好幾份 feature。綁到不存在的全名、或里程碑沒有英文名,才是警訊。
+- 調整走修訂:動到的每份 feature 各寫一條 REV,依欄引用 `RF-n`(「修訂(REV)」)。調整預設走 `dev-flow:scope-revise`(既有的 law 不動;效能要一條新的 `bound` law 才驗得了,就在那裡新增);要調整既有的 law 才做得到的調整,整件走 `dev-flow:scope-laws`;調整的進度由那幾條 REV 與 feature 的達成推,表上不寫狀態。
 - 進度不是欄位:里程碑達成 = 綁定的每份 feature 都達成;需求的建置進度 = 達成的里程碑 / 里程碑數;需求達成與否、調整達成與否照「完成度」;都由 `devflow status` 算。
 - 配號只走 `devflow requirement add`、`devflow requirement milestone`、`devflow requirement refinement`(需求面)與 `devflow invariant add`(領域不變量);`devflow claim feature --milestone <M-n>` 把新 feature 綁進里程碑。刪掉的號永久空缺。
 - 建議路線與能開的線照需求的優先、需求編號、里程碑順序排;沒被綁的排最後。
@@ -84,7 +84,7 @@ updated: 2026-09-07
 
 - 可以橫跨任意檔案與層。檔案是 step 的屬性,不是文檔的歸屬。**沒有子系統這一層**:feature 直接掛在 `system.md` 底下。
 - 值得端到端規格的才建檔。單一小函數的性質直接寫測試;它以 step 的身分出現在用到它的 feature 裡。
-- **切片可以大,文檔不跟著變大**:一條切片可以貫通好幾個模組,`dev-flow:law-design` 把它拆成一份講一件使用者做得到的事的 feature。一份文檔幾十條 law,拍板會變成打包追認,一條 REV 會重開一整片,互不引用的文檔才能同時各開一波。
+- **切片可以大,文檔不跟著變大**:一條切片可以貫通好幾個模組,`dev-flow:scope-laws` 把它拆成一份講一件使用者做得到的事的 feature。一份文檔幾十條 law,拍板會變成打包追認,一條 REV 會重開一整片,互不引用的文檔才能同時各開一波。
 - step 順序是資料流的拓撲序。`=` 列(**整條**)是權威:它把各步驟組合成一次呼叫,住內層,不住最外層;整條的 law 掛在它上面。
 - **進入點**:feature 另有恰好一列 `!` 列,住最外層,把 `=` 列接到對外 I/O(HTTP handler、CLI 指令、UI 事件、排程)。它是程式碼裡的簽名,`lint sig` 照對帳、進簽名 m / n;不掛 law,它做的事由對外 I/O 表承接。
 - **觀察點**:law 要引用、但不是資料流步驟的簽名(存取子、投影、判定),在 Steps 表列成 `#` 欄寫 `o` 的列。`lint sig` 照對帳;它不是 step:不掛 law、不進簽名 m / n。最內層匯出的函數 law 本來就能引用,不必列成觀察點。
@@ -143,9 +143,9 @@ name(型別, 型別): 回傳型別
 
 | status | 意思 |
 |---|---|
-| `draft` | `dev-flow:law-design` claim 出來、Law 還在談;`dev-flow:build` 拒收 |
+| `draft` | `dev-flow:scope-laws` claim 出來、Law 還在談;`dev-flow:build` 拒收 |
 | `ready` | 開發者逐條口頭拍板了 laws、Steps 的每條簽名在程式碼裡對得上,skill 改欄位;可以委派 |
-| `verified` | qa 與 refactor 做完、`devflow status` 顯示達成(每條 law 都有一條會失敗、現在通過的測試守著),conductor 在 build 收尾直接改,不問;不准修訂。重開 = `dev-flow:law-design` 在「決定」記一條為什麼,改回 `ready` |
+| `verified` | qa 與 refactor 做完、`devflow status` 顯示達成(每條 law 都有一條會失敗、現在通過的測試守著),conductor 在 build 收尾直接改,不問;不重開不准動。重開 = `dev-flow:scope-laws`(要調整既有的 law)或 `dev-flow:scope-revise`(既有的 law 不動)在「決定」記一條為什麼,改回 `ready`;build 收尾時每條 law 成立,它再回到 `verified` |
 
 開發者不親自改任何 `.design/` 檔;開發者說,skill 寫。`verified` 而測試紅、或有 REV 卻沒有重開紀錄,是不一致。不做的 feature 直接刪檔;值得記住為什麼,寫進那條分支的決策紀錄,整合時升成 ADR。
 
@@ -204,7 +204,7 @@ name(型別, 型別): 回傳型別
 - `=` 列至少被一條 law 引用:整條的端到端性質,不是各 step law 的加總。`lint laws` 對帳。
 - 觀察點必須是這份文檔自己的簽名;要觀察別份的內部,law 屬於那一份。
 - 需求的驗收可以寫成同一套三行式,只差識別字可以是任何一份文檔的 Steps 簽名;寫了三行就承諾了驗收測試(roles.md「驗收測試」),沒有測試時達成與否是未知;寫不成三行就只留一句話,由里程碑全部達成推得。`lint laws` 對帳。
-- bug = 某條 law 在現況下不成立:law 已存在就修碼;沒寫到就補 law(走修訂)。**沒有 bug 文檔。**
+- bug = 某條 law 在現況下不成立:law 已存在就修碼,沒寫到就補一條 law 再修碼;兩種都走 `dev-flow:scope-revise`(既有的 law 不動,只新增)。**沒有 bug 文檔。**
 
 ## 什麼要有 law
 
@@ -223,11 +223,25 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 
 **Examples**:表 `# | 輸入 | 輸出 | 覆蓋`,每列指到它覆蓋的 law;指不到就先補 law。每個 example 一條 example test,歸屬 `F-002#EX-1`。輸入輸出裡**不准出現真的密碼、金鑰或 token**(`lint io` 擋)。
 
-**決定**:每條一句粗體結論、否決的替代方案、理由一句;有證據引用 ADR 全名。只裝只關這份文檔的決定:切片的決策紀錄「Decisions」裡只關這一份的,`dev-flow:law-design` 搬進這裡;跨文檔的留在決策紀錄,由 `dev-flow:integrate` 判要不要升 ADR。重開紀錄也寫這裡。
+**決定**:每條一句粗體結論、否決的替代方案、理由一句;有證據引用 ADR 全名。只裝只關這份文檔的決定:切片的決策紀錄「Decisions」裡只關這一份的,`dev-flow:scope-laws` 搬進這裡;跨文檔的留在決策紀錄,由 `dev-flow:integrate` 判要不要升 ADR。重開紀錄也寫這裡。
 
 ## 修訂(REV)
 
-改既有文檔的簽名、laws 或層,一律改原檔,一次修訂一條 REV,由 `dev-flow:law-design` 做(既有文檔要改的那一種情形)。**任何對既有功能的改動都修訂原檔,不另開檔。** 修訂是文檔先行:既有文檔的形狀已知,先改條文、再改測試與實作,比重做一條切片便宜。 step 在同一層內搬檔案不是修訂:`lint sig` 報「搬家」,`devflow sync` 機械更新模組欄,不寫 REV。
+改既有文檔的簽名、laws 或層,一律改原檔,一次修訂一條 REV。**任何對既有功能的改動都修訂原檔,不另開檔。** 修訂是文檔先行:既有文檔的形狀已知,先改條文、再改測試與實作,比重做一條切片便宜。 step 在同一層內搬檔案不是修訂:`lint sig` 報「搬家」,`devflow sync` 機械更新模組欄,不寫 REV。
+
+誰做,一句話分流:**要調整(修改、放寬、替換、刪除)既有的 law → `dev-flow:scope-laws`;law 不動、或只新增 law,而文檔或實作要變 → `dev-flow:scope-revise`;全域 Law → `dev-flow:global-laws`;需求面的條目(需求、驗收、優先、里程碑、調整)→ `dev-flow:require-design`。** **一件修訂從頭到尾只有一個修訂類的 skill(`dev-flow:scope-laws` 或 `dev-flow:scope-revise`)在跑,跑到 `verified` 為止**:不交錯、不接力,一條 REV 裝下這一件的全部。
+
+| | `dev-flow:scope-laws` | `dev-flow:scope-revise` |
+|---|---|---|
+| 收什麼 | 任何一條既有的 law 要修改、放寬、替換或刪除,連同這一件修訂連帶要改的 Steps 簽名、型別、模組、Examples、新增的 law 與實作方向,一手包辦;刪除 step(連帶刪它的 law);既有 example 的輸入輸出要變;還沒 `verified` 的文檔(切片那一波)的任何改動 | `verified` 的文檔,既有的 law 一條都不動:Steps 的簽名或型別要改、新增 step、step 跨層搬家、層的歸屬修正、Brief / 決定 / 描述要改、實作品質的調整(`RF-n`:效能、大小、訊息、演算法)、law 在而實作不符或行為沒有 law 守著的 bug、答案不必調整既有 law 的 GAP;過程中可以**新增** law(保護用的、效能的新上界、新 step 的)與新的 example |
+| 開發者做什麼 | 看過影響範圍,對著一個選項明確說要(laws.md「影響範圍與選項」) | 看過影響範圍(「直接動到」不含任何既有的 law),確認;新增的 law 逐條拍板(laws.md「Law 怎麼談」) |
+| REV 的「動到」欄 | 調整的與新增的 law、簽名、型別、step、模組、example | 只准是簽名、型別、模組、層、實作,與**新增的** `LAW-n`、`EX-n`(新增的 law 各註明首跑該紅還是該綠) |
+| REV 的「保護」欄 | 這次不准變的既有 law | 這份文檔原有的每一條 law 與每一個 example |
+| 收尾 | 接上 build;首跑時「動到」欄的 law 要紅;文檔回到 `verified` | 接上 build;原有的每條 law 修訂前後都成立,新增的也成立,文檔回到 `verified` |
+
+- `dev-flow:scope-revise` 攤影響範圍時或做到一半發現**非調整既有的 law 不可**(簽名一改某條 law 的意思就跟著變、既有的 law 擋著這次要的品質、開發者看了結果要放寬一條)→ 停下並**放棄這一次修訂**:它在這一場改過的文檔與宣告還原到開工時的樣子,不留半套;整件(連同原本打算改的簽名、型別、實作)交給 `dev-flow:scope-laws <全名>`,由它一手做到 `verified`。不是「那一條 law 交過去、做完再回來」。
+- 簽名或型別改名,law 三行與 Examples 裡的識別字跟著換,是**機械同步**:law 的意思一個字都不變,不算調整 law;REV 的「動到」欄註明「LAW-n 的識別字隨 `<原名>` → `<新名>` 機械同步,意思不變」。
+- 目標文檔還不是 `verified`(切片那一波的 `draft` / `ready`)→ 不是 `dev-flow:scope-revise` 的事:那一波的簽名、型別與 law 都由 `dev-flow:scope-laws` 改,實作由 `dev-flow:build`。
 
 ```markdown
 - REV-1(2026-09-12,依 qa 提問「過期判定用哪個時鐘」):過期判定改用伺服器時鐘
@@ -238,8 +252,8 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 ```
 
 - 依:來源與那一句話(GAP 的提問原句、ADR 全名、`RF-n` 與它那一句、開發者的話、整合的仲裁選了什麼、`dev-flow:abstract` 抽出了哪份 abstract)。調整(`RF-n`)一律從這裡進來:動到的每份 feature 各一條 REV,依欄寫 `RF-n`,`devflow status` 靠它算調整的進度;調整的保護一定含需求的驗收引用到的每條 law,優化不准讓需求退回未達成。
-- 保護:這次不准變的既有 law;要保護的行為還不是 LAW 的,先補成 LAW 再修訂。**沒有 law 守著的「行為不變」等於沒有保護。**
-- 重委派:law 變了重派 qa,行為、簽名或型別變了重派 refactor。簽名或型別變了,`dev-flow:law-design` 同步改程式碼裡的宣告、編得過,行為留給 refactor;修訂新增的 step,本體先是未實作標記(roles.md「首跑」)。測試只重跑 REV 點名的。
+- 保護:這次不准變的既有 law;要保護的行為還不是 LAW 的,做修訂的那個 skill 先與開發者把它補成 LAW 再修訂(新增的保護用 law 列在「動到」欄,註明首跑該綠)。**沒有 law 守著的「行為不變」等於沒有保護。**
+- 重委派:law 變了或新增了重派 qa,行為、簽名或型別變了重派 refactor;既有的 law 不動而簽名或型別變了,qa 只把既有測試裡的呼叫與建構改到對得上新的宣告,斷言不動,新增的 law 另寫新的測試。簽名或型別變了,做修訂的 skill 同步改程式碼裡的宣告、編得過,行為留給 refactor;修訂新增的 step,本體先是未實作標記(roles.md「首跑」)。測試只重跑 REV 點名的。
 - 動到與保護只寫還在檔上的條目;`updated` 改成修訂日期。
 - law 編號單調遞增,**刪掉的號永久空缺**:`lint trace` 的幽靈引用靠這條才抓得到「測試還在守一條已經不存在的 law」。
 - 引用的 abstract 簽名變了,每一份消費者跟著 REV;`verified` 的消費者先重開。
@@ -269,7 +283,7 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 ```
 
 - 委派模式下 subagent 不寫檔:四欄寫進回報,局部序號 `本次-1`,conductor 單線寫入配號;在 build 分支上從主線的最大號往上配,整合時撞號的由整合者把後合進來的往上移(roles.md「整合」)。
-- 結案 = 開發者口頭回答,`dev-flow:law-design` 寫 REV 並刪條目,依欄帶模糊點原句;目標是一條全域 Law 的 GAP 由 `dev-flow:glaws-revise` 落筆後刪條目,目標是 `R-n#ACCEPT` 的由 `dev-flow:require-design`。檔空了刪檔。**不留 resolved**:定案後的問題不需要被找回。
+- 結案 = 開發者口頭回答,照「修訂(REV)」那一句分流:答案要調整既有的 law(或文檔還沒 `verified`)由 `dev-flow:scope-laws`、答案不動既有的 law 或只要新增一條(`verified` 文檔的簽名、型別、實作)由 `dev-flow:scope-revise` 寫 REV 並刪條目,依欄帶模糊點原句;目標是一條全域 Law 的 GAP 由 `dev-flow:global-laws` 落筆後刪條目,目標是 `R-n#ACCEPT` 的由 `dev-flow:require-design`。檔空了刪檔。**不留 resolved**:定案後的問題不需要被找回。
 - open 的 GAP 擋:那份文檔不算達成、`dev-flow:build` 前置不放行、`devflow status` exit 1。
 - refactor 測試全綠也不得把有 open GAP 的 step 當完成。
 
@@ -298,7 +312,7 @@ law 只掛在 step 上,所以先問一個函數是不是 step,再問它有沒有
 
 `adr/ADR-00x-<slug>.md`,四節:情境、決定、否決的替代方案、後果。裝跨文檔、而且回不了頭的決定:選了什麼外部系統、資料怎麼存、兩條互斥的 law 怎麼裁、刪一份 feature 的理由。
 
-- ADR 不是 law,記的是「為什麼」。它的決定寫得成可執行形式時,約束進全域 Law(經開發者批准、由 `dev-flow:glaws-revise` 落筆),ADR 只留理由;law 不住在 ADR 裡。
+- ADR 不是 law,記的是「為什麼」。它的決定寫得成可執行形式時,約束進全域 Law(經開發者批准、由 `dev-flow:global-laws` 落筆),ADR 只留理由;law 不住在 ADR 裡。
 - ADR 由 `dev-flow:integrate` 寫(`devflow claim adr <slug>`):切片做完、幾條分支要合在一起的那一刻,哪個決定真的跨文檔、真的回不了頭才看得出來。來源是決策紀錄「Decisions」表裡「可逆」欄為否、而且「跨文檔」欄為是的那幾列,與整合仲裁的結果(roles.md「整合」)。
 - 走不通的切片也留一條 ADR:否決的做法與理由,日後才不會再試一次。
 - 只關一份文檔的決定不開 ADR,住那份文檔的「決定」。層怎麼切、語言與 adapter 直接住 `system.md`,表本身就是決定。

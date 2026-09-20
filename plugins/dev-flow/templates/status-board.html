@@ -514,7 +514,7 @@ world.style.height = maxY + 'px';
 
 // ── 相依:需求排成先後順序的圖 ──
 // 邊全部從引用推出來:綁在需求甲的里程碑底下的一份引用了綁在需求乙的里程碑底下的一份,甲就依賴乙。
-// 沒被任何里程碑綁的那份(通常是 abstract)自成一張共用卡,不然那條依賴就沒地方落。
+// 沒被任何里程碑綁、卻被別份引用的那一份自成一張共用卡,不然那條依賴就沒地方落。
 const world2 = document.getElementById('world2');
 const links2 = document.getElementById('links2');
 const DN_W = 300, DAG_LEFT = 40, DAG_TOP = 40, DAG_COL_GAP = 120, DAG_ROW_GAP = 22;

@@ -15,7 +15,9 @@ updated: 2026-09-07
 |---|---|---|---|---|
 | 1 | `weigh(Rule): string` | 取出權重(簽名故意與程式碼不一致) | `src/domain/rule.ts` | domain |
 | 2 | `missingStep(Ghost): any` | 程式碼裡沒有這條;Ghost 沒宣告過、any 沒有名字 | `src/app/store.ts` | application |
-| 3 | `helperOnly(Raw): number` | 引用了一份 feature | `src/app/store.ts`(見 F-002-other) | application |
+| 3 | `helperOnly(Raw): number` | 別份文檔的 = 列,卻沒註明見 | `src/app/store.ts` | application |
+| 4 | `load(string): Rule` | 引用別份文檔的 step | `src/app/store.ts`(見 F-002-other) | application |
+| 5 | `reload(string): Rule` | 寫著見別份,那一份卻沒有這個 step | `src/domain/rule.ts`(見 F-002-other) | domain |
 | o | `weigh(Rule): string` | 觀察 | `src/domain/rule.ts` | domain |
 | = | `score(Raw): number` | 整條(模組欄指到別的檔,sync 該把它搬回來) | `src/app/other.ts` | application |
 | ! | `scoreHandler(Raw): number` | 進入點 | `src/entry/api.ts` | entry |

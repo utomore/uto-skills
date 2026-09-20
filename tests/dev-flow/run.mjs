@@ -14,13 +14,13 @@ const DATE = '2026-09-07';
 
 // [名字, 夾具, argv, 寫檔後要收進 golden 的檔(相對夾具), 環境變數]
 const CASES = [
-  // shop:一份健康的樹,兩份 feature 共用一份 abstract
+  // shop:一份健康的樹;settle 與它的 law 住在 F-001-checkout,F-002-refund 的 Steps 表引用它
   ['shop-lint-all', 'shop', ['lint', 'all']],
   ['shop-lint-global', 'shop', ['lint', 'global']],
   ['shop-status', 'shop', ['status']],
   ['shop-status-tests', 'shop', ['status', '--tests', 'test.log']],
   ['shop-status-doc', 'shop', ['status', '--doc', 'F-001-checkout', '--tests', 'test.log']],
-  ['shop-status-abstract', 'shop', ['status', '--doc', 'A-001-settle', '--tests', 'test.log']],
+  ['shop-status-doc-ref', 'shop', ['status', '--doc', 'F-002-refund', '--tests', 'test.log']],
   ['shop-status-module', 'shop', ['status', '--module', 'src/domain/**', '--tests', 'test.log']],
   ['shop-status-json', 'shop', ['status', '--json', '--tests', 'test.log']],
   ['shop-section', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', 'Laws']],
@@ -40,11 +40,9 @@ const CASES = [
   ['shop-invariant-add', 'shop', ['invariant', 'add', '退回的錢不超過付過的錢', '--kind', 'bound'], ['.design/system.md']],
   ['shop-invariant-add-bad-kind', 'shop', ['invariant', 'add', '退回的錢不超過付過的錢', '--kind', 'nonsense']],
   ['shop-requirement-refinement', 'shop', ['requirement', 'refinement', 'R-1', '結帳一次走完不重算', '--touch', 'F-001-checkout'], ['.design/requirements/R-1-money-correct.md']],
-  ['shop-requirement-refinement-outside', 'shop', ['requirement', 'refinement', 'R-1', '結算改成串流', '--touch', 'A-001-settle']],
   ['shop-requirement-refinement-missing', 'shop', ['requirement', 'refinement', 'R-1', '出貨改成批次', '--touch', 'F-009-nope']],
-  ['shop-requirement-milestone-abstract', 'shop', ['requirement', 'milestone', 'R-1', 'settle-shared', '結算共用', '--bind', 'A-001-settle']],
   ['shop-requirement-milestone-missing', 'shop', ['requirement', 'milestone', 'R-1', 'ship', '出貨走通', '--bind', 'F-009-nope']],
-  ['shop-claim-abstract', 'shop', ['claim', 'abstract', 'audit-log', '--description', '共用的稽核紀錄', '--date', DATE], ['.design/abstracts/A-002-audit-log.md']],
+  ['shop-claim-kind-rejected', 'shop', ['claim', 'abstract', 'audit-log', '--description', '共用的稽核紀錄', '--date', DATE], ['.design/abstracts/A-001-audit-log.md']],
   ['shop-claim-adr', 'shop', ['claim', 'adr', 'single-currency', '--description', '金額只在單一幣別內計算', '--date', DATE], ['.design/adr/ADR-001-single-currency.md']],
   ['shop-claim-bad-kind', 'shop', ['claim', 'bugfix', 'oops']],
   ['shop-modules-gen', 'shop', ['modules', '--gen']],
@@ -87,13 +85,21 @@ const CASES = [
   ['rs-lint-all', 'rs-svc', ['lint', 'all']],
   ['rs-status', 'rs-svc', ['status', '--tests', 'test.log']],
 
-  // fullstack:前端 TypeScript 加後端 Python 住同一棵樹,language 欄是「目錄 = adapter」清單,三道指令每側一組
+  // fullstack:前端 TypeScript 加後端 Python 住同一棵樹,language 欄是「目錄 = adapter」清單,三道指令每側一組;
+  // 三條需求各綁自己的 feature,R-3 的 F-002-refund 引用 R-1 的 F-001-checkout,status 的「依賴」欄印得出 R-1
   ['fullstack-lint-all', 'fullstack', ['lint', 'all']],
   ['fullstack-status', 'fullstack', ['status', '--tests', 'web=web.log,api=api.log']],
   ['fullstack-status-one-log', 'fullstack', ['status', '--tests', 'api.log']],
   ['fullstack-status-bad-side', 'fullstack', ['status', '--tests', 'mobile=api.log']],
   ['fullstack-status-doc', 'fullstack', ['status', '--doc', 'F-003-basket', '--tests', 'web=web.log,api=api.log']],
   ['fullstack-status-module', 'fullstack', ['status', '--module', 'api/cart/basket.py', '--tests', 'web=web.log,api=api.log']],
+  ['fullstack-requirement-refinement-outside', 'fullstack', ['requirement', 'refinement', 'R-1', '結帳順便算籃子', '--touch', 'F-003-basket']],
+
+  // shared-doc:一份不被里程碑綁定的文檔被兩份 feature 引用;status 與 lint sig 照讀,里程碑不綁它
+  ['shared-doc-status', 'shared-doc', ['status']],
+  ['shared-doc-status-doc', 'shared-doc', ['status', '--doc', 'A-001-title']],
+  ['shared-doc-lint-sig', 'shared-doc', ['lint', 'sig']],
+  ['shared-doc-requirement-milestone-not-feature', 'shared-doc', ['requirement', 'milestone', 'R-1', 'title-shared', '標題共用', '--bind', 'A-001-title']],
 
   // flat:里程碑還擠在一份 objectives.md、system.md 也還沒有「全域 Law」區的樹;goals:需求住 system.md「## 需求」節、里程碑住 objectives/ 的樹
   // (一條需求有兩個目標檔、一條沒有、一個目標檔對不到需求)。兩種樹 status 都照讀,migrate requirements 換成 requirements/
@@ -146,7 +152,6 @@ const CASES = [
   ['shop-brief-scope-laws', 'shop', ['brief', 'scope-laws', 'M-2-refund', '--no-rules']],
   ['shop-brief-spike-impl', 'shop', ['brief', 'spike-impl', 'M-1-checkout', '--tests', 'test.log', '--no-rules']],
   ['shop-brief-spike-impl-wrong-kind', 'shop', ['brief', 'spike-impl', 'F-001-checkout', '--no-rules']],
-  ['shop-brief-abstract', 'shop', ['brief', 'abstract', '--no-rules']],
   ['shop-brief-integrate', 'shop', ['brief', 'integrate', '--no-rules']],
   ['shop-brief-status', 'shop', ['brief', 'status', '--no-rules']],
   ['shop-brief-audit', 'shop', ['brief', 'audit', '--tests', 'test.log', '--no-rules']],

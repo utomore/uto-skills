@@ -87,6 +87,18 @@ updated: <YYYY-MM-DD>
 
 `revise`、`objective`、`project` 三個 skill 名稱不存在;dev-flow 裡 `law-design`、`glaws-revise` 兩個名稱也不存在。
 
+2026-09-20 使用者第三次決定(只動 dev-flow,分支 `feat/dev-flow-scope-revise`,同一個 PR;上面 §1、§2、§3 表裡提到 abstract 的地方以這一段為準):
+
+1. **abstract 整個退場**。`dev-flow:abstract` skill、`A-00x` 共用文檔、`abstracts/` 資料夾、「收整」這個動作都拿掉,dev-flow 的 skill 從十四個變十三個。取代它的只有一條規矩,住 `features.md`「編號與引用」:一個 step 與它的 law 只住在一份文檔——先做出它的那一份;別的文檔要用它,就在 Steps 表的模組欄註明「見 <那份文檔的全名>」,law 不重寫、不複製;feature 可以引用另一份 feature,不論屬於哪條需求。理由:實作先行,後做的切片直接呼叫既有的程式碼,不會有第二份要抽。兩條切片平行開工各寫了一份 → 整合時選一份留著,另一份走 `scope-laws` 刪掉自己的 step 與 law 改成引用。被引用的那一份達成,引用它的才算達成(原有的規則)。里程碑只綁 feature。CLI 對 `abstracts/` 底下的檔靜默照讀,規章不提。`features.md` 的節名 `## feature 與 abstract` 改成 `## feature`,`## 收整(abstract)` 整節刪掉;brief 的節名表跟著改。
+2. **需求的先後從引用推**。`R-n` 是流水號、永不重排、只是身分;「哪條需求疊在哪條上面」不寫在任何欄位,由文檔的引用推(這條需求的里程碑綁的文檔引用了別條需求的里程碑綁的文檔,它就依賴那一條)。`devflow status` 的需求表多一欄「依賴」,`--json` 的 `requirements[].dependsOn`,看板的相依頁籤畫出來。互不依賴的需求可以同時開工。
+3. **`require-design` 多一步「衝突檢查」**,放在談出一句話、驗收與優先之後、寫檔之前:新需求的驗收逐條對既有每一條需求的驗收,問有沒有無法同時達成的。有 → 攤影響範圍(哪條既有需求要改、它的 `R-n#ACCEPT` 測試作廢要 `build R-n` 重派 qa、哪幾份 feature 的 law 要走 `scope-laws`、哪幾條里程碑那一句要改)、給三個選項(改既有的 / 改新的 / 不收新的),開發者對著一個選項明確說要才落筆;沒有衝突也在回報寫一句「與 R-x…R-y 逐條對過,無衝突」。
+4. **補三條規矩,不加機制**:
+   - 刪 step:刪一個有 law 的 step 等於刪既有的 law,整件走 `scope-laws`。
+   - 文檔退役:一份 feature 不再需要 → `scope-laws <全名>`;影響範圍照列、開發者確認後刪文檔與它的測試、程式碼,從綁定欄與 Features 表拿掉,編號永久空缺;別份還引用它的 step 時,先把那幾個 step 連同 law 搬到還活著、用得最多的那一份再刪;為什麼退役由整合寫成 ADR。
+   - 里程碑可以綁既有的 feature:這個階段靠修訂既有的 feature 做到時,綁定欄填那份既有的 feature,一份 feature 可以被不只一條里程碑綁定;在 `build/M-n-<slug>` 上走 `scope-revise`(既有的 law 不動,新的承諾用新增的 law 表達)或 `scope-laws`(要調整既有的 law)。例子是「整個專案的資料儲存換成資料庫」:需求寫誰得到什麼(重啟後資料不遺失),用哪個資料庫是決定(ADR)加上全域 Law 的變更(`global-laws`),不是需求本身。
+
+這一輪落筆時規章側自己定的(使用者沒講到的):靠修訂達成的里程碑,綁定欄在修訂重開那份文檔的同一個動作才填,之前留「-」——先填的話那份 `verified` 的 feature 會讓里程碑當場被算成達成;`system.md` Features 表的「類別」欄留著、值只有 `feature`,因為 `devflow claim` 寫進去的列是兩格;文檔退役那一波的決策紀錄由 `scope-laws` 寫,整合靠它升 ADR;退役時對外 I/O 表上它那幾列跟著拿掉。
+
 每份 SKILL.md 照現行的固定長相:frontmatter(`name`、四段式 `description`、`user-invocable`、`allowed-tools`)、核心句、注入行(dev-flow 四道、lawful 六道,`brief <skill名>`)、目標說明、前置、步驟、收尾、邊界。
 
 ## 4. CLI(兩邊同形,dev-flow `devflow`、lawful `lawful`)

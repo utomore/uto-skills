@@ -8,5 +8,5 @@ brief qa F-009-nope @doc:- rules:<雜湊>
 
 # 目標
 
-這棵樹沒有 F-009-nope。文檔:F-001-checkout、F-002-refund、A-001-settle;里程碑:M-1-checkout、M-2-refund。停下,回報。
+這棵樹沒有 F-009-nope。文檔:F-001-checkout、F-002-refund;里程碑:M-1-checkout、M-2-refund。停下,回報。
 exit 0

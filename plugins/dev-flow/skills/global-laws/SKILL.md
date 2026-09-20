@@ -79,4 +79,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 邊界
 
-一次變更一條全域 Law;不順便改別的;沒有影響範圍與選項不落筆;不替開發者決定要不要立、要不要改、選哪一個——開發者說,你寫。不碰任何一份 feature 或 abstract 的條文、簽名與 scope law(`dev-flow:scope-laws`、`dev-flow:scope-revise`);不寫需求、驗收與里程碑(`dev-flow:require-design`);不寫測試、不改程式碼的本體。
+一次變更一條全域 Law;不順便改別的;沒有影響範圍與選項不落筆;不替開發者決定要不要立、要不要改、選哪一個——開發者說,你寫。不碰任何一份 feature 的條文、簽名與 scope law(`dev-flow:scope-laws`、`dev-flow:scope-revise`);不寫需求、驗收與里程碑(`dev-flow:require-design`);不寫測試、不改程式碼的本體。

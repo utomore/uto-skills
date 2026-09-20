@@ -17,7 +17,6 @@ function today() {
 
 const SPEC = {
   feature: { prefix: 'F', dir: 'features', tpl: 'feature.md' },
-  abstract: { prefix: 'A', dir: 'abstracts', tpl: 'abstract.md' },
   adr: { prefix: 'ADR', dir: 'adr', tpl: 'adr.md' },
 };
 
@@ -73,7 +72,7 @@ export function nextNumber(design, nums, prefix) {
 
 export function claim(design, kind, slug, { description = '', date = today(), milestone = '' } = {}) {
   const spec = SPEC[kind];
-  if (!spec) return { text: `claim 的類別只有 feature / abstract / adr,沒有「${kind}」`, exitCode: 1 };
+  if (!spec) return { text: `claim 的類別只有 feature / adr,沒有「${kind}」`, exitCode: 1 };
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) return { text: `slug 要是 kebab-case 英文:${slug}`, exitCode: 1 };
   if (milestone && kind !== 'feature') return { text: '--milestone 只給 feature:里程碑綁的是 feature', exitCode: 1 };
   // --milestone 給編號 M-n 或全名 M-n-<slug> 都行
@@ -113,7 +112,7 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
   if (next.owner) tpl = tpl.replace(/^(id: .*)$/m, `$1\nowner: ${next.owner}`);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, tpl);
-  const out = [`建了 ${path.relative(design.root, file).split(path.sep).join('/')}${kind === 'feature' || kind === 'abstract' ? '(status: draft)' : ''}`];
+  const out = [`建了 ${path.relative(design.root, file).split(path.sep).join('/')}${kind === 'feature' ? '(status: draft)' : ''}`];
   if (next.owner) out.push(`${id} 配自 ${next.owner} 的號段 ${next.range},owner 寫進 frontmatter`);
 
   if (kind === 'feature') {
@@ -275,7 +274,7 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '' } = {}) {
   const bad = binds.filter((b) => !design.docs.some((d) => d.fullName === b));
   if (bad.length) return { text: `綁定的 ${bad.join('、')} 不存在;里程碑只綁 features/ 裡有的全名`, exitCode: 1 };
   const abstracts = binds.filter((b) => design.abstracts.some((d) => d.fullName === b));
-  if (abstracts.length) return { text: `${abstracts.join('、')} 是 abstract;里程碑綁 feature,abstract 跟著引用它的 feature 達成`, exitCode: 1 };
+  if (abstracts.length) return { text: `${abstracts.join('、')} 不是 feature;里程碑綁 features/ 裡的文檔`, exitCode: 1 };
   const nums = design.requirements.requirements.flatMap((q) => q.milestones.map((m) => Number((m.id.match(/^M-(\d+)$/) || [0, 0])[1])));
   const id = `M-${(nums.length ? Math.max(...nums) : 0) + 1}`;
   const file = requirementFile(design, req);

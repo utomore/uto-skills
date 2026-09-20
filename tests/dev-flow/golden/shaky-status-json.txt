@@ -23,8 +23,8 @@ $ devflow status --json
     "refinementsAchieved": 0,
     "features": 2,
     "featuresAchieved": 0,
-    "abstracts": 2,
-    "docs": 4,
+    "abstracts": 0,
+    "docs": 2,
     "docsAchieved": 0,
     "todoSteps": 4,
     "openGaps": 2
@@ -51,10 +51,6 @@ $ devflow status --json
       "value": "0 / 2 達成"
     },
     {
-      "label": "abstract",
-      "value": "2 份"
-    },
-    {
       "label": "還沒實作的 step",
       "value": "4 個"
     },
@@ -79,6 +75,7 @@ $ devflow status --json
         "tested": false
       },
       "note": "驗收未知 · 里程碑 0/0 達成",
+      "dependsOn": [],
       "built": false,
       "achieved": false,
       "percent": null,
@@ -102,6 +99,7 @@ $ devflow status --json
         "tested": false
       },
       "note": "驗收未達成 · 里程碑 0/1 達成",
+      "dependsOn": [],
       "built": false,
       "achieved": false,
       "percent": 0,
@@ -133,6 +131,7 @@ $ devflow status --json
         "tested": false
       },
       "note": "驗收未知 · 里程碑 0/1 達成",
+      "dependsOn": [],
       "built": false,
       "achieved": false,
       "percent": 0,
@@ -164,6 +163,7 @@ $ devflow status --json
         "tested": false
       },
       "note": "驗收未達成 · 里程碑 0/1 達成",
+      "dependsOn": [],
       "built": false,
       "achieved": false,
       "percent": 0,
@@ -195,6 +195,7 @@ $ devflow status --json
         "tested": false
       },
       "note": "驗收未達成 · 里程碑 0/2 達成",
+      "dependsOn": [],
       "built": false,
       "achieved": false,
       "percent": 0,
@@ -208,7 +209,6 @@ $ devflow status --json
           "achieved": false,
           "binds": [
             "F-001-score",
-            "A-001-lonely",
             "F-009-nope"
           ]
         },
@@ -274,6 +274,9 @@ $ devflow status --json
         "tested": false
       },
       "note": "驗收未達成 · 里程碑 0/1 達成",
+      "dependsOn": [
+        "R-1"
+      ],
       "built": false,
       "achieved": false,
       "percent": 0,
@@ -413,7 +416,6 @@ $ devflow status --json
           "achieved": false,
           "docs": [
             "F-001-score",
-            "A-001-lonely",
             "F-009-nope"
           ]
         },
@@ -489,23 +491,6 @@ $ devflow status --json
         }
       ],
       "empty": null
-    },
-    {
-      "id": "shared",
-      "title": "共用",
-      "note": "abstract 跟著引用它的 feature 達成",
-      "notes": [],
-      "achieved": false,
-      "columns": [
-        {
-          "title": "被 feature 引用",
-          "achieved": false,
-          "docs": [
-            "A-002-single"
-          ]
-        }
-      ],
-      "empty": null
     }
   ],
   "docs": [
@@ -522,8 +507,8 @@ $ devflow status --json
       "priority": null,
       "milestone": "M-1",
       "signatures": {
-        "total": 5,
-        "matched": 2,
+        "total": 7,
+        "matched": 4,
         "stub": 1
       },
       "observations": {
@@ -623,6 +608,30 @@ $ devflow status --json
           "layer": "application",
           "state": "找不到",
           "at": null,
+          "ref": null,
+          "observe": false,
+          "entry": false
+        },
+        {
+          "index": "4",
+          "name": "load",
+          "signature": "load(string): Rule",
+          "module": "src/app/store.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/store.ts",
+          "ref": "F-002-other",
+          "observe": false,
+          "entry": false
+        },
+        {
+          "index": "5",
+          "name": "reload",
+          "signature": "reload(string): Rule",
+          "module": "src/domain/rule.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/rule.ts",
           "ref": "F-002-other",
           "observe": false,
           "entry": false
@@ -670,16 +679,16 @@ $ devflow status --json
       "id": "F-002",
       "kind": "feature",
       "status": "draft",
-      "description": "另一份 feature,被 F-001 錯誤地引用",
-      "state": "等 A-002-single",
+      "description": "另一份 feature,F-001 引用它,也與它各寫了一條同名的 step",
+      "state": "進行中",
       "achieved": false,
       "building": false,
       "requirement": null,
       "priority": null,
       "milestone": null,
       "signatures": {
-        "total": 2,
-        "matched": 1,
+        "total": 3,
+        "matched": 2,
         "stub": 0
       },
       "observations": {
@@ -717,16 +726,13 @@ $ devflow status --json
         "last": null
       },
       "gaps": [],
-      "refs": [
-        "A-002-single"
-      ],
+      "refs": [],
       "referrers": [
         "F-001-score"
       ],
-      "blockedBy": [
-        "A-002-single"
-      ],
+      "blockedBy": [],
       "modules": [
+        "src/domain/rule.ts",
         "src/app/store.ts"
       ],
       "steps": [
@@ -738,7 +744,19 @@ $ devflow status --json
           "layer": "domain",
           "state": "在",
           "at": "src/domain/rule.ts",
-          "ref": "A-002-single",
+          "ref": null,
+          "observe": false,
+          "entry": false
+        },
+        {
+          "index": "2",
+          "name": "load",
+          "signature": "load(string): Rule",
+          "module": "src/app/store.ts",
+          "layer": "application",
+          "state": "在",
+          "at": "src/app/store.ts",
+          "ref": null,
           "observe": false,
           "entry": false
         },
@@ -755,177 +773,12 @@ $ devflow status --json
           "entry": false
         }
       ]
-    },
-    {
-      "name": "A-001-lonely",
-      "id": "A-001",
-      "kind": "abstract",
-      "status": "draft",
-      "description": "沒有任何人引用的抽象",
-      "state": "進行中",
-      "achieved": false,
-      "building": false,
-      "requirement": "R-1",
-      "priority": null,
-      "milestone": "M-1",
-      "signatures": {
-        "total": 2,
-        "matched": 2,
-        "stub": 0
-      },
-      "observations": {
-        "total": 0,
-        "matched": 0
-      },
-      "laws": {
-        "total": 1,
-        "green": 0,
-        "traced": 0,
-        "items": [
-          {
-            "id": "LAW-1",
-            "kind": "invariant",
-            "title": "重讀不改名字",
-            "result": "未翻譯"
-          }
-        ]
-      },
-      "examples": {
-        "total": 1,
-        "green": 0,
-        "items": [
-          {
-            "id": "EX-1",
-            "covers": [
-              "LAW-1"
-            ],
-            "result": "未翻譯"
-          }
-        ]
-      },
-      "revisions": {
-        "count": 0,
-        "last": null
-      },
-      "gaps": [],
-      "refs": [],
-      "referrers": [],
-      "blockedBy": [],
-      "modules": [
-        "src/domain/rule.ts",
-        "src/entry/api.ts"
-      ],
-      "steps": [
-        {
-          "index": "=",
-          "name": "reload",
-          "signature": "reload(string): Rule",
-          "module": "src/domain/rule.ts",
-          "layer": "domain",
-          "state": "在",
-          "at": "src/domain/rule.ts",
-          "ref": null,
-          "observe": false,
-          "entry": false
-        },
-        {
-          "index": "!",
-          "name": "dumpHandler",
-          "signature": "dumpHandler(Raw): string",
-          "module": "src/entry/api.ts",
-          "layer": "entry",
-          "state": "在",
-          "at": "src/entry/api.ts",
-          "ref": null,
-          "observe": false,
-          "entry": true
-        }
-      ]
-    },
-    {
-      "name": "A-002-single",
-      "id": "A-002",
-      "kind": "abstract",
-      "status": "draft",
-      "description": "只有一份 feature 用的抽象,收整沒有成立",
-      "state": "進行中",
-      "achieved": false,
-      "building": false,
-      "requirement": null,
-      "priority": null,
-      "milestone": null,
-      "signatures": {
-        "total": 1,
-        "matched": 1,
-        "stub": 0
-      },
-      "observations": {
-        "total": 0,
-        "matched": 0
-      },
-      "laws": {
-        "total": 1,
-        "green": 0,
-        "traced": 0,
-        "items": [
-          {
-            "id": "LAW-1",
-            "kind": "bound",
-            "title": "權重不為負",
-            "result": "未翻譯"
-          }
-        ]
-      },
-      "examples": {
-        "total": 1,
-        "green": 0,
-        "items": [
-          {
-            "id": "EX-1",
-            "covers": [
-              "LAW-1"
-            ],
-            "result": "未翻譯"
-          }
-        ]
-      },
-      "revisions": {
-        "count": 0,
-        "last": null
-      },
-      "gaps": [],
-      "refs": [],
-      "referrers": [
-        "F-002-other"
-      ],
-      "blockedBy": [],
-      "modules": [
-        "src/domain/rule.ts"
-      ],
-      "steps": [
-        {
-          "index": "=",
-          "name": "weigh",
-          "signature": "weigh(Rule): number",
-          "module": "src/domain/rule.ts",
-          "layer": "domain",
-          "state": "在",
-          "at": "src/domain/rule.ts",
-          "ref": null,
-          "observe": false,
-          "entry": false
-        }
-      ]
     }
   ],
   "edges": [
     {
       "from": "F-001-score",
       "to": "F-002-other"
-    },
-    {
-      "from": "F-002-other",
-      "to": "A-002-single"
     }
   ],
   "lines": {
@@ -1021,11 +874,6 @@ $ devflow status --json
     },
     {
       "where": "M-1",
-      "what": "綁定的 A-001-lonely 是 abstract",
-      "fix": "改綁引用它的 feature;abstract 跟著 feature 達成"
-    },
-    {
-      "where": "M-1",
       "what": "綁定的 F-009-nope 不存在",
       "fix": "改成 features/ 裡有的全名,或刪這個綁定"
     },
@@ -1095,11 +943,6 @@ $ devflow status --json
       "fix": "dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)"
     },
     {
-      "where": "A-002-single",
-      "what": "只有 F-002-other 用它",
-      "fix": "收整沒有成立;dev-flow:abstract 搬回去,或找出第二個消費者"
-    },
-    {
       "where": "GAP-1",
       "what": "gaps.md 裡出現 2 次",
       "fix": "兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」)"
@@ -1154,8 +997,6 @@ $ devflow status --json
     "steps": [
       "先回答 GAP-1、GAP-1(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派",
       "dev-flow:scope-laws F-002-other(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
-      "dev-flow:scope-laws A-001-lonely(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
-      "dev-flow:scope-laws A-002-single(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)",
       "dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)",
       "dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)",
       "dev-flow:build INV-2(只派 qa 寫 INV-2#LAW 的測試)"

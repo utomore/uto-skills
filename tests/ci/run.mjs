@@ -38,15 +38,15 @@ const MUTATED = [
   ['lawful', 'team', '兩條 draft 同號', (r) => copyDoc(r, '.lawful/pipelines/P-100-save-verify.md', '.lawful/pipelines/P-100-save-check.md'), 1,
     ['## lint ids:1 條不合規', '✗ P-100 同號', 'P-100-save-check', '✗ 契約對帳有紅']],
   // 幽靈引用:全綠的樹裡加一條守著文檔沒有的編號的測試,照擋
-  ['dev-flow', 'shop', '幽靈引用', (r) => fs.appendFileSync(path.join(r, 'test/settle.test.ts'), "\ndescribe('A-001#LAW-9 已刪', () => { it('holds', () => {}); });\n"), 1,
-    ['✗ test/settle.test.ts 引用的 A-001#LAW-9 文檔裡沒有(幽靈引用)', '✗ 契約對帳有紅']],
+  ['dev-flow', 'shop', '幽靈引用', (r) => fs.appendFileSync(path.join(r, 'test/refund.test.ts'), "\ndescribe('F-002#LAW-9 已刪', () => { it('holds', () => {}); });\n"), 1,
+    ['✗ test/refund.test.ts 引用的 F-002#LAW-9 文檔裡沒有(幽靈引用)', '✗ 契約對帳有紅']],
   ['lawful', 'save-game', '幽靈引用', (r) => fs.appendFileSync(path.join(r, 'test/SaveGameSpec.hs'), '\n  describe "P-001#LAW-9" $\n    it "holds" $ True `shouldBe` True\n'), 1,
     ['✗ test/SaveGameSpec.hs 引用的 P-001#LAW-9 文檔裡沒有(幽靈引用)', '✗ 契約對帳有紅']],
   // verified 文檔的 law 沒有測試承接:擋;同一份改成 ready 就只印
-  ['dev-flow', 'shop', 'verified 的 A-001 沒有測試', (r) => fs.rmSync(path.join(r, 'test/settle.test.ts')), 1,
-    ['## lint trace(幽靈引用、verified 文檔的 law):', '✗ A-001#LAW-1 沒有測試承接', '✗ 契約對帳有紅']],
-  ['dev-flow', 'shop', 'ready 的 A-001 沒有測試', (r) => { fs.rmSync(path.join(r, 'test/settle.test.ts')); setStatus(r, '.design/abstracts/A-001-settle.md', 'ready'); }, 0,
-    ['## lint trace 其餘(只印不擋):', '- · A-001#LAW-1 沒有測試承接', '✓ 契約對帳通過']],
+  ['dev-flow', 'shop', 'verified 的 F-002 沒有測試', (r) => fs.rmSync(path.join(r, 'test/refund.test.ts')), 1,
+    ['## lint trace(幽靈引用、verified 文檔的 law):', '✗ F-002#LAW-1 沒有測試承接', '✗ 契約對帳有紅']],
+  ['dev-flow', 'shop', 'ready 的 F-002 沒有測試', (r) => { fs.rmSync(path.join(r, 'test/refund.test.ts')); setStatus(r, '.design/features/F-002-refund.md', 'ready'); }, 0,
+    ['## lint trace 其餘(只印不擋):', '- · F-002#LAW-1 沒有測試承接', '✓ 契約對帳通過']],
   ['lawful', 'verified-ref', 'verified 的 P-002 沒有測試', (r) => fs.rmSync(path.join(r, 'test/CountSpec.hs')), 1,
     ['## lint trace(幽靈引用、verified 的 pipeline 的 law):', '✗ P-002#LAW-1 沒有測試承接']],
 ];

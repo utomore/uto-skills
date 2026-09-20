@@ -48,4 +48,3 @@ updated: <YYYY-MM-DD>
 | 全名 | 類別 |
 |---|---|
 | F-001-<slug> | feature |
-| A-001-<slug> | abstract |

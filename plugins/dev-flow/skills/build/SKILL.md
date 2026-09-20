@@ -27,19 +27,19 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 | 目標 | 這一波做什麼 |
 |---|---|
-| 里程碑全名 `M-n-<slug>` | 它綁的每一份 `ready` 文檔各一波,被引用的 abstract 在前 |
-| 文檔全名(`dev-flow:scope-laws`、`dev-flow:scope-revise` 的修訂或 `dev-flow:abstract` 交過來的) | 那一份,只重做 REV「重委派」欄點名的;收尾時每條 law 成立,文檔回到 `verified` |
+| 里程碑全名 `M-n-<slug>` | 它綁的每一份 `ready` 文檔各一波,被引用的那一份在前 |
+| 文檔全名(`dev-flow:scope-laws` 或 `dev-flow:scope-revise` 的修訂交過來的) | 那一份,只重做 REV「重委派」欄點名的;收尾時每條 law 成立,文檔回到 `verified` |
 | `R-n` / `INV-n` | 驗收測試那波:只派 qa 寫那一條(需求的驗收,或一條領域不變量) |
 
 ## 前置
 
-- **工作目錄是那條分支的工作樹** `../<repo>.worktrees/<鍵>`(`rules/roles.md`「分支與所有權」);build 不替里程碑與文檔開分支,分支由 `dev-flow:spike-impl`、`dev-flow:scope-laws`(既有文檔的 law 要調整)、`dev-flow:scope-revise`、`dev-flow:abstract` 開。不在那棵樹上就先過去。
-- `devflow status`:目標文檔是 `ready`、沒有 open GAP、引用的每份 abstract 都已達成。還是 `draft` → `dev-flow:scope-laws`;不是就停,回報該先做什麼。
+- **工作目錄是那條分支的工作樹** `../<repo>.worktrees/<鍵>`(`rules/roles.md`「分支與所有權」);build 不替里程碑與文檔開分支,分支由 `dev-flow:spike-impl`、`dev-flow:scope-laws`(既有文檔的 law 要調整)、`dev-flow:scope-revise` 開。不在那棵樹上就先過去。
+- `devflow status`:目標文檔是 `ready`、沒有 open GAP、它引用的每份文檔都已達成。還是 `draft` → `dev-flow:scope-laws`;不是就停,回報該先做什麼。
 - 目標是 `R-n` / `INV-n`(`rules/roles.md`「驗收測試」):`status` 要顯示它有三行式而沒有測試,需求另要它的里程碑全部達成。在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/R-n ../<repo>.worktrees/R-n HEAD`,跳過第 1 到 5 步,直接第 6 步派 qa,再第 7 步整套、第 8 步收尾(決策紀錄的 `key` 寫 `R-n`,從「Verification」寫起)。里程碑還沒全部達成就停,回報還差哪條里程碑。
 
 ## 步驟
 
-0. **基準線**:有 REV 的目標(修訂、收整)先在這棵樹上跑整套當基準線,輸出留檔。
+0. **基準線**:有 REV 的目標(修訂)先在這棵樹上跑整套當基準線,輸出留檔。
 1. **對帳**:跑建置指令編得過、`devflow lint sig` 與 `devflow lint laws` 沒有紅、`devflow status --doc <全名>` 每列是「在」或「未實作」(修訂新增的 step)。有一列「找不到」「不一致」、或簽名裡的型別沒宣告過,就停:回報缺什麼,回交過來的那個 skill(切片那一波與 law 的調整是 `dev-flow:scope-laws`,既有的 law 不動的修訂是 `dev-flow:scope-revise`);不在這裡補宣告。
 2. **派 qa**(`dev-flow:qa`,`model: "sonnet"`,prompt 用下面的模板):只給角色、目標全名與工作樹路徑;文檔、宣告、最內層、子集測試指令、歸屬寫法由 qa 載入 skill 時的 `devflow brief` 給,你不查、不填。測試檔以全名命名。**不給決策紀錄**:哪幾條該紅 qa 不必知道。修訂那一波測試檔已經在,只給 REV「重委派」欄點名 qa 的部分:調整的或新增的 law 與 example 寫那幾條;既有的 law 不動而簽名或型別變了,交代「只把既有測試裡的呼叫與建構改到對得上新的宣告,斷言與產生器的定義域不動」;重委派欄沒有點名 qa 就不派,測試原封不動。收回報先對指紋(`rules/roles.md`「委派」):`devflow brief qa <全名> --root <工作樹> --fingerprint` 與回報第一項一字不差,才往下。
 3. **首跑**(`rules/roles.md`「首跑」):qa 交付後,在現有的程式碼上跑一次它的測試,輸出留檔。決策紀錄「首跑該紅」列的 law、REV「動到」欄點名的 law、打到未實作標記的要紅;其餘要綠。`dev-flow:scope-revise` 的那一波:原有的每條 law 與 example 都要綠,新增的 law 照 REV「動到」欄註明的首跑該綠或該紅;原有的紅了就停下歸因,非調整既有的 law 不可就回報給 `dev-flow:scope-revise`,由它放棄並整件轉交。沒派 qa 的那一波,首跑就是在現有的程式碼上跑本份的子集。該紅卻綠退回 qa;該綠卻紅照第 5 步歸因;一條紅都沒有就逐條拿 `|-` 行對測試的斷言。結果寫進決策紀錄「Verification」的「首跑」。環境跑不起來就明寫「本波 qa 紅綠未驗證」,不得默認通過。回報裡的 GAP 由你寫進 `.design/gaps.md` 配號,從主線最大號往上。commit。

@@ -55,4 +55,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 邊界
 
-不談需求、驗收、優先與里程碑(`dev-flow:require-design`);不談、不寫任何一條全域 Law,也不填層表與對外 I/O 表(`dev-flow:global-laws`);不建 feature、不寫 Steps 與 laws(那是切片之後 `dev-flow:scope-laws` 的事);不寫任何程式碼;不開 ADR;不替開發者決定願景與語言;不建 abstract(那是 `dev-flow:abstract` 從既有 feature 收整出來的,不是先驗地切出來的)。
+不談需求、驗收、優先與里程碑(`dev-flow:require-design`);不談、不寫任何一條全域 Law,也不填層表與對外 I/O 表(`dev-flow:global-laws`);不建 feature、不寫 Steps 與 laws(那是切片之後 `dev-flow:scope-laws` 的事);不寫任何程式碼;不開 ADR;不替開發者決定願景與語言。

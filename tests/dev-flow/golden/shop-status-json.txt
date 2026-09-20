@@ -23,9 +23,9 @@ $ devflow status --json --tests test.log
     "refinementsAchieved": 0,
     "features": 2,
     "featuresAchieved": 2,
-    "abstracts": 1,
-    "docs": 3,
-    "docsAchieved": 3,
+    "abstracts": 0,
+    "docs": 2,
+    "docsAchieved": 2,
     "todoSteps": 0,
     "openGaps": 0
   },
@@ -49,10 +49,6 @@ $ devflow status --json --tests test.log
     {
       "label": "feature",
       "value": "2 / 2 達成"
-    },
-    {
-      "label": "abstract",
-      "value": "1 份"
     },
     {
       "label": "還沒實作的 step",
@@ -79,6 +75,7 @@ $ devflow status --json --tests test.log
         "tested": true
       },
       "note": "驗收達成 · 里程碑 2/2 達成",
+      "dependsOn": [],
       "built": true,
       "achieved": true,
       "percent": 100,
@@ -145,23 +142,6 @@ $ devflow status --json --tests test.log
         }
       ],
       "empty": null
-    },
-    {
-      "id": "shared",
-      "title": "共用",
-      "note": "abstract 跟著引用它的 feature 達成",
-      "notes": [],
-      "achieved": false,
-      "columns": [
-        {
-          "title": "被 feature 引用",
-          "achieved": false,
-          "docs": [
-            "A-001-settle"
-          ]
-        }
-      ],
-      "empty": null
     }
   ],
   "docs": [
@@ -183,13 +163,13 @@ $ devflow status --json --tests test.log
         "stub": 0
       },
       "observations": {
-        "total": 3,
-        "matched": 3
+        "total": 5,
+        "matched": 5
       },
       "laws": {
-        "total": 3,
-        "green": 3,
-        "traced": 3,
+        "total": 6,
+        "green": 6,
+        "traced": 6,
         "items": [
           {
             "id": "LAW-1",
@@ -208,12 +188,30 @@ $ devflow status --json --tests test.log
             "kind": "bound",
             "title": "成單時付款金額不為負",
             "result": "green"
+          },
+          {
+            "id": "LAW-4",
+            "kind": "invariant",
+            "title": "結算成功時金額不為負",
+            "result": "green"
+          },
+          {
+            "id": "LAW-5",
+            "kind": "identity",
+            "title": "扣掉的金額是零時,結算金額等於各品項相加",
+            "result": "green"
+          },
+          {
+            "id": "LAW-6",
+            "kind": "total",
+            "title": "任何品項清單與任何一筆要扣的金額都得到一個 Settlement,不拋例外",
+            "result": "green"
           }
         ]
       },
       "examples": {
-        "total": 3,
-        "green": 3,
+        "total": 5,
+        "green": 5,
         "items": [
           {
             "id": "EX-1",
@@ -238,21 +236,38 @@ $ devflow status --json --tests test.log
               "LAW-3"
             ],
             "result": "green"
+          },
+          {
+            "id": "EX-4",
+            "covers": [
+              "LAW-4",
+              "LAW-5"
+            ],
+            "result": "green"
+          },
+          {
+            "id": "EX-5",
+            "covers": [
+              "LAW-4",
+              "LAW-6"
+            ],
+            "result": "green"
           }
         ]
       },
       "revisions": {
         "count": 1,
-        "last": "REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle"
+        "last": "REV-1(2026-09-07,依開發者:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law"
       },
       "gaps": [],
-      "refs": [
-        "A-001-settle"
+      "refs": [],
+      "referrers": [
+        "F-002-refund"
       ],
-      "referrers": [],
       "blockedBy": [],
       "modules": [
         "src/app/checkout.ts",
+        "src/domain/money.ts",
         "src/entry/routes.ts"
       ],
       "steps": [
@@ -276,7 +291,7 @@ $ devflow status --json --tests test.log
           "layer": "domain",
           "state": "在",
           "at": "src/domain/money.ts",
-          "ref": "A-001-settle",
+          "ref": null,
           "observe": false,
           "entry": false
         },
@@ -324,6 +339,30 @@ $ devflow status --json --tests test.log
           "layer": "application",
           "state": "在",
           "at": "src/app/checkout.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false
+        },
+        {
+          "index": "o",
+          "name": "cents",
+          "signature": "cents(Settlement): number",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
+          "ref": null,
+          "observe": true,
+          "entry": false
+        },
+        {
+          "index": "o",
+          "name": "settled",
+          "signature": "settled(Settlement): boolean",
+          "module": "src/domain/money.ts",
+          "layer": "domain",
+          "state": "在",
+          "at": "src/domain/money.ts",
           "ref": null,
           "observe": true,
           "entry": false
@@ -417,11 +456,11 @@ $ devflow status --json --tests test.log
       },
       "revisions": {
         "count": 1,
-        "last": "REV-1(2026-09-07,依 dev-flow:refactor 收整):金額計算改成引用 A-001-settle"
+        "last": "REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 settle"
       },
       "gaps": [],
       "refs": [
-        "A-001-settle"
+        "F-001-checkout"
       ],
       "referrers": [],
       "blockedBy": [],
@@ -450,7 +489,7 @@ $ devflow status --json --tests test.log
           "layer": "domain",
           "state": "在",
           "at": "src/domain/money.ts",
-          "ref": "A-001-settle",
+          "ref": "F-001-checkout",
           "observe": false,
           "entry": false
         },
@@ -527,161 +566,12 @@ $ devflow status --json --tests test.log
           "entry": true
         }
       ]
-    },
-    {
-      "name": "A-001-settle",
-      "id": "A-001",
-      "kind": "abstract",
-      "status": "verified",
-      "description": "一組品項金額扣掉折扣之後的應付金額",
-      "state": "達成",
-      "achieved": true,
-      "building": false,
-      "requirement": null,
-      "priority": null,
-      "milestone": null,
-      "signatures": {
-        "total": 3,
-        "matched": 3,
-        "stub": 0
-      },
-      "observations": {
-        "total": 2,
-        "matched": 2
-      },
-      "laws": {
-        "total": 3,
-        "green": 3,
-        "traced": 3,
-        "items": [
-          {
-            "id": "LAW-1",
-            "kind": "invariant",
-            "title": "結算成功時金額不為負",
-            "result": "green"
-          },
-          {
-            "id": "LAW-2",
-            "kind": "identity",
-            "title": "折扣是零時,結算金額等於各品項相加",
-            "result": "green"
-          },
-          {
-            "id": "LAW-3",
-            "kind": "total",
-            "title": "任何品項清單與任何折扣都得到一個 Settlement,不拋例外",
-            "result": "green"
-          }
-        ]
-      },
-      "examples": {
-        "total": 2,
-        "green": 2,
-        "items": [
-          {
-            "id": "EX-1",
-            "covers": [
-              "LAW-1",
-              "LAW-2"
-            ],
-            "result": "green"
-          },
-          {
-            "id": "EX-2",
-            "covers": [
-              "LAW-1",
-              "LAW-3"
-            ],
-            "result": "green"
-          }
-        ]
-      },
-      "revisions": {
-        "count": 1,
-        "last": "REV-1(2026-09-07,依 dev-flow:refactor 收整):把 F-001-checkout 與 F-002-refund 各自寫的金額計算收整進本檔"
-      },
-      "gaps": [],
-      "refs": [],
-      "referrers": [
-        "F-001-checkout",
-        "F-002-refund"
-      ],
-      "blockedBy": [],
-      "modules": [
-        "src/domain/money.ts"
-      ],
-      "steps": [
-        {
-          "index": "1",
-          "name": "sumLines",
-          "signature": "sumLines(MoneyList): Settlement",
-          "module": "src/domain/money.ts",
-          "layer": "domain",
-          "state": "在",
-          "at": "src/domain/money.ts",
-          "ref": null,
-          "observe": false,
-          "entry": false
-        },
-        {
-          "index": "2",
-          "name": "subtract",
-          "signature": "subtract(Settlement, Money): Settlement",
-          "module": "src/domain/money.ts",
-          "layer": "domain",
-          "state": "在",
-          "at": "src/domain/money.ts",
-          "ref": null,
-          "observe": false,
-          "entry": false
-        },
-        {
-          "index": "o",
-          "name": "cents",
-          "signature": "cents(Settlement): number",
-          "module": "src/domain/money.ts",
-          "layer": "domain",
-          "state": "在",
-          "at": "src/domain/money.ts",
-          "ref": null,
-          "observe": true,
-          "entry": false
-        },
-        {
-          "index": "o",
-          "name": "settled",
-          "signature": "settled(Settlement): boolean",
-          "module": "src/domain/money.ts",
-          "layer": "domain",
-          "state": "在",
-          "at": "src/domain/money.ts",
-          "ref": null,
-          "observe": true,
-          "entry": false
-        },
-        {
-          "index": "=",
-          "name": "settle",
-          "signature": "settle(MoneyList, Money): Settlement",
-          "module": "src/domain/money.ts",
-          "layer": "domain",
-          "state": "在",
-          "at": "src/domain/money.ts",
-          "ref": null,
-          "observe": false,
-          "entry": false
-        }
-      ]
     }
   ],
   "edges": [
     {
-      "from": "F-001-checkout",
-      "to": "A-001-settle"
-    },
-    {
       "from": "F-002-refund",
-      "to": "A-001-settle"
+      "to": "F-001-checkout"
     }
   ],
   "lines": {

@@ -93,7 +93,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     if (m) tierMeaning.set(Number(m[1]), m[2].trim());
   }
   // 看板的分法:一條需求一個區塊,區塊底下一條里程碑或一條調整一欄(里程碑照表上的先後排);
-  // 沒被綁的 feature 與沒被綁的 abstract 各自成一個區塊
+  // 沒被綁的 feature 自成一個區塊;abstracts/ 底下照讀進來而沒被綁的文檔另成一個區塊
   const bound = new Set(ov.reqs.flatMap((q) => q.ms.flatMap((m) => m.binds)));
   const bands = ov.reqs.map((q) => ({
     id: q.id,
@@ -113,7 +113,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const loose = docs.filter((d) => d.kind === 'feature' && !bound.has(d.name)).map((d) => d.name);
   if (loose.length) bands.push({ id: 'loose', title: '不朝向任何需求', note: `${loose.length} 份 feature 沒有被任何里程碑綁定`, notes: [], achieved: false, columns: [{ title: 'feature', achieved: false, docs: loose }], empty: null });
   const sharedDocs = docs.filter((d) => d.kind === 'abstract' && !bound.has(d.name)).map((d) => d.name);
-  if (sharedDocs.length) bands.push({ id: 'shared', title: '共用', note: 'abstract 跟著引用它的 feature 達成', notes: [], achieved: false, columns: [{ title: '被 feature 引用', achieved: false, docs: sharedDocs }], empty: null });
+  if (sharedDocs.length) bands.push({ id: 'shared', title: '共用', note: '不被里程碑綁定的文檔,跟著引用它的 feature 達成', notes: [], achieved: false, columns: [{ title: '被 feature 引用', achieved: false, docs: sharedDocs }], empty: null });
   if (!bands.length) bands.push({ id: 'empty', title: '還沒有任何需求', note: 'dev-flow:require-design 談第一條', notes: [], achieved: false, columns: [], empty: null });
 
   const summary = {
@@ -151,7 +151,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       { label: '里程碑', value: `${summary.milestonesAchieved} / ${summary.milestones} 達成` },
       { label: '調整', value: `${summary.refinementsAchieved} / ${summary.refinements} 達成` },
       { label: 'feature', value: `${summary.featuresAchieved} / ${summary.features} 達成` },
-      { label: 'abstract', value: `${summary.abstracts} 份` },
+      ...(summary.abstracts ? [{ label: '共用文檔', value: `${summary.abstracts} 份` }] : []),
       { label: '還沒實作的 step', value: `${summary.todoSteps} 個` },
       { label: '還開著的 GAP', value: `${summary.openGaps} 條` },
     ],
@@ -164,6 +164,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       priorityRaw: q.priorityRaw || null,
       law: lawJson(q.accept, q),
       note: `驗收${metWord(q.holds)} · 里程碑 ${q.done}/${q.ms.length} 達成`,
+      dependsOn: q.dependsOn,
       built: q.built,
       achieved: q.holds === true,
       percent: q.pct,

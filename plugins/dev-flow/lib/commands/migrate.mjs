@@ -114,7 +114,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
   out.push('# devflow migrate 帳本');
   out.push(`來源:${path.relative(root, designPath).split(path.sep).join('/')} · 任務文檔 ${tasks.length} 份 · 子系統 ${new Set(tasks.map((t) => t.subsys).filter((s) => s !== 'global')).size} 個`);
   out.push(adapter ? `· 程式碼用 ${adapter.name} adapter 掃了 ${source.files.size} 個檔` : `· 沒給 --language(${adapterNames.join(' / ')}),介面對不到程式碼`);
-  out.push('', '**這份帳本不改任何檔。** 分組、feature / abstract 的切法、law 的形式化由人做。');
+  out.push('', '**這份帳本不改任何檔。** 分組、feature 的切法、law 的形式化由人做。');
 
   out.push('', '## 1. 每份舊文檔');
   out.push('| 舊文檔 | type | status | 階段 | 介面 | 程式碼對到 | law | 要形式化的 law | REV |');
@@ -124,7 +124,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
     out.push(`| ${t.fullName} | ${t.type} | ${t.status} | ${t.stage || '-'} | ${t.interfaces.length} | ${source ? found : '?'} | ${t.laws.length} | ${t.laws.filter((l) => l.needsWork).length} | ${t.revs} |`);
   }
 
-  out.push('', '## 2. 共用簽名(abstract 的候選)');
+  out.push('', '## 2. 共用簽名(只住一份文檔,其餘引用)');
   const byName = new Map();
   for (const t of tasks) for (const i of t.interfaces) {
     const n = parseSignature(i.raw).name;
@@ -133,8 +133,8 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
     byName.get(n).add(t.fullName);
   }
   const shared = [...byName].filter(([, s]) => s.size >= 2).sort((a, b) => b[1].size - a[1].size);
-  if (!shared.length) out.push('- 沒有兩份以上文檔寫到同一個簽名;abstract 要靠讀程式碼找共同部分');
-  for (const [n, s] of shared) out.push(`- \`${n}\` 出現在 ${[...s].join('、')} → 抽成 abstract 的候選`);
+  if (!shared.length) out.push('- 沒有兩份以上文檔寫到同一個簽名');
+  for (const [n, s] of shared) out.push(`- \`${n}\` 出現在 ${[...s].join('、')} → 只寫進先做出它的那一份 feature,其餘的引用它`);
 
   out.push('', '## 3. 建議的新樹');
   const byStage = new Map();
@@ -147,7 +147,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
     out.push(`- 階段 ${stage}`);
     for (const t of list) out.push(`  - ${t.fullName} → \`devflow claim feature <slug>\`(F 與 E 在新樹裡都是 feature;這個階段是某條需求的一條里程碑:dev-flow:require-design 談出需求、devflow requirement milestone 切里程碑,feature 用 --milestone 綁進去)`);
   }
-  out.push('- 一份舊文檔不必然對一份新 feature:同一條使用者路徑上的幾份合成一條,共用的那幾個 step 抽成 abstract。');
+  out.push('- 一份舊文檔不必然對一份新 feature:同一條使用者路徑上的幾份合成一條,共用的那幾個 step 只住其中一份,其餘的引用它。');
 
   out.push('', '## 4. law 草稿');
   for (const t of tasks) {
@@ -167,7 +167,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
 
   out.push('', '## 6. 人要判的');
   out.push('1. 每條使用者路徑要幾份 feature:舊樹一個子系統切好幾份 F,新樹是一條端到端的資料流一份');
-  out.push('2. 第 2 節的共用簽名哪些真的該抽成 abstract(判準:被兩份以上 feature 用)');
+  out.push('2. 第 2 節的共用簽名各住哪一份 feature(先做出它的那一份),其餘的引用它');
   out.push('3. 第 4 節標「需形式化」的 law 怎麼寫成三行;寫不出來的補觀察點');
   out.push('4. 層怎麼切:`system.md` 的層表由內而外,再用 `devflow modules --gen` 把檔案填進模組表');
   return { text: out.join('\n'), exitCode: 0 };

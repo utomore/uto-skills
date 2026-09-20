@@ -22,7 +22,7 @@ const HELP = `devflow <子命令> [選項]
   status --module <路徑或 目錄/**>     住在該檔案或目錄的所有 step 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
   status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
-  claim feature|abstract|adr <slug> [--description <句>] [--milestone <M-n>]
+  claim feature|adr <slug> [--description <句>] [--milestone <M-n>]
                                        鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(編號或全名 M-n-<slug> 都行)
                                        配號看同一個 repo 的每一棵工作樹,別條 build 分支上 claim 走的號不重配
                                        system.md「語言與工具」有號段行時,號從 git user.email 對到的區間內配,frontmatter 寫 owner;沒有號段行從全部文檔的最大號往上配
@@ -37,7 +37,7 @@ const HELP = `devflow <子命令> [選項]
                                        鑄 INV-n 寫進 system.md「全域 Law」區的領域不變量:整個專案任何一份 feature 都不准違反的 law;種類沒給就是 invariant
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
                                        ids:兩個檔案同號、號段行讀不懂或重疊、owner 的號不在自己的號段內;
-                                       boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與 abstract 的消費者;
+                                       boundary:import 方向 vs 層、IO 模組、未登記與幽靈;sig:Steps 簽名 vs 程式碼,含 = / o / ! 列與引用別份文檔的 step;
                                        laws:文檔的 law 三行、種類、識別字、= 列有 law,與需求的驗收;trace:laws 與驗收 ↔ 測試歸屬;io:對外 I/O 表、信任與驗證、契約、秘密字面值;
                                        invariants:領域不變量的編號、種類、三行只引用最內層、寫了三行就有 INV-n#LAW 測試;
                                        global:全域 Law 三類一次查完 = boundary(架構)+ io(契約)+ invariants(領域不變量)
@@ -57,7 +57,7 @@ const HELP = `devflow <子命令> [選項]
                                        併成 requirements/R-n-<slug>.md 一條一個檔,「## 需求」節與 objectives/ 刪掉;要人判的列在帳本裡;先印帳本,--write 才落地
   migrate <.design> [--language <adapter>] [--ignore <dir,dir>]
                                        盤點 subsystems/ 體系的 .design:每份舊文檔的介面在程式碼裡對到幾條、
-                                       四格 law 翻成三行草稿、共用簽名列成 abstract 候選、退場清單;只印帳本,不改任何檔
+                                       四格 law 翻成三行草稿、共用的簽名列出來(只住一份文檔,別份引用)、退場清單;只印帳本,不改任何檔
 
 選項
   --root <dir>                         專案根目錄(預設目前目錄)
@@ -216,7 +216,7 @@ function main() {
 
   if (cmd === 'claim') {
     if (!sub || !rest[0]) {
-      console.error('用法:devflow claim feature|abstract|adr <slug> [--description <句>] [--milestone <M-n>]');
+      console.error('用法:devflow claim feature|adr <slug> [--description <句>] [--milestone <M-n>]');
       return 1;
     }
     return emit(claim(design, sub, rest[0], { description: typeof args.flags.description === 'string' ? args.flags.description : '', date: args.flags.date || undefined, milestone: typeof args.flags.milestone === 'string' ? args.flags.milestone : '' }));

@@ -262,6 +262,18 @@ export function requirementView(design, a) {
   })));
   const keyOf = (name) => (rank.has(name) ? rank.get(name).key : 9e9);
   const tag = (name) => (rank.has(name) ? `${rank.get(name).q.id} 優先 ${rank.get(name).q.priority || '?'} · ${rank.get(name).m.id} ${rank.get(name).m.title}` : '沒有被任何里程碑綁定');
+  // 需求之間誰疊在誰上面,從文檔的引用推:這條需求的里程碑綁的文檔引用了別條需求的里程碑綁的文檔,它就依賴那一條
+  for (const q of reqs) {
+    const deps = new Set();
+    for (const m of q.ms) for (const d of m.docs) {
+      // 綁的是別條需求先綁過的文檔(靠修訂既有的 feature 達成的里程碑),或它引用了別條需求的文檔
+      for (const r of [d.name, ...(d.x ? d.x.refs : [])]) {
+        const at = rank.get(r);
+        if (at && at.q.id !== q.id) deps.add(at.q.id);
+      }
+    }
+    q.dependsOn = [...deps].sort((x, y) => Number(x.slice(2)) - Number(y.slice(2)));
+  }
   return { reqs, rank, keyOf, tag };
 }
 
@@ -325,7 +337,7 @@ export function docState(x) {
 function row(x) {
   const g = x.laws.filter((l) => l.result === 'green').length;
   const traced = x.laws.filter((l) => l.traced).length;
-  return `| ${x.p.fullName} | ${x.p.kind === 'abstract' ? 'abstract' : 'feature'} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${x.p.revs.length} | ${docState(x)} |`;
+  return `| ${x.p.fullName} | ${x.p.kind === 'abstract' ? '共用文檔' : 'feature'} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${x.p.revs.length} | ${docState(x)} |`;
 }
 
 // 能開 = ready、沒 open GAP、引用的 abstract 全部達成(消費者在 abstract 合進主線之後才開,roles.md「分支與所有權」)
@@ -343,7 +355,7 @@ export function openLines(a, ov, building) {
 }
 
 export function lineTag(x, ov) {
-  return x.p.kind === 'abstract' ? `abstract,${x.referrers.length ? `${x.referrers.join('、')} 引用它` : '沒有消費者'}` : ov.tag(x.p.fullName);
+  return x.p.kind === 'abstract' ? `共用文檔,${x.referrers.length ? `${x.referrers.join('、')} 引用它` : '沒有文檔引用它'}` : ov.tag(x.p.fullName);
 }
 
 // 警訊:每條是 [哪裡, 什麼事, 怎麼辦]
@@ -383,7 +395,7 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
       if (!m.slug) warn(m.id, '沒有英文名,切片開不了分支', `dev-flow:require-design 把第一格寫成 ${m.id}-<slug>(kebab-case 英文);切片的分支 build/${m.id}-<slug> 與決策紀錄以它為鍵`);
       for (const d of m.docs) {
         if (!d.x) warn(m.id, `綁定的 ${d.name} 不存在`, '改成 features/ 裡有的全名,或刪這個綁定');
-        else if (d.x.p.kind === 'abstract') warn(m.id, `綁定的 ${d.name} 是 abstract`, '改綁引用它的 feature;abstract 跟著 feature 達成');
+        else if (d.x.p.kind === 'abstract') warn(m.id, `綁定的 ${d.name} 不是 feature`, '里程碑綁 features/ 裡的文檔;改綁引用它的那份 feature');
       }
     }
     for (const rf of q.rfs) {
@@ -402,9 +414,6 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
     else if (!v.law.formal) warn(v.id, '還沒有三行式,成立與否未知', 'dev-flow:scope-laws 在最內層的型別出現後把它寫成三行(識別字只用最內層的匯出與型別名)');
     else if (!v.tested) warn(v.id, '寫了三行卻沒有測試,成立與否未知', `dev-flow:build ${v.id}(只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試)`);
   }
-  const consumers = new Map(design.abstracts.map((x) => [x.fullName, []]));
-  for (const d of design.docs) for (const s of d.steps) if (s.ref && consumers.has(s.ref)) consumers.get(s.ref).push(d.fullName);
-  for (const [name, cs] of consumers) if (new Set(cs).size === 1) warn(name, `只有 ${cs[0]} 用它`, '收整沒有成立;dev-flow:abstract 搬回去,或找出第二個消費者');
   for (const n of [...stale].sort()) warn(`build/${n}`, '已合進主線卻還在', 'dev-flow:integrate 開頭會清掉它;或 git worktree remove <工作樹> 後 git branch -d build/' + n);
   const gapIds = new Map();
   for (const g of design.gaps.gaps) gapIds.set(g.id, (gapIds.get(g.id) || 0) + 1);
@@ -436,7 +445,8 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
 export function suggestRoutes(design, a, ov, warnCount, building = new Set(), inv = invariantView(design, a)) {
   const steps = [];
   if (a.openGaps.length) steps.push(`先回答 ${a.openGaps.map((g) => g.id).join('、')}(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派`);
-  const order = [...a.info.values()].filter((x) => !x.achieved && x.p.status === 'ready').sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || x.refs.length - y.refs.length);
+  // 被引用的那一份先建:還在等別份的排在後面,其餘照需求優先與里程碑順序
+  const order = [...a.info.values()].filter((x) => !x.achieved && x.p.status === 'ready').sort((x, y) => (x.blockedBy.length ? 1 : 0) - (y.blockedBy.length ? 1 : 0) || ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || x.refs.length - y.refs.length);
   for (const x of order) steps.push(`dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);
   const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
   for (const x of drafts) steps.push(`dev-flow:scope-laws ${x.p.fullName}(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)`);
@@ -502,7 +512,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
 
   out.push('# devflow status');
   if (sys && sys.visionState === 'ok') out.push(`願景:${sys.vision}`);
-  out.push(`需求 ${n.requirements} 條,達成 ${n.requirementsHolding} 條(測試 ${n.requirementsTested}、推得 ${n.requirementsInferred})· 領域不變量 ${n.invariants} 條,成立 ${n.invariantsHolding} 條 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · 調整 ${n.refinements} 條,達成 ${n.refinementsAchieved} 條 · feature ${n.features} 份,達成 ${n.featuresAchieved} 份 · abstract ${n.abstracts} 份 · 文檔共 ${n.docs} 份,達成 ${n.docsAchieved} 份 · 還沒實作的 step ${todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
+  out.push(`需求 ${n.requirements} 條,達成 ${n.requirementsHolding} 條(測試 ${n.requirementsTested}、推得 ${n.requirementsInferred})· 領域不變量 ${n.invariants} 條,成立 ${n.invariantsHolding} 條 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · 調整 ${n.refinements} 條,達成 ${n.refinementsAchieved} 條 · feature ${n.features} 份,達成 ${n.featuresAchieved} 份 ${n.abstracts ? `· 不被里程碑綁定的共用文檔 ${n.abstracts} 份 ` : ''}· 文檔共 ${n.docs} 份,達成 ${n.docsAchieved} 份 · 還沒實作的 step ${todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## 需求');
@@ -510,8 +520,8 @@ export function statusReport(design, source, adapter, results, resultNote, build
   else if (!ov.reqs.length) out.push('- 沒有任何需求;dev-flow:require-design 談第一條');
   else {
     if (sys.priorityNoteState === 'ok') out.push(`- 優先:${sys.priorityNote}`);
-    out.push('| 需求 | 優先 | 一句話 | 驗收 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |', '|---|---|---|---|---|---|---|---|');
-    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '(沒填)'} | ${q.title} | ${metWord(q.holds)}(${q.source}) | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} | ${q.rfs.length ? `${q.rfDone}/${q.rfs.length}` : '-'} |`);
+    out.push('| 需求 | 優先 | 一句話 | 驗收 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 | 調整達成 |', '|---|---|---|---|---|---|---|---|---|');
+    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '(沒填)'} | ${q.title} | ${metWord(q.holds)}(${q.source}) | ${q.dependsOn.join('、') || '-'} | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} | ${q.rfs.length ? `${q.rfDone}/${q.rfs.length}` : '-'} |`);
     for (const q of ov.reqs) {
       const next = q.ms.find((m) => !m.achieved);
       const state = (d) => (!d.x ? '不存在' : d.x.achieved ? '達成' : d.x.gaps.length ? `卡 ${d.x.gaps.map((g) => g.id).join('、')}` : d.x.p.status === 'draft' ? '還是 draft' : '進行中');

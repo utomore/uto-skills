@@ -45,7 +45,7 @@
 | 後門 | boundary.md「測試與邊界」 |
 | spike-impl、conductor、qa、refactor | roles.md「角色」 |
 | `plan/` 與 `build/` 分支、鍵、工作樹、建構中、宣告歸設計本體歸實作 | roles.md「分支與所有權」 |
-| 委派、回報五項 | roles.md「委派」 |
+| 委派、開工 context(`devflow brief`)、指紋、回報六項 | roles.md「委派」;tooling.md「CLI」 |
 | 切片、離場條件、可以假、`verdict`、草稿 | roles.md「切片」 |
 | 首跑、首跑該紅、未實作標記 | roles.md「首跑」 |
 | 驗收測試、`build/R-n`、`build/INV-n` | roles.md「驗收測試」 |
@@ -72,8 +72,8 @@
 | `dev-flow:spike-impl` | roles.md「五個階段」「分支與所有權」「角色」「切片」「決策紀錄」;features.md「願景、需求、目標與路線」;laws.md「全域 Law」;boundary.md 全份;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
 | `dev-flow:law-design` | features.md「feature 與 abstract」「編號與引用」「簽名怎麼寫」「frontmatter 與 status」「節」「什麼要有 law」;laws.md「Law 怎麼談」「Law 與需求」「全域 Law」;roles.md「分支與所有權」「首跑」「決策紀錄」;boundary.md「模組表」「對外 I/O」;tooling.md「CLI」「收尾定錨」 |
 | `dev-flow:build` | roles.md 全份;features.md「提問(GAP)」「修訂(REV)」「完成度」;tooling.md「CLI」「測試歸屬」「跑東西的紀律」「收尾定錨」 |
-| `dev-flow:qa` | roles.md「角色」「委派」「驗收測試」「qa 的交付」;features.md「節」「什麼要有 law」「提問(GAP)」;boundary.md「測試與邊界」;tooling.md「測試歸屬」 |
-| `dev-flow:refactor` | roles.md「角色」「分支與所有權」「委派」「切片」;features.md「節」「提問(GAP)」;boundary.md「層」「匯出」 |
+| `dev-flow:qa` | 由 `devflow brief qa` 在載入時給,不另外讀 |
+| `dev-flow:refactor` | 由 `devflow brief refactor` 在載入時給,不另外讀 |
 | `dev-flow:integrate` | roles.md「分支與所有權」「決策紀錄」「整合」「仲裁」;features.md「提問(GAP)」「完成度」「ADR」;laws.md「全域 Law」;tooling.md「CLI」「跑東西的紀律」「收尾定錨」 |
 | `dev-flow:revise` | features.md「frontmatter 與 status」「修訂(REV)」「提問(GAP)」「願景、需求、目標與路線」「完成度」;laws.md「影響範圍與選項」「全域 Law 的變更」「Law 與需求」「全域 Law」;roles.md「分支與所有權」「首跑」;tooling.md「收尾定錨」 |
 | `dev-flow:abstract` | features.md「收整(abstract)」「feature 與 abstract」「修訂(REV)」「節」;laws.md「Law 怎麼談」;roles.md「分支與所有權」;boundary.md「層」「模組表」;tooling.md「CLI」「收尾定錨」 |

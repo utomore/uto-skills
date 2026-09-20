@@ -7,6 +7,7 @@ import { readSource } from '../lib/source.mjs';
 import { pickAdapter, pickSides, adapterNames } from '../lib/adapters/index.mjs';
 import { lintAll, lintBoundary, lintGlobal, lintIds, lintInvariants, lintIo, lintLaws, lintSig, lintTrace, renderLint } from '../lib/commands/lint.mjs';
 import { sectionCommand } from '../lib/commands/section.mjs';
+import { briefCommand, briefSkills } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
 import { claim, invariantAdd, milestoneAdd, modulesGen, objectiveAdd, refinementAdd, requirementAdd, sync } from '../lib/commands/edit.mjs';
@@ -45,6 +46,10 @@ const HELP = `devflow <子命令> [選項]
   sync                                 同層搬家的 step,模組欄改成程式碼裡的實際檔案
   modules --gen                        從程式碼補模組表缺的檔案,層欄留白
   section <file> <節>… [--verify]      取 ## 節
+  brief <skill> [<文檔全名>] [--fingerprint] [--no-rules]
+                                       一個角色開工要的東西一次印完:規章的節、目標文檔、逐條狀態、Steps 上每條簽名與型別的宣告(檔案:行號與原文,不含本體)、
+                                       最內層、這個專案的測試怎麼寫;第一行是指紋(skill、目標、文檔與規章的雜湊),--fingerprint 只印那一行,--no-rules 不重印規章的節(同一場裡文檔改過之後重跑用);
+                                       skill 載入時自動執行,永遠 exit 0,問題用文字講;skill:${briefSkills.join('、')}
   migrate laws [--write]               system.md 沒有「## 全域 Law」區、或需求與目標檔寫著「- Law:」的樹:層、對外 I/O、領域不變量收進「## 全域 Law」區,
                                        需求的那一句改成「- 驗收:」,目標檔的 Law 與需求的蘊含說明刪掉;先印帳本,--write 才落地
   migrate objectives [--write]         目標還擠在一份 objectives.md 的樹:每個目標生一條需求寫進 system.md「需求」、拆成 objectives/ 一個目標一個檔、
@@ -125,6 +130,17 @@ function main() {
     }
     const ignore = typeof args.flags.ignore === 'string' ? args.flags.ignore.split(',').map((s) => s.trim()).filter(Boolean) : [];
     return emit(migrate(path.resolve(root, sub), root, { language: typeof args.flags.language === 'string' ? args.flags.language : null, ignore }));
+  }
+
+  if (cmd === 'brief') {
+    if (!sub) {
+      console.error(`用法:devflow brief <${briefSkills.join(' | ')}> [<文檔全名>] [--root <工作樹>] [--fingerprint] [--no-rules]`);
+      return 1;
+    }
+    const q = loadProject(root);
+    const has = (k) => (q.error ? null : q[k]);
+    emit(briefCommand(root, has('design'), has('source'), has('adapter'), sub, rest[0] || '', { fingerprint: !!args.flags.fingerprint, noRules: !!args.flags['no-rules'] }));
+    return 0;
   }
 
   const p = loadProject(root);

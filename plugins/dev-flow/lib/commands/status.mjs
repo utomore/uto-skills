@@ -406,7 +406,7 @@ function row(x) {
   return `| ${x.p.fullName} | ${x.p.kind === 'abstract' ? '共用文檔' : 'feature'} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${x.p.revs.length} | ${docState(x)} |`;
 }
 
-// 能開 = ready、沒 open GAP、引用的 abstract 全部達成(消費者在 abstract 合進主線之後才開,roles.md「分支與所有權」)
+// 能開 = ready、沒 open GAP、引用的 abstract 全部達成(消費者在 abstract 合進主線之後才開,roles.md「分支」)
 export function openLines(a, ov, building) {
   const candidates = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.length).sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
   const openable = candidates.filter((x) => !buildKeyOf(x, ov, building));

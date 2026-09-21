@@ -41,7 +41,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 - 要刪一個 step、把重複的 step 改成引用、或整份文檔退役 → 都是刪既有的 law,`dev-flow:scope-laws`。要的是一個**可以獨立拿掉的新能力** → 新的里程碑,`dev-flow:require-design` 再 `dev-flow:spike-impl`。
 - 來源是一條靠修訂這份文檔達成的里程碑 `M-n-<slug>`(`features.md`「願景、需求與里程碑」):它要是所在需求下一條還沒達成的里程碑、它的綁定欄要有這份文檔(`status` 顯示它「待修訂」);不是就停,回 `dev-flow:require-design`——綁定欄由它當場填,這裡不碰需求檔。就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照「在哪做」的做法從主線開 `build/M-n-<slug>`),REV 的依欄寫里程碑的全名 `M-n-<slug>` 與它那一句:`devflow status` 靠這條 REV 判這條里程碑達成了沒。里程碑那一句要的新承諾(例如「一秒內完成」的上界)用新增的 law 表達;非調整既有的 law 不可就走第 13 步。一條里程碑綁了好幾份既有的 feature 時,每一份各一次修訂。
 - 一律改原檔,**不開第二份檔**。
-- **在哪做**(`roles.md`「分支與所有權」):文檔在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。一條切片非動到這份文檔的簽名不可而轉過來的 → 就在那條切片的工作樹上做,REV 的連動欄寫明。**開工時工作樹要乾淨,記下 `git rev-parse HEAD`**:放棄時靠它還原。
+- **在哪做**(`roles.md`「分支」):文檔在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。一條切片非動到這份文檔的簽名不可而轉過來的 → 就在那條切片的工作樹上做,REV 的連動欄寫明。**開工時工作樹要乾淨,記下 `git rev-parse HEAD`**:放棄時靠它還原。
 
 ## 步驟
 

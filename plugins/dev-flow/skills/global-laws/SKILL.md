@@ -36,7 +36,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 - 要改的是**一份文檔**的 scope law、簽名或實作,要回答的 GAP 目標是某份文檔,要做的是一條靠修訂達成的里程碑 → 不在這裡:要調整(修改、放寬、替換、刪除)既有的 scope law 走 `dev-flow:scope-laws`;law 不動、或只新增 law,而文檔或實作要變(含靠修訂達成的里程碑)走 `dev-flow:scope-revise`。
 - 開發者講的是一件**有做完的一天**的事 → 那是需求,走 `dev-flow:require-design`(`laws.md`「Law 與需求」)。
 - 來源只有三種:`dev-flow:scope-laws` 列的候選(開發者在那裡逐條說了要)、開發者自己點名的一條既有的 scope law、`dev-flow:integrate` 的變更建議**經開發者明確批准**。沒有批准就停,不動。
-- **在哪做**(`roles.md`「分支與所有權」):候選來自 `dev-flow:scope-laws`,或出處是一份還在 `build/` 分支上、還沒 `verified` 的文檔 → 就在那條里程碑的工作樹 `../<repo>.worktrees/M-n-<slug>` 上落筆、commit,與這一片一起經整合進主線。其餘(出處的文檔已經在主線上、既有全域 Law 的變更)→ 與立案、需求的變更走同一條路:在主線的工作樹上落筆、commit,由 `dev-flow:integrate` 帶上 `plan/<slug>` 分支經 PR 合進主線。
+- **在哪做**(`roles.md`「分支」):候選來自 `dev-flow:scope-laws`,或出處是一份還在 `build/` 分支上、還沒 `verified` 的文檔 → 就在那條里程碑的工作樹 `../<repo>.worktrees/M-n-<slug>` 上落筆、commit,與這一片一起經整合進主線。其餘(出處的文檔已經在主線上、既有全域 Law 的變更)→ 與立案、需求的變更走同一條路:在主線的工作樹上落筆、commit,由 `dev-flow:integrate` 帶上 `plan/<slug>` 分支經 PR 合進主線。
 
 **任何全域 Law 的新增、修改、放寬、替換或刪除,都必須經開發者明確批准;`dev-flow:integrate` 只能提出變更建議,不得自行決定變更,也不直接修改全域 Law。經批准的只在這裡落筆,落筆後重新驗證受影響的工作。**「明確」= 開發者對著那一條、那一個選項說了要;沉默、整批同意、「你決定」都不算。
 

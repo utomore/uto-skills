@@ -43,10 +43,10 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 - 要加的是一個**可以獨立拿掉的新能力** → 那是新的里程碑與切片,走 `dev-flow:require-design` 再 `dev-flow:spike-impl`。
 - **切片剛做完**:工作目錄是這條里程碑的工作樹 `../<repo>.worktrees/M-n-<slug>`;決策紀錄在、`verdict: feasible`。沒有切片 → `dev-flow:spike-impl`。先把主線合進來一次:`git fetch` 後 `git merge origin/<主線>`。約束對著最新的全域 Law 談;合不進來的衝突先解,解不了就停下回報。
 - **既有文檔的 law 要調整**:
-  - 來源是一條靠修訂這份文檔達成的里程碑 `M-n-<slug>`(`features.md`「願景、需求與里程碑」):這裡只收要調整既有的 law 才做得到的,整件都在這裡做;既有的 law 一條都不必動的(新的承諾用新增的 law 表達),走 `dev-flow:scope-revise`。它要是所在需求下一條還沒達成的里程碑、它的綁定欄要有這份文檔(`status` 顯示它「待修訂」);不是就停,回 `dev-flow:require-design`——綁定欄由它當場填,這裡不碰那一欄。就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照 `roles.md`「分支與所有權」從主線開),REV 的依欄寫里程碑的全名 `M-n-<slug>` 與它那一句:`devflow status` 靠這條 REV 判這條里程碑達成了沒。一條里程碑綁了好幾份既有的 feature 時,每一份各一次修訂。要的是一個可以獨立拿掉的新能力,不是修訂,是做出新 feature 的里程碑。
+  - 來源是一條靠修訂這份文檔達成的里程碑 `M-n-<slug>`(`features.md`「願景、需求與里程碑」):這裡只收要調整既有的 law 才做得到的,整件都在這裡做;既有的 law 一條都不必動的(新的承諾用新增的 law 表達),走 `dev-flow:scope-revise`。它要是所在需求下一條還沒達成的里程碑、它的綁定欄要有這份文檔(`status` 顯示它「待修訂」);不是就停,回 `dev-flow:require-design`——綁定欄由它當場填,這裡不碰那一欄。就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照 `roles.md`「分支」從主線開),REV 的依欄寫里程碑的全名 `M-n-<slug>` 與它那一句:`devflow status` 靠這條 REV 判這條里程碑達成了沒。一條里程碑綁了好幾份既有的 feature 時,每一份各一次修訂。要的是一個可以獨立拿掉的新能力,不是修訂,是做出新 feature 的里程碑。
   - 目標文檔還不是 `verified`(切片那一波的 `draft` / `ready`:Law 談到一半、qa 或 refactor 開了 GAP、整合的仲裁退回來)→ 那一波的簽名、型別與 law 都在這裡改,law 動不動都一樣。
   - 一律改原檔。**不開第二份檔**:開了,原檔就停在它被寫下的那一天,三個月後沒有人知道它現在長什麼樣。
-  - **在哪做**(`roles.md`「分支與所有權」):這份文檔還在一條沒整合的 `build/` 分支上 → 就在那棵工作樹上做。文檔已在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。`dev-flow:scope-revise` 放棄之後轉過來的,就在它開的那棵樹上做:先確認它已經還原(文檔是 `verified`、與它開工時的 HEAD 沒有差異),沒有還原乾淨就停下回報。
+  - **在哪做**(`roles.md`「分支」):這份文檔還在一條沒整合的 `build/` 分支上 → 就在那棵工作樹上做。文檔已在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。`dev-flow:scope-revise` 放棄之後轉過來的,就在它開的那棵樹上做:先確認它已經還原(文檔是 `verified`、與它開工時的 HEAD 沒有差異),沒有還原乾淨就停下回報。
 
 ## 步驟
 
@@ -92,7 +92,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
    - 驗一次就蓋住全部嗎?寫得成一條 `INV-n#LAW` 的 property test,才算。
 
    三題都過的列成**領域不變量的候選**,每條寫:law 的原句、出處(這份文檔的全名與 law 編號,如 `F-001-checkout#LAW-3`)、三行改成只用最內層的匯出與型別名之後的樣子。**開發者逐條說要不要,不整批追認**;說不要的就是這一份的 scope law,不再提。第 5 步列的層的候選、要改既有全域 Law 的候選,收進同一份清單。候選在這裡**不落筆**:那條 law 照樣留在這份文檔的 Laws 節、照樣拍板,`dev-flow:global-laws` 落筆時才從這裡搬走。一條候選都沒有就寫「無」。
-8. **寫成三行,不改那一句話**(`roles.md`「分支與所有權」的例外):這條里程碑的需求的驗收還只有一句話,而這一片讓它講得到的簽名出現了 → 與開發者把它寫成三行(識別字是 Steps 的簽名,不含 `!` 列)。那一句話本身不改;寫了三行,build 會派 qa 寫它的驗收測試。只把既有的那一句寫成三行,不新增、不改句子、不放寬。對外 I/O 表的契約欄填守這一端的那條 law。
+8. **寫成三行,不改那一句話**(`roles.md`「誰能動什麼」的例外):這條里程碑的需求的驗收還只有一句話,而這一片讓它講得到的簽名出現了 → 與開發者把它寫成三行(識別字是 Steps 的簽名,不含 `!` 列)。那一句話本身不改;寫了三行,build 會派 qa 寫它的驗收測試。只把既有的那一句寫成三行,不新增、不改句子、不放寬。對外 I/O 表的契約欄填守這一端的那條 law。
 9. **Examples**:3–5 個具體輸入輸出,從第 1 步跑出來的真實例子挑,覆蓋邊界(空的、單一、極值、失敗路徑),每列指到它覆蓋的 law。開發者答「不准」的,example 寫的是該有的輸出,不是現在的輸出。**不准出現真的密碼、金鑰或 token。**
 10. **決定**:決策紀錄「Decisions」裡只關這一份文檔的、與第 5 步談出來只關這一份的取捨,搬進「決定」(一句結論、否決的替代方案、理由);跨文檔的留在決策紀錄給整合。
 11. `devflow lint sig`、`devflow lint laws`、`devflow lint io`、`devflow lint boundary`:都沒有紅,`devflow status --doc <全名>` 每列是「在」。把每條 law 念一遍給開發者,**逐條拍板,不整批追認**;拍板了改 `status: ready`。文檔、宣告的改動與決策紀錄各自 commit,訊息帶全名。

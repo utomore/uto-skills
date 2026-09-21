@@ -39,7 +39,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 - `Cone.md`「Constraint」沒有模組前綴或原始碼根目錄 → 先問開發者這個專案的模組命名空間叫什麼、四層各自的原始碼根目錄怎麼命名(預設 `src-<層>`),寫進那一節。
 - 那四個根目錄還不是建置系統的子函式庫 → 先請開發者在建置設定裡各開一個、`build-depends` 照 types ← effect ← core ← shell 宣告;沒有這一步,層的相依方向只有 lint 擋得住,編譯器擋不住。
 - 要的東西在既有單元的範圍內、那一層也宣告過 → 不建新單元,直接把模組寫進去;單元裡加模組不必經過這裡。
-- 在哪做:立案時在主線的工作目錄(之後由 `lawful:integrate` 帶上 `plan/<slug>`);切片途中就在那條 `build/M-n-<slug>` 的工作樹上,`modules.md` 的這一列屬於這條分支(`roles.md`「分支與所有權」)。
+- 在哪做:立案時在主線的工作目錄(之後由 `lawful:integrate` 帶上 `plan/<slug>`);切片途中就在那條 `build/M-n-<slug>` 的工作樹上,`modules.md` 的這一列屬於這條分支(`roles.md`「誰能動什麼」)。
 
 ## 步驟
 

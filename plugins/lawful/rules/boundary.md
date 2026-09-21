@@ -1,6 +1,6 @@
 # 邊界
 
-functional core / imperative shell。邊界是全域 Law 的架構與契約兩類(laws.md「全域 Law」):四層各裝什麼與對外 I/O 表住 `Cone.md` 的「全域 Law」區,模組單元住 `modules.md`;`lawful lint boundary` 拿 import 圖與簽名對它們,`lawful lint io` 對對外 I/O 表。切片從第一行程式碼就守這一份:四層與它們的規則是固定的,從專案的第一片就在;每一層「裝什麼」那一句與對外 I/O 表的列是從做出來的切片裡長出來的——`lawful:scope-laws` 對著那一片與開發者講定,那一句由 `lawful:global-laws` 落筆,對外 I/O 表的新列由 `lawful:scope-laws` 寫。
+functional core / imperative shell。邊界是全域 Law 的架構與契約兩類:四層各裝什麼與對外 I/O 表住 `Cone.md` 的「全域 Law」區,模組單元住 `modules.md`;`lawful lint boundary` 拿 import 圖與簽名對它們,`lawful lint io` 對對外 I/O 表。切片從第一行程式碼就守這一份:四層與它們的規則是固定的,從專案的第一片就在;每一層「裝什麼」那一句與對外 I/O 表的列是從做出來的切片裡長出來的——`lawful:scope-laws` 對著那一片與開發者講定,那一句由 `lawful:global-laws` 落筆,對外 I/O 表的新列由 `lawful:scope-laws` 寫。
 
 ## 四層
 

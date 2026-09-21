@@ -216,6 +216,53 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     console.log('✗ brief 的規章節');
   } else console.log('✓ brief 的規章節');
 
+  // 規章的字數上限:一個 skill 開工背的規章有上界。超過就是它拿了別人的工作,回 brief.mjs 的 RULES 表把不是它做決定要用的節拿掉,
+  // 或把那一節拆成各讀者只拿自己那一塊。每一場 session 都要背一次,所以這個數字是流程的固定成本。
+  const RULES_BUDGET = 38000;
+  {
+    const over = [];
+    for (const s of skills) {
+      const run = (...extra) => spawnSync(process.execPath, [bin, 'brief', s, ...extra, '--root', path.join(here, 'fixtures', 'save-game')], { encoding: 'utf8' }).stdout;
+      const n = [...run()].length - [...run('--no-rules')].length;
+      if (n > RULES_BUDGET) over.push(`${s} ${n} 字`);
+    }
+    if (over.length || skills.length === 0) {
+      failed++;
+      console.log(`✗ 規章的字數上限(每個 skill ${RULES_BUDGET} 字):${over.join('、') || '一個 skill 都沒查到'}`);
+    } else console.log('✓ 規章的字數上限');
+  }
+
+  // 交叉引用:規章與 SKILL.md 裡寫成「<檔>.md「<節>」」的每一處,那一節都要真的在那個檔裡。節改了名、搬了家,這裡會紅
+  {
+    const rulesDir = path.join(here, '..', '..', 'plugins', 'lawful', 'rules');
+    const skillsDir = path.join(here, '..', '..', 'plugins', 'lawful', 'skills');
+    const titles = {};
+    for (const f of fs.readdirSync(rulesDir)) {
+      const set = new Set();
+      let fenced = false;
+      for (const line of fs.readFileSync(path.join(rulesDir, f), 'utf8').replace(/\r\n/g, '\n').split('\n')) {
+        if (/^\s*```/.test(line)) fenced = !fenced;
+        if (!fenced && /^## /.test(line)) set.add(line.slice(3).trim());
+      }
+      titles[f] = set;
+    }
+    const sources = fs.readdirSync(rulesDir).map((f) => [`rules/${f}`, path.join(rulesDir, f)])
+      .concat(fs.readdirSync(skillsDir).map((s) => [`skills/${s}/SKILL.md`, path.join(skillsDir, s, 'SKILL.md')]));
+    const dangling = [];
+    let seen = 0;
+    for (const [label, abs] of sources) {
+      for (const [, file, sec] of fs.readFileSync(abs, 'utf8').matchAll(/([A-Za-z._-]+\.md)「([^」]+)」/g)) {
+        if (!titles[file]) continue; // 不是規章檔(Cone.md、CLAUDE.md …),這裡不管
+        seen++;
+        if (!titles[file].has(sec)) dangling.push(`${label} → ${file}「${sec}」`);
+      }
+    }
+    if (dangling.length || seen === 0) {
+      failed++;
+      console.log(`✗ 規章的交叉引用:${dangling.join('、') || '一條都沒查到'}`);
+    } else console.log('✓ 規章的交叉引用');
+  }
+
   // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
   const TARGETS = { build: 'P-001-save-write', qa: 'P-001-save-write', refactor: 'P-001-save-write', 'scope-revise': 'P-001-save-write', 'scope-laws': 'M-1-save-write', 'spike-impl': 'M-2-save-inspect' };
   const PARTS = [1, 2, 3, 4, 5, 6];

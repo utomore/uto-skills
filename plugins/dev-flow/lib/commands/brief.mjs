@@ -15,19 +15,20 @@ import { lintAll, lintGlobal, lintLaws, lintSig, renderLint } from './lint.mjs';
 const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 // 每個 skill 開工要讀的規章節;'*' 是整份。這張表是「誰讀什麼」的唯一來源。
+// 一個 skill 只拿它做決定要用的節:多給一節就是每一場都多背一次別人的工作。
 const RULES = {
-  kickoff: [['features.md', ['`.design/`', 'system.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求']], ['boundary.md', ['模組表']], ['tooling.md', ['language adapter', '收尾定錨']]],
-  'require-design': [['features.md', ['願景、需求與里程碑', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求']], ['tooling.md', ['CLI', 'status 報告', '收尾定錨']]],
-  'global-laws': [['laws.md', ['Law 與需求', '全域 Law', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', '*'], ['features.md', ['節', '提問(GAP)', '完成度']], ['roles.md', ['分支與所有權', '驗收測試', '決策紀錄']], ['tooling.md', ['CLI', '收尾定錨']]],
-  'spike-impl': [['roles.md', ['五個階段', '分支與所有權', '角色', '切片', '決策紀錄']], ['features.md', ['system.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', '*'], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
-  'scope-laws': [['features.md', ['feature', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O']], ['tooling.md', ['CLI', '收尾定錨']]],
-  'scope-revise': [['features.md', ['簽名怎麼寫', 'frontmatter 與 status', '節', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '影響範圍與選項']], ['roles.md', ['分支與所有權', '首跑']], ['boundary.md', ['模組表', '層']], ['tooling.md', ['CLI', '收尾定錨']]],
-  build: [['roles.md', '*'], ['features.md', ['提問(GAP)', '修訂(REV)', '需求的達成只有人判得了', '完成度']], ['tooling.md', ['CLI', '測試歸屬', '跑東西的紀律', '收尾定錨']]],
-  qa: [['roles.md', ['角色', '委派', '驗收測試', 'qa 的交付']], ['features.md', ['節', '什麼要有 law', '提問(GAP)']], ['boundary.md', ['測試與邊界']], ['tooling.md', ['測試歸屬']]],
-  refactor: [['roles.md', ['角色', '分支與所有權', '委派', '切片']], ['features.md', ['節', '提問(GAP)']], ['boundary.md', ['層', '匯出']]],
-  integrate: [['roles.md', ['分支與所有權', '決策紀錄', '整合', '仲裁']], ['features.md', ['提問(GAP)', '需求的達成只有人判得了', '完成度', 'ADR']], ['laws.md', ['全域 Law']], ['tooling.md', ['CLI', '跑東西的紀律', '收尾定錨']]],
-  status: [['tooling.md', ['CLI', 'status 報告', '收尾定錨']], ['features.md', ['願景、需求與里程碑', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law']]],
-  audit: [['tooling.md', ['CLI', 'status 報告']], ['boundary.md', '*'], ['features.md', ['願景、需求與里程碑', '節', '什麼要有 law', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', 'Law 怎麼談']]],
+  kickoff: [['features.md', ['`.design/`', '名詞', 'system.md']], ['laws.md', ['Law 與需求']], ['boundary.md', ['模組表']], ['tooling.md', ['language adapter', 'migrate', '收尾定錨']]],
+  'require-design': [['features.md', ['願景、需求與里程碑', '談需求', '靠修訂達成的里程碑', '名詞', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '分流']], ['tooling.md', ['CLI', '落筆指令', 'status 報告', '收尾定錨']]],
+  'global-laws': [['laws.md', ['Law 與需求', '全域 Law', '全域 Law 怎麼長出來', '分流', '影響範圍與選項', '全域 Law 的變更']], ['boundary.md', ['層', '模組表', 'IO 模組', '對外 I/O']], ['features.md', ['Laws', '提問(GAP)', '完成度']], ['roles.md', ['分支', '誰能動什麼', '驗收測試', '決策紀錄']], ['tooling.md', ['CLI', 'lint', '落筆指令', '收尾定錨']]],
+  'spike-impl': [['roles.md', ['流程', '分支', '誰能動什麼', '角色', '切片', '決策紀錄']], ['features.md', ['system.md', '願景、需求與里程碑']], ['laws.md', ['Law 與需求', '全域 Law']], ['boundary.md', ['層', '模組表', 'IO 模組', '匯出', '對外 I/O', '測試與邊界']], ['tooling.md', ['CLI', 'lint', '跑東西的紀律', '收尾定錨']]],
+  'scope-laws': [['features.md', ['feature', '編號與引用', '簽名怎麼寫', 'frontmatter 與 status', '節', 'Steps', 'Laws', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '全域 Law', '全域 Law 怎麼長出來', '分流', '影響範圍與選項']], ['roles.md', ['分支', '誰能動什麼', '首跑', '決策紀錄']], ['boundary.md', ['模組表', '對外 I/O']], ['tooling.md', ['CLI', 'lint', '落筆指令', '收尾定錨']]],
+  'scope-revise': [['features.md', ['簽名怎麼寫', 'frontmatter 與 status', '節', 'Steps', 'Laws', '什麼要有 law', '修訂(REV)', '提問(GAP)', '完成度']], ['laws.md', ['Law 怎麼談', 'Law 與需求', '分流', '影響範圍與選項']], ['roles.md', ['分支', '誰能動什麼', '首跑']], ['boundary.md', ['模組表', '層']], ['tooling.md', ['CLI', 'lint', '收尾定錨']]],
+  build: [['roles.md', ['流程', '分支', '誰能動什麼', '角色', '委派', '首跑', '驗收測試', 'qa 的交付', '仲裁', '測試跑幾次', '收尾', '決策紀錄']], ['features.md', ['提問(GAP)', '修訂(REV)', '需求的達成只有人判得了', '完成度']], ['laws.md', ['分流']], ['tooling.md', ['CLI', 'lint', '測試歸屬', '跑東西的紀律', '收尾定錨']]],
+  qa: [['roles.md', ['角色', '委派', '驗收測試', 'qa 的交付']], ['features.md', ['Steps', 'Laws', '什麼要有 law', '提問(GAP)']], ['boundary.md', ['測試與邊界']], ['tooling.md', ['測試歸屬']]],
+  refactor: [['roles.md', ['角色', '委派']], ['features.md', ['Steps', 'Laws', '提問(GAP)']], ['boundary.md', ['層', '匯出']]],
+  integrate: [['roles.md', ['分支', '決策紀錄', '整合', '仲裁']], ['features.md', ['提問(GAP)', '需求的達成只有人判得了', '完成度', 'ADR']], ['laws.md', ['全域 Law', '分流']], ['tooling.md', ['CLI', 'lint', '落筆指令', '跑東西的紀律', '收尾定錨']]],
+  status: [['tooling.md', ['CLI', 'status 報告', '看板', 'migrate', '落筆指令', '收尾定錨']], ['features.md', ['願景、需求與里程碑', '靠修訂達成的里程碑', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', '分流']]],
+  audit: [['tooling.md', ['CLI', 'lint', 'status 報告', 'migrate']], ['boundary.md', '*'], ['features.md', ['願景、需求與里程碑', '靠修訂達成的里程碑', '節', 'Steps', 'Laws', '什麼要有 law', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', '全域 Law 怎麼長出來', 'Law 怎麼談', '分流']]],
   study: [['tooling.md', ['跑東西的紀律', '收尾定錨']], ['features.md', ['`.design/`']]],
 };
 

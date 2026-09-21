@@ -7,6 +7,8 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 # dev-flow:study — 專案導讀
 
+> **核心**:Every claim MUST be backed by 檔案:行號 from the code itself; never describe what the code probably does.(每個結論都附程式碼裡的 檔案:行號 原文,不講程式碼「大概」在做什麼。) 步驟與這一句衝突時,這一句贏:停下,回報。
+
 ## 開工 context
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief study --args '$ARGUMENTS' --part 1 --of 4`

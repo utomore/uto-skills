@@ -47,7 +47,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 - 來源是一條靠修訂這條 pipeline 達成的里程碑 `M-n-<slug>`(`pipelines.md`「願景、需求與里程碑」):它要是所在需求下一條還沒達成的里程碑、它的綁定欄要有這條 pipeline(`status` 顯示它「待修訂」);不是就停,回 `lawful:require-design`——綁定欄由它當場填,這裡不碰需求檔。就在它的 `build/M-n-<slug>` 工作樹上做(還沒有就照「在哪做」的做法從主線開 `build/M-n-<slug>`),REV 的依欄寫里程碑的全名 `M-n-<slug>` 與它那一句:`lawful status` 靠這條 REV 判這條里程碑達成了沒。里程碑那一句要的新承諾(例如「不超過 1 MB」的上界)用新增的 law 表達;非調整既有的 law 不可就走第 13 步。一條里程碑綁了好幾條既有的 pipeline 時,每一條各一次修訂、各自接上 build。
   - 例(存檔格式換版):里程碑「拿上一版存的檔在這一版讀出同一個世界」靠修訂 `P-002-save-load` 達成,`lawful:require-design` 切出它的當場就把 `P-002-save-load` 填進綁定欄;「帶著上一版版本號的存檔解得回同一個投影」是這次新增的一條 law,原有的往返 law 不動。對外 I/O 表上存檔那一端的契約要多一句,是給 `lawful:global-laws` 的變更提議,不在這裡寫。
 - 一律改原檔,**不開第二份檔**。
-- **在哪做**(`roles.md`「分支與所有權」):pipeline 在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。一條切片非動到這條 pipeline 的簽名不可而轉過來的 → 就在那條切片的工作樹上做,REV 的連動欄寫明。**開工時工作樹要乾淨,記下 `git rev-parse HEAD`**:放棄時靠它還原。
+- **在哪做**(`roles.md`「分支」):pipeline 在主線上 → 在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/<全名> ../<repo>.worktrees/<全名> HEAD`,在那棵樹上做。一條切片非動到這條 pipeline 的簽名不可而轉過來的 → 就在那條切片的工作樹上做,REV 的連動欄寫明。**開工時工作樹要乾淨,記下 `git rev-parse HEAD`**:放棄時靠它還原。
 
 ## 步驟
 

@@ -37,7 +37,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 前置
 
-- **工作目錄是那條分支的工作樹** `../<repo>.worktrees/<鍵>`(`rules/roles.md`「分支與所有權」);build 不替里程碑與 pipeline 開分支,分支由 `lawful:spike-impl`、`lawful:scope-laws`(既有 pipeline 的 law 要調整)、`lawful:scope-revise` 開。不在那棵樹上就先過去。
+- **工作目錄是那條分支的工作樹** `../<repo>.worktrees/<鍵>`(`rules/roles.md`「分支」);build 不替里程碑與 pipeline 開分支,分支由 `lawful:spike-impl`、`lawful:scope-laws`(既有 pipeline 的 law 要調整)、`lawful:scope-revise` 開。不在那棵樹上就先過去。
 - `lawful status`:目標 pipeline 是 `ready`、沒有 open GAP、它引用的每條 pipeline 都已達成。還是 `draft` → `lawful:scope-laws`;不是就停,回報該先做什麼。
 - 目標是 `R-n` / `INV-n`(`rules/roles.md`「驗收測試」):`status` 要顯示它有三行式而沒有測試,需求另要它的里程碑全部達成。在主線、與 origin 同步、工作樹乾淨時 `git worktree add -b build/R-n ../<repo>.worktrees/R-n HEAD`,跳過第 1 到 5 步,直接第 6 步派 qa,再第 7 步整套、第 8 步收尾(決策紀錄的 `key` 寫 `R-n`,從「Verification」寫起)。里程碑還沒全部達成就停,回報還差哪條里程碑。
 
@@ -73,4 +73,4 @@ refactor 的 prompt 另加:禁止讀寫任何測試檔、禁止改 Stages 上的
 
 ## 邊界
 
-不寫測試、不寫實作、不補 law、不改宣告、不替開發者做契約級決定、不事後追認。簽名或型別缺了是 Law 那一層沒做完,回去,不在這裡補。qa 與 refactor 互不可見;qa 先、refactor 後。只動自己這條分支的東西與本波的驗收測試(`rules/roles.md`「分支與所有權」);驗收測試紅不放寬斷言;不合併、不發 PR。
+不寫測試、不寫實作、不補 law、不改宣告、不替開發者做契約級決定、不事後追認。簽名或型別缺了是 Law 那一層沒做完,回去,不在這裡補。qa 與 refactor 互不可見;qa 先、refactor 後。只動自己這條分支的東西與本波的驗收測試(`rules/roles.md`「誰能動什麼」);驗收測試紅不放寬斷言;不合併、不發 PR。

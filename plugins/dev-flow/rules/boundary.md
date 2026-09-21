@@ -1,10 +1,10 @@
 # 邊界
 
-依賴方向的唯一宣告是 `system.md` 的層表加 `modules.md` 的模組表;`devflow lint boundary` 拿 import 圖對它。層的兩條規則與對外 I/O 表是全域 Law 的架構與契約兩類(laws.md「全域 Law」):表上有什麼,`dev-flow:spike-impl` 從第一行程式碼就守,離場前 `lint boundary` 要沒有紅。層表與對外 I/O 表都是從做出來的切片裡長出來的:專案的第一條切片做完之前兩張表只有表頭,`lint boundary` 此時沒有依賴方向可對,不是紅;`dev-flow:scope-laws` 對著那一片與開發者把層與每一端的信任講定,層表由 `dev-flow:global-laws` 落筆,對外 I/O 表的新列由 `dev-flow:scope-laws` 寫。
+依賴方向的唯一宣告是 `system.md` 的層表加 `modules.md` 的模組表;`devflow lint boundary` 拿 import 圖對它。層的兩條規則與對外 I/O 表是全域 Law 的架構與契約兩類:表上有什麼,`dev-flow:spike-impl` 從第一行程式碼就守,離場前 `lint boundary` 要沒有紅。兩張表都是從做出來的切片裡長出來的:專案的第一條切片做完之前只有表頭,`lint boundary` 此時沒有依賴方向可對,不是紅;`dev-flow:scope-laws` 對著那一片與開發者把層與每一端的信任講定,層表由 `dev-flow:global-laws` 落筆,對外 I/O 表的新列由 `dev-flow:scope-laws` 寫。
 
 ## 層
 
-層是**檔案**的屬性,意義是依賴方向。層由專案自己命名、自己決定幾層,寫在 `system.md`「全域 Law」區的「架構:層」表,**由內而外**排;它是全域 Law 的架構一類(laws.md「全域 Law」):
+層是**檔案**的屬性,意義是依賴方向。層由專案自己命名、自己決定幾層,寫在「全域 Law」區的「架構:層」表,**由內而外**排:
 
 ```markdown
 | 層 | 裝什麼 |
@@ -42,13 +42,11 @@
 
 ## IO 模組
 
-「什麼算對外 I/O」由 adapter 的 `ioModules` 預設清單判(檔案系統、網路、行程、資料庫客戶端);專案自己的客戶端或封裝寫進 `system.md`「IO 模組追加」。
-
-有純 API 的函式庫不在名單上——它們的效果由住在哪一層擋,不由名字擋。
+「什麼算對外 I/O」由 adapter 的 `ioModules` 預設清單判(檔案系統、網路、行程、資料庫客戶端);專案自己的客戶端或封裝寫進 `system.md`「IO 模組追加」。有純 API 的函式庫不在名單上——它們的效果由住在哪一層擋,不由名字擋。
 
 ## 匯出
 
-step 與觀察點都要是**該檔案對外匯出的名字**,程式碼才對得到帳(`lint sig` 對帳)。各語言的匯出:
+step 與觀察點都要是**該檔案對外匯出的名字**,程式碼才對得到帳。各語言的匯出:
 
 | 語言 | 匯出 |
 |---|---|
@@ -61,7 +59,7 @@ step 與觀察點都要是**該檔案對外匯出的名字**,程式碼才對得�
 
 ## 對外 I/O
 
-`system.md`「全域 Law」區的「契約:對外 I/O」表列出每個跨過最外層邊界的入口與出口;它是全域 Law 的契約一類:
+「全域 Law」區的「契約:對外 I/O」表列出每個跨過最外層邊界的入口與出口:
 
 ```markdown
 | 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約 |
@@ -73,7 +71,7 @@ step 與觀察點都要是**該檔案對外匯出的名字**,程式碼才對得�
 - **信任**:`untrusted` = 這一端的內容由系統外面決定(使用者輸入、第三方回應、讀進來的檔案);`trusted` = 由系統自己產生。
 - **驗證**:`untrusted` 的 `in` 列必須指名一個做驗證的 step,而那個 step 要在該 feature 的 Steps 表裡。`in` 之後第一個碰到資料的東西就是它。
 - **契約**:這一端對外面承諾了什麼、由哪條 law 守著(重送同一個請求不會做第二次、對外的事件只增欄位不刪不改名)。寫那條 law:`F-00x#LAW-n` 或 `INV-n`,「、」分隔;沒有就「-」。只寫一句話而沒有 law 守著的契約不算數。
-- 每份 feature 的兩端都要對得到這張表;表上的文檔必須是 `features/` 裡有的 feature。一條切片新的入口與出口,`dev-flow:spike-impl` 記在決策紀錄「Touched」,`dev-flow:scope-laws` claim 出 feature 之後補成表上的列;文檔退役(features.md「修訂(REV)」)時,它那幾列跟著拿掉。
+- 每份 feature 的兩端都要對得到這張表;表上的文檔必須是 `features/` 裡有的 feature。一條切片新的入口與出口,`dev-flow:spike-impl` 記在決策紀錄「Touched」,`dev-flow:scope-laws` claim 出 feature 之後補成表上的列;文檔退役時,它那幾列跟著拿掉。
 - 表上的模組在模組表是最外層;型別不住最外層(邊界換了才不必跟著改)。
 
 `devflow lint io` 對帳以上(契約欄指到的 law 要存在),外加三條安全:

@@ -1,61 +1,64 @@
 # lawful 規章
 
-`lawful` 替純函數式專案(functional core / imperative shell)做 spec 驅動開發,實作先行。文檔的單位是 **pipeline**:一段 input → 純轉換 → output 的資料流,類別寫在 `kind`:兩端碰 shell 的是 `io`、只在純核心裡的是 `subflow`;stage 是住在程式碼裡的簽名,laws 是開發者對著跑得通的切片逐條拍板的承諾。兩棵樹各管各的。需求面三層:`Cone.md` 的**願景**(北極星)→ `requirements/` 一檔一條的**需求**(必須達成的事,各有一句可判定的驗收與優先 1 到 4)→ 需求檔裡的**里程碑** `M-n-<slug>`(有順序、依序完成;每一條是一個使用者看得到、展示得出來的階段,也是一條垂直切片的範圍;全部達成,這條需求的建置就走完);把既有的東西改快、改小、改好,也是這條需求底下的一條里程碑:綁既有的 pipeline,靠修訂它達成。約束面只有兩種範圍:**全域 Law**(領域不變量、架構的四層、契約的對外 I/O,住 `Cone.md` 一區,每類一道 lint)與 **scope law**(一條 pipeline 的 Laws 節);任何程式碼都受全域 Law 加上它自己那條 pipeline 的 scope law 約束。判準:這件事有沒有做完的一天,有 = 需求,沒有 = law。
+`lawful` 替純函數式專案(functional core / imperative shell)做 spec 驅動開發,實作先行。文檔的單位是 **pipeline**:一段 input → 純轉換 → output 的資料流,`kind` 兩端碰 shell 的是 `io`、只在純核心裡的是 `subflow`;stage 是住在程式碼裡的簽名,laws 是開發者對著跑得通的切片逐條拍板的承諾。判準只有一題:這件事有沒有做完的一天?有 = 需求,沒有 = law。
 
-做之前只寫判得出真假的東西(願景、Constraint——硬性限制:語言與版本、編譯器與執行環境、套件、環境、命名與寫法,同一節也裝工具要讀的三道指令、模組前綴與原始碼根目錄;它不是 law,沒有三行也沒有測試,寫程式與寫測試的角色照做——、需求與里程碑),其餘等跑得通了再講:law 一律從做出來的實作裡抽出來,由開發者與 LLM 對著程式碼談定,不在沒有程式碼的時候立;全域 Law 是從做出來的切片裡抽上去的,不是立案時憑空定的(四層是 plugin 固定的,立案時照建;每一層「裝什麼」那一句、領域不變量與對外 I/O 表的列等切片長出來)。專案的第一條切片單獨走完,它的全域 Law 抽出來並合進主線之後才開第二條。一條里程碑走五個階段:
+- **需求面三層**:`Cone.md` 的願景 → `requirements/` 一檔一條的需求(各有一句可判定的驗收與優先 1 到 4)→ 需求檔裡的里程碑 `M-n-<slug>`(有順序、依序完成,每一條是一個使用者看得到、展示得出來的階段,也是一條垂直切片的範圍)。
+- **約束面兩種範圍**:全域 Law(領域不變量、架構的四層、契約的對外 I/O,住 `Cone.md` 一區,每類一道 lint)與 scope law(一條 pipeline 的 Laws 節)。任何程式碼都受全域 Law 加上它自己那條 pipeline 的 scope law 約束。
+- **做之前就寫的**只有願景、需求(含里程碑)與 `Cone.md` 的 Constraint(硬性限制;它不是 law,沒有三行也沒有測試)。law 一律從做出來的實作裡抽出來,不在沒有程式碼的時候立;四層是 plugin 固定的,立案時照建,每一層「裝什麼」那一句、領域不變量與對外 I/O 表的列等切片長出來。
+- 一個 stage 與它的 law 只住在一條 pipeline——先做出它的那一條(通常是一條 subflow);別條要用它就引用,law 不重寫。需求之間誰疊在誰上面由 pipeline 的引用推出來。
+- 模組單元只劃邊界,不決定裡面有什麼函數;在既有單元裡加、改、搬東西不必回頭動模組表。
+- 既有 pipeline 的改動照 laws.md「分流」。進度不是欄位,由 `lawful status` 從檔案、程式碼與測試推導。
+
+一條里程碑走五個階段,從切片到達成都在同一條分支、同一棵工作樹上:
 
 | 階段 | skill | 產出 |
 |---|---|---|
 | 立案 | `lawful:kickoff`(開樹、願景、Constraint、已經看得出來的模組單元)→ `lawful:require-design`(需求,當場切成里程碑);之後要多劃一個模組單元走 `lawful:module` | `Cone.md`、`requirements/`、模組單元表;經 `plan/<slug>` 合進主線 |
 | 切片 | `lawful:spike-impl <M-n-slug>` | `build/M-n-<slug>` 上一條從進入點貫通到出口、跑得通的切片,與決策紀錄;途中要一個還沒有的模組單元,先 `lawful:module` |
-| Law | `lawful:scope-laws <M-n-slug>` | 根據切片的決策紀錄、對著切片與開發者逐條談約束(資料交互、資料儲存在哪、外部串接方法、軟體架構四項都問到),從切片 claim 出來的 pipeline:Stages 抄程式碼、laws 逐條拍板,`ready`;這一片跨過 shell 的那幾端寫進對外 I/O 表;再問一輪「這幾條 law 裡哪幾條整個專案都該守」,有全域的候選就接上 `lawful:global-laws`:攤影響範圍、開發者批准,把它抽進 `Cone.md`「全域 Law」區(領域不變量從出處的 pipeline 搬上去、四層每一層「裝什麼」那一句對著這一片寫) |
+| Law | `lawful:scope-laws <M-n-slug>` | 從切片 claim 出來的 pipeline:Stages 抄程式碼、laws 逐條拍板,`ready`;這一片跨過 shell 的那幾端寫進對外 I/O 表;有全域的候選就接上 `lawful:global-laws` |
 | 建構 | `lawful:build`(scope-laws、global-laws 與 scope-revise 收尾自動接上),委派 `lawful:qa` 與 `lawful:refactor` | 測試、讓每條 law 成立的實作,`verified` |
 | 整合 | `lawful:integrate` | 整合分支、仲裁、ADR、PR |
 
-一個 stage 與它的 law 只住在一條 pipeline——先做出它的那一條(通常是一條 subflow);別條要用它就引用,law 不重寫。需求的編號只是身分,需求之間誰疊在誰上面由 pipeline 的引用推出來。既有 pipeline 的改動一句話分流:要調整(修改、放寬、替換、刪除)既有的 law 走 `lawful:scope-laws`,整件修訂由它一手包辦;law 不動、或只新增 law,而 `verified` 的 pipeline 的簽名、型別、模組或實作要變走 `lawful:scope-revise`(原有的每條 law 修訂前後都成立);全域 Law 的每一次落筆(抽上去與之後的變更)走 `lawful:global-laws`;需求面的條目走 `lawful:require-design`。一件修訂從頭到尾只有一個修訂類的 skill 在跑,跑到 `verified` 為止;兩種修訂都在被動到的每一條 pipeline 記一條 REV,改完同樣接上 build。`lawful:status` 講現況與下一步,`lawful:audit` 對帳,`lawful:study` 導讀。
-
-模組單元只劃邊界,不決定裡面有什麼函數;單元裡的簽名由切片長出來、由 pipeline 的 Stages 表記下來,在既有單元裡加、改、搬東西不必回頭動模組表。
+`lawful:status` 講現況與下一步,`lawful:audit` 對帳,`lawful:study` 導讀。
 
 `rules/` 五份主題規章是每條規則唯一的住處;skill 只寫步驟並用檔名加節名引用,不重述。
 
-| 檔 | 主題 |
+| 檔 | 節 |
 |---|---|
-| `pipelines.md` | `.lawful/` 樹與它之外的一個檔(專案根目錄 `CLAUDE.md` 的「## 名詞」節)、Cone.md、願景、需求與里程碑、pipeline 文檔怎麼寫:編號與引用、簽名怎麼寫、節、什麼要有 law、REV(含刪 stage 與文檔退役)、GAP、完成度、ADR |
-| `laws.md` | law 是不得違反、需求是必須達成,判準是有沒有做完的一天;law 的兩種範圍、全域 Law 三類、准入四條與它怎麼從切片裡抽上去(誰談、誰落筆)、Law 怎麼談、調整 law 之前的影響範圍與選項、全域 Law 的抽上去與變更 |
+| `pipelines.md` | `.lawful/`、名詞、Cone.md、願景、需求與里程碑、談需求、靠修訂達成的里程碑、pipeline、編號與引用、簽名怎麼寫、frontmatter 與 status、節、Stages、Laws、什麼要有 law、修訂(REV)、提問(GAP)、需求的達成只有人判得了、完成度、ADR |
+| `laws.md` | 分流、Law 與需求、全域 Law、全域 Law 怎麼長出來、影響範圍與選項、Law 怎麼談、全域 Law 的變更 |
 | `boundary.md` | 四層、模組單元、模組表、效果的判定、對外 I/O、測試與邊界 |
-| `roles.md` | 五個階段、分支與所有權、spike-impl / conductor / qa / refactor、委派、切片、首跑、驗收測試、收尾、仲裁、測試跑幾次、決策紀錄、整合、委派模型 |
-| `tooling.md` | CLI 子命令與 exit code、status 報告版面、language adapter、跑東西的紀律、收尾定錨 |
+| `roles.md` | 流程、分支、誰能動什麼、角色、委派、切片、首跑、驗收測試、qa 的交付、仲裁、測試跑幾次、收尾、決策紀錄、整合 |
+| `tooling.md` | CLI、lint、落筆指令、看板、migrate、status 報告、language adapter、跑東西的紀律、收尾定錨 |
 
 ## 名詞
 
 | 名詞 | 在哪 |
 |---|---|
-| 願景、優先各級 | pipelines.md「Cone.md」「願景、需求與里程碑」 |
-| Constraint(硬性限制與工具要讀的那幾行)、它不是 law、誰寫、誰照做 | pipelines.md「Cone.md」;laws.md「全域 Law」;roles.md「角色」 |
-| 專案的名詞表(專案根目錄 `CLAUDE.md` 的「## 名詞」節)、名詞只住這一節、型別欄、誰寫 | pipelines.md「`.lawful/`」「願景、需求與里程碑」;laws.md「Law 怎麼談」 |
-| 需求、`R-n`、需求檔 `requirements/R-n-<slug>.md`、驗收、`R-n#ACCEPT`、優先 | pipelines.md「願景、需求與里程碑」 |
-| 里程碑、`M-n`、全名 `M-n-<slug>`、引用寫全名、階段性使用者驗收、依序一次一條、綁定、還沒有切片 | pipelines.md「願景、需求與里程碑」 |
-| 靠修訂達成的里程碑、做出文檔的里程碑、`--bind`、待修訂 | pipelines.md「願景、需求與里程碑」「修訂(REV)」「完成度」 |
-| 需求的依賴、新需求的衝突檢查、里程碑綁既有的 pipeline(靠修訂達成的里程碑) | pipelines.md「願景、需求與里程碑」 |
-| 需求達成 / 未達成 / 未知、完成度、里程碑達成 | pipelines.md「完成度」 |
-| 必須達成與不得違反、有沒有做完的一天、全域 Law 與 scope law、law 住哪裡、誰定哪一種、里程碑不管理約束 | laws.md「Law 與需求」 |
-| 領域不變量、`INV-n`、`INV-n#LAW`、准入四條、`lint invariants`、`lint global` | laws.md「全域 Law」 |
-| 要 / 不准 / 不在乎、讓它變假的實作、第一次談約束的四項(資料交互、資料儲存在哪、外部串接方法、軟體架構) | laws.md「Law 怎麼談」 |
+| 願景、優先各級、Constraint(硬性限制與工具要讀的那幾行) | pipelines.md「Cone.md」 |
+| 專案的名詞表(專案根目錄 `CLAUDE.md` 的「## 名詞」節)、型別欄、誰寫 | pipelines.md「名詞」 |
+| 需求、`R-n`、驗收、`R-n#ACCEPT`、優先、里程碑、`M-n`、全名 `M-n-<slug>`、綁定、還沒有切片、需求的依賴 | pipelines.md「願景、需求與里程碑」 |
+| 階段性使用者驗收、里程碑怎麼切、新需求的衝突檢查 | pipelines.md「談需求」 |
+| 靠修訂達成的里程碑、做出文檔的里程碑、`--bind`、待修訂 | pipelines.md「靠修訂達成的里程碑」 |
+| 必須達成與不得違反、全域 Law 與 scope law、law 住哪裡、里程碑不管理約束 | laws.md「Law 與需求」 |
+| 修訂的分流(調整既有的 law / 既有的 law 不動)、一件修訂一個 skill、放棄並整件轉交 | laws.md「分流」 |
+| 領域不變量、`INV-n`、`INV-n#LAW`、`lint invariants`、`lint global` | laws.md「全域 Law」 |
+| 准入四條、從切片裡抽上去(三類各自誰談、誰落筆)、全域的候選、law 只從實作裡抽出來 | laws.md「全域 Law 怎麼長出來」 |
 | 影響範圍、選項、「不改」 | laws.md「影響範圍與選項」 |
 | 全域 Law 的抽上去與變更、明確批准、重新驗證 | laws.md「全域 Law 的變更」 |
-| 從切片裡抽上去(三類各自誰談、誰落筆)、全域的候選、law 只從實作裡抽出來 | laws.md「全域 Law」 |
-| 專案的第一條切片單獨走完 | roles.md「分支與所有權」 |
+| 要 / 不准 / 不在乎、讓它變假的實作、第一次談約束的四項 | laws.md「Law 怎麼談」 |
 | pipeline、stage、`=` 列 / 純的整條、`!` 列 / 進入點、`o` 列 / 觀察點、`kind`、`io`、`subflow` | pipelines.md「pipeline」「frontmatter 與 status」 |
-| 全名、`P-00x#name`、`P-00x#LAW-n`、號段、`owner`、`lint ids` | pipelines.md「編號與引用」 |
-| 引用別條 pipeline 的 stage(「見 <全名>」)、一個 stage 只住一條 pipeline、重複的 stage 留一份 | pipelines.md「編號與引用」;roles.md「整合」 |
+| 全名、`P-00x#name`、`P-00x#LAW-n`、號段、`owner`、`lint ids`、引用別條 pipeline 的 stage、一個 stage 只住一條 pipeline | pipelines.md「編號與引用」 |
 | 簽名逐字、存取子、class 方法、有名字的型別 | pipelines.md「簽名怎麼寫」 |
 | `draft` / `ready` / `verified`、重開 | pipelines.md「frontmatter 與 status」 |
-| Brief、Stages、Laws、law 種類、Examples、決定 | pipelines.md「節」 |
+| Brief、決定 | pipelines.md「節」 |
+| Stages 表、`#` 欄 | pipelines.md「Stages」 |
+| 三行式、law 種類、Examples | pipelines.md「Laws」 |
 | 什麼要有 law、自由度、內部支架、class 法則 | pipelines.md「什麼要有 law」 |
-| REV、依 / 動到 / 保護 / 重委派 / 連動、修訂的分流(調整既有的 law / 既有的 law 不動)、一件修訂一個 skill、放棄並整件轉交、機械同步 | pipelines.md「修訂(REV)」;laws.md「影響範圍與選項」 |
-| 刪 stage、文檔退役 | pipelines.md「修訂(REV)」 |
+| REV、依 / 動到 / 保護 / 重委派 / 連動、機械同步、刪 stage、文檔退役 | pipelines.md「修訂(REV)」 |
 | GAP、`gaps.md` | pipelines.md「提問(GAP)」 |
-| 簽名 m / n、未實作 s、laws g / k、達成 | pipelines.md「完成度」 |
+| 需求的審核六種狀態、驗收記錄、人簽的是當時那份證據 | pipelines.md「需求的達成只有人判得了」 |
+| 簽名 m / n、未實作 s、laws g / k、達成、里程碑達成 | pipelines.md「完成度」 |
 | ADR | pipelines.md「ADR」 |
 | types / effect / core / shell、效果 ADT、匯出清單、架構:四層 | boundary.md「四層」 |
 | 模組單元、原始碼樹、子函式庫、門面、模組前綴、原始碼根目錄 | boundary.md「模組單元」 |
@@ -63,25 +66,30 @@
 | 效果型別、IO 模組、`isEffectful`、純解譯器、真解譯器 | boundary.md「效果的判定」 |
 | 契約:對外 I/O、契約欄、`lint io` | boundary.md「對外 I/O」 |
 | `*.Internal`、後門 | boundary.md「測試與邊界」 |
-| 五個階段、核心 | roles.md「五個階段」 |
-| `plan/` / `build/` 分支、工作樹、建構中、宣告與本體、所有權 | roles.md「分支與所有權」 |
+| 五個階段與它們的核心 | roles.md「流程」;各 SKILL.md 開頭 |
+| `plan/` / `build/` 分支、工作樹、建構中、專案的第一條切片單獨走完 | roles.md「分支」 |
+| 分支上准動與不准動的、宣告歸設計本體歸實作 | roles.md「誰能動什麼」 |
 | spike-impl、conductor、qa、refactor | roles.md「角色」 |
-| 委派、開工 context(`lawful brief`)、指紋、回報六項 | roles.md「委派」;tooling.md「CLI」 |
+| 委派、`model: sonnet`、開工 context(`lawful brief`)、指紋、回報六項 | roles.md「委派」 |
 | 切片、離場四項、走不通、`verdict` | roles.md「切片」 |
 | 首跑、首跑該紅、未實作標記 | roles.md「首跑」 |
 | 驗收測試、`build/R-n`、`build/INV-n` | roles.md「驗收測試」 |
 | 產生器、shrink、覆蓋率、案例數上限 | roles.md「qa 的交付」 |
 | 仲裁四分流 | roles.md「仲裁」 |
+| 收尾、開發者的決定只在五個地方 | roles.md「收尾」 |
 | 決策紀錄、`journal/<鍵>.md`、Decisions、Constraint、Faked / Unverified | roles.md「決策紀錄」 |
 | 整合分支、清單型衝突、合併後紅、仲裁三選項、變更建議、走不通的切片、清理 | roles.md「整合」 |
-| `<L>`、子命令、exit code、`migrate laws`、`migrate cone`、`migrate requirements` | tooling.md「CLI」 |
-| 需求表的「依賴」欄、建構中走到哪一步 | tooling.md「status 報告」 |
+| `<L>`、子命令、exit code、`brief` | tooling.md「CLI」 |
+| 各道 lint 紅在哪 | tooling.md「lint」 |
+| `module`、`claim`、`requirement`、`invariant add` | tooling.md「落筆指令」 |
+| `migrate laws`、`migrate cone`、`migrate requirements` | tooling.md「migrate」 |
+| 需求表的「依賴」欄、建構中走到哪一步、建議路線 | tooling.md「status 報告」 |
 | adapter | tooling.md「language adapter」 |
 | 三道關 | tooling.md「跑東西的紀律」 |
 | 定錨區塊 | tooling.md「收尾定錨」 |
 
 ## 每個 skill 讀什麼
 
-不必查表:每份 SKILL.md 的「開工 context」在載入 skill 的那一刻跑 `lawful brief <skill> [<目標>]`,它要讀的規章節與它在這個專案裡要看的東西(目標 pipeline、逐條狀態、簽名與型別的宣告、types 層、`Cone.md`、需求檔、決策紀錄、分支與工作樹、lint、status 報告,依 skill 而定)一次給齊。哪個 skill 讀哪幾節的表住在 CLI 裡,是唯一來源;`lawful brief <skill>` 印出來的「規章」那一塊就是它。
+不必查表:每份 SKILL.md 的「開工 context」在載入 skill 的那一刻跑 `lawful brief <skill> [<目標>]`,它要讀的規章節與它在這個專案裡要看的東西一次給齊。哪個 skill 讀哪幾節的表住在 CLI 的 `RULES`(`lib/commands/brief.mjs`),是唯一來源;一個 skill 只拿它做決定要用的節。
 
-`<L>` 是 plugin 根目錄,也就是 skill 的基準目錄往上兩層(tooling.md「CLI」);單獨要一節時用 `node "<L>/bin/lawful.mjs" section <檔> <節>…`。
+同一場裡要再查別的節:`node "<L>/bin/lawful.mjs" section <檔> <節>…`,`<L>` 是 skill 的基準目錄往上兩層。

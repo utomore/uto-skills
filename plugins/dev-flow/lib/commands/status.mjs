@@ -371,10 +371,26 @@ export function globalView(design, a, source, adapter, inv = invariantView(desig
   ];
 }
 
-// 每條需求下一條還沒達成的里程碑,如果它還沒綁任何文檔,就是一條可以開的切片(要有英文名才有分支可開)
+// 一份 draft 的文檔的切片在不在:它在某條 build 分支上(切片那一波還沒收),或這棵樹上有它、或綁它的里程碑的決策紀錄。
+// 兩者都沒有 = 它是在切片之外 claim 出來的,`dev-flow:scope-laws` 的前置要決策紀錄,開不了工:該走的是那條里程碑的切片
+export function slicelessDrafts(a, ov, building, design) {
+  const out = new Set();
+  if (!a || !design) return out;
+  for (const x of a.info.values()) {
+    if (x.p.status !== 'draft' || buildKeyOf(x, ov, building)) continue;
+    const keys = new Set([x.p.fullName]);
+    for (const q of ov.reqs) for (const m of q.ms) if (m.binds.includes(x.p.fullName)) keys.add(m.fullName);
+    if (!design.journals.some((j) => keys.has(j.key))) out.add(x.p.fullName);
+  }
+  return out;
+}
+
+// 每條需求下一條還沒達成的里程碑,如果它還沒綁任何文檔、或綁的每一份都是還沒有切片的 draft,就是一條可以開的切片(要有英文名才有分支可開)
 // 專案的第一條切片單獨走完:全域 Law 三區都還是空的、而且已經有一條切片的分支在建構中,別的切片等它(holdKey 是那條分支的鍵,held 是等著的那幾條)
-export function sliceLines(ov, building, design = null) {
-  const next = ov.reqs.map((q) => ({ q, m: q.ms.find((m) => !m.achieved) })).filter((s) => s.m && !s.m.binds.length && s.m.slug);
+export function sliceLines(ov, building, design = null, a = null) {
+  const sliceless = slicelessDrafts(a, ov, building, design);
+  const next = ov.reqs.map((q) => ({ q, m: q.ms.find((m) => !m.achieved) }))
+    .filter((s) => s.m && s.m.slug && (!s.m.binds.length || s.m.binds.every((n) => sliceless.has(n))));
   const open = next.filter((s) => !building.has(s.m.fullName));
   const sys = design ? design.system : null;
   const empty = !!sys && !sys.invariants.length && !sys.layers.length && !sys.io.length;
@@ -537,12 +553,23 @@ export function suggestRoutes(design, a, ov, warnCount, building = new Set(), in
   for (const x of buildable(a, ov)) steps.push(`dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);
   // ready 而程式碼裡沒有宣告:build 對帳會停,先把宣告補回來
   for (const x of a.info.values()) if (x.p.status === 'ready' && !x.achieved && x.missing.length) steps.push(`${missingHint(x)};補上才 dev-flow:build ${x.p.fullName}`);
-  const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
-  for (const x of drafts) steps.push(`dev-flow:scope-laws ${x.p.fullName}(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)`);
+  // draft 照需求的優先排;沒有切片的那幾份 scope-laws 開不了工(它的前置要決策紀錄),線是那條里程碑的切片
+  const sliceless = slicelessDrafts(a, ov, building, design);
+  const slices = sliceLines(ov, building, design, a);
+  const onSliceLine = new Set([...slices.openable, ...slices.held, ...slices.inBuild].map((s) => s.m.fullName));
+  const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft')
+    .sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
+  for (const x of drafts) {
+    if (!sliceless.has(x.p.fullName)) { steps.push(`dev-flow:scope-laws ${x.p.fullName}(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)`); continue; }
+    const m = ov.rank.has(x.p.fullName) ? ov.rank.get(x.p.fullName).m : null;
+    if (m && onSliceLine.has(m.fullName)) continue;
+    steps.push(m
+      ? `dev-flow:spike-impl ${m.fullName}(${x.p.fullName} 還是 draft,而這棵樹沒有它的切片:先做出切片,dev-flow:scope-laws 才開得了工)`
+      : `${x.p.fullName} 還是 draft、沒有切片,也沒有里程碑綁它:dev-flow:require-design 給它一條里程碑再 dev-flow:spike-impl;用不到就 dev-flow:scope-laws ${x.p.fullName} 退役`);
+  }
   // 靠修訂既有的文檔達成、還沒有 REV 引用它的里程碑:每條需求下一條,照需求的優先排
   for (const s of reviseLines(ov, building).openable) steps.push(`${reviseHint(s.m)}(${s.q.id} 優先 ${s.q.priority || '?'} · ${s.m.fullName} ${s.m.title}),之後自動接上 build`);
   // 還沒有切片的里程碑:每條需求下一條,照需求的優先排
-  const slices = sliceLines(ov, building, design);
   for (const s of slices.openable) steps.push(`dev-flow:spike-impl ${s.m.fullName}(${sliceTag(s)})`);
   if (slices.held.length) steps.push(`${firstSliceNote(slices.holdKey)}(等著的:${slices.held.map((s) => s.m.fullName).join('、')})`);
   // 里程碑全部達成、驗收寫了三行卻沒有驗收測試的需求:build 只派 qa 寫那一條
@@ -645,7 +672,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
 
   out.push('', '## 1. 今天能開幾條線');
   const { openable, inBuild, shared } = openLines(a, ov, building);
-  const slices = sliceLines(ov, building, design);
+  const slices = sliceLines(ov, building, design, a);
   const revisions = reviseLines(ov, building);
   if (!openable.length && !slices.openable.length && !revisions.openable.length && !slices.held.length) out.push('- 無');
   for (const x of openable) out.push(`- ${x.p.fullName}:dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);

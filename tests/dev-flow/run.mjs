@@ -663,6 +663,42 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
   }
 }
 
+// 建議路線的 draft:照需求的優先排(優先 1 的在優先 2 的前面),而且只有切片在的那幾份推 scope-laws。
+// claim 了卻沒有決策紀錄、也沒有分支的那一份,推的是綁它的里程碑的切片(scope-laws 的前置要決策紀錄)
+{
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sliceless-'));
+  const templates = path.join(here, '..', '..', 'plugins', 'dev-flow', 'templates');
+  const devflow = (...a) => spawnSync(process.execPath, [bin, ...a, '--root', tmp], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+  fs.mkdirSync(path.join(tmp, '.design', 'journal'), { recursive: true });
+  fs.writeFileSync(path.join(tmp, '.design', 'system.md'), fs.readFileSync(path.join(templates, 'system.md'), 'utf8').replace(/^language: .*$/m, 'language: typescript').replace(/^- 語言:.*$/m, '- 語言:typescript'));
+  fs.copyFileSync(path.join(templates, 'modules.md'), path.join(tmp, '.design', 'modules.md'));
+  devflow('requirement', 'add', 'late-one', '優先 2 的需求', '--priority', '2', '--accept', '看得到', '--date', DATE);
+  devflow('requirement', 'add', 'early-one', '優先 1 的需求', '--priority', '1', '--accept', '看得到', '--date', DATE);
+  devflow('requirement', 'milestone', 'R-1', 'late', '優先 2 那條的里程碑');
+  devflow('requirement', 'milestone', 'R-2', 'early', '優先 1 那條的里程碑');
+  devflow('claim', 'feature', 'late-flow', '--milestone', 'M-1-late', '--date', DATE);
+  devflow('claim', 'feature', 'early-flow', '--milestone', 'M-2-early', '--date', DATE);
+  const journal = (key) => fs.writeFileSync(path.join(tmp, '.design', 'journal', `${key}.md`), `---\nkey: ${key}\nbranch: build/${key}\nverdict: feasible\nupdated: ${DATE}\n---\n`);
+  journal('M-1-late');
+  journal('M-2-early');
+  const route = () => (devflow('status').stdout.split('## 8. 建議路線')[1] || '');
+  const sliced = route();
+  fs.rmSync(path.join(tmp, '.design', 'journal', 'M-1-late.md'));
+  const sliceless = route();
+  const at = (t, s) => t.indexOf(s);
+  const ok = at(sliced, 'dev-flow:scope-laws F-002-early-flow') > -1 && at(sliced, 'dev-flow:scope-laws F-001-late-flow') > -1
+    && at(sliced, 'dev-flow:scope-laws F-002-early-flow') < at(sliced, 'dev-flow:scope-laws F-001-late-flow')
+    && sliceless.includes('dev-flow:scope-laws F-002-early-flow')
+    && !sliceless.includes('dev-flow:scope-laws F-001-late-flow')
+    && /dev-flow:spike-impl M-1-late/.test(sliceless);
+  fs.rmSync(tmp, { recursive: true, force: true });
+  if (!ok) {
+    failed++;
+    console.log('✗ 建議路線的 draft');
+    console.log([sliced, sliceless].join('---'));
+  } else console.log('✓ 建議路線的 draft');
+}
+
 // 看板的頁面兩個 plugin 共用同一份,逐位元組相同;改了一邊就要複製到另一邊
 {
   const mine = path.join(here, '..', '..', 'plugins', 'dev-flow', 'templates', 'status-board.html');

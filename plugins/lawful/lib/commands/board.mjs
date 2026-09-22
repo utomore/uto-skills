@@ -45,7 +45,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   const glob = globalView(design, a, source, adapter, inv);
   const warns = warnings(design, a, ov, source, adapter, stale, inv, glob);
   const route = suggestRoutes(design, a, ov, warns.length, building, inv);
-  const slices = sliceLines(ov, building, design);
+  const slices = sliceLines(ov, building, design, a);
   const revisions = reviseLines(ov, building);
   const { openable, inBuild, shared } = openLines(a, ov, building, design.modules ? design.modules.entries : []);
   const cone = design.cone;

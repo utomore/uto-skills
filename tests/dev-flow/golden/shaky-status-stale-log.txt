@@ -111,7 +111,7 @@ $ devflow status --tests stale.log
 
 ## 8. 建議路線
 1. 先回答 GAP-1、GAP-1(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派
-2. dev-flow:scope-laws F-002-other(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)
+2. F-002-other 還是 draft、沒有切片,也沒有里程碑綁它:dev-flow:require-design 給它一條里程碑再 dev-flow:spike-impl;用不到就 dev-flow:scope-laws F-002-other 退役
 3. dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too(R-4 優先 ? · M-2-score-too 分數也算得出來),之後自動接上 build
 4. dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)
 5. dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)

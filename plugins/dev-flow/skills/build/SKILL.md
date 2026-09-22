@@ -47,7 +47,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 5. **判定**:跑本波子集。有紅走仲裁(`rules/roles.md`「仲裁」):每條紅先歸因到哪條 law 或 example,再照四分流處置;每輪只跑上一輪紅的加子集;同一份三輪仍紅停止並升級。commit。
 6. **驗收測試**(`rules/roles.md`「驗收測試」):本波全綠後 `devflow status --tests <log>`;這份文檔讓某條需求的里程碑全部達成,而那條需求的驗收有三行式卻沒有 `R-n#ACCEPT` 測試,或這條分支上有一條領域不變量有三行式而沒有 `INV-n#LAW` 測試(`dev-flow:global-laws` 從這一片抽上去的)→ 同一條分支再派一次 qa(模板的目標寫 `R-n` 或 `INV-n`;三行原文與它引用到的文檔由 brief 給),測試檔以 `R-n` / `INV-n` 命名。抽上去的那條 law 原本在出處的文檔已經有測試 → 交代這一波的 qa 把那條測試搬進以 `INV-n` 命名的測試檔、歸屬改成 `INV-n#LAW`、產生器與斷言改成只用最內層的匯出,出處的測試檔裡不留它(留著就是幽靈引用)。紅不歸因到某個 step 的實作:開 GAP(角色 conductor,目標 `R-n#ACCEPT` 或 `INV-n#LAW`)停下:需求的驗收紅是里程碑切漏了或驗收寫錯,回 `dev-flow:require-design`;領域不變量紅,照仲裁歸因到違反它的那份文檔,該改的是那條全域 Law 就回 `dev-flow:global-laws`。沒有這種情形就跳過。
 7. **整套一次**:跑整套,輸出留檔,`devflow status --tests <log>`、`devflow lint all`。領域不變量有紅 = 這條分支違反了全專案的規則,照仲裁歸因到是哪一份的實作。
-8. **收尾**(`rules/roles.md`「收尾」):open GAP 清單各附「需要回答什麼」與回答該走哪個 skill(`features.md`「修訂(REV)」那一句分流);qa 與 refactor 自己決定的事整份列出;決策紀錄「Faked / Unverified」逐列對過(換成真的了,或有一條 open GAP);`status` 顯示達成就改 `verified`。照 `templates/journal.md` 寫決策紀錄的「Verification」與「合併時要看」(`rules/roles.md`「決策紀錄」):數字抄 `devflow status --doc <全名>`,動到的檔抄 `git diff --stat <base>..HEAD`,決定抄 qa 與 refactor 的回報。連同所有改動 commit。分支留著給 `dev-flow:integrate`。
+8. **收尾**(`rules/roles.md`「收尾」):open GAP 清單各附「需要回答什麼」與回答該走哪個 skill(`features.md`「修訂(REV)」那一句分流);qa 與 refactor 自己決定的事整份列出;決策紀錄「Faked / Unverified」逐列對過(換成真的了,或有一條 open GAP);`status` 顯示達成就改 `verified`。照 `templates/journal.md` 寫決策紀錄的「Verification」與「合併時要看」(`rules/roles.md`「決策紀錄」):數字抄 `devflow status --doc <全名>`,動到的檔抄 `git diff --stat <base>..HEAD`,決定抄 qa 與 refactor 的回報;「Goal / Scope」「Assumptions & Invariants」「Touched」對回最後的程式碼。連同所有改動 commit。分支留著給 `dev-flow:integrate`。
 
 ## 委派 prompt 模板
 

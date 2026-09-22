@@ -77,7 +77,7 @@
 | 產生器、shrink、覆蓋率、案例數上限 | roles.md「qa 的交付」 |
 | 仲裁四分流 | roles.md「仲裁」 |
 | 收尾、開發者的決定只在五個地方 | roles.md「收尾」 |
-| 決策紀錄、`journal/<鍵>.md`、Decisions、Constraint、Faked / Unverified | roles.md「決策紀錄」 |
+| 決策紀錄、`journal/<鍵>.md`、Decisions、Constraint、Faked / Unverified、開發者推翻了某一列、收尾時對回最後的程式碼 | roles.md「決策紀錄」 |
 | 整合分支、清單型衝突、合併後紅、仲裁三選項、變更建議、走不通的切片、清理 | roles.md「整合」 |
 | `<L>`、子命令、exit code、`brief` | tooling.md「CLI」 |
 | 各道 lint 紅在哪 | tooling.md「lint」 |

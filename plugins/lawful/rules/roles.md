@@ -201,6 +201,11 @@ qa 與 refactor 只做歸因,裁決由 conductor。
 | Verification | 每條 pipeline 的簽名 m / n、觀察點 j / k、laws g / k,與它是不是 `verified`;首跑該紅(scope-laws 寫)與首跑結果;qa 與 refactor 自己決定的事,一條一句;本分支開的 GAP 與「需要回答什麼」;整套在本分支跑的指令、log 路徑、綠紅分佈。契約級決定不在這裡,它們在 pipeline 的「決定」與 REV |
 | 合併時要看 | 與哪些 pipeline 的 stage 住同一個模組、哪些檔別條也可能動、合併後預期什麼會變 |
 
+**決策紀錄寫的是現在的決定,不是切片當下的決定。** 整合照原文抄進 PR 內文,所以每一節都要對得上這條分支最後的樣子:
+
+- 開發者推翻了「Decisions」的某一列(Law 對談與四項對談裡選了別的做法、回答 GAP、批准一條全域 Law 的變更),記下這個決定的 skill 當場改寫那一列:`Decision` 與 `Reason` 換成開發者選的,原本的做法移進「否決的做法」並寫開發者為什麼換,「可逆」「跨文檔」照新的決定重判。不留標著「已被取代」的列。
+- conductor 收尾時把「Goal / Scope」的「做到了什麼」、「Assumptions & Invariants」、「Touched」對回最後的程式碼:「Touched」照 `git diff --stat <base>..HEAD`;被 law 改掉的前提改寫成現在的行為或刪掉;不存在了的模組、型別與對外 I/O 拿掉。
+
 ## 整合
 
 `lawful:integrate` 把達成的分支合成一條整合分支 `integrate/<YYYY-MM-DD>-<slug>`,整套綠了才發 PR。它是唯一發 PR 的出口,主線只透過它前進。整合者是 conductor 的身分:不寫實作、不寫測試、不補 law、不改任何本體,也不改任何一條 law——scope law 與全域 Law 都一樣,它只提出變更建議。

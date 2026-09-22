@@ -61,5 +61,5 @@ $ lawful status --tests test.log
 
 ## 7. 建議路線
 1. lawful:build P-001-report-render(沒有被任何里程碑綁定)
-2. lawful:scope-laws P-003-report-tabulate(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)
+2. P-003-report-tabulate 還是 draft、沒有切片,也沒有里程碑綁它:lawful:require-design 給它一條里程碑再 lawful:spike-impl;用不到就 lawful:scope-laws P-003-report-tabulate 退役
 exit 1

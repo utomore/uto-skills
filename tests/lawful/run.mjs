@@ -562,6 +562,42 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   }
 }
 
+// 建議路線的 draft:照需求的優先排(優先 1 的在優先 2 的前面),而且只有切片在的那幾條推 scope-laws。
+// claim 了卻沒有決策紀錄、也沒有分支的那一條,推的是綁它的里程碑的切片(scope-laws 的前置要決策紀錄)
+{
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sliceless-'));
+  const templates = path.join(here, '..', '..', 'plugins', 'lawful', 'templates');
+  const lawful = (...a) => spawnSync(process.execPath, [bin, ...a, '--root', tmp], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+  fs.mkdirSync(path.join(tmp, '.lawful', 'journal'), { recursive: true });
+  fs.writeFileSync(path.join(tmp, '.lawful', 'Cone.md'), fs.readFileSync(path.join(templates, 'Cone.md'), 'utf8').replace(/^language: .*$/m, 'language: haskell').replace(/^- 語言:.*$/m, '- 語言:haskell'));
+  fs.copyFileSync(path.join(templates, 'modules.md'), path.join(tmp, '.lawful', 'modules.md'));
+  lawful('requirement', 'add', 'late-one', '優先 2 的需求', '--priority', '2', '--accept', '看得到', '--date', DATE);
+  lawful('requirement', 'add', 'early-one', '優先 1 的需求', '--priority', '1', '--accept', '看得到', '--date', DATE);
+  lawful('requirement', 'milestone', 'R-1', 'late', '優先 2 那條的里程碑');
+  lawful('requirement', 'milestone', 'R-2', 'early', '優先 1 那條的里程碑');
+  lawful('claim', 'late-flow', '--kind', 'subflow', '--milestone', 'M-1-late', '--date', DATE);
+  lawful('claim', 'early-flow', '--kind', 'subflow', '--milestone', 'M-2-early', '--date', DATE);
+  const journal = (key) => fs.writeFileSync(path.join(tmp, '.lawful', 'journal', `${key}.md`), `---\nkey: ${key}\nbranch: build/${key}\nverdict: feasible\nupdated: ${DATE}\n---\n`);
+  journal('M-1-late');
+  journal('M-2-early');
+  const route = () => (lawful('status').stdout.split('## 7. 建議路線')[1] || '');
+  const sliced = route();
+  fs.rmSync(path.join(tmp, '.lawful', 'journal', 'M-1-late.md'));
+  const sliceless = route();
+  const at = (t, s) => t.indexOf(s);
+  const ok = at(sliced, 'lawful:scope-laws P-002-early-flow') > -1 && at(sliced, 'lawful:scope-laws P-001-late-flow') > -1
+    && at(sliced, 'lawful:scope-laws P-002-early-flow') < at(sliced, 'lawful:scope-laws P-001-late-flow')
+    && sliceless.includes('lawful:scope-laws P-002-early-flow')
+    && !sliceless.includes('lawful:scope-laws P-001-late-flow')
+    && /lawful:spike-impl M-1-late/.test(sliceless);
+  fs.rmSync(tmp, { recursive: true, force: true });
+  if (!ok) {
+    failed++;
+    console.log('✗ 建議路線的 draft');
+    console.log([sliced, sliceless].join('---'));
+  } else console.log('✓ 建議路線的 draft');
+}
+
 // 看板的頁面兩個 plugin 共用同一份,逐位元組相同;改了一邊就要複製到另一邊
 {
   const mine = path.join(here, '..', '..', 'plugins', 'lawful', 'templates', 'status-board.html');

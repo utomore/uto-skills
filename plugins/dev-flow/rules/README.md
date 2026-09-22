@@ -6,6 +6,7 @@
 - **約束面兩種範圍**:全域 Law(住 `system.md`「全域 Law」一區,三類:領域不變量、架構的層、契約的對外 I/O)與住在一份 feature 裡的 scope law。任何程式碼都受全域 Law 加上它自己那份文檔的 scope law 約束。
 - **做之前就寫的**只有願景、需求(含里程碑)與 `system.md` 的 Constraint(硬性限制;它不是 law,沒有三行也沒有測試)。law 一律從做出來的實作裡抽出來,不在沒有程式碼的時候立。
 - **一條里程碑的一生**都在同一條分支、同一棵工作樹上:`kickoff` → `require-design` → `spike-impl` → `scope-laws`(→ `global-laws`)→ `build` → `integrate`。既有文檔的改動照 laws.md「分流」。
+- **合進主線之後**:上線與否從 git tag 推(`devflow release`);線上壞了由 `dev-flow:incident` 重現、歸因,交給分流指定的 skill。
 - 進度不是欄位,由 `devflow status` 從檔案、程式碼與測試推導。
 
 `rules/` 五份主題規章是每條規則唯一的住處;skill 只寫步驟並用檔名加節名引用,不重述。
@@ -15,8 +16,8 @@
 | `laws.md` | 分流、Law 與需求、全域 Law、全域 Law 怎麼長出來、影響範圍與選項、Law 怎麼談、全域 Law 的變更 |
 | `features.md` | `.design/`、名詞、system.md、願景、需求與里程碑、談需求、靠修訂達成的里程碑、feature、編號與引用、簽名怎麼寫、frontmatter 與 status、節、Steps、Laws、什麼要有 law、修訂(REV)、提問(GAP)、需求的達成只有人判得了、完成度、ADR |
 | `boundary.md` | 層、模組表、IO 模組、匯出、對外 I/O、測試與邊界 |
-| `roles.md` | 流程、分支、誰能動什麼、角色、委派、切片、首跑、驗收測試、qa 的交付、仲裁、測試跑幾次、收尾、決策紀錄、整合 |
-| `tooling.md` | CLI、lint、落筆指令、看板、migrate、status 報告、測試歸屬、language adapter、跑東西的紀律、收尾定錨 |
+| `roles.md` | 流程、分支、誰能動什麼、角色、委派、切片、首跑、驗收測試、qa 的交付、仲裁、測試跑幾次、收尾、決策紀錄、整合、事故 |
+| `tooling.md` | CLI、lint、落筆指令、看板、migrate、status 報告、發布、測試歸屬、language adapter、跑東西的紀律、收尾定錨 |
 
 ## 名詞
 
@@ -69,6 +70,8 @@
 | 各道 lint 紅在哪 | tooling.md「lint」 |
 | `claim`、`requirement`、`invariant add` | tooling.md「落筆指令」 |
 | 建構中走到哪一步、修訂熱點、建議路線 | tooling.md「status 報告」 |
+| 發布、上線、發布行、`devflow release`、已驗收而還沒上線 | tooling.md「發布」 |
+| 事故、重現、使用者手上的那一版、歸因、會紅的測試只活在 build 分支上 | roles.md「事故」 |
 | 測試歸屬的兩種寫法 | tooling.md「測試歸屬」 |
 | adapter | tooling.md「language adapter」 |
 | 三道關 | tooling.md「跑東西的紀律」 |

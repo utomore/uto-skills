@@ -92,6 +92,7 @@ $ devflow status --json
       "state": "未知",
       "evidence": null,
       "signoff": null,
+      "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
         "看「任何輸入分數不為負」成不成立"
@@ -125,6 +126,7 @@ $ devflow status --json
         "by": "dev@example.com",
         "evidence": "當時兩個數字都看得到"
       },
+      "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
         "M-1 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
@@ -165,6 +167,7 @@ $ devflow status --json
       "state": "未知",
       "evidence": "里程碑 0 / 1 達成",
       "signoff": null,
+      "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
         "M-4-entry 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
@@ -205,6 +208,7 @@ $ devflow status --json
       "state": "建構中",
       "evidence": "里程碑 0 / 1 達成",
       "signoff": null,
+      "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
         "M-5-third 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
@@ -245,6 +249,7 @@ $ devflow status --json
       "state": "未達成",
       "evidence": "里程碑 0 / 3 達成",
       "signoff": null,
+      "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
         "M-1 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
@@ -315,6 +320,7 @@ $ devflow status --json
       "state": "建構中",
       "evidence": "里程碑 0 / 1 達成",
       "signoff": null,
+      "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
         "M-2-score-too 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",

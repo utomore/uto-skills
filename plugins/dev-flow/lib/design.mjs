@@ -157,16 +157,19 @@ export function readSystem(designDir, root) {
   const vocab = [];
   const ignoreDirs = [];
   let priorityNote = '';
+  let releaseTags = '';
   let ranges = { ranges: [], errors: [], line: 0 };
   if (tools) {
     for (const it of parseList(tools.lines)) {
-      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|Laws 詞彙追加|忽略目錄|優先|號段)[::]\s*(.*)$/.exec(it.text);
+      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|Laws 詞彙追加|忽略目錄|優先|號段|發布)[::]\s*(.*)$/.exec(it.text);
       if (!m) continue;
       const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
       if (m[1] === 'IO 模組追加') ioExtra.push(...list());
       else if (m[1] === 'Laws 詞彙追加') vocab.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
       else if (m[1] === '優先') priorityNote = m[2].trim();   // 一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼
+      // 一行「發布:`v*`」:哪些 git tag 算一次發布(git tag --list 的樣式);沒寫、「無」或佔位符 = 每個 tag 都算
+      else if (m[1] === '發布') { const v = stripTicks(m[2].trim()); releaseTags = !v || v === '無' || hasPlaceholder(v) ? '' : v; }
       else if (m[1] === '號段') ranges = { ...parseRanges(m[2]), line: tools.start + tools.lines.findIndex((l) => /^- 號段/.test(l)) + 2 };
       else commands[m[1]] = sidedCommand(m[2]);
     }
@@ -293,6 +296,7 @@ export function readSystem(designDir, root) {
     priorityNote,
     priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok',
     commands,
+    releaseTags,
     ioExtra,
     vocab,
     ignoreDirs,

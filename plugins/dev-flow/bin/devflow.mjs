@@ -10,6 +10,7 @@ import { sectionCommand } from '../lib/commands/section.mjs';
 import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/commands/brief.mjs';
 import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
+import { releaseReport } from '../lib/commands/release.mjs';
 import { claim, invariantAdd, milestoneAdd, milestoneVerify, modulesGen, requirementAccept, requirementAdd, sync } from '../lib/commands/edit.mjs';
 import { migrate, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
 
@@ -22,6 +23,9 @@ const HELP = `devflow <子命令> [選項]
   status --module <路徑或 目錄/**>     住在該檔案或目錄的所有 step 的狀態
   status --json                        同一份報告的資料原樣輸出,給別的工具讀
   status --html [檔名] [--open]        報告照印,另外把它畫成看板寫成自帶資料的單檔網頁(沒給檔名就寫暫存區),附上 file:// 網址;--open 直接用瀏覽器打開
+  release [--tests <log> | --run]      每條需求上線了沒:它用到的每份文檔,程式碼在主線上最新的 commit 都進了同一個發布的 tag,最早的那一個就是它上線的版本;
+                                       發布的 tag 是 system.md「Constraint」的「發布」行選的(git tag --list 的樣式),沒寫就每個 tag 都算;
+                                       證據還沒齊的需求不問上線;另列已驗收而還沒上線的需求,與每個發布帶上線的需求。唯讀;不是 git repo 的根 exit 1
   claim feature|adr <slug> [--description <句>] [--milestone <M-n-slug>]
                                        鑄號建檔;feature 另在 system.md Features 表加一列並綁進 --milestone 那條里程碑(給全名 M-n-<slug>)
                                        配號看同一個 repo 的每一棵工作樹,別條 build 分支上 claim 走的號不重配
@@ -70,7 +74,7 @@ const HELP = `devflow <子命令> [選項]
   --root <dir>                         專案根目錄(預設目前目錄)
   --date <YYYY-MM-DD>                  claim / requirement add / sync / migrate requirements 寫進檔的日期(預設今天)
 
-exit code:status 盤點 = 全部達成 0、否則 1;status --doc / --module = 查得到 0;lint 通過 0、有不合規 1。
+exit code:status 盤點 = 全部達成 0、否則 1;status --doc / --module = 查得到 0;release = 是 git repo 的根 0;lint 通過 0、有不合規 1。
 adapter:${adapterNames.join(', ')};system.md 的 language 欄選,一種語言寫它的名字,前後端各一種語言的專案寫 [<目錄> = <adapter>, <目錄> = <adapter>]。`;
 
 function parseArgs(argv) {
@@ -172,7 +176,7 @@ function main() {
       const testsFlag = !opt.tests ? null : opt.tests.includes('=') ? opt.tests : path.resolve(opt.root, opt.tests);
       const { results, note: rawNote } = loadResults(q.design, q.adapter, { tests: testsFlag, run: false }, opt.root);
       const { building, stale, phases } = branchState(opt.root, phaseOf);
-      return statusReport(q.design, q.source, q.adapter, results, testsFlag ? rawNote.replace(testsFlag, opt.tests) : rawNote, building, stale, phases).text;
+      return statusReport(q.design, q.source, q.adapter, results, testsFlag ? rawNote.replace(testsFlag, opt.tests) : rawNote, building, stale, phases, opt.root).text;
     };
     emit(briefCommand(opt.root, has('design'), has('source'), has('adapter'), sub, opt.target, { fingerprint: opt.fingerprint, noRules: opt.noRules, statusText, part: Number(args.flags.part) || 0, of: Number(args.flags.of) || 0 }));
     return 0;
@@ -200,20 +204,26 @@ function main() {
     return emit(renderLint(results));
   }
 
-  if (cmd === 'status') {
+  if (cmd === 'status' || cmd === 'release') {
     const testsFlag = !args.flags.tests ? null : String(args.flags.tests).includes('=') ? String(args.flags.tests) : path.resolve(root, args.flags.tests);
     const { results, note: rawNote } = loadResults(design, adapter, { tests: testsFlag, run: !!args.flags.run }, root);
     const note = testsFlag ? rawNote.replace(testsFlag, args.flags.tests) : rawNote;
+    // 需求審核到哪一步要看驗收測試的紅綠,所以 release 與 status 讀同一份測試輸出
+    if (cmd === 'release') {
+      const r = releaseReport(root, design, source, adapter, results);
+      if (r.exitCode === 0) r.text = r.text.replace('\n', `\n· ${note}\n`);
+      return emit(r);
+    }
     if (args.flags.doc) return emit(docDetail(design, source, adapter, results, note, args.flags.doc));
     if (args.flags.module) return emit(moduleDetail(design, source, adapter, results, note, args.flags.module));
     const { building, stale, phases } = branchState(root, phaseOf);
     if (args.flags.json) {
-      const data = statusJson(design, source, adapter, results, note, building, stale);
+      const data = statusJson(design, source, adapter, results, note, building, stale, root);
       console.log(JSON.stringify(data, null, 2));
       return data.route.allDone && data.summary.docs ? 0 : 1;
     }
     // --html 是額外產出,不取代報告:同一次呼叫先印報告,最後附看板的網址
-    const report = statusReport(design, source, adapter, results, note, building, stale, phases);
+    const report = statusReport(design, source, adapter, results, note, building, stale, phases, root);
     if (args.flags.html) {
       const b = statusBoard(design, source, adapter, results, note, building, root, args.flags.html, !!args.flags.open, stale);
       report.text += `\n\n${b.text}`;

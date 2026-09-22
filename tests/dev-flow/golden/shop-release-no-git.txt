@@ -1,0 +1,3 @@
+$ devflow release --tests test.log
+專案根目錄不是 git repo 的根:上線與否從 git tag 推,沒有 git 就講不出來
+exit 1

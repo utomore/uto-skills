@@ -211,7 +211,7 @@ updated: 2026-09-07
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
 |---|---|---|---|---|---|---|---|---|---|
 | F-001-score | feature | verified | 7 | 4 | 1 | 2 | 0/1 | 1 | 卡 GAP-1、GAP-1 |
-| F-002-other | feature | draft | 3 | 2 | 0 | 1 | 0/0 | 0 | 進行中 |
+| F-002-other | feature | draft | 3 | 2 | 0 | 1 | 0/0 | 0 | 1 個 step 對不上程式碼 |
 
 #### 1. 今天能開幾條線
 - M-2-score-too:dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too(R-4 優先 ? · 分數也算得出來)

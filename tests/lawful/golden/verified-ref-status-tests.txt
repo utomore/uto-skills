@@ -23,7 +23,7 @@ $ lawful status --tests test.log
 ## pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|---|
-| P-001-report-render | io | ready | 3 | 3 | 1 | 1 | 0/0 | 進行中 |
+| P-001-report-render | io | ready | 3 | 3 | 1 | 1 | 0/0 | 等 M-4-tally-unicode |
 | P-002-count-tally | io | verified | 2 | 2 | 0 | 1 | 1/1 | 達成 |
 
 ## 模組
@@ -35,11 +35,10 @@ $ lawful status --tests test.log
 - 還沒有任何 stage 住進去的單元:App.Token
 
 ## 1. 今天能開幾條線
-- P-001-report-render:lawful:build P-001-report-render(R-1 優先 1 · M-2-report-render 報表印得出來)
 - M-4-tally-unicode:lawful:scope-revise P-002-count-tally(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 lawful:scope-laws),REV 的依欄寫 M-4-tally-unicode(R-1 優先 1 · 全形字也算一個字)
 
 ## 2. 卡住的
-- 無
+- P-001-report-render 等 M-4-tally-unicode(R-1 的里程碑照順序走,M-2-report-render 排在它後面)
 
 ## 3. 等決定
 - 無
@@ -57,6 +56,5 @@ $ lawful status --tests test.log
 | 全域 Law:契約 | lint io 1 條不合規 | lawful lint io |
 
 ## 7. 建議路線
-1. lawful:build P-001-report-render(R-1 優先 1 · M-2-report-render 報表印得出來)
-2. lawful:scope-revise P-002-count-tally(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 lawful:scope-laws),REV 的依欄寫 M-4-tally-unicode(R-1 優先 1 · M-4-tally-unicode 全形字也算一個字),之後自動接上 build
+1. lawful:scope-revise P-002-count-tally(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 lawful:scope-laws),REV 的依欄寫 M-4-tally-unicode(R-1 優先 1 · M-4-tally-unicode 全形字也算一個字),之後自動接上 build
 exit 1

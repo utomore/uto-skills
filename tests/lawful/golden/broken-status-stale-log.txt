@@ -56,6 +56,7 @@ $ lawful status --tests stale.log
 ## 2. 卡住的
 - P-001#LAW-1 停在 GAP-1(qa 提)
 - P-001#toSave 停在 GAP-1(impl 提)
+- P-001-game-save 的 decode(不一致)、compress(找不到)、checksum(找不到)、go(找不到)、misroute(不一致)、ghostView(找不到) 與程式碼對不上:寫這條的 skill 補宣告(切片那一波 lawful:scope-laws;修訂新增的 stage lawful:scope-revise,本體標成未實作)
 
 ## 3. 等決定
 - R-5 待審核:玩家在遊戲裡翻得到每一份存檔
@@ -118,7 +119,7 @@ $ lawful status --tests stale.log
 
 ## 7. 建議路線
 1. 先回答 GAP-1、GAP-1(答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws),卡住的 stage 才能重派
-2. lawful:build P-001-game-save(R-1 優先 1 · M-1-game-save 存檔寫得出檔案)
+2. P-001-game-save 的 decode(不一致)、compress(找不到)、checksum(找不到)、go(找不到)、misroute(不一致)、ghostView(找不到) 與程式碼對不上:寫這條的 skill 補宣告(切片那一波 lawful:scope-laws;修訂新增的 stage lawful:scope-revise,本體標成未實作);補上才 lawful:build P-001-game-save
 3. lawful:spike-impl M-7-save-browse(R-5 優先 2 · 存檔清單翻得到每一份)
 4. lawful:spike-impl M-5-save-list(R-9 優先 3 · 存檔列得出來)
 5. lawful:spike-impl M-1-load-report(R-2 優先 ? · 壞檔回報位置)

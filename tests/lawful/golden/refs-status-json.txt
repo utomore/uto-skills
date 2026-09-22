@@ -453,6 +453,8 @@ $ lawful status --json
       "blockedBy": [
         "P-002-syntax-parse"
       ],
+      "missing": [],
+      "heldBy": null,
       "modules": [
         "App.Cli",
         "App.Cli.Main"
@@ -560,6 +562,8 @@ $ lawful status --json
         "P-001-cli-run"
       ],
       "blockedBy": [],
+      "missing": [],
+      "heldBy": null,
       "modules": [
         "App.Syntax.Token",
         "App.Syntax"
@@ -653,6 +657,8 @@ $ lawful status --json
       "refs": [],
       "referrers": [],
       "blockedBy": [],
+      "missing": [],
+      "heldBy": null,
       "modules": [
         "App.Syntax.Token",
         "App.Canon"
@@ -732,8 +738,7 @@ $ lawful status --json
   "route": {
     "steps": [
       "lawful:build P-002-syntax-parse(R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號)",
-      "lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)",
-      "lawful:build P-001-cli-run(R-1 優先 1 · M-2-cli-run 整條跑完)"
+      "lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)"
     ],
     "note": null,
     "allDone": false

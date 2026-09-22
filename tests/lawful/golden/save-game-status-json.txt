@@ -470,6 +470,8 @@ $ lawful status --json --tests test.log
       "refs": [],
       "referrers": [],
       "blockedBy": [],
+      "missing": [],
+      "heldBy": null,
       "modules": [
         "Game.Save.Project",
         "Game.Save.Codec",

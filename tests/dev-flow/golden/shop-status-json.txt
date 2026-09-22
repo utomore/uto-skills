@@ -438,6 +438,8 @@ $ devflow status --json --tests test.log
         "F-002-refund"
       ],
       "blockedBy": [],
+      "missing": [],
+      "heldBy": null,
       "modules": [
         "src/app/checkout.ts",
         "src/domain/money.ts",
@@ -645,6 +647,8 @@ $ devflow status --json --tests test.log
       ],
       "referrers": [],
       "blockedBy": [],
+      "missing": [],
+      "heldBy": null,
       "modules": [
         "src/app/refund.ts",
         "src/entry/routes.ts"

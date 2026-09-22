@@ -170,5 +170,5 @@ updated: 2026-09-05
 - P-002-count-tally ← P-001-report-render
 
 #### 7. 建議路線
-2. lawful:scope-revise P-002-count-tally(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 lawful:scope-laws),REV 的依欄寫 M-4-tally-unicode(R-1 優先 1 · M-4-tally-unicode 全形字也算一個字),之後自動接上 build
+1. lawful:scope-revise P-002-count-tally(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 lawful:scope-laws),REV 的依欄寫 M-4-tally-unicode(R-1 優先 1 · M-4-tally-unicode 全形字也算一個字),之後自動接上 build
 exit 0

@@ -669,6 +669,12 @@ $ devflow status --json
       "blockedBy": [
         "F-002-other"
       ],
+      "missing": [
+        "weigh",
+        "missingStep",
+        "helperOnly"
+      ],
+      "heldBy": null,
       "modules": [
         "src/domain/rule.ts",
         "src/app/store.ts",
@@ -780,7 +786,7 @@ $ devflow status --json
       "kind": "feature",
       "status": "draft",
       "description": "另一份 feature,F-001 引用它,也與它各寫了一條同名的 step",
-      "state": "進行中",
+      "state": "1 個 step 對不上程式碼",
       "achieved": false,
       "building": false,
       "requirement": null,
@@ -835,6 +841,10 @@ $ devflow status --json
         "F-001-score"
       ],
       "blockedBy": [],
+      "missing": [
+        "helperOnly"
+      ],
+      "heldBy": null,
       "modules": [
         "src/domain/rule.ts",
         "src/app/store.ts"

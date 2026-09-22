@@ -6,6 +6,7 @@ import { matchModule, matchesPattern, STATUSES, compareSignature as cmpSig } fro
 import { findSignature } from '../source.mjs';
 import { lintBoundary, lintInvariants, lintIo } from './lint.mjs';
 import { worktrees } from './edit.mjs';
+import { pendingText, releaseView, releaseWord } from './release.mjs';
 
 export function analyze(design, source, adapter, results) {
   const markers = new Map();
@@ -73,7 +74,7 @@ export function analyze(design, source, adapter, results) {
   return { info, openGaps, markers, lawTest };
 }
 
-function gitLines(root, cmd) {
+export function gitLines(root, cmd) {
   try {
     return execSync(cmd, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
       .split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
@@ -83,7 +84,7 @@ function gitLines(root, cmd) {
 }
 
 // 主線的參照:clone 設好的 origin/HEAD 優先,再退到常見的名字;都解不到就沒有基準
-function mainRef(root) {
+export function mainRef(root) {
   const head = gitLines(root, 'git symbolic-ref --quiet --short refs/remotes/origin/HEAD');
   if (head && head[0]) return head[0];
   for (const ref of ['origin/main', 'origin/master', 'main', 'master']) {
@@ -568,11 +569,13 @@ export function counts(design, a, ov, inv = invariantView(design, a)) {
   };
 }
 
-export function statusReport(design, source, adapter, results, resultNote, building = new Set(), stale = new Set(), phases = new Map()) {
+// root:專案根目錄;是 git repo 的根才從 git tag 推每條需求上線了沒(release.mjs),其餘一律印「-」
+export function statusReport(design, source, adapter, results, resultNote, building = new Set(), stale = new Set(), phases = new Map(), root = null) {
   const a = analyze(design, source, adapter, results);
   const out = [];
   const features = design.features.map((f) => f.fullName);
   const ov = requirementView(design, a);
+  const rel = releaseView(root, design, a, ov);
   const inv = invariantView(design, a);
   const n = counts(design, a, ov, inv);
   const todo = n.todo;
@@ -589,8 +592,8 @@ export function statusReport(design, source, adapter, results, resultNote, build
   else if (!ov.reqs.length) out.push('- 沒有任何需求;dev-flow:require-design 談第一條');
   else {
     if (sys.priorityNoteState === 'ok') out.push(`- 優先:${sys.priorityNote}`);
-    out.push('| 需求 | 優先 | 一句話 | 審核 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |', '|---|---|---|---|---|---|---|---|');
-    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '(沒填)'} | ${q.title} | ${q.state}(${q.source}) | ${q.dependsOn.join('、') || '-'} | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} |`);
+    out.push('| 需求 | 優先 | 一句話 | 審核 | 上線 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |', '|---|---|---|---|---|---|---|---|---|');
+    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '(沒填)'} | ${q.title} | ${q.state}(${q.source}) | ${releaseWord(rel, q.id)} | ${q.dependsOn.join('、') || '-'} | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} |`);
     for (const q of ov.reqs) {
       const next = q.ms.find((m) => !m.achieved);
       // 靠修訂達成的那一份:還沒有 REV 引用這條里程碑是「待修訂」,有了就看文檔自己走到哪
@@ -664,6 +667,11 @@ export function statusReport(design, source, adapter, results, resultNote, build
     out.push(`  - 證據:${q.evidence || '無'}`);
     out.push(`  - 怎麼驗:${verifySteps(design, q).join(' → ')}`);
     out.push(`  - 認可:devflow requirement accept ${q.id} --by <你的 email> --evidence "<憑什麼認的,一句>"`);
+  }
+  // 已驗收而還沒上線:人認了,使用者還沒拿到;要不要、什麼時候發布是人的決定
+  if (rel) for (const q of ov.reqs.filter((x) => x.state === SIGNED && rel.get(x.id).pending.length)) {
+    deciding++;
+    out.push(`- ${q.id} 已驗收而還沒上線:${pendingText(rel.get(q.id))};要不要發布由開發者決定,發布是打一個${rel.pattern ? `符合 \`${rel.pattern}\` 的` : ''} tag(devflow release 列每個發布帶上線的需求)`);
   }
   for (const g of a.openGaps) {
     deciding++;

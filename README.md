@@ -4,7 +4,7 @@ Claude Code 的 plugin marketplace:**spec 驅動開發**與**演講內容產生*
 
 | Plugin | 用途 | Skills | CLI |
 |---|---|---|---|
-| [dev-flow](#dev-flow) | 一般程式語言專案的需求導向開發:先貫通切片,再談 Law、寫測試、調整實作 | 13 | `devflow` |
+| [dev-flow](#dev-flow) | 一般程式語言專案的需求導向開發:先貫通切片,再談 Law、寫測試、調整實作 | 14 | `devflow` |
 | [lawful](#lawful) | Haskell 這類純函數式專案(functional core / imperative shell)的需求導向開發,流程與 dev-flow 相同 | 14 | `lawful` |
 | [talk-flow](#talk-flow) | Marp 投影片的主軸、段落、實作與審查 | 6 | — |
 
@@ -94,6 +94,8 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 - 修訂(`scope-revise`):既有的 law 一條都不動,改 `verified` 文檔的簽名、型別、模組與層的歸屬、描述,或做一條靠修訂這份文檔達成的里程碑(效能、大小這類實作品質,或新的承諾);可以新增 law(保護用的、新的上界、新 step 的)。攤影響範圍、開發者確認、重開、留 REV、自動接上 build,收尾時原有的每條 law 仍然綠、文檔回到 `verified`。非調整既有的 law 不可就放棄並還原,替開發者寫好一行 `/dev-flow:scope-laws <全名> <原因>`,整件交過去。
 - 建構(`build`)由 conductor 帶兩個互不可見的角色:`qa` 只讀文檔寫測試;conductor 在現有的程式碼上驗首跑(該紅的紅、該綠的綠);`refactor` 不讀測試,調整或整份重寫實作直到每條 law 成立。互不依賴的需求,里程碑同時各開一條。
 - 整合(`integrate`)是唯一發 PR 的出口:每一條 law 都仍然成立才發;兩條分支的 law 互斥時不改碼,拿縮小後的反例問開發者三選一(以 A 為主 / 收窄定義域 / 提煉上層 Law);兩條分支各寫了一份同樣的 step 時問開發者留哪一份,另一份退回由 `scope-laws` 改成引用;它不改任何一條 law,只提變更建議,批准的 scope law 由 `scope-laws`、全域 Law 由 `global-laws` 落筆;不可逆又跨文檔的權衡升成 ADR。
+- 發布:打一個 git tag 就是發布,哪些 tag 算由 `system.md`「Constraint」的「發布」行選。一條需求上線 = 它用到的每份文檔,程式碼在主線上最新的 commit 都進了同一個發布的 tag;`devflow release` 與 `status` 需求表的「上線」欄從 git 推,已驗收而還沒上線的需求在 `status`「等決定」點名。
+- 事故(`incident`):線上壞了,把現象整理成一組輸入與輸出,在使用者手上的那一版(那條需求上線的 tag)重現、在主線上再跑一次,沿對外 I/O 與 Steps 歸因到哪個 step、哪條 law,照分流交棒——law 對而產生器沒涵蓋到的、沒有 law 守著的走 `scope-revise`(新增 example 或 law,首跑該紅),law 本身講錯的走 `scope-laws`,全域 Law 本身講錯的走 `global-laws`,驗收講錯的走 `require-design`。它不寫測試也不修;會紅的測試由 build 的 qa 從文檔寫、只活在 build 分支上,主線上的測試一律是綠的。
 - 隨時可跑:`status` 派工報告、`audit` 稽核、`study` 專案導讀。
 
 ### Skills
@@ -113,6 +115,7 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 | `/audit` | 四段稽核:對帳、需求與里程碑(含里程碑是不是看得到的階段、law 是不是只在描述程式碼、全域 Law 有沒有膨脹)、穩定度、安全度,產出「哪裡 / 什麼事 / 怎麼辦」表 |
 | `/study` | 六層縮放的專案導讀:全景 → 架構 → 理念 → 資料結構 → trace → 細讀,每個結論附 `檔案:行號` |
 | `/integrate` | 唯一發 PR 的出口:清理已合的、盤點候選、逐條 merge、每條 law 仍成立才發;law 互斥時仲裁、寫 ADR;不改任何一條 law,全域 Law 只提變更建議;標題英文、內文繁中 |
+| `/incident` | 事故入口:現象整理成輸入與輸出,在使用者手上的那一版重現、主線上再跑一次,歸因到哪個 step 與哪條 law,照分流交給 `scope-revise` / `scope-laws` / `global-laws` / `require-design`;不寫測試、不改程式碼、不改文檔 |
 
 ### `.design/` 結構
 
@@ -135,7 +138,8 @@ marketplace 是 git 來源,Claude Code 以 commit 判斷更新;dev-flow 與 lawf
 
 | 子命令 | 做什麼 |
 |---|---|
-| `status [--tests <log> \| --run]` | 派工報告;建構中的分支從它的工作樹讀出走到哪一步;全域 Law 三個小區都還是空的、而且已經有一條切片在建構中時,不列別的切片,改印「專案的第一條切片單獨走完」那一句;`--doc` / `--module` 追問單份文檔或單一檔案;`--json` 給工具讀;`--html` 畫成看板 |
+| `status [--tests <log> \| --run]` | 派工報告;建構中的分支從它的工作樹讀出走到哪一步;全域 Law 三個小區都還是空的、而且已經有一條切片在建構中時,不列別的切片,改印「專案的第一條切片單獨走完」那一句;`--doc` / `--module` 追問單份文檔或單一檔案;`--json` 給工具讀;`--html` 畫成看板;需求表的「上線」欄從 git tag 推 |
+| `release [--tests <log> \| --run]` | 每條需求上線了沒(上線在哪個發布的 tag、還沒進 tag 的是哪幾份文檔與它們的 commit)、已驗收而還沒上線的需求、每個發布帶上線的需求;唯讀 |
 | `claim feature\|adr <slug>` | 鑄號建檔;feature 另加進 Features 表並綁進 `--milestone`;配號看同一個 repo 的每一棵工作樹 |
 | `requirement add` / `milestone` | 鑄 `R-n` 建需求檔 `requirements/R-n-<slug>.md` / 鑄 `M-n-<slug>` 接在該需求的里程碑表最後,`--bind` 既有的 feature 就是靠修訂達成的里程碑 |
 | `invariant add` | 鑄 `INV-n` 寫進 `system.md`「全域 Law」區的領域不變量 |

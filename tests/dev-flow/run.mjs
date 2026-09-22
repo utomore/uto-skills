@@ -23,6 +23,9 @@ const CASES = [
   ['shop-status-doc-ref', 'shop', ['status', '--doc', 'F-002-refund', '--tests', 'test.log']],
   ['shop-status-module', 'shop', ['status', '--module', 'src/domain/**', '--tests', 'test.log']],
   ['shop-status-json', 'shop', ['status', '--json', '--tests', 'test.log']],
+  // 上線從 git tag 推:夾具不是 git repo 的根,release 講不出來而 exit 1;真的開一個 repo 的檢查在後面
+  ['shop-release-no-git', 'shop', ['release', '--tests', 'test.log']],
+  ['shop-brief-incident', 'shop', ['brief', 'incident', '--args', 'F-002-refund 退款金額多退了 --no-rules']],
   ['shop-section', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', 'Laws']],
   ['shop-section-verify', 'shop', ['section', '.design/features/F-001-checkout.md', 'Brief', '沒有的節', '--verify']],
   ['shop-claim-feature', 'shop', ['claim', 'feature', 'ship', '--description', '把已付款的訂單交給物流', '--milestone', 'M-2-refund', '--date', DATE], ['.design/features/F-003-ship.md', '.design/system.md', '.design/requirements/R-1-money-correct.md']],
@@ -227,7 +230,7 @@ for (const [name, fixture, argv, files, env] of CASES) {
 }
 
 const h = spawnSync(process.execPath, [bin, '--help'], { encoding: 'utf8' });
-if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || /requirement refinement/.test(h.stdout) || /refinement|RF-/i.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout)) {
+if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/.test(h.stdout) || !/requirement add/.test(h.stdout) || /requirement refinement/.test(h.stdout) || /refinement|RF-/i.test(h.stdout) || !/invariant add/.test(h.stdout) || !/requirement milestone <R-n> <slug>/.test(h.stdout) || /objective (add|milestone|refinement)/.test(h.stdout) || /^\s+spike\b/m.test(h.stdout) || !/brief <skill>/.test(h.stdout) || !/migrate requirements/.test(h.stdout) || !/migrate laws/.test(h.stdout) || !/invariants \| global/.test(h.stdout) || !/^  release \[--tests/m.test(h.stdout)) {
   failed++;
   console.log('✗ --help');
 } else console.log('✓ --help');
@@ -616,6 +619,47 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
       console.log('✗ 靠修訂達成的里程碑的工作樹');
       console.log([before, opened, revised, inTree].map((t) => t.split('\n').filter((l) => /M-4-checkout-fast/.test(l)).join('\n')).join('\n---\n'));
     } else console.log('✓ 靠修訂達成的里程碑的工作樹');
+  }
+}
+
+// 上線:已驗收的需求,它用到的每份文檔在主線上最新的 commit 都進了同一個發布的 tag。
+// 沒有 tag 是未上線(status 第 3 段點名);打了 tag 是那個 tag;tag 之後又改了那幾個檔,回到未上線;「發布」行的樣式以外的 tag 不算
+{
+  const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
+  if (!hasGit) console.log('· 沒有 git,跳過上線的檢查');
+  else {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'release-'));
+    const main = path.join(base, 'repo');
+    const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
+    const devflow = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+    fs.cpSync(path.join(here, 'fixtures', 'shop'), main, { recursive: true });
+    const sysFile = path.join(main, '.design', 'system.md');
+    fs.writeFileSync(sysFile, fs.readFileSync(sysFile, 'utf8').replace(/^- 優先:/m, '- 發布:`v*`\n- 優先:'));
+    git(main, 'init', '-b', 'main');
+    git(main, 'add', '-A');
+    git(main, 'commit', '-m', 'base');
+    const ROW = (word) => `| R-1 | 1 | 每一筆結帳與退款的金額都算對 | 已驗收(2026-09-07 dev@example.com) | ${word} |`;
+    const untagged = devflow(main, 'status', '--tests', 'test.log').stdout;
+    git(main, 'tag', 'rc-1');
+    const rcOnly = devflow(main, 'release', '--tests', 'test.log');
+    git(main, 'tag', 'v1.0.0');
+    const tagged = devflow(main, 'release', '--tests', 'test.log');
+    const taggedStatus = devflow(main, 'status', '--tests', 'test.log').stdout;
+    const refund = path.join(main, 'src', 'app', 'refund.ts');
+    fs.appendFileSync(refund, '\n// 改過\n');
+    git(main, 'commit', '-am', 'change refund');
+    const changed = devflow(main, 'release', '--tests', 'test.log');
+    fs.rmSync(base, { recursive: true, force: true });
+    const ok = untagged.includes(ROW('未上線')) && /^- R-1 已驗收而還沒上線:F-001-checkout\(最新的 commit [0-9a-f]{7} 還沒進發布的 tag\)、F-002-refund/m.test(untagged)
+      && rcOnly.status === 0 && rcOnly.stdout.includes('符合 `v*` 的共 0 個') && rcOnly.stdout.includes('| R-1 | 每一筆結帳與退款的金額都算對 | 已驗收 | 未上線 |')
+      && tagged.stdout.includes('| R-1 | 每一筆結帳與退款的金額都算對 | 已驗收 | v1.0.0 | - |') && tagged.stdout.includes('- v1.0.0:R-1 每一筆結帳與退款的金額都算對')
+      && taggedStatus.includes(ROW('v1.0.0')) && !taggedStatus.includes('已驗收而還沒上線')
+      && /\| 已驗收 \| 未上線 \| F-002-refund\(最新的 commit [0-9a-f]{7} 還沒進發布的 tag\) \|/.test(changed.stdout) && !/F-001-checkout\(最新的 commit/.test(changed.stdout);
+    if (!ok) {
+      failed++;
+      console.log('✗ 上線');
+      console.log([untagged, rcOnly.stdout, tagged.stdout, taggedStatus, changed.stdout].map((t) => t.split('\n').filter((l) => /R-1|上線|符合|v1\.0\.0/.test(l)).join('\n')).join('\n---\n'));
+    } else console.log('✓ 上線');
   }
 }
 

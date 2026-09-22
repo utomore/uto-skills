@@ -30,7 +30,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 | 情形 | 輸入 | 產出 |
 |---|---|---|
 | **切片剛做完**(主場景) | 里程碑全名 `M-n-<slug>`(它的 `build/` 工作樹上有一條 `verdict: feasible` 的切片與它的決策紀錄),或這條里程碑底下一份還是 `draft` 的 feature 全名 | 一份或幾份 `ready` 的 `features/F-00x-<slug>.md`,綁在這條里程碑上;四項討論的結論(寫成 law、記進「決定」、寫成對外 I/O 表的新列、或列成給 `dev-flow:global-laws` 的候選);全域的候選清單;決策紀錄「Verification」的「首跑該紅」;然後有候選先接上 `dev-flow:global-laws`、它落筆完再接 `dev-flow:build`,沒有候選直接接上 `dev-flow:build` |
-| **既有文檔的 law 要調整** | 一份已經拍板過的 feature 全名(含 `verified`),加上來源:開發者要修改、放寬、替換或刪除一條既有的 law,要刪一個有 law 的 step,回答一條答案要調整既有 law 的 GAP(含整合仲裁留下的、整合時「重複的 step 留哪一份」留下的),要調整既有的 law 才做得到的里程碑 `M-n-<slug>`(靠修訂這份文檔達成的那一種),或 `dev-flow:scope-revise` 放棄之後整件轉過來的修訂(連同它原本打算改的簽名、型別、實作,與它攤過的影響範圍) | 改過的原檔、**一條**裝下整件修訂的 REV(調整的 law、連帶的簽名、型別、模組、Examples、新增的 law)、連動的文檔、同步改過的宣告;然後接上 `dev-flow:build`,只重做 REV 點名的,收尾時文檔回到 `verified` |
+| **既有文檔的 law 要調整** | 一份已經拍板過的 feature 全名(含 `verified`),加上來源:開發者要修改、放寬、替換或刪除一條既有的 law,要刪一個有 law 的 step,回答一條答案要調整既有 law 的 GAP(含整合仲裁留下的、整合時「重複的 step 留哪一份」留下的),要調整既有的 law 才做得到的里程碑 `M-n-<slug>`(靠修訂這份文檔達成的那一種),`dev-flow:incident` 交來的事故(使用者要的與某條既有的 law 講的相反,帶著重現過的那一組輸入與實際、預期的輸出),或 `dev-flow:scope-revise` 放棄之後整件轉過來的修訂(連同它原本打算改的簽名、型別、實作,與它攤過的影響範圍) | 改過的原檔、**一條**裝下整件修訂的 REV(調整的 law、連帶的簽名、型別、模組、Examples、新增的 law)、連動的文檔、同步改過的宣告;然後接上 `dev-flow:build`,只重做 REV 點名的,收尾時文檔回到 `verified` |
 | **文檔退役** | 一份用不到的 feature 全名(一次性的搬遷腳本跑完了、功能下架),加上開發者講的為什麼 | 刪掉的文檔、它的測試與程式碼;里程碑的綁定欄、`system.md` 的 Features 表與對外 I/O 表拿掉它;別份還在用的 step 連同 law 先搬到還活著的那一份;決策紀錄記為什麼退役,交給 `dev-flow:integrate` 寫成 ADR |
 
 ## 前置

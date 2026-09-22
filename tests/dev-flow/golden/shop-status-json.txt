@@ -101,6 +101,7 @@ $ devflow status --json --tests test.log
         "by": "dev@example.com",
         "evidence": "R-1#ACCEPT 與三條里程碑的 demo 都跑過,金額與手算相同"
       },
+      "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
         "M-1-checkout `npx ts-node demo/checkout.ts`",

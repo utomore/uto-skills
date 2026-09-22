@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { releaseView, releaseWord } from './release.mjs';
 import { analyze, buildKeyOf, counts, docState, globalView, invariantView, metWord, lineTag, requirementView, openLines, reviseLines, sliceLines, suggestRoutes, verifySteps, warnings } from './status.mjs';
 
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
@@ -39,9 +40,10 @@ const lawJson = (law, state) => ({
   tested: !!state.tested,
 });
 
-export function statusJson(design, source, adapter, results, resultNote, building = new Set(), stale = new Set()) {
+export function statusJson(design, source, adapter, results, resultNote, building = new Set(), stale = new Set(), root = null) {
   const a = analyze(design, source, adapter, results);
   const ov = requirementView(design, a);
+  const rel = releaseView(root, design, a, ov);
   const inv = invariantView(design, a);
   const glob = globalView(design, a, source, adapter, inv);
   const warns = warnings(design, a, ov, source, adapter, stale, inv, glob);
@@ -170,6 +172,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       state: q.state,
       evidence: q.evidence || null,
       signoff: q.signoff ? { date: q.signoff.date, by: q.signoff.by, evidence: q.signoff.evidence } : null,
+      // 上線:git repo 的根才有,從 git tag 推;證據還沒齊的需求是 null
+      release: rel && rel.get(q.id).eligible ? { tag: rel.get(q.id).tag, word: releaseWord(rel, q.id), pending: rel.get(q.id).pending.map((p) => ({ doc: p.doc, sha: p.sha })) } : null,
       verifySteps: verifySteps(design, q),
       achieved: q.holds === true,
       percent: q.pct,
@@ -215,7 +219,7 @@ function openInBrowser(file) {
 }
 
 export function statusBoard(design, source, adapter, results, resultNote, building, root, out, open, stale) {
-  const data = statusJson(design, source, adapter, results, resultNote, building, stale);
+  const data = statusJson(design, source, adapter, results, resultNote, building, stale, root);
   // 沒指定檔名就寫暫存區:每次跑 status 都產一份,不在專案裡留檔
   const file = typeof out === 'string'
     ? path.resolve(root, out)

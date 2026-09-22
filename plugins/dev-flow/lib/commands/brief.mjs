@@ -27,7 +27,8 @@ const RULES = {
   qa: [['roles.md', ['角色', '委派', '驗收測試', 'qa 的交付']], ['features.md', ['Steps', 'Laws', '什麼要有 law', '提問(GAP)']], ['boundary.md', ['測試與邊界']], ['tooling.md', ['測試歸屬']]],
   refactor: [['roles.md', ['角色', '委派']], ['features.md', ['Steps', 'Laws', '提問(GAP)']], ['boundary.md', ['層', '匯出']]],
   integrate: [['roles.md', ['分支', '決策紀錄', '整合', '仲裁']], ['features.md', ['提問(GAP)', '需求的達成只有人判得了', '完成度', 'ADR']], ['laws.md', ['全域 Law', '分流']], ['tooling.md', ['CLI', 'lint', '落筆指令', '跑東西的紀律', '收尾定錨']]],
-  status: [['tooling.md', ['CLI', 'status 報告', '看板', 'migrate', '落筆指令', '收尾定錨']], ['features.md', ['願景、需求與里程碑', '靠修訂達成的里程碑', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', '分流']]],
+  incident: [['roles.md', ['事故', '首跑']], ['laws.md', ['分流', 'Law 與需求']], ['features.md', ['feature', 'Steps', 'Laws', '修訂(REV)', '需求的達成只有人判得了']], ['boundary.md', ['對外 I/O']], ['tooling.md', ['CLI', '發布', '跑東西的紀律', '收尾定錨']]],
+  status: [['tooling.md', ['CLI', 'status 報告', '發布', '看板', 'migrate', '落筆指令', '收尾定錨']], ['features.md', ['願景、需求與里程碑', '靠修訂達成的里程碑', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', '分流']]],
   audit: [['tooling.md', ['CLI', 'lint', 'status 報告', 'migrate']], ['boundary.md', '*'], ['features.md', ['願景、需求與里程碑', '靠修訂達成的里程碑', '節', 'Steps', 'Laws', '什麼要有 law', '需求的達成只有人判得了', '完成度']], ['laws.md', ['Law 與需求', '全域 Law', '全域 Law 怎麼長出來', 'Law 怎麼談', '分流']]],
   study: [['tooling.md', ['跑東西的紀律', '收尾定錨']], ['features.md', ['`.design/`']]],
 };
@@ -45,6 +46,7 @@ const BLOCKS = {
   qa: { doc: ['doc', 'detail', 'declarations', 'innermost', 'tools', 'testing'], top: ['top', 'touched', 'innermost', 'tools', 'testing'] },
   refactor: { doc: ['doc', 'detail', 'declarations', 'files', 'tools'] },
   integrate: { none: ['branch', 'journals', 'tools', 'gaps'] },
+  incident: { none: ['branch', 'tools', 'system', 'requirements', 'modules', 'logs', 'status'], doc: ['branch', 'tools', 'doc', 'detail', 'requirement', 'system', 'modules', 'logs', 'status'] },
   status: { none: ['tools', 'logs'] },
   audit: { none: ['lintall', 'requirements', 'status', 'modules'] },
   study: { none: ['tree', 'tools', 'modules'] },

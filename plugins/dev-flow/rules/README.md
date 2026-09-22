@@ -34,7 +34,7 @@
 | 准入四條、從切片裡抽上去(三類各自誰談、誰落筆)、全域的候選、law 只從實作裡抽出來 | laws.md「全域 Law 怎麼長出來」 |
 | 影響範圍與選項 | laws.md「影響範圍與選項」 |
 | 全域 Law 的抽上去與變更、變更要開發者明確批准、重新驗證受影響的工作 | laws.md「全域 Law 的變更」 |
-| 要 / 不准 / 不在乎、用例子問、寫得出反例實作才是 law、第一次談約束的四項 | laws.md「Law 怎麼談」 |
+| 背景 / 行為 / 例子三段問法、對 / 不對,應該是 / 不在乎、寫得出反例實作才是 law、第一次談約束的四項 | laws.md「Law 怎麼談」 |
 | feature、step、`=` 列 / 整條、`!` 列 / 進入點、`o` 列 / 觀察點 | features.md「feature」 |
 | 全名、`F-00x#name`、`F-00x#LAW-n`、`R-n#ACCEPT`、`INV-n#LAW`、號段、`owner`、`lint ids`、引用別份文檔的 step、一個 step 只住一份文檔 | features.md「編號與引用」 |
 | 正規式簽名、`型別.方法`、型別註記可省 | features.md「簽名怎麼寫」;tooling.md「language adapter」 |

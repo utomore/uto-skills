@@ -100,7 +100,7 @@ qa 交付後、派 refactor 之前,conductor 在現有的程式碼上跑一次 q
 
 | 這條測試 | 首跑該是 |
 |---|---|
-| 決策紀錄「首跑該紅」列的 law(開發者答「不准」的) | 紅 |
+| 決策紀錄「首跑該紅」列的 law(開發者答「不對,應該是 …」的) | 紅 |
 | 修訂那一波:REV「動到」欄點名的 law;打到未實作標記的 | 紅 |
 | 其餘的 law 與 example(開發者答「要」的、REV 保護的) | 綠 |
 | 既有的 law 不動的修訂(`dev-flow:scope-revise`) | 原有的每條 law 與 example 都綠(來源是「law 在而實作不符」的,只有那一條紅);新增的 law 照 REV「動到」欄註明的:保護用的綠,新的上界、新 step 的紅 |
@@ -242,7 +242,7 @@ qa 與 refactor 只做歸因,裁決由 conductor。
    | 歸因 | 交給 |
    |---|---|
    | 有一條 law 講了這件事,這個輸入讓它不成立(law 對,測試的產生器沒涵蓋到這個輸入) | `dev-flow:scope-revise <全名>`:新增一個 example,輸入輸出就是重現的那一組,覆蓋那條 law,首跑該紅 |
-   | 沒有任何 law 講這件事 | `dev-flow:scope-revise <全名>`:它的 Law 對談問開發者要、不准、還是不在乎;要與不准新增 law(首跑該紅),不在乎就不寫,事故到此為止 |
+   | 沒有任何 law 講這件事 | `dev-flow:scope-revise <全名>`:它的 Law 對談照 `laws.md`「Law 怎麼談」問開發者;答「不對,應該是 …」新增 law(首跑該紅),答「對」照樣新增 law 守住它,不在乎就不寫,事故到此為止 |
    | 使用者要的與某條既有的 law 講的相反(law 本身講錯了) | `dev-flow:scope-laws <全名>` |
    | 踩到的是全域 Law | 是某份 feature 的程式碼踩了它:照上面三列歸到那份 feature;是那條全域 Law 本身講錯了:`dev-flow:global-laws`,變更要開發者明確批准 |
    | 使用者要的不是需求的驗收那一句講的 | `dev-flow:require-design` |

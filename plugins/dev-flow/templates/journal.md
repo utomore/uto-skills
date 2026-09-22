@@ -38,7 +38,7 @@ updated: <YYYY-MM-DD>
 
 ## Verification
 - 文檔:<全名,簽名 m / n · 觀察點 j / k · laws g / k · examples g / k;達成,status 改 verified | 停在 GAP-n>
-- 首跑該紅:<開發者答「不准」的 law,寫 F-00x#LAW-n,「、」分隔;無則「無」>
+- 首跑該紅:<開發者答「不對,應該是 …」的 law,寫 F-00x#LAW-n,「、」分隔;無則「無」>
 - 首跑:<該紅的幾條裡首跑紅了幾條、該綠的幾條裡首跑綠了幾條;該紅卻綠退回 qa 幾條>
 - qa 的決定:<產生器的分佈與尺寸、案例數上限,一條一句>
 - refactor 的決定:<資料結構、演算法、私有 helper,一條一句;整份重寫的註明>

@@ -46,7 +46,7 @@
 | 准入四條、從切片裡抽上去(三類各自誰談、誰落筆)、全域的候選、law 只從實作裡抽出來 | laws.md「全域 Law 怎麼長出來」 |
 | 影響範圍、選項、「不改」 | laws.md「影響範圍與選項」 |
 | 全域 Law 的抽上去與變更、明確批准、重新驗證 | laws.md「全域 Law 的變更」 |
-| 要 / 不准 / 不在乎、讓它變假的實作、第一次談約束的四項 | laws.md「Law 怎麼談」 |
+| 背景 / 行為 / 例子三段問法、對 / 不對,應該是 / 不在乎、讓它變假的實作、第一次談約束的四項 | laws.md「Law 怎麼談」 |
 | pipeline、stage、`=` 列 / 純的整條、`!` 列 / 進入點、`o` 列 / 觀察點、`kind`、`io`、`subflow` | pipelines.md「pipeline」「frontmatter 與 status」 |
 | 全名、`P-00x#name`、`P-00x#LAW-n`、號段、`owner`、`lint ids`、引用別條 pipeline 的 stage、一個 stage 只住一條 pipeline | pipelines.md「編號與引用」 |
 | 簽名逐字、存取子、class 方法、有名字的型別 | pipelines.md「簽名怎麼寫」 |

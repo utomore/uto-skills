@@ -140,8 +140,8 @@ updated: 2026-09-07
 #### 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
 |---|---|---|---|---|---|---|---|---|---|
-| F-001-checkout | feature | verified | 5 | 0 | 0 | 6 | 0/0 | 1 | 進行中 |
-| F-002-refund | feature | verified | 5 | 0 | 0 | 2 | 0/0 | 1 | 等 F-001-checkout |
+| F-001-checkout | feature | verified | 5 | 0 | 0 | 6 | 0/0 | 1 | 10 個 step 對不上程式碼 |
+| F-002-refund | feature | verified | 5 | 0 | 0 | 2 | 0/0 | 1 | 8 個 step 對不上程式碼 |
 
 #### 1. 今天能開幾條線
 - 無

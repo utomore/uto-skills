@@ -34,6 +34,7 @@ $ devflow status
 - F-001-create 等 A-001-title(未達成,先建它)
 - F-002-rename 等 A-001-title(未達成,先建它)
 - F-002-rename 等 F-001-create(未達成,先建它)
+- F-002-rename 等 M-1-create(R-1 的里程碑照順序走,M-2-rename 排在它後面)
 
 ## 3. 等決定
 - 無
@@ -54,6 +55,4 @@ $ devflow status
 
 ## 8. 建議路線
 1. dev-flow:build A-001-title(共用文檔,F-001-create、F-002-rename 引用它)
-2. dev-flow:build F-001-create(R-1 優先 1 · M-1-create 建立筆記走通)
-3. dev-flow:build F-002-rename(R-1 優先 1 · M-2-rename 筆記改名走通)
 exit 1

@@ -39,6 +39,7 @@ $ lawful status
 
 ## 2. 卡住的
 - P-001-report-render 等 P-002-count-tally(達成與否未知,給測試輸出)
+- P-001-report-render 等 M-1-count-tally(R-1 的里程碑照順序走,M-2-report-render 排在它後面)
 
 ## 3. 等決定
 - 無
@@ -56,5 +57,5 @@ $ lawful status
 | 全域 Law:契約 | lint io 1 條不合規 | lawful lint io |
 
 ## 7. 建議路線
-1. lawful:build P-001-report-render(R-1 優先 1 · M-2-report-render 報表印得出來)
+- 沒有可派的線,但 P-001-report-render、P-002-count-tally 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常
 exit 1

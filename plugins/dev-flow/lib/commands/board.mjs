@@ -77,6 +77,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       refs: x.refs,
       referrers: x.referrers,
       blockedBy: x.blockedBy,
+      missing: [...new Set(x.missing.map((s) => s.name))],
+      heldBy: x.heldBy ? x.heldBy.m.fullName : null,
       modules: [...new Set(x.steps.filter((s) => !s.ref).map((s) => s.module))],
       steps: x.steps.map((s) => ({
         index: s.index,

@@ -65,5 +65,4 @@ $ lawful status
 ## 7. 建議路線
 1. lawful:build P-002-syntax-parse(R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號)
 2. lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
-3. lawful:build P-001-cli-run(R-1 優先 1 · M-2-cli-run 整條跑完)
 exit 1

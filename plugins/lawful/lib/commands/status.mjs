@@ -51,7 +51,9 @@ export function analyze(design, source, adapter, results) {
     });
     const gaps = openGaps.filter((g) => g.target.startsWith(p.id) || g.target.startsWith(p.fullName));
     const refs = [...new Set(p.stages.map((s) => s.ref).filter(Boolean))];
-    info.set(p.fullName, { p, stages, sigOk, sigTotal: steps.length, stubCount, obsOk, obsTotal: observes.length, laws, examples, gaps, refs, referrers: [] });
+    // 程式碼裡沒有這個宣告(或型別對不上)的 stage:build 對帳那一步會停在它,所以它不是能開的線
+    const missing = stages.filter((s) => s.state === '找不到' || s.state === '不一致').map((s) => ({ name: s.name, state: s.state }));
+    info.set(p.fullName, { p, stages, sigOk, sigTotal: steps.length, stubCount, obsOk, obsTotal: observes.length, laws, examples, gaps, refs, missing, referrers: [] });
   }
   // 依賴只從模組欄的「見 P-00x-<slug>」來:A 引用 B 的簽名,A 依賴 B;B 不因為被引用而等 A。
   for (const [, x] of info) for (const r of x.refs) if (info.has(r)) info.get(r).referrers.push(x.p.fullName);
@@ -314,6 +316,14 @@ export function requirementView(design, a) {
     }
     q.dependsOn = [...deps].sort((x, y) => Number(x.slice(2)) - Number(y.slice(2)));
   }
+  // 一條需求的里程碑照順序走:綁在後面幾條里程碑的 pipeline 等前面那一條達成。
+  // 有任何一條需求的下一條里程碑綁它就不等;沒被綁的不等。heldBy 是它在等的那條里程碑,與它所在的需求。
+  const nextBinds = new Set(reqs.flatMap((q) => { const m = q.ms.find((x) => !x.achieved); return m ? m.binds : []; }));
+  for (const [name, x] of a.info) {
+    const r = rank.get(name);
+    const next = r ? r.q.ms.find((m) => !m.achieved) : null;
+    x.heldBy = !x.achieved && r && next && !nextBinds.has(name) ? { m: next, q: r.q, own: r.m } : null;
+  }
   return { reqs, rank, keyOf, tag, maker };
 }
 
@@ -388,7 +398,16 @@ export function buildKeyOf(x, ov, building) {
 
 // 一條 pipeline 在報告與看板上的同一句狀態
 export function docState(x) {
-  return x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : '進行中';
+  return x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.missing.length ? `${x.missing.length} 個 stage 對不上程式碼` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : x.heldBy ? `等 ${x.heldBy.m.fullName}` : '進行中';
+}
+// ready 的 pipeline 有 stage 在程式碼裡找不到或不一致:build 對帳會停在它,宣告由寫這條文檔的 skill 補,不在 build 補
+export const missingHint = (x) => `${x.p.fullName} 的 ${[...new Set(x.missing.map((s) => `${s.name}(${s.state})`))].join('、')} 與程式碼對不上:寫這條的 skill 補宣告(切片那一波 lawful:scope-laws;修訂新增的 stage lawful:scope-revise,本體標成未實作)`;
+
+// build 開得了的 pipeline:ready、沒 open GAP、每個 stage 在程式碼裡(在、搬家或未實作)、引用的 pipeline 全部達成、
+// 綁它的里程碑是所在需求下一條還沒達成的。build 對帳那一步停的每一件事都在這裡先擋;照需求的優先、里程碑順序排,沒被綁的排最後。
+export function buildable(a, ov) {
+  return [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.missing.length && !x.blockedBy.length && !x.heldBy)
+    .sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || x.refs.length - y.refs.length);
 }
 
 function row(x) {
@@ -397,9 +416,9 @@ function row(x) {
   return `| ${x.p.fullName} | ${x.p.kind || '(沒填)'} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${docState(x)} |`;
 }
 
-// 能開 = ready、沒 open GAP、引用的 subflow 全部達成(消費者在 subflow 合進主線之後才開,roles.md「分支」)
+// 能開 = buildable 的那幾條(消費者在 subflow 合進主線之後才開,roles.md「分支」)
 export function openLines(a, ov, building, entries = []) {
-  const candidates = [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.blockedBy.length).sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
+  const candidates = buildable(a, ov);
   const openable = candidates.filter((x) => !buildKeyOf(x, ov, building));
   const inBuild = candidates.filter((x) => buildKeyOf(x, ov, building));
   // 兩條能開的線的 stage 住同一個模組單元:同時開,整合時那個單元的檔兩邊都動
@@ -504,9 +523,10 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
 export function suggestRoutes(design, a, ov, warnCount, building = new Set(), inv = invariantView(design, a)) {
   const steps = [];
   if (a.openGaps.length) steps.push(`先回答 ${a.openGaps.map((g) => g.id).join('、')}(答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws),卡住的 stage 才能重派`);
-  // 被引用的那一條先建:還在等別條的排在後面,其餘照需求優先與里程碑順序
-  const order = [...a.info.values()].filter((x) => !x.achieved && x.p.status === 'ready').sort((x, y) => (x.blockedBy.length ? 1 : 0) - (y.blockedBy.length ? 1 : 0) || ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || x.refs.length - y.refs.length);
-  for (const x of order) steps.push(`lawful:build ${x.p.fullName}(${ov.tag(x.p.fullName)})`);
+  // 只列 build 開得了的線(第 1 段那幾條);等別條的、等前一條里程碑的、程式碼裡缺宣告的都不列,它們在第 2 段
+  for (const x of buildable(a, ov)) steps.push(`lawful:build ${x.p.fullName}(${ov.tag(x.p.fullName)})`);
+  // ready 而程式碼裡沒有宣告:build 對帳會停,先把宣告補回來
+  for (const x of a.info.values()) if (x.p.status === 'ready' && !x.achieved && x.missing.length) steps.push(`${missingHint(x)};補上才 lawful:build ${x.p.fullName}`);
   const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft');
   for (const x of drafts) steps.push(`lawful:scope-laws ${x.p.fullName}(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)`);
   // 靠修訂既有的 pipeline 達成、還沒有 REV 引用它的里程碑:每條需求下一條,照需求的優先排
@@ -697,6 +717,15 @@ export function statusReport(design, source, adapter, results, resultNote, build
         : y.unknown || y.laws.some((l) => l.result === '未跑') ? '達成與否未知,給測試輸出'
         : '未達成,先建它';
       out.push(`- ${x.p.fullName} 等 ${r}(${why})`);
+    }
+    // ready 而程式碼裡缺宣告、或綁在所在需求後面幾條里程碑的:build 不開,列在這裡
+    if (x.p.status === 'ready' && !x.achieved && x.missing.length) {
+      stuck++;
+      out.push(`- ${missingHint(x)}`);
+    }
+    if (x.p.status === 'ready' && !x.achieved && x.heldBy) {
+      stuck++;
+      out.push(`- ${x.p.fullName} 等 ${x.heldBy.m.fullName}(${x.heldBy.q.id} 的里程碑照順序走,${x.heldBy.own.fullName} 排在它後面)`);
     }
   }
   if (!stuck) out.push('- 無');

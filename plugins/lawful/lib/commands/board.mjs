@@ -79,6 +79,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       refs: x.refs,
       referrers: x.referrers,
       blockedBy: x.blockedBy,
+      missing: [...new Set(x.missing.map((s) => s.name))],
+      heldBy: x.heldBy ? x.heldBy.m.fullName : null,
       modules: [...new Set(x.stages.filter((s) => !s.ref).map((s) => s.module))],
       units: [...new Set(x.stages.filter((s) => !s.ref).map((s) => unitNameOf(s.module)).filter(Boolean))],
       steps: x.stages.map((s) => ({

@@ -100,7 +100,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
    三題都過的列成**領域不變量的候選**,每條寫:law 的原句、出處(這條 pipeline 的全名與 law 編號,如 `P-001-save-write#LAW-3`)、三行改成只用 types 層的匯出與型別名之後的樣子。**開發者逐條說要不要,不整批追認**;說不要的就是這一條的 scope law,不再提。第 5 步列的四層的候選、要改既有全域 Law 的候選,收進同一份清單。候選在這裡**不落筆**:那條 law 照樣留在這條 pipeline 的 Laws 節、照樣拍板,`lawful:global-laws` 落筆時才從這裡搬走。一條候選都沒有就寫「無」。
 8. **寫成三行,不改那一句話**(`roles.md`「誰能動什麼」的例外):這條里程碑的需求的驗收還只有一句話,而這一片讓它講得到的簽名出現了 → 與開發者把它寫成三行(識別字是 Stages 的簽名,不含 `!` 列)。那一句話本身不改;寫了三行,build 會派 qa 寫它的驗收測試。只把既有的那一句寫成三行,不新增、不改句子、不放寬。對外 I/O 表的契約欄填守這一端的那條 law。
 9. **Examples**:3–5 個具體輸入輸出,從第 1 步跑出來的真實例子挑,覆蓋邊界(空的、單一、極值、失敗路徑),每列指到它覆蓋的 law。開發者答「不對」的,example 寫的是開發者填的那個輸出,不是現在的輸出。**不准出現真的密碼、金鑰或 token。**
-10. **決定**:決策紀錄「Decisions」裡只關這一條 pipeline 的、與第 5 步談出來只關這一條的取捨,搬進「決定」(一句結論、否決的替代方案、理由);跨 pipeline 的留在決策紀錄給整合。
+10. **決定**:決策紀錄「Decisions」裡只關這一條 pipeline 的、與第 5 步談出來只關這一條的取捨,搬進「決定」(一句結論、否決的替代方案、理由);跨 pipeline 的留在決策紀錄給整合。第 5、6 步開發者推翻了切片的哪一列,先照 `roles.md`「決策紀錄」改寫那一列再搬或留。
 11. `lawful lint sig`、`lawful lint laws`、`lawful lint io`、`lawful lint boundary`:都沒有紅,`lawful status --pipeline <全名>` 每列是「在」。把每條 law 念一遍給開發者,**逐條拍板,不整批追認**;拍板了改 `status: ready`,frontmatter 的 `kind` 還是佔位符就填上。文檔、宣告的改動與決策紀錄各自 commit,訊息帶全名。
 12. **接上 global-laws 與 build**:這條里程碑綁的每條 pipeline 都 `ready` 之後,不等開發者另外下指令:
     - **有全域的候選**(第 7 步開發者說了要的)→ 先直接執行 `lawful:global-laws M-n-<slug>`,把候選帶過去:領域不變量的候選每條的原句、出處的 pipeline 全名與 law 編號、改寫後的三行;四層的候選(哪一層、「裝什麼」那一句);要改的既有全域 Law 與原因。它攤影響範圍、開發者批准、落筆(抽上去的 law 從這條 pipeline 的 Laws 節搬走),落筆完由它接上 `lawful:build M-n-<slug>`。

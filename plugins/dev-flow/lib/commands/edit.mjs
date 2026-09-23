@@ -169,7 +169,7 @@ function bindMilestone(design, milestoneId, fullName) {
   const i = lines.findIndex((l) => /^\s*\|/.test(l) && (splitRow(l)[0] === milestoneId || splitRow(l)[0].startsWith(`${milestoneId}-`)));
   if (i < 0) return false;
   const cells = splitRow(lines[i]);
-  const have = (cells[2] || '').split(/[、,]/).map((x) => x.trim()).filter((x) => x && !/^[-—–]$/.test(x) && !/<[^>]*>/.test(x));
+  const have = (cells[2] || '').split(/[、,，]/).map((x) => x.trim()).filter((x) => x && !/^[-—–]$/.test(x) && !/<[^>]*>/.test(x));
   if (!have.includes(fullName)) have.push(fullName);
   cells[2] = have.join('、');
   lines[i] = `| ${cells.join(' | ')} |`;
@@ -192,13 +192,13 @@ export function requirementAdd(design, slug, title, { accept = '', priority, dat
   const file = path.join(dir, `${fullName}.md`);
   let tpl = fs.readFileSync(path.join(templatesDir, 'requirement.md'), 'utf8');
   tpl = tpl.replace(/R-n-<slug>/g, fullName).replace(/R-n/g, id)
-    .replace('<1 到 4,1 最高>', String(priority)).replace('<YYYY-MM-DD>', date)
-    .replace('<一句話:誰在什麼情況下要得到什麼>', title)
+    .replace(/<1 到 4[,，]1 最高>/, String(priority)).replace('<YYYY-MM-DD>', date)
+    .replace(/<一句話[:：]誰在什麼情況下要得到什麼>/, title)
     .split(/\r?\n/).filter((l) => !/^\|\s*M-\d+\S*\s*\|.*<[^>]*>/.test(l)).join('\n');
   // 給了 --accept 就只留那一句;三行式在對談裡寫
   if (accept) {
     const lines = tpl.split('\n');
-    const at = lines.findIndex((l) => /^- 驗收[::]/.test(l));
+    const at = lines.findIndex((l) => /^- 驗收[:：]/.test(l));
     let stop = at + 1;
     while (stop < lines.length && /^\s{2,}- /.test(lines[stop])) stop++;
     lines.splice(at, stop - at, `- 驗收:${accept}`);
@@ -266,7 +266,7 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '', verify = '
   if (!req) return { text: `requirements/ 沒有 ${reqId};先 devflow requirement add`, exitCode: 1 };
   if (!SLUG.test(slug || '')) return { text: `里程碑要一個 kebab-case 英文名:devflow requirement milestone ${reqId} <slug> <一句話>(拿到的是「${slug || ''}」)`, exitCode: 1 };
   if (!title || /<[^>]*>/.test(title)) return { text: '里程碑要一句話:使用者在這個階段看得到、展示得出來或呼叫得到什麼', exitCode: 1 };
-  const binds = bind.split(/[、,]/).map((x) => x.trim()).filter(Boolean);
+  const binds = bind.split(/[、,，]/).map((x) => x.trim()).filter(Boolean);
   const bad = binds.filter((b) => !design.docs.some((d) => d.fullName === b));
   if (bad.length) return { text: `綁定的 ${bad.join('、')} 不存在;里程碑只綁 features/ 裡有的全名`, exitCode: 1 };
   const abstracts = binds.filter((b) => design.abstracts.some((d) => d.fullName === b));
@@ -365,7 +365,7 @@ export function sync(design, source, { date = today() } = {}) {
       }
       const lines = text.split(/\r?\n/);
       const cells = splitRow(lines[s.line - 1]);
-      const note = /[((].*[))]\s*$/.exec(cells[3]);
+      const note = /[(（].*[)）]\s*$/.exec(cells[3]);
       cells[3] = `\`${hit.file}\`${note ? note[0] : ''}`;
       lines[s.line - 1] = `| ${cells.join(' | ')} |`;
       text = lines.join('\n');

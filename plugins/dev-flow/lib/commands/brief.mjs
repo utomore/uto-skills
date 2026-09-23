@@ -6,7 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { parseFrontmatter, sections } from '../markdown.mjs';
+import { parseFrontmatter, sections, sameTitle } from '../markdown.mjs';
 import { matchModule } from '../design.mjs';
 import { findType } from '../source.mjs';
 import { analyze, branchState, docDetail, requirementView } from './status.mjs';
@@ -151,7 +151,7 @@ function ruleSections(skill) {
     }
     const secs = sections(parseFrontmatter(text).body).filter((s) => s.level === 2);
     for (const t of titles) {
-      const s = secs.find((x) => x.title === t);
+      const s = secs.find((x) => sameTitle(x.title, t));
       const body = s ? s.lines.join('\n').trim() : `(${file} 裡沒有「${t}」這一節)`;
       raw += body;
       out.push(`### ${file}「${t}」`, body, '');

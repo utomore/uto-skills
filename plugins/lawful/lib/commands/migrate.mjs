@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { KIND_ALIASES, kindOf, readDesign } from '../design.mjs';
-import { parseFrontmatter, sections, parseTable, parseList, stripTicks, splitRow } from '../markdown.mjs';
+import { parseFrontmatter, sections, sameTitle, parseTable, parseList, stripTicks, splitRow } from '../markdown.mjs';
 import { pickAdapter } from '../adapters/index.mjs';
 import { readSource, findSignature } from '../source.mjs';
 
@@ -34,7 +34,7 @@ function kebab(s) {
   return s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
 }
 
-const FIELD = /^(量詞|定義域|前提|觀察點)[::]\s*(.*)$/;
+const FIELD = /^(量詞|定義域|前提|觀察點)[:：]\s*(.*)$/;
 
 // 四格 → 三行草稿。回 { forall, given, conclusion, formal }
 function draftLaw(law) {
@@ -120,7 +120,7 @@ function readDoc(file, designDir) {
   const laws = lawSec
     ? parseList(lawSec.lines).filter((i) => /^LAW-\d+/.test(i.text)).map((i) => ({
         id: /^(LAW-\d+)/.exec(i.text)[1],
-        title: i.text.replace(/^LAW-\d+\s*[::]?\s*/, ''),
+        title: i.text.replace(/^LAW-\d+\s*[:：]?\s*/, ''),
         ...draftLaw(i),
       }))
     : [];
@@ -158,7 +158,7 @@ function readStages(designDir) {
   const iStage = col('階段');
   const iMile = col('里程碑');
   const iState = col('狀態');
-  return t.rows.map((r) => ({ stage: r[iStage] || '', milestone: (r[iMile] || '').replace(/\*\*/g, ''), state: (r[iState] || '').replace(/\*\*/g, '').split(/[((]/)[0].trim() }));
+  return t.rows.map((r) => ({ stage: r[iStage] || '', milestone: (r[iMile] || '').replace(/\*\*/g, ''), state: (r[iState] || '').replace(/\*\*/g, '').split(/[(（]/)[0].trim() }));
 }
 
 function retireList(designDir) {
@@ -353,7 +353,7 @@ function dropItems(lines, key) {
   const out = [];
   let dropped = 0;
   for (let i = 0; i < lines.length; i++) {
-    if (new RegExp(`^- ${key}[::]`).test(lines[i])) {
+    if (new RegExp(`^- ${key}[:：]`).test(lines[i])) {
       dropped++;
       while (i + 1 < lines.length && /^\s{2,}- /.test(lines[i + 1])) i++;
       continue;
@@ -364,7 +364,7 @@ function dropItems(lines, key) {
 }
 
 function sectionText(secs, title) {
-  const s = secs.find((x) => x.level === 2 && x.title === title);
+  const s = secs.find((x) => x.level === 2 && sameTitle(x.title, title));
   return s ? s.lines.join('\n').replace(/^\s*\n+|\s+$/g, '') : '';
 }
 
@@ -373,19 +373,19 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
   const { body } = parseFrontmatter(text);
   const secs = sections(body);
   const head = secs.find((s) => s.level === 1) || secs[0];
-  const noteLine = (head && !/^O-\d+/.test(head.title) ? head.lines : []).map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[::]/.test(l)) || '';
-  const priorityNote = noteLine.replace(/^優先[::]\s*/, '').trim();
+  const noteLine = (head && !/^O-\d+/.test(head.title) ? head.lines : []).map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[:：]/.test(l)) || '';
+  const priorityNote = noteLine.replace(/^優先[:：]\s*/, '').trim();
   const objs = [];
   for (let i = 0; i < secs.length; i++) {
     const s = secs[i];
     if (s.level !== 2) continue;
-    const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+    const m = /^(O-\d+)\s*[:：]\s*(.*)$/.exec(s.title);
     if (!m) continue;
     const lines = [...s.lines];
     for (let j = i + 1; j < secs.length && secs[j].level > 2; j++) lines.push(`${'#'.repeat(secs[j].level)} ${secs[j].title}`, ...secs[j].lines);
     const field = (k) => {
-      const l = lines.find((x) => new RegExp(`^- ${k}[::]`).test(x));
-      return l ? l.replace(/^- [^::]*[::]\s*/, '').trim() : '';
+      const l = lines.find((x) => new RegExp(`^- ${k}[:：]`).test(x));
+      return l ? l.replace(/^- [^:：]*[:：]\s*/, '').trim() : '';
     };
     const id = m[1];
     const title = m[2].trim();
@@ -395,7 +395,7 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
     const binds = lines.filter((l) => /^\s*\|/.test(l)).flatMap((l) => l.match(/P-\d{3}-[a-z0-9-]+/g) || []);
     const slug = binds.length ? binds[0].replace(/^P-\d{3}-/, '') : 'unnamed';
     // 需求、優先進 frontmatter;判準變成那條需求的驗收;目標自己沒有 Law
-    const kept = lines.filter((l) => !/^- (需求|優先|判準|Law)[::]/.test(l));
+    const kept = lines.filter((l) => !/^- (需求|優先|判準|Law)[:：]/.test(l));
     const bodyLines = nameMilestones(kept).lines;
     while (bodyLines.length && !bodyLines[0].trim()) bodyLines.shift();
     const fullName = `${requirement}-${id}-${slug}`;
@@ -407,7 +407,7 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
 
 // Cone.md「Constraint」補一行「- 優先:…」;已經有就不動
 function withPriorityNote(coneText, priorityNote) {
-  if (!priorityNote || /^- 優先[::]/m.test(coneText)) return coneText;
+  if (!priorityNote || /^- 優先[:：]/m.test(coneText)) return coneText;
   const lines = coneText.split(/\r?\n/);
   const h = lines.findIndex((l) => /^## (?:Constraint|專案約束)\s*$/.test(l));
   if (h < 0) return coneText;
@@ -474,7 +474,7 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
       '- 環境:<作業系統、部署目標、容器;無則「無」>',
       '- 命名與寫法:<變數、函數、模組怎麼命名,格式與風格;無則「無」>',
       `- 語言:${language || '<haskell | …>'}`,
-      ...tools.split(/\r?\n/).filter((l) => l.trim() && !/^- 語言[::]/.test(l)),
+      ...tools.split(/\r?\n/).filter((l) => l.trim() && !/^- 語言[:：]/.test(l)),
       ...(split.priorityNote ? [`- 優先:${split.priorityNote}`] : []),
       '',
     ].join('\n');
@@ -715,11 +715,11 @@ export function migrateRequirements(root, { write = false, date = new Date().toI
     if (to < 0) to = lines.length;
     const bodyOf = (id) => {
       let at = -1;
-      for (let i = from + 1; i < to; i++) if (new RegExp(`^### ${id}\\s*[::]`).test(lines[i])) at = i;
+      for (let i = from + 1; i < to; i++) if (new RegExp(`^### ${id}\\s*[:：]`).test(lines[i])) at = i;
       if (at < 0) return [];
       let stop = at + 1;
       while (stop < to && !/^#{1,3} /.test(lines[stop])) stop++;
-      const body = dropItems(lines.slice(at + 1, stop).map((l) => l.replace(/^- Law([::])/, '- 驗收$1')), '蘊含').lines;
+      const body = dropItems(lines.slice(at + 1, stop).map((l) => l.replace(/^- Law([:：])/, '- 驗收$1')), '蘊含').lines;
       while (body.length && !body[0].trim()) body.shift();
       while (body.length && !body[body.length - 1].trim()) body.pop();
       return body;
@@ -835,7 +835,7 @@ export function migrateLaws(root, { write = false } = {}) {
   let implied = 0;
   if (reqFrom >= 0) {
     const head = lines.slice(0, reqFrom + 1);
-    let body = lines.slice(reqFrom + 1, reqTo).map((l) => (/^- Law[::]/.test(l) ? (renamed++, l.replace(/^- Law([::])/, '- 驗收$1')) : l));
+    let body = lines.slice(reqFrom + 1, reqTo).map((l) => (/^- Law[:：]/.test(l) ? (renamed++, l.replace(/^- Law([:：])/, '- 驗收$1')) : l));
     const d = dropItems(body, '蘊含');
     body = d.lines;
     implied = d.dropped;

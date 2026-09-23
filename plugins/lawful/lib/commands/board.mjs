@@ -100,8 +100,8 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
 
   // Cone.md「Constraint」那行「優先:1 = …;2 = …」拆成各級的意思,寫在需求的區塊上
   const tierMeaning = new Map();
-  if (cone && cone.priorityNoteState === 'ok') for (const part of cone.priorityNote.split(/[;;]/)) {
-    const m = /^\s*([1-4])\s*[=＝::]\s*(.+?)[。.]?\s*$/.exec(part);
+  if (cone && cone.priorityNoteState === 'ok') for (const part of cone.priorityNote.split(/[;；]/)) {
+    const m = /^\s*([1-4])\s*[=＝:：]\s*(.+?)[。.]?\s*$/.exec(part);
     if (m) tierMeaning.set(Number(m[1]), m[2].trim());
   }
   // 看板的分法:一條需求一個區塊,區塊底下一條里程碑一欄(里程碑照表上的先後排);

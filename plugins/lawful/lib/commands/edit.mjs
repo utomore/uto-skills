@@ -106,7 +106,7 @@ export function claim(design, slug, { description = '', date = today(), mileston
   if (fs.existsSync(file)) return { text: `${file} 已存在`, exitCode: 1 };
   let tpl = fs.readFileSync(path.join(templatesDir, 'pipeline.md'), 'utf8');
   tpl = tpl.replace(/P-00x-<slug>/g, fullName).replace(/P-00x/g, id).replace(/<YYYY-MM-DD>/g, date);
-  if (description) tpl = tpl.replace('<一句話:input 到 output>', description).replace('<同 description>', description);
+  if (description) tpl = tpl.replace(/<一句話[:：]input 到 output>/, description).replace('<同 description>', description);
   if (kind) tpl = tpl.replace('<io | subflow>', kind);
   if (next.owner) tpl = tpl.replace(/^(id: .*)$/m, `$1\nowner: ${next.owner}`);
   fs.mkdirSync(design.pipelinesDir, { recursive: true });
@@ -152,7 +152,7 @@ function bindMilestone(design, milestoneId, fullName) {
   const i = lines.findIndex((l) => /^\s*\|/.test(l) && (splitRow(l)[0] === milestoneId || splitRow(l)[0].startsWith(`${milestoneId}-`)));
   if (i < 0) return false;
   const cells = splitRow(lines[i]);
-  const have = (cells[2] || '').split(/[、,]/).map((x) => x.trim()).filter((x) => x && !/^[-—–]$/.test(x) && !/<[^>]*>/.test(x));
+  const have = (cells[2] || '').split(/[、,，]/).map((x) => x.trim()).filter((x) => x && !/^[-—–]$/.test(x) && !/<[^>]*>/.test(x));
   if (!have.includes(fullName)) have.push(fullName);
   cells[2] = have.join('、');
   lines[i] = `| ${cells.join(' | ')} |`;
@@ -175,13 +175,13 @@ export function requirementAdd(design, slug, title, { accept = '', priority, dat
   const file = path.join(dir, `${fullName}.md`);
   let tpl = fs.readFileSync(path.join(templatesDir, 'requirement.md'), 'utf8');
   tpl = tpl.replace(/R-n-<slug>/g, fullName).replace(/R-n/g, id)
-    .replace('<1 到 4,1 最高>', String(priority)).replace('<YYYY-MM-DD>', date)
-    .replace('<一句話:誰在什麼情況下要得到什麼>', title)
+    .replace(/<1 到 4[,，]1 最高>/, String(priority)).replace('<YYYY-MM-DD>', date)
+    .replace(/<一句話[:：]誰在什麼情況下要得到什麼>/, title)
     .split(/\r?\n/).filter((l) => !/^\|\s*M-\d+\S*\s*\|.*<[^>]*>/.test(l)).join('\n');
   // 給了 --accept 就只留那一句;三行式在對談裡寫
   if (accept) {
     const lines = tpl.split('\n');
-    const at = lines.findIndex((l) => /^- 驗收[::]/.test(l));
+    const at = lines.findIndex((l) => /^- 驗收[:：]/.test(l));
     let stop = at + 1;
     while (stop < lines.length && /^\s{2,}- /.test(lines[stop])) stop++;
     lines.splice(at, stop - at, `- 驗收:${accept}`);
@@ -248,7 +248,7 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '', verify = '
   if (!req) return { text: `requirements/ 沒有 ${reqId};先 lawful requirement add`, exitCode: 1 };
   if (!SLUG.test(slug || '')) return { text: `里程碑要一個 kebab-case 英文名:lawful requirement milestone ${reqId} <slug> <一句話>(拿到的是「${slug || ''}」)`, exitCode: 1 };
   if (!title || /<[^>]*>/.test(title)) return { text: '里程碑要一句話:使用者在這個階段看得到、展示得出來或呼叫得到什麼', exitCode: 1 };
-  const binds = bind.split(/[、,]/).map((x) => x.trim()).filter(Boolean);
+  const binds = bind.split(/[、,，]/).map((x) => x.trim()).filter(Boolean);
   const bad = binds.filter((b) => !design.pipelines.some((p) => p.fullName === b));
   if (bad.length) return { text: `綁定的 ${bad.join('、')} 不存在;里程碑只綁 pipelines/ 裡有的全名`, exitCode: 1 };
   const nums = design.requirements.requirements.flatMap((q) => q.milestones.map((m) => Number((m.id.match(/^M-(\d+)$/) || [0, 0])[1])));
@@ -345,7 +345,7 @@ export function sync(design, source, adapter, { date = today() } = {}) {
       const lines = text.split(/\r?\n/);
       const li = s.line - 1;
       const cells = splitRow(lines[li]);
-      const note = /[((].*[))]\s*$/.exec(cells[3]);
+      const note = /[(（].*[)）]\s*$/.exec(cells[3]);
       cells[3] = `\`${hit.module}\`${note ? note[0] : ''}`;
       lines[li] = `| ${cells.join(' | ')} |`;
       text = lines.join('\n');
@@ -402,7 +402,7 @@ export function moduleAdd(design, name, adapter, { layers = 'types,core', respon
   const unit = name.includes('.') || !prefix ? name : `${prefix}.${name}`;
   if (!/^[A-Z][A-Za-z0-9_']*(\.[A-Z][A-Za-z0-9_']*)*$/.test(unit)) return { text: `模組名要是大寫開頭、用 . 分段:${unit}`, exitCode: 1 };
   if (prefix && unit !== prefix && !unit.startsWith(`${prefix}.`)) return { text: `Cone.md 的模組前綴是 ${prefix},${unit} 不在它底下`, exitCode: 1 };
-  const want = String(layers).split(/[、,]/).map((s) => s.trim()).filter(Boolean);
+  const want = String(layers).split(/[、,，]/).map((s) => s.trim()).filter(Boolean);
   const bad = want.filter((l) => !LAYERS.includes(l));
   if (bad.length) return { text: `層只有 types / effect / core / shell,沒有「${bad.join('、')}」`, exitCode: 1 };
   if (!want.length) return { text: '--layers 至少一層', exitCode: 1 };

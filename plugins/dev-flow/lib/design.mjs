@@ -1,7 +1,7 @@
 // 讀 .design/ 成一棵樹:system(願景、全域 Law 三區——領域不變量、架構的層、契約的對外 I/O——、Constraint、Features)、requirements(需求:驗收、優先、里程碑)、modules、features、abstracts、gaps、journals。只讀不判;判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseFrontmatter, sections, findSection, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
+import { parseFrontmatter, sections, findSection, sameTitle, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
 
 // 指令欄只取第一個反引號區段;反引號外的文字是給人看的說明,不是指令的一部分。沒有反引號就整段當指令。
 function codeSpan(s) {
@@ -11,7 +11,7 @@ function codeSpan(s) {
 
 // 一道指令:單一 `指令` → 字串;多語言專案每側一段「<目錄> = `指令`」以 ; 分隔 → { 目錄: 指令 }
 function sidedCommand(s) {
-  const parts = s.split(/;|;/).map((p) => p.trim()).filter(Boolean);
+  const parts = s.split(/[;；]/).map((p) => p.trim()).filter(Boolean);
   const sided = parts.map((p) => /^([^=`]+?)\s*=\s*`([^`]+)`/.exec(p)).filter(Boolean);
   if (parts.length && sided.length === parts.length) return Object.fromEntries(sided.map((m) => [m[1].trim().replace(/\/$/, ''), m[2].trim()]));
   return codeSpan(s);
@@ -35,9 +35,9 @@ function read(p) {
 // 需求的「驗收」:清單項 `- 驗收:<一句可判定的話>`,子項可以是三行式(forall / given / |-)。需求是必須達成的事,不是 law。
 // 沒有這一項回 null;有一句話但沒有三行,由驗收測試或里程碑承接。`- Law:` 靜默當同一項讀。
 function parseAcceptItem(items) {
-  const it = items.find((i) => /^(驗收|Law)[::]/.test(i.text));
+  const it = items.find((i) => /^(驗收|Law)[:：]/.test(i.text));
   if (!it) return null;
-  const title = it.text.replace(/^(驗收|Law)[::]\s*/, '').trim();
+  const title = it.text.replace(/^(驗收|Law)[:：]\s*/, '').trim();
   return {
     title,
     forall: it.children.find((c) => /^forall\b/.test(c)) || null,
@@ -129,7 +129,7 @@ export function parseRanges(raw) {
   const text = (raw || '').trim();
   const out = { ranges: [], errors: [] };
   if (!text || text === '無' || hasPlaceholder(text)) return out;
-  for (const part of text.split(/[;;]/).map((s) => s.trim()).filter(Boolean)) {
+  for (const part of text.split(/[;；]/).map((s) => s.trim()).filter(Boolean)) {
     const m = /^(\S+@\S+)\s*=\s*(\d{3})\s*[-–~]\s*(\d{3})$/.exec(part);
     if (!m || Number(m[2]) > Number(m[3])) {
       out.errors.push(part);
@@ -161,9 +161,10 @@ export function readSystem(designDir, root) {
   let ranges = { ranges: [], errors: [], line: 0 };
   if (tools) {
     for (const it of parseList(tools.lines)) {
-      const m = /^(建置|測試\(整套\)|測試\(子集\)|IO 模組追加|Laws 詞彙追加|忽略目錄|優先|號段|發布)[::]\s*(.*)$/.exec(it.text);
+      const m = /^(建置|測試[(（]整套[)）]|測試[(（]子集[)）]|IO 模組追加|Laws 詞彙追加|忽略目錄|優先|號段|發布)[:：]\s*(.*)$/.exec(it.text);
       if (!m) continue;
-      const list = () => m[2].split(/[、,]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
+      m[1] = m[1].replace('（', '(').replace('）', ')');   // 寫成全形括號也照讀；commands 的鍵一律用半形的「測試(整套)」
+      const list = () => m[2].split(/[、,，]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
       if (m[1] === 'IO 模組追加') ioExtra.push(...list());
       else if (m[1] === 'Laws 詞彙追加') vocab.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
@@ -179,7 +180,7 @@ export function readSystem(designDir, root) {
   const globalSec = findSection(secs, '全域 Law');
   const globalPart = (h3, h2) => {
     if (globalSec) {
-      for (let i = secs.indexOf(globalSec) + 1; i < secs.length && secs[i].level > 2; i++) if (secs[i].level === 3 && secs[i].title === h3) return secs[i];
+      for (let i = secs.indexOf(globalSec) + 1; i < secs.length && secs[i].level > 2; i++) if (secs[i].level === 3 && sameTitle(secs[i].title, h3)) return secs[i];
     }
     return findSection(secs, h2);
   };
@@ -210,7 +211,7 @@ export function readSystem(designDir, root) {
         trust: (r[5] || '').trim(),
         guard: stripTicks(r[6] || ''),
         // 契約:守這一端的 law,寫 F-00x#LAW-n 或 INV-n,「、」分隔;沒有就「-」
-        contract: (r[7] || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x)),
+        contract: (r[7] || '').split(/[、,，]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x)),
         line: ioSec.start + t.rowLines[i] + 2,
       };
       if (!hasPlaceholder(row.name) && !hasPlaceholder(row.feature)) io.push(row);
@@ -242,7 +243,7 @@ export function readSystem(designDir, root) {
     const from = secs.indexOf(reqSec);
     for (let i = from + 1; i < secs.length && secs[i].level > 2; i++) {
       const s = secs[i];
-      const m = /^(R-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+      const m = /^(R-\d+)\s*[:：]\s*(.*)$/.exec(s.title);
       if (!m) continue;
       const items = parseList(s.lines);
       requirements.push({
@@ -320,7 +321,7 @@ export function readSystem(designDir, root) {
 // 表頭第一格是「調整」的表(調整 | 做到什麼 | 動到)靜默照讀:每一列讀成一條里程碑,接在里程碑表之後——
 // 編號與全名都是 RF-n、沒有英文名、綁定 = 「動到」欄、fromRefinement 為真(做到什麼還是模板佔位符的列不算);hasRefinementTable 講這個檔有那張表(migrate requirements 換掉它)。
 function routeTables(lines, offset) {
-  const names = (cell) => (cell || '').split(/[、,]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
+  const names = (cell) => (cell || '').split(/[、,，]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
   const one = (cell) => {
     const v = (cell || '').trim();
     return !v || /^[-—–]$/.test(v) || hasPlaceholder(v) ? '' : v;
@@ -377,7 +378,7 @@ export function readRequirements(designDir, root) {
     const base = path.basename(f, '.md');
     const m = /^(R-\d+)-(.+)$/.exec(base);
     const heading = lines.find((l) => /^# /.test(l)) || '';
-    const tm = /^#\s+\S+\s*[::]\s*(.*)$/.exec(heading);
+    const tm = /^#\s+\S+\s*[:：]\s*(.*)$/.exec(heading);
     const title = (tm ? tm[1] : heading.replace(/^#\s*/, '')).trim();
     return {
       file: rel(root, file),
@@ -414,7 +415,7 @@ export function readObjectives(designDir, root) {
     const base = path.basename(f, '.md');
     const m = /^(R-\d+)-(O-\d+)-(.+)$/.exec(base);
     const heading = lines.find((l) => /^# /.test(l)) || '';
-    const tm = /^#\s+\S+\s*[::]\s*(.*)$/.exec(heading);
+    const tm = /^#\s+\S+\s*[:：]\s*(.*)$/.exec(heading);
     const requirement = typeof fm.requirement === 'string' && !hasPlaceholder(fm.requirement) ? fm.requirement.trim() : m[1];
     return { file: rel(root, file), abs: file, fullName: base, slug: m[3], id: m[2], title: (tm ? tm[1] : '').trim(), requirement, ...priorityOf(fm), ...routeTables(lines, offset) };
   });
@@ -464,7 +465,7 @@ export function readModules(designDir, root) {
   if (t) {
     t.rows.forEach((r, i) => {
       const layer = (r[1] || '').trim();
-      for (const raw of (r[0] || '').split(/[、,]/)) {
+      for (const raw of (r[0] || '').split(/[、,，]/)) {
         const pattern = stripTicks(raw.trim());
         if (pattern && !hasPlaceholder(pattern) && !hasPlaceholder(layer)) entries.push({ pattern, layer, line: t.rowLines[i] + 1 });
       }
@@ -499,7 +500,7 @@ function parseSteps(sec) {
   return t.rows.map((r, i) => {
     const sigText = stripTicks(r[1] || '');
     const modCell = (r[3] || '').trim();
-    const paren = /^(.*?)\s*[((](.*)[))]\s*$/.exec(modCell);
+    const paren = /^(.*?)\s*[(（](.*)[)）]\s*$/.exec(modCell);
     const module = stripTicks(paren ? paren[1] : modCell);
     const note = paren ? paren[2] : '';
     const refM = /((?:F|A)-\d{3}-[a-z0-9-]+)/.exec(note);
@@ -551,7 +552,7 @@ function parseExamples(sec) {
     id: (r[0] || '').trim(),
     input: stripTicks(r[1] || ''),
     output: stripTicks(r[2] || ''),
-    covers: (r[3] || '').split(/[、,]/).map((s) => s.trim()).filter(Boolean),
+    covers: (r[3] || '').split(/[、,，]/).map((s) => s.trim()).filter(Boolean),
     line: sec.start + t.rowLines[i] + 2,
     placeholder: isPlaceholder(stripTicks(r[1] || '')) || isPlaceholder(stripTicks(r[2] || '')),
   }));
@@ -613,9 +614,9 @@ export function readGaps(designDir, root) {
   const secs = sections(parseFrontmatter(text).body);
   const gaps = [];
   for (const s of secs) {
-    const m = /^(GAP-\d+)\s*[((]\s*(.*?)\s*\/\s*(\S+)\s*[))]/.exec(s.title);
+    const m = /^(GAP-\d+)\s*[(（]\s*(.*?)\s*\/\s*(\S+)\s*[)）]/.exec(s.title);
     if (!m) continue;
-    const status = (parseList(s.lines).find((i) => /^狀態[::]/.test(i.text)) || { text: '' }).text.replace(/^狀態[::]\s*/, '');
+    const status = (parseList(s.lines).find((i) => /^狀態[:：]/.test(i.text)) || { text: '' }).text.replace(/^狀態[:：]\s*/, '');
     gaps.push({ id: m[1], target: m[2], role: m[3], status, line: s.start + 1 });
   }
   return { file: rel(root, file), exists: true, gaps };

@@ -699,6 +699,82 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
   } else console.log('✓ 建議路線的 draft');
 }
 
+// 文檔寫全形標點與寫半形標點讀出同一棵樹：夾具的 .design/ 與根目錄 CLAUDE.md 裡貼著中文的 , : ; ( ) 換成全形之後，
+// status、lint 與 brief 的輸出（全形換回半形再比）與原樹逐字相同。反引號裡的程式碼、frontmatter、圍欄裡的不換。
+{
+  const HALF_TO_FULL = { ',': '，', ':': '：', ';': '；', '(': '（', ')': '）' };
+  const FULL_TO_HALF = Object.fromEntries(Object.entries(HALF_TO_FULL).map(([h, f]) => [f, h]));
+  const CJK = /[㐀-鿿「」、。，：；（）]/;
+  const toFull = (text) => {
+    let fm = false;
+    let fence = false;
+    return text.split('\n').map((line, i) => {
+      if (i === 0 && line.trim() === '---') { fm = true; return line; }
+      if (fm) { if (line.trim() === '---') fm = false; return line; }
+      if (/^\s*```/.test(line)) { fence = !fence; return line; }
+      if (fence) return line;
+      return line.split(/(`[^`]*`)/).map((part) => {
+        if (part.startsWith('`')) return part;
+        const a = [...part];
+        const b = [];
+        a.forEach((c, k) => {
+          // 括號看裡面有沒有中文；其餘看左邊（已經換過的）或右邊有沒有貼著中文
+          if (c === '(') { const j = a.indexOf(')', k); b.push(j > 0 && a.slice(k, j).some((x) => CJK.test(x)) ? HALF_TO_FULL[c] : c); }
+          else if (c === ')') { const j = a.lastIndexOf('(', k); b.push(j >= 0 && a.slice(j, k).some((x) => CJK.test(x)) ? HALF_TO_FULL[c] : c); }
+          else if (HALF_TO_FULL[c]) b.push(CJK.test(b[k - 1] || '') || CJK.test(a[k + 1] || '') ? HALF_TO_FULL[c] : c);
+          else b.push(c);
+        });
+        return b.join('');
+      }).join('');
+    }).join('\n');
+  };
+  const mdFiles = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? mdFiles(path.join(dir, e.name)) : e.name.endsWith('.md') ? [path.join(dir, e.name)] : [])) : []);
+  const runs = [
+    ['shop', ['status', '--tests', 'test.log']],
+    ['shop', ['lint', 'all']],
+    ['shop', ['brief', 'build', 'F-001-checkout', '--tests', 'test.log', '--no-rules']],
+    ['team', ['status']],
+    ['team', ['lint', 'ids']],
+    ['shaky', ['status', '--tests', 'stale.log']],
+    ['shaky', ['lint', 'all']],
+  ];
+  const bad = [];
+  let converted = '';
+  for (const [fixture, argv] of runs) {
+    const outs = [];
+    for (const full of [false, true]) {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'devflow-fullwidth-'));
+      fs.cpSync(path.join(here, 'fixtures', fixture), tmp, { recursive: true });
+      if (full) {
+        for (const f of [...mdFiles(path.join(tmp, '.design')), path.join(tmp, 'CLAUDE.md')].filter((f) => fs.existsSync(f))) {
+          const text = toFull(fs.readFileSync(f, 'utf8'));
+          fs.writeFileSync(f, text);
+          converted += text;
+        }
+      }
+      const r = spawnSync(process.execPath, [bin, ...argv, '--root', tmp], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
+      fs.rmSync(tmp, { recursive: true, force: true });
+      outs.push(`${(r.stdout + r.stderr).split(tmp).join('<root>').split(tmp.replace(/\\/g, '/')).join('<root>').replace(/\r\n/g, '\n')
+        .replace(/[，：；（）]/g, (c) => FULL_TO_HALF[c]).replace(/^(- \S+)  (?:比每一個原始碼與測試檔都新|比 \S+ 舊:.*)$/gm, '$1')
+        .replace(/ @doc:[0-9a-f]+/g, ' @doc:<文檔雜湊>')}\nexit ${r.status}`);
+    }
+    if (outs[0] !== outs[1]) {
+      const a = outs[0].split('\n');
+      const b = outs[1].split('\n');
+      const i = a.findIndex((l, k) => l !== b[k]);
+      bad.push(`${fixture} devflow ${argv.join(' ')}:第 ${i + 1} 行\n  半形:${a[i]}\n  全形:${b[i]}`);
+    }
+  }
+  // 換過的文檔真的碰到了腳本要解析的欄位，這道測試才有意義
+  const touched = ['- 驗收：', '- 建置：', '- 測試（整套）：', '### 架構：層', '### 契約：對外 I/O', '（見 F-001-checkout）', '- 號段：'].filter((s) => !converted.includes(s));
+  if (bad.length || touched.length) {
+    failed++;
+    console.log('✗ 全形標點的文檔');
+    for (const b of bad) console.log(b);
+    if (touched.length) console.log(`換成全形之後找不到:${touched.join('、')}`);
+  } else console.log('✓ 全形標點的文檔');
+}
+
 // 看板的頁面兩個 plugin 共用同一份,逐位元組相同;改了一邊就要複製到另一邊
 {
   const mine = path.join(here, '..', '..', 'plugins', 'dev-flow', 'templates', 'status-board.html');

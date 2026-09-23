@@ -26,9 +26,9 @@ function walkDocs(dir, out) {
 function draftLaw(item) {
   const get = (k) => {
     const c = item.children.find((x) => x.startsWith(k));
-    return c ? c.slice(k.length).replace(/^[::]\s*/, '').trim() : '';
+    return c ? c.slice(k.length).replace(/^[:：]\s*/, '').trim() : '';
   };
-  const head = /^(LAW-\d+)\s*[::]?\s*(.*)$/.exec(item.text) || [null, 'LAW-?', item.text];
+  const head = /^(LAW-\d+)\s*[:：]?\s*(.*)$/.exec(item.text) || [null, 'LAW-?', item.text];
   const quant = get('量詞');
   const domain = get('定義域');
   const pre = get('前提');
@@ -77,7 +77,7 @@ function readOld(file, root) {
     description: fm.description || '',
     interfaces,
     laws,
-    accept: accept.replace(/^\s*\*\*驗收標準\*\*[::]\s*/, ''),
+    accept: accept.replace(/^\s*\*\*驗收標準\*\*[:：]\s*/, ''),
     revs: revs ? parseList(revs.lines).filter((i) => /^REV-\d+/.test(i.text)).length : 0,
   };
 }
@@ -188,19 +188,19 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
   const { body } = parseFrontmatter(text);
   const secs = sections(body);
   const head = secs.find((s) => s.level === 1) || secs[0];
-  const noteLine = (head && !/^O-\d+/.test(head.title) ? head.lines : []).map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[::]/.test(l)) || '';
-  const priorityNote = noteLine.replace(/^優先[::]\s*/, '').trim();
+  const noteLine = (head && !/^O-\d+/.test(head.title) ? head.lines : []).map((l) => l.replace(/^[-*]\s*/, '').trim()).find((l) => /^優先[:：]/.test(l)) || '';
+  const priorityNote = noteLine.replace(/^優先[:：]\s*/, '').trim();
   const objs = [];
   for (let i = 0; i < secs.length; i++) {
     const s = secs[i];
     if (s.level !== 2) continue;
-    const m = /^(O-\d+)\s*[::]\s*(.*)$/.exec(s.title);
+    const m = /^(O-\d+)\s*[:：]\s*(.*)$/.exec(s.title);
     if (!m) continue;
     const lines = [...s.lines];
     for (let j = i + 1; j < secs.length && secs[j].level > 2; j++) lines.push(`${'#'.repeat(secs[j].level)} ${secs[j].title}`, ...secs[j].lines);
     const field = (k) => {
-      const l = lines.find((x) => new RegExp(`^- ${k}[::]`).test(x));
-      return l ? l.replace(/^- [^::]*[::]\s*/, '').trim() : '';
+      const l = lines.find((x) => new RegExp(`^- ${k}[:：]`).test(x));
+      return l ? l.replace(/^- [^:：]*[:：]\s*/, '').trim() : '';
     };
     const id = m[1];
     const title = m[2].trim();
@@ -211,7 +211,7 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
     const slug = binds.length ? binds[0].replace(/^F-\d{3}-/, '') : 'unnamed';
     const bodyLines = [];
     for (const l of lines) {
-      if (/^- (需求|優先|判準)[::]/.test(l)) continue;
+      if (/^- (需求|優先|判準)[:：]/.test(l)) continue;
       // 里程碑的第一格要是全名 M-n-<slug>:只有編號的列,英文名從它第一份綁定的 feature 推;沒綁的留給 dev-flow:objective 定
       const ms = /^(\s*\|\s*)(M-\d+)(\s*\|.*)$/.exec(l);
       const bound = ms ? /F-\d{3}-([a-z0-9-]+)/.exec(ms[3]) : null;
@@ -268,7 +268,7 @@ function splitObjectivesFile(root, { write = false, date = new Date().toISOStrin
     notes.push(`需求 ${split.objs.length} 條(${split.objs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : ',驗收留佔位符'}`).join('、') || '沒有目標,留一條模板'})`);
   }
   // 「Constraint」補一行優先
-  if (split.priorityNote && !/^- 優先[::]/m.test(lines.join('\n'))) {
+  if (split.priorityNote && !/^- 優先[:：]/m.test(lines.join('\n'))) {
     const t = sectionRange(lines, 'Constraint') || sectionRange(lines, '語言與工具');
     if (t) {
       let end = t.to;
@@ -436,7 +436,7 @@ export function migrateRequirements(root, { write = false, date = new Date().toI
     const range = sectionRange(lines, '需求');
     const bodyOf = (id) => {
       let at = -1;
-      for (let i = range.from + 1; i < range.to; i++) if (new RegExp(`^### ${id}\\s*[::]`).test(lines[i])) at = i;
+      for (let i = range.from + 1; i < range.to; i++) if (new RegExp(`^### ${id}\\s*[:：]`).test(lines[i])) at = i;
       if (at < 0) return [];
       let stop = at + 1;
       while (stop < range.to && !/^#{1,3} /.test(lines[stop])) stop++;
@@ -519,15 +519,15 @@ function dropLawItems(lines, { rename = false } = {}) {
   let changed = 0;
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
-    if (/^- 蘊含[::]/.test(l) || (!rename && /^- Law[::]/.test(l))) {
+    if (/^- 蘊含[:：]/.test(l) || (!rename && /^- Law[:：]/.test(l))) {
       changed++;
       while (i + 1 < lines.length && /^\s{2,}- /.test(lines[i + 1])) i++;
       if (!rename && out.length && !out[out.length - 1].trim() && i + 1 < lines.length && !lines[i + 1].trim()) i++;
       continue;
     }
-    if (rename && /^- Law[::]/.test(l)) {
+    if (rename && /^- Law[:：]/.test(l)) {
       changed++;
-      out.push(l.replace(/^- Law[::]\s*/, '- 驗收:'));
+      out.push(l.replace(/^- Law[:：]\s*/, '- 驗收:'));
       continue;
     }
     out.push(l);

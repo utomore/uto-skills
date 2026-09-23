@@ -37,8 +37,13 @@ export function sections(body) {
   return out;
 }
 
+// 節名比對不分全形半形標點：「架構:層」與「架構：層」是同一節。
+const HALF = { '：': ':', '（': '(', '）': ')', '，': ',', '；': ';' };
+export const titleKey = (t) => String(t).replace(/[：（），；]/g, (c) => HALF[c]).trim();
+export const sameTitle = (a, b) => titleKey(a) === titleKey(b);
+
 export function findSection(secs, title, level = 2) {
-  return secs.find((s) => s.level === level && s.title === title) || null;
+  return secs.find((s) => s.level === level && sameTitle(s.title, title)) || null;
 }
 
 // 切一列表格:認 \| 跳脫,反引號裡的 | 不切。

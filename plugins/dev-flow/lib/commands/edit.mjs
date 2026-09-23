@@ -1,5 +1,5 @@
-// 會寫檔的子命令:claim、requirement add / milestone、invariant add、sync、modules --gen。
-// 需求一條一個檔,住 requirements/R-n-<slug>.md。
+// 會寫檔的子命令：claim、requirement add / milestone、invariant add、sync、modules --gen。
+// 需求一條一個檔，住 requirements/R-n-<slug>.md。
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -20,15 +20,15 @@ const SPEC = {
   adr: { prefix: 'ADR', dir: 'adr', tpl: 'adr.md' },
 };
 
-// 同一個 repo 的每一棵工作樹(含自己):切片各住各的 build/ 工作樹、各自 claim,配號要看得到彼此,才不會配到同一個號。
-// 專案根目錄沒有 .git(夾具、匯出的樹)就只有自己。
+// 同一個 repo 的每一棵工作樹（含自己）：切片各住各的 build/ 工作樹、各自 claim，配號要看得到彼此，才不會配到同一個號。
+// 專案根目錄沒有 .git（夾具、匯出的樹）就只有自己。
 export function worktrees(root) {
   const self = [{ path: path.resolve(root), branch: '' }];
   if (!fs.existsSync(path.join(root, '.git'))) return self;
   const r = spawnSync('git', ['worktree', 'list', '--porcelain'], { cwd: root, encoding: 'utf8' });
   if (r.status !== 0) return self;
   const top = spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd: root, encoding: 'utf8' });
-  // .design 可能不在 repo 根目錄:每棵樹裡取同一個相對位置
+  // .design 可能不在 repo 根目錄：每棵樹裡取同一個相對位置
   const sub = top.status === 0 ? path.relative(path.resolve(top.stdout.trim()), path.resolve(root)) : '';
   const out = [];
   for (const block of (r.stdout || '').split(/\r?\n\r?\n/)) {
@@ -45,41 +45,41 @@ export function worktreeRoots(root) {
   return [...new Set([path.resolve(root), ...worktrees(root).map((w) => w.path)])];
 }
 
-// 誰在 claim:和 git 自己一樣,GIT_AUTHOR_EMAIL 優先,其次專案裡的 user.email。
+// 誰在 claim：和 git 自己一樣，GIT_AUTHOR_EMAIL 優先，其次專案裡的 user.email。
 export function currentEmail(root) {
   if (process.env.GIT_AUTHOR_EMAIL) return process.env.GIT_AUTHOR_EMAIL.trim();
   const r = spawnSync('git', ['config', 'user.email'], { cwd: root, encoding: 'utf8' });
   return r.status === 0 ? (r.stdout || '').trim() : '';
 }
 
-// 下一個號:system.md 沒有號段行就從全部文檔的最大號往上配;有號段行就從自己的區間內往上配,區間起點是 000 時從 001 起。
+// 下一個號：system.md 沒有號段行就從全部文檔的最大號往上配；有號段行就從自己的區間內往上配，區間起點是 000 時從 001 起。
 // 回 { num, owner } 或 { error }。
 export function nextNumber(design, nums, prefix) {
   const ranges = design.system ? design.system.ranges : [];
   if (!ranges.length) return { num: (nums.length ? Math.max(...nums) : 0) + 1, owner: '' };
   const email = currentEmail(design.root);
-  if (!email) return { error: 'system.md 有號段行,但 git 的 user.email 是空的;先 git config user.email <你的 email>,號段行要有這個 email 的區間' };
+  if (!email) return { error: 'system.md 有號段行，但 git 的 user.email 是空的；先 git config user.email <你的 email>，號段行要有這個 email 的區間' };
   const mine = ranges.filter((r) => r.email === email);
-  if (!mine.length) return { error: `system.md 的號段行沒有 ${email} 的區間;請架構負責人在「Constraint」的號段行加上一段,再 claim` };
+  if (!mine.length) return { error: `system.md 的號段行沒有 ${email} 的區間；請架構負責人在「Constraint」的號段行加上一段，再 claim` };
   for (const r of mine) {
     const lo = Math.max(r.lo, 1);
     const used = nums.filter((n) => n >= lo && n <= r.hi);
     const num = used.length ? Math.max(...used) + 1 : lo;
     if (num <= r.hi) return { num, owner: email, range: r.text };
   }
-  return { error: `${email} 的號段 ${mine.map((r) => r.text).join('、')} 的 ${prefix} 用完了;請架構負責人在號段行再配一段` };
+  return { error: `${email} 的號段 ${mine.map((r) => r.text).join('、')} 的 ${prefix} 用完了；請架構負責人在號段行再配一段` };
 }
 
 export function claim(design, kind, slug, { description = '', date = today(), milestone = '' } = {}) {
   const spec = SPEC[kind];
-  if (!spec) return { text: `claim 的類別只有 feature / adr,沒有「${kind}」`, exitCode: 1 };
-  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) return { text: `slug 要是 kebab-case 英文:${slug}`, exitCode: 1 };
-  if (milestone && kind !== 'feature') return { text: '--milestone 只給 feature:里程碑綁的是 feature', exitCode: 1 };
-  // --milestone 收全名 M-n-<slug>;只給編號也靜默認得。認到之後 bound 是那條里程碑:綁定用它的編號當鍵,印出來的一律是全名
+  if (!spec) return { text: `claim 的類別只有 feature / adr，沒有「${kind}」`, exitCode: 1 };
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug || '')) return { text: `slug 要是 kebab-case 英文：${slug}`, exitCode: 1 };
+  if (milestone && kind !== 'feature') return { text: '--milestone 只給 feature：里程碑綁的是 feature', exitCode: 1 };
+  // --milestone 收全名 M-n-<slug>；只給編號也靜默認得。認到之後 bound 是那條里程碑：綁定用它的編號當鍵，印出來的一律是全名
   let bound = null;
   if (milestone) {
     bound = design.requirements.requirements.flatMap((q) => q.milestones).find((m) => m.fullName === milestone || m.id === milestone) || null;
-    if (!bound) return { text: `requirements/ 沒有 ${milestone} 這條里程碑;先 devflow requirement milestone <R-n> <slug> <一句話>`, exitCode: 1 };
+    if (!bound) return { text: `requirements/ 沒有 ${milestone} 這條里程碑；先 devflow requirement milestone <R-n> <slug> <一句話>`, exitCode: 1 };
     if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
   }
   const dir = path.join(design.designDir, spec.dir);
@@ -91,7 +91,7 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
       if (m) nums.push(Number(m[1]));
     }
   };
-  // 別的工作樹上已經 claim 走的號也算:每條切片各自 claim,合進主線時才不會同號
+  // 別的工作樹上已經 claim 走的號也算：每條切片各自 claim，合進主線時才不會同號
   const designRel = path.relative(design.root, design.designDir);
   for (const wt of worktreeRoots(design.root)) scan(path.join(wt, designRel, spec.dir));
   if (kind === 'feature' && design.system) for (const l of design.system.listed) {
@@ -113,7 +113,7 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, tpl);
   const out = [`建了 ${path.relative(design.root, file).split(path.sep).join('/')}${kind === 'feature' ? '(status: draft)' : ''}`];
-  if (next.owner) out.push(`${id} 配自 ${next.owner} 的號段 ${next.range},owner 寫進 frontmatter`);
+  if (next.owner) out.push(`${id} 配自 ${next.owner} 的號段 ${next.range}，owner 寫進 frontmatter`);
 
   if (kind === 'feature') {
     const sys = path.join(design.designDir, 'system.md');
@@ -127,12 +127,12 @@ export function claim(design, kind, slug, { description = '', date = today(), mi
         lines.splice(i, 0, `| ${fullName} | feature |`);
         fs.writeFileSync(sys, lines.join('\n'));
         out.push('system.md Features 表加了一列');
-      } else out.push('system.md 沒有 ## Features 節,自己補一列');
+      } else out.push('system.md 沒有 ## Features 節，自己補一列');
     }
     if (bound) {
       bindMilestone(design, bound.id, fullName);
       out.push(`綁進 ${bound.fullName}`);
-    } else out.push('沒有 --milestone:這份 feature 還不朝向任何需求,dev-flow:require-design 綁進一條里程碑');
+    } else out.push('沒有 --milestone：這份 feature 還不朝向任何需求，dev-flow:require-design 綁進一條里程碑');
   }
   return { text: out.join('\n'), exitCode: 0, fullName };
 }
@@ -144,10 +144,10 @@ const relOf = (design, abs) => path.relative(design.root, abs).split(path.sep).j
 const requirementFile = (design, q) => path.join(design.root, q.file);
 // 寫需求檔的指令只在「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」的樹上動手
 const notMigrated = (design) => design.requirements.merged || design.objectivesFile || design.requirements.requirements.some((q) => q.hasRefinementTable);
-const NOT_MIGRATED = '這棵樹的需求檔不是「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」;先 devflow migrate requirements --write 換過來';
+const NOT_MIGRATED = '這棵樹的需求檔不是「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」；先 devflow migrate requirements --write 換過來';
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-// 在需求檔裡、表頭第一格是 head 的那張表尾端加一列;沒有那張表就在檔尾補表頭
+// 在需求檔裡、表頭第一格是 head 的那張表尾端加一列；沒有那張表就在檔尾補表頭
 function appendRow(lines, head, table, row) {
   const i = lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === head);
   if (i >= 0) {
@@ -177,13 +177,13 @@ function bindMilestone(design, milestoneId, fullName) {
   return true;
 }
 
-// requirement add <slug> <一句話> --priority <1-4> [--accept <句>]:鑄 R-n,建 requirements/R-n-<slug>.md。
-// 需求是必須達成的事,驗收是判它達成與否的那一句;里程碑另外配號,模板的佔位列不進檔。
+// requirement add <slug> <一句話> --priority <1-4> [--accept <句>]：鑄 R-n，建 requirements/R-n-<slug>.md。
+// 需求是必須達成的事，驗收是判它達成與否的那一句；里程碑另外配號，模板的佔位列不進檔。
 export function requirementAdd(design, slug, title, { accept = '', priority, date = today() } = {}) {
-  if (!design.system) return { text: '沒有 .design/system.md;dev-flow:kickoff 先建它', exitCode: 1 };
+  if (!design.system) return { text: '沒有 .design/system.md；dev-flow:kickoff 先建它', exitCode: 1 };
   if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
-  if (!SLUG.test(slug || '')) return { text: `需求要一個 kebab-case 英文名:devflow requirement add <slug> <一句話> --priority <1-4>(拿到的是「${slug || ''}」)`, exitCode: 1 };
-  if (!title || /<[^>]*>/.test(title)) return { text: '需求要一句話:誰在什麼情況下要得到什麼', exitCode: 1 };
+  if (!SLUG.test(slug || '')) return { text: `需求要一個 kebab-case 英文名：devflow requirement add <slug> <一句話> --priority <1-4>（拿到的是「${slug || ''}」）`, exitCode: 1 };
+  if (!title || /<[^>]*>/.test(title)) return { text: '需求要一句話：誰在什麼情況下要得到什麼', exitCode: 1 };
   if (!/^[1-4]$/.test(String(priority || ''))) return { text: '--priority 要是 1 到 4,1 最高', exitCode: 1 };
   const nums = design.requirements.requirements.map((q) => Number(q.fileId.slice(2)));
   const id = `R-${(nums.length ? Math.max(...nums) : 0) + 1}`;
@@ -195,22 +195,22 @@ export function requirementAdd(design, slug, title, { accept = '', priority, dat
     .replace(/<1 到 4[,，]1 最高>/, String(priority)).replace('<YYYY-MM-DD>', date)
     .replace(/<一句話[:：]誰在什麼情況下要得到什麼>/, title)
     .split(/\r?\n/).filter((l) => !/^\|\s*M-\d+\S*\s*\|.*<[^>]*>/.test(l)).join('\n');
-  // 給了 --accept 就只留那一句;三行式在對談裡寫
+  // 給了 --accept 就只留那一句；三行式在對談裡寫
   if (accept) {
     const lines = tpl.split('\n');
     const at = lines.findIndex((l) => /^- 驗收[:：]/.test(l));
     let stop = at + 1;
     while (stop < lines.length && /^\s{2,}- /.test(lines[stop])) stop++;
-    lines.splice(at, stop - at, `- 驗收:${accept}`);
+    lines.splice(at, stop - at, `- 驗收：${accept}`);
     tpl = lines.join('\n');
   }
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, tpl);
   return {
     text: [
-      `建了 ${relOf(design, file)}(${id},優先 ${priority})`,
-      accept ? '' : '驗收還是佔位符,對談完填成可判定的一句',
-      `下一步:devflow requirement milestone ${id} <slug> <一句話>`,
+      `建了 ${relOf(design, file)}（${id}，優先 ${priority}）`,
+      accept ? '' : '驗收還是佔位符，對談完填成可判定的一句',
+      `下一步：devflow requirement milestone ${id} <slug> <一句話>`,
     ].filter(Boolean).join('\n'),
     exitCode: 0,
     id,
@@ -218,11 +218,11 @@ export function requirementAdd(design, slug, title, { accept = '', priority, dat
   };
 }
 
-// invariant add <一句話> [--kind <種類>]:鑄 INV-n,寫進 system.md「全域 Law」區的「領域不變量」尾端;區裡沒有這一小節就補在區的最前面。
-// 領域不變量是開發者批准的決定,只由 global-laws 寫;整個專案任何一份 feature 都不准違反,三行的識別字只用最內層的匯出與型別名。
+// invariant add <一句話> [--kind <種類>]：鑄 INV-n，寫進 system.md「全域 Law」區的「領域不變量」尾端；區裡沒有這一小節就補在區的最前面。
+// 領域不變量是開發者批准的決定，只由 global-laws 寫；整個專案任何一份 feature 都不准違反，三行的識別字只用最內層的匯出與型別名。
 export function invariantAdd(design, title, { kind = 'invariant' } = {}) {
-  if (!title || /<[^>]*>/.test(title)) return { text: '領域不變量要一句話:整個專案都不准違反的是什麼', exitCode: 1 };
-  if (!design.system) return { text: '沒有 .design/system.md;dev-flow:kickoff 先建它', exitCode: 1 };
+  if (!title || /<[^>]*>/.test(title)) return { text: '領域不變量要一句話：整個專案都不准違反的是什麼', exitCode: 1 };
+  if (!design.system) return { text: '沒有 .design/system.md；dev-flow:kickoff 先建它', exitCode: 1 };
   if (!LAW_KINDS.includes(kind)) return { text: `--kind「${kind}」不在 ${LAW_KINDS.join(' / ')}`, exitCode: 1 };
   const file = path.join(design.designDir, 'system.md');
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
@@ -231,16 +231,16 @@ export function invariantAdd(design, title, { kind = 'invariant' } = {}) {
   const item = `- ${id} [${kind}] ${title}`;
   const from = lines.findIndex((l) => /^#{2,3} 領域不變量\s*$/.test(l));
   if (from < 0) {
-    // 補一小節:放在「## 全域 Law」區的第一個 ### 之前
+    // 補一小節：放在「## 全域 Law」區的第一個 ### 之前
     const region = lines.findIndex((l) => /^## 全域 Law\s*$/.test(l));
-    if (region < 0) return { text: 'system.md 沒有 ## 全域 Law 區;devflow migrate laws --write 補上', exitCode: 1 };
+    if (region < 0) return { text: 'system.md 沒有 ## 全域 Law 區；devflow migrate laws --write 補上', exitCode: 1 };
     let at = region + 1;
     while (at < lines.length && !/^#{1,3} /.test(lines[at])) at++;
     lines.splice(at, 0, '### 領域不變量', item, '');
   } else {
     let to = from + 1;
     while (to < lines.length && !/^#{1,3} /.test(lines[to])) to++;
-    // 節裡還是模板的那一條(連同它的子項)與單獨一行的「無」換掉;真的不變量接在最後一條後面
+    // 節裡還是模板的那一條（連同它的子項）與單獨一行的「無」換掉；真的不變量接在最後一條後面
     const body = [];
     for (let i = from + 1; i < to; i++) {
       const l = lines[i];
@@ -255,22 +255,22 @@ export function invariantAdd(design, title, { kind = 'invariant' } = {}) {
     lines.splice(from + 1, to - from - 1, ...body, item, '');
   }
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: [`${id} 寫進 .design/system.md「全域 Law」的領域不變量`, `接著把出處那條 law 的三行照搬到它底下(識別字只用最內層的匯出與型別名):沒有三行 lint invariants 即紅。有了三行,build 派 qa 寫歸屬 "${id}#LAW" 的測試`].join('\n'), exitCode: 0, id };
+  return { text: [`${id} 寫進 .design/system.md「全域 Law」的領域不變量`, `接著把出處那條 law 的三行照搬到它底下（識別字只用最內層的匯出與型別名）：沒有三行 lint invariants 即紅。有了三行，build 派 qa 寫歸屬 "${id}#LAW" 的測試`].join('\n'), exitCode: 0, id };
 }
 
-// requirement milestone <R-n> <slug> <一句話> [--bind <全名,全名>]:鑄 M-n(全資料夾唯一),以全名 M-n-<slug> 加到該需求檔的里程碑表最後;表的列序就是先後。
-// slug 是這條里程碑的英文名,切片的分支 build/M-n-<slug> 與決策紀錄 journal/M-n-<slug>.md 都以它為鍵。
+// requirement milestone <R-n> <slug> <一句話> [--bind <全名，全名>]：鑄 M-n（全資料夾唯一），以全名 M-n-<slug> 加到該需求檔的里程碑表最後；表的列序就是先後。
+// slug 是這條里程碑的英文名，切片的分支 build/M-n-<slug> 與決策紀錄 journal/M-n-<slug>.md 都以它為鍵。
 export function milestoneAdd(design, reqId, slug, title, { bind = '', verify = '' } = {}) {
   if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
   const req = design.requirements.requirements.find((q) => q.id === reqId);
-  if (!req) return { text: `requirements/ 沒有 ${reqId};先 devflow requirement add`, exitCode: 1 };
-  if (!SLUG.test(slug || '')) return { text: `里程碑要一個 kebab-case 英文名:devflow requirement milestone ${reqId} <slug> <一句話>(拿到的是「${slug || ''}」)`, exitCode: 1 };
-  if (!title || /<[^>]*>/.test(title)) return { text: '里程碑要一句話:使用者在這個階段看得到、展示得出來或呼叫得到什麼', exitCode: 1 };
+  if (!req) return { text: `requirements/ 沒有 ${reqId}；先 devflow requirement add`, exitCode: 1 };
+  if (!SLUG.test(slug || '')) return { text: `里程碑要一個 kebab-case 英文名：devflow requirement milestone ${reqId} <slug> <一句話>（拿到的是「${slug || ''}」）`, exitCode: 1 };
+  if (!title || /<[^>]*>/.test(title)) return { text: '里程碑要一句話：使用者在這個階段看得到、展示得出來或呼叫得到什麼', exitCode: 1 };
   const binds = bind.split(/[、,，]/).map((x) => x.trim()).filter(Boolean);
   const bad = binds.filter((b) => !design.docs.some((d) => d.fullName === b));
-  if (bad.length) return { text: `綁定的 ${bad.join('、')} 不存在;里程碑只綁 features/ 裡有的全名`, exitCode: 1 };
+  if (bad.length) return { text: `綁定的 ${bad.join('、')} 不存在；里程碑只綁 features/ 裡有的全名`, exitCode: 1 };
   const abstracts = binds.filter((b) => design.abstracts.some((d) => d.fullName === b));
-  if (abstracts.length) return { text: `${abstracts.join('、')} 不是 feature;里程碑綁 features/ 裡的文檔`, exitCode: 1 };
+  if (abstracts.length) return { text: `${abstracts.join('、')} 不是 feature；里程碑綁 features/ 裡的文檔`, exitCode: 1 };
   const nums = design.requirements.requirements.flatMap((q) => q.milestones.map((m) => Number((m.id.match(/^M-(\d+)$/) || [0, 0])[1])));
   const id = `M-${(nums.length ? Math.max(...nums) : 0) + 1}`;
   const file = requirementFile(design, req);
@@ -278,12 +278,12 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '', verify = '
   const fullName = `${id}-${slug}`;
   appendRow(lines, '里程碑', MILESTONE_TABLE, `| ${fullName} | ${title} | ${binds.length ? binds.join('、') : '-'} | ${verify ? `\`${verify.replace(/^`|`$/g, '')}\`` : '-'} |`);
   fs.writeFileSync(file, lines.join('\n'));
-  // 綁的文檔已經被別條里程碑綁過:這條里程碑靠修訂它達成,REV 的依欄引用了這條里程碑才算數
+  // 綁的文檔已經被別條里程碑綁過：這條里程碑靠修訂它達成，REV 的依欄引用了這條里程碑才算數
   const revise = binds.filter((b) => design.requirements.requirements.some((q) => q.milestones.some((m) => m.binds.includes(b))));
   return {
     text: [
-      `${fullName} 寫進 ${req.fullName}${binds.length ? `,綁定 ${binds.join('、')}` : `,還沒有切片:dev-flow:spike-impl ${fullName}`}`,
-      ...revise.map((b) => `下一步:dev-flow:scope-revise ${b},REV 的依欄寫 ${fullName}`),
+      `${fullName} 寫進 ${req.fullName}${binds.length ? `，綁定 ${binds.join('、')}` : `，還沒有切片：dev-flow:spike-impl ${fullName}`}`,
+      ...revise.map((b) => `下一步：dev-flow:scope-revise ${b}，REV 的依欄寫 ${fullName}`),
     ].join('\n'),
     exitCode: 0,
     id,
@@ -291,13 +291,13 @@ export function milestoneAdd(design, reqId, slug, title, { bind = '', verify = '
   };
 }
 
-// requirement verify <M-n-<slug>> <指令>:把一道「跑起來看得到這條里程碑那一句話」的指令寫進里程碑表的怎麼驗欄。
-// 切片收尾時從決策紀錄的「Entry」搬過來:決策紀錄只活在 build 分支,人工審核要的手段得留在需求檔裡。
+// requirement verify <M-n-<slug>> <指令>：把一道「跑起來看得到這條里程碑那一句話」的指令寫進里程碑表的怎麼驗欄。
+// 切片收尾時從決策紀錄的「Entry」搬過來：決策紀錄只活在 build 分支，人工審核要的手段得留在需求檔裡。
 export function milestoneVerify(design, fullName, command) {
   if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
-  if (!command) return { text: `要一道指令:devflow requirement verify ${fullName || '<M-n-slug>'} "<跑起來看得到這一句的指令>"`, exitCode: 1 };
+  if (!command) return { text: `要一道指令：devflow requirement verify ${fullName || '<M-n-slug>'} "<跑起來看得到這一句的指令>"`, exitCode: 1 };
   const req = design.requirements.requirements.find((q) => q.milestones.some((m) => m.fullName === fullName));
-  if (!req) return { text: `requirements/ 裡沒有里程碑 ${fullName || ''};引用一條里程碑一律寫全名 M-n-<slug>`, exitCode: 1 };
+  if (!req) return { text: `requirements/ 裡沒有里程碑 ${fullName || ''}；引用一條里程碑一律寫全名 M-n-<slug>`, exitCode: 1 };
   const file = requirementFile(design, req);
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   const i = lines.findIndex((l) => /^\s*\|/.test(l) && stripTicks(splitRow(l)[0]) === fullName);
@@ -306,7 +306,7 @@ export function milestoneVerify(design, fullName, command) {
   while (cells.length < 4) cells.push('-');
   cells[3] = `\`${command.replace(/^`|`$/g, '')}\``;
   lines[i] = `| ${cells.join(' | ')} |`;
-  // 表頭還是三欄的樹:補上第四欄,舊的列填「-」
+  // 表頭還是三欄的樹：補上第四欄，舊的列填「-」
   const head = lines.findIndex((l) => /^\s*\|/.test(l) && splitRow(l)[0] === '里程碑');
   if (head >= 0 && splitRow(lines[head]).length < 4) {
     lines[head] = MILESTONE_TABLE[0];
@@ -318,33 +318,33 @@ export function milestoneVerify(design, fullName, command) {
     }
   }
   fs.writeFileSync(file, lines.join('\n'));
-  return { text: `${fullName} 的怎麼驗欄寫成 \`${command}\`(${relOf(design, file)});人工審核這條需求時 status 會把它印成步驟`, exitCode: 0 };
+  return { text: `${fullName} 的怎麼驗欄寫成 \`${command}\`(${relOf(design, file)})；人工審核這條需求時 status 會把它印成步驟`, exitCode: 0 };
 }
 
-// requirement accept <R-n> --by <email> --evidence <一句>:把開發者親自審核的結果寫進需求檔的驗收記錄表。
-// 這是一條需求唯一能變成「已驗收」的路:status 只算證據齊了沒,達成與否只有人判得了。
+// requirement accept <R-n> --by <email> --evidence <一句>：把開發者親自審核的結果寫進需求檔的驗收記錄表。
+// 這是一條需求唯一能變成「已驗收」的路：status 只算證據齊了沒，達成與否只有人判得了。
 export function requirementAccept(design, reqId, { by = '', evidence = '', date = today() } = {}) {
   if (notMigrated(design)) return { text: NOT_MIGRATED, exitCode: 1 };
   const req = design.requirements.requirements.find((q) => q.id === reqId);
   if (!req) return { text: `requirements/ 沒有 ${reqId || ''}`, exitCode: 1 };
-  if (!by) return { text: `要寫是誰認的:devflow requirement accept ${reqId} --by <email> --evidence "<憑什麼認的,一句>"`, exitCode: 1 };
-  if (!evidence || /<[^>]*>/.test(evidence)) return { text: `要寫憑什麼認的(跑了哪道指令、看到什麼、測試綠幾條):devflow requirement accept ${reqId} --by ${by} --evidence "<一句>"`, exitCode: 1 };
+  if (!by) return { text: `要寫是誰認的：devflow requirement accept ${reqId} --by <email> --evidence "<憑什麼認的，一句>"`, exitCode: 1 };
+  if (!evidence || /<[^>]*>/.test(evidence)) return { text: `要寫憑什麼認的（跑了哪道指令、看到什麼、測試綠幾條）：devflow requirement accept ${reqId} --by ${by} --evidence "<一句>"`, exitCode: 1 };
   const file = requirementFile(design, req);
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   appendRow(lines, '日期', SIGNOFF_TABLE, `| ${date} | ${by} | ${evidence} | 已驗收 |`);
   fs.writeFileSync(file, lines.join('\n'));
   return {
     text: [
-      `${reqId} 記成已驗收(${date},${by};${relOf(design, file)}「驗收記錄」)`,
-      '人簽的是當時那一份證據:之後驗收測試翻紅、或里程碑被修訂動到,devflow status 會把它列成待重審,重驗過再跑一次這道指令',
+      `${reqId} 記成已驗收（${date}，${by}；${relOf(design, file)}「驗收記錄」）`,
+      '人簽的是當時那一份證據：之後驗收測試翻紅、或里程碑被修訂動到，devflow status 會把它列成待重審，重驗過再跑一次這道指令',
     ].join('\n'),
     exitCode: 0,
   };
 }
 
-// 同層搬家的 step,把模組欄改成程式碼裡的實際檔案。
+// 同層搬家的 step，把模組欄改成程式碼裡的實際檔案。
 export function sync(design, source, { date = today() } = {}) {
-  if (!source) return { text: '沒有 adapter,sync 不知道程式碼在哪', exitCode: 1 };
+  if (!source) return { text: '沒有 adapter，sync 不知道程式碼在哪', exitCode: 1 };
   const entries = design.modules ? design.modules.entries : [];
   const out = [];
   let changed = 0;
@@ -360,7 +360,7 @@ export function sync(design, source, { date = today() } = {}) {
       const from = entries.length ? matchModule(entries, s.module) : null;
       const to = entries.length ? matchModule(entries, hit.file) : null;
       if (from && to && from.layer !== to.layer) {
-        out.push(`✗ ${p.fullName}#${s.name} 從 ${from.layer} 層跨到 ${to.layer} 層,sync 不動,走 REV`);
+        out.push(`✗ ${p.fullName}#${s.name} 從 ${from.layer} 層跨到 ${to.layer} 層，sync 不動，走 REV`);
         continue;
       }
       const lines = text.split(/\r?\n/);
@@ -382,9 +382,9 @@ export function sync(design, source, { date = today() } = {}) {
   return { text: out.join('\n'), exitCode: out.some((l) => l.startsWith('✗')) ? 1 : 0 };
 }
 
-// 從程式碼補模組表缺的檔案,層欄留白。
+// 從程式碼補模組表缺的檔案，層欄留白。
 export function modulesGen(design, source) {
-  if (!source) return { text: '沒有 adapter,modules --gen 不知道程式碼在哪', exitCode: 1 };
+  if (!source) return { text: '沒有 adapter，modules --gen 不知道程式碼在哪', exitCode: 1 };
   const file = path.join(design.designDir, 'modules.md');
   const entries = design.modules ? design.modules.entries : [];
   const missing = [...source.files.keys()].filter((m) => !entries.some((e) => matchesPattern(e.pattern, m))).sort();
@@ -398,5 +398,5 @@ export function modulesGen(design, source) {
   else lines.splice(last + 1, 0, ...rows);
   fs.mkdirSync(design.designDir, { recursive: true });
   fs.writeFileSync(file, lines.join('\n') + '\n');
-  return { text: [`modules.md 補了 ${missing.length} 個檔案,層欄留白;可以合併成 \`目錄/**\` 一列:`, ...missing.map((m) => `- ${m}`)].join('\n'), exitCode: 0 };
+  return { text: [`modules.md 補了 ${missing.length} 個檔案，層欄留白；可以合併成 \`目錄/**\` 一列：`, ...missing.map((m) => `- ${m}`)].join('\n'), exitCode: 0 };
 }

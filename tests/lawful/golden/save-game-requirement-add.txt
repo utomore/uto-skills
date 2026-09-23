@@ -1,6 +1,6 @@
-$ lawful requirement add save-upgrade 換了版本的存檔在新版讀得回來 --priority 2 --accept 任一前一版的存檔,新版讀回的投影與前一版一樣 --date 2026-09-05
-建了 .lawful/requirements/R-2-save-upgrade.md(R-2,優先 2)
-下一步:lawful requirement milestone R-2 <slug> <一句話>
+$ lawful requirement add save-upgrade 換了版本的存檔在新版讀得回來 --priority 2 --accept 任一前一版的存檔，新版讀回的投影與前一版一樣 --date 2026-09-05
+建了 .lawful/requirements/R-2-save-upgrade.md（R-2，優先 2）
+下一步：lawful requirement milestone R-2 <slug> <一句話>
 exit 0
 --- .lawful/requirements/R-2-save-upgrade.md
 ---
@@ -10,7 +10,7 @@ updated: 2026-09-05
 ---
 # R-2-save-upgrade:換了版本的存檔在新版讀得回來
 
-- 驗收:任一前一版的存檔,新版讀回的投影與前一版一樣
+- 驗收：任一前一版的存檔，新版讀回的投影與前一版一樣
 
 | 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |
 |---|---|---|---|

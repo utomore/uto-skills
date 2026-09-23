@@ -1,5 +1,5 @@
-// 走原始碼樹,透過 adapter 讀出每個檔案的簽名、import、型別名、stub、測試標記。
-// 模組的身分是「相對專案根目錄的檔案路徑」——package / crate / dotted module 各語言不一致,路徑一致。
+// 走原始碼樹，透過 adapter 讀出每個檔案的簽名、import、型別名、stub、測試標記。
+// 模組的身分是「相對專案根目錄的檔案路徑」——package / crate / dotted module 各語言不一致，路徑一致。
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -19,10 +19,10 @@ function walk(dir, exts, out, root, ignore) {
   }
 }
 
-// import 的目標解析成專案內的路徑,解不到就原樣留著當外部套件(IO 模組黑名單就是拿它比的)。
-//   ./x ../x          → 路徑相加,再補副檔名或 /index
-//   a/b、a.b、a::b    → 至少兩段才解;拿它的尾段去對專案裡的檔案與資料夾,最長的贏
-// 單段的(os、fmt、react)一律當外部:專案裡剛好有同名檔案的機率遠低於誤判的代價。
+// import 的目標解析成專案內的路徑，解不到就原樣留著當外部套件（IO 模組黑名單就是拿它比的）。
+//   ./x ../x          → 路徑相加，再補副檔名或 /index
+//   a/b、a.b、a::b    → 至少兩段才解；拿它的尾段去對專案裡的檔案與資料夾，最長的贏
+// 單段的（os、fmt、react）一律當外部：專案裡剛好有同名檔案的機率遠低於誤判的代價。
 function makeResolver(known, dirs, exts) {
   return (spec, fromFile) => {
     if (/^\.{1,2}\//.test(spec)) {
@@ -79,7 +79,7 @@ function readSide(root, side, ignore) {
     const src = fs.readFileSync(f.abs, 'utf8');
     const markers = adapter.testMarkers(src);
     const isTest = adapter.isTestFile(f.rel, src);
-    // 標記可以住在產品檔裡(Rust 的 #[cfg(test)] mod),那個檔仍然要讀簽名
+    // 標記可以住在產品檔裡（Rust 的 #[cfg(test)] mod），那個檔仍然要讀簽名
     if (isTest || markers.length) testFiles.push({ file: f.rel, markers, inline: !isTest });
     if (isTest) continue;
     const rawImports = adapter.imports(src, f.rel);
@@ -98,7 +98,7 @@ function readSide(root, side, ignore) {
   return { files, dirs, testFiles };
 }
 
-// 命中帶兩個程式碼事實:exported(匯出清單有它;沒有匯出概念的語言算 true)、stub(本體還是骨架)。
+// 命中帶兩個程式碼事實：exported（匯出清單有它；沒有匯出概念的語言算 true）、stub（本體還是骨架）。
 export function findSignature(source, name) {
   const hits = [];
   for (const m of source.files.values()) {

@@ -1,6 +1,6 @@
 $ lawful lint sig
-· 此語言尚無 adapter(<haskell | …>),lint sig 與 lint boundary 跳過
+· 此語言尚無 adapter(<haskell | …>)，lint sig 與 lint boundary 跳過
 
-## lint sig:1 條不合規
-- ✗ .lawful/pipelines/P-002-syntax-parse.md:16 shared 也是 P-003-canon-normalize 的 stage,兩邊都沒註明「見」;引用的那一邊補「見 P-00x-<slug>」
+## lint sig：1 條不合規
+- ✗ .lawful/pipelines/P-002-syntax-parse.md:16 shared 也是 P-003-canon-normalize 的 stage，兩邊都沒註明「見」；引用的那一邊補「見 P-00x-<slug>」
 exit 1

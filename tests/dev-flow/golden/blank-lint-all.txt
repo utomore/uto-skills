@@ -1,12 +1,12 @@
 $ devflow lint all
-· system.md 的 language 還是模板(<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>),填成 typescript / javascript / python / go / rust 其中一個
+· system.md 的 language 還是模板 (<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>)，填成 typescript / javascript / python / go / rust 其中一個
 
-## lint ids:通過
-## lint boundary:通過
-- · 「架構:層」表沒有列,沒有依賴方向可對;層由 dev-flow:scope-laws 對著切片談出候選、dev-flow:global-laws 落筆
-## lint sig:通過
-## lint laws:通過
-## lint trace:通過
-## lint io:通過
-## lint invariants:通過
+## lint ids：通過
+## lint boundary：通過
+- · 「架構：層」表沒有列，沒有依賴方向可對；層由 dev-flow:scope-laws 對著切片談出候選、dev-flow:global-laws 落筆
+## lint sig：通過
+## lint laws：通過
+## lint trace：通過
+## lint io：通過
+## lint invariants：通過
 exit 0

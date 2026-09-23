@@ -1,28 +1,28 @@
 $ lawful status --tests test.log
 # lawful status
-願景:一段文字丟進來,字數統計與報表一次算對。
-需求 0 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · io pipeline 2 條,達成 1 條 · pipeline 3 條,達成 1 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
+願景：一段文字丟進來，字數統計與報表一次算對。
+需求 0 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條，成立 0 條 · 里程碑 0 條，達成 0 條 · io pipeline 2 條，達成 1 條 · pipeline 3 條，達成 1 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 ## 需求
-- 沒有任何需求;lawful:require-design 談第一條
-- 沒有被任何里程碑綁定的 pipeline:P-001-report-render、P-002-count-tally、P-003-report-tabulate;它們不朝向任何需求
+- 沒有任何需求；lawful:require-design 談第一條
+- 沒有被任何里程碑綁定的 pipeline：P-001-report-render、P-002-count-tally、P-003-report-tabulate；它們不朝向任何需求
 
 ## 全域 Law
 | 類別 | 住 Cone.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:四層 | lawful lint boundary | 四層,通過 |
-| 契約 | 全域 Law › 契約:對外 I/O | lawful lint io | 1 列,1 條不合規;契約欄指到的 law 0 條,成立 0 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | lawful lint invariants | 0 條,通過;成立 0 條 |
+| 架構 | 全域 Law › 架構：四層 | lawful lint boundary | 四層，通過 |
+| 契約 | 全域 Law › 契約：對外 I/O | lawful lint io | 1 列，1 條不合規；契約欄指到的 law 0 條，成立 0 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | lawful lint invariants | 0 條，通過；成立 0 條 |
 
-- 領域不變量:無
+- 領域不變量：無
 
 ## pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|---|
 | P-001-report-render | io | ready | 3 | 3 | 1 | 1 | 0/0 | 進行中 |
 | P-002-count-tally | io | verified | 2 | 2 | 0 | 1 | 1/1 | 達成 |
-| P-003-report-tabulate | (沒填) | draft | 0 | 0 | 0 | 0 | 0/0 | 進行中 |
+| P-003-report-tabulate | （沒填） | draft | 0 | 0 | 0 | 0 | 0/0 | 進行中 |
 
 ## 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
@@ -30,36 +30,36 @@ $ lawful status --tests test.log
 | App.Token | 一個字 | types | - | - | 0 | 0 |
 | App.Count | 數一段文字裡的字數 | core | - | P-002-count-tally | 2 | 0 |
 | App.Report | 報表與命令列進入點 | core、shell | - | P-001-report-render | 2 | 1 |
-- 還沒有任何 stage 住進去的單元:App.Token
+- 還沒有任何 stage 住進去的單元：App.Token
 
 ## 1. 今天能開幾條線
-- P-001-report-render:lawful:build P-001-report-render(沒有被任何里程碑綁定)
+- P-001-report-render：lawful:build P-001-report-render（沒有被任何里程碑綁定）
 
 ## 2. 卡住的
 - 無
 
 ## 3. 等決定
-- P-003-report-tabulate 還是 draft:lawful:scope-laws 談完 Law、開發者拍板才改 ready
+- P-003-report-tabulate 還是 draft：lawful:scope-laws 談完 Law、開發者拍板才改 ready
 
 ## 4. 牽動誰
 - P-002-count-tally ← P-001-report-render
 
-## 5. 待實作(按模組單元)
+## 5. 待實作（按模組單元）
 - App.Report
-  - App.Report:P-001-report-render#report(未實作)
+  - App.Report：P-001-report-render#report（未實作）
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| .lawful/ | 沒有任何需求 | lawful:require-design 談第一條需求(至少一條) |
-| P-001-report-render | 沒有被任何里程碑綁定 | 不朝向任何需求:lawful:require-design 綁進一條里程碑,或刪掉這條 pipeline |
-| P-002-count-tally | 沒有被任何里程碑綁定 | 不朝向任何需求:lawful:require-design 綁進一條里程碑,或刪掉這條 pipeline |
-| P-003-report-tabulate | 沒有被任何里程碑綁定 | 不朝向任何需求:lawful:require-design 綁進一條里程碑,或刪掉這條 pipeline |
+| .lawful/ | 沒有任何需求 | lawful:require-design 談第一條需求（至少一條） |
+| P-001-report-render | 沒有被任何里程碑綁定 | 不朝向任何需求：lawful:require-design 綁進一條里程碑，或刪掉這條 pipeline |
+| P-002-count-tally | 沒有被任何里程碑綁定 | 不朝向任何需求：lawful:require-design 綁進一條里程碑，或刪掉這條 pipeline |
+| P-003-report-tabulate | 沒有被任何里程碑綁定 | 不朝向任何需求：lawful:require-design 綁進一條里程碑，或刪掉這條 pipeline |
 | .lawful/pipelines/P-003-report-tabulate.md | kind 還是模板 | frontmatter 的 kind 填 io 或 subflow |
-| P-003-report-tabulate | 還是模板(Stages 5 列、Laws 1 條、Examples 1 列是佔位符) | lawful:scope-laws 談完寫成真的 |
-| 全域 Law:契約 | lint io 1 條不合規 | lawful lint io |
+| P-003-report-tabulate | 還是模板（Stages 5 列、Laws 1 條、Examples 1 列是佔位符） | lawful:scope-laws 談完寫成真的 |
+| 全域 Law：契約 | lint io 1 條不合規 | lawful lint io |
 
 ## 7. 建議路線
-1. lawful:build P-001-report-render(沒有被任何里程碑綁定)
-2. P-003-report-tabulate 還是 draft、沒有切片,也沒有里程碑綁它:lawful:require-design 給它一條里程碑再 lawful:spike-impl;用不到就 lawful:scope-laws P-003-report-tabulate 退役
+1. lawful:build P-001-report-render（沒有被任何里程碑綁定）
+2. P-003-report-tabulate 還是 draft、沒有切片，也沒有里程碑綁它：lawful:require-design 給它一條里程碑再 lawful:spike-impl；用不到就 lawful:scope-laws P-003-report-tabulate 退役
 exit 1

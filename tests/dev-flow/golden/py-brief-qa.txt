@@ -1,12 +1,12 @@
 $ devflow brief qa F-001-basket --no-rules
-brief qa F-001-basket @doc:58bcb9d6 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief qa F-001-basket @doc:65f5d7c5 rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
-# 目標文檔:.design/features/F-001-basket.md
+# 目標文檔：.design/features/F-001-basket.md
 
 ````markdown
 ---
@@ -15,19 +15,19 @@ description: 把一串品項加進購物籃並算出總金額
 status: ready
 updated: 2026-09-07
 ---
-# F-001-basket:把一串品項加進購物籃並算出總金額
+# F-001-basket：把一串品項加進購物籃並算出總金額
 
 ## Brief
-把 JSON 解析成品項,逐一加進購物籃,算出總金額。
-input 是 POST /basket 的字串,output 是總金額字串。流向:加入 → 加總。
+把 JSON 解析成品項，逐一加進購物籃，算出總金額。
+input 是 POST /basket 的字串，output 是總金額字串。流向：加入 → 加總。
 
 ## Steps
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
 | 1 | `add_item(list[Item], Item): list[Item]` | 加一項進購物籃 | `cart/basket.py` | core |
-| o | `Basket.size(): int` | 觀察:購物籃裡有幾項 | `cart/basket.py` | core |
-| = | `total_cents(list[Item]): int` | 整條:算出總金額 | `cart/basket.py` | core |
-| ! | `handle(str): str` | 進入點:接到 POST /basket | `cart/api.py` | entry |
+| o | `Basket.size(): int` | 觀察：購物籃裡有幾項 | `cart/basket.py` | core |
+| = | `total_cents(list[Item]): int` | 整條：算出總金額 | `cart/basket.py` | core |
+| ! | `handle(str): str` | 進入點：接到 POST /basket | `cart/api.py` | entry |
 
 ## Laws
 - LAW-1 [invariant] 加一項之後品項數多一
@@ -49,7 +49,7 @@ input 是 POST /basket 的字串,output 是總金額字串。流向:加入 → �
 無
 ````
 
-# 逐條狀態(文檔對程式碼;沒有給測試輸出,law 的紅綠不在這裡)
+# 逐條狀態（文檔對程式碼；沒有給測試輸出，law 的紅綠不在這裡）
 
 ### Steps
 - 1  add_item(list[Item], Item): list[Item]  cart/basket.py/core  在
@@ -66,17 +66,17 @@ input 是 POST /basket 的字串,output 是總金額字串。流向:加入 → �
 - 無
 
 ### 引用
-- 引用了:無
-- 被引用:無
+- 引用了：無
+- 被引用：無
 
 ### 修訂
 - 無
 
-文檔寫了 3 條簽名,程式碼裡有 3 條,未實作的 0 條 · 觀察點 1 個,程式碼裡有 1 個 · 寫了 2 條 law,通過 nan 條 · 未達成
+文檔寫了 3 條簽名，程式碼裡有 3 條，未實作的 0 條 · 觀察點 1 個，程式碼裡有 1 個 · 寫了 2 條 law，通過 nan 條 · 未達成
 
 # 宣告
 
-只有宣告,沒有本體:測試從這裡與文檔寫,不打開這些檔的本體。
+只有宣告，沒有本體：測試從這裡與文檔寫，不打開這些檔的本體。
 
 ### 1 `add_item`  cart/basket.py:24
 ```python
@@ -114,12 +114,12 @@ class Item:
 
 # 最內層(core)
 
-### cart/__init__.py(1 行,全文)
+### cart/__init__.py（1 行，全文）
 ```python
 
 ```
 
-### cart/basket.py(34 行,全文)
+### cart/basket.py（34 行，全文）
 ```python
 from typing import Optional
 
@@ -153,22 +153,22 @@ def _private(x: int) -> int:
 
 # system.md「Constraint」
 
-- 建置:`python -m compileall cart`
-- 測試(整套):`pytest -v`
-- 測試(子集):`pytest -v tests/test_basket.py`
-- IO 模組追加:無
-- Laws 詞彙追加:無
-- 忽略目錄:無
-- 優先:1 = 算得對;2 = 進入點;3 = 呈現;4 = 工具
+- 建置：`python -m compileall cart`
+- 測試（整套）：`pytest -v`
+- 測試（子集）：`pytest -v tests/test_basket.py`
+- IO 模組追加：無
+- Laws 詞彙追加：無
+- 忽略目錄：無
+- 優先：1 = 算得對；2 = 進入點；3 = 呈現；4 = 工具
 
 # 測試怎麼寫
 
-- 子集測試指令:pytest -v tests/test_basket.py
-- 歸屬寫法:識別字,f_001__law_1、f_001__ex_1
+- 子集測試指令：pytest -v tests/test_basket.py
+- 歸屬寫法：識別字，f_001__law_1、f_001__ex_1
 - 測試檔以 F-001-basket 命名
-- 現有的測試檔:tests/test_basket.py
+- 現有的測試檔：tests/test_basket.py
 
-### 這個專案的測試長這樣:tests/test_basket.py 的開頭
+### 這個專案的測試長這樣：tests/test_basket.py 的開頭
 ```python
 from cart.basket import Item, add_item, total_cents
 

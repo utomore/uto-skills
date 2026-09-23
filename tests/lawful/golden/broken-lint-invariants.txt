@@ -1,11 +1,11 @@
 $ lawful lint invariants
-## lint invariants:8 條不合規
-- ✗ .lawful/Cone.md:16 INV-1 沒有三行;領域不變量是從一條 law 抽上去的,把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名),沒有出處的不立
-- ✗ .lawful/Cone.md:17 INV-2 |- 行的 decode 對不到 types 層匯出或標準函式庫;領域不變量只引用 types 層
-- ✗ .lawful/Cone.md:17 INV-2 |- 行的 encode 對不到 types 層匯出或標準函式庫;領域不變量只引用 types 層
-- ✗ .lawful/Cone.md:20 INV-3 種類「always」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute;第一行寫成 INV-3 [種類] 一句話
-- ✗ .lawful/Cone.md:20 INV-3 沒有三行;領域不變量是從一條 law 抽上去的,把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名),沒有出處的不立
-- ✗ .lawful/Cone.md:17 INV-2 編號重複;配號只走 lawful invariant add
-- ✗ .lawful/Cone.md:17 INV-2 沒有三行;領域不變量是從一條 law 抽上去的,把出處那條 law 的三行照搬過來(識別字只用 types 層的匯出與型別名),沒有出處的不立
-- ✗ INV-2#LAW 沒有測試;領域不變量只由測試判,沒有測試就是未知
+## lint invariants：8 條不合規
+- ✗ .lawful/Cone.md:16 INV-1 沒有三行；領域不變量是從一條 law 抽上去的，把出處那條 law 的三行照搬過來（識別字只用 types 層的匯出與型別名），沒有出處的不立
+- ✗ .lawful/Cone.md:17 INV-2 |- 行的 decode 對不到 types 層匯出或標準函式庫；領域不變量只引用 types 層
+- ✗ .lawful/Cone.md:17 INV-2 |- 行的 encode 對不到 types 層匯出或標準函式庫；領域不變量只引用 types 層
+- ✗ .lawful/Cone.md:20 INV-3 種類「always」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute；第一行寫成 INV-3 [種類] 一句話
+- ✗ .lawful/Cone.md:20 INV-3 沒有三行；領域不變量是從一條 law 抽上去的，把出處那條 law 的三行照搬過來（識別字只用 types 層的匯出與型別名），沒有出處的不立
+- ✗ .lawful/Cone.md:17 INV-2 編號重複；配號只走 lawful invariant add
+- ✗ .lawful/Cone.md:17 INV-2 沒有三行；領域不變量是從一條 law 抽上去的，把出處那條 law 的三行照搬過來（識別字只用 types 層的匯出與型別名），沒有出處的不立
+- ✗ INV-2#LAW 沒有測試；領域不變量只由測試判，沒有測試就是未知
 exit 1

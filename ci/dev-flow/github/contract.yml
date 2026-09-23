@@ -1,8 +1,8 @@
-# dev-flow 專案的契約檢查(GitHub Actions)
-# 複製到你的專案:.github/workflows/contract.yml
+# dev-flow 專案的契約檢查 (GitHub Actions)
+# 複製到你的專案：.github/workflows/contract.yml
 #
-# 每條 PR 跑:lint ids / boundary / sig / laws / io → 建置 → 整套測試 → 派工報告。
-# 任一紅就失敗;在 branch protection 把這個 job 設成 required status check,紅的 PR 就合不進主線。
+# 每條 PR 跑：lint ids / boundary / sig / laws / io → 建置 → 整套測試 → 派工報告。
+# 任一紅就失敗；在 branch protection 把這個 job 設成 required status check，紅的 PR 就合不進主線。
 name: contract
 
 on:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # uto-skills 抓進專案底下的 .uto-skills/;ref 釘在一個 tag,要升級就換 tag
+      # uto-skills 抓進專案底下的 .uto-skills/；ref 釘在一個 tag，要升級就換 tag
       - uses: actions/checkout@v4
         with:
           repository: utomore/uto-skills
@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: 20
 
-      # ── 專案自己的工具鏈:留下你的語言那段,其餘刪掉 ──
+      # ── 專案自己的工具鏈：留下你的語言那段，其餘刪掉 ──
       # TypeScript / JavaScript
       - run: npm ci
       # Python
@@ -42,5 +42,5 @@ jobs:
       # Rust
       # - uses: dtolnay/rust-toolchain@stable
 
-      # 建置與整套測試的指令從 .design/system.md「Constraint」讀,不用在這裡重寫一次
+      # 建置與整套測試的指令從 .design/system.md「Constraint」讀，不用在這裡重寫一次
       - run: node .uto-skills/ci/dev-flow/contract.mjs

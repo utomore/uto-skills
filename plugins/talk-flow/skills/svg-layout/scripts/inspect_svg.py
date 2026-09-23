@@ -3,19 +3,19 @@
 # requires-python = ">=3.10"
 # dependencies = ["svgelements>=1.9", "fonttools>=4.50", "pypinyin>=0.53"]
 # ///
-"""inspect_svg.py — 輸出架構圖的 scene digest(把絕對座標還原成關係)。
+"""inspect_svg.py — 輸出架構圖的 scene digest（把絕對座標還原成關係）。
 
-給 LLM 讀的精簡文字摘要,不是 JSON dump。所有幾何都是程式量測的結果:
-巢狀 transform 已累積成絕對 bbox,文字寬度用 fontTools 量真實 advance
-(中英混排逐字元分類,不用平均字寬);量不到字型時標記為 (est.)。
+給 LLM 讀的精簡文字摘要，不是 JSON dump。所有幾何都是程式量測的結果：
+巢狀 transform 已累積成絕對 bbox，文字寬度用 fontTools 量真實 advance
+（中英混排逐字元分類，不用平均字寬）；量不到字型時標記為 (est.)。
 
-用法:
+用法：
   uv run inspect_svg.py diagram.svg
   uv run inspect_svg.py diagram.svg --expand-paths
 
-檔名刻意不叫 inspect.py:腳本目錄會排在 sys.path 最前面,叫 inspect.py 會遮蔽
-標準庫的 inspect(dataclasses 會 import 它),三支腳本都會啟動失敗。
-新增腳本時同理,不要用標準庫模組名。
+檔名刻意不叫 inspect.py：腳本目錄會排在 sys.path 最前面，叫 inspect.py 會遮蔽
+標準庫的 inspect（dataclasses 會 import 它），三支腳本都會啟動失敗。
+新增腳本時同理，不要用標準庫模組名。
 """
 
 from __future__ import annotations
@@ -120,7 +120,7 @@ def digest(doc: SvgDoc, S: Sym, expand_paths: bool) -> list[str]:
     containers = [e for e in doc.rendered() if e.role == "container" and e.bbox]
     edges = [e for e in doc.rendered() if e.role == "edge"]
 
-    # ---- 階層樹:container → node → label ---------------------------------- #
+    # ---- 階層樹：container → node → label ---------------------------------- #
     placed: set[int] = set()
     for c in sorted(containers, key=lambda e: (e.bbox.y, e.bbox.x)):
         ctext = label_text_of(c, doc)
@@ -162,7 +162,7 @@ def digest(doc: SvgDoc, S: Sym, expand_paths: bool) -> list[str]:
         for e in others:
             bb = e.bbox.fmt() if e.bbox else "?"
             lines.append(f"  {e.role:<11} {e.qname}  <{e.tag}>  bbox={bb}  "
-                         f"{S.warn} 角色不明,normalize 需人工確認")
+                         f"{S.warn} 角色不明，normalize 需人工確認")
         for e in unsupported:
             lines.append(f"  unsupported {e.qname}  <{e.tag}>  {S.warn} 本工具不解析此元素")
 
@@ -225,7 +225,7 @@ def edge_detail(e: El, doc: SvgDoc, S: Sym, nodes: list[El], edges: list[El],
         out.append(f"{indent}{S.sub} endpoint gap: " + "  ".join(parts))
     t = turns_of(e)
     if t > 2:
-        out.append(f"{indent}{S.sub} {t} turns {S.warn} (>2 折,建議重排節點)")
+        out.append(f"{indent}{S.sub} {t} turns {S.warn} （>2 折，建議重排節點）")
     if e.edge_label and e.edge_label.bbox:
         lb = e.edge_label.bbox
         on_line = any(seg_intersects_box(e.polypoints[i], e.polypoints[i + 1], lb)
@@ -281,25 +281,25 @@ def layout_lines(nodes: list[El], S: Sym) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="inspect_svg.py",
-        description="輸出 SVG 架構圖的 scene digest:絕對 bbox、標籤實測寬度、"
+        description="輸出 SVG 架構圖的 scene digest：絕對 bbox、標籤實測寬度、"
                     "edge 拓撲、對齊與間距關係。",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="範例:\n"
+        epilog="範例：\n"
                "  uv run inspect_svg.py diagram.svg\n"
                "  uv run inspect_svg.py diagram.svg --expand-paths   # 展開 path 的 d\n",
     )
     ap.add_argument("svg", type=FsPath, help="輸入的 SVG 檔")
     ap.add_argument("--expand-paths", action="store_true",
-                    help="展開 path 的 d 描述(預設只顯示 bbox 與轉折數)")
+                    help="展開 path 的 d 描述（預設只顯示 bbox 與轉折數）")
     ap.add_argument("--ascii", action="store_true", help="改用純 ASCII 符號輸出")
     ap.add_argument("--font-dir", type=FsPath, action="append", default=[],
-                    help="額外的字型搜尋目錄(可重複)")
+                    help="額外的字型搜尋目錄（可重複）")
     args = ap.parse_args(argv)
 
     ascii_mode = setup_stdout(args.ascii)
     S = Sym(ascii_mode)
     if not args.svg.exists():
-        print(f"{S.err} 找不到檔案:{args.svg}")
+        print(f"{S.err} 找不到檔案：{args.svg}")
         return 2
 
     measurer = TextMeasurer(extra_font_dirs=list(args.font_dir))
@@ -319,15 +319,15 @@ def main(argv: list[str] | None = None) -> int:
     if missing:
         notes.append(f"{len(missing)} 個元素沒有 id — 先跑 "
                      f"`uv run normalize.py {args.svg.name} --in-place` 再回來 inspect;"
-                     f"本次輸出以 <tag> 暫代,多輪對話中會漂移,不可作為修改依據")
+                     f"本次輸出以 <tag> 暫代，多輪對話中會漂移，不可作為修改依據")
     elif unannotated:
-        notes.append(f"{len(unannotated)} 個元素沒有 data-role,以上角色為啟發式推論結果;"
+        notes.append(f"{len(unannotated)} 個元素沒有 data-role，以上角色為啟發式推論結果；"
                      f"跑 normalize.py 固化後推論才穩定")
     if measurer.missing_families:
         fams = ", ".join(sorted(measurer.missing_families))
         subs = ", ".join(f"{a} {S.arrow} {b}" for a, b in sorted(doc.substitutions))
-        notes.append(f"本機找不到宣告的字型:{fams};已用替代字型實測({subs or '無'})。"
-                     f"標記 (subst.) 者寬度為替代字型的真實 advance,與實際上台環境可能有差異;"
+        notes.append(f"本機找不到宣告的字型：{fams}；已用替代字型實測({subs or '無'})。"
+                     f"標記 (subst.) 者寬度為替代字型的真實 advance，與實際上台環境可能有差異；"
                      f"標記 (est.) 者為逐字元分類估算值。可用 --font-dir 指定字型目錄")
     for w in doc.warnings:
         notes.append(w)

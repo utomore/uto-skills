@@ -1,14 +1,14 @@
 $ lawful brief qa INV-1 --no-rules
-brief qa INV-1 @doc:3d4b6611 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief qa INV-1 @doc:c6e4809d rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
-# 目標:INV-1(領域不變量 [roundtrip])
+# 目標：INV-1（領域不變量 [roundtrip]）
 
-INV-1:可存檔的狀態收進什麼實體,就吐出什麼實體
+INV-1：可存檔的狀態收進什麼實體，就吐出什麼實體
 ```
 forall es in [SavedEntity]
 |- savedEntities (mkSaveState es) == es
@@ -16,11 +16,11 @@ forall es in [SavedEntity]
 
 # 引用到的 pipeline
 
-(領域不變量只引用 types 層,不引用任何 pipeline)
+（領域不變量只引用 types 層，不引用任何 pipeline）
 
 # types 層
 
-### Game.Save.State  src-types/Game/Save/State.hs(35 行,全文)
+### Game.Save.State  src-types/Game/Save/State.hs（35 行，全文）
 ```haskell
 -- types 層:可存檔的投影。
 module Game.Save.State
@@ -58,7 +58,7 @@ emptySave :: SaveState
 emptySave = SaveState []
 ```
 
-### Game.World  src-types/Game/World.hs(40 行,全文)
+### Game.World  src-types/Game/World.hs（40 行，全文）
 ```haskell
 -- types 層:遊戲世界的不可變值。
 module Game.World
@@ -103,32 +103,32 @@ emptyWorld = mkWorld []
 
 # Cone.md「Constraint」
 
-硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先)。開發者定,`lawful:kickoff` 寫,之後隨時回 `lawful:kickoff` 補或改;限制的類別可以自己加。
-- 語言與版本:Haskell,GHC2021
-- 編譯器與執行環境:GHC 9.6、cabal 3.10
-- 套件與框架:cborg(CBOR 編解碼);不引入其他序列化套件
-- 環境:無
-- 命名與寫法:型別與建構子 PascalCase、函數與變數 camelCase;模組一律寫匯出清單;smart constructor 以 `mk` 開頭
-- 語言:haskell
-- 建置:`cabal build`
-- 測試(整套):`cabal test`
-- 測試(子集):`cabal test --test-options='-m "P-001"'`
-- 模組前綴:`Game`
-- 原始碼根目錄:`src-<層>`
-- IO 模組追加:無
-- 效果型別追加:無
-- 忽略目錄:`old`
-- 號段:無
-- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+硬性限制：寫程式之前就定得下來、每一行程式碼與測試都照做的規定，與工具要讀的那幾行（語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先）。開發者定，`lawful:kickoff` 寫，之後隨時回 `lawful:kickoff` 補或改；限制的類別可以自己加。
+- 語言與版本：Haskell，GHC2021
+- 編譯器與執行環境：GHC 9.6、cabal 3.10
+- 套件與框架：cborg（CBOR 編解碼）；不引入其他序列化套件
+- 環境：無
+- 命名與寫法：型別與建構子 PascalCase、函數與變數 camelCase；模組一律寫匯出清單；smart constructor 以 `mk` 開頭
+- 語言：haskell
+- 建置：`cabal build`
+- 測試（整套）：`cabal test`
+- 測試（子集）：`cabal test --test-options='-m "P-001"'`
+- 模組前綴：`Game`
+- 原始碼根目錄：`src-<層>`
+- IO 模組追加：無
+- 效果型別追加：無
+- 忽略目錄：`old`
+- 號段：無
+- 優先：1 = 讀寫的正確性；2 = 使用者看得到的；3 = 呈現；4 = 工具
 
 # 測試怎麼寫
 
-- 子集測試指令:cabal test --test-options='-m "P-001"'
-- 歸屬寫法:字串,"INV-1#LAW"(包住那一組測試的群組名)
+- 子集測試指令：cabal test --test-options='-m "P-001"'
+- 歸屬寫法：字串，"INV-1#LAW"（包住那一組測試的群組名）
 - 測試模組以 INV-1 命名
-- 現有的測試檔:test/SaveGameSpec.hs
+- 現有的測試檔：test/SaveGameSpec.hs
 
-### 這個專案的測試長這樣:test/SaveGameSpec.hs 的開頭
+### 這個專案的測試長這樣：test/SaveGameSpec.hs 的開頭
 ```haskell
 module SaveGameSpec (spec) where
 

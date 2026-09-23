@@ -1,18 +1,18 @@
 $ lawful migrate requirements --write
 # migrate requirements 帳本
 
-- .lawful/requirements/R-1-report-correct.md:調整表刪掉,2 列換成里程碑表的列(RF-1 → M-3、RF-2 → M-4)
+- .lawful/requirements/R-1-report-correct.md：調整表刪掉，2 列換成里程碑表的列（RF-1 → M-3、RF-2 → M-4）
 
 ## 調整表換成里程碑
-- RF-1 → M-3:切字改成一趟掃描(R-1-report-correct;綁定 P-002-count-tally)
-- RF-2 → M-4:報表一秒內印完(R-1-report-correct;綁定 P-001-report-render)
-- .lawful/pipelines/P-002-count-tally.md:修訂記錄依欄的 RF-1 改寫成 M-3
+- RF-1 → M-3：切字改成一趟掃描（R-1-report-correct；綁定 P-002-count-tally）
+- RF-2 → M-4：報表一秒內印完（R-1-report-correct；綁定 P-001-report-render）
+- .lawful/pipelines/P-002-count-tally.md：修訂記錄依欄的 RF-1 改寫成 M-3
 
 ## 人要判的
-- M-3(R-1-report-correct,換自 RF-1「切字改成一趟掃描」):補英文名,lawful:require-design 把第一格寫成 M-3-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
-- M-4(R-1-report-correct,換自 RF-2「報表一秒內印完」):補英文名,lawful:require-design 把第一格寫成 M-4-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
+- M-3（R-1-report-correct，換自 RF-1「切字改成一趟掃描」）：補英文名，lawful:require-design 把第一格寫成 M-3-<slug>（kebab-case 英文），REV 依欄引用它的地方跟著寫成全名
+- M-4（R-1-report-correct，換自 RF-2「報表一秒內印完」）：補英文名，lawful:require-design 把第一格寫成 M-4-<slug>（kebab-case 英文），REV 依欄引用它的地方跟著寫成全名
 
-都寫了;接著 lawful status 看警訊,「人要判的」與缺的驗收、優先由 lawful:require-design 對談補齊
+都寫了；接著 lawful status 看警訊，「人要判的」與缺的驗收、優先由 lawful:require-design 對談補齊
 exit 0
 --- .lawful/requirements/R-1-report-correct.md
 ---
@@ -20,9 +20,9 @@ id: R-1
 priority: 1
 updated: 2026-09-05
 ---
-# R-1-report-correct:一段文字進來,報表算對
+# R-1-report-correct：一段文字進來，報表算對
 
-- 驗收:任一段文字的報表字數等於逐字計數
+- 驗收：任一段文字的報表字數等於逐字計數
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
@@ -39,7 +39,7 @@ kind: io
 status: verified
 updated: 2026-09-06
 ---
-# P-002-count-tally:數一段文字的字數
+# P-002-count-tally：數一段文字的字數
 
 ## Brief
 io。文字 → 切字 → 數個數。
@@ -61,13 +61,13 @@ io。文字 → 切字 → 數個數。
 | EX-1 | `count ""` | `0` | LAW-1 |
 
 ## 決定
-- **重開一次**(2026-09-06):為了 REV-1 重開,由 build 重新 verified。
+- **重開一次**(2026-09-06)：為了 REV-1 重開，由 build 重新 verified。
 
 ## 修訂記錄
-- REV-1(2026-09-06,依 M-3):切字改成一趟掃描
-  - 動到:切字的做法,簽名與 law 不動
-  - 保護:LAW-1
-  - 重委派:impl
+- REV-1（2026-09-06，依 M-3）：切字改成一趟掃描
+  - 動到：切字的做法，簽名與 law 不動
+  - 保護：LAW-1
+  - 重委派：impl
 
 --- .lawful/pipelines/P-001-report-render.md
 ---
@@ -77,7 +77,7 @@ kind: io
 status: ready
 updated: 2026-09-06
 ---
-# P-001-report-render:把一段文字的字數寫成報告
+# P-001-report-render：把一段文字的字數寫成報告
 
 ## Brief
 io。文字 → 數字數 → 報告。數字數引用 P-002-count-tally 的整條。
@@ -85,7 +85,7 @@ io。文字 → 數字數 → 報告。數字數引用 P-002-count-tally 的整�
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `count :: Text -> Int` | 數字數 | `App.Count`(見 P-002-count-tally) | core |
+| 1 | `count :: Text -> Int` | 數字數 | `App.Count`（見 P-002-count-tally） | core |
 | = | `report :: Text -> Text` | 純的整條 | `App.Report` | core |
 | ! | `main :: IO ()` | 進入點 | `App.Report.Main` | shell |
 

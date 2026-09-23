@@ -1,5 +1,5 @@
 $ lawful status --json
-· 此語言尚無 adapter(<haskell | …>),lint sig 與 lint boundary 跳過
+· 此語言尚無 adapter(<haskell | …>)，lint sig 與 lint boundary 跳過
 
 {
   "tool": "lawful",
@@ -9,13 +9,13 @@ $ lawful status --json
     "measure": "條 pipeline"
   },
   "vision": "輸入檔解析、正規化後跑完整條。",
-  "visionFull": "輸入檔解析、正規化後跑完整條。 三條 pipeline:里程碑 P-001 引用 P-002 的 = 列(有註明見);P-002 與 P-003 都把 shared 列成步驟而沒註明見。",
+  "visionFull": "輸入檔解析、正規化後跑完整條。 三條 pipeline：里程碑 P-001 引用 P-002 的 = 列（有註明見）；P-002 與 P-003 都把 shared 列成步驟而沒註明見。",
   "visionState": "ok",
-  "priorityNote": "1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具",
+  "priorityNote": "1 = 讀寫的正確性；2 = 使用者看得到的；3 = 呈現；4 = 工具",
   "glossary": [
     {
       "term": "文件",
-      "definition": "一段文字解析、正規化之後的結果;不是輸入檔本身",
+      "definition": "一段文字解析、正規化之後的結果；不是輸入檔本身",
       "type": null
     }
   ],
@@ -90,7 +90,7 @@ $ lawful status --json
         "source": "M-2-cli-run、M-3-parse-line-number 還沒達成",
         "tested": false
       },
-      "note": "審核:建構中 · 里程碑 0/2 達成",
+      "note": "審核：建構中 · 里程碑 0/2 達成",
       "dependsOn": [
         "R-2"
       ],
@@ -100,8 +100,8 @@ $ lawful status --json
       "signoff": null,
       "verifySteps": [
         "`無`",
-        "M-2-cli-run 沒有怎麼驗欄(lawful:require-design 補一道指令)",
-        "M-3-parse-line-number 沒有怎麼驗欄(lawful:require-design 補一道指令)",
+        "M-2-cli-run 沒有怎麼驗欄（lawful:require-design 補一道指令）",
+        "M-3-parse-line-number 沒有怎麼驗欄（lawful:require-design 補一道指令）",
         "看「任一輸入檔解析、正規化後跑完不出錯」成不成立"
       ],
       "achieved": false,
@@ -146,7 +146,7 @@ $ lawful status --json
         "source": "M-1-syntax-parse 還沒達成",
         "tested": false
       },
-      "note": "審核:建構中 · 里程碑 0/1 達成",
+      "note": "審核：建構中 · 里程碑 0/1 達成",
       "dependsOn": [],
       "built": false,
       "state": "建構中",
@@ -154,7 +154,7 @@ $ lawful status --json
       "signoff": null,
       "verifySteps": [
         "`無`",
-        "M-1-syntax-parse 沒有怎麼驗欄(lawful:require-design 補一道指令)",
+        "M-1-syntax-parse 沒有怎麼驗欄（lawful:require-design 補一道指令）",
         "看「任一段文字解析、正規化後得到一份文件或一個講得出位置的錯誤」成不成立"
       ],
       "achieved": false,
@@ -181,24 +181,24 @@ $ lawful status --json
     "gates": [
       {
         "kind": "架構",
-        "where": "架構:四層",
+        "where": "架構：四層",
         "gate": "boundary",
         "red": 0,
-        "result": "四層,沒有程式碼可對"
+        "result": "四層，沒有程式碼可對"
       },
       {
         "kind": "契約",
-        "where": "契約:對外 I/O",
+        "where": "契約：對外 I/O",
         "gate": "io",
         "red": 0,
-        "result": "1 列,通過;契約欄指到的 law 0 條,成立 0 條"
+        "result": "1 列，通過；契約欄指到的 law 0 條，成立 0 條"
       },
       {
         "kind": "領域不變量",
         "where": "領域不變量",
         "gate": "invariants",
         "red": 0,
-        "result": "0 條,通過;成立 0 條"
+        "result": "0 條，通過；成立 0 條"
       }
     ],
     "layers": [
@@ -236,7 +236,7 @@ $ lawful status --json
     {
       "id": "R-1",
       "title": "R-1 輸入檔跑完整條",
-      "note": "審核:建構中 · M-2-cli-run、M-3-parse-line-number 還沒達成",
+      "note": "審核：建構中 · M-2-cli-run、M-3-parse-line-number 還沒達成",
       "notes": [
         "優先 1:讀寫的正確性",
         "里程碑 0/2 達成 · 完成度 0%"
@@ -251,7 +251,7 @@ $ lawful status --json
           ]
         },
         {
-          "title": "M-3-parse-line-number 解析錯誤帶行號(待修訂)",
+          "title": "M-3-parse-line-number 解析錯誤帶行號（待修訂）",
           "achieved": false,
           "docs": [
             "P-002-syntax-parse"
@@ -263,7 +263,7 @@ $ lawful status --json
     {
       "id": "R-2",
       "title": "R-2 一段文字讀得成一份正規化的文件",
-      "note": "審核:建構中 · M-1-syntax-parse 還沒達成",
+      "note": "審核：建構中 · M-1-syntax-parse 還沒達成",
       "notes": [
         "優先 2:使用者看得到的",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -731,14 +731,14 @@ $ lawful status --json
   "warnings": [
     {
       "where": "P-002-syntax-parse#shared",
-      "what": "P-003-canon-normalize 也把 shared 列成 stage,兩邊都沒註明「見」",
-      "fix": "引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來"
+      "what": "P-003-canon-normalize 也把 shared 列成 stage，兩邊都沒註明「見」",
+      "fix": "引用的那一邊模組欄補「見 P-00x-<slug>」，依賴才算得出來"
     }
   ],
   "route": {
     "steps": [
-      "lawful:build P-002-syntax-parse(R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號)",
-      "lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)"
+      "lawful:build P-002-syntax-parse（R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號）",
+      "lawful:build P-003-canon-normalize（R-2 優先 2 · M-1-syntax-parse 解析與正規化走通）"
     ],
     "note": null,
     "allDone": false

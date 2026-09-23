@@ -1,15 +1,15 @@
 $ devflow section .design/features/F-001-checkout.md Brief Laws
 ## Brief
-把一段請求文字解析成購物車,結算應付金額,產生一張訂單。
-input 是 POST /checkout 的 RawBody,output 是 HttpRes。
-流向:解析 → 結算 → 產生訂單。從對外 I/O 表的「POST /checkout」進來,從「結帳結果」出去。
-第 2 步的 settle 與它的 law 住在這一份;F-002-refund 的第 2 步引用它。
+把一段請求文字解析成購物車，結算應付金額，產生一張訂單。
+input 是 POST /checkout 的 RawBody，output 是 HttpRes。
+流向：解析 → 結算 → 產生訂單。從對外 I/O 表的「POST /checkout」進來，從「結帳結果」出去。
+第 2 步的 settle 與它的 law 住在這一份；F-002-refund 的第 2 步引用它。
 
 ## Laws
 - LAW-1 [relation] 訂單付的錢就是這張購物車的結算金額
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw))))
-- LAW-2 [total] 任何一段請求文字都得到一個結果,不拋例外
+- LAW-2 [total] 任何一段請求文字都得到一個結果，不拋例外
   - forall raw in RawBody
   - |- total(checkout(raw))
 - LAW-3 [bound] 成單時付款金額不為負
@@ -20,11 +20,11 @@ input 是 POST /checkout 的 RawBody,output 是 HttpRes。
   - forall ls in MoneyList, d in Money
   - given settled(settle(ls, d))
   - |- cents(settle(ls, d)) >= 0
-- LAW-5 [identity] 扣掉的金額是零時,結算金額等於各品項相加
+- LAW-5 [identity] 扣掉的金額是零時，結算金額等於各品項相加
   - forall ls in MoneyList
   - given settled(sumLines(ls))
   - |- cents(settle(ls, money(0, "TWD"))) == cents(sumLines(ls))
-- LAW-6 [total] 任何品項清單與任何一筆要扣的金額都得到一個 Settlement,不拋例外
+- LAW-6 [total] 任何品項清單與任何一筆要扣的金額都得到一個 Settlement，不拋例外
   - forall ls in MoneyList, d in Money
   - |- total(settle(ls, d))
 exit 0

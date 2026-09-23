@@ -1,28 +1,28 @@
 $ lawful status
-· 此語言尚無 adapter(<haskell | …>),lint sig 與 lint boundary 跳過
+· 此語言尚無 adapter(<haskell | …>)，lint sig 與 lint boundary 跳過
 
 # lawful status
-願景:輸入檔解析、正規化後跑完整條。
-需求 2 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 3 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 3 條,達成 0 條 · 模組單元 4 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+願景：輸入檔解析、正規化後跑完整條。
+需求 2 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條，成立 0 條 · 里程碑 3 條，達成 0 條 · io pipeline 1 條，達成 0 條 · pipeline 3 條，達成 0 條 · 模組單元 4 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 需求
-- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+- 優先：1 = 讀寫的正確性；2 = 使用者看得到的；3 = 呈現；4 = 工具
 | 需求 | 優先 | 一句話 | 審核 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|---|---|
-| R-1 | 1 | 輸入檔跑完整條 | 建構中(M-2-cli-run、M-3-parse-line-number 還沒達成) | R-2 | 2 | 0 | 0% |
-| R-2 | 2 | 一段文字讀得成一份正規化的文件 | 建構中(M-1-syntax-parse 還沒達成) | - | 1 | 0 | 0% |
-- R-1 下一個里程碑:M-2-cli-run 整條跑完(P-001-cli-run 進行中)
-- R-2 下一個里程碑:M-1-syntax-parse 解析與正規化走通(P-002-syntax-parse 進行中、P-003-canon-normalize 進行中)
+| R-1 | 1 | 輸入檔跑完整條 | 建構中（M-2-cli-run、M-3-parse-line-number 還沒達成） | R-2 | 2 | 0 | 0% |
+| R-2 | 2 | 一段文字讀得成一份正規化的文件 | 建構中（M-1-syntax-parse 還沒達成） | - | 1 | 0 | 0% |
+- R-1 下一個里程碑：M-2-cli-run 整條跑完（P-001-cli-run 進行中）
+- R-2 下一個里程碑：M-1-syntax-parse 解析與正規化走通（P-002-syntax-parse 進行中、P-003-canon-normalize 進行中）
 
 ## 全域 Law
 | 類別 | 住 Cone.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:四層 | lawful lint boundary | 四層,沒有程式碼可對 |
-| 契約 | 全域 Law › 契約:對外 I/O | lawful lint io | 1 列,通過;契約欄指到的 law 0 條,成立 0 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | lawful lint invariants | 0 條,通過;成立 0 條 |
+| 架構 | 全域 Law › 架構：四層 | lawful lint boundary | 四層，沒有程式碼可對 |
+| 契約 | 全域 Law › 契約：對外 I/O | lawful lint io | 1 列，通過；契約欄指到的 law 0 條，成立 0 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | lawful lint invariants | 0 條，通過；成立 0 條 |
 
-- 領域不變量:無
+- 領域不變量：無
 
 ## pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
@@ -38,15 +38,15 @@ $ lawful status
 | App.Syntax | 把文字解析成文件 | core | - | P-002-syntax-parse、P-003-canon-normalize | 3 | 0 |
 | App.Canon | 文件的正規化 | core | - | P-003-canon-normalize | 1 | 0 |
 | App.Cli | 整條與命令列進入點 | core、shell | - | P-001-cli-run | 2 | 0 |
-- 還沒有任何 stage 住進去的單元:App.Doc
+- 還沒有任何 stage 住進去的單元：App.Doc
 
 ## 1. 今天能開幾條線
-- P-002-syntax-parse:lawful:build P-002-syntax-parse(R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號)
-- P-003-canon-normalize:lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
-- P-002-syntax-parse 與 P-003-canon-normalize 的 stage 都住 `App.Syntax`:可以同時開,整合時這幾個模組單元的檔兩邊都動
+- P-002-syntax-parse：lawful:build P-002-syntax-parse（R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號）
+- P-003-canon-normalize：lawful:build P-003-canon-normalize（R-2 優先 2 · M-1-syntax-parse 解析與正規化走通）
+- P-002-syntax-parse 與 P-003-canon-normalize 的 stage 都住 `App.Syntax`：可以同時開，整合時這幾個模組單元的檔兩邊都動
 
 ## 2. 卡住的
-- P-001-cli-run 等 P-002-syntax-parse(未達成,先建它)
+- P-001-cli-run 等 P-002-syntax-parse（未達成，先建它）
 
 ## 3. 等決定
 - 無
@@ -54,15 +54,15 @@ $ lawful status
 ## 4. 牽動誰
 - P-002-syntax-parse ← P-001-cli-run
 
-## 5. 待實作(按模組單元)
+## 5. 待實作（按模組單元）
 - 無
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| P-002-syntax-parse#shared | P-003-canon-normalize 也把 shared 列成 stage,兩邊都沒註明「見」 | 引用的那一邊模組欄補「見 P-00x-<slug>」,依賴才算得出來 |
+| P-002-syntax-parse#shared | P-003-canon-normalize 也把 shared 列成 stage，兩邊都沒註明「見」 | 引用的那一邊模組欄補「見 P-00x-<slug>」，依賴才算得出來 |
 
 ## 7. 建議路線
-1. lawful:build P-002-syntax-parse(R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號)
-2. lawful:build P-003-canon-normalize(R-2 優先 2 · M-1-syntax-parse 解析與正規化走通)
+1. lawful:build P-002-syntax-parse（R-1 優先 1 · M-3-parse-line-number 解析錯誤帶行號）
+2. lawful:build P-003-canon-normalize（R-2 優先 2 · M-1-syntax-parse 解析與正規化走通）
 exit 1

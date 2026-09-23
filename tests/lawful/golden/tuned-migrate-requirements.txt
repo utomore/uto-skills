@@ -1,16 +1,16 @@
 $ lawful migrate requirements
 # migrate requirements 帳本
 
-- .lawful/requirements/R-1-report-correct.md:調整表刪掉,2 列換成里程碑表的列(RF-1 → M-3、RF-2 → M-4)
+- .lawful/requirements/R-1-report-correct.md：調整表刪掉，2 列換成里程碑表的列（RF-1 → M-3、RF-2 → M-4）
 
 ## 調整表換成里程碑
-- RF-1 → M-3:切字改成一趟掃描(R-1-report-correct;綁定 P-002-count-tally)
-- RF-2 → M-4:報表一秒內印完(R-1-report-correct;綁定 P-001-report-render)
-- .lawful/pipelines/P-002-count-tally.md:修訂記錄依欄的 RF-1 改寫成 M-3
+- RF-1 → M-3：切字改成一趟掃描（R-1-report-correct；綁定 P-002-count-tally）
+- RF-2 → M-4：報表一秒內印完（R-1-report-correct；綁定 P-001-report-render）
+- .lawful/pipelines/P-002-count-tally.md：修訂記錄依欄的 RF-1 改寫成 M-3
 
 ## 人要判的
-- M-3(R-1-report-correct,換自 RF-1「切字改成一趟掃描」):補英文名,lawful:require-design 把第一格寫成 M-3-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
-- M-4(R-1-report-correct,換自 RF-2「報表一秒內印完」):補英文名,lawful:require-design 把第一格寫成 M-4-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
+- M-3（R-1-report-correct，換自 RF-1「切字改成一趟掃描」）：補英文名，lawful:require-design 把第一格寫成 M-3-<slug>（kebab-case 英文），REV 依欄引用它的地方跟著寫成全名
+- M-4（R-1-report-correct，換自 RF-2「報表一秒內印完」）：補英文名，lawful:require-design 把第一格寫成 M-4-<slug>（kebab-case 英文），REV 依欄引用它的地方跟著寫成全名
 
-以上只是帳本;lawful migrate requirements --write 才落地
+以上只是帳本；lawful migrate requirements --write 才落地
 exit 0

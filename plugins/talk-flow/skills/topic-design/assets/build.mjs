@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * build.mjs — 合併 talk/src/section-*.md 為 slides.md,並以 marp-cli 輸出到 talk/dist/。
+ * build.mjs — 合併 talk/src/section-*.md 為 slides.md，並以 marp-cli 輸出到 talk/dist/。
  *
- * 用法(在 talk/src/ 執行): node build.mjs [html|pdf|pptx ...]   (預設 html,可同時多個)
+ * 用法（在 talk/src/ 執行）：node build.mjs [html|pdf|pptx ...]（預設 html，可同時多個）
  *
- * 合併規則:deck-header.md(Marp 全域 frontmatter)+ 各 section 檔依檔名順序,
- * 剝除每檔開頭的 YAML frontmatter(那是 talk-flow 的 metadata,不是投影片內容),
- * 以 `---` 分隔頁接合。slides.md 與 dist/ 皆為產物,勿手改。
+ * 合併規則：deck-header.md（Marp 全域 frontmatter）+ 各 section 檔依檔名順序，
+ * 剝除每檔開頭的 YAML frontmatter（那是 talk-flow 的 metadata，不是投影片內容），
+ * 以 `---` 分隔頁接合。slides.md 與 dist/ 皆為產物，勿手改。
  */
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { execSync } from "node:child_process";
@@ -24,14 +24,14 @@ const OUT_FLAGS = {
 const targets = process.argv.slice(2).length ? process.argv.slice(2) : ["html"];
 for (const t of targets) {
   if (!OUT_FLAGS[t]) {
-    console.error(`不支援的輸出格式:${t}(可用:${Object.keys(OUT_FLAGS).join(" | ")})`);
+    console.error(`不支援的輸出格式：${t}（可用：${Object.keys(OUT_FLAGS).join(" | ")}）`);
     process.exit(1);
   }
 }
 
 const headerPath = join(SRC, "deck-header.md");
 if (!existsSync(headerPath)) {
-  console.error("找不到 deck-header.md(Marp 全域 frontmatter)— 請在 talk/src/ 執行");
+  console.error("找不到 deck-header.md（Marp 全域 frontmatter）— 請在 talk/src/ 執行");
   process.exit(1);
 }
 
@@ -44,7 +44,7 @@ const files = readdirSync(SRC)
   .filter((f) => /^section-\d{2,}-.*\.md$/.test(f))
   .sort();
 if (files.length === 0) {
-  console.error("talk/src/ 沒有任何 section-*.md,先執行 /section-impl");
+  console.error("talk/src/ 沒有任何 section-*.md，先執行 /section-impl");
   process.exit(1);
 }
 

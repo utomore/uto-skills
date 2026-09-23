@@ -1,4 +1,4 @@
-// section <file> <節>…:印出點名的 ## 節;--verify 只檢查節在不在。
+// section <file> <節>…：印出點名的 ## 節；--verify 只檢查節在不在。
 import fs from 'node:fs';
 import { parseFrontmatter, sections, titleKey } from '../markdown.mjs';
 
@@ -13,7 +13,7 @@ export function sectionCommand(file, titles, { verify = false, display = file } 
     const fuzzy = exact.length ? exact : secs.filter((s) => titleKey(s.title).includes(titleKey(t)));
     if (fuzzy.length !== 1) {
       missing++;
-      out.push(fuzzy.length ? `「${t}」對到 ${fuzzy.length} 節:${fuzzy.map((s) => s.title).join('、')}` : `「${t}」在 ${display} 裡沒有這一節`);
+      out.push(fuzzy.length ? `「${t}」對到 ${fuzzy.length} 節：${fuzzy.map((s) => s.title).join('、')}` : `「${t}」在 ${display} 裡沒有這一節`);
       continue;
     }
     if (verify) out.push(`✓ ${fuzzy[0].title}`);

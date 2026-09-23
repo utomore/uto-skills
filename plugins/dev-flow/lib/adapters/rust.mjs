@@ -15,7 +15,7 @@ const STDLIB = [
   'Box', 'Rc', 'Arc', 'Cow', 'HashMap', 'HashSet', 'BTreeMap', 'BTreeSet', 'VecDeque', 'PathBuf', 'Path', 'Duration', 'Instant',
   'Error', 'Iterator', 'IntoIterator', 'Self', 'Default', 'Clone', 'Debug', 'Display', 'Fn', 'FnMut', 'FnOnce', 'Mutex', 'RwLock',
 ];
-// 沒有形狀的型別:鍵名沒地方寫
+// 沒有形狀的型別：鍵名沒地方寫
 const SHAPELESS = /^(?:Value|serde_json::Value)$|^HashMap<\s*String\s*,\s*(?:Value|serde_json::Value)\s*>$/;
 
 function stripComments(src) {
@@ -24,7 +24,7 @@ function stripComments(src) {
     .split(/\r?\n/).map((l) => l.replace(/\/\/.*$/, '')).join('\n');
 }
 
-// #[cfg(test)] 底下的 mod 整段挖掉:那是測試,不是產品程式碼的簽名與 import。
+// #[cfg(test)] 底下的 mod 整段挖掉：那是測試，不是產品程式碼的簽名與 import。
 function stripTestMods(src) {
   const lines = src.split('\n');
   const out = [];
@@ -134,12 +134,12 @@ export const rust = {
     const out = [];
     for (const d of declarations(src)) if (d.pub) out.push(d.name, d.name.split('.')[0]);
     for (const m of clean.matchAll(/^\s*pub(?:\([^)]*\))?\s+(?:struct|enum|trait|type|const|static)\s+([A-Za-z_]\w*)/gm)) out.push(m[1]);
-    // impl 區塊裡的方法:型別是 pub 就算對外可見
+    // impl 區塊裡的方法：型別是 pub 就算對外可見
     for (const m of clean.matchAll(/^\s*impl\b[^{]*?(?:for\s+)?([A-Z]\w*)/gm)) out.push(m[1]);
     return [...new Set(out)];
   },
 
-  // struct / enum / trait / type,以及 enum 的 variant
+  // struct / enum / trait / type，以及 enum 的 variant
   typeNames(src) {
     const clean = stripTestMods(stripComments(src));
     const out = [];
@@ -187,7 +187,7 @@ export const rust = {
     return [...new Set(out)].filter(Boolean);
   },
 
-  // 內嵌的 #[cfg(test)] mod 也要掃得到標記,所以這裡讀原始碼全文
+  // 內嵌的 #[cfg(test)] mod 也要掃得到標記，所以這裡讀原始碼全文
   testMarkers(src) {
     return findMarkers(src);
   },

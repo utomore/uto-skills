@@ -1,5 +1,5 @@
-// golden 回歸:對每個夾具跑 plugins/lawful/bin/lawful.mjs 的每道子命令,比對 golden/<名字>.txt。--update 重產。
-// 會寫檔的子命令在夾具的暫存副本上跑,golden 收「輸出 + 改動後的檔」。
+// golden 回歸：對每個夾具跑 plugins/lawful/bin/lawful.mjs 的每道子命令，比對 golden/<名字>.txt。--update 重產。
+// 會寫檔的子命令在夾具的暫存副本上跑，golden 收「輸出 + 改動後的檔」。
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -12,10 +12,10 @@ const goldenDir = path.join(here, 'golden');
 const update = process.argv.includes('--update');
 const DATE = '2026-09-05';
 
-// [名字, 夾具, argv, 寫檔後要收進 golden 的檔(相對夾具), 環境變數]
+// [名字，夾具，argv，寫檔後要收進 golden 的檔（相對夾具），環境變數]
 const CASES = [
   ['save-game-lint-all', 'save-game', ['lint', 'all']],
-  // team:Cone.md 有號段行的樹;claim 從自己的區間配號並寫 owner,email 不在號段行上就停
+  // team:Cone.md 有號段行的樹；claim 從自己的區間配號並寫 owner，email 不在號段行上就停
   ['team-lint-ids', 'team', ['lint', 'ids']],
   ['team-claim', 'team', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', 'subflow', '--milestone', 'M-1', '--date', DATE], ['.lawful/pipelines/P-101-save-load.md', '.lawful/requirements/R-1-save-roundtrip.md'], { GIT_AUTHOR_EMAIL: 'amy@corp.com' }],
   ['team-claim-other', 'team', ['claim', 'save-load', '--description', '把存檔讀回 World', '--kind', 'subflow', '--date', DATE], ['.lawful/pipelines/P-200-save-load.md'], { GIT_AUTHOR_EMAIL: 'bob@corp.com' }],
@@ -28,8 +28,8 @@ const CASES = [
   ['broken-lint-io', 'broken', ['lint', 'io']],
   ['broken-lint-invariants', 'broken', ['lint', 'invariants']],
   ['save-game-lint-global', 'save-game', ['lint', 'global']],
-  // preflow:需求住 Cone.md「## 需求」節還寫著 Law、里程碑住 objectives/(一條需求有兩個目標檔、一條沒有、一個目標檔對不到需求)、
-  // 邊界與對外 I/O 住 modules.md、里程碑只有編號、kind 寫著中文值、frozen、還留著 spikes/ 的樹:migrate laws 與 migrate requirements 的輸入,
+  // preflow：需求住 Cone.md「## 需求」節還寫著 Law、里程碑住 objectives/（一條需求有兩個目標檔、一條沒有、一個目標檔對不到需求）、
+  // 邊界與對外 I/O 住 modules.md、里程碑只有編號、kind 寫著中文值、frozen、還留著 spikes/ 的樹：migrate laws 與 migrate requirements 的輸入，
   // 也驗這種樹照讀得出同一份報告、寫檔的指令停下來
   ['preflow-status', 'preflow', ['status', '--tests', 'test.log']],
   ['preflow-migrate-laws', 'preflow', ['migrate', 'laws']],
@@ -53,7 +53,7 @@ const CASES = [
   ['broken-status-stale-log', 'broken', ['status', '--tests', 'stale.log']],
   ['save-game-status-tasty', 'save-game', ['status', '--tests', 'test-tasty.log']],
   ['devflow-migrate', 'devflow', ['migrate', 'from-dev-flow', '.design', '--ignore', 'old']],
-  // refs:R-1 的 P-001-cli-run 引用 R-2 的 P-002-syntax-parse,需求表的「依賴」欄印得出東西
+  // refs:R-1 的 P-001-cli-run 引用 R-2 的 P-002-syntax-parse，需求表的「依賴」欄印得出東西
   ['refs-status', 'refs', ['status']],
   ['refs-status-json', 'refs', ['status', '--json']],
   ['refs-lint-sig', 'refs', ['lint', 'sig']],
@@ -78,7 +78,7 @@ const CASES = [
   ['save-game-claim-bad-kind', 'save-game', ['claim', 'save-load', '--kind', '介面']],
   ['save-game-claim-bad-domain', 'save-game', ['claim', 'game-load', '--description', '把存檔讀回 World']],
   ['save-game-claim-one-word', 'save-game', ['claim', 'load']],
-  ['save-game-requirement-add', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2', '--accept', '任一前一版的存檔,新版讀回的投影與前一版一樣', '--date', DATE], ['.lawful/requirements/R-2-save-upgrade.md']],
+  ['save-game-requirement-add', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2', '--accept', '任一前一版的存檔，新版讀回的投影與前一版一樣', '--date', DATE], ['.lawful/requirements/R-2-save-upgrade.md']],
   ['save-game-requirement-add-no-accept', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2', '--date', DATE], ['.lawful/requirements/R-2-save-upgrade.md']],
   ['save-game-requirement-add-bad-slug', 'save-game', ['requirement', 'add', 'Save_Upgrade', '換了版本的存檔在新版讀得回來', '--priority', '2']],
   ['save-game-requirement-add-no-priority', 'save-game', ['requirement', 'add', 'save-upgrade', '換了版本的存檔在新版讀得回來']],
@@ -86,10 +86,10 @@ const CASES = [
   ['save-game-invariant-add', 'save-game', ['invariant', 'add', '存檔裡的實體 id 不重複'], ['.lawful/Cone.md']],
   ['save-game-invariant-add-bad-kind', 'save-game', ['invariant', 'add', '存檔裡的實體 id 不重複', '--kind', 'always']],
   ['templated-invariant-add', 'templated', ['invariant', 'add', '報表的行數不為負', '--kind', 'bound'], ['.lawful/Cone.md']],
-  // 綁別條需求的里程碑做出來的 pipeline 也不擋:這條里程碑靠修訂它達成,下一步是 scope-revise,REV 的依欄寫這條里程碑的全名
+  // 綁別條需求的里程碑做出來的 pipeline 也不擋：這條里程碑靠修訂它達成，下一步是 scope-revise，REV 的依欄寫這條里程碑的全名
   ['broken-requirement-milestone-other-requirement', 'broken', ['requirement', 'milestone', 'R-2', 'save-stream', '存檔寫入改成串流', '--bind', 'P-001-game-save'], ['.lawful/requirements/R-2-load-report.md']],
-  // tuned:已經是 requirements/ 而需求檔還帶調整表的樹(verified-ref 加一張調整表,P-002-count-tally 的 REV-1 依欄引用 RF-1)。
-  // status 照讀(每一列讀成一條綁既有 pipeline 的里程碑:REV 引用了的達成、沒引用的待修訂)、警訊指到 migrate requirements;寫需求檔的指令停下;
+  // tuned：已經是 requirements/ 而需求檔還帶調整表的樹（verified-ref 加一張調整表，P-002-count-tally 的 REV-1 依欄引用 RF-1）。
+  // status 照讀（每一列讀成一條綁既有 pipeline 的里程碑：REV 引用了的達成、沒引用的待修訂）、警訊指到 migrate requirements；寫需求檔的指令停下；
   // migrate requirements 把每一列換成里程碑表的一列、REV 依欄的編號跟著改寫
   ['tuned-status', 'tuned', ['status', '--tests', 'test.log']],
   ['tuned-requirement-milestone', 'tuned', ['requirement', 'milestone', 'R-1', 'report-csv', '報表匯得出 CSV']],
@@ -102,8 +102,8 @@ const CASES = [
   ['legacy-migrate-requirements', 'legacy', ['migrate', 'requirements']],
   ['legacy-status', 'legacy', ['status']],
   ['save-game-requirement-milestone', 'save-game', ['requirement', 'milestone', 'R-1', 'save-load', '讀檔還原世界', '--bind', 'P-001-save-write'], ['.lawful/requirements/R-1-save-roundtrip.md']],
-  // 人工審核:status 只算證據,已驗收那一列只由 requirement accept 寫;怎麼驗欄由 requirement verify 補(整合從決策紀錄的 Entry 搬過來)
-  ['save-game-requirement-accept', 'save-game', ['requirement', 'accept', 'R-1', '--by', 'dev@example.com', '--evidence', 'R-1#ACCEPT green,存檔讀回一模一樣', '--date', DATE], ['.lawful/requirements/R-1-save-roundtrip.md']],
+  // 人工審核：status 只算證據，已驗收那一列只由 requirement accept 寫；怎麼驗欄由 requirement verify 補（整合從決策紀錄的 Entry 搬過來）
+  ['save-game-requirement-accept', 'save-game', ['requirement', 'accept', 'R-1', '--by', 'dev@example.com', '--evidence', 'R-1#ACCEPT green，存檔讀回一模一樣', '--date', DATE], ['.lawful/requirements/R-1-save-roundtrip.md']],
   ['save-game-requirement-accept-no-by', 'save-game', ['requirement', 'accept', 'R-1', '--evidence', '跑過了']],
   ['save-game-requirement-accept-no-evidence', 'save-game', ['requirement', 'accept', 'R-1', '--by', 'dev@example.com']],
   ['save-game-requirement-accept-missing', 'save-game', ['requirement', 'accept', 'R-9', '--by', 'dev@example.com', '--evidence', '跑過了']],
@@ -116,7 +116,7 @@ const CASES = [
   ['save-game-requirement-milestone-no-requirement', 'save-game', ['requirement', 'milestone', 'R-9', 'save-repair', '存檔壞了修得回來']],
   ['broken-sync', 'broken', ['sync', '--date', DATE], ['.lawful/pipelines/P-001-game-save.md']],
   ['broken-modules-gen', 'broken', ['modules', '--gen'], ['.lawful/modules.md']],
-  // brief:一個 skill 開工要的東西一次印完。golden 用 --no-rules,才不會規章每改一次就跟著變;規章的節另外查(下面的「brief 的規章節」)
+  // brief：一個 skill 開工要的東西一次印完。golden 用 --no-rules，才不會規章每改一次就跟著變；規章的節另外查（下面的「brief 的規章節」）
   ['save-game-brief-qa', 'save-game', ['brief', 'qa', 'P-001-save-write', '--no-rules']],
   ['save-game-brief-qa-requirement', 'save-game', ['brief', 'qa', 'R-1', '--no-rules']],
   ['save-game-brief-qa-invariant', 'save-game', ['brief', 'qa', 'INV-1', '--no-rules']],
@@ -126,7 +126,7 @@ const CASES = [
   ['save-game-brief-no-target', 'save-game', ['brief', 'qa', '--no-rules']],
   ['save-game-brief-missing', 'save-game', ['brief', 'qa', 'P-009-nope', '--no-rules']],
   ['save-game-brief-bad-skill', 'save-game', ['brief', 'nope']],
-  // 有 status 那一塊的案例一律明講 --tests:沒講的時候 brief 會照檔案時間自己挑根目錄的那一份,而檔案時間每台機器不同
+  // 有 status 那一塊的案例一律明講 --tests：沒講的時候 brief 會照檔案時間自己挑根目錄的那一份，而檔案時間每台機器不同
   ['save-game-brief-build', 'save-game', ['brief', 'build', 'P-001-save-write', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-build-milestone', 'save-game', ['brief', 'build', 'M-1-save-write', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-build-requirement', 'save-game', ['brief', 'build', 'R-1', '--tests', 'test.log', '--no-rules']],
@@ -137,13 +137,13 @@ const CASES = [
   ['save-game-brief-scope-laws-doc', 'save-game', ['brief', 'scope-laws', 'P-001-save-write', '--tests', 'test.log', '--no-rules']],
   ['templated-brief-scope-laws', 'templated', ['brief', 'scope-laws', 'M-1', '--no-rules']],
   ['refs-brief-scope-revise', 'refs', ['brief', 'scope-revise', 'P-002', '--tests', 'none.log', '--no-rules']],
-  // 靠修訂這一條達成的里程碑在「這條 pipeline 朝向哪裡」照樣列:REV 的依欄引用了(verified-ref)、還沒引用(save-game)
+  // 靠修訂這一條達成的里程碑在「這條 pipeline 朝向哪裡」照樣列：REV 的依欄引用了 (verified-ref)、還沒引用 (save-game)
   ['verified-ref-brief-scope-revise-cited', 'verified-ref', ['brief', 'scope-revise', 'P-002-count-tally', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-scope-revise-pending', 'save-game', ['brief', 'scope-revise', 'P-001-save-write', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-scope-revise-wrong-kind', 'save-game', ['brief', 'scope-revise', 'M-1-save-write', '--no-rules']],
   ['save-game-brief-global-laws-invariant', 'save-game', ['brief', 'global-laws', 'INV-1', '--tests', 'test.log', '--no-rules']],
   ['broken-brief-global-laws', 'broken', ['brief', 'global-laws', '--tests', 'stale.log', '--no-rules']],
-  // scope-laws 帶著全域的候選接過來:目標是那條里程碑,候選的出處(它綁的 pipeline 全文與逐條狀態)與決策紀錄都在
+  // scope-laws 帶著全域的候選接過來：目標是那條里程碑，候選的出處（它綁的 pipeline 全文與逐條狀態）與決策紀錄都在
   ['save-game-brief-global-laws-milestone', 'save-game', ['brief', 'global-laws', 'M-1-save-write', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-require-design', 'save-game', ['brief', 'require-design', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-kickoff', 'save-game', ['brief', 'kickoff', '--no-rules']],
@@ -152,7 +152,7 @@ const CASES = [
   ['save-game-brief-status', 'save-game', ['brief', 'status', '--no-rules']],
   ['save-game-brief-audit', 'save-game', ['brief', 'audit', '--tests', 'test.log', '--no-rules']],
   ['save-game-brief-study', 'save-game', ['brief', 'study', '--no-rules']],
-  // skill 載入時 $ARGUMENTS 是自由文字:目標與旗標從裡面認,其餘的字不理
+  // skill 載入時 $ARGUMENTS 是自由文字：目標與旗標從裡面認，其餘的字不理
   ['save-game-brief-args', 'save-game', ['brief', 'build', '--args', '幫我 build P-001-save-write (先看 log) --tests test.log --no-rules']],
   ['save-game-brief-args-empty', 'save-game', ['brief', 'status', '--args', '看板 --no-rules']],
 ];
@@ -160,7 +160,7 @@ const CASES = [
 function snapshot(root, files) {
   return files.map((f) => {
     const p = path.join(root, f);
-    return `--- ${f}\n${fs.existsSync(p) ? fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n') : '(不存在)'}`;
+    return `--- ${f}\n${fs.existsSync(p) ? fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n') : '（不存在）'}`;
   }).join('\n');
 }
 
@@ -173,14 +173,14 @@ for (const [name, fixture, argv, files, env] of CASES) {
     fs.cpSync(root, tmp, { recursive: true });
     root = tmp;
   }
-  // GIT_AUTHOR_EMAIL 預設清空:沒指定 env 的案例不受這台機器的 git 設定影響
+  // GIT_AUTHOR_EMAIL 預設清空：沒指定 env 的案例不受這台機器的 git 設定影響
   const r = spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '', ...env } });
   const envText = env ? Object.entries(env).map(([k, v]) => `${k}=${v} `).join('') : '';
   let actual = `$ ${envText}lawful ${argv.join(' ')}\n${(r.stdout + r.stderr).replace(/\r\n/g, '\n').trimEnd()}\nexit ${r.status}\n`;
-  // brief 的指紋帶規章的雜湊:規章每改一次就變,golden 不追它
+  // brief 的指紋帶規章的雜湊：規章每改一次就變，golden 不追它
   actual = actual.replace(/ rules:[0-9a-f]{8}/g, ' rules:<雜湊>');
-  // 測試輸出新不新看的是檔案時間,每台機器不同
-  actual = actual.replace(/^(- \S+)  (?:比每一個原始碼與測試檔都新|比 \S+ 舊:.*)$/gm, '$1  <新舊看檔案時間>');
+  // 測試輸出新不新看的是檔案時間，每台機器不同
+  actual = actual.replace(/^(- \S+)  (?:比每一個原始碼與測試檔都新|比 \S+ 舊[:：].*)$/gm, '$1  <新舊看檔案時間>');
   if (files) actual += snapshot(root, files) + '\n';
   if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
   const file = path.join(goldenDir, `${name}.txt`);
@@ -203,9 +203,9 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   console.log('✗ --help');
 } else console.log('✓ --help');
 
-// brief 的規章節:每個 skill 點名的節都要真的在 rules/ 裡,節改了名這裡會紅
+// brief 的規章節：每個 skill 點名的節都要真的在 rules/ 裡，節改了名這裡會紅
 {
-  const skills = (/skill:([^\n]+)/.exec(h.stdout) || [null, ''])[1].split('、').map((s) => s.trim()).filter(Boolean);
+  const skills = (/skill[:：]([^\n]+)/.exec(h.stdout) || [null, ''])[1].split('、').map((s) => s.trim()).filter(Boolean);
   let ok = skills.length > 0;
   for (const s of skills) {
     const r = spawnSync(process.execPath, [bin, 'brief', s, '--root', path.join(here, 'fixtures', 'save-game')], { encoding: 'utf8' });
@@ -216,8 +216,8 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     console.log('✗ brief 的規章節');
   } else console.log('✓ brief 的規章節');
 
-  // 規章的字數上限:一個 skill 開工背的規章有上界。超過就是它拿了別人的工作,回 brief.mjs 的 RULES 表把不是它做決定要用的節拿掉,
-  // 或把那一節拆成各讀者只拿自己那一塊。每一場 session 都要背一次,所以這個數字是流程的固定成本。
+  // 規章的字數上限：一個 skill 開工背的規章有上界。超過就是它拿了別人的工作，回 brief.mjs 的 RULES 表把不是它做決定要用的節拿掉，
+  // 或把那一節拆成各讀者只拿自己那一塊。每一場 session 都要背一次，所以這個數字是流程的固定成本。
   const RULES_BUDGET = 38000;
   {
     const over = [];
@@ -228,11 +228,11 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     }
     if (over.length || skills.length === 0) {
       failed++;
-      console.log(`✗ 規章的字數上限(每個 skill ${RULES_BUDGET} 字):${over.join('、') || '一個 skill 都沒查到'}`);
+      console.log(`✗ 規章的字數上限（每個 skill ${RULES_BUDGET} 字）：${over.join('、') || '一個 skill 都沒查到'}`);
     } else console.log('✓ 規章的字數上限');
   }
 
-  // 交叉引用:規章與 SKILL.md 裡寫成「<檔>.md「<節>」」的每一處,那一節都要真的在那個檔裡。節改了名、搬了家,這裡會紅
+  // 交叉引用：規章與 SKILL.md 裡寫成「<檔>.md「<節>」」的每一處，那一節都要真的在那個檔裡。節改了名、搬了家，這裡會紅
   {
     const rulesDir = path.join(here, '..', '..', 'plugins', 'lawful', 'rules');
     const skillsDir = path.join(here, '..', '..', 'plugins', 'lawful', 'skills');
@@ -252,18 +252,18 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     let seen = 0;
     for (const [label, abs] of sources) {
       for (const [, file, sec] of fs.readFileSync(abs, 'utf8').matchAll(/([A-Za-z._-]+\.md)「([^」]+)」/g)) {
-        if (!titles[file]) continue; // 不是規章檔(Cone.md、CLAUDE.md …),這裡不管
+        if (!titles[file]) continue; // 不是規章檔（Cone.md、CLAUDE.md …），這裡不管
         seen++;
         if (!titles[file].has(sec)) dangling.push(`${label} → ${file}「${sec}」`);
       }
     }
     if (dangling.length || seen === 0) {
       failed++;
-      console.log(`✗ 規章的交叉引用:${dangling.join('、') || '一條都沒查到'}`);
+      console.log(`✗ 規章的交叉引用：${dangling.join('、') || '一條都沒查到'}`);
     } else console.log('✓ 規章的交叉引用');
   }
 
-  // brief 的分段:skill 載入時一道指令的輸出超過約 30KB 會被存成檔,所以每一段都要在上限以內,而且接起來一個字都不少
+  // brief 的分段：skill 載入時一道指令的輸出超過約 30KB 會被存成檔，所以每一段都要在上限以內，而且接起來一個字都不少
   const TARGETS = { build: 'P-001-save-write', qa: 'P-001-save-write', refactor: 'P-001-save-write', 'scope-revise': 'P-001-save-write', 'scope-laws': 'M-1-save-write', 'spike-impl': 'M-2-save-inspect' };
   const PARTS = [1, 2, 3, 4, 5, 6];
   let parted = skills.length > 0;
@@ -272,9 +272,9 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     const whole = run().trimEnd();
     const parts = PARTS.map((k) => run('--part', String(k), '--of', String(PARTS.length)).trimEnd());
     if (parts.some((p) => Buffer.byteLength(p) > 29000)) parted = false;
-    // 第 2 段起的第一行是「(brief <skill> 第 k 段,接上一段)」,接回去之前拿掉
+    // 第 2 段起的第一行是「（brief <skill> 第 k 段，接上一段）」，接回去之前拿掉
     const joined = parts.filter(Boolean).map((p) => p.replace(/^.brief \S+ 第 \d+ 段[^\n]*\n\n/, '')).join('\n');
-    // 段與段之間的空行在切的時候會掉,比的是非空行
+    // 段與段之間的空行在切的時候會掉，比的是非空行
     const solid = (t) => t.split('\n').filter((l) => l.trim()).join('\n');
     if (solid(joined) !== solid(whole)) parted = false;
   }
@@ -283,22 +283,22 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     console.log('✗ brief 的分段');
   } else console.log('✓ brief 的分段');
 
-  // 每份 SKILL.md:skills/ 底下的資料夾與 brief 的 skill 名單一一對上;frontmatter 的 name 等於資料夾名;
-  // description 是單行的純量,裡面不准有「冒號加空白」(YAML 會讀成另一個鍵,整份 frontmatter 壞掉、skill 不會被載入);
-  // 六道注入行寫對;免批准的 allowed-tools 在 frontmatter
+  // 每份 SKILL.md:skills/ 底下的資料夾與 brief 的 skill 名單一一對上；frontmatter 的 name 等於資料夾名；
+  // description 是單行的純量，裡面不准有「冒號加空白」（YAML 會讀成另一個鍵，整份 frontmatter 壞掉、skill 不會被載入）；
+  // 六道注入行寫對；免批准的 allowed-tools 在 frontmatter
   const skillsDir = path.join(here, '..', '..', 'plugins', 'lawful', 'skills');
   const dirs = fs.readdirSync(skillsDir).filter((d) => fs.existsSync(path.join(skillsDir, d, 'SKILL.md'))).sort();
   const wrong = [];
-  if (dirs.join(',') !== [...skills].sort().join(',')) wrong.push(`skills/ 是 ${dirs.join('、')};brief 的名單是 ${[...skills].sort().join('、')}`);
+  if (dirs.join(',') !== [...skills].sort().join(',')) wrong.push(`skills/ 是 ${dirs.join('、')}；brief 的名單是 ${[...skills].sort().join('、')}`);
   for (const s of dirs) {
     const md = fs.readFileSync(path.join(skillsDir, s, 'SKILL.md'), 'utf8');
     const fm = (/^---\r?\n([\s\S]*?)\r?\n---/.exec(md) || [, ''])[1];
     const desc = (/^description: (.*)$/m.exec(fm) || [, ''])[1];
     if (!new RegExp(`^name: ${s}$`, 'm').test(fm)) wrong.push(`${s}:name 不等於資料夾名`);
-    if (!desc || /: /.test(desc) || /^['"[{>|]/.test(desc)) wrong.push(`${s}:description 會讓 frontmatter 讀不成(空的、含「冒號加空白」、或以引號括號開頭)`);
+    if (!desc || /: /.test(desc) || /^['"[{>|]/.test(desc)) wrong.push(`${s}:description 會讓 frontmatter 讀不成（空的、含「冒號加空白」、或以引號括號開頭）`);
     const lines = md.split(/\r?\n/).filter((l) => l.startsWith('!`node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief '));
     const want = PARTS.map((k) => `!\`node "\${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs" brief ${s} --args '$ARGUMENTS' --part ${k} --of ${PARTS.length}\``);
-    if (lines.join('\n') !== want.join('\n')) wrong.push(`${s}:注入行不是六道 brief ${s} --part 1..${PARTS.length} --of ${PARTS.length}`);
+    if (lines.join('\n') !== want.join('\n')) wrong.push(`${s}：注入行不是六道 brief ${s} --part 1..${PARTS.length} --of ${PARTS.length}`);
     if (!/^allowed-tools: Bash\(node "\$\{CLAUDE_PLUGIN_ROOT\}\/bin\/lawful\.mjs":\*\)$/m.test(fm)) wrong.push(`${s}:frontmatter 沒有免批准的 allowed-tools`);
   }
   if (wrong.length) {
@@ -308,7 +308,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   } else console.log('✓ SKILL.md 的 frontmatter 與注入行');
 }
 
-// 三道 migrate 以任何先後接連跑,落地的樹都一樣;跑過的樹再跑一次是「不用換」;只有 kind 要換的樹也換得了
+// 三道 migrate 以任何先後接連跑，落地的樹都一樣；跑過的樹再跑一次是「不用換」；只有 kind 要換的樹也換得了
 {
   const run = (root, ...argv) => spawnSync(process.execPath, [bin, ...argv, '--root', root], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
   const treeOf = (root) => {
@@ -344,12 +344,12 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     for (const g of got) {
       if (g.exits.some((x) => x !== 0)) wrong.push(`${fixture}:${g.order.join(' → ')} 有一道 exit 不是 0(${g.exits.join('、')})`);
       if (g.tree !== got[0].tree) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹與 ${got[0].order.join(' → ')} 不一樣`);
-      if (!g.again.every((t) => !/^- /m.test(t.split('人要判的')[0]))) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後再跑一次,還有東西要換`);
+      if (!g.again.every((t) => !/^- /m.test(t.split('人要判的')[0]))) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後再跑一次，還有東西要換`);
       if (/lawful migrate (cone|laws|requirements)/.test(g.status)) wrong.push(`${fixture}:${g.order.join(' → ')} 跑完之後 status 還指到 migrate`);
       if (!/\n--- \.lawful\/requirements\/R-1-/.test(`\n${g.tree}`) || /\n--- \.lawful\/objectives\.md\n/.test(g.tree) || /\nkind: (IO 介面|子流)\n/.test(g.tree) || `\n${g.tree}`.split('\n--- ').some((s) => s.startsWith('.lawful/requirements/') && /\n\| 調整 \|/.test(s))) wrong.push(`${fixture}:${g.order.join(' → ')} 落地的樹沒有 requirements/、還留著 objectives.md、kind 沒換、或需求檔還有調整表`);
     }
   }
-  // 只有 system.md 的樹:laws 與 requirements 都講先跑 cone,不動任何檔
+  // 只有 system.md 的樹：laws 與 requirements 都講先跑 cone，不動任何檔
   {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-order-'));
     fs.cpSync(path.join(here, 'fixtures', 'legacy'), tmp, { recursive: true });
@@ -358,7 +358,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
       const r = run(tmp, 'migrate', sub, '--write');
       if (r.status !== 1 || !/lawful migrate cone --write/.test(r.stdout + r.stderr)) wrong.push(`legacy:migrate ${sub} 在只有 system.md 的樹上沒有講先跑 migrate cone`);
     }
-    if (treeOf(tmp) !== before) wrong.push('legacy:講了先跑 migrate cone,卻動了檔');
+    if (treeOf(tmp) !== before) wrong.push('legacy：講了先跑 migrate cone，卻動了檔');
     fs.rmSync(tmp, { recursive: true, force: true });
   }
   // 已經有 requirements/、只有 kind 要換的樹
@@ -371,8 +371,8 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     const r = run(tmp, 'migrate', 'requirements', '--write');
     const text = fs.readFileSync(file, 'utf8');
     if (!/\| P-100-save-verify \| subflow \|/.test(read)) wrong.push('team:kind 的另一種寫法沒有照讀成 subflow');
-    if (r.status !== 0 || !/P-100-save-verify\.md:kind「子流」改成 subflow/.test(r.stdout) || !/^kind: subflow\r?$/m.test(text)) wrong.push('team:只有 kind 要換的樹,migrate requirements --write 沒有把它換掉');
-    if (!/不用換/.test(run(tmp, 'migrate', 'requirements').stdout)) wrong.push('team:kind 換完之後再跑一次,還有東西要換');
+    if (r.status !== 0 || !/P-100-save-verify\.md[:：]kind「子流」改成 subflow/.test(r.stdout) || !/^kind: subflow\r?$/m.test(text)) wrong.push('team：只有 kind 要換的樹，migrate requirements --write 沒有把它換掉');
+    if (!/不用換/.test(run(tmp, 'migrate', 'requirements').stdout)) wrong.push('team:kind 換完之後再跑一次，還有東西要換');
     fs.rmSync(tmp, { recursive: true, force: true });
   }
   if (wrong.length) {
@@ -382,44 +382,44 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   } else console.log('✓ migrate 的先後');
 }
 
-// 名詞住專案根目錄 CLAUDE.md 的「## 名詞」節:檔案在而沒有這一節,與檔案不存在是同一條警訊;這一節以外寫什麼都不影響讀表
+// 名詞住專案根目錄 CLAUDE.md 的「## 名詞」節：檔案在而沒有這一節，與檔案不存在是同一條警訊；這一節以外寫什麼都不影響讀表
 {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-glossary-'));
   fs.cpSync(path.join(here, 'fixtures', 'save-game'), tmp, { recursive: true });
   const run = (...argv) => spawnSync(process.execPath, [bin, ...argv, '--root', tmp], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } }).stdout;
   const file = path.join(tmp, 'CLAUDE.md');
-  const WARN = '| CLAUDE.md | 沒有 ## 名詞 節,領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |';
+  const WARN = '| CLAUDE.md | 沒有 ## 名詞 節，領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |';
   const whole = fs.readFileSync(file, 'utf8');
   const withSection = run('status', '--tests', 'test.log');
   fs.writeFileSync(file, `# save-game\n\n## 開發須知\n| 名詞 | 定義 | 型別 |\n|---|---|---|\n| 不是名詞表 | 這張表不住「## 名詞」節 | \`Nope\` |\n\n${whole.replace(/^# save-game\r?\n/, '')}\n## 其他\n開發者自己寫的東西。\n`);
   const surrounded = run('status', '--json', '--tests', 'test.log');
   const lint = run('lint', 'laws');
-  fs.writeFileSync(file, '# save-game\n\n開發者自己寫的東西,沒有名詞節。\n');
+  fs.writeFileSync(file, '# save-game\n\n開發者自己寫的東西，沒有名詞節。\n');
   const noSection = run('status', '--tests', 'test.log');
   fs.rmSync(file);
   const noFile = run('status', '--tests', 'test.log');
   fs.rmSync(tmp, { recursive: true, force: true });
   const ok = !withSection.includes(WARN) && noSection.includes(WARN) && noFile.includes(WARN)
-    && /"term": "解碼錯誤"/.test(surrounded) && !/不是名詞表/.test(surrounded) && /## lint laws:通過/.test(lint);
+    && /"term": "解碼錯誤"/.test(surrounded) && !/不是名詞表/.test(surrounded) && /## lint laws[:：]通過/.test(lint);
   if (!ok) {
     failed++;
     console.log('✗ CLAUDE.md 的名詞節');
   } else console.log('✓ CLAUDE.md 的名詞節');
 }
 
-// --html:一個自帶資料的單檔網頁,佔位符要被換掉、資料要灌得進去。檔太大不收 golden,只檢查這幾件事
+// --html：一個自帶資料的單檔網頁，佔位符要被換掉、資料要灌得進去。檔太大不收 golden，只檢查這幾件事
 {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-html-'));
   const out = path.join(tmp, 'board.html');
   const r = spawnSync(process.execPath, [bin, 'status', '--html', out, '--tests', 'test.log', '--root', path.join(here, 'fixtures', 'save-game')], { encoding: 'utf8' });
   const html = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';
   const data = /<script id="data" type="application\/json">([\s\S]*?)<\/script>/.exec(html);
-  // exit code 帶的是報告判定(有沒有全部達成),不是寫檔成敗;寫成功了就一定讀得到資料區塊。
-  // 資料區塊裡一個生的 < 都不該有:全部逃成 <,文檔寫了什麼都關不掉這個標籤
+  // exit code 帶的是報告判定（有沒有全部達成），不是寫檔成敗；寫成功了就一定讀得到資料區塊。
+  // 資料區塊裡一個生的 < 都不該有：全部逃成 <，文檔寫了什麼都關不掉這個標籤
   const ok = !html.includes('__STATUS_JSON__') && !!data
     && /"tool": "lawful"/.test(data[1]) && /P-001-save-write/.test(data[1]) && !data[1].includes('<')
     && /^file:\/\/\/.*board\.html$/m.test(r.stdout)
-    && r.stdout.includes('# lawful status');   // --html 是額外產出,報告照印
+    && r.stdout.includes('# lawful status');   // --html 是額外產出，報告照印
   fs.rmSync(tmp, { recursive: true, force: true });
   if (!ok) {
     failed++;
@@ -427,7 +427,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   } else console.log('✓ status --html');
 }
 
-// --html 不給檔名:寫進暫存區的 lawful-board/,專案資料夾裡一個字都不留
+// --html 不給檔名：寫進暫存區的 lawful-board/，專案資料夾裡一個字都不留
 {
   const fixtureDir = path.join(here, 'fixtures', 'save-game');
   const before = new Set(fs.readdirSync(fixtureDir));
@@ -443,10 +443,10 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   } else console.log('✓ status --html 沒給檔名');
 }
 
-// 合進主線的 build 分支是殘留,不是有人在建:不算建構中,改列成警訊。真的開一個 repo 來問 git
+// 合進主線的 build 分支是殘留，不是有人在建：不算建構中，改列成警訊。真的開一個 repo 來問 git
 {
   const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
-  if (!hasGit) console.log('· 沒有 git,跳過殘留 build 分支的檢查');
+  if (!hasGit) console.log('· 沒有 git，跳過殘留 build 分支的檢查');
   else {
     const { branchState } = await import('../../plugins/lawful/lib/commands/status.mjs');
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'branch-'));
@@ -480,11 +480,11 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   }
 }
 
-// 靠修訂達成的里程碑也可以是 build 分支的鍵:綁的 pipeline 還沒有引用它的 REV 是「待修訂」(不因為 pipeline 本來就 verified 而算做完、也不因為沒有決策紀錄而算切片中),
+// 靠修訂達成的里程碑也可以是 build 分支的鍵：綁的 pipeline 還沒有引用它的 REV 是「待修訂」（不因為 pipeline 本來就 verified 而算做完、也不因為沒有決策紀錄而算切片中），
 // 工作樹上寫了引用它的 REV、pipeline 重開之後照一般的字。verified-ref 的 M-4-tally-unicode 就是這樣一條
 {
   const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
-  if (!hasGit) console.log('· 沒有 git,跳過靠修訂達成的里程碑的工作樹檢查');
+  if (!hasGit) console.log('· 沒有 git，跳過靠修訂達成的里程碑的工作樹檢查');
   else {
     const base = fs.mkdtempSync(path.join(os.tmpdir(), 'revise-'));
     const main = path.join(base, 'repo');
@@ -499,12 +499,12 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     git(main, 'worktree', 'add', '-b', 'build/M-4-tally-unicode', tree, 'HEAD');
     const opened = lawful(main, 'status', '--tests', 'test.log').stdout;
     const doc = path.join(tree, '.lawful', 'pipelines', 'P-002-count-tally.md');
-    fs.writeFileSync(doc, `${fs.readFileSync(doc, 'utf8').replace(/^status: verified(\r?)$/m, 'status: ready$1').replace(/\s+$/, '')}\n- REV-2(${DATE},依 M-4-tally-unicode):全形字也算一個字\n`);
+    fs.writeFileSync(doc, `${fs.readFileSync(doc, 'utf8').replace(/^status: verified(\r?)$/m, 'status: ready$1').replace(/\s+$/, '')}\n- REV-2（${DATE}，依 M-4-tally-unicode）：全形字也算一個字\n`);
     const revised = lawful(main, 'status', '--tests', 'test.log').stdout;
     const inTree = lawful(tree, 'status', '--tests', 'test.log').stdout;
-    const ok = before.includes('- M-4-tally-unicode:lawful:scope-revise P-002-count-tally(') && before.includes('REV 的依欄寫 M-4-tally-unicode')
-      && opened.includes('- M-4-tally-unicode:建構中,分支 build/M-4-tally-unicode;待修訂')
-      && /- M-4-tally-unicode:建構中,分支 build\/M-4-tally-unicode;(調整中|Law 已定,等 qa)/.test(revised)
+    const ok = before.includes('- M-4-tally-unicode：lawful:scope-revise P-002-count-tally（') && before.includes('REV 的依欄寫 M-4-tally-unicode')
+      && opened.includes('- M-4-tally-unicode：建構中，分支 build/M-4-tally-unicode；待修訂')
+      && /- M-4-tally-unicode[:：]建構中[,，]分支 build\/M-4-tally-unicode[;；](調整中|Law 已定[,，]等 qa)/.test(revised)
       && !inTree.includes('P-002-count-tally 待修訂');
     git(main, 'worktree', 'remove', '--force', tree);
     fs.rmSync(base, { recursive: true, force: true });
@@ -516,12 +516,12 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   }
 }
 
-// 專案的第一條切片單獨走完:一棵剛照模板開出來的樹(領域不變量「無」、四層「裝什麼」那一句還是佔位符、對外 I/O 表只有表頭),
-// 已經有一條切片的分支在建構中時,別條需求的切片不列成能開的線,改印那一句;全域 Law 區有了東西(這裡立一條領域不變量)就照常列。
+// 專案的第一條切片單獨走完：一棵剛照模板開出來的樹（領域不變量「無」、四層「裝什麼」那一句還是佔位符、對外 I/O 表只有表頭），
+// 已經有一條切片的分支在建構中時，別條需求的切片不列成能開的線，改印那一句；全域 Law 區有了東西（這裡立一條領域不變量）就照常列。
 // 空的全域 Law 區不紅、不列警訊
 {
   const hasGit = spawnSync('git', ['--version'], { encoding: 'utf8' }).status === 0;
-  if (!hasGit) console.log('· 沒有 git,跳過第一條切片的檢查');
+  if (!hasGit) console.log('· 沒有 git，跳過第一條切片的檢查');
   else {
     const base = fs.mkdtempSync(path.join(os.tmpdir(), 'first-'));
     const main = path.join(base, 'repo');
@@ -530,7 +530,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     const lawful = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
     const templates = path.join(here, '..', '..', 'plugins', 'lawful', 'templates');
     fs.mkdirSync(path.join(main, '.lawful'), { recursive: true });
-    fs.writeFileSync(path.join(main, '.lawful', 'Cone.md'), fs.readFileSync(path.join(templates, 'Cone.md'), 'utf8').replace(/^language: .*$/m, 'language: haskell').replace(/^- 語言:.*$/m, '- 語言:haskell'));
+    fs.writeFileSync(path.join(main, '.lawful', 'Cone.md'), fs.readFileSync(path.join(templates, 'Cone.md'), 'utf8').replace(/^language: .*$/m, 'language: haskell').replace(/^- 語言[:：].*$/m, '- 語言：haskell'));
     fs.copyFileSync(path.join(templates, 'modules.md'), path.join(main, '.lawful', 'modules.md'));
     lawful(main, 'requirement', 'add', 'save-roundtrip', '存出去的世界讀得回來', '--priority', '1', '--accept', '任一個世界存檔再讀檔都還原', '--date', DATE);
     lawful(main, 'requirement', 'add', 'world-report', '世界的現況印得出來', '--priority', '2', '--accept', '任一個世界都印得出一份報表', '--date', DATE);
@@ -545,11 +545,11 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     const opened = lawful(main, 'status').stdout;
     lawful(main, 'invariant', 'add', '任何一個世界裡實體 id 都不重複');
     const released = lawful(main, 'status').stdout;
-    const NOTE = '專案的第一條切片單獨走完:build/M-1-save 抽出全域 Law 並合進主線之後才開下一條(等著的:M-2-report)';
-    const LINE = '- M-2-report:lawful:spike-impl M-2-report(';
-    const ok = before.includes('- M-1-save:lawful:spike-impl M-1-save(') && before.includes(LINE) && !before.includes('專案的第一條切片單獨走完')
+    const NOTE = '專案的第一條切片單獨走完：build/M-1-save 抽出全域 Law 並合進主線之後才開下一條（等著的：M-2-report）';
+    const LINE = '- M-2-report：lawful:spike-impl M-2-report（';
+    const ok = before.includes('- M-1-save：lawful:spike-impl M-1-save（') && before.includes(LINE) && !before.includes('專案的第一條切片單獨走完')
       && !before.includes('| 全域 Law:') && lintGlobal.status === 0
-      && opened.includes('- M-1-save:建構中,分支 build/M-1-save') && !opened.includes('lawful:spike-impl M-2-report(') && opened.includes(`- ${NOTE}`) && new RegExp(`^\\d+\\. ${NOTE.replace(/[()]/g, '\\$&')}$`, 'm').test(opened)
+      && opened.includes('- M-1-save：建構中，分支 build/M-1-save') && !opened.includes('lawful:spike-impl M-2-report（') && opened.includes(`- ${NOTE}`) && new RegExp(`^\\d+\\. ${NOTE.replace(/[()]/g, '\\$&')}$`, 'm').test(opened)
       && released.includes(LINE) && !released.includes('專案的第一條切片單獨走完');
     git(main, 'worktree', 'remove', '--force', tree);
     fs.rmSync(base, { recursive: true, force: true });
@@ -557,19 +557,19 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
       failed++;
       console.log('✗ 第一條切片單獨走完');
       console.log(`lint global exit ${lintGlobal.status}\n${lintGlobal.stdout.trimEnd()}`);
-      console.log([before, opened, released].map((t) => t.split('\n').filter((l) => /M-[12]-|第一條切片|全域 Law:/.test(l)).join('\n')).join('\n---\n'));
+      console.log([before, opened, released].map((t) => t.split('\n').filter((l) => /M-[12]-|第一條切片|全域 Law[:：]/.test(l)).join('\n')).join('\n---\n'));
     } else console.log('✓ 第一條切片單獨走完');
   }
 }
 
-// 建議路線的 draft:照需求的優先排(優先 1 的在優先 2 的前面),而且只有切片在的那幾條推 scope-laws。
-// claim 了卻沒有決策紀錄、也沒有分支的那一條,推的是綁它的里程碑的切片(scope-laws 的前置要決策紀錄)
+// 建議路線的 draft：照需求的優先排（優先 1 的在優先 2 的前面），而且只有切片在的那幾條推 scope-laws。
+// claim 了卻沒有決策紀錄、也沒有分支的那一條，推的是綁它的里程碑的切片（scope-laws 的前置要決策紀錄）
 {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sliceless-'));
   const templates = path.join(here, '..', '..', 'plugins', 'lawful', 'templates');
   const lawful = (...a) => spawnSync(process.execPath, [bin, ...a, '--root', tmp], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
   fs.mkdirSync(path.join(tmp, '.lawful', 'journal'), { recursive: true });
-  fs.writeFileSync(path.join(tmp, '.lawful', 'Cone.md'), fs.readFileSync(path.join(templates, 'Cone.md'), 'utf8').replace(/^language: .*$/m, 'language: haskell').replace(/^- 語言:.*$/m, '- 語言:haskell'));
+  fs.writeFileSync(path.join(tmp, '.lawful', 'Cone.md'), fs.readFileSync(path.join(templates, 'Cone.md'), 'utf8').replace(/^language: .*$/m, 'language: haskell').replace(/^- 語言[:：].*$/m, '- 語言：haskell'));
   fs.copyFileSync(path.join(templates, 'modules.md'), path.join(tmp, '.lawful', 'modules.md'));
   lawful('requirement', 'add', 'late-one', '優先 2 的需求', '--priority', '2', '--accept', '看得到', '--date', DATE);
   lawful('requirement', 'add', 'early-one', '優先 1 的需求', '--priority', '1', '--accept', '看得到', '--date', DATE);
@@ -655,14 +655,14 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
       const r = spawnSync(process.execPath, [bin, ...argv, '--root', tmp], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
       fs.rmSync(tmp, { recursive: true, force: true });
       outs.push(`${(r.stdout + r.stderr).split(tmp).join('<root>').split(tmp.replace(/\\/g, '/')).join('<root>').replace(/\r\n/g, '\n')
-        .replace(/[，：；（）]/g, (c) => FULL_TO_HALF[c]).replace(/^(- \S+)  (?:比每一個原始碼與測試檔都新|比 \S+ 舊:.*)$/gm, '$1')
+        .replace(/[，：；（）]/g, (c) => FULL_TO_HALF[c]).replace(/^(- \S+)  (?:比每一個原始碼與測試檔都新|比 \S+ 舊[:：].*)$/gm, '$1')
         .replace(/ @doc:[0-9a-f]+/g, ' @doc:<文檔雜湊>')}\nexit ${r.status}`);
     }
     if (outs[0] !== outs[1]) {
       const a = outs[0].split('\n');
       const b = outs[1].split('\n');
       const i = a.findIndex((l, k) => l !== b[k]);
-      bad.push(`${fixture} lawful ${argv.join(' ')}:第 ${i + 1} 行\n  半形:${a[i]}\n  全形:${b[i]}`);
+      bad.push(`${fixture} lawful ${argv.join(' ')}：第 ${i + 1} 行\n  半形：${a[i]}\n  全形：${b[i]}`);
     }
   }
   // 換過的文檔真的碰到了腳本要解析的欄位，這道測試才有意義
@@ -671,11 +671,11 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
     failed++;
     console.log('✗ 全形標點的文檔');
     for (const b of bad) console.log(b);
-    if (touched.length) console.log(`換成全形之後找不到:${touched.join('、')}`);
+    if (touched.length) console.log(`換成全形之後找不到：${touched.join('、')}`);
   } else console.log('✓ 全形標點的文檔');
 }
 
-// 看板的頁面兩個 plugin 共用同一份,逐位元組相同;改了一邊就要複製到另一邊
+// 看板的頁面兩個 plugin 共用同一份，逐位元組相同；改了一邊就要複製到另一邊
 {
   const mine = path.join(here, '..', '..', 'plugins', 'lawful', 'templates', 'status-board.html');
   const other = path.join(here, '..', '..', 'plugins', 'dev-flow', 'templates', 'status-board.html');

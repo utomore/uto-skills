@@ -20,7 +20,7 @@ const STDLIB = [
   'Promise', 'Record', 'Partial', 'Required', 'Readonly', 'Pick', 'Omit', 'Exclude', 'Extract', 'NonNullable', 'ReturnType', 'Awaited',
   'ReadonlyArray', 'Iterable', 'AsyncIterable', 'Error', 'RegExp', 'Function', 'Buffer', 'Uint8Array', 'URL', 'Request', 'Response',
 ];
-// 沒有形狀的型別:鍵名沒地方寫
+// 沒有形狀的型別：鍵名沒地方寫
 const SHAPELESS = /^(?:any|unknown|object|Object|JSON)$|^Record<\s*string\s*,\s*(?:any|unknown)\s*>$|^\{\s*\[\w+:\s*string\]:\s*(?:any|unknown);?\s*\}$/;
 
 function stripComments(src) {
@@ -29,7 +29,7 @@ function stripComments(src) {
     .split(/\r?\n/).map((l) => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
 }
 
-// `a: T`、`a?: T`、`a: T = 1`、`...rest: T[]`、`{ a, b }: Opts` → 型別;沒有註記回 null
+// `a: T`、`a?: T`、`a: T = 1`、`...rest: T[]`、`{ a, b }: Opts` → 型別；沒有註記回 null
 function paramType(p) {
   const s = p.replace(/^\.\.\./, '').trim();
   let depth = 0;
@@ -53,7 +53,7 @@ function returnType(after) {
   let depth = 0;
   for (let i = 1; i < s.length; i++) {
     const c = s[i];
-    // 先判結束再算深度:`: R {` 的 `{` 是本體的開頭,不是型別的一部分
+    // 先判結束再算深度：`: R {` 的 `{` 是本體的開頭，不是型別的一部分
     if (depth === 0 && (s.startsWith('=>', i) || c === '{' || c === ';')) return norm(s.slice(1, i)) || null;
     if ('([{<'.includes(c)) depth++;
     else if (')]}>'.includes(c)) {
@@ -82,7 +82,7 @@ function declarations(src) {
       klassIndent = indent;
       continue;
     }
-    // 多行簽名:把接下來的行併進來直到括號配對
+    // 多行簽名：把接下來的行併進來直到括號配對
     let text = line;
     let j = i;
     while (matchParen(text, text.indexOf('(')) < 0 && text.includes('(') && j + 1 < lines.length && j - i < 12) {
@@ -142,7 +142,7 @@ export const typescript = {
     return declarations(src).map((d) => ({ name: d.name, params: d.params, ret: d.ret, line: d.line }));
   },
 
-  // `export` 標的名字加上 `export { a, b }`;class 的方法跟著 class 走。
+  // `export` 標的名字加上 `export { a, b }`；class 的方法跟著 class 走。
   exports(src) {
     const clean = stripComments(src);
     const out = [];
@@ -160,7 +160,7 @@ export const typescript = {
     return [...new Set(out)];
   },
 
-  // 型別名:interface / type / class / enum,以及 enum 的成員(law 會直接寫成員名)
+  // 型別名：interface / type / class / enum，以及 enum 的成員（law 會直接寫成員名）
   typeNames(src) {
     const clean = stripComments(src);
     const out = [];
@@ -174,13 +174,13 @@ export const typescript = {
         if (n) out.push(n[1]);
       }
     }
-    // 判別聯集的字串字面值常被 law 引用:type X = 'a' | 'b'
+    // 判別聯集的字串字面值常被 law 引用：type X = 'a' | 'b'
     const un = /^\s*(?:export\s+)?type\s+[A-Za-z_$][\w$]*\s*=\s*([^;\n]*)/gm;
     while ((m = un.exec(clean))) for (const lit of m[1].matchAll(/'([A-Za-z_$][\w$]*)'|"([A-Za-z_$][\w$]*)"/g)) out.push(lit[1] || lit[2]);
     return [...new Set(out)];
   },
 
-  // 本體只有一個 throw:骨架
+  // 本體只有一個 throw：骨架
   stubs(src) {
     const clean = stripComments(src);
     const lines = clean.split('\n');
@@ -212,7 +212,7 @@ export const typescript = {
     return findMarkers(src);
   },
 
-  // jest / vitest / mocha:✓ ✕ ○,以及 PASS / FAIL 行
+  // jest / vitest / mocha:✓ ✕ ○，以及 PASS / FAIL 行
   testResults(log) {
     return scanLog(log, {
       verdict: (line) => {

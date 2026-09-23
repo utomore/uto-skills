@@ -6,29 +6,29 @@ $ devflow status --json --tests test.log
     "steps": "Steps",
     "measure": "份文檔"
   },
-  "vision": "小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。",
-  "visionFull": "小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。",
+  "vision": "小型電商的每一筆錢都算得對、查得到來源；結帳與退款之外再加路徑時，金額規則不必再寫一次。",
+  "visionFull": "小型電商的每一筆錢都算得對、查得到來源；結帳與退款之外再加路徑時，金額規則不必再寫一次。 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算，不做跨幣別換算。",
   "visionState": "ok",
-  "priorityNote": "1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具",
+  "priorityNote": "1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具",
   "glossary": [
     {
       "term": "金額",
-      "definition": "以分為單位、單一幣別內的一筆錢;不是帶小數的數字,也不跨幣別換算",
+      "definition": "以分為單位、單一幣別內的一筆錢；不是帶小數的數字，也不跨幣別換算",
       "type": "Money"
     },
     {
       "term": "結算金額",
-      "definition": "品項加總減掉折扣或手續費算出來的結果,算不出來時帶著原因;不是訂單上已經付的錢",
+      "definition": "品項加總減掉折扣或手續費算出來的結果，算不出來時帶著原因；不是訂單上已經付的錢",
       "type": "Settlement"
     },
     {
       "term": "訂單",
-      "definition": "一筆結帳成功留下的紀錄,帶著付了多少;結帳失敗不產生訂單",
+      "definition": "一筆結帳成功留下的紀錄，帶著付了多少；結帳失敗不產生訂單",
       "type": "Order"
     },
     {
       "term": "退款",
-      "definition": "對一筆訂單退回的錢的紀錄;不是取消訂單",
+      "definition": "對一筆訂單退回的錢的紀錄；不是取消訂單",
       "type": "Refund"
     }
   ],
@@ -85,21 +85,21 @@ $ devflow status --json --tests test.log
       "priority": 1,
       "priorityRaw": "1",
       "law": {
-        "title": "任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額",
+        "title": "任一筆請求，訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額",
         "formal": true,
         "holds": true,
         "source": "2026-09-07 dev@example.com",
         "tested": true
       },
-      "note": "審核:已驗收 · 里程碑 3/3 達成",
+      "note": "審核：已驗收 · 里程碑 3/3 達成",
       "dependsOn": [],
       "built": true,
       "state": "已驗收",
-      "evidence": "測試 R-1#ACCEPT green;里程碑 3 / 3 達成",
+      "evidence": "測試 R-1#ACCEPT green；里程碑 3 / 3 達成",
       "signoff": {
         "date": "2026-09-07",
         "by": "dev@example.com",
-        "evidence": "R-1#ACCEPT 與三條里程碑的 demo 都跑過,金額與手算相同"
+        "evidence": "R-1#ACCEPT 與三條里程碑的 demo 都跑過，金額與手算相同"
       },
       "release": null,
       "verifySteps": [
@@ -107,7 +107,7 @@ $ devflow status --json --tests test.log
         "M-1-checkout `npx ts-node demo/checkout.ts`",
         "M-2-refund `npx ts-node demo/refund.ts`",
         "M-3-settle-total `npx ts-node demo/refund.ts --fee 999`",
-        "看「任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額」成不成立"
+        "看「任一筆請求，訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額」成不成立"
       ],
       "achieved": true,
       "percent": 100,
@@ -169,24 +169,24 @@ $ devflow status --json --tests test.log
     "gates": [
       {
         "kind": "架構",
-        "where": "架構:層",
+        "where": "架構：層",
         "gate": "boundary",
         "red": 0,
-        "result": "3 層,通過"
+        "result": "3 層，通過"
       },
       {
         "kind": "契約",
-        "where": "契約:對外 I/O",
+        "where": "契約：對外 I/O",
         "gate": "io",
         "red": 0,
-        "result": "4 列,通過;契約欄指到的 law 3 條,成立 3 條"
+        "result": "4 列，通過；契約欄指到的 law 3 條，成立 3 條"
       },
       {
         "kind": "領域不變量",
         "where": "領域不變量",
         "gate": "invariants",
         "red": 0,
-        "result": "1 條,通過;成立 1 條"
+        "result": "1 條，通過；成立 1 條"
       }
     ],
     "layers": [
@@ -258,7 +258,7 @@ $ devflow status --json --tests test.log
     {
       "id": "R-1",
       "title": "R-1 每一筆結帳與退款的金額都算對",
-      "note": "審核:已驗收 · 2026-09-07 dev@example.com",
+      "note": "審核：已驗收 · 2026-09-07 dev@example.com",
       "notes": [
         "優先 1:錢算對",
         "里程碑 3/3 達成 · 完成度 100%"
@@ -330,7 +330,7 @@ $ devflow status --json --tests test.log
           {
             "id": "LAW-2",
             "kind": "total",
-            "title": "任何一段請求文字都得到一個結果,不拋例外",
+            "title": "任何一段請求文字都得到一個結果，不拋例外",
             "result": "green",
             "lines": [
               "forall raw in RawBody",
@@ -362,7 +362,7 @@ $ devflow status --json --tests test.log
           {
             "id": "LAW-5",
             "kind": "identity",
-            "title": "扣掉的金額是零時,結算金額等於各品項相加",
+            "title": "扣掉的金額是零時，結算金額等於各品項相加",
             "result": "green",
             "lines": [
               "forall ls in MoneyList",
@@ -373,7 +373,7 @@ $ devflow status --json --tests test.log
           {
             "id": "LAW-6",
             "kind": "total",
-            "title": "任何品項清單與任何一筆要扣的金額都得到一個 Settlement,不拋例外",
+            "title": "任何品項清單與任何一筆要扣的金額都得到一個 Settlement，不拋例外",
             "result": "green",
             "lines": [
               "forall ls in MoneyList, d in Money",
@@ -430,7 +430,7 @@ $ devflow status --json --tests test.log
       },
       "revisions": {
         "count": 1,
-        "last": "REV-1(2026-09-07,依 M-3-settle-total:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law"
+        "last": "REV-1（2026-09-07，依 M-3-settle-total：退款也走 settle，手續費可能大過要退的金額）：settle 補一條 total 的 law"
       },
       "gaps": [],
       "refs": [],
@@ -607,7 +607,7 @@ $ devflow status --json --tests test.log
           {
             "id": "LAW-2",
             "kind": "total",
-            "title": "任何一段請求文字都得到一個結果,不拋例外",
+            "title": "任何一段請求文字都得到一個結果，不拋例外",
             "result": "green",
             "lines": [
               "forall raw in RawBody",
@@ -639,7 +639,7 @@ $ devflow status --json --tests test.log
       },
       "revisions": {
         "count": 1,
-        "last": "REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 settle"
+        "last": "REV-1（2026-09-07，依開發者：手續費不另寫一條扣款）：金額計算改成引用 F-001-checkout 的 settle"
       },
       "gaps": [],
       "refs": [
@@ -772,7 +772,7 @@ $ devflow status --json --tests test.log
   "warnings": [],
   "route": {
     "steps": [],
-    "note": "目前功能全部正常運作:每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑",
+    "note": "目前功能全部正常運作：每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事，可以加新功能：dev-flow:require-design 談一條新需求，或替既有的需求加一條里程碑",
     "allDone": true
   }
 }

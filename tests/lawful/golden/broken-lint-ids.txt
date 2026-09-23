@@ -1,7 +1,7 @@
 $ lawful lint ids
-## lint ids:4 條不合規
-- ✗ .lawful/Cone.md:45 號段行讀不懂「carol@corp.com = 1x0-199」;每段是 <email> = <三位數>-<三位數>,起點不大於終點,段與段用「;」隔開
-- ✗ .lawful/Cone.md:45 號段重疊:amy@corp.com = 000-099 與 bob@corp.com = 050-149
-- ✗ ADR-001 同號:.lawful/adr/ADR-001-json.md、.lawful/adr/ADR-001-save-format.md;刪掉的號永久空缺,後 claim 的那條改號
+## lint ids：4 條不合規
+- ✗ .lawful/Cone.md:45 號段行讀不懂「carol@corp.com = 1x0-199」；每段是 <email> = <三位數>-<三位數>，起點不大於終點，段與段用「；」隔開
+- ✗ .lawful/Cone.md:45 號段重疊：amy@corp.com = 000-099 與 bob@corp.com = 050-149
+- ✗ ADR-001 同號：.lawful/adr/ADR-001-json.md、.lawful/adr/ADR-001-save-format.md；刪掉的號永久空缺，後 claim 的那條改號
 - ✗ .lawful/pipelines/P-001-game-save.md 的 P-001 不在 owner bob@corp.com 的號段 050-149 內
 exit 1

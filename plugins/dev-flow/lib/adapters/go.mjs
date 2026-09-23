@@ -13,7 +13,7 @@ const STDLIB = [
   'error', 'string', 'int', 'int64', 'float64', 'bool', 'byte', 'rune',
   'Error', 'String', 'Len', 'Less', 'Swap',
 ];
-// 沒有形狀的型別:鍵名沒地方寫
+// 沒有形狀的型別：鍵名沒地方寫
 const SHAPELESS = /^(?:any|interface\{\})$|^map\[string\](?:any|interface\{\})$/;
 
 function stripComments(src) {
@@ -22,14 +22,14 @@ function stripComments(src) {
     .split(/\r?\n/).map((l) => l.replace(/\/\/.*$/, '')).join('\n');
 }
 
-// Go 的參數可以共用型別:`a, b int` → 兩個 int。回一串型別。
+// Go 的參數可以共用型別：`a, b int` → 兩個 int。回一串型別。
 function paramTypes(inner) {
   const parts = splitArgs(inner);
   const out = [];
   const pending = [];
   for (const p of parts) {
     const s = p.replace(/^\.\.\./, '').trim();
-    // `名字 型別` vs 只有型別:最後一個空白之前是名字(型別本身可能帶空白,例如 map[string] int 不合法所以安全)
+    // `名字 型別` vs 只有型別：最後一個空白之前是名字（型別本身可能帶空白，例如 map[string] int 不合法所以安全）
     const m = /^([a-zA-Z_]\w*)\s+(\S[\s\S]*)$/.exec(s);
     if (m) {
       out.push(...pending.map(() => norm(m[2])));
@@ -75,7 +75,7 @@ function declarations(src) {
       j++;
       text += ' ' + lines[j].trim();
     }
-    // 方法:func (r *Store) Rotate(...)
+    // 方法：func (r *Store) Rotate(...)
     let recv = null;
     let rest = text.slice(4).trim();
     if (rest.startsWith('(')) {
@@ -131,7 +131,7 @@ export const go = {
     return [...new Set(out)];
   },
 
-  // type X …,以及 const 區塊裡的名字(iota 列舉)
+  // type X …，以及 const 區塊裡的名字（iota 列舉）
   typeNames(src) {
     const clean = stripComments(src);
     const out = [];

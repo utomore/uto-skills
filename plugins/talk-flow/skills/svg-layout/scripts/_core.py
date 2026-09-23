@@ -1,10 +1,10 @@
-"""svg-layout 共用核心:文件模型、絕對幾何、字型度量、角色推論、語意化 ID。
+"""svg-layout 共用核心：文件模型、絕對幾何、字型度量、角色推論、語意化 ID。
 
-設計要點:
-- XML 結構用 ElementTree 自行走訪(normalize 需要寫回屬性,必須保有 1:1 的
-  元素對應);路徑幾何與 transform 字串解析交給 svgelements,不自己寫 parser。
-- 文字寬度一律用 fontTools 量真實 advance;量不到才退回估算,並標記 exact=False。
-- 角色推論只在元素沒有 data-role 時執行;有標註一律以標註為準。
+設計要點：
+- XML 結構用 ElementTree 自行走訪(normalize 需要寫回屬性，必須保有 1:1 的
+  元素對應)；路徑幾何與 transform 字串解析交給 svgelements，不自己寫 parser。
+- 文字寬度一律用 fontTools 量真實 advance；量不到才退回估算，並標記 exact=False。
+- 角色推論只在元素沒有 data-role 時執行；有標註一律以標註為準。
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ SUPPORTED_TAGS = {
     "svg", "g", "rect", "circle", "ellipse", "line", "polyline", "polygon",
     "path", "text", "tspan", "use", "marker",
 }
-# 這些容器不參與版面(僅供引用)
+# 這些容器不參與版面（僅供引用）
 NON_RENDERED = {"defs", "marker", "symbol", "clipPath", "mask", "linearGradient",
                 "radialGradient", "pattern", "filter", "style", "title", "desc", "metadata"}
 
@@ -88,7 +88,7 @@ class Box:
 
 
 def num(v: float) -> str:
-    """數值格式化:整數不留小數,其餘留一位。"""
+    """數值格式化：整數不留小數，其餘留一位。"""
     if v is None:
         return "?"
     r = round(float(v), 1)
@@ -112,7 +112,7 @@ def dist(ax: float, ay: float, bx: float, by: float) -> float:
 
 
 def dist_point_to_box(box: Box, px: float, py: float) -> float:
-    """點到矩形邊界的距離;點在內部時回傳負值(穿入深度)。"""
+    """點到矩形邊界的距離；點在內部時回傳負值（穿入深度）。"""
     dx = max(box.x - px, 0.0, px - box.x2)
     dy = max(box.y - py, 0.0, py - box.y2)
     if dx == 0.0 and dy == 0.0:
@@ -122,7 +122,7 @@ def dist_point_to_box(box: Box, px: float, py: float) -> float:
 
 
 def seg_intersects_box(p1: tuple[float, float], p2: tuple[float, float], box: Box) -> bool:
-    """線段是否穿過矩形(Liang-Barsky)。"""
+    """線段是否穿過矩形 (Liang-Barsky)。"""
     x1, y1 = p1
     x2, y2 = p2
     dx, dy = x2 - x1, y2 - y1
@@ -145,7 +145,7 @@ def seg_intersects_box(p1: tuple[float, float], p2: tuple[float, float], box: Bo
 
 
 def seg_seg_intersect(a1, a2, b1, b2) -> bool:
-    """兩線段是否真正交叉(共端點不算)。"""
+    """兩線段是否真正交叉（共端點不算）。"""
     def cross(o, a, b):
         return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
@@ -173,7 +173,7 @@ def is_cjk(ch: str) -> bool:
     return any(lo <= cp <= hi for lo, hi in CJK_RANGES)
 
 
-# 無字型檔時的每字元寬度(em 比例),依類別分開算,不用平均字寬
+# 無字型檔時的每字元寬度（em 比例），依類別分開算，不用平均字寬
 _EST_WIDTH = {
     "cjk": 1.0, "space": 0.28, "digit": 0.55, "upper": 0.66, "lower": 0.52,
     "punct": 0.32, "other": 0.55,
@@ -203,7 +203,7 @@ FONT_DIRS = [
     FsPath.home() / ".fonts",
 ]
 
-# 常見 family → 檔名關鍵字(找不到時用檔名比對,避免掃描所有字型的 name table)
+# 常見 family → 檔名關鍵字（找不到時用檔名比對，避免掃描所有字型的 name table）
 FAMILY_HINTS = {
     "notosanstc": ["notosanstc", "notosanscjk", "notosanstc-regular"],
     "notosanssc": ["notosanssc", "notosanscjk"],
@@ -222,7 +222,7 @@ FAMILY_HINTS = {
     "jetbrainsmono": ["jetbrainsmono", "menlo"],
 }
 
-# 宣告字型不存在時,用來量 CJK 字元的實際替代字型(依序嘗試)
+# 宣告字型不存在時，用來量 CJK 字元的實際替代字型（依序嘗試）
 CJK_FALLBACKS = [
     "PingFang TC", "PingFang SC", "Hiragino Sans GB", "Heiti TC", "STHeiti Light",
     "Microsoft JhengHei", "Microsoft YaHei", "Noto Sans CJK TC", "Noto Sans TC",
@@ -237,7 +237,7 @@ def _norm_family(name: str) -> str:
 
 
 class TextMeasurer:
-    """以真實 font metrics 量測文字寬度;量不到才估算並標記。"""
+    """以真實 font metrics 量測文字寬度；量不到才估算並標記。"""
 
     def __init__(self, extra_font_dirs: list[FsPath] | None = None) -> None:
         self._index: dict[str, FsPath] | None = None
@@ -306,7 +306,7 @@ class TextMeasurer:
         return [f.strip().strip('"').strip("'") for f in font_family.split(",") if f.strip()]
 
     def _advance(self, font, ch: str) -> float | None:
-        """單一字元在該字型的 advance(em 比例);字型沒有這個字回 None。"""
+        """單一字元在該字型的 advance（em 比例）；字型沒有這個字回 None。"""
         gname = font.__dict__["_cmap_cache"].get(ord(ch))
         if gname is None:
             return None
@@ -316,7 +316,7 @@ class TextMeasurer:
             return None
 
     def _fallback_font(self, ch: str):
-        """替代字型:CJK 與拉丁分開找,找到就回 (font, family)。"""
+        """替代字型：CJK 與拉丁分開找，找到就回 (font, family)。"""
         pool = CJK_FALLBACKS if is_cjk(ch) else LATIN_FALLBACKS
         for fam in pool:
             key = _norm_family(fam)
@@ -332,7 +332,7 @@ class TextMeasurer:
         """量測文字。
 
         回傳 (width, ascent, descent, source, used_font):
-          source = "exact"(宣告字型實測)/ "subst"(替代字型實測)/ "est"(逐字元估算)
+          source = "exact"（宣告字型實測）/ "subst"（替代字型實測）/ "est"（逐字元估算）
         """
         if not text:
             return (0.0, font_size * 0.8, font_size * 0.2, "exact", "")
@@ -414,7 +414,7 @@ class El:
     seg_count: int = 0
     path_d: str = ""
     supported: bool = True
-    role: str | None = None          # 最終角色(data-role 或推論結果)
+    role: str | None = None          # 最終角色（data-role 或推論結果）
     role_from_attr: bool = False
     owner: "El | None" = None        # label 歸屬的 node/edge
     edge_from: "El | None" = None
@@ -480,7 +480,7 @@ def parse_points(raw: str) -> list[tuple[float, float]]:
 
 
 class SvgDoc:
-    """解析後的 SVG:保有 XML 元素、絕對 bbox 與角色。"""
+    """解析後的 SVG：保有 XML 元素、絕對 bbox 與角色。"""
 
     def __init__(self, path: FsPath, measurer: TextMeasurer | None = None) -> None:
         self.path = path
@@ -589,7 +589,7 @@ class SvgDoc:
                 b = target.bbox
                 el.bbox = Box(b.x + dx, b.y + dy, b.w, b.h)
             else:
-                self.warnings.append(f"<use> 指向 #{ref},找不到目標或目標無幾何")
+                self.warnings.append(f"<use> 指向 #{ref}，找不到目標或目標無幾何")
         elif tag in ("g", "svg", "marker"):
             boxes = [c.bbox for c in el.children if c.bbox is not None]
             if boxes:
@@ -637,7 +637,7 @@ class SvgDoc:
 
     # -- 查詢 ------------------------------------------------------------- #
     def rendered(self) -> list[El]:
-        """會被畫出來的元素(排除 defs/marker 內部)。"""
+        """會被畫出來的元素（排除 defs/marker 內部）。"""
         out = []
         for el in self.all:
             if el.tag in NON_RENDERED:
@@ -683,7 +683,7 @@ ENDPOINT_TOL = 14.0
 
 
 def infer_roles(doc: SvgDoc, endpoint_tol: float = ENDPOINT_TOL) -> None:
-    """填入 el.role;有 data-role 屬性者直接採用,不再推論。"""
+    """填入 el.role；有 data-role 屬性者直接採用，不再推論。"""
     rendered = [e for e in doc.rendered() if e.tag in SHAPE_TAGS | {"text", "g", "use"}]
     for el in rendered:
         attr = el.elem.get("data-role")
@@ -696,7 +696,7 @@ def infer_roles(doc: SvgDoc, endpoint_tol: float = ENDPOINT_TOL) -> None:
     boxish = [e for e in shapes if e.tag in BOX_SHAPES]
     linish = [e for e in shapes if e.tag in LINE_SHAPES]
 
-    # 1) container:bbox 完整包住 ≥2 個其他 box,且無填色或虛線
+    # 1) container:bbox 完整包住 ≥2 個其他 box，且無填色或虛線
     for el in boxish:
         if el.role:
             continue
@@ -704,7 +704,7 @@ def infer_roles(doc: SvgDoc, endpoint_tol: float = ENDPOINT_TOL) -> None:
         if len(inner) >= 2 and (not has_fill(el) or is_dashed(el)):
             el.role = "container"
 
-    # 2) node:有填色的 box,bbox 內含 text,且不是 container
+    # 2) node：有填色的 box，bbox 內含 text，且不是 container
     for el in boxish:
         if el.role:
             continue
@@ -714,7 +714,7 @@ def infer_roles(doc: SvgDoc, endpoint_tol: float = ENDPOINT_TOL) -> None:
             el.role = "node"
     nodes = [e for e in boxish if e.role == "node"]
 
-    # 3) edge:線狀元素兩端貼近 node 邊界(或有箭頭)
+    # 3) edge：線狀元素兩端貼近 node 邊界（或有箭頭）
     for el in linish:
         if el.role:
             if el.role == "edge":
@@ -748,14 +748,14 @@ def infer_roles(doc: SvgDoc, endpoint_tol: float = ENDPOINT_TOL) -> None:
                 owner = n
                 break
         if owner is None:
-            # container 的標題必須緊貼容器上緣,否則容器內的任何文字都會被誤收
+            # container 的標題必須緊貼容器上緣，否則容器內的任何文字都會被誤收
             for c in boxish:
                 if (c.role == "container" and c.bbox.contains_point(t.bbox.cx, t.bbox.cy, tol=4)
                         and abs(t.bbox.y - c.bbox.y) < 48):
                     owner = c
                     break
         if owner is None:
-            # 用「標籤方框到線」的距離,不是中心點距離 —— 邊標籤通常刻意擺在線的一側
+            # 用「標籤方框到線」的距離，不是中心點距離 —— 邊標籤通常刻意擺在線的一側
             best, bestd = None, max(endpoint_tol * 3, 40.0)
             for e in edges:
                 d = min((dist_point_to_box(t.bbox, px, py) for px, py in e.polypoints),
@@ -827,7 +827,7 @@ _MAX_TERM = max(len(k) for k in GLOSSARY)
 
 
 def slugify(text: str, glossary: dict | None = None) -> str:
-    """中英混排 → kebab-case slug;中文優先查詞彙表,查不到用拼音。"""
+    """中英混排 → kebab-case slug；中文優先查詞彙表，查不到用拼音。"""
     gl = dict(GLOSSARY)
     if glossary:
         gl.update(glossary)
@@ -889,7 +889,7 @@ class Sym:
 
 
 def setup_stdout(ascii_mode: bool) -> bool:
-    """回傳最終是否用 ascii 模式(終端不支援 UTF-8 時自動降級)。"""
+    """回傳最終是否用 ascii 模式（終端不支援 UTF-8 時自動降級）。"""
     if ascii_mode:
         return True
     try:
@@ -902,7 +902,7 @@ def setup_stdout(ascii_mode: bool) -> bool:
 
 
 def label_text_of(el: El, doc: SvgDoc) -> str:
-    """取某元素(node/container)的標籤文字。"""
+    """取某元素 (node/container) 的標籤文字。"""
     for t in doc.rendered():
         if t.tag == "text" and t.owner is el:
             return t.text

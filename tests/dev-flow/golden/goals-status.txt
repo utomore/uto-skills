@@ -1,27 +1,27 @@
 $ devflow status
 # devflow status
-願景:小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
-需求 2 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 1 條,成立 0 條 · 里程碑 4 條,達成 0 條 · feature 2 份,達成 0 份 · 文檔共 2 份,達成 0 份 · 還沒實作的 step 18 個 · 還開著的 GAP 0 條
-· 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
+願景：小型電商的每一筆錢都算得對、查得到來源；結帳與退款之外再加路徑時，金額規則不必再寫一次。
+需求 2 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 1 條，成立 0 條 · 里程碑 4 條，達成 0 條 · feature 2 份，達成 0 份 · 文檔共 2 份，達成 0 份 · 還沒實作的 step 18 個 · 還開著的 GAP 0 條
+· 沒給測試輸出（--tests <log> 或 --run），幾條 law 通過測試未知
 
 ## 需求
-- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+- 優先：1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具
 | 需求 | 優先 | 一句話 | 審核 | 上線 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|---|---|---|
-| R-1 | 1 | 每一筆結帳與退款的金額都算對 | 未知(寫了三行卻沒有 R-1#ACCEPT 測試) | - | - | 4 | 0 | 0% |
-| R-2 | (沒填) | 店主隨時看得到今天收了多少錢 | 未達成(還沒有里程碑) | - | - | 0 | 0 | - |
-- R-1 下一個里程碑:M-2-refund 退款走通(F-002-refund 進行中)
+| R-1 | 1 | 每一筆結帳與退款的金額都算對 | 未知（寫了三行卻沒有 R-1#ACCEPT 測試） | - | - | 4 | 0 | 0% |
+| R-2 | （沒填） | 店主隨時看得到今天收了多少錢 | 未達成（還沒有里程碑） | - | - | 0 | 0 | - |
+- R-1 下一個里程碑：M-2-refund 退款走通（F-002-refund 進行中）
 
 ## 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,3 條不合規 |
-| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 4 列,4 條不合規;契約欄指到的 law 3 條,成立 0 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 1 條,7 條不合規;成立 0 條 |
+| 架構 | 全域 Law › 架構：層 | devflow lint boundary | 3 層，3 條不合規 |
+| 契約 | 全域 Law › 契約：對外 I/O | devflow lint io | 4 列，4 條不合規；契約欄指到的 law 3 條，成立 0 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 1 條，7 條不合規；成立 0 條 |
 
 | 領域不變量 | 種類 | 一句話 | 成立 |
 |---|---|---|---|
-| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 未知(沒有 INV-1#LAW 測試) |
+| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 未知（沒有 INV-1#LAW 測試） |
 
 ## 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -33,7 +33,7 @@ $ devflow status
 - 無
 
 ## 2. 卡住的
-- F-002-refund 等 F-001-checkout(未達成,先建它)
+- F-002-refund 等 F-001-checkout（未達成，先建它）
 
 ## 3. 等決定
 - 無
@@ -41,30 +41,30 @@ $ devflow status
 ## 4. 牽動誰
 - F-001-checkout ← F-002-refund
 
-## 5. 待實作(按檔案)
-- src/app/checkout.ts:F-001-checkout#parseCheckout、F-001-checkout#toOrder、F-001-checkout#reqLines(觀察點)、F-001-checkout#reqDiscount(觀察點)、F-001-checkout#paidCents(觀察點)、F-001-checkout#checkout
-- src/app/refund.ts:F-002-refund#parseRefund、F-002-refund#toRefund、F-002-refund#refundLines(觀察點)、F-002-refund#refundFee(觀察點)、F-002-refund#returnedCents(觀察點)、F-002-refund#refund
-- src/domain/money.ts:F-001-checkout#settle、F-001-checkout#cents(觀察點)、F-001-checkout#settled(觀察點)、F-002-refund#settle
-- src/entry/routes.ts:F-001-checkout#checkoutHandler、F-002-refund#refundHandler
+## 5. 待實作（按檔案）
+- src/app/checkout.ts：F-001-checkout#parseCheckout、F-001-checkout#toOrder、F-001-checkout#reqLines（觀察點）、F-001-checkout#reqDiscount（觀察點）、F-001-checkout#paidCents（觀察點）、F-001-checkout#checkout
+- src/app/refund.ts：F-002-refund#parseRefund、F-002-refund#toRefund、F-002-refund#refundLines（觀察點）、F-002-refund#refundFee（觀察點）、F-002-refund#returnedCents（觀察點）、F-002-refund#refund
+- src/domain/money.ts：F-001-checkout#settle、F-001-checkout#cents（觀察點）、F-001-checkout#settled（觀察點）、F-002-refund#settle
+- src/entry/routes.ts：F-001-checkout#checkoutHandler、F-002-refund#refundHandler
 
 ## 6. 修訂熱點
-- F-001-checkout:REV 1 條,最後一條「REV-1(2026-09-07,依 RF-1:退款也走 settle,手續費可能大過要退的金額):settle 補一條」
-- F-002-refund:REV 1 條,最後一條「REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 」
+- F-001-checkout：REV 1 條，最後一條「REV-1（2026-09-07，依 RF-1：退款也走 settle，手續費可能大過要退的金額）：settle 補一條」
+- F-002-refund：REV 1 條，最後一條「REV-1（2026-09-07，依開發者：手續費不另寫一條扣款）：金額計算改成引用 F-001-checkout 的 」
 
 ## 7. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| CLAUDE.md | 沒有 ## 名詞 節,領域名詞沒有地方定義 | dev-flow:kickoff 補上這一節 |
-| system.md | 需求還住在「## 需求」節,看不出每條需求的優先與里程碑 | devflow migrate requirements --write 換成 requirements/ 一條需求一個檔 |
-| .design/objectives/R-9-O-3-loyalty.md | 對到的需求 R-9 不存在,它的里程碑沒有算進任何需求 | devflow migrate requirements 的帳本會列出它;決定它屬於哪條需求 |
-| R-1 | 驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核 | dev-flow:build R-1(只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接 |
-| R-2 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
-| R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>) |
-| INV-1 | 沒有測試,成立與否未知 | dev-flow:build INV-1(只派 qa 寫一條歸屬 "INV-1#LAW" 的測試) |
-| 全域 Law:架構 | lint boundary 3 條不合規 | devflow lint boundary |
-| 全域 Law:契約 | lint io 4 條不合規 | devflow lint io |
-| 全域 Law:領域不變量 | lint invariants 7 條不合規 | devflow lint invariants |
+| CLAUDE.md | 沒有 ## 名詞 節，領域名詞沒有地方定義 | dev-flow:kickoff 補上這一節 |
+| system.md | 需求還住在「## 需求」節，看不出每條需求的優先與里程碑 | devflow migrate requirements --write 換成 requirements/ 一條需求一個檔 |
+| .design/objectives/R-9-O-3-loyalty.md | 對到的需求 R-9 不存在，它的里程碑沒有算進任何需求 | devflow migrate requirements 的帳本會列出它；決定它屬於哪條需求 |
+| R-1 | 驗收寫了三行卻沒有驗收測試，證據不齊，還不能請人審核 | dev-flow:build R-1（只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試）；不能自動化就只留一句，證據改由里程碑全部達成承接 |
+| R-2 | 優先「（沒填）」不是 1 到 4 | 改成 1（最高）到 4（最低） |
+| R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑（devflow requirement milestone R-2 <slug> <一句話>） |
+| INV-1 | 沒有測試，成立與否未知 | dev-flow:build INV-1（只派 qa 寫一條歸屬 "INV-1#LAW" 的測試） |
+| 全域 Law：架構 | lint boundary 3 條不合規 | devflow lint boundary |
+| 全域 Law：契約 | lint io 4 條不合規 | devflow lint io |
+| 全域 Law：領域不變量 | lint invariants 7 條不合規 | devflow lint invariants |
 
 ## 8. 建議路線
-1. dev-flow:build INV-1(只派 qa 寫 INV-1#LAW 的測試)
+1. dev-flow:build INV-1（只派 qa 寫 INV-1#LAW 的測試）
 exit 1

@@ -1,12 +1,12 @@
 $ devflow brief spike-impl F-001-checkout --no-rules
-brief spike-impl F-001-checkout @doc:09ec92e0 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief spike-impl F-001-checkout @doc:da4ec81d rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
 # 目標
 
-F-001-checkout 不是 dev-flow:spike-impl 收的目標;它收的是一條里程碑的全名 M-n-<slug>。停下,回報。
+F-001-checkout 不是 dev-flow:spike-impl 收的目標；它收的是一條里程碑的全名 M-n-<slug>。停下，回報。
 exit 0

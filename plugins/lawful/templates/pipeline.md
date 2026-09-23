@@ -8,21 +8,21 @@ updated: <YYYY-MM-DD>
 # P-00x-<slug>:<同 description>
 
 ## Brief
-<意圖一句。input 是什麼、output 是什麼。流向:A → B → C。它的 kind 是 io(跨過 shell、有進入點),或是 P-00y-<slug> 引用的 subflow。它讓 M-n-<slug> 往前哪一步。>
+<意圖一句。input 是什麼、output 是什麼。流向：A → B → C。它的 kind 是 io（跨過 shell、有進入點），或是 P-00y-<slug> 引用的 subflow。它讓 M-n-<slug> 往前哪一步。>
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
 | 1 | `<name :: Type>` | <一句> | `<Module>` | core |
-| 2 | `<name :: Type>` | <一句> | `<Module>`(見 P-00z-<slug>) | core |
-| o | `<name :: Type>` | 觀察:<law 要看的量,一句> | `<Module.Internal>` | core |
+| 2 | `<name :: Type>` | <一句> | `<Module>`（見 P-00z-<slug>） | core |
+| o | `<name :: Type>` | 觀察：<law 要看的量，一句> | `<Module.Internal>` | core |
 | = | `<name :: Type>` | 純的整條 | `<Module>` | core |
-| ! | `<name :: Type>` | 進入點:<接到哪個對外 I/O;subflow 刪這列> | `<Module>` | shell |
+| ! | `<name :: Type>` | 進入點：<接到哪個對外 I/O；subflow 刪這列> | `<Module>` | shell |
 
 ## Laws
 - LAW-1 [<invariant | identity | roundtrip | relation | bound | equiv | total | commute>] <一句中文>
   - forall <x> in <Type>
-  - |- <結論,只用 Stages 的簽名(含 o 列與 = 列,不含 ! 列)、types 層的函數與字面值>
+  - |- <結論，只用 Stages 的簽名（含 o 列與 = 列，不含 ! 列）、types 層的函數與字面值>
 
 ## Examples
 | # | 輸入 | 輸出 | 覆蓋 |
@@ -30,7 +30,7 @@ updated: <YYYY-MM-DD>
 | EX-1 | `<expr>` | `<value>` | LAW-1 |
 
 ## 決定
-- **<決定一句。>** 否決:<替代方案>。<理由一句>。證據:<ADR-00x-<slug>,無則省略>
+- **<決定一句。>** 否決：<替代方案>。<理由一句>。證據：<ADR-00x-<slug>，無則省略>
 
 ## 修訂記錄
 無

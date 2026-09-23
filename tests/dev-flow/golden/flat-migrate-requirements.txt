@@ -1,12 +1,12 @@
 $ devflow migrate requirements --date 2026-09-07
 # migrate requirements 帳本
 
-- .design/system.md:「目的」併成「願景」第二段、需求 1 條(R-1 ← O-1)、優先各級那行搬進「語言與工具」;「## 需求」節刪掉,需求搬進 requirements/
-- .design/requirements/R-1-checkout.md:建(優先 1;里程碑 2 條;併自 R-1-O-1-checkout)
-- .design/objectives.md:刪(先照每個 ## O-n 拆開,再併進它的需求)
+- .design/system.md：「目的」併成「願景」第二段、需求 1 條 (R-1 ← O-1)、優先各級那行搬進「語言與工具」；「## 需求」節刪掉，需求搬進 requirements/
+- .design/requirements/R-1-checkout.md：建（優先 1；里程碑 2 條；併自 R-1-O-1-checkout）
+- .design/objectives.md：刪（先照每個 ## O-n 拆開，再併進它的需求）
 
 ## 人要判的
 - 無
 
-以上只是帳本;devflow migrate requirements --write 才落地
+以上只是帳本；devflow migrate requirements --write 才落地
 exit 0

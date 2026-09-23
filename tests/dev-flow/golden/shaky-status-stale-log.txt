@@ -1,37 +1,37 @@
 $ devflow status --tests stale.log
 # devflow status
-需求 6 條,已驗收 0 條 · 等人工審核 0 條 · 待重審 1 條 · 領域不變量 4 條,成立 0 條 · 里程碑 7 條,達成 0 條 · feature 2 份,達成 0 份 · 文檔共 2 份,達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 2 條
+需求 6 條，已驗收 0 條 · 等人工審核 0 條 · 待重審 1 條 · 領域不變量 4 條，成立 0 條 · 里程碑 7 條，達成 0 條 · feature 2 份，達成 0 份 · 文檔共 2 份，達成 0 份 · 還沒實作的 step 4 個 · 還開著的 GAP 2 條
 · 測試結果來自 stale.log
 
 ## 需求
 | 需求 | 優先 | 一句話 | 審核 | 上線 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|---|---|---|
-| R-2 | 2 | 寫了三行卻沒有驗收測試,也沒有里程碑 | 未知(寫了三行卻沒有 R-2#ACCEPT 測試) | - | - | 0 | 0 | - |
-| R-3 | 2 | 里程碑編號撞到別條需求的 | 待重審(2026-09-07 已驗收,證據翻掉:里程碑 0 / 1 達成) | - | - | 1 | 0 | 0% |
-| R-5 | 3 | 驗收引用了進入點與不存在的東西 | 未知(寫了三行卻沒有 R-5#ACCEPT 測試) | - | - | 1 | 0 | 0% |
-| R-9 | 4 | 檔名與 frontmatter 對不上的需求 | 建構中(M-5-third 還沒達成) | - | - | 1 | 0 | 0% |
-| R-1 | high | 分數算得出來 | 未達成(驗收還是模板) | - | - | 3 | 0 | 0% |
-| R-4 | (沒填) | 沒有 frontmatter 的需求 | 建構中(M-2-score-too 還沒達成) | - | R-1 | 1 | 0 | 0% |
-- R-3 下一個里程碑:M-1 <一句話>(還沒有切片,也還沒有英文名)
-- R-5 下一個里程碑:M-4-entry 進入點回得出分數(還沒有切片:dev-flow:spike-impl M-4-entry)
-- R-9 下一個里程碑:M-5-third 第三個數字看得到(還沒有切片:dev-flow:spike-impl M-5-third)
-- R-1 下一個里程碑:M-1 分數算得出來(F-001-score 卡 GAP-1、GAP-1、F-009-nope 不存在)
-- R-4 下一個里程碑:M-2-score-too 分數也算得出來(F-001-score 待修訂);待修訂:dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too
-- 沒有被任何里程碑綁定的 feature:F-002-other;它們不朝向任何需求
+| R-2 | 2 | 寫了三行卻沒有驗收測試，也沒有里程碑 | 未知（寫了三行卻沒有 R-2#ACCEPT 測試） | - | - | 0 | 0 | - |
+| R-3 | 2 | 里程碑編號撞到別條需求的 | 待重審（2026-09-07 已驗收，證據翻掉：里程碑 0 / 1 達成） | - | - | 1 | 0 | 0% |
+| R-5 | 3 | 驗收引用了進入點與不存在的東西 | 未知（寫了三行卻沒有 R-5#ACCEPT 測試） | - | - | 1 | 0 | 0% |
+| R-9 | 4 | 檔名與 frontmatter 對不上的需求 | 建構中（M-5-third 還沒達成） | - | - | 1 | 0 | 0% |
+| R-1 | high | 分數算得出來 | 未達成（驗收還是模板） | - | - | 3 | 0 | 0% |
+| R-4 | （沒填） | 沒有 frontmatter 的需求 | 建構中（M-2-score-too 還沒達成） | - | R-1 | 1 | 0 | 0% |
+- R-3 下一個里程碑：M-1 <一句話>（還沒有切片，也還沒有英文名）
+- R-5 下一個里程碑：M-4-entry 進入點回得出分數（還沒有切片：dev-flow:spike-impl M-4-entry）
+- R-9 下一個里程碑：M-5-third 第三個數字看得到（還沒有切片：dev-flow:spike-impl M-5-third）
+- R-1 下一個里程碑：M-1 分數算得出來（F-001-score 卡 GAP-1、GAP-1、F-009-nope 不存在）
+- R-4 下一個里程碑：M-2-score-too 分數也算得出來（F-001-score 待修訂）；待修訂：dev-flow:scope-revise F-001-score（既有的 law 不動、新的承諾用新增的 law 表達；要調整既有的 law 就 dev-flow:scope-laws），REV 的依欄寫 M-2-score-too
+- 沒有被任何里程碑綁定的 feature：F-002-other；它們不朝向任何需求
 
 ## 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,3 條不合規 |
-| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 1 列,6 條不合規;契約欄指到的 law 3 條,成立 0 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 4 條,7 條不合規;成立 0 條 |
+| 架構 | 全域 Law › 架構：層 | devflow lint boundary | 3 層，3 條不合規 |
+| 契約 | 全域 Law › 契約：對外 I/O | devflow lint io | 1 列，6 條不合規；契約欄指到的 law 3 條，成立 0 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 4 條，7 條不合規；成立 0 條 |
 
 | 領域不變量 | 種類 | 一句話 | 成立 |
 |---|---|---|---|
-| INV-1 | bound | 沒有三行的不變量 | 未知(沒有三行) |
-| INV-2 | invariant | 寫了三行卻沒有測試,而且引用了一份 feature 的簽名 | 未知(沒有 INV-2#LAW 測試) |
-| INV-2 | invariant | 編號重複 | 未知(沒有三行) |
-| INV-3 | nonsense | 種類不合法 | 未知(沒有三行) |
+| INV-1 | bound | 沒有三行的不變量 | 未知（沒有三行） |
+| INV-2 | invariant | 寫了三行卻沒有測試，而且引用了一份 feature 的簽名 | 未知（沒有 INV-2#LAW 測試） |
+| INV-2 | invariant | 編號重複 | 未知（沒有三行） |
+| INV-3 | nonsense | 種類不合法 | 未知（沒有三行） |
 
 ## 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -40,80 +40,80 @@ $ devflow status --tests stale.log
 | F-002-other | feature | draft | 3 | 2 | 0 | 1 | 0/0 | 0 | 1 個 step 對不上程式碼 |
 
 ## 1. 今天能開幾條線
-- M-2-score-too:dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too(R-4 優先 ? · 分數也算得出來)
-- M-4-entry:dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)
-- M-5-third:dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)
+- M-2-score-too：dev-flow:scope-revise F-001-score（既有的 law 不動、新的承諾用新增的 law 表達；要調整既有的 law 就 dev-flow:scope-laws），REV 的依欄寫 M-2-score-too（R-4 優先 ? · 分數也算得出來）
+- M-4-entry：dev-flow:spike-impl M-4-entry（R-5 優先 3 · 進入點回得出分數）
+- M-5-third：dev-flow:spike-impl M-5-third（R-9 優先 4 · 第三個數字看得到）
 
 ## 2. 卡住的
-- F-001-score#LAW-1 停在 GAP-1(qa 提)
-- F-001-score#missingStep 停在 GAP-1(impl 提)
-- F-001-score 等 F-002-other(還是 draft)
+- F-001-score#LAW-1 停在 GAP-1（qa 提）
+- F-001-score#missingStep 停在 GAP-1（impl 提）
+- F-001-score 等 F-002-other（還是 draft）
 
 ## 3. 等決定
-- R-3 待重審:里程碑編號撞到別條需求的
-  - 驗收那一句:看得到兩個數字
-  - 證據:里程碑 0 / 1 達成
-  - 怎麼驗:`npx tsc --noEmit` → M-1 沒有怎麼驗欄(dev-flow:require-design 補一道指令) → 看「看得到兩個數字」成不成立
-  - 認可:devflow requirement accept R-3 --by <你的 email> --evidence "<憑什麼認的,一句>"
-- GAP-1(F-001-score#LAW-1 / qa):答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws
-- GAP-1(F-001-score#missingStep / impl):答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws
-- F-002-other 還是 draft:dev-flow:scope-laws 談完 Law、開發者拍板才改 ready
+- R-3 待重審：里程碑編號撞到別條需求的
+  - 驗收那一句：看得到兩個數字
+  - 證據：里程碑 0 / 1 達成
+  - 怎麼驗：`npx tsc --noEmit` → M-1 沒有怎麼驗欄（dev-flow:require-design 補一道指令） → 看「看得到兩個數字」成不成立
+  - 認可：devflow requirement accept R-3 --by <你的 email> --evidence "<憑什麼認的，一句>"
+- GAP-1(F-001-score#LAW-1 / qa)：答案要調整既有的 law 走 dev-flow:scope-laws，既有的 law 不動走 dev-flow:scope-revise，問的是全域 Law 走 dev-flow:global-laws
+- GAP-1(F-001-score#missingStep / impl)：答案要調整既有的 law 走 dev-flow:scope-laws，既有的 law 不動走 dev-flow:scope-revise，問的是全域 Law 走 dev-flow:global-laws
+- F-002-other 還是 draft：dev-flow:scope-laws 談完 Law、開發者拍板才改 ready
 
 ## 4. 牽動誰
 - F-002-other ← F-001-score
 
-## 5. 待實作(按檔案)
-- src/app/other.ts:F-001-score#score(未實作)
-- src/app/store.ts:F-001-score#missingStep、F-001-score#helperOnly、F-002-other#helperOnly
+## 5. 待實作（按檔案）
+- src/app/other.ts：F-001-score#score（未實作）
+- src/app/store.ts：F-001-score#missingStep、F-001-score#helperOnly、F-002-other#helperOnly
 
 ## 6. 修訂熱點
-- F-001-score:REV 1 條,最後一條「REV-1(2026-09-07,依 開發者):改了但沒有重開紀錄」
+- F-001-score：REV 1 條，最後一條「REV-1（2026-09-07，依 開發者）：改了但沒有重開紀錄」
 
 ## 7. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | system.md | 願景還是模板 | dev-flow:kickoff 訂願景 |
-| CLAUDE.md:10 | 名詞「分數」出現 2 列,名詞只定義一次 | dev-flow:require-design 與開發者講定哪一句是它的定義,留一列 |
-| system.md | 沒有宣告優先 1 到 4 各代表什麼 | dev-flow:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」 |
-| R-2 | 驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核 | dev-flow:build R-2(只派 qa 寫一條歸屬 "R-2#ACCEPT" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接 |
-| R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>) |
-| R-3 | 2026-09-07 已驗收,證據現在翻掉了(里程碑 0 / 1 達成) | 先把紅的修回來,再 devflow requirement accept R-3 重簽一次;人簽過的是當時那份證據,不是永久的 |
+| CLAUDE.md:10 | 名詞「分數」出現 2 列，名詞只定義一次 | dev-flow:require-design 與開發者講定哪一句是它的定義，留一列 |
+| system.md | 沒有宣告優先 1 到 4 各代表什麼 | dev-flow:require-design 在「Constraint」寫一行「- 優先：1 = …；2 = …；3 = …；4 = …」 |
+| R-2 | 驗收寫了三行卻沒有驗收測試，證據不齊，還不能請人審核 | dev-flow:build R-2（只派 qa 寫一條歸屬 "R-2#ACCEPT" 的測試）；不能自動化就只留一句，證據改由里程碑全部達成承接 |
+| R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑（devflow requirement milestone R-2 <slug> <一句話>） |
+| R-3 | 2026-09-07 已驗收，證據現在翻掉了（里程碑 0 / 1 達成） | 先把紅的修回來，再 devflow requirement accept R-3 重簽一次；人簽過的是當時那份證據，不是永久的 |
 | M-1 | 里程碑還是模板 | dev-flow:require-design 寫成一句話 |
-| M-1 | 沒有英文名,切片開不了分支 | dev-flow:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵 |
-| R-5 | 驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核 | dev-flow:build R-5(只派 qa 寫一條歸屬 "R-5#ACCEPT" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接 |
-| .design/requirements/R-6-mismatch.md | 檔名與 frontmatter 對不上(frontmatter:R-9) | 檔名 R-n-<slug> 的 R-n 要等於 frontmatter 的 id |
+| M-1 | 沒有英文名，切片開不了分支 | dev-flow:require-design 把第一格寫成 M-1-<slug>（kebab-case 英文）；切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵 |
+| R-5 | 驗收寫了三行卻沒有驗收測試，證據不齊，還不能請人審核 | dev-flow:build R-5（只派 qa 寫一條歸屬 "R-5#ACCEPT" 的測試）；不能自動化就只留一句，證據改由里程碑全部達成承接 |
+| .design/requirements/R-6-mismatch.md | 檔名與 frontmatter 對不上 (frontmatter:R-9) | 檔名 R-n-<slug> 的 R-n 要等於 frontmatter 的 id |
 | R-1 | 驗收還是模板 | dev-flow:require-design 寫成可判定的一句 |
-| R-1 | 優先「high」不是 1 到 4 | 改成 1(最高)到 4(最低) |
-| M-1 | 里程碑編號重複 | 編號全資料夾唯一;配號只走 devflow requirement milestone |
-| M-1 | 沒有英文名,切片開不了分支 | dev-flow:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵 |
-| M-1 | 綁定的 F-009-nope 不存在 | 改成 features/ 裡有的全名,或刪這個綁定 |
-| M-6 | 沒有英文名,REV 的依欄寫不出它的全名 | dev-flow:require-design 把第一格寫成 M-6-<slug>(kebab-case 英文);引用一條里程碑一律用全名 |
-| M-6 | 綁定的 F-009-nope 不存在 | 改成 features/ 裡有的全名,或刪這個綁定 |
+| R-1 | 優先「high」不是 1 到 4 | 改成 1（最高）到 4（最低） |
+| M-1 | 里程碑編號重複 | 編號全資料夾唯一；配號只走 devflow requirement milestone |
+| M-1 | 沒有英文名，切片開不了分支 | dev-flow:require-design 把第一格寫成 M-1-<slug>（kebab-case 英文）；切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵 |
+| M-1 | 綁定的 F-009-nope 不存在 | 改成 features/ 裡有的全名，或刪這個綁定 |
+| M-6 | 沒有英文名，REV 的依欄寫不出它的全名 | dev-flow:require-design 把第一格寫成 M-6-<slug>（kebab-case 英文）；引用一條里程碑一律用全名 |
+| M-6 | 綁定的 F-009-nope 不存在 | 改成 features/ 裡有的全名，或刪這個綁定 |
 | .design/requirements/R-4-third-number.md | 沒有 frontmatter | 照 templates/requirement.md 補 id、priority、updated |
-| R-4 | 沒有驗收 | dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」 |
-| R-4 | 優先「(沒填)」不是 1 到 4 | 改成 1(最高)到 4(最低) |
-| F-002-other | 沒有被任何里程碑綁定 | 不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature |
-| INV-1 | 沒有三行,成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條 |
-| INV-2 | 沒有測試,成立與否未知 | dev-flow:build INV-2(只派 qa 寫一條歸屬 "INV-2#LAW" 的測試) |
-| INV-2 | 沒有三行,成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條 |
-| INV-3 | 沒有三行,成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條 |
-| GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」) |
+| R-4 | 沒有驗收 | dev-flow:require-design 補一句可判定的話，寫成「- 驗收：…」 |
+| R-4 | 優先「（沒填）」不是 1 到 4 | 改成 1（最高）到 4（最低） |
+| F-002-other | 沒有被任何里程碑綁定 | 不朝向任何需求：dev-flow:require-design 綁進一條里程碑，或刪掉這份 feature |
+| INV-1 | 沒有三行，成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來（識別字只用最內層的匯出與型別名）；沒有出處的不立，刪掉這一條 |
+| INV-2 | 沒有測試，成立與否未知 | dev-flow:build INV-2（只派 qa 寫一條歸屬 "INV-2#LAW" 的測試） |
+| INV-2 | 沒有三行，成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來（識別字只用最內層的匯出與型別名）；沒有出處的不立，刪掉這一條 |
+| INV-3 | 沒有三行，成立與否未知 | dev-flow:global-laws 把出處那條 law 的三行照搬過來（識別字只用最內層的匯出與型別名）；沒有出處的不立，刪掉這一條 |
+| GAP-1 | gaps.md 裡出現 2 次 | 兩條 build 分支各自配了同一個號；後合進來的往上移（roles.md「整合」） |
 | F-001-score | verified 而有 REV 卻沒有重開紀錄 | 在「決定」補一條重開 |
-| F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise |
-| F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise |
+| F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊；誰對就改另一邊，改文檔走 dev-flow:scope-revise |
+| F-001-score#weigh | 簽名與程式碼不一致 | devflow lint sig 看兩邊；誰對就改另一邊，改文檔走 dev-flow:scope-revise |
 | F-001-score#score | 程式碼在 src/app/store.ts | devflow sync |
-| F-001-score | 測試輸出裡有 1 條結果(LAW-2)在這棵樹裡沒有測試承接,不算數 | 測試輸出與這棵樹對不上:重跑整套留檔再跑 status;測試真的不在就 dev-flow:build F-001-score |
+| F-001-score | 測試輸出裡有 1 條結果（LAW-2）在這棵樹裡沒有測試承接，不算數 | 測試輸出與這棵樹對不上：重跑整套留檔再跑 status；測試真的不在就 dev-flow:build F-001-score |
 | F-002-other | 不在 system.md 的 Features 表 | 補一列 |
-| system.md | 列了 F-003-missing,features/ 沒有這個檔 | 刪那一列或 devflow claim |
-| 全域 Law:架構 | lint boundary 3 條不合規 | devflow lint boundary |
-| 全域 Law:契約 | lint io 6 條不合規 | devflow lint io |
-| 全域 Law:領域不變量 | lint invariants 7 條不合規 | devflow lint invariants |
+| system.md | 列了 F-003-missing，features/ 沒有這個檔 | 刪那一列或 devflow claim |
+| 全域 Law：架構 | lint boundary 3 條不合規 | devflow lint boundary |
+| 全域 Law：契約 | lint io 6 條不合規 | devflow lint io |
+| 全域 Law：領域不變量 | lint invariants 7 條不合規 | devflow lint invariants |
 
 ## 8. 建議路線
-1. 先回答 GAP-1、GAP-1(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派
-2. F-002-other 還是 draft、沒有切片,也沒有里程碑綁它:dev-flow:require-design 給它一條里程碑再 dev-flow:spike-impl;用不到就 dev-flow:scope-laws F-002-other 退役
-3. dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too(R-4 優先 ? · M-2-score-too 分數也算得出來),之後自動接上 build
-4. dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)
-5. dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)
-6. dev-flow:build INV-2(只派 qa 寫 INV-2#LAW 的測試)
+1. 先回答 GAP-1、GAP-1（答案要調整既有的 law 走 dev-flow:scope-laws，既有的 law 不動走 dev-flow:scope-revise，問的是全域 Law 走 dev-flow:global-laws），卡住的 step 才能重派
+2. F-002-other 還是 draft、沒有切片，也沒有里程碑綁它：dev-flow:require-design 給它一條里程碑再 dev-flow:spike-impl；用不到就 dev-flow:scope-laws F-002-other 退役
+3. dev-flow:scope-revise F-001-score（既有的 law 不動、新的承諾用新增的 law 表達；要調整既有的 law 就 dev-flow:scope-laws），REV 的依欄寫 M-2-score-too（R-4 優先 ? · M-2-score-too 分數也算得出來），之後自動接上 build
+4. dev-flow:spike-impl M-4-entry（R-5 優先 3 · 進入點回得出分數）
+5. dev-flow:spike-impl M-5-third（R-9 優先 4 · 第三個數字看得到）
+6. dev-flow:build INV-2（只派 qa 寫 INV-2#LAW 的測試）
 exit 1

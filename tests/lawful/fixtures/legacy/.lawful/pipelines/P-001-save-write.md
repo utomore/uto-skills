@@ -4,22 +4,22 @@ description: 把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
 status: ready
 updated: 2026-09-05
 ---
-# P-001-save-write:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+# P-001-save-write：把當前 World 投影成可存檔的狀態，編碼後寫到磁碟
 
 ## Brief
-玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
-流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString;進入點把它接到檔案系統。它是 IO 介面,兩端碰到 shell。
+玩家按存檔時，把當前不可變的 World 寫成一個檔案；讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取，不直接存；先投影成 SaveState，只留遊戲邏輯需要的欄位。
+流向：World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString；進入點把它接到檔案系統。它是 IO 介面，兩端碰到 shell。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `toSave :: World -> SaveState` | 去掉快取,留可存欄位 | `Game.Save.Project` | core |
+| 1 | `toSave :: World -> SaveState` | 去掉快取，留可存欄位 | `Game.Save.Project` | core |
 | 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
-| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態,壞檔回錯誤 | `Game.Save.Codec` | core |
+| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態，壞檔回錯誤 | `Game.Save.Codec` | core |
 | 4 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
-| o | `savedIds :: SaveState -> [EntityId]` | 觀察:投影後的實體 id | `Game.Save.Project.Internal` | core |
-| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Game.Save` | core |
-| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Game.Save.Host` | shell |
+| o | `savedIds :: SaveState -> [EntityId]` | 觀察：投影後的實體 id | `Game.Save.Project.Internal` | core |
+| = | `saveBytes :: World -> ByteString` | 純的整條：投影再編碼 | `Game.Save` | core |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點：整條接到寫檔 | `Game.Save.Host` | shell |
 
 ## Laws
 - LAW-1 [roundtrip] 存了再讀回到同一個狀態
@@ -45,8 +45,8 @@ updated: 2026-09-05
 | EX-2 | `toSave emptyWorld` | `emptySave` | LAW-2 |
 
 ## 決定
-- **存 SaveState 不存 World。** 否決:直接編碼 World。渲染快取是衍生資料,存進去會讓 roundtrip 對不上。
-- **格式用 CBOR。** 否決:JSON。證據:ADR-001-save-format
+- **存 SaveState 不存 World。** 否決：直接編碼 World。渲染快取是衍生資料，存進去會讓 roundtrip 對不上。
+- **格式用 CBOR。** 否決：JSON。證據：ADR-001-save-format
 
 ## 修訂記錄
 無

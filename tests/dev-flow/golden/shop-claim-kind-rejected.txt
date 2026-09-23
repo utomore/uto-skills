@@ -1,5 +1,5 @@
 $ devflow claim abstract audit-log --description 共用的稽核紀錄 --date 2026-09-07
-claim 的類別只有 feature / adr,沒有「abstract」
+claim 的類別只有 feature / adr，沒有「abstract」
 exit 1
 --- .design/abstracts/A-001-audit-log.md
-(不存在)
+（不存在）

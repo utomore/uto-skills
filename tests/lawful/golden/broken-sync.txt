@@ -10,10 +10,10 @@ kind: io
 status: ready
 updated: 2026-09-05
 ---
-# P-001-game-save:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+# P-001-game-save：把當前 World 投影成可存檔的狀態，編碼後寫到磁碟
 
 ## Brief
-壞掉的版本,給 lint 的 golden 用。
+壞掉的版本，給 lint 的 golden 用。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -21,17 +21,17 @@ updated: 2026-09-05
 | 1 | `toSave :: World -> SaveState` | 去掉快取 | `Game.Save.Codec` | core |
 | 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
 | 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態 | `Game.Save.Codec` | core |
-| 4 | `compress :: Ghost -> Value` | 壓縮;Ghost 沒宣告過、Value 沒有名字 | `Game.Save.Zip`(見 P-002-compression) | core |
+| 4 | `compress :: Ghost -> Value` | 壓縮；Ghost 沒宣告過、Value 沒有名字 | `Game.Save.Zip`（見 P-002-compression） | core |
 | 5 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
 | 6 | `checksum :: ByteString -> Int` | 校驗 | `Game.FS` | core |
-| 7 | `persistEncode :: a -> ByteString` | class 方法,要抓得到 | `Game.Save.Class` | core |
+| 7 | `persistEncode :: a -> ByteString` | class 方法，要抓得到 | `Game.Save.Class` | core |
 | 8 | `(<+>) :: SaveState -> SaveState -> SaveState` | 運算子簽名 | `Game.Save.Class` | core |
-| 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數,不該抓到 | `Game.Save.Class` | core |
-| 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Game.Save.State` | types |
-| 11 | `route :: SomeTypeRep -> Some 'Command -> Lane` | 升格的建構子與 SomeTypeRep,不該紅 | `Game.Save.State` | types |
-| 12 | `misroute :: Some 'Commnad -> Lane` | 升格的建構子打錯字,要紅 | `Game.Save.State` | types |
-| 13 | `stampAll :: Stamped ss => Proxy ss -> Tick -> [Int]` | class 的 context 是沒括號的多參數約束、Tick 只在 import 清單裡點名,不該紅 | `Game.Save.State` | types |
-| o | `ghostView :: SaveState -> Int` | 觀察點,程式碼沒有,要紅 | `Game.Save.State` | types |
+| 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數，不該抓到 | `Game.Save.Class` | core |
+| 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位，型別含逗號 | `Game.Save.State` | types |
+| 11 | `route :: SomeTypeRep -> Some 'Command -> Lane` | 升格的建構子與 SomeTypeRep，不該紅 | `Game.Save.State` | types |
+| 12 | `misroute :: Some 'Commnad -> Lane` | 升格的建構子打錯字，要紅 | `Game.Save.State` | types |
+| 13 | `stampAll :: Stamped ss => Proxy ss -> Tick -> [Int]` | class 的 context 是沒括號的多參數約束、Tick 只在 import 清單裡點名，不該紅 | `Game.Save.State` | types |
+| o | `ghostView :: SaveState -> Int` | 觀察點，程式碼沒有，要紅 | `Game.Save.State` | types |
 | = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Game.Save.Host` | shell |
 
 ## Laws
@@ -49,11 +49,11 @@ updated: 2026-09-05
   - |- crc32 (encode s) == checksum (encode s)
 - LAW-5 [identity] 缺結論行
   - forall s in SaveState
-- LAW-6 [relation] given 行寫成散文,要紅
+- LAW-6 [relation] given 行寫成散文，要紅
   - forall s in SaveState
   - given s 這一步有發出至少一個事件
   - |- length (savedEntities s) >= 0
-- LAW-8 [relation] 字串字面值不是識別字,不該紅
+- LAW-8 [relation] 字串字面值不是識別字，不該紅
   - forall s in SaveState
   - |- show (checksum (encode s)) /= "missing marker"
 

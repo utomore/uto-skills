@@ -1,6 +1,6 @@
 $ GIT_AUTHOR_EMAIL=bob@corp.com devflow claim adr cbor --description 對外的序列化用 CBOR --date 2026-09-07
 建了 .design/adr/ADR-200-cbor.md
-ADR-200 配自 bob@corp.com 的號段 200-299,owner 寫進 frontmatter
+ADR-200 配自 bob@corp.com 的號段 200-299，owner 寫進 frontmatter
 exit 0
 --- .design/adr/ADR-200-cbor.md
 ---
@@ -12,7 +12,7 @@ updated: 2026-09-07
 # ADR-200-cbor:對外的序列化用 CBOR
 
 ## 情境
-<兩三句:什麼問題逼出這個決定,牽動哪幾份文檔或哪幾層。>
+<兩三句：什麼問題逼出這個決定，牽動哪幾份文檔或哪幾層。>
 
 ## 決定
 <一句。>
@@ -21,5 +21,5 @@ updated: 2026-09-07
 - <方案>:<為什麼不>
 
 ## 後果
-- <三個月後誰會踩到什麼;哪幾份文檔要 REV。>
+- <三個月後誰會踩到什麼；哪幾份文檔要 REV。>
 

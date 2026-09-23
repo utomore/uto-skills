@@ -13,7 +13,7 @@ $ devflow status --json
   "glossary": [
     {
       "term": "分數",
-      "definition": "一份輸入照規則加權算出來的一個數字;不是名次",
+      "definition": "一份輸入照規則加權算出來的一個數字；不是名次",
       "type": "Scorecard"
     },
     {
@@ -27,7 +27,7 @@ $ devflow status --json
       "type": null
     }
   ],
-  "tests": "沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知",
+  "tests": "沒給測試輸出（--tests <log> 或 --run），幾條 law 通過測試未知",
   "summary": {
     "requirements": 6,
     "requirementsHolding": 0,
@@ -76,7 +76,7 @@ $ devflow status --json
       "id": "R-2",
       "name": "R-2-non-negative",
       "file": ".design/requirements/R-2-non-negative.md",
-      "title": "寫了三行卻沒有驗收測試,也沒有里程碑",
+      "title": "寫了三行卻沒有驗收測試，也沒有里程碑",
       "priority": 2,
       "priorityRaw": "2",
       "law": {
@@ -86,7 +86,7 @@ $ devflow status --json
         "source": "寫了三行卻沒有 R-2#ACCEPT 測試",
         "tested": false
       },
-      "note": "審核:未知 · 里程碑 0/0 達成",
+      "note": "審核：未知 · 里程碑 0/0 達成",
       "dependsOn": [],
       "built": false,
       "state": "未知",
@@ -113,10 +113,10 @@ $ devflow status --json
         "title": "看得到兩個數字",
         "formal": false,
         "holds": false,
-        "source": "2026-09-07 已驗收,證據翻掉:里程碑 0 / 1 達成",
+        "source": "2026-09-07 已驗收，證據翻掉：里程碑 0 / 1 達成",
         "tested": false
       },
-      "note": "審核:待重審 · 里程碑 0/1 達成",
+      "note": "審核：待重審 · 里程碑 0/1 達成",
       "dependsOn": [],
       "built": false,
       "state": "待重審",
@@ -129,7 +129,7 @@ $ devflow status --json
       "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
-        "M-1 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "M-1 沒有怎麼驗欄（dev-flow:require-design 補一道指令）",
         "看「看得到兩個數字」成不成立"
       ],
       "achieved": false,
@@ -161,7 +161,7 @@ $ devflow status --json
         "source": "寫了三行卻沒有 R-5#ACCEPT 測試",
         "tested": false
       },
-      "note": "審核:未知 · 里程碑 0/1 達成",
+      "note": "審核：未知 · 里程碑 0/1 達成",
       "dependsOn": [],
       "built": false,
       "state": "未知",
@@ -170,7 +170,7 @@ $ devflow status --json
       "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
-        "M-4-entry 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "M-4-entry 沒有怎麼驗欄（dev-flow:require-design 補一道指令）",
         "看「進入點回的就是分數」成不成立"
       ],
       "achieved": false,
@@ -202,7 +202,7 @@ $ devflow status --json
         "source": "M-5-third 還沒達成",
         "tested": false
       },
-      "note": "審核:建構中 · 里程碑 0/1 達成",
+      "note": "審核：建構中 · 里程碑 0/1 達成",
       "dependsOn": [],
       "built": false,
       "state": "建構中",
@@ -211,7 +211,7 @@ $ devflow status --json
       "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
-        "M-5-third 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "M-5-third 沒有怎麼驗欄（dev-flow:require-design 補一道指令）",
         "看「看得到第三個數字」成不成立"
       ],
       "achieved": false,
@@ -237,13 +237,13 @@ $ devflow status --json
       "priority": null,
       "priorityRaw": "high",
       "law": {
-        "title": "<一句可判定的話:這條需求達成時,什麼一定為真>",
+        "title": "<一句可判定的話：這條需求達成時，什麼一定為真>",
         "formal": false,
         "holds": false,
         "source": "驗收還是模板",
         "tested": false
       },
-      "note": "審核:未達成 · 里程碑 0/3 達成",
+      "note": "審核：未達成 · 里程碑 0/3 達成",
       "dependsOn": [],
       "built": false,
       "state": "未達成",
@@ -252,10 +252,10 @@ $ devflow status --json
       "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
-        "M-1 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
-        "M-3-plain 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
-        "M-6 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
-        "看「<一句可判定的話:這條需求達成時,什麼一定為真>」成不成立"
+        "M-1 沒有怎麼驗欄（dev-flow:require-design 補一道指令）",
+        "M-3-plain 沒有怎麼驗欄（dev-flow:require-design 補一道指令）",
+        "M-6 沒有怎麼驗欄（dev-flow:require-design 補一道指令）",
+        "看「<一句可判定的話：這條需求達成時，什麼一定為真>」成不成立"
       ],
       "achieved": false,
       "percent": 0,
@@ -276,7 +276,7 @@ $ devflow status --json
         {
           "id": "M-3",
           "name": "M-3-plain",
-          "title": "靠修訂 F-001-score 達成,它的修訂記錄裡還沒有一條 REV 引用這一條",
+          "title": "靠修訂 F-001-score 達成，它的修訂記錄裡還沒有一條 REV 引用這一條",
           "achieved": false,
           "state": "待修訂",
           "byRevision": true,
@@ -287,7 +287,7 @@ $ devflow status --json
         {
           "id": "M-6",
           "name": "M-6",
-          "title": "靠修訂達成卻沒有英文名,綁的另一份文檔也不存在",
+          "title": "靠修訂達成卻沒有英文名，綁的另一份文檔也不存在",
           "achieved": false,
           "state": "待修訂",
           "byRevision": true,
@@ -312,7 +312,7 @@ $ devflow status --json
         "source": "M-2-score-too 還沒達成",
         "tested": false
       },
-      "note": "審核:建構中 · 里程碑 0/1 達成",
+      "note": "審核：建構中 · 里程碑 0/1 達成",
       "dependsOn": [
         "R-1"
       ],
@@ -323,7 +323,7 @@ $ devflow status --json
       "release": null,
       "verifySteps": [
         "`npx tsc --noEmit`",
-        "M-2-score-too 沒有怎麼驗欄(dev-flow:require-design 補一道指令)",
+        "M-2-score-too 沒有怎麼驗欄（dev-flow:require-design 補一道指令）",
         "看驗收那一句成不成立"
       ],
       "achieved": false,
@@ -358,7 +358,7 @@ $ devflow status --json
     {
       "id": "INV-2",
       "kind": "invariant",
-      "title": "寫了三行卻沒有測試,而且引用了一份 feature 的簽名",
+      "title": "寫了三行卻沒有測試，而且引用了一份 feature 的簽名",
       "formal": true,
       "lines": [
         "forall raw in Raw",
@@ -393,24 +393,24 @@ $ devflow status --json
     "gates": [
       {
         "kind": "架構",
-        "where": "架構:層",
+        "where": "架構：層",
         "gate": "boundary",
         "red": 3,
-        "result": "3 層,3 條不合規"
+        "result": "3 層，3 條不合規"
       },
       {
         "kind": "契約",
-        "where": "契約:對外 I/O",
+        "where": "契約：對外 I/O",
         "gate": "io",
         "red": 6,
-        "result": "1 列,6 條不合規;契約欄指到的 law 3 條,成立 nan 條"
+        "result": "1 列，6 條不合規；契約欄指到的 law 3 條，成立 nan 條"
       },
       {
         "kind": "領域不變量",
         "where": "領域不變量",
         "gate": "invariants",
         "red": 7,
-        "result": "4 條,7 條不合規;成立 nan 條"
+        "result": "4 條，7 條不合規；成立 nan 條"
       }
     ],
     "layers": [
@@ -447,8 +447,8 @@ $ devflow status --json
   "bands": [
     {
       "id": "R-2",
-      "title": "R-2 寫了三行卻沒有驗收測試,也沒有里程碑",
-      "note": "審核:未知 · 寫了三行卻沒有 R-2#ACCEPT 測試",
+      "title": "R-2 寫了三行卻沒有驗收測試，也沒有里程碑",
+      "note": "審核：未知 · 寫了三行卻沒有 R-2#ACCEPT 測試",
       "notes": [
         "優先 2",
         "里程碑 0/0 達成 · 完成度 -"
@@ -460,7 +460,7 @@ $ devflow status --json
     {
       "id": "R-3",
       "title": "R-3 里程碑編號撞到別條需求的",
-      "note": "審核:待重審 · 2026-09-07 已驗收,證據翻掉:里程碑 0 / 1 達成",
+      "note": "審核：待重審 · 2026-09-07 已驗收，證據翻掉：里程碑 0 / 1 達成",
       "notes": [
         "優先 2",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -468,7 +468,7 @@ $ devflow status --json
       "achieved": false,
       "columns": [
         {
-          "title": "M-1 <一句話>(還沒有切片)",
+          "title": "M-1 <一句話>（還沒有切片）",
           "achieved": false,
           "docs": []
         }
@@ -478,7 +478,7 @@ $ devflow status --json
     {
       "id": "R-5",
       "title": "R-5 驗收引用了進入點與不存在的東西",
-      "note": "審核:未知 · 寫了三行卻沒有 R-5#ACCEPT 測試",
+      "note": "審核：未知 · 寫了三行卻沒有 R-5#ACCEPT 測試",
       "notes": [
         "優先 3",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -486,7 +486,7 @@ $ devflow status --json
       "achieved": false,
       "columns": [
         {
-          "title": "M-4-entry 進入點回得出分數(還沒有切片)",
+          "title": "M-4-entry 進入點回得出分數（還沒有切片）",
           "achieved": false,
           "docs": []
         }
@@ -496,7 +496,7 @@ $ devflow status --json
     {
       "id": "R-9",
       "title": "R-9 檔名與 frontmatter 對不上的需求",
-      "note": "審核:建構中 · M-5-third 還沒達成",
+      "note": "審核：建構中 · M-5-third 還沒達成",
       "notes": [
         "優先 4",
         "里程碑 0/1 達成 · 完成度 0%"
@@ -504,7 +504,7 @@ $ devflow status --json
       "achieved": false,
       "columns": [
         {
-          "title": "M-5-third 第三個數字看得到(還沒有切片)",
+          "title": "M-5-third 第三個數字看得到（還沒有切片）",
           "achieved": false,
           "docs": []
         }
@@ -514,7 +514,7 @@ $ devflow status --json
     {
       "id": "R-1",
       "title": "R-1 分數算得出來",
-      "note": "審核:未達成 · 驗收還是模板",
+      "note": "審核：未達成 · 驗收還是模板",
       "notes": [
         "優先 high",
         "里程碑 0/3 達成 · 完成度 0%"
@@ -530,14 +530,14 @@ $ devflow status --json
           ]
         },
         {
-          "title": "M-3-plain 靠修訂 F-001-score 達成,它的修訂記錄裡還沒有一條 REV 引用這一條(待修訂)",
+          "title": "M-3-plain 靠修訂 F-001-score 達成，它的修訂記錄裡還沒有一條 REV 引用這一條（待修訂）",
           "achieved": false,
           "docs": [
             "F-001-score"
           ]
         },
         {
-          "title": "M-6 靠修訂達成卻沒有英文名,綁的另一份文檔也不存在(待修訂)",
+          "title": "M-6 靠修訂達成卻沒有英文名，綁的另一份文檔也不存在（待修訂）",
           "achieved": false,
           "docs": [
             "F-001-score",
@@ -550,15 +550,15 @@ $ devflow status --json
     {
       "id": "R-4",
       "title": "R-4 沒有 frontmatter 的需求",
-      "note": "審核:建構中 · M-2-score-too 還沒達成",
+      "note": "審核：建構中 · M-2-score-too 還沒達成",
       "notes": [
-        "優先 (沒填)",
+        "優先 （沒填）",
         "里程碑 0/1 達成 · 完成度 0%"
       ],
       "achieved": false,
       "columns": [
         {
-          "title": "M-2-score-too 分數也算得出來(待修訂)",
+          "title": "M-2-score-too 分數也算得出來（待修訂）",
           "achieved": false,
           "docs": [
             "F-001-score"
@@ -625,7 +625,7 @@ $ devflow status --json
           {
             "id": "LAW-2",
             "kind": "nonsense",
-            "title": "種類不合法,而且引用了不存在的東西",
+            "title": "種類不合法，而且引用了不存在的東西",
             "result": "未翻譯",
             "lines": [
               "forall raw in Raw",
@@ -656,7 +656,7 @@ $ devflow status --json
       },
       "revisions": {
         "count": 1,
-        "last": "REV-1(2026-09-07,依 開發者):改了但沒有重開紀錄"
+        "last": "REV-1（2026-09-07，依 開發者）：改了但沒有重開紀錄"
       },
       "gaps": [
         "GAP-1",
@@ -944,28 +944,28 @@ $ devflow status --json
     },
     {
       "where": "CLAUDE.md:10",
-      "what": "名詞「分數」出現 2 列,名詞只定義一次",
-      "fix": "dev-flow:require-design 與開發者講定哪一句是它的定義,留一列"
+      "what": "名詞「分數」出現 2 列，名詞只定義一次",
+      "fix": "dev-flow:require-design 與開發者講定哪一句是它的定義，留一列"
     },
     {
       "where": "system.md",
       "what": "沒有宣告優先 1 到 4 各代表什麼",
-      "fix": "dev-flow:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」"
+      "fix": "dev-flow:require-design 在「Constraint」寫一行「- 優先：1 = …；2 = …；3 = …；4 = …」"
     },
     {
       "where": "R-2",
-      "what": "驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核",
-      "fix": "dev-flow:build R-2(只派 qa 寫一條歸屬 \"R-2#ACCEPT\" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接"
+      "what": "驗收寫了三行卻沒有驗收測試，證據不齊，還不能請人審核",
+      "fix": "dev-flow:build R-2（只派 qa 寫一條歸屬 \"R-2#ACCEPT\" 的測試）；不能自動化就只留一句，證據改由里程碑全部達成承接"
     },
     {
       "where": "R-2",
       "what": "沒有任何里程碑",
-      "fix": "dev-flow:require-design 切里程碑(devflow requirement milestone R-2 <slug> <一句話>)"
+      "fix": "dev-flow:require-design 切里程碑（devflow requirement milestone R-2 <slug> <一句話>）"
     },
     {
       "where": "R-3",
-      "what": "2026-09-07 已驗收,證據現在翻掉了(里程碑 0 / 1 達成)",
-      "fix": "先把紅的修回來,再 devflow requirement accept R-3 重簽一次;人簽過的是當時那份證據,不是永久的"
+      "what": "2026-09-07 已驗收，證據現在翻掉了（里程碑 0 / 1 達成）",
+      "fix": "先把紅的修回來，再 devflow requirement accept R-3 重簽一次；人簽過的是當時那份證據，不是永久的"
     },
     {
       "where": "M-1",
@@ -974,17 +974,17 @@ $ devflow status --json
     },
     {
       "where": "M-1",
-      "what": "沒有英文名,切片開不了分支",
-      "fix": "dev-flow:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵"
+      "what": "沒有英文名，切片開不了分支",
+      "fix": "dev-flow:require-design 把第一格寫成 M-1-<slug>（kebab-case 英文）；切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵"
     },
     {
       "where": "R-5",
-      "what": "驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核",
-      "fix": "dev-flow:build R-5(只派 qa 寫一條歸屬 \"R-5#ACCEPT\" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接"
+      "what": "驗收寫了三行卻沒有驗收測試，證據不齊，還不能請人審核",
+      "fix": "dev-flow:build R-5（只派 qa 寫一條歸屬 \"R-5#ACCEPT\" 的測試）；不能自動化就只留一句，證據改由里程碑全部達成承接"
     },
     {
       "where": ".design/requirements/R-6-mismatch.md",
-      "what": "檔名與 frontmatter 對不上(frontmatter:R-9)",
+      "what": "檔名與 frontmatter 對不上 (frontmatter:R-9)",
       "fix": "檔名 R-n-<slug> 的 R-n 要等於 frontmatter 的 id"
     },
     {
@@ -995,32 +995,32 @@ $ devflow status --json
     {
       "where": "R-1",
       "what": "優先「high」不是 1 到 4",
-      "fix": "改成 1(最高)到 4(最低)"
+      "fix": "改成 1（最高）到 4（最低）"
     },
     {
       "where": "M-1",
       "what": "里程碑編號重複",
-      "fix": "編號全資料夾唯一;配號只走 devflow requirement milestone"
+      "fix": "編號全資料夾唯一；配號只走 devflow requirement milestone"
     },
     {
       "where": "M-1",
-      "what": "沒有英文名,切片開不了分支",
-      "fix": "dev-flow:require-design 把第一格寫成 M-1-<slug>(kebab-case 英文);切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵"
+      "what": "沒有英文名，切片開不了分支",
+      "fix": "dev-flow:require-design 把第一格寫成 M-1-<slug>（kebab-case 英文）；切片的分支 build/M-1-<slug> 與決策紀錄以它為鍵"
     },
     {
       "where": "M-1",
       "what": "綁定的 F-009-nope 不存在",
-      "fix": "改成 features/ 裡有的全名,或刪這個綁定"
+      "fix": "改成 features/ 裡有的全名，或刪這個綁定"
     },
     {
       "where": "M-6",
-      "what": "沒有英文名,REV 的依欄寫不出它的全名",
-      "fix": "dev-flow:require-design 把第一格寫成 M-6-<slug>(kebab-case 英文);引用一條里程碑一律用全名"
+      "what": "沒有英文名，REV 的依欄寫不出它的全名",
+      "fix": "dev-flow:require-design 把第一格寫成 M-6-<slug>（kebab-case 英文）；引用一條里程碑一律用全名"
     },
     {
       "where": "M-6",
       "what": "綁定的 F-009-nope 不存在",
-      "fix": "改成 features/ 裡有的全名,或刪這個綁定"
+      "fix": "改成 features/ 裡有的全名，或刪這個綁定"
     },
     {
       "where": ".design/requirements/R-4-third-number.md",
@@ -1030,42 +1030,42 @@ $ devflow status --json
     {
       "where": "R-4",
       "what": "沒有驗收",
-      "fix": "dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」"
+      "fix": "dev-flow:require-design 補一句可判定的話，寫成「- 驗收：…」"
     },
     {
       "where": "R-4",
-      "what": "優先「(沒填)」不是 1 到 4",
-      "fix": "改成 1(最高)到 4(最低)"
+      "what": "優先「（沒填）」不是 1 到 4",
+      "fix": "改成 1（最高）到 4（最低）"
     },
     {
       "where": "F-002-other",
       "what": "沒有被任何里程碑綁定",
-      "fix": "不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature"
+      "fix": "不朝向任何需求：dev-flow:require-design 綁進一條里程碑，或刪掉這份 feature"
     },
     {
       "where": "INV-1",
-      "what": "沒有三行,成立與否未知",
-      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條"
+      "what": "沒有三行，成立與否未知",
+      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來（識別字只用最內層的匯出與型別名）；沒有出處的不立，刪掉這一條"
     },
     {
       "where": "INV-2",
-      "what": "沒有測試,成立與否未知",
-      "fix": "dev-flow:build INV-2(只派 qa 寫一條歸屬 \"INV-2#LAW\" 的測試)"
+      "what": "沒有測試，成立與否未知",
+      "fix": "dev-flow:build INV-2（只派 qa 寫一條歸屬 \"INV-2#LAW\" 的測試）"
     },
     {
       "where": "INV-2",
-      "what": "沒有三行,成立與否未知",
-      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條"
+      "what": "沒有三行，成立與否未知",
+      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來（識別字只用最內層的匯出與型別名）；沒有出處的不立，刪掉這一條"
     },
     {
       "where": "INV-3",
-      "what": "沒有三行,成立與否未知",
-      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條"
+      "what": "沒有三行，成立與否未知",
+      "fix": "dev-flow:global-laws 把出處那條 law 的三行照搬過來（識別字只用最內層的匯出與型別名）；沒有出處的不立，刪掉這一條"
     },
     {
       "where": "GAP-1",
       "what": "gaps.md 裡出現 2 次",
-      "fix": "兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」)"
+      "fix": "兩條 build 分支各自配了同一個號；後合進來的往上移（roles.md「整合」）"
     },
     {
       "where": "F-001-score",
@@ -1075,12 +1075,12 @@ $ devflow status --json
     {
       "where": "F-001-score#weigh",
       "what": "簽名與程式碼不一致",
-      "fix": "devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise"
+      "fix": "devflow lint sig 看兩邊；誰對就改另一邊，改文檔走 dev-flow:scope-revise"
     },
     {
       "where": "F-001-score#weigh",
       "what": "簽名與程式碼不一致",
-      "fix": "devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise"
+      "fix": "devflow lint sig 看兩邊；誰對就改另一邊，改文檔走 dev-flow:scope-revise"
     },
     {
       "where": "F-001-score#score",
@@ -1094,33 +1094,33 @@ $ devflow status --json
     },
     {
       "where": "system.md",
-      "what": "列了 F-003-missing,features/ 沒有這個檔",
+      "what": "列了 F-003-missing，features/ 沒有這個檔",
       "fix": "刪那一列或 devflow claim"
     },
     {
-      "where": "全域 Law:架構",
+      "where": "全域 Law：架構",
       "what": "lint boundary 3 條不合規",
       "fix": "devflow lint boundary"
     },
     {
-      "where": "全域 Law:契約",
+      "where": "全域 Law：契約",
       "what": "lint io 6 條不合規",
       "fix": "devflow lint io"
     },
     {
-      "where": "全域 Law:領域不變量",
+      "where": "全域 Law：領域不變量",
       "what": "lint invariants 7 條不合規",
       "fix": "devflow lint invariants"
     }
   ],
   "route": {
     "steps": [
-      "先回答 GAP-1、GAP-1(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派",
-      "F-002-other 還是 draft、沒有切片,也沒有里程碑綁它:dev-flow:require-design 給它一條里程碑再 dev-flow:spike-impl;用不到就 dev-flow:scope-laws F-002-other 退役",
-      "dev-flow:scope-revise F-001-score(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 M-2-score-too(R-4 優先 ? · M-2-score-too 分數也算得出來),之後自動接上 build",
-      "dev-flow:spike-impl M-4-entry(R-5 優先 3 · 進入點回得出分數)",
-      "dev-flow:spike-impl M-5-third(R-9 優先 4 · 第三個數字看得到)",
-      "dev-flow:build INV-2(只派 qa 寫 INV-2#LAW 的測試)"
+      "先回答 GAP-1、GAP-1（答案要調整既有的 law 走 dev-flow:scope-laws，既有的 law 不動走 dev-flow:scope-revise，問的是全域 Law 走 dev-flow:global-laws），卡住的 step 才能重派",
+      "F-002-other 還是 draft、沒有切片，也沒有里程碑綁它：dev-flow:require-design 給它一條里程碑再 dev-flow:spike-impl；用不到就 dev-flow:scope-laws F-002-other 退役",
+      "dev-flow:scope-revise F-001-score（既有的 law 不動、新的承諾用新增的 law 表達；要調整既有的 law 就 dev-flow:scope-laws），REV 的依欄寫 M-2-score-too（R-4 優先 ? · M-2-score-too 分數也算得出來），之後自動接上 build",
+      "dev-flow:spike-impl M-4-entry（R-5 優先 3 · 進入點回得出分數）",
+      "dev-flow:spike-impl M-5-third（R-9 優先 4 · 第三個數字看得到）",
+      "dev-flow:build INV-2（只派 qa 寫 INV-2#LAW 的測試）"
     ],
     "note": null,
     "allDone": false

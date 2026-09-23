@@ -1,28 +1,28 @@
 $ devflow status --tests mobile=api.log
 # devflow status
-願景:同一個 repo 裡前端算錢、後端算籃子,兩邊各用自己的語言,一張看板看得到兩邊。
-需求 3 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 3 條,達成 0 條 · feature 3 份,達成 0 份 · 文檔共 3 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
-· --tests 指到的 mobile 不是 system.md language 欄裡的目錄(web、api)
+願景：同一個 repo 裡前端算錢、後端算籃子，兩邊各用自己的語言，一張看板看得到兩邊。
+需求 3 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條，成立 0 條 · 里程碑 3 條，達成 0 條 · feature 3 份，達成 0 份 · 文檔共 3 份，達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+· --tests 指到的 mobile 不是 system.md language 欄裡的目錄 (web、api)
 
 ## 需求
-- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+- 優先：1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具
 | 需求 | 優先 | 一句話 | 審核 | 上線 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|---|---|---|
-| R-1 | 1 | 每一筆結帳的金額都算對 | 未知(測試 R-1#ACCEPT 未跑;里程碑 0 / 1 達成) | - | - | 1 | 0 | 0% |
-| R-2 | 1 | 任何一籃子都算得出不為負的總金額 | 未知(測試 R-2#ACCEPT 未跑;里程碑 0 / 1 達成) | - | - | 1 | 0 | 0% |
-| R-3 | 1 | 每一筆退款退回的錢都算對 | 未知(測試 R-3#ACCEPT 未跑;里程碑 0 / 1 達成) | - | R-1 | 1 | 0 | 0% |
-- R-1 下一個里程碑:M-1-checkout 結帳走通(F-001-checkout 進行中)
-- R-2 下一個里程碑:M-3-basket 加品項與算總額走通(F-003-basket 進行中)
-- R-3 下一個里程碑:M-2-refund 退款走通(F-002-refund 進行中)
+| R-1 | 1 | 每一筆結帳的金額都算對 | 未知（測試 R-1#ACCEPT 未跑；里程碑 0 / 1 達成） | - | - | 1 | 0 | 0% |
+| R-2 | 1 | 任何一籃子都算得出不為負的總金額 | 未知（測試 R-2#ACCEPT 未跑；里程碑 0 / 1 達成） | - | - | 1 | 0 | 0% |
+| R-3 | 1 | 每一筆退款退回的錢都算對 | 未知（測試 R-3#ACCEPT 未跑；里程碑 0 / 1 達成） | - | R-1 | 1 | 0 | 0% |
+- R-1 下一個里程碑：M-1-checkout 結帳走通（F-001-checkout 進行中）
+- R-2 下一個里程碑：M-3-basket 加品項與算總額走通（F-003-basket 進行中）
+- R-3 下一個里程碑：M-2-refund 退款走通（F-002-refund 進行中）
 
 ## 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,通過 |
-| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 6 列,通過;契約欄指到的 law 0 條,成立 nan 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 0 條,通過;成立 nan 條 |
+| 架構 | 全域 Law › 架構：層 | devflow lint boundary | 3 層，通過 |
+| 契約 | 全域 Law › 契約：對外 I/O | devflow lint io | 6 列，通過；契約欄指到的 law 0 條，成立 nan 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 0 條，通過；成立 nan 條 |
 
-- 領域不變量:無
+- 領域不變量：無
 
 ## 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -32,10 +32,10 @@ $ devflow status --tests mobile=api.log
 | F-003-basket | feature | ready | 3 | 3 | 0 | 2 | nan/2 | 0 | 進行中 |
 
 ## 1. 今天能開幾條線
-- F-003-basket:dev-flow:build F-003-basket(R-2 優先 1 · M-3-basket 加品項與算總額走通)
+- F-003-basket：dev-flow:build F-003-basket（R-2 優先 1 · M-3-basket 加品項與算總額走通）
 
 ## 2. 卡住的
-- F-002-refund 等 F-001-checkout(達成與否未知,給測試輸出)
+- F-002-refund 等 F-001-checkout（達成與否未知，給測試輸出）
 
 ## 3. 等決定
 - 無
@@ -43,16 +43,16 @@ $ devflow status --tests mobile=api.log
 ## 4. 牽動誰
 - F-001-checkout ← F-002-refund
 
-## 5. 待實作(按檔案)
+## 5. 待實作（按檔案）
 - 無
 
 ## 6. 修訂熱點
-- F-001-checkout:REV 1 條,最後一條「REV-1(2026-09-07,依開發者:退款也走 settle,手續費可能大過要退的金額):settle 補一條 t」
-- F-002-refund:REV 1 條,最後一條「REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 」
+- F-001-checkout：REV 1 條，最後一條「REV-1（2026-09-07，依開發者：退款也走 settle，手續費可能大過要退的金額）：settle 補一條 t」
+- F-002-refund：REV 1 條，最後一條「REV-1（2026-09-07，依開發者：手續費不另寫一條扣款）：金額計算改成引用 F-001-checkout 的 」
 
 ## 7. 警訊
 - 無
 
 ## 8. 建議路線
-1. dev-flow:build F-003-basket(R-2 優先 1 · M-3-basket 加品項與算總額走通)
+1. dev-flow:build F-003-basket（R-2 優先 1 · M-3-basket 加品項與算總額走通）
 exit 1

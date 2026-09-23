@@ -1,4 +1,4 @@
-// status:派工報告。全部從 .design、程式碼與測試輸出推,沒有任何一格是人手動維護的。
+// status：派工報告。全部從 .design、程式碼與測試輸出推，沒有任何一格是人手動維護的。
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,14 +37,14 @@ export function analyze(design, source, adapter, results) {
       const key = `${p.id}#${id}`;
       const traced = markers.has(key);
       const res = results ? results.get(key) : undefined;
-      // 結果只認這棵樹裡有測試承接的標記:輸出裡有、樹裡沒有的是別的時間點留下的輸出
+      // 結果只認這棵樹裡有測試承接的標記：輸出裡有、樹裡沒有的是別的時間點留下的輸出
       return { key, traced, orphan: !traced && !!res, result: traced ? res || '未跑' : '未翻譯' };
     };
     const laws = p.laws.map((l) => ({ ...l, ...mark(l.id) }));
     const examples = p.examples.map((e) => ({ ...e, ...mark(e.id) }));
     const gaps = openGaps.filter((g) => g.target === p.fullName || g.target.startsWith(`${p.id}#`) || g.target.startsWith(`${p.fullName}#`));
     const refs = [...new Set(p.steps.map((s) => s.ref).filter(Boolean))];
-    // 程式碼裡沒有這個宣告(或簽名對不上)的 step:build 對帳那一步會停在它,所以它不是能開的線
+    // 程式碼裡沒有這個宣告（或簽名對不上）的 step:build 對帳那一步會停在它，所以它不是能開的線
     const missing = steps.filter((s) => s.state === '找不到' || s.state === '不一致').map((s) => ({ name: s.name, state: s.state }));
     info.set(p.fullName, { p, steps, sigOk, sigTotal: real.length, stubCount, obsOk, obsTotal: observes.length, laws, examples, gaps, refs, missing, referrers: [] });
   }
@@ -67,7 +67,7 @@ export function analyze(design, source, adapter, results) {
     x.unknown = !results && x.laws.some((l) => l.traced);
   }
   for (const [, x] of info) x.blockedBy = x.refs.filter((r) => info.has(r) && !info.get(r).achieved);
-  // 需求的驗收與領域不變量也是測試標記(R-n#ACCEPT / INV-n#LAW):有測試就以測試為準
+  // 需求的驗收與領域不變量也是測試標記 (R-n#ACCEPT / INV-n#LAW)：有測試就以測試為準
   const lawTest = (key) => {
     if (!markers.has(key)) return null;
     const res = results ? results.get(key) : undefined;
@@ -85,7 +85,7 @@ export function gitLines(root, cmd) {
   }
 }
 
-// 主線的參照:clone 設好的 origin/HEAD 優先,再退到常見的名字;都解不到就沒有基準
+// 主線的參照：clone 設好的 origin/HEAD 優先，再退到常見的名字；都解不到就沒有基準
 export function mainRef(root) {
   const head = gitLines(root, 'git symbolic-ref --quiet --short refs/remotes/origin/HEAD');
   if (head && head[0]) return head[0];
@@ -95,10 +95,10 @@ export function mainRef(root) {
   return null;
 }
 
-// 建構中 = 有 build/<鍵> 分支,而且它還沒被合進主線。鍵是里程碑全名 M-n-<slug>(一條切片)、文檔全名(一次修訂)、或 R-n / INV-n(一條驗收測試)。
-// 合進主線的分支是做完了沒人收的殘留,不是有人在建;它列成警訊,清掉是整合的職責(roles.md「整合」)。
-// 只在專案根目錄有 .git 時問 git;沒有(夾具、匯出的樹)就一條都不算,報告不受環境影響。
-// phaseOf(工作樹根目錄, 鍵) 由呼叫端給:它讀那棵樹的 .design 與程式碼,回這條線走到哪一步(slicePhase)。
+// 建構中 = 有 build/<鍵> 分支，而且它還沒被合進主線。鍵是里程碑全名 M-n-<slug>（一條切片）、文檔全名（一次修訂）、或 R-n / INV-n（一條驗收測試）。
+// 合進主線的分支是做完了沒人收的殘留，不是有人在建；它列成警訊，清掉是整合的職責（roles.md「整合」）。
+// 只在專案根目錄有 .git 時問 git；沒有（夾具、匯出的樹）就一條都不算，報告不受環境影響。
+// phaseOf（工作樹根目錄，鍵）由呼叫端給：它讀那棵樹的 .design 與程式碼，回這條線走到哪一步 (slicePhase)。
 export function branchState(root, phaseOf = null) {
   const none = { building: new Set(), stale: new Set(), phases: new Map() };
   if (!root || !fs.existsSync(path.join(root, '.git'))) return none;
@@ -106,7 +106,7 @@ export function branchState(root, phaseOf = null) {
   if (!all) return none;
   const name = (s) => s.replace(/^build\//, '');
   const ref = mainRef(root);
-  // 剛開、還沒有任何 commit 的分支與主線同一個 sha,git 也算它 merged;那是有人正要開工,不是殘留
+  // 剛開、還沒有任何 commit 的分支與主線同一個 sha，git 也算它 merged；那是有人正要開工，不是殘留
   const mainSha = ref ? (gitLines(root, `git rev-parse --verify --quiet ${ref}`) || [])[0] : null;
   const merged = ref ? gitLines(root, `git branch --list "build/*" --merged ${ref} --format="%(refname:short) %(objectname)"`) : null;
   const stale = new Set((merged || []).map((l) => l.split(/\s+/)).filter(([, sha]) => sha !== mainSha).map(([n]) => name(n)));
@@ -123,39 +123,39 @@ export function branchState(root, phaseOf = null) {
   return { building, stale, phases };
 }
 
-// 一條 build 分支走到哪一步,全部從那棵工作樹的檔案推:
-// 靠修訂達成的里程碑而還沒有 REV 引用它 = 待修訂;還沒有決策紀錄 = 切片中;有決策紀錄而里程碑還沒綁文檔 = 切片完成;綁的文檔有 draft = Law 討論中;
-// 都拍板了而 law 還沒有測試歸屬 = Law 已定;有歸屬 = 調整中;都 verified = qa 與 refactor 做完、每條 law 成立。
+// 一條 build 分支走到哪一步，全部從那棵工作樹的檔案推：
+// 靠修訂達成的里程碑而還沒有 REV 引用它 = 待修訂；還沒有決策紀錄 = 切片中；有決策紀錄而里程碑還沒綁文檔 = 切片完成；綁的文檔有 draft = Law 討論中；
+// 都拍板了而 law 還沒有測試歸屬 = Law 已定；有歸屬 = 調整中；都 verified = qa 與 refactor 做完、每條 law 成立。
 export function slicePhase(design, source, key) {
   const m = design.requirements.requirements.flatMap((q) => q.milestones).find((ms) => ms.fullName === key || ms.id === key);
   const docs = m ? m.binds.map((b) => design.docs.find((d) => d.fullName === b)).filter(Boolean) : design.docs.filter((d) => d.fullName === key);
   if (!m && !docs.length) return '';
-  // 靠修訂既有的文檔達成的里程碑:那幾份文檔還沒有任何一條 REV 引用它,就是待修訂——不看決策紀錄,也不因為文檔本來就 verified 而算做完
+  // 靠修訂既有的文檔達成的里程碑：那幾份文檔還沒有任何一條 REV 引用它，就是待修訂——不看決策紀錄，也不因為文檔本來就 verified 而算做完
   if (m) {
     const maker = makerOf(design);
     const revised = m.binds.filter((b) => maker.get(b) !== m);
     const cited = revised.some((b) => (design.docs.find((d) => d.fullName === b) || { revs: [] }).revs.some((r) => r.cites.includes(m.id)));
     if (revised.length && !cited) return '待修訂';
   }
-  if (!docs.length) return design.journals.some((j) => j.key === key) ? '切片完成,等 dev-flow:scope-laws' : '切片中';
+  if (!docs.length) return design.journals.some((j) => j.key === key) ? '切片完成，等 dev-flow:scope-laws' : '切片中';
   if (docs.some((d) => d.status === 'draft')) return 'Law 討論中';
-  if (docs.every((d) => d.status === 'verified')) return 'verified,等 dev-flow:integrate';
+  if (docs.every((d) => d.status === 'verified')) return 'verified，等 dev-flow:integrate';
   const markers = new Set(source ? source.testFiles.flatMap((t) => t.markers) : []);
   const traced = docs.every((d) => d.laws.length && d.laws.every((l) => markers.has(`${d.id}#${l.id}`)));
-  return traced ? '調整中' : 'Law 已定,等 qa';
+  return traced ? '調整中' : 'Law 已定，等 qa';
 }
 
 export function buildingBranches(root) {
   return branchState(root).building;
 }
 
-// 測試輸出裡一條 F-00x#LAW-n / EX-n / R-n#ACCEPT / INV-n#LAW 標記都沒有,就不是「全部沒過」,是讀不到:當成沒給輸出,通過數印 nan。
+// 測試輸出裡一條 F-00x#LAW-n / EX-n / R-n#ACCEPT / INV-n#LAW 標記都沒有，就不是「全部沒過」，是讀不到：當成沒給輸出，通過數印 nan。
 function checked(results, note) {
   if (results.size) return { results, note };
-  return { results: null, note: `${note};輸出裡沒有任何 F-00x#LAW-n 標記,幾條 law 通過測試未知(指令跑錯目錄、跑失敗、或測試名沒帶歸屬)` };
+  return { results: null, note: `${note}；輸出裡沒有任何 F-00x#LAW-n 標記，幾條 law 通過測試未知（指令跑錯目錄、跑失敗、或測試名沒帶歸屬）` };
 }
 
-// 一份輸出交給哪幾個 adapter 解析:指名了目錄就是那一側的;沒指名就每一側都掃一遍,歸屬字串各語言都認得同一套,合併不衝突。
+// 一份輸出交給哪幾個 adapter 解析：指名了目錄就是那一側的；沒指名就每一側都掃一遍，歸屬字串各語言都認得同一套，合併不衝突。
 function parseWith(sides, dir, log, into) {
   const chosen = dir ? sides.filter((s) => s.dir === dir) : sides;
   for (const s of chosen) for (const [k, v] of s.adapter.testResults(log)) into.set(k, v);
@@ -174,11 +174,11 @@ export function loadResults(design, adapter, flags, root) {
   if (!sides.length || sides.some((s) => !s.adapter || !s.adapter.testResults)) return { results: null, note: '此 adapter 不解析測試輸出' };
   const merged = new Map();
   if (flags.tests) {
-    // --tests <log>:一份輸出;--tests <目錄>=<log>,<目錄>=<log>:多語言專案每側一份,目錄是 language 欄宣告的
+    // --tests <log>：一份輸出；--tests <目錄>=<log>，<目錄>=<log>：多語言專案每側一份，目錄是 language 欄宣告的
     const specs = String(flags.tests).split(',').map((s) => { const i = s.indexOf('='); return i < 0 ? { dir: '', file: s } : { dir: s.slice(0, i).trim().replace(/\/$/, ''), file: s.slice(i + 1).trim() }; });
     const notes = [];
     for (const sp of specs) {
-      if (sp.dir && !sides.some((s) => s.dir === sp.dir)) return { results: null, note: `--tests 指到的 ${sp.dir} 不是 system.md language 欄裡的目錄(${sides.map((s) => s.dir || '.').join('、')})` };
+      if (sp.dir && !sides.some((s) => s.dir === sp.dir)) return { results: null, note: `--tests 指到的 ${sp.dir} 不是 system.md language 欄裡的目錄 (${sides.map((s) => s.dir || '.').join('、')})` };
       const file = path.resolve(root, sp.file);
       if (!fs.existsSync(file)) return { results: null, note: `找不到測試輸出 ${sp.file}` };
       parseWith(sides, sp.dir, fs.readFileSync(file, 'utf8'), merged);
@@ -188,30 +188,30 @@ export function loadResults(design, adapter, flags, root) {
   }
   if (flags.run) {
     const cmd = design.system && design.system.commands['測試(整套)'];
-    if (!cmd) return { results: null, note: 'system.md「Constraint」沒有整套測試指令,--run 不知道跑什麼' };
-    // 字串:一道指令跑全部,每一側都掃它的輸出;物件:每側一道,各在專案根目錄跑、各用自己的 adapter 掃
+    if (!cmd) return { results: null, note: 'system.md「Constraint」沒有整套測試指令，--run 不知道跑什麼' };
+    // 字串：一道指令跑全部，每一側都掃它的輸出；物件：每側一道，各在專案根目錄跑、各用自己的 adapter 掃
     const jobs = typeof cmd === 'string' ? [{ dir: '', cmd }] : Object.entries(cmd).map(([dir, c]) => ({ dir, cmd: c }));
     const notes = [];
     for (const job of jobs) {
       if (job.dir && !sides.some((s) => s.dir === job.dir)) return { results: null, note: `system.md 整套指令指到的 ${job.dir} 不是 language 欄裡的目錄` };
       const { out, exit } = runCommand(job.cmd, root);
       parseWith(sides, job.dir, out, merged);
-      notes.push(`${job.cmd}${exit ? `(指令 exit ${exit})` : ''}`);
+      notes.push(`${job.cmd}${exit ? `（指令 exit ${exit}）` : ''}`);
     }
-    return checked(merged, `測試結果來自 --run:${notes.join(' 與 ')}`);
+    return checked(merged, `測試結果來自 --run：${notes.join(' 與 ')}`);
   }
-  return { results: null, note: '沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知' };
+  return { results: null, note: '沒給測試輸出（--tests <log> 或 --run），幾條 law 通過測試未知' };
 }
 
-// 測試結果 → 成立與否:green 成立、red 未成立、其餘(未跑、pending)未知。law 講「成立」(不得違反),需求講「達成」(必須達成)
+// 測試結果 → 成立與否：green 成立、red 未成立、其餘（未跑、pending）未知。law 講「成立」（不得違反），需求講「達成」（必須達成）
 const verdict = (result) => (result === 'green' ? true : result === 'red' ? false : null);
 export const holdsWord = (holds) => (holds === true ? '成立' : holds === false ? '未成立' : '未知');
 export const metWord = (met) => (met === true ? '達成' : met === false ? '未達成' : '未知');
-// 人工審核過的那一條需求在驗收記錄表的結論欄寫這個字;只由 devflow requirement accept 寫
+// 人工審核過的那一條需求在驗收記錄表的結論欄寫這個字；只由 devflow requirement accept 寫
 export const SIGNED = '已驗收';
 
-// 文檔 → 做出它的里程碑:綁這份文檔的里程碑裡,M-n 編號最小的那一條(編號是流水號、永不重排,需求的優先怎麼改都不換人)。
-// 其餘綁它的每一條都是靠修訂它達成的;從調整表讀來的列(RF-n)一律算靠修訂的。同號時取先讀到的那一條。
+// 文檔 → 做出它的里程碑：綁這份文檔的里程碑裡，M-n 編號最小的那一條（編號是流水號、永不重排，需求的優先怎麼改都不換人）。
+// 其餘綁它的每一條都是靠修訂它達成的；從調整表讀來的列 (RF-n) 一律算靠修訂的。同號時取先讀到的那一條。
 export function makerOf(design) {
   const numOf = (m) => Number((/^M-(\d+)$/.exec(m.id) || [0, Infinity])[1]);
   const maker = new Map();
@@ -223,24 +223,24 @@ export function makerOf(design) {
 }
 
 // 需求 → 里程碑 → 文檔。
-// 一份文檔被好幾條里程碑綁定時,編號最小的那一條(makerOf)是做出它的:那份文檔達成就算數。
-// 其餘綁它的里程碑是靠修訂它達成的:那份文檔要達成,而且它的修訂記錄裡有一條 REV 的依欄引用了這條里程碑(比對編號)。
-// 里程碑達成 = 綁定的每份 feature 各照各的規則都成立;里程碑依表上的順序走,全部達成 = 這條需求的建置走完(built)。
-// 里程碑的狀態字:達成;待修訂 = 靠修訂的那幾份文檔還沒有任何一份有引用它的 REV;其餘是進行中。
-// 需求達成與否只由人判:機器算的是證據齊了沒(驗收測試綠,或沒有驗收測試而里程碑全部達成),證據齊了印「待審核」等人,
-// 人在驗收記錄表上簽了才是「已驗收」;簽過之後證據翻掉是「待重審」。任何情況下 status 都不自己把一條需求算成達成。
-// 一條需求的驗收手段:建置指令,接每條里程碑「怎麼驗」欄那道指令,最後是驗收那一句要看的結果。
-// 還沒有怎麼驗欄的里程碑照實說,不編一道指令出來。
+// 一份文檔被好幾條里程碑綁定時，編號最小的那一條 (makerOf) 是做出它的：那份文檔達成就算數。
+// 其餘綁它的里程碑是靠修訂它達成的：那份文檔要達成，而且它的修訂記錄裡有一條 REV 的依欄引用了這條里程碑（比對編號）。
+// 里程碑達成 = 綁定的每份 feature 各照各的規則都成立；里程碑依表上的順序走，全部達成 = 這條需求的建置走完 (built)。
+// 里程碑的狀態字：達成；待修訂 = 靠修訂的那幾份文檔還沒有任何一份有引用它的 REV；其餘是進行中。
+// 需求達成與否只由人判：機器算的是證據齊了沒（驗收測試綠，或沒有驗收測試而里程碑全部達成），證據齊了印「待審核」等人，
+// 人在驗收記錄表上簽了才是「已驗收」；簽過之後證據翻掉是「待重審」。任何情況下 status 都不自己把一條需求算成達成。
+// 一條需求的驗收手段：建置指令，接每條里程碑「怎麼驗」欄那道指令，最後是驗收那一句要看的結果。
+// 還沒有怎麼驗欄的里程碑照實說，不編一道指令出來。
 export function verifySteps(design, q) {
   const cmd = design.system ? design.system.commands['建置'] : null;
   const build = typeof cmd === 'string' ? cmd : cmd ? Object.entries(cmd).map(([d, v]) => `${d} = ${v}`).join(';') : '';
   const steps = build ? [`\`${build}\``] : [];
-  for (const m of q.ms) steps.push(m.verify ? `${m.fullName} \`${m.verify}\`` : `${m.fullName} 沒有怎麼驗欄(dev-flow:require-design 補一道指令)`);
+  for (const m of q.ms) steps.push(m.verify ? `${m.fullName} \`${m.verify}\`` : `${m.fullName} 沒有怎麼驗欄（dev-flow:require-design 補一道指令）`);
   steps.push(`看${q.accept ? `「${q.accept.title}」` : '驗收那一句'}成不成立`);
   return steps;
 }
 
-// rank 給每份文檔一個排序鍵(需求優先、需求順序、里程碑順序),建議路線與能開的線照它排;沒被綁的排最後。rank 只管排序與標籤,不拿來判誰做出文檔。
+// rank 給每份文檔一個排序鍵（需求優先、需求順序、里程碑順序），建議路線與能開的線照它排；沒被綁的排最後。rank 只管排序與標籤，不拿來判誰做出文檔。
 export function requirementView(design, a) {
   const sorted = [...design.requirements.requirements].sort((x, y) => (x.priority || 5) - (y.priority || 5) || Number(x.id.slice(2)) - Number(y.id.slice(2)) || x.fullName.localeCompare(y.fullName));
   const maker = makerOf(design);
@@ -259,7 +259,7 @@ export function requirementView(design, a) {
     });
     const done = ms.filter((m) => m.achieved).length;
     const built = ms.length > 0 && done === ms.length;
-    // 機器只判證據齊了沒:驗收測試綠,或沒有驗收測試而里程碑全部達成。達成與否由人判,寫在驗收記錄表裡。
+    // 機器只判證據齊了沒：驗收測試綠，或沒有驗收測試而里程碑全部達成。達成與否由人判，寫在驗收記錄表裡。
     const test = a.lawTest(`${q.id}#ACCEPT`);
     const signoff = [...(q.signoffs || [])].reverse().find((s) => s.verdict === SIGNED) || null;
     const evidence = [];
@@ -270,7 +270,7 @@ export function requirementView(design, a) {
     }
     if (ms.length) evidence.push(`里程碑 ${done} / ${ms.length} 達成`);
     if (!test) ready = ms.length ? built : false;
-    const ev = evidence.join(';');
+    const ev = evidence.join('；');
     let state;
     let source;
     if (q.accept && q.accept.placeholder) {
@@ -287,10 +287,10 @@ export function requirementView(design, a) {
       source = `${signoff.date} ${signoff.by || '沒寫誰'}`;
     } else if (ready) {
       state = '待審核';
-      source = `證據齊:${ev};等人工審核`;
+      source = `證據齊：${ev}；等人工審核`;
     } else if (signoff) {
       state = '待重審';
-      source = `${signoff.date} 已驗收,證據翻掉:${ev}`;
+      source = `${signoff.date} 已驗收，證據翻掉：${ev}`;
     } else if (test && test.result === 'red') {
       state = '未達成';
       source = `測試 ${test.key} red`;
@@ -309,15 +309,15 @@ export function requirementView(design, a) {
   })));
   const keyOf = (name) => (rank.has(name) ? rank.get(name).key : 9e9);
   const tag = (name) => (rank.has(name) ? `${rank.get(name).q.id} 優先 ${rank.get(name).q.priority || '?'} · ${rank.get(name).m.fullName} ${rank.get(name).m.title}` : '沒有被任何里程碑綁定');
-  // 需求之間誰疊在誰上面,從文檔的引用推:這條需求的里程碑綁的文檔引用了別條需求的里程碑綁的文檔,它就依賴那一條
-  // 一份文檔算哪一條需求的:做出它的那條里程碑所在的需求;沒有的(只被調整表的列綁過)退到排序最前的那一條
+  // 需求之間誰疊在誰上面，從文檔的引用推：這條需求的里程碑綁的文檔引用了別條需求的里程碑綁的文檔，它就依賴那一條
+  // 一份文檔算哪一條需求的：做出它的那條里程碑所在的需求；沒有的（只被調整表的列綁過）退到排序最前的那一條
   const owner = new Map();
   for (const q of reqs) for (const m of q.ms) for (const d of m.docs) if (!d.byRevision) owner.set(d.name, q.id);
   const ownerOf = (name) => (owner.has(name) ? owner.get(name) : rank.has(name) ? rank.get(name).q.id : null);
   for (const q of reqs) {
     const deps = new Set();
     for (const m of q.ms) for (const d of m.docs) {
-      // 綁的是別條需求先綁過的文檔(靠修訂既有的 feature 達成的里程碑),或它引用了別條需求的文檔
+      // 綁的是別條需求先綁過的文檔（靠修訂既有的 feature 達成的里程碑），或它引用了別條需求的文檔
       for (const r of [d.name, ...(d.x ? d.x.refs : [])]) {
         const at = ownerOf(r);
         if (at && at !== q.id) deps.add(at);
@@ -325,8 +325,8 @@ export function requirementView(design, a) {
     }
     q.dependsOn = [...deps].sort((x, y) => Number(x.slice(2)) - Number(y.slice(2)));
   }
-  // 一條需求的里程碑照順序走:綁在後面幾條里程碑的文檔等前面那一條達成。
-  // 有任何一條需求的下一條里程碑綁它就不等;沒被綁的不等。heldBy 是它在等的那條里程碑,與它所在的需求。
+  // 一條需求的里程碑照順序走：綁在後面幾條里程碑的文檔等前面那一條達成。
+  // 有任何一條需求的下一條里程碑綁它就不等；沒被綁的不等。heldBy 是它在等的那條里程碑，與它所在的需求。
   const nextBinds = new Set(reqs.flatMap((q) => { const m = q.ms.find((x) => !x.achieved); return m ? m.binds : []; }));
   for (const [name, x] of a.info) {
     const r = rank.get(name);
@@ -336,7 +336,7 @@ export function requirementView(design, a) {
   return { reqs, rank, keyOf, tag, maker };
 }
 
-// 領域不變量:整個專案都不准違反的 law。只由測試判:有 INV-n#LAW 測試以它為準;沒有測試、或沒有三行(lint invariants 的紅),都是未知。
+// 領域不變量：整個專案都不准違反的 law。只由測試判：有 INV-n#LAW 測試以它為準；沒有測試、或沒有三行（lint invariants 的紅），都是未知。
 export function invariantView(design, a) {
   const sys = design.system;
   return (sys ? sys.invariants : []).map((v) => {
@@ -347,7 +347,7 @@ export function invariantView(design, a) {
   });
 }
 
-// 全域 Law 三類各一列:住 system.md 的哪一區、哪一道 lint 自動確認、現在的結果。報告、警訊與看板同源。
+// 全域 Law 三類各一列：住 system.md 的哪一區、哪一道 lint 自動確認、現在的結果。報告、警訊與看板同源。
 export function globalView(design, a, source, adapter, inv = invariantView(design, a)) {
   const sys = design.system;
   if (!sys) return [];
@@ -356,7 +356,7 @@ export function globalView(design, a, source, adapter, inv = invariantView(desig
   const io = lintIo(design, source, adapter);
   const iv = lintInvariants(design, source, adapter);
   const cited = [...new Set(sys.io.flatMap((row) => row.contract || []))];
-  // 沒給測試輸出時,幾條成立是讀不到,不是零
+  // 沒給測試輸出時，幾條成立是讀不到，不是零
   const blind = [...a.info.values()].some((y) => y.unknown);
   const citedHolding = cited.filter((c) => {
     if (/^INV-/.test(c)) return inv.some((v) => v.id === c && v.holds === true);
@@ -365,14 +365,14 @@ export function globalView(design, a, source, adapter, inv = invariantView(desig
     return !!(x && x.laws.some((l) => l.id === m[2] && l.result === 'green'));
   });
   return [
-    { kind: '架構', where: '架構:層', gate: 'boundary', red: source ? b.red.length : 0, result: source ? `${sys.layers.length} 層,${word(b)}` : `${sys.layers.length} 層,沒有程式碼可對` },
-    { kind: '契約', where: '契約:對外 I/O', gate: 'io', red: io.red.length, result: `${sys.io.length} 列,${word(io)};契約欄指到的 law ${cited.length} 條,成立 ${blind ? 'nan' : citedHolding.length} 條` },
-    { kind: '領域不變量', where: '領域不變量', gate: 'invariants', red: iv.red.length, result: `${inv.length} 條,${word(iv)};成立 ${blind ? 'nan' : inv.filter((v) => v.holds === true).length} 條` },
+    { kind: '架構', where: '架構：層', gate: 'boundary', red: source ? b.red.length : 0, result: source ? `${sys.layers.length} 層，${word(b)}` : `${sys.layers.length} 層，沒有程式碼可對` },
+    { kind: '契約', where: '契約：對外 I/O', gate: 'io', red: io.red.length, result: `${sys.io.length} 列，${word(io)}；契約欄指到的 law ${cited.length} 條，成立 ${blind ? 'nan' : citedHolding.length} 條` },
+    { kind: '領域不變量', where: '領域不變量', gate: 'invariants', red: iv.red.length, result: `${inv.length} 條，${word(iv)}；成立 ${blind ? 'nan' : inv.filter((v) => v.holds === true).length} 條` },
   ];
 }
 
-// 一份 draft 的文檔的切片在不在:它在某條 build 分支上(切片那一波還沒收),或這棵樹上有它、或綁它的里程碑的決策紀錄。
-// 兩者都沒有 = 它是在切片之外 claim 出來的,`dev-flow:scope-laws` 的前置要決策紀錄,開不了工:該走的是那條里程碑的切片
+// 一份 draft 的文檔的切片在不在：它在某條 build 分支上（切片那一波還沒收），或這棵樹上有它、或綁它的里程碑的決策紀錄。
+// 兩者都沒有 = 它是在切片之外 claim 出來的，`dev-flow:scope-laws` 的前置要決策紀錄，開不了工：該走的是那條里程碑的切片
 export function slicelessDrafts(a, ov, building, design) {
   const out = new Set();
   if (!a || !design) return out;
@@ -385,8 +385,8 @@ export function slicelessDrafts(a, ov, building, design) {
   return out;
 }
 
-// 每條需求下一條還沒達成的里程碑,如果它還沒綁任何文檔、或綁的每一份都是還沒有切片的 draft,就是一條可以開的切片(要有英文名才有分支可開)
-// 專案的第一條切片單獨走完:全域 Law 三區都還是空的、而且已經有一條切片的分支在建構中,別的切片等它(holdKey 是那條分支的鍵,held 是等著的那幾條)
+// 每條需求下一條還沒達成的里程碑，如果它還沒綁任何文檔、或綁的每一份都是還沒有切片的 draft，就是一條可以開的切片（要有英文名才有分支可開）
+// 專案的第一條切片單獨走完：全域 Law 三區都還是空的、而且已經有一條切片的分支在建構中，別的切片等它（holdKey 是那條分支的鍵，held 是等著的那幾條）
 export function sliceLines(ov, building, design = null, a = null) {
   const sliceless = slicelessDrafts(a, ov, building, design);
   const next = ov.reqs.map((q) => ({ q, m: q.ms.find((m) => !m.achieved) }))
@@ -402,22 +402,22 @@ export function sliceLines(ov, building, design = null, a = null) {
     inBuild: next.filter((s) => building.has(s.m.fullName)),
   };
 }
-export const firstSliceNote = (key) => `專案的第一條切片單獨走完:build/${key} 抽出全域 Law 並合進主線之後才開下一條`;
+export const firstSliceNote = (key) => `專案的第一條切片單獨走完：build/${key} 抽出全域 Law 並合進主線之後才開下一條`;
 const sliceTag = (s) => `${s.q.id} 優先 ${s.q.priority || '?'} · ${s.m.title}`;
 
-// 每條需求下一條還沒達成的里程碑,如果它靠修訂既有的文檔達成、而其中還有文檔沒有任何一條 REV 引用它,就是一條待修訂的線(toRevise 是那幾份)
-// 已經有分支的(鍵是這條里程碑的全名,或它要修訂的那份文檔的全名)另外列,key 是那條分支的鍵
+// 每條需求下一條還沒達成的里程碑，如果它靠修訂既有的文檔達成、而其中還有文檔沒有任何一條 REV 引用它，就是一條待修訂的線（toRevise 是那幾份）
+// 已經有分支的（鍵是這條里程碑的全名，或它要修訂的那份文檔的全名）另外列，key 是那條分支的鍵
 export function reviseLines(ov, building = new Set()) {
   const next = ov.reqs.map((q) => ({ q, m: q.ms.find((m) => !m.achieved) })).filter((s) => s.m && s.m.toRevise.length)
     .map((s) => ({ ...s, key: [s.m.fullName, ...s.m.toRevise].find((k) => building.has(k)) || null }));
   return { openable: next.filter((s) => !s.key), inBuild: next.filter((s) => s.key) };
 }
-export const reviseHint = (m) => `dev-flow:scope-revise ${m.toRevise.join('、')}(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 dev-flow:scope-laws),REV 的依欄寫 ${m.fullName}`;
+export const reviseHint = (m) => `dev-flow:scope-revise ${m.toRevise.join('、')}（既有的 law 不動、新的承諾用新增的 law 表達；要調整既有的 law 就 dev-flow:scope-laws），REV 的依欄寫 ${m.fullName}`;
 
-// 一份文檔是不是正在某條 build 分支上:它自己的(修訂那波),或綁它的那條里程碑的(切片那波)
+// 一份文檔是不是正在某條 build 分支上：它自己的（修訂那波），或綁它的那條里程碑的（切片那波）
 export function buildKeyOf(x, ov, building) {
   if (building.has(x.p.fullName)) return x.p.fullName;
-  // 綁它的任何一條里程碑(做出它的那一條,或靠修訂它達成的那幾條)有分支就算
+  // 綁它的任何一條里程碑（做出它的那一條，或靠修訂它達成的那幾條）有分支就算
   for (const q of ov.reqs) for (const m of q.ms) if (m.binds.includes(x.p.fullName) && building.has(m.fullName)) return m.fullName;
   return null;
 }
@@ -426,11 +426,11 @@ export function buildKeyOf(x, ov, building) {
 export function docState(x) {
   return x.achieved ? '達成' : x.gaps.length ? `卡 ${x.gaps.map((g) => g.id).join('、')}` : x.missing.length ? `${x.missing.length} 個 step 對不上程式碼` : x.blockedBy.length ? `等 ${x.blockedBy.join('、')}` : x.heldBy ? `等 ${x.heldBy.m.fullName}` : '進行中';
 }
-// ready 的文檔有 step 在程式碼裡找不到或不一致:build 對帳會停在它,宣告由寫這份文檔的 skill 補,不在 build 補
-export const missingHint = (x) => `${x.p.fullName} 的 ${[...new Set(x.missing.map((s) => `${s.name}(${s.state})`))].join('、')} 與程式碼對不上:寫這份的 skill 補宣告(切片那一波 dev-flow:scope-laws;修訂新增的 step dev-flow:scope-revise,本體標成未實作)`;
+// ready 的文檔有 step 在程式碼裡找不到或不一致：build 對帳會停在它，宣告由寫這份文檔的 skill 補，不在 build 補
+export const missingHint = (x) => `${x.p.fullName} 的 ${[...new Set(x.missing.map((s) => `${s.name}（${s.state}）`))].join('、')} 與程式碼對不上：寫這份的 skill 補宣告（切片那一波 dev-flow:scope-laws；修訂新增的 step dev-flow:scope-revise，本體標成未實作）`;
 
-// build 開得了的文檔:ready、沒 open GAP、每個 step 在程式碼裡(在、搬家或未實作)、引用的文檔全部達成、
-// 綁它的里程碑是所在需求下一條還沒達成的。build 對帳那一步停的每一件事都在這裡先擋;照需求的優先、里程碑順序排,沒被綁的排最後。
+// build 開得了的文檔：ready、沒 open GAP、每個 step 在程式碼裡（在、搬家或未實作）、引用的文檔全部達成、
+// 綁它的里程碑是所在需求下一條還沒達成的。build 對帳那一步停的每一件事都在這裡先擋；照需求的優先、里程碑順序排，沒被綁的排最後。
 export function buildable(a, ov) {
   return [...a.info.values()].filter((x) => x.p.status === 'ready' && !x.achieved && !x.gaps.length && !x.missing.length && !x.blockedBy.length && !x.heldBy)
     .sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName) || x.refs.length - y.refs.length);
@@ -439,15 +439,15 @@ export function buildable(a, ov) {
 function row(x) {
   const g = x.laws.filter((l) => l.result === 'green').length;
   const traced = x.laws.filter((l) => l.traced).length;
-  return `| ${x.p.fullName} | ${x.p.kind === 'abstract' ? '共用文檔' : 'feature'} | ${x.p.status || '(無)'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${x.p.revs.length} | ${docState(x)} |`;
+  return `| ${x.p.fullName} | ${x.p.kind === 'abstract' ? '共用文檔' : 'feature'} | ${x.p.status || '（無）'} | ${x.sigTotal} | ${x.sigOk} | ${x.stubCount} | ${x.laws.length} | ${x.unknown ? 'nan' : g}/${traced} | ${x.p.revs.length} | ${docState(x)} |`;
 }
 
-// 能開 = buildable 的那幾份(消費者在 abstract 合進主線之後才開,roles.md「分支」)
+// 能開 = buildable 的那幾份（消費者在 abstract 合進主線之後才開，roles.md「分支」）
 export function openLines(a, ov, building) {
   const candidates = buildable(a, ov);
   const openable = candidates.filter((x) => !buildKeyOf(x, ov, building));
   const inBuild = candidates.filter((x) => buildKeyOf(x, ov, building));
-  // 兩條能開的線的 step 住同一個檔案:同時開,整合時那個檔案兩邊都動
+  // 兩條能開的線的 step 住同一個檔案：同時開，整合時那個檔案兩邊都動
   const shared = [];
   for (let i = 0; i < openable.length; i++) for (let j = i + 1; j < openable.length; j++) {
     const files = [...new Set(openable[i].steps.filter((s) => !s.ref).map((s) => s.module))].filter((m) => openable[j].steps.some((s) => !s.ref && s.module === m));
@@ -457,10 +457,10 @@ export function openLines(a, ov, building) {
 }
 
 export function lineTag(x, ov) {
-  return x.p.kind === 'abstract' ? `共用文檔,${x.referrers.length ? `${x.referrers.join('、')} 引用它` : '沒有文檔引用它'}` : ov.tag(x.p.fullName);
+  return x.p.kind === 'abstract' ? `共用文檔，${x.referrers.length ? `${x.referrers.join('、')} 引用它` : '沒有文檔引用它'}` : ov.tag(x.p.fullName);
 }
 
-// 警訊:每條是 [哪裡, 什麼事, 怎麼辦]
+// 警訊：每條是 [哪裡，什麼事，怎麼辦]
 export function warnings(design, a, ov, source, adapter, stale = new Set(), inv = invariantView(design, a), glob = globalView(design, a, source, adapter, inv)) {
   const sys = design.system;
   const listed = sys ? sys.listed : [];
@@ -471,128 +471,128 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
   else {
     if (sys.visionState === 'missing') warn('system.md', '沒有 ## 願景 節', 'dev-flow:kickoff 訂願景');
     else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'dev-flow:kickoff 訂願景');
-    if (sys.globalState === 'missing') warn('system.md', '沒有 ## 全域 Law 區,看不出約束住在哪裡', 'devflow migrate laws --write');
+    if (sys.globalState === 'missing') warn('system.md', '沒有 ## 全域 Law 區，看不出約束住在哪裡', 'devflow migrate laws --write');
   }
-  // 名詞只定義一次、只住專案根目錄 CLAUDE.md 的「## 名詞」節:沒有這一節(檔案不存在也算)、或同一個名詞出現兩列,都是警訊;節在而表是空的不算
-  if (design.glossaryState === 'missing') warn(design.glossaryFile, '沒有 ## 名詞 節,領域名詞沒有地方定義', 'dev-flow:kickoff 補上這一節');
+  // 名詞只定義一次、只住專案根目錄 CLAUDE.md 的「## 名詞」節：沒有這一節（檔案不存在也算）、或同一個名詞出現兩列，都是警訊；節在而表是空的不算
+  if (design.glossaryState === 'missing') warn(design.glossaryFile, '沒有 ## 名詞 節，領域名詞沒有地方定義', 'dev-flow:kickoff 補上這一節');
   const termRows = new Map();
   for (const g of design.glossary) termRows.set(g.term, [...(termRows.get(g.term) || []), g.line]);
-  for (const [term, rows] of termRows) if (rows.length > 1) warn(`${design.glossaryFile}:${rows[1]}`, `名詞「${term}」出現 ${rows.length} 列,名詞只定義一次`, 'dev-flow:require-design 與開發者講定哪一句是它的定義,留一列');
-  if (design.requirements.merged) warn('system.md', '需求還住在「## 需求」節,看不出每條需求的優先與里程碑', 'devflow migrate requirements --write 換成 requirements/ 一條需求一個檔');
+  for (const [term, rows] of termRows) if (rows.length > 1) warn(`${design.glossaryFile}:${rows[1]}`, `名詞「${term}」出現 ${rows.length} 列，名詞只定義一次`, 'dev-flow:require-design 與開發者講定哪一句是它的定義，留一列');
+  if (design.requirements.merged) warn('system.md', '需求還住在「## 需求」節，看不出每條需求的優先與里程碑', 'devflow migrate requirements --write 換成 requirements/ 一條需求一個檔');
   else if (design.objectivesFile) warn('objectives.md', '里程碑還擠在一份 objectives.md 裡', 'devflow migrate requirements --write 換成 requirements/ 一條需求一個檔');
-  for (const o of design.requirements.orphans || []) warn(o.file, `對到的需求 ${o.requirement} 不存在,它的里程碑沒有算進任何需求`, 'devflow migrate requirements 的帳本會列出它;決定它屬於哪條需求');
-  if (!ov.reqs.length) warn(design.requirements.exists ? 'requirements/' : '.design/', '沒有任何需求', 'dev-flow:require-design 談第一條需求(至少一條)');
-  else if (sys && sys.priorityNoteState !== 'ok') warn('system.md', sys.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'dev-flow:require-design 在「Constraint」寫一行「- 優先:1 = …;2 = …;3 = …;4 = …」');
+  for (const o of design.requirements.orphans || []) warn(o.file, `對到的需求 ${o.requirement} 不存在，它的里程碑沒有算進任何需求`, 'devflow migrate requirements 的帳本會列出它；決定它屬於哪條需求');
+  if (!ov.reqs.length) warn(design.requirements.exists ? 'requirements/' : '.design/', '沒有任何需求', 'dev-flow:require-design 談第一條需求（至少一條）');
+  else if (sys && sys.priorityNoteState !== 'ok') warn('system.md', sys.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'dev-flow:require-design 在「Constraint」寫一行「- 優先：1 = …；2 = …；3 = …；4 = …」');
   const seenM = new Set();
   for (const q of ov.reqs) {
-    if (q.hasRefinementTable && !design.requirements.merged) warn(q.file, '還有調整表;調整就是一條綁既有文檔的里程碑,需求檔只有一張里程碑表', 'devflow migrate requirements --write');
+    if (q.hasRefinementTable && !design.requirements.merged) warn(q.file, '還有調整表；調整就是一條綁既有文檔的里程碑，需求檔只有一張里程碑表', 'devflow migrate requirements --write');
     if (!q.hasFrontmatter) warn(q.file, '沒有 frontmatter', '照 templates/requirement.md 補 id、priority、updated');
-    else if (q.fileId !== q.id) warn(q.file, `檔名與 frontmatter 對不上(frontmatter:${q.id})`, '檔名 R-n-<slug> 的 R-n 要等於 frontmatter 的 id');
+    else if (q.fileId !== q.id) warn(q.file, `檔名與 frontmatter 對不上 (frontmatter:${q.id})`, '檔名 R-n-<slug> 的 R-n 要等於 frontmatter 的 id');
     if (q.placeholder) warn(q.id, '需求還是模板', 'dev-flow:require-design 寫成一句話');
-    if (!q.accept) warn(q.id, '沒有驗收', 'dev-flow:require-design 補一句可判定的話,寫成「- 驗收:…」');
+    if (!q.accept) warn(q.id, '沒有驗收', 'dev-flow:require-design 補一句可判定的話，寫成「- 驗收：…」');
     else if (q.accept.placeholder) warn(q.id, '驗收還是模板', 'dev-flow:require-design 寫成可判定的一句');
-    else if (q.accept.formal && !q.tested) warn(q.id, '驗收寫了三行卻沒有驗收測試,證據不齊,還不能請人審核', `dev-flow:build ${q.id}(只派 qa 寫一條歸屬 "${q.id}#ACCEPT" 的測試);不能自動化就只留一句,證據改由里程碑全部達成承接`);
-    if (!q.priority) warn(q.id, `優先「${q.priorityRaw || '(沒填)'}」不是 1 到 4`, '改成 1(最高)到 4(最低)');
-    if (!q.ms.length) warn(q.id, '沒有任何里程碑', `dev-flow:require-design 切里程碑(devflow requirement milestone ${q.id} <slug> <一句話>)`);
-    if (q.built && q.state === '未達成') warn(q.id, `里程碑全部達成,證據卻不成立(${q.source})`, '驗收沒過:先查驗收測試;里程碑切漏了就 dev-flow:require-design 補一條,做錯的改那份文檔(要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise)');
-    if (q.state === '待重審') warn(q.id, `${q.signoff.date} 已驗收,證據現在翻掉了(${q.evidence})`, `先把紅的修回來,再 devflow requirement accept ${q.id} 重簽一次;人簽過的是當時那份證據,不是永久的`);
-    if (q.state === '待審核' && q.ms.some((m) => !m.verify)) warn(q.id, `等人工審核,${q.ms.filter((m) => !m.verify).map((m) => m.fullName).join('、')} 沒有「怎麼驗」欄,審的人沒有手段可以跑`, '切片收尾時 dev-flow:integrate 會把決策紀錄的 Entry 那道指令寫進怎麼驗欄;現在補:devflow requirement verify <M-n-slug> "<指令>"');
+    else if (q.accept.formal && !q.tested) warn(q.id, '驗收寫了三行卻沒有驗收測試，證據不齊，還不能請人審核', `dev-flow:build ${q.id}（只派 qa 寫一條歸屬 "${q.id}#ACCEPT" 的測試）；不能自動化就只留一句，證據改由里程碑全部達成承接`);
+    if (!q.priority) warn(q.id, `優先「${q.priorityRaw || '（沒填）'}」不是 1 到 4`, '改成 1（最高）到 4（最低）');
+    if (!q.ms.length) warn(q.id, '沒有任何里程碑', `dev-flow:require-design 切里程碑（devflow requirement milestone ${q.id} <slug> <一句話>）`);
+    if (q.built && q.state === '未達成') warn(q.id, `里程碑全部達成，證據卻不成立（${q.source}）`, '驗收沒過：先查驗收測試；里程碑切漏了就 dev-flow:require-design 補一條，做錯的改那份文檔（要調整既有的 law 走 dev-flow:scope-laws，既有的 law 不動走 dev-flow:scope-revise）');
+    if (q.state === '待重審') warn(q.id, `${q.signoff.date} 已驗收，證據現在翻掉了（${q.evidence}）`, `先把紅的修回來，再 devflow requirement accept ${q.id} 重簽一次；人簽過的是當時那份證據，不是永久的`);
+    if (q.state === '待審核' && q.ms.some((m) => !m.verify)) warn(q.id, `等人工審核，${q.ms.filter((m) => !m.verify).map((m) => m.fullName).join('、')} 沒有「怎麼驗」欄，審的人沒有手段可以跑`, '切片收尾時 dev-flow:integrate 會把決策紀錄的 Entry 那道指令寫進怎麼驗欄；現在補：devflow requirement verify <M-n-slug> "<指令>"');
     for (const m of q.ms) {
-      // seenM 以編號比對(編號全資料夾唯一);印給人看的「哪裡」欄一律是全名
-      if (seenM.has(m.id)) warn(m.fullName, '里程碑編號重複', '編號全資料夾唯一;配號只走 devflow requirement milestone');
+      // seenM 以編號比對（編號全資料夾唯一）；印給人看的「哪裡」欄一律是全名
+      if (seenM.has(m.id)) warn(m.fullName, '里程碑編號重複', '編號全資料夾唯一；配號只走 devflow requirement milestone');
       seenM.add(m.id);
       if (m.placeholder) warn(m.fullName, '里程碑還是模板', 'dev-flow:require-design 寫成一句話');
       if (!m.slug && !m.fromRefinement) {
-        if (m.byRevision) warn(m.fullName, '沒有英文名,REV 的依欄寫不出它的全名', `dev-flow:require-design 把第一格寫成 ${m.id}-<slug>(kebab-case 英文);引用一條里程碑一律用全名`);
-        else warn(m.fullName, '沒有英文名,切片開不了分支', `dev-flow:require-design 把第一格寫成 ${m.id}-<slug>(kebab-case 英文);切片的分支 build/${m.id}-<slug> 與決策紀錄以它為鍵`);
+        if (m.byRevision) warn(m.fullName, '沒有英文名，REV 的依欄寫不出它的全名', `dev-flow:require-design 把第一格寫成 ${m.id}-<slug>（kebab-case 英文）；引用一條里程碑一律用全名`);
+        else warn(m.fullName, '沒有英文名，切片開不了分支', `dev-flow:require-design 把第一格寫成 ${m.id}-<slug>（kebab-case 英文）；切片的分支 build/${m.id}-<slug> 與決策紀錄以它為鍵`);
       }
       for (const d of m.docs) {
-        if (!d.x) warn(m.fullName, `綁定的 ${d.name} 不存在`, '改成 features/ 裡有的全名,或刪這個綁定');
-        else if (d.x.p.kind === 'abstract') warn(m.fullName, `綁定的 ${d.name} 不是 feature`, '里程碑綁 features/ 裡的文檔;改綁引用它的那份 feature');
+        if (!d.x) warn(m.fullName, `綁定的 ${d.name} 不存在`, '改成 features/ 裡有的全名，或刪這個綁定');
+        else if (d.x.p.kind === 'abstract') warn(m.fullName, `綁定的 ${d.name} 不是 feature`, '里程碑綁 features/ 裡的文檔；改綁引用它的那份 feature');
       }
     }
   }
-  for (const f of unbound) warn(f, '沒有被任何里程碑綁定', '不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature');
+  for (const f of unbound) warn(f, '沒有被任何里程碑綁定', '不朝向任何需求：dev-flow:require-design 綁進一條里程碑，或刪掉這份 feature');
   for (const v of inv) {
-    if (v.holds === false) warn(v.id, `領域不變量未成立(${v.source})`, '有程式碼違反了它:仲裁那條紅,先歸因到是哪一份 feature 的實作再改');
-    else if (!v.law.formal) warn(v.id, '沒有三行,成立與否未知', 'dev-flow:global-laws 把出處那條 law 的三行照搬過來(識別字只用最內層的匯出與型別名);沒有出處的不立,刪掉這一條');
-    else if (!v.tested) warn(v.id, '沒有測試,成立與否未知', `dev-flow:build ${v.id}(只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試)`);
+    if (v.holds === false) warn(v.id, `領域不變量未成立（${v.source}）`, '有程式碼違反了它：仲裁那條紅，先歸因到是哪一份 feature 的實作再改');
+    else if (!v.law.formal) warn(v.id, '沒有三行，成立與否未知', 'dev-flow:global-laws 把出處那條 law 的三行照搬過來（識別字只用最內層的匯出與型別名）；沒有出處的不立，刪掉這一條');
+    else if (!v.tested) warn(v.id, '沒有測試，成立與否未知', `dev-flow:build ${v.id}（只派 qa 寫一條歸屬 "${v.id}#LAW" 的測試）`);
   }
-  for (const n of [...stale].sort()) warn(`build/${n}`, '已合進主線卻還在', 'dev-flow:integrate 開頭會清掉它;或 git worktree remove <工作樹> 後 git branch -d build/' + n);
+  for (const n of [...stale].sort()) warn(`build/${n}`, '已合進主線卻還在', 'dev-flow:integrate 開頭會清掉它；或 git worktree remove <工作樹> 後 git branch -d build/' + n);
   const gapIds = new Map();
   for (const g of design.gaps.gaps) gapIds.set(g.id, (gapIds.get(g.id) || 0) + 1);
-  for (const [id, n] of gapIds) if (n > 1) warn(id, `gaps.md 裡出現 ${n} 次`, '兩條 build 分支各自配了同一個號;後合進來的往上移(roles.md「整合」)');
+  for (const [id, n] of gapIds) if (n > 1) warn(id, `gaps.md 裡出現 ${n} 次`, '兩條 build 分支各自配了同一個號；後合進來的往上移（roles.md「整合」）');
   for (const x of a.info.values()) {
     const p = x.p;
     if (!p.hasFrontmatter) warn(p.file, '沒有 frontmatter', '照 templates/ 補');
     if (p.status && !STATUSES.includes(p.status)) warn(p.file, `status「${p.status}」不合法`, '改成 draft / ready / verified');
     const t = p.template;
-    if (t.steps || t.laws || t.examples) warn(p.fullName, `還是模板(${[t.steps && `Steps ${t.steps} 列`, t.laws && `Laws ${t.laws} 條`, t.examples && `Examples ${t.examples} 列`].filter(Boolean).join('、')}是佔位符)`, 'dev-flow:scope-laws 談完寫成真的');
+    if (t.steps || t.laws || t.examples) warn(p.fullName, `還是模板（${[t.steps && `Steps ${t.steps} 列`, t.laws && `Laws ${t.laws} 條`, t.examples && `Examples ${t.examples} 列`].filter(Boolean).join('、')}是佔位符）`, 'dev-flow:scope-laws 談完寫成真的');
     if (p.status === 'verified' && [...x.laws, ...x.examples].some((l) => l.result === 'red')) warn(p.fullName, 'verified 而測試紅', '先重開再修');
     if (p.status === 'verified' && p.revs.length && !p.thawed) warn(p.fullName, 'verified 而有 REV 卻沒有重開紀錄', '在「決定」補一條重開');
     if (p.status === 'ready' && x.achieved) warn(p.fullName, '已達成', 'build 收尾改 verified');
     if (listed.length && p.kind === 'feature' && !listed.some((l) => l.fullName === p.fullName)) warn(p.fullName, '不在 system.md 的 Features 表', '補一列');
-    for (const s of x.steps) if (s.state === '不一致') warn(`${p.fullName}#${s.name}`, '簽名與程式碼不一致', 'devflow lint sig 看兩邊;誰對就改另一邊,改文檔走 dev-flow:scope-revise');
+    for (const s of x.steps) if (s.state === '不一致') warn(`${p.fullName}#${s.name}`, '簽名與程式碼不一致', 'devflow lint sig 看兩邊；誰對就改另一邊，改文檔走 dev-flow:scope-revise');
     for (const s of x.steps) if (s.state === '搬家') warn(`${p.fullName}#${s.name}`, `程式碼在 ${s.hit.file}`, 'devflow sync');
-    for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁:先歸因再改');
+    for (const l of [...x.laws, ...x.examples]) if (l.result === 'red') warn(l.key, '測試紅', '仲裁：先歸因再改');
     const orphans = [...x.laws, ...x.examples].filter((l) => l.orphan);
-    if (orphans.length) warn(p.fullName, `測試輸出裡有 ${orphans.length} 條結果(${orphans.map((l) => l.id).join('、')})在這棵樹裡沒有測試承接,不算數`, '測試輸出與這棵樹對不上:重跑整套留檔再跑 status;測試真的不在就 dev-flow:build ' + p.fullName);
+    if (orphans.length) warn(p.fullName, `測試輸出裡有 ${orphans.length} 條結果（${orphans.map((l) => l.id).join('、')}）在這棵樹裡沒有測試承接，不算數`, '測試輸出與這棵樹對不上：重跑整套留檔再跑 status；測試真的不在就 dev-flow:build ' + p.fullName);
   }
   for (const l of listed) {
-    if (!design.docs.some((d) => d.fullName === l.fullName)) warn('system.md', `列了 ${l.fullName},features/ 沒有這個檔`, '刪那一列或 devflow claim');
+    if (!design.docs.some((d) => d.fullName === l.fullName)) warn('system.md', `列了 ${l.fullName}，features/ 沒有這個檔`, '刪那一列或 devflow claim');
   }
-  for (const g of glob) if (g.red) warn(`全域 Law:${g.kind}`, `lint ${g.gate} ${g.red} 條不合規`, `devflow lint ${g.gate}`);
+  for (const g of glob) if (g.red) warn(`全域 Law：${g.kind}`, `lint ${g.gate} ${g.red} 條不合規`, `devflow lint ${g.gate}`);
   return warns;
 }
 
-// 建議路線:steps 是編號的那幾條,一條都沒有時 note 是那一句話
+// 建議路線：steps 是編號的那幾條，一條都沒有時 note 是那一句話
 export function suggestRoutes(design, a, ov, warnCount, building = new Set(), inv = invariantView(design, a)) {
   const steps = [];
-  if (a.openGaps.length) steps.push(`先回答 ${a.openGaps.map((g) => g.id).join('、')}(答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws),卡住的 step 才能重派`);
-  // 只列 build 開得了的線(第 1 段那幾份);等別份的、等前一條里程碑的、程式碼裡缺宣告的都不列,它們在第 2 段
-  for (const x of buildable(a, ov)) steps.push(`dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);
-  // ready 而程式碼裡沒有宣告:build 對帳會停,先把宣告補回來
-  for (const x of a.info.values()) if (x.p.status === 'ready' && !x.achieved && x.missing.length) steps.push(`${missingHint(x)};補上才 dev-flow:build ${x.p.fullName}`);
-  // draft 照需求的優先排;沒有切片的那幾份 scope-laws 開不了工(它的前置要決策紀錄),線是那條里程碑的切片
+  if (a.openGaps.length) steps.push(`先回答 ${a.openGaps.map((g) => g.id).join('、')}（答案要調整既有的 law 走 dev-flow:scope-laws，既有的 law 不動走 dev-flow:scope-revise，問的是全域 Law 走 dev-flow:global-laws），卡住的 step 才能重派`);
+  // 只列 build 開得了的線（第 1 段那幾份）；等別份的、等前一條里程碑的、程式碼裡缺宣告的都不列，它們在第 2 段
+  for (const x of buildable(a, ov)) steps.push(`dev-flow:build ${x.p.fullName}（${lineTag(x, ov)}）`);
+  // ready 而程式碼裡沒有宣告：build 對帳會停，先把宣告補回來
+  for (const x of a.info.values()) if (x.p.status === 'ready' && !x.achieved && x.missing.length) steps.push(`${missingHint(x)}；補上才 dev-flow:build ${x.p.fullName}`);
+  // draft 照需求的優先排；沒有切片的那幾份 scope-laws 開不了工（它的前置要決策紀錄），線是那條里程碑的切片
   const sliceless = slicelessDrafts(a, ov, building, design);
   const slices = sliceLines(ov, building, design, a);
   const onSliceLine = new Set([...slices.openable, ...slices.held, ...slices.inBuild].map((s) => s.m.fullName));
   const drafts = [...a.info.values()].filter((x) => x.p.status === 'draft')
     .sort((x, y) => ov.keyOf(x.p.fullName) - ov.keyOf(y.p.fullName));
   for (const x of drafts) {
-    if (!sliceless.has(x.p.fullName)) { steps.push(`dev-flow:scope-laws ${x.p.fullName}(還是 draft:Law 談完、開發者拍板才改 ready,之後自動接上 build)`); continue; }
+    if (!sliceless.has(x.p.fullName)) { steps.push(`dev-flow:scope-laws ${x.p.fullName}（還是 draft：Law 談完、開發者拍板才改 ready，之後自動接上 build）`); continue; }
     const m = ov.rank.has(x.p.fullName) ? ov.rank.get(x.p.fullName).m : null;
     if (m && onSliceLine.has(m.fullName)) continue;
     steps.push(m
-      ? `dev-flow:spike-impl ${m.fullName}(${x.p.fullName} 還是 draft,而這棵樹沒有它的切片:先做出切片,dev-flow:scope-laws 才開得了工)`
-      : `${x.p.fullName} 還是 draft、沒有切片,也沒有里程碑綁它:dev-flow:require-design 給它一條里程碑再 dev-flow:spike-impl;用不到就 dev-flow:scope-laws ${x.p.fullName} 退役`);
+      ? `dev-flow:spike-impl ${m.fullName}（${x.p.fullName} 還是 draft，而這棵樹沒有它的切片：先做出切片，dev-flow:scope-laws 才開得了工）`
+      : `${x.p.fullName} 還是 draft、沒有切片，也沒有里程碑綁它：dev-flow:require-design 給它一條里程碑再 dev-flow:spike-impl；用不到就 dev-flow:scope-laws ${x.p.fullName} 退役`);
   }
-  // 靠修訂既有的文檔達成、還沒有 REV 引用它的里程碑:每條需求下一條,照需求的優先排
-  for (const s of reviseLines(ov, building).openable) steps.push(`${reviseHint(s.m)}(${s.q.id} 優先 ${s.q.priority || '?'} · ${s.m.fullName} ${s.m.title}),之後自動接上 build`);
-  // 還沒有切片的里程碑:每條需求下一條,照需求的優先排
-  for (const s of slices.openable) steps.push(`dev-flow:spike-impl ${s.m.fullName}(${sliceTag(s)})`);
-  if (slices.held.length) steps.push(`${firstSliceNote(slices.holdKey)}(等著的:${slices.held.map((s) => s.m.fullName).join('、')})`);
-  // 里程碑全部達成、驗收寫了三行卻沒有驗收測試的需求:build 只派 qa 寫那一條
-  for (const q of ov.reqs) if (q.built && q.accept && q.accept.formal && !q.tested) steps.push(`dev-flow:build ${q.id}(里程碑全部達成,只派 qa 寫 ${q.id}#ACCEPT 的驗收測試)`);
-  // 證據齊了的需求:機器到此為止,達成與否只有人判得了
-  for (const q of ov.reqs) if (q.state === '待審核') steps.push(`請開發者親自審核 ${q.id}(${q.evidence};怎麼驗見第 3 段),認可了才 devflow requirement accept ${q.id} --by <email> --evidence "<一句>"`);
-  for (const v of inv) if (v.law.formal && !v.tested) steps.push(`dev-flow:build ${v.id}(只派 qa 寫 ${v.id}#LAW 的測試)`);
+  // 靠修訂既有的文檔達成、還沒有 REV 引用它的里程碑：每條需求下一條，照需求的優先排
+  for (const s of reviseLines(ov, building).openable) steps.push(`${reviseHint(s.m)}（${s.q.id} 優先 ${s.q.priority || '?'} · ${s.m.fullName} ${s.m.title}），之後自動接上 build`);
+  // 還沒有切片的里程碑：每條需求下一條，照需求的優先排
+  for (const s of slices.openable) steps.push(`dev-flow:spike-impl ${s.m.fullName}（${sliceTag(s)}）`);
+  if (slices.held.length) steps.push(`${firstSliceNote(slices.holdKey)}（等著的：${slices.held.map((s) => s.m.fullName).join('、')}）`);
+  // 里程碑全部達成、驗收寫了三行卻沒有驗收測試的需求：build 只派 qa 寫那一條
+  for (const q of ov.reqs) if (q.built && q.accept && q.accept.formal && !q.tested) steps.push(`dev-flow:build ${q.id}（里程碑全部達成，只派 qa 寫 ${q.id}#ACCEPT 的驗收測試）`);
+  // 證據齊了的需求：機器到此為止，達成與否只有人判得了
+  for (const q of ov.reqs) if (q.state === '待審核') steps.push(`請開發者親自審核 ${q.id}（${q.evidence}；怎麼驗見第 3 段），認可了才 devflow requirement accept ${q.id} --by <email> --evidence "<一句>"`);
+  for (const v of inv) if (v.law.formal && !v.tested) steps.push(`dev-flow:build ${v.id}（只派 qa 寫 ${v.id}#LAW 的測試）`);
   const allDone = [...a.info.values()].every((x) => x.achieved) && !a.openGaps.length;
-  const lawsFalse = [...ov.reqs.filter((q) => q.holds !== true).map((q) => `需求 ${q.id} ${q.state}(${q.source})`), ...inv.filter((v) => v.holds !== true).map((v) => `領域不變量 ${v.id} ${holdsWord(v.holds)}(${v.source})`)];
+  const lawsFalse = [...ov.reqs.filter((q) => q.holds !== true).map((q) => `需求 ${q.id} ${q.state}（${q.source}）`), ...inv.filter((v) => v.holds !== true).map((v) => `領域不變量 ${v.id} ${holdsWord(v.holds)}（${v.source}）`)];
   let note = null;
   if (!steps.length) {
     const notDone = [...a.info.values()].filter((x) => !x.achieved);
-    if (!a.info.size) note = `還沒有任何文檔;${ov.reqs.length ? 'dev-flow:require-design 給第一條里程碑一個英文名,再 dev-flow:spike-impl <M-n-slug> 做第一條切片' : '先 dev-flow:require-design 談需求、切里程碑,再 dev-flow:spike-impl <M-n-slug>'}`;
-    else if (allDone && lawsFalse.length) note = `每份文檔達成,但${lawsFalse.join('、')}:先補上,不加新功能`;
-    else if (allDone && !warnCount) note = '目前功能全部正常運作:每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑';
-    else if (allDone) note = `目前功能全部正常運作(每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP);警訊還有 ${warnCount} 條,照第 7 段的怎麼辦欄清,清完加新功能`;
-    else if (notDone.some((x) => x.unknown || x.laws.some((l) => l.result === '未跑'))) note = `沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常`;
-    else note = `沒有可派的線,但 ${notDone.map((x) => x.p.fullName).join('、')} 還沒達成:devflow status --doc <全名> 看哪一列還不在;不加新功能`;
+    if (!a.info.size) note = `還沒有任何文檔；${ov.reqs.length ? 'dev-flow:require-design 給第一條里程碑一個英文名，再 dev-flow:spike-impl <M-n-slug> 做第一條切片' : '先 dev-flow:require-design 談需求、切里程碑，再 dev-flow:spike-impl <M-n-slug>'}`;
+    else if (allDone && lawsFalse.length) note = `每份文檔達成，但${lawsFalse.join('、')}：先補上，不加新功能`;
+    else if (allDone && !warnCount) note = '目前功能全部正常運作：每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事，可以加新功能：dev-flow:require-design 談一條新需求，或替既有的需求加一條里程碑';
+    else if (allDone) note = `目前功能全部正常運作（每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP）；警訊還有 ${warnCount} 條，照第 7 段的怎麼辦欄清，清完加新功能`;
+    else if (notDone.some((x) => x.unknown || x.laws.some((l) => l.result === '未跑'))) note = `沒有可派的線，但 ${notDone.map((x) => x.p.fullName).join('、')} 的 laws 綠幾條未知：先給測試輸出（--tests <log> 或 --run），才知道功能是不是全部正常`;
+    else note = `沒有可派的線，但 ${notDone.map((x) => x.p.fullName).join('、')} 還沒達成：devflow status --doc <全名> 看哪一列還不在；不加新功能`;
   }
   return { steps, note, allDone: allDone && !lawsFalse.length };
 }
 
-// 需求、里程碑、feature、文檔的總數與達成數:報告的第二行與看板的數字同源
+// 需求、里程碑、feature、文檔的總數與達成數：報告的第二行與看板的數字同源
 export function counts(design, a, ov, inv = invariantView(design, a)) {
   const features = design.features.map((f) => f.fullName);
   const milestones = ov.reqs.flatMap((q) => q.ms);
@@ -616,7 +616,7 @@ export function counts(design, a, ov, inv = invariantView(design, a)) {
   };
 }
 
-// root:專案根目錄;是 git repo 的根才從 git tag 推每條需求上線了沒(release.mjs),其餘一律印「-」
+// root：專案根目錄；是 git repo 的根才從 git tag 推每條需求上線了沒 (release.mjs)，其餘一律印「-」
 export function statusReport(design, source, adapter, results, resultNote, building = new Set(), stale = new Set(), phases = new Map(), root = null) {
   const a = analyze(design, source, adapter, results);
   const out = [];
@@ -626,30 +626,30 @@ export function statusReport(design, source, adapter, results, resultNote, build
   const inv = invariantView(design, a);
   const n = counts(design, a, ov, inv);
   const todo = n.todo;
-  const phase = (key) => (phases.has(key) ? `;${phases.get(key)}` : '');
+  const phase = (key) => (phases.has(key) ? `；${phases.get(key)}` : '');
   const sys = design.system;
 
   out.push('# devflow status');
-  if (sys && sys.visionState === 'ok') out.push(`願景:${sys.vision}`);
-  out.push(`需求 ${n.requirements} 條,已驗收 ${n.requirementsHolding} 條 · 等人工審核 ${n.requirementsPending} 條${n.requirementsRecheck ? ` · 待重審 ${n.requirementsRecheck} 條` : ''} · 領域不變量 ${n.invariants} 條,成立 ${n.invariantsHolding} 條 · 里程碑 ${n.milestones} 條,達成 ${n.milestonesAchieved} 條 · feature ${n.features} 份,達成 ${n.featuresAchieved} 份 ${n.abstracts ? `· 不被里程碑綁定的共用文檔 ${n.abstracts} 份 ` : ''}· 文檔共 ${n.docs} 份,達成 ${n.docsAchieved} 份 · 還沒實作的 step ${todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
+  if (sys && sys.visionState === 'ok') out.push(`願景：${sys.vision}`);
+  out.push(`需求 ${n.requirements} 條，已驗收 ${n.requirementsHolding} 條 · 等人工審核 ${n.requirementsPending} 條${n.requirementsRecheck ? ` · 待重審 ${n.requirementsRecheck} 條` : ''} · 領域不變量 ${n.invariants} 條，成立 ${n.invariantsHolding} 條 · 里程碑 ${n.milestones} 條，達成 ${n.milestonesAchieved} 條 · feature ${n.features} 份，達成 ${n.featuresAchieved} 份 ${n.abstracts ? `· 不被里程碑綁定的共用文檔 ${n.abstracts} 份 ` : ''}· 文檔共 ${n.docs} 份，達成 ${n.docsAchieved} 份 · 還沒實作的 step ${todo.length} 個 · 還開著的 GAP ${n.openGaps} 條`);
   out.push(`· ${resultNote}`);
   out.push('');
   out.push('## 需求');
-  if (!sys) out.push('- 沒有 system.md;dev-flow:kickoff 建它');
-  else if (!ov.reqs.length) out.push('- 沒有任何需求;dev-flow:require-design 談第一條');
+  if (!sys) out.push('- 沒有 system.md；dev-flow:kickoff 建它');
+  else if (!ov.reqs.length) out.push('- 沒有任何需求；dev-flow:require-design 談第一條');
   else {
-    if (sys.priorityNoteState === 'ok') out.push(`- 優先:${sys.priorityNote}`);
+    if (sys.priorityNoteState === 'ok') out.push(`- 優先：${sys.priorityNote}`);
     out.push('| 需求 | 優先 | 一句話 | 審核 | 上線 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |', '|---|---|---|---|---|---|---|---|---|');
-    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '(沒填)'} | ${q.title} | ${q.state}(${q.source}) | ${releaseWord(rel, q.id)} | ${q.dependsOn.join('、') || '-'} | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} |`);
+    for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '（沒填）'} | ${q.title} | ${q.state}（${q.source}） | ${releaseWord(rel, q.id)} | ${q.dependsOn.join('、') || '-'} | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} |`);
     for (const q of ov.reqs) {
       const next = q.ms.find((m) => !m.achieved);
-      // 靠修訂達成的那一份:還沒有 REV 引用這條里程碑是「待修訂」,有了就看文檔自己走到哪
+      // 靠修訂達成的那一份：還沒有 REV 引用這條里程碑是「待修訂」，有了就看文檔自己走到哪
       const state = (d) => (!d.x ? '不存在' : !d.cited ? '待修訂' : d.x.achieved ? '達成' : d.x.gaps.length ? `卡 ${d.x.gaps.map((g) => g.id).join('、')}` : d.x.p.status === 'draft' ? '還是 draft' : '進行中');
-      if (next) out.push(`- ${q.id} 下一個里程碑:${next.fullName} ${next.title}${next.docs.length ? `(${next.docs.map((d) => `${d.name} ${state(d)}`).join('、')})` : (next.slug ? `(還沒有切片:dev-flow:spike-impl ${next.fullName})` : '(還沒有切片,也還沒有英文名)')}${next.toRevise.length ? `;待修訂:${reviseHint(next)}` : ''}`);
+      if (next) out.push(`- ${q.id} 下一個里程碑：${next.fullName} ${next.title}${next.docs.length ? `（${next.docs.map((d) => `${d.name} ${state(d)}`).join('、')}）` : (next.slug ? `（還沒有切片：dev-flow:spike-impl ${next.fullName}）` : '（還沒有切片，也還沒有英文名）')}${next.toRevise.length ? `；待修訂：${reviseHint(next)}` : ''}`);
     }
   }
   const unbound = features.filter((f) => !ov.rank.has(f));
-  if (unbound.length) out.push(`- 沒有被任何里程碑綁定的 feature:${unbound.join('、')};它們不朝向任何需求`);
+  if (unbound.length) out.push(`- 沒有被任何里程碑綁定的 feature：${unbound.join('、')}；它們不朝向任何需求`);
   out.push('');
   const glob = globalView(design, a, source, adapter, inv);
   out.push('## 全域 Law');
@@ -659,10 +659,10 @@ export function statusReport(design, source, adapter, results, resultNote, build
     for (const g of glob) out.push(`| ${g.kind} | 全域 Law › ${g.where} | devflow lint ${g.gate} | ${g.result} |`);
   }
   out.push('');
-  if (!inv.length) out.push('- 領域不變量:無');
+  if (!inv.length) out.push('- 領域不變量：無');
   else {
     out.push('| 領域不變量 | 種類 | 一句話 | 成立 |', '|---|---|---|---|');
-    for (const v of inv) out.push(`| ${v.id} | ${v.kind || '-'} | ${v.title} | ${holdsWord(v.holds)}(${v.source}) |`);
+    for (const v of inv) out.push(`| ${v.id} | ${v.kind || '-'} | ${v.title} | ${holdsWord(v.holds)}（${v.source}） |`);
   }
   out.push('');
   out.push('## 文檔');
@@ -675,67 +675,67 @@ export function statusReport(design, source, adapter, results, resultNote, build
   const slices = sliceLines(ov, building, design, a);
   const revisions = reviseLines(ov, building);
   if (!openable.length && !slices.openable.length && !revisions.openable.length && !slices.held.length) out.push('- 無');
-  for (const x of openable) out.push(`- ${x.p.fullName}:dev-flow:build ${x.p.fullName}(${lineTag(x, ov)})`);
-  for (const s of revisions.openable) out.push(`- ${s.m.fullName}:${reviseHint(s.m)}(${sliceTag(s)})`);
-  for (const s of slices.openable) out.push(`- ${s.m.fullName}:dev-flow:spike-impl ${s.m.fullName}(${sliceTag(s)})`);
-  if (slices.held.length) out.push(`- ${firstSliceNote(slices.holdKey)}(等著的:${slices.held.map((s) => s.m.fullName).join('、')})`);
-  for (const x of inBuild) out.push(`- ${x.p.fullName}:建構中,分支 build/${buildKeyOf(x, ov, building)}${phase(buildKeyOf(x, ov, building))};收尾後 dev-flow:integrate`);
-  for (const s of revisions.inBuild) out.push(`- ${s.m.fullName}:建構中,分支 build/${s.key}${phase(s.key)}`);
-  for (const s of slices.inBuild) out.push(`- ${s.m.fullName}:建構中,分支 build/${s.m.fullName}${phase(s.m.fullName)}`);
-  for (const s of shared) out.push(`- ${s.a} 與 ${s.b} 的 step 都住 ${s.files.map((m) => `\`${m}\``).join('、')}:可以同時開,整合時這些檔案兩邊都動`);
+  for (const x of openable) out.push(`- ${x.p.fullName}：dev-flow:build ${x.p.fullName}（${lineTag(x, ov)}）`);
+  for (const s of revisions.openable) out.push(`- ${s.m.fullName}：${reviseHint(s.m)}（${sliceTag(s)}）`);
+  for (const s of slices.openable) out.push(`- ${s.m.fullName}：dev-flow:spike-impl ${s.m.fullName}（${sliceTag(s)}）`);
+  if (slices.held.length) out.push(`- ${firstSliceNote(slices.holdKey)}（等著的：${slices.held.map((s) => s.m.fullName).join('、')}）`);
+  for (const x of inBuild) out.push(`- ${x.p.fullName}：建構中，分支 build/${buildKeyOf(x, ov, building)}${phase(buildKeyOf(x, ov, building))}；收尾後 dev-flow:integrate`);
+  for (const s of revisions.inBuild) out.push(`- ${s.m.fullName}：建構中，分支 build/${s.key}${phase(s.key)}`);
+  for (const s of slices.inBuild) out.push(`- ${s.m.fullName}：建構中，分支 build/${s.m.fullName}${phase(s.m.fullName)}`);
+  for (const s of shared) out.push(`- ${s.a} 與 ${s.b} 的 step 都住 ${s.files.map((m) => `\`${m}\``).join('、')}：可以同時開，整合時這些檔案兩邊都動`);
 
   out.push('', '## 2. 卡住的');
   let stuck = 0;
   for (const x of a.info.values()) {
     for (const g of x.gaps) {
       stuck++;
-      out.push(`- ${g.target} 停在 ${g.id}(${g.role} 提)`);
+      out.push(`- ${g.target} 停在 ${g.id}（${g.role} 提）`);
     }
     for (const r of x.blockedBy) {
       const y = a.info.get(r);
       stuck++;
       const why = y.p.status === 'draft' ? '還是 draft'
         : y.gaps.length ? `卡 ${y.gaps.map((g) => g.id).join('、')}`
-        : buildKeyOf(y, ov, building) ? `建構中,分支 build/${buildKeyOf(y, ov, building)}`
-        : y.unknown || y.laws.some((l) => l.result === '未跑') ? '達成與否未知,給測試輸出'
-        : '未達成,先建它';
-      out.push(`- ${x.p.fullName} 等 ${r}(${why})`);
+        : buildKeyOf(y, ov, building) ? `建構中，分支 build/${buildKeyOf(y, ov, building)}`
+        : y.unknown || y.laws.some((l) => l.result === '未跑') ? '達成與否未知，給測試輸出'
+        : '未達成，先建它';
+      out.push(`- ${x.p.fullName} 等 ${r}（${why}）`);
     }
-    // ready 而程式碼裡缺宣告、或綁在所在需求後面幾條里程碑的:build 不開,列在這裡
+    // ready 而程式碼裡缺宣告、或綁在所在需求後面幾條里程碑的：build 不開，列在這裡
     if (x.p.status === 'ready' && !x.achieved && x.missing.length) {
       stuck++;
       out.push(`- ${missingHint(x)}`);
     }
     if (x.p.status === 'ready' && !x.achieved && x.heldBy) {
       stuck++;
-      out.push(`- ${x.p.fullName} 等 ${x.heldBy.m.fullName}(${x.heldBy.q.id} 的里程碑照順序走,${x.heldBy.own.fullName} 排在它後面)`);
+      out.push(`- ${x.p.fullName} 等 ${x.heldBy.m.fullName}（${x.heldBy.q.id} 的里程碑照順序走，${x.heldBy.own.fullName} 排在它後面）`);
     }
   }
   if (!stuck) out.push('- 無');
 
   out.push('', '## 3. 等決定');
   let deciding = 0;
-  // 證據齊了的需求:機器判不了它達成,把證據與驗收手段攤出來請人親自審核
+  // 證據齊了的需求：機器判不了它達成，把證據與驗收手段攤出來請人親自審核
   for (const q of ov.reqs.filter((x) => x.state === '待審核' || x.state === '待重審')) {
     deciding++;
-    out.push(`- ${q.id} ${q.state}:${q.title}`);
-    out.push(`  - 驗收那一句:${q.accept ? q.accept.title : '(沒有驗收)'}`);
-    out.push(`  - 證據:${q.evidence || '無'}`);
-    out.push(`  - 怎麼驗:${verifySteps(design, q).join(' → ')}`);
-    out.push(`  - 認可:devflow requirement accept ${q.id} --by <你的 email> --evidence "<憑什麼認的,一句>"`);
+    out.push(`- ${q.id} ${q.state}：${q.title}`);
+    out.push(`  - 驗收那一句：${q.accept ? q.accept.title : '（沒有驗收）'}`);
+    out.push(`  - 證據：${q.evidence || '無'}`);
+    out.push(`  - 怎麼驗：${verifySteps(design, q).join(' → ')}`);
+    out.push(`  - 認可：devflow requirement accept ${q.id} --by <你的 email> --evidence "<憑什麼認的，一句>"`);
   }
-  // 已驗收而還沒上線:人認了,使用者還沒拿到;要不要、什麼時候發布是人的決定
+  // 已驗收而還沒上線：人認了，使用者還沒拿到；要不要、什麼時候發布是人的決定
   if (rel) for (const q of ov.reqs.filter((x) => x.state === SIGNED && rel.get(x.id).pending.length)) {
     deciding++;
-    out.push(`- ${q.id} 已驗收而還沒上線:${pendingText(rel.get(q.id))};要不要發布由開發者決定,發布是打一個${rel.pattern ? `符合 \`${rel.pattern}\` 的` : ''} tag(devflow release 列每個發布帶上線的需求)`);
+    out.push(`- ${q.id} 已驗收而還沒上線：${pendingText(rel.get(q.id))}；要不要發布由開發者決定，發布是打一個${rel.pattern ? `符合 \`${rel.pattern}\` 的` : ''} tag（devflow release 列每個發布帶上線的需求）`);
   }
   for (const g of a.openGaps) {
     deciding++;
-    out.push(`- ${g.id}(${g.target} / ${g.role}):答案要調整既有的 law 走 dev-flow:scope-laws,既有的 law 不動走 dev-flow:scope-revise,問的是全域 Law 走 dev-flow:global-laws`);
+    out.push(`- ${g.id}(${g.target} / ${g.role})：答案要調整既有的 law 走 dev-flow:scope-laws，既有的 law 不動走 dev-flow:scope-revise，問的是全域 Law 走 dev-flow:global-laws`);
   }
   for (const x of a.info.values()) if (x.p.status === 'draft') {
     deciding++;
-    out.push(`- ${x.p.fullName} 還是 draft:dev-flow:scope-laws 談完 Law、開發者拍板才改 ready`);
+    out.push(`- ${x.p.fullName} 還是 draft：dev-flow:scope-laws 談完 Law、開發者拍板才改 ready`);
   }
   if (!deciding) out.push('- 無');
 
@@ -747,21 +747,21 @@ export function statusReport(design, source, adapter, results, resultNote, build
   }
   if (!touched) out.push('- 無');
 
-  out.push('', '## 5. 待實作(按檔案)');
+  out.push('', '## 5. 待實作（按檔案）');
   const byModule = new Map();
   for (const s of todo) {
     if (!byModule.has(s.module)) byModule.set(s.module, []);
     byModule.get(s.module).push(s);
   }
   if (!byModule.size) out.push('- 無');
-  for (const [m, list] of [...byModule].sort()) out.push(`- ${m}:${list.map((s) => `${s.doc}#${s.name}${s.hit && s.hit.stub ? '(未實作)' : s.observe ? '(觀察點)' : ''}`).join('、')}`);
+  for (const [m, list] of [...byModule].sort()) out.push(`- ${m}：${list.map((s) => `${s.doc}#${s.name}${s.hit && s.hit.stub ? '（未實作）' : s.observe ? '（觀察點）' : ''}`).join('、')}`);
 
   out.push('', '## 6. 修訂熱點');
   const hot = [...a.info.values()].filter((x) => x.p.revs.length).sort((x, y) => y.p.revs.length - x.p.revs.length).slice(0, 3);
-  if (!hot.length) out.push('- 無(還沒有任何 REV)');
-  for (const x of hot) out.push(`- ${x.p.fullName}:REV ${x.p.revs.length} 條,最後一條「${(x.p.lastRev || '').slice(0, 60)}」`);
+  if (!hot.length) out.push('- 無（還沒有任何 REV）');
+  for (const x of hot) out.push(`- ${x.p.fullName}：REV ${x.p.revs.length} 條，最後一條「${(x.p.lastRev || '').slice(0, 60)}」`);
   const wide = [...a.info.values()].filter((x) => x.referrers.length >= 2).sort((x, y) => y.referrers.length - x.referrers.length).slice(0, 3);
-  for (const x of wide) out.push(`- ${x.p.fullName}:${x.referrers.length} 份文檔引用它,改它要一起 REV`);
+  for (const x of wide) out.push(`- ${x.p.fullName}：${x.referrers.length} 份文檔引用它，改它要一起 REV`);
 
   out.push('', '## 7. 警訊');
   const warns = warnings(design, a, ov, source, adapter, stale, inv, glob);
@@ -792,13 +792,13 @@ export function docDetail(design, source, adapter, results, resultNote, name) {
   if (!x.gaps.length) out.push('- 無');
   for (const g of x.gaps) out.push(`- ${g.id}(${g.target} / ${g.role})`);
   out.push('', '## 引用');
-  out.push(`- 引用了:${x.refs.length ? x.refs.join('、') : '無'}`);
-  out.push(`- 被引用:${x.referrers.length ? x.referrers.join('、') : '無'}`);
+  out.push(`- 引用了：${x.refs.length ? x.refs.join('、') : '無'}`);
+  out.push(`- 被引用：${x.referrers.length ? x.referrers.join('、') : '無'}`);
   out.push('', '## 修訂');
   if (!x.p.revs.length) out.push('- 無');
   for (const rv of x.p.revs) out.push(`- ${rv.text}`);
-  const obs = x.obsTotal ? ` · 觀察點 ${x.obsTotal} 個,程式碼裡有 ${x.obsOk} 個` : '';
-  out.push('', `文檔寫了 ${x.sigTotal} 條簽名,程式碼裡有 ${x.sigOk} 條,未實作的 ${x.stubCount} 條${obs} · 寫了 ${x.laws.length} 條 law,通過 ${x.unknown ? 'nan' : x.laws.filter((l) => l.result === 'green').length} 條 · ${x.achieved ? '達成' : '未達成'}`);
+  const obs = x.obsTotal ? ` · 觀察點 ${x.obsTotal} 個，程式碼裡有 ${x.obsOk} 個` : '';
+  out.push('', `文檔寫了 ${x.sigTotal} 條簽名，程式碼裡有 ${x.sigOk} 條，未實作的 ${x.stubCount} 條${obs} · 寫了 ${x.laws.length} 條 law，通過 ${x.unknown ? 'nan' : x.laws.filter((l) => l.result === 'green').length} 條 · ${x.achieved ? '達成' : '未達成'}`);
   return { text: out.join('\n'), exitCode: 0 };
 }
 
@@ -815,7 +815,7 @@ export function moduleDetail(design, source, adapter, results, resultNote, patte
       n++;
       const lawsOn = x.laws.filter((l) => l.conclusion && new RegExp(`(?<![\\w.])${s.name.replace(/\./g, '\\.')}(?![\\w])`).test(l.conclusion));
       const g = lawsOn.filter((l) => l.result === 'green').length;
-      out.push(`- ${x.p.fullName}#${s.name}  ${s.state}  掛在上面的 law ${lawsOn.length} 條,通過 ${x.unknown ? 'nan' : g} 條`);
+      out.push(`- ${x.p.fullName}#${s.name}  ${s.state}  掛在上面的 law ${lawsOn.length} 條，通過 ${x.unknown ? 'nan' : g} 條`);
     }
   }
   if (!n) out.push('- 沒有任何文檔的 step 住在這裡');

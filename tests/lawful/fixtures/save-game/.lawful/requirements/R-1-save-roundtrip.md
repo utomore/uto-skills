@@ -3,9 +3,9 @@ id: R-1
 priority: 1
 updated: 2026-09-05
 ---
-# R-1-save-roundtrip:玩家存檔後能讀回同一個世界
+# R-1-save-roundtrip：玩家存檔後能讀回同一個世界
 
-- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
+- 驗收：任一 World 存檔再讀回，可存檔的投影一模一樣
   - forall w in World
   - |- decode (saveBytes w) == Right (toSave w)
 

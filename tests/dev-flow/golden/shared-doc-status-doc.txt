@@ -1,7 +1,7 @@
 $ devflow status --doc A-001-title
 # A-001-title  abstract  ready
 一段文字正規化成一個標題
-· 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
+· 沒給測試輸出（--tests <log> 或 --run），幾條 law 通過測試未知
 
 ## Steps
 - o  titleText(Title): string  src/domain/title.ts/domain  在
@@ -15,11 +15,11 @@ $ devflow status --doc A-001-title
 - 無
 
 ## 引用
-- 引用了:無
-- 被引用:F-001-create、F-002-rename
+- 引用了：無
+- 被引用：F-001-create、F-002-rename
 
 ## 修訂
 - 無
 
-文檔寫了 1 條簽名,程式碼裡有 1 條,未實作的 0 條 · 觀察點 1 個,程式碼裡有 1 個 · 寫了 1 條 law,通過 0 條 · 未達成
+文檔寫了 1 條簽名，程式碼裡有 1 條，未實作的 0 條 · 觀察點 1 個，程式碼裡有 1 個 · 寫了 1 條 law，通過 0 條 · 未達成
 exit 0

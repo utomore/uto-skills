@@ -1,5 +1,5 @@
 $ devflow lint global
-## lint boundary:通過
-## lint io:通過
-## lint invariants:通過
+## lint boundary：通過
+## lint io：通過
+## lint invariants：通過
 exit 0

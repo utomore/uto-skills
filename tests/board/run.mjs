@@ -1,6 +1,6 @@
-// 看板的頁面在真的 Chrome 裡跑一遍:產出看板 → headless 開起來 → 送真的滑鼠事件 → 讀回頁面狀態。
-// 兩個 plugin 共用同一份 status-board.html,所以兩邊各拿一個夾具跑,證明它在兩邊的資料上都成立。
-// 靠 Node 內建的 WebSocket 直接講 CDP,不裝任何套件;要用哪個 Chrome 可以用 CHROME_PATH 指定。
+// 看板的頁面在真的 Chrome 裡跑一遍：產出看板 → headless 開起來 → 送真的滑鼠事件 → 讀回頁面狀態。
+// 兩個 plugin 共用同一份 status-board.html，所以兩邊各拿一個夾具跑，證明它在兩邊的資料上都成立。
+// 靠 Node 內建的 WebSocket 直接講 CDP，不裝任何套件；要用哪個 Chrome 可以用 CHROME_PATH 指定。
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -16,7 +16,7 @@ const BOARDS = [
     expect: { nodes: ['R-1', 'R-2'], edges: ['R-2>R-1'] } },   // R-1 的 P-001-cli-run 見 R-2 的 P-002-syntax-parse:R-2 在左,R-1 在右(高優先依賴低優先,邊是紅的)
   { name: 'dev-flow', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'fullstack'],
     expect: { nodes: ['R-1', 'R-2', 'R-3'], edges: ['R-1>R-3'] } },   // R-3 的 F-002-refund 見 R-1 的 F-001-checkout:R-1 在左,R-3 在右;R-2 誰也不靠
-  // 對外 I/O 表的契約欄有寫 law 的夾具:約束頁籤的弧線在這兩棵樹上才畫得出來
+  // 對外 I/O 表的契約欄有寫 law 的夾具：約束頁籤的弧線在這兩棵樹上才畫得出來
   { name: 'dev-flow(shop)', bin: ['plugins', 'dev-flow', 'bin', 'devflow.mjs'], root: ['tests', 'dev-flow', 'fixtures', 'shop'], cites: true },
   { name: 'lawful(save-game)', bin: ['plugins', 'lawful', 'bin', 'lawful.mjs'], root: ['tests', 'lawful', 'fixtures', 'save-game'], cites: true },
 ];
@@ -122,7 +122,7 @@ async function launch(chrome) {
   };
 }
 
-// 一個分頁,連著一份看板
+// 一個分頁，連著一份看板
 async function openPage(browser, fileUrl) {
   const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank' });
   const { sessionId } = await browser.send('Target.attachToTarget', { targetId, flatten: true });
@@ -151,7 +151,7 @@ async function openPage(browser, fileUrl) {
       await mouse('mouseReleased', x, y);
       await sleep(40);
     },
-    // 回傳拖曳當中的 will-change:手在動的時候要交給合成器
+    // 回傳拖曳當中的 will-change：手在動的時候要交給合成器
     async drag(x, y, dx, dy) {
       await mouse('mousePressed', x, y);
       for (let i = 1; i <= 4; i += 1) await mouse('mouseMoved', x + (dx * i) / 4, y + (dy * i) / 4);
@@ -164,7 +164,7 @@ async function openPage(browser, fileUrl) {
   };
 }
 
-// 拿一張有引用出去的便利貼;沒有的話拿第一張。樹往下長,那一張不在畫面裡就先縮成全景,滑鼠才點得到
+// 拿一張有引用出去的便利貼；沒有的話拿第一張。樹往下長，那一張不在畫面裡就先縮成全景，滑鼠才點得到
 const PICK = `(() => {
   const want = D.docs.find((d) => d.refs.length && noteEls.has(d.name)) || D.docs.find((d) => noteEls.has(d.name));
   const el = noteEls.get(want.name);
@@ -183,12 +183,12 @@ const STATE = `(() => ({
   tx: Math.round(tx),
 }))()`;
 
-// 模組段:有 D.modules 的工具才出現,一個模組單元一列,列裡的 pipeline 連結點得進去
+// 模組段：有 D.modules 的工具才出現，一個模組單元一列，列裡的 pipeline 連結點得進去
 const MODULES = `(() => {
   const sec = document.getElementById('modules-section');
   const rows = [...document.querySelectorAll('#modules .unit')];
   const link = document.querySelector('#modules .unit a[data-go]');
-  // 側欄比視窗長的時候模組段在畫面外:先捲到看得到,量到的座標才點得到它
+  // 側欄比視窗長的時候模組段在畫面外：先捲到看得到，量到的座標才點得到它
   if (link) link.scrollIntoView({ block: 'center', behavior: 'instant' });
   const r = link && link.getBoundingClientRect();
   return {
@@ -201,7 +201,7 @@ const MODULES = `(() => {
   };
 })()`;
 
-// 相依頁籤的狀態:兩頁哪一頁在畫面上、卡與邊的數目、有沒有方向反了或接到沒畫的卡的邊
+// 相依頁籤的狀態：兩頁哪一頁在畫面上、卡與邊的數目、有沒有方向反了或接到沒畫的卡的邊
 const DAG = `(() => {
   const vis = (el) => !el.hidden && getComputedStyle(el).display !== 'none';
   const left = (id) => { const el = dagNodeEls.get(id); return el ? parseFloat(el.style.left) : null; };
@@ -213,7 +213,7 @@ const DAG = `(() => {
   }
   const kinds = [...dagGraph.nodes.values()].map((n) => n.kind);
   const shared = kinds.filter((k) => k === 'shared').length;
-  // 底下有里程碑、卻不是任何一條需求的區塊(里程碑對不到需求)也自成一張卡
+  // 底下有里程碑、卻不是任何一條需求的區塊（里程碑對不到需求）也自成一張卡
   const stray = D.bands.filter((b) => !['loose', 'shared', 'empty'].includes(b.id) && !D.requirements.some((q) => q.id === b.id)).length;
   const first = [...dagNodeEls.entries()].map(([id, el]) => ({ id, el, degree: dagGraph.nodes.get(id).deps.length + dagGraph.nodes.get(id).dependents.length }))
     .sort((p, q) => q.degree - p.degree)[0];
@@ -231,8 +231,8 @@ const DAG = `(() => {
   };
 })()`;
 
-// 約束頁籤的狀態:三頁哪一頁在畫面上、每一種卡的數目對不對得上資料、契約欄的弧線有沒有接到沒畫的卡。
-// 順手挑一張卡給滑鼠點(有弧線的優先)並把畫面挪到它那裡
+// 約束頁籤的狀態：三頁哪一頁在畫面上、每一種卡的數目對不對得上資料、契約欄的弧線有沒有接到沒畫的卡。
+// 順手挑一張卡給滑鼠點（有弧線的優先）並把畫面挪到它那裡
 const LAWS = `(() => {
   const vis = (el) => !el.hidden && getComputedStyle(el).display !== 'none';
   const G = D.globalLaws;
@@ -264,7 +264,7 @@ const LAWS = `(() => {
 async function run(page, label, expect, cites) {
   const pick = await page.evaluate(PICK);
 
-  // 點便利貼:側欄換成那一份、頭上那一串亮起來、它的引用線亮起來
+  // 點便利貼：側欄換成那一份、頭上那一串亮起來、它的引用線亮起來
   await page.click(pick.x, pick.y);
   const picked = await page.evaluate(STATE);
   check(`${label}:點便利貼會選到它`, picked.selected === pick.name,
@@ -275,12 +275,12 @@ async function run(page, label, expect, cites) {
   check(`${label}:選取的便利貼引用線會亮`, picked.litRefs === pick.refs,
     `亮起來的引用線 ${picked.litRefs} 條,這一份引用了 ${pick.refs} 份`);
 
-  // 再點一次同一張:取消選取,側欄回派工
+  // 再點一次同一張：取消選取，側欄回派工
   await page.click(pick.x, pick.y);
   const again = await page.evaluate(STATE);
   check(`${label}:再點一次同一張會取消選取`, again.selected === null && again.homeOpen);
 
-  // 從便利貼上拖曳:平移畫布,不算點到
+  // 從便利貼上拖曳：平移畫布，不算點到
   const before = await page.evaluate('Math.round(tx)');
   const midway = await page.drag(pick.x, pick.y, 140, 90);
   const dragged = await page.evaluate(STATE);
@@ -291,8 +291,8 @@ async function run(page, label, expect, cites) {
   const atRest = await page.evaluate('getComputedStyle(world).willChange');
   check(`${label}:手一停就交還,字才會重畫成清的`, atRest === 'auto', `靜止時的 will-change 是 ${atRest}`);
 
-  // 模組段:一個模組單元一列,層是它在原始碼樹裡的落點;沒有模組資料的工具整段不出現
-  // 拖曳之後的第一下點擊被頁面當成拖曳的尾巴吃掉:先點掉它。畫布挪過了,那一點底下是哪張便利貼看夾具的版面,所以不靠再點一次取消,直接回派工那一頁,模組段才在畫面上
+  // 模組段：一個模組單元一列，層是它在原始碼樹裡的落點；沒有模組資料的工具整段不出現
+  // 拖曳之後的第一下點擊被頁面當成拖曳的尾巴吃掉：先點掉它。畫布挪過了，那一點底下是哪張便利貼看夾具的版面，所以不靠再點一次取消，直接回派工那一頁，模組段才在畫面上
   await page.click(pick.x, pick.y);
   await page.evaluate('select(null)');
   const mods = await page.evaluate(MODULES);
@@ -310,7 +310,7 @@ async function run(page, label, expect, cites) {
     }
   }
 
-  // 樹只有四層:願景 → 需求的區塊 → 里程碑 → 便利貼;一個區塊一張卡、一欄一張卡,優先與里程碑完成度寫在需求的區塊上
+  // 樹只有四層：願景 → 需求的區塊 → 里程碑 → 便利貼；一個區塊一張卡、一欄一張卡，優先與里程碑完成度寫在需求的區塊上
   const shape = await page.evaluate(`(() => {
     const bad = [];
     const bands = [...document.querySelectorAll('.band')];
@@ -328,18 +328,18 @@ async function run(page, label, expect, cites) {
   })()`);
   check(`${label}:樹是願景、需求的區塊、里程碑、便利貼四層`, shape.length === 0, shape.join(' · '));
 
-  // 靠修訂既有的文檔達成、還沒有 REV 引用它的里程碑:它那一欄的卡片標題帶「(待修訂)」;資料裡沒有 refinements
+  // 靠修訂既有的文檔達成、還沒有 REV 引用它的里程碑：它那一欄的卡片標題帶「（待修訂）」；資料裡沒有 refinements
   const pending = await page.evaluate(`(() => {
     const groups = [...document.querySelectorAll('.group')].map((g) => g.textContent);
     const waiting = D.requirements.flatMap((q) => q.milestones.filter((m) => m.state === '待修訂'));
-    return { waiting: waiting.map((m) => m.name), unmarked: waiting.filter((m) => !groups.some((t) => t.includes(m.name + ' ' + m.title + '(待修訂)'))).map((m) => m.name),
+    return { waiting: waiting.map((m) => m.name), unmarked: waiting.filter((m) => !groups.some((t) => t.includes(m.name + ' ' + m.title + '（待修訂）'))).map((m) => m.name),
       stateless: D.requirements.flatMap((q) => q.milestones.filter((m) => !['達成', '待修訂', '進行中'].includes(m.state) || typeof m.byRevision !== 'boolean')).map((m) => m.name),
       refinements: D.requirements.some((q) => 'refinements' in q) || 'refinements' in D.summary };
   })()`);
   check(`${label}:待修訂的里程碑在它那一欄的卡片上標出來`, pending.unmarked.length === 0, `沒標的 ${pending.unmarked.join('、')}`);
   check(`${label}:每條里程碑帶狀態字與是不是靠修訂達成,資料裡只有里程碑`, pending.stateless.length === 0 && !pending.refinements, JSON.stringify(pending));
 
-  // 版面:每張卡片都比它自己的父卡片更右(里程碑直接掛在需求的區塊底下)
+  // 版面：每張卡片都比它自己的父卡片更右（里程碑直接掛在需求的區塊底下）
   const askew = await page.evaluate(`(() => {
     const at = (el) => parseFloat(el.style.left);
     const one = (sel) => document.querySelector(sel);
@@ -359,7 +359,7 @@ async function run(page, label, expect, cites) {
   })()`);
   check(`${label}:每張卡片都比它的父卡片更右`, askew.length === 0, askew.join(' · '));
 
-  // 骨架線一條最長只走一格縮排:沒有橫貫整張圖的橫幹
+  // 骨架線一條最長只走一格縮排：沒有橫貫整張圖的橫幹
   const widest = await page.evaluate(`(() => {
     let worst = 0;
     for (const p of document.querySelectorAll('#links .tree')) {
@@ -370,7 +370,7 @@ async function run(page, label, expect, cites) {
   })()`);
   check(`${label}:骨架線沒有橫貫整張圖的橫幹`, widest <= 40, `最長的一條橫線 ${widest}px`);
 
-  // 相依頁籤:需求排成先後,每條邊的依賴在左、依賴它的在右;點卡片側欄換成它依賴誰、誰等它
+  // 相依頁籤：需求排成先後，每條邊的依賴在左、依賴它的在右；點卡片側欄換成它依賴誰、誰等它
   const tab = await page.evaluate(`(() => { const r = document.querySelector('.bar button[data-view="dag"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
   await page.click(tab.x, tab.y);
   const dag = await page.evaluate(DAG);
@@ -393,7 +393,7 @@ async function run(page, label, expect, cites) {
       const q = D.requirements.find((r) => r.id === dagSelected);
       const text = docEl.textContent;
       return { dagSelected, docOpen: !docEl.hidden, lit: document.querySelectorAll('#links2 .dep.lit').length, rows: docEl.querySelectorAll('section').length,
-        missing: q ? q.milestones.filter((m) => !text.includes(m.name + ' ' + m.title + (m.state === '待修訂' ? '(待修訂)' : ''))).map((m) => m.name) : [] };
+        missing: q ? q.milestones.filter((m) => !text.includes(m.name + ' ' + m.title + (m.state === '待修訂' ? '（待修訂）' : ''))).map((m) => m.name) : [] };
     })()`);
     check(`${label}:點相依圖的卡會選到它`, sel.dagSelected === dag.first.id && sel.docOpen, JSON.stringify(sel));
     check(`${label}:選了卡它的邊會亮`, sel.lit === dag.first.degree, `亮了 ${sel.lit} 條,這張卡有 ${dag.first.degree} 條邊`);
@@ -402,13 +402,13 @@ async function run(page, label, expect, cites) {
     const un = await page.evaluate('({ dagSelected, homeOpen: !homeEl.hidden })');
     check(`${label}:再點一次會取消選取`, un.dagSelected === null && un.homeOpen);
   }
-  // 切回樹:便利貼回來,相依圖收起來
+  // 切回樹：便利貼回來，相依圖收起來
   const treeTab = await page.evaluate(`(() => { const r = document.querySelector('.bar button[data-view="tree"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
   await page.click(treeTab.x, treeTab.y);
   const back = await page.evaluate(DAG);
   check(`${label}:切回樹那一頁便利貼回來`, !back.on && back.treeShown && !back.dagShown && back.filterShown, JSON.stringify(back));
 
-  // 約束頁籤:law 全部攤開,一條一張卡。上半全域 Law 三類各一叢,下半一份一叢;對外 I/O 的契約欄畫成指到那條 law 的弧線
+  // 約束頁籤：law 全部攤開，一條一張卡。上半全域 Law 三類各一叢，下半一份一叢；對外 I/O 的契約欄畫成指到那條 law 的弧線
   const tabAt = (view) => page.evaluate(`(() => { const r = document.querySelector('.bar button[data-view="${view}"]').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);
   const lawsTab = await tabAt('laws');
   await page.click(lawsTab.x, lawsTab.y);
@@ -433,7 +433,7 @@ async function run(page, label, expect, cites) {
     check(`${label}:約束頁再點一次會取消選取`, un.lawSelected === null && un.homeOpen);
   }
 
-  // 從樹那一頁的細節面板點一條 law:跳到約束頁並選到它
+  // 從樹那一頁的細節面板點一條 law：跳到約束頁並選到它
   const treeTab2 = await tabAt('tree');
   await page.click(treeTab2.x, treeTab2.y);
   const link = await page.evaluate(`(() => {

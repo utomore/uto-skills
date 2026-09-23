@@ -1,12 +1,12 @@
 $ devflow brief qa F-001-span --no-rules
-brief qa F-001-span @doc:21907402 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief qa F-001-span @doc:19bd5cee rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
-# 目標文檔:.design/features/F-001-span.md
+# 目標文檔：.design/features/F-001-span.md
 
 ````markdown
 ---
@@ -15,26 +15,26 @@ description: 把一行輸入解析成區間並合併出寬度
 status: ready
 updated: 2026-09-07
 ---
-# F-001-span:把一行輸入解析成區間並合併出寬度
+# F-001-span：把一行輸入解析成區間並合併出寬度
 
 ## Brief
-把一行 `start,end` 解析成區間,合併之後回報寬度。
-input 是 stdin 的一行,output 是寬度字串。流向:建構 → 合併 → 取寬度。
+把一行 `start,end` 解析成區間，合併之後回報寬度。
+input 是 stdin 的一行，output 是寬度字串。流向：建構 → 合併 → 取寬度。
 
 ## Steps
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `make(u32, u32): Result<Span, SpanError>` | 建構區間,顛倒或空的就是錯誤 | `src/core/span.rs` | core |
+| 1 | `make(u32, u32): Result<Span, SpanError>` | 建構區間，顛倒或空的就是錯誤 | `src/core/span.rs` | core |
 | 2 | `merge(Span, Span): Span` | 合併兩個區間 | `src/core/span.rs` | core |
-| o | `Span.contains(u32): bool` | 觀察:某個點在不在區間內 | `src/core/span.rs` | core |
-| = | `width(Span): u32` | 整條:合併之後的寬度 | `src/core/span.rs` | core |
-| ! | `run(&str): String` | 進入點:接到 stdin 的一行 | `src/bin/cli.rs` | entry |
+| o | `Span.contains(u32): bool` | 觀察：某個點在不在區間內 | `src/core/span.rs` | core |
+| = | `width(Span): u32` | 整條：合併之後的寬度 | `src/core/span.rs` | core |
+| ! | `run(&str): String` | 進入點：接到 stdin 的一行 | `src/bin/cli.rs` | entry |
 
 ## Laws
 - LAW-1 [bound] 合併之後的寬度不小於任一邊
   - forall a in Span, b in Span
   - |- width(merge(a, b)) >= width(a)
-- LAW-2 [total] 任何一組數字都得到 Result,不 panic
+- LAW-2 [total] 任何一組數字都得到 Result，不 panic
   - forall s in u32, e in u32
   - |- total(make(s, e))
 
@@ -50,7 +50,7 @@ input 是 stdin 的一行,output 是寬度字串。流向:建構 → 合併 → 
 無
 ````
 
-# 逐條狀態(文檔對程式碼;沒有給測試輸出,law 的紅綠不在這裡)
+# 逐條狀態（文檔對程式碼；沒有給測試輸出，law 的紅綠不在這裡）
 
 ### Steps
 - 1  make(u32, u32): Result<Span, SpanError>  src/core/span.rs/core  在
@@ -61,24 +61,24 @@ input 是 stdin 的一行,output 是寬度字串。流向:建構 → 合併 → 
 
 ### Laws
 - LAW-1 [bound] 合併之後的寬度不小於任一邊  未跑
-- LAW-2 [total] 任何一組數字都得到 Result,不 panic  未跑
+- LAW-2 [total] 任何一組數字都得到 Result，不 panic  未跑
 - EX-1 覆蓋 LAW-1  未跑
 
 ### GAP
 - 無
 
 ### 引用
-- 引用了:無
-- 被引用:無
+- 引用了：無
+- 被引用：無
 
 ### 修訂
 - 無
 
-文檔寫了 4 條簽名,程式碼裡有 4 條,未實作的 0 條 · 觀察點 1 個,程式碼裡有 1 個 · 寫了 2 條 law,通過 nan 條 · 未達成
+文檔寫了 4 條簽名，程式碼裡有 4 條，未實作的 0 條 · 觀察點 1 個，程式碼裡有 1 個 · 寫了 2 條 law，通過 nan 條 · 未達成
 
 # 宣告
 
-只有宣告,沒有本體:測試從這裡與文檔寫,不打開這些檔的本體。
+只有宣告，沒有本體：測試從這裡與文檔寫，不打開這些檔的本體。
 
 ### 1 `make`  src/core/span.rs:13
 ```rust
@@ -123,12 +123,12 @@ pub enum SpanError {
 
 # 最內層(core)
 
-### src/core/mod.rs(2 行,全文)
+### src/core/mod.rs（2 行，全文）
 ```rust
 pub mod span;
 ```
 
-### src/core/span.rs(68 行,全文)
+### src/core/span.rs（68 行，全文）
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Span {
@@ -201,18 +201,18 @@ mod tests {
 
 # system.md「Constraint」
 
-- 建置:`cargo build`
-- 測試(整套):`cargo test`
-- 測試(子集):`cargo test span`
-- IO 模組追加:無
-- Laws 詞彙追加:無
-- 忽略目錄:無
-- 優先:1 = 合併正確;2 = 進入點;3 = 呈現;4 = 工具
+- 建置：`cargo build`
+- 測試（整套）：`cargo test`
+- 測試（子集）：`cargo test span`
+- IO 模組追加：無
+- Laws 詞彙追加：無
+- 忽略目錄：無
+- 優先：1 = 合併正確；2 = 進入點；3 = 呈現；4 = 工具
 
 # 測試怎麼寫
 
-- 子集測試指令:cargo test span
-- 歸屬寫法:識別字,f_001__law_1、f_001__ex_1
+- 子集測試指令：cargo test span
+- 歸屬寫法：識別字，f_001__law_1、f_001__ex_1
 - 測試檔以 F-001-span 命名
-- 現有的測試檔:(還沒有)
+- 現有的測試檔：（還沒有）
 exit 0

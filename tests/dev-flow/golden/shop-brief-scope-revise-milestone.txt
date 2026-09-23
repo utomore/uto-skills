@@ -1,12 +1,12 @@
 $ devflow brief scope-revise M-2-refund --no-rules
-brief scope-revise M-2-refund @doc:18ead6a2 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief scope-revise M-2-refund @doc:53c3bcdf rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
 # 目標
 
-M-2-refund 不是 dev-flow:scope-revise 收的目標;它收的是一份文檔的全名。停下,回報。
+M-2-refund 不是 dev-flow:scope-revise 收的目標；它收的是一份文檔的全名。停下，回報。
 exit 0

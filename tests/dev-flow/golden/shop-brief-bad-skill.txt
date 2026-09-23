@@ -1,3 +1,3 @@
 $ devflow brief nope
-brief 沒有「nope」這個 skill;有的是:kickoff、require-design、global-laws、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、incident、status、audit、study
+brief 沒有「nope」這個 skill；有的是：kickoff、require-design、global-laws、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、incident、status、audit、study
 exit 0

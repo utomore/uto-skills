@@ -1,9 +1,9 @@
 $ lawful lint all
-## lint ids:通過
-## lint boundary:通過
-## lint sig:通過
-## lint laws:通過
-## lint trace:通過
-## lint io:通過
-## lint invariants:通過
+## lint ids：通過
+## lint boundary：通過
+## lint sig：通過
+## lint laws：通過
+## lint trace：通過
+## lint io：通過
+## lint invariants：通過
 exit 0

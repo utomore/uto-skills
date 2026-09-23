@@ -1,21 +1,21 @@
 $ devflow status
 # devflow status
-願景:小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
-需求 0 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · feature 2 份,達成 0 份 · 文檔共 2 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
-· 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
+願景：小型電商的每一筆錢都算得對、查得到來源；結帳與退款之外再加路徑時，金額規則不必再寫一次。
+需求 0 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條，成立 0 條 · 里程碑 0 條，達成 0 條 · feature 2 份，達成 0 份 · 文檔共 2 份，達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+· 沒給測試輸出（--tests <log> 或 --run），幾條 law 通過測試未知
 
 ## 需求
-- 沒有任何需求;dev-flow:require-design 談第一條
-- 沒有被任何里程碑綁定的 feature:F-001-checkout、F-002-refund;它們不朝向任何需求
+- 沒有任何需求；dev-flow:require-design 談第一條
+- 沒有被任何里程碑綁定的 feature：F-001-checkout、F-002-refund；它們不朝向任何需求
 
 ## 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,通過 |
-| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 4 列,通過;契約欄指到的 law 0 條,成立 0 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 0 條,通過;成立 0 條 |
+| 架構 | 全域 Law › 架構：層 | devflow lint boundary | 3 層，通過 |
+| 契約 | 全域 Law › 契約：對外 I/O | devflow lint io | 4 列，通過；契約欄指到的 law 0 條，成立 0 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 0 條，通過；成立 0 條 |
 
-- 領域不變量:無
+- 領域不變量：無
 
 ## 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -27,7 +27,7 @@ $ devflow status
 - 無
 
 ## 2. 卡住的
-- F-002-refund 等 F-001-checkout(未達成,先建它)
+- F-002-refund 等 F-001-checkout（未達成，先建它）
 
 ## 3. 等決定
 - 無
@@ -35,23 +35,23 @@ $ devflow status
 ## 4. 牽動誰
 - F-001-checkout ← F-002-refund
 
-## 5. 待實作(按檔案)
+## 5. 待實作（按檔案）
 - 無
 
 ## 6. 修訂熱點
-- F-001-checkout:REV 1 條,最後一條「REV-1(2026-09-07,依開發者:退款也走 settle,手續費可能大過要退的金額):settle 補一條 t」
-- F-002-refund:REV 1 條,最後一條「REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 」
+- F-001-checkout：REV 1 條，最後一條「REV-1（2026-09-07，依開發者：退款也走 settle，手續費可能大過要退的金額）：settle 補一條 t」
+- F-002-refund：REV 1 條，最後一條「REV-1（2026-09-07，依開發者：手續費不另寫一條扣款）：金額計算改成引用 F-001-checkout 的 」
 
 ## 7. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| system.md | 沒有 ## 全域 Law 區,看不出約束住在哪裡 | devflow migrate laws --write |
-| CLAUDE.md | 沒有 ## 名詞 節,領域名詞沒有地方定義 | dev-flow:kickoff 補上這一節 |
+| system.md | 沒有 ## 全域 Law 區，看不出約束住在哪裡 | devflow migrate laws --write |
+| CLAUDE.md | 沒有 ## 名詞 節，領域名詞沒有地方定義 | dev-flow:kickoff 補上這一節 |
 | objectives.md | 里程碑還擠在一份 objectives.md 裡 | devflow migrate requirements --write 換成 requirements/ 一條需求一個檔 |
-| .design/ | 沒有任何需求 | dev-flow:require-design 談第一條需求(至少一條) |
-| F-001-checkout | 沒有被任何里程碑綁定 | 不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature |
-| F-002-refund | 沒有被任何里程碑綁定 | 不朝向任何需求:dev-flow:require-design 綁進一條里程碑,或刪掉這份 feature |
+| .design/ | 沒有任何需求 | dev-flow:require-design 談第一條需求（至少一條） |
+| F-001-checkout | 沒有被任何里程碑綁定 | 不朝向任何需求：dev-flow:require-design 綁進一條里程碑，或刪掉這份 feature |
+| F-002-refund | 沒有被任何里程碑綁定 | 不朝向任何需求：dev-flow:require-design 綁進一條里程碑，或刪掉這份 feature |
 
 ## 8. 建議路線
-- 沒有可派的線,但 F-001-checkout、F-002-refund 還沒達成:devflow status --doc <全名> 看哪一列還不在;不加新功能
+- 沒有可派的線，但 F-001-checkout、F-002-refund 還沒達成：devflow status --doc <全名> 看哪一列還不在；不加新功能
 exit 1

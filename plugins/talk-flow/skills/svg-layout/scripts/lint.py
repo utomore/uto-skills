@@ -5,10 +5,10 @@
 # ///
 """lint.py — 架構圖排版診斷。
 
-每條 diagnostic 都含:嚴重度、涉及元素 id、問題描述、量化偏差值、建議修正方向
-(只描述不執行)。規則可個別關閉,容差可調。
+每條 diagnostic 都含：嚴重度、涉及元素 id、問題描述、量化偏差值、建議修正方向
+（只描述不執行）。規則可個別關閉，容差可調。
 
-用法:
+用法：
   uv run lint.py diagram.svg
   uv run lint.py diagram.svg --format json
   uv run lint.py diagram.svg --disable edge-crossing,aspect-ratio
@@ -128,15 +128,15 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
 
     # ---- 文字與可讀性 --------------------------------------------------- #
     for lab in labels:
-        # 字級過小與 node/container 無關,所有標籤(含邊標籤)都要查
+        # 字級過小與 node/container 無關，所有標籤（含邊標籤）都要查
         if on("presentation-tiny-text"):
             eff = lab.font_size / scale
             if eff < cfg["min-font-size"]:
                 out.append(Diag(
                     "presentation-tiny-text", "warning", [lab.el_id or "?"],
                     f'標籤 "{lab.text}" 在投影時過小',
-                    f"font-size {num(lab.font_size)}px,換算 1280x720 畫布後等效 "
-                    f"{num(eff)}px,低於 {num(cfg['min-font-size'])}px",
+                    f"font-size {num(lab.font_size)}px，換算 1280x720 畫布後等效 "
+                    f"{num(eff)}px，低於 {num(cfg['min-font-size'])}px",
                     f"字級提高到 {num(cfg['min-font-size'] * scale)}px 以上"))
 
         owner = label_owner[id(lab)]
@@ -153,20 +153,20 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
             out.append(Diag(
                 "text-overflow", "error", [owner.el_id or "?", lab.el_id or "?"],
                 f'標籤 "{lab.text}" 超出 {owner.qname} 邊界',
-                f"溢出 {dirs};標籤寬 {num(lb.w)}px,node 寬 {num(ob.w)}px"
+                f"溢出 {dirs}；標籤寬 {num(lb.w)}px，node 寬 {num(ob.w)}px"
                 + {"exact": "", "subst": f"(以替代字型 {lab.text_font} 實測)",
-                   "est": "(字型缺失,寬度為估算值)"}[lab.text_source],
-                f"將 {owner.qname} 寬度增至 {need}px,或縮短標籤文字,"
+                   "est": "（字型缺失，寬度為估算值）"}[lab.text_source],
+                f"將 {owner.qname} 寬度增至 {need}px，或縮短標籤文字，"
                 f"或降低字級至 {num(lab.font_size * ob.w / max(lb.w, 1) * 0.85)}px 以下",
                 {"overflow": {k: round(v, 1) for k, v in hits.items()}}))
         elif on("insufficient-padding"):
             padl, padr = lb.x - ob.x, ob.x2 - lb.x2
             pad = min(padl, padr)
-            if 0 <= pad < cfg["min-padding"] - 0.05:      # 容忍浮點誤差,剛好達標不誤報
+            if 0 <= pad < cfg["min-padding"] - 0.05:      # 容忍浮點誤差，剛好達標不誤報
                 out.append(Diag(
                     "insufficient-padding", "warning", [owner.el_id or "?", lab.el_id or "?"],
                     f'標籤 "{lab.text}" 與 {owner.qname} 邊界太擠',
-                    f"左右內距 L{num(padl)}px R{num(padr)}px,低於 {num(cfg['min-padding'])}px",
+                    f"左右內距 L{num(padl)}px R{num(padr)}px，低於 {num(cfg['min-padding'])}px",
                     f"將 {owner.qname} 寬度增至 "
                     f"{num(lb.w + 2 * cfg['min-padding'])}px 以上"))
 
@@ -179,8 +179,8 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                     out.append(Diag(
                         "low-contrast", "warning", [lab.el_id or "?", owner.el_id or "?"],
                         f'標籤 "{lab.text}" 與 {owner.qname} 底色對比不足',
-                        f"對比度 {cr:.2f}:1,未達 WCAG AA 的 {cfg['contrast']}:1",
-                        "調深/調淺標籤色或 node 填色,投影環境建議對比 ≥ 4.5:1"))
+                        f"對比度 {cr:.2f}:1，未達 WCAG AA 的 {cfg['contrast']}:1",
+                        "調深/調淺標籤色或 node 填色，投影環境建議對比 ≥ 4.5:1"))
 
     # ---- 連線品質 -------------------------------------------------------- #
     directed = [e for e in edges if e.directed]
@@ -189,9 +189,9 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
             if not e.directed:
                 out.append(Diag(
                     "arrow-missing", "warning", [e.el_id or "?"],
-                    f"{e.qname} 缺少箭頭 marker,與其他邊不一致",
-                    f"全圖 {len(edges)} 條邊中 {len(directed)} 條有箭頭,本條沒有",
-                    "補上 marker-end;若本條刻意為無向邊,請在設計文件說明"))
+                    f"{e.qname} 缺少箭頭 marker，與其他邊不一致",
+                    f"全圖 {len(edges)} 條邊中 {len(directed)} 條有箭頭，本條沒有",
+                    "補上 marker-end；若本條刻意為無向邊，請在設計文件說明"))
 
     for e in edges:
         if on("edge-endpoint-gap") and e.endpoints:
@@ -202,7 +202,7 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                         "edge-endpoint-gap", "warning", [e.el_id or "?"],
                         f"{e.qname} 的{who}沒有連到任何 node",
                         f"端點 ({num(pt[0])},{num(pt[1])}) 附近找不到 node 邊界",
-                        "把端點移到目標 node 邊界上,並在 normalize 後確認 "
+                        "把端點移到目標 node 邊界上，並在 normalize 後確認 "
                         "data-from/data-to 正確"))
                     continue
                 d = dist_point_to_box(node.bbox, pt[0], pt[1])
@@ -211,12 +211,12 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                         "edge-endpoint-gap", "error", [e.el_id or "?", node.el_id or "?"],
                         f"{e.qname} 的{who}與 {node.qname} 邊界有間隙",
                         f"間隙 {num(d)}px(容差 {num(cfg['endpoint-tol'])}px)",
-                        f"把{who}移到 {node.qname} 邊界上(貼齊後間隙 0px)"))
+                        f"把{who}移到 {node.qname} 邊界上（貼齊後間隙 0px）"))
                 elif -d > cfg["endpoint-pierce"]:
                     out.append(Diag(
                         "edge-endpoint-gap", "warning", [e.el_id or "?", node.el_id or "?"],
                         f"{e.qname} 的{who}穿入 {node.qname} 內部",
-                        f"穿入 {num(-d)}px,超過容許的 {num(cfg['endpoint-pierce'])}px",
+                        f"穿入 {num(-d)}px，超過容許的 {num(cfg['endpoint-pierce'])}px",
                         f"把{who}退回 {node.qname} 邊界"))
 
         if on("edge-crosses-node"):
@@ -229,7 +229,7 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                         "edge-crosses-node", "error", [e.el_id or "?", n.el_id or "?"],
                         f"{e.qname} 穿過不相干的 {n.qname}",
                         f"線段與 {n.qname} bbox={n.bbox.fmt()} 相交",
-                        f"改走正交繞線避開 {n.qname},或重排節點位置讓連線有直達路徑"))
+                        f"改走正交繞線避開 {n.qname}，或重排節點位置讓連線有直達路徑"))
 
         if on("edge-label-overlap") and e.edge_label and e.edge_label.bbox:
             lb = e.edge_label.bbox
@@ -241,7 +241,7 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                     f'邊標籤 "{e.edge_label.text}" 壓在 {e.qname} 線段上',
                     f"標籤 bbox={lb.fmt()} 與線段相交",
                     "把標籤平移到線段一側(垂直偏移約 "
-                    f"{num(lb.h * 0.8 + 4)}px),或加白底襯墊"))
+                    f"{num(lb.h * 0.8 + 4)}px)，或加白底襯墊"))
             for other in nodes:
                 if other.bbox and other.bbox.intersects(lb) and other is not e.edge_from \
                         and other is not e.edge_to:
@@ -274,7 +274,7 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                         "edge-crossing", "warning", [a.el_id or "?", b.el_id or "?"],
                         f"{a.qname} 與 {b.qname} 交叉",
                         "兩條邊的線段實際相交",
-                        "調整節點順序或改走繞線讓兩線分開;確實無法避免時加跨線符號"))
+                        "調整節點順序或改走繞線讓兩線分開；確實無法避免時加跨線符號"))
 
     # ---- 版面一致性 ------------------------------------------------------ #
     if on("inconsistent-node-size"):
@@ -292,13 +292,13 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                     continue
                 diff = (hi - lo) / hi
                 sev = "warning" if diff < cfg["size-tol"] else "info"
-                hint = "差距很小,多半是手誤而非刻意" if diff < cfg["size-tol"] else "差距明顯,確認是否刻意"
+                hint = "差距很小，多半是手誤而非刻意" if diff < cfg["size-tol"] else "差距明顯，確認是否刻意"
                 out.append(Diag(
                     "inconsistent-node-size", sev,
                     [n.el_id or "?" for n in group],
                     f"同層 ({key}) node {dim}度不一致",
-                    f"{dim} {num(lo)}–{num(hi)}px,差距 {diff * 100:.1f}%({hint})",
-                    f"統一為 {num(hi)}px(以最大者為準)或改用能容納最長標籤的寬度"))
+                    f"{dim} {num(lo)}–{num(hi)}px，差距 {diff * 100:.1f}%({hint})",
+                    f"統一為 {num(hi)}px（以最大者為準）或改用能容納最長標籤的寬度"))
 
     if on("inconsistent-spacing"):
         for axis, key, size in (("列", lambda e: e.bbox.cy, lambda e: e.bbox.h),
@@ -330,7 +330,7 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                  if e.role in ("node", "container") and e.bbox is not None]
         for i, a in enumerate(boxed):
             for b in boxed[i + 1:]:
-                # 同一對元素的多條邊差同一個值時只報一次(通常是整體位移,不是六個 bug)
+                # 同一對元素的多條邊差同一個值時只報一次（通常是整體位移，不是六個 bug）
                 hits = [(name, abs(va - vb2)) for name, va, vb2 in (
                     ("左緣", a.bbox.x, b.bbox.x), ("右緣", a.bbox.x2, b.bbox.x2),
                     ("上緣", a.bbox.y, b.bbox.y), ("下緣", a.bbox.y2, b.bbox.y2),
@@ -345,7 +345,7 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                     "near-alignment", "warning", [a.el_id or "?", b.el_id or "?"],
                     f"{a.qname} 與 {b.qname} 的{names}差一點點對齊",
                     f"差距 {'、'.join(num(d) for _, d in hits)}px"
-                    f"(0 < Δ < {num(cfg['near-align'])}px,幾乎確定是 bug 而非設計)",
+                    f"(0 < Δ < {num(cfg['near-align'])}px，幾乎確定是 bug 而非設計)",
                     f"把兩者在{axis}方向對齊(位移 {num(worst)}px 即可齊平)"))
 
     if on("viewbox-overflow"):
@@ -358,7 +358,7 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                     "viewbox-overflow", "error", [e.el_id or "?"],
                     f"{e.qname} 超出 viewBox",
                     f"bbox={b.fmt()},viewBox={vb.fmt()}",
-                    "把元素移回畫布內,或放大 viewBox(放大會讓其他元素相對變小)"))
+                    "把元素移回畫布內，或放大 viewBox（放大會讓其他元素相對變小）"))
 
     if on("margin-violation"):
         m = cfg["margin"]
@@ -373,8 +373,8 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
                 out.append(Diag(
                     "margin-violation", "info", [e.el_id or "?"],
                     f"{e.qname} 太貼近畫布邊緣",
-                    f"最小邊距 {num(d)}px,低於安全邊距 {num(m)}px",
-                    f"內縮至距邊 {num(m)}px 以上(投影時邊緣容易被裁切)"))
+                    f"最小邊距 {num(d)}px，低於安全邊距 {num(m)}px",
+                    f"內縮至距邊 {num(m)}px 以上（投影時邊緣容易被裁切）"))
 
     if on("aspect-ratio"):
         r = vb.w / vb.h if vb.h else 0
@@ -383,8 +383,8 @@ def run_rules(doc: SvgDoc, cfg: dict, enabled: set[str]) -> list[Diag]:
             out.append(Diag(
                 "aspect-ratio", "info", ["<svg>"],
                 "viewBox 比例偏離常見簡報比例",
-                f"目前 {vb.w:g}x{vb.h:g} = {r:.2f}:1,最接近的 {best[1]} 差 {best[0]:.2f}",
-                f"改成 {best[1]} 比例,嵌入投影片時不會留下不對稱留白"))
+                f"目前 {vb.w:g}x{vb.h:g} = {r:.2f}:1，最接近的 {best[1]} 差 {best[0]:.2f}",
+                f"改成 {best[1]} 比例，嵌入投影片時不會留下不對稱留白"))
 
     order = {"error": 0, "warning": 1, "info": 2}
     out.sort(key=lambda d: (order[d.severity], d.rule))
@@ -409,13 +409,13 @@ def print_text(diags: list[Diag], doc: SvgDoc, path: FsPath, S: Sym,
             last = d.severity
         print(f"{icon[d.severity]} [{d.rule}] {', '.join('#' + e for e in d.elements)}")
         print(f"    {d.message}")
-        print(f"    量測:{d.measured}")
-        print(f"    建議:{d.suggestion}")
+        print(f"    量測：{d.measured}")
+        print(f"    建議：{d.suggestion}")
     notes = []
     shaped = [e for e in doc.rendered() if e.tag in ("rect", "circle", "ellipse", "line",
                                                      "polyline", "polygon", "path", "text")]
     if any(not e.el_id for e in shaped):
-        notes.append("有元素沒有 id,診斷中的識別碼不穩定 — 先跑 normalize.py")
+        notes.append("有元素沒有 id，診斷中的識別碼不穩定 — 先跑 normalize.py")
     if measurer.missing_families:
         subs = ", ".join(f"{a} {S.arrow} {b}" for a, b in sorted(doc.substitutions))
         notes.append(f"本機找不到宣告字型({', '.join(sorted(measurer.missing_families))}),"
@@ -429,30 +429,30 @@ def print_text(diags: list[Diag], doc: SvgDoc, path: FsPath, S: Sym,
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="lint.py",
-        description="診斷 SVG 架構圖的排版問題(文字可讀性、連線品質、版面一致性)。",
+        description="診斷 SVG 架構圖的排版問題（文字可讀性、連線品質、版面一致性）。",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="規則清單:\n  " + "\n  ".join(RULES) + "\n\n"
-               "範例:\n"
+        epilog="規則清單：\n  " + "\n  ".join(RULES) + "\n\n"
+               "範例：\n"
                "  uv run lint.py diagram.svg\n"
                "  uv run lint.py diagram.svg --format json\n"
                "  uv run lint.py diagram.svg --disable edge-crossing --min-padding 16\n",
     )
     ap.add_argument("svg", type=FsPath, help="輸入的 SVG 檔")
     ap.add_argument("--format", choices=("text", "json"), default="text", help="輸出格式")
-    ap.add_argument("--disable", default="", help="關閉的規則,逗號分隔")
-    ap.add_argument("--only", default="", help="只跑這些規則,逗號分隔")
+    ap.add_argument("--disable", default="", help="關閉的規則，逗號分隔")
+    ap.add_argument("--only", default="", help="只跑這些規則，逗號分隔")
     ap.add_argument("--ascii", action="store_true", help="改用純 ASCII 符號輸出")
     ap.add_argument("--font-dir", type=FsPath, action="append", default=[],
-                    help="額外的字型搜尋目錄(可重複)")
+                    help="額外的字型搜尋目錄（可重複）")
     for key, val in DEFAULTS.items():
         ap.add_argument(f"--{key}", type=float, default=val,
-                        help=f"容差:{key}(預設 {val})")
+                        help=f"容差：{key}(預設 {val})")
     args = ap.parse_args(argv)
 
     ascii_mode = setup_stdout(args.ascii)
     S = Sym(ascii_mode)
     if not args.svg.exists():
-        print(f"{S.err} 找不到檔案:{args.svg}")
+        print(f"{S.err} 找不到檔案：{args.svg}")
         return 2
 
     enabled = set(RULES)
@@ -462,7 +462,7 @@ def main(argv: list[str] | None = None) -> int:
         enabled -= {r.strip() for r in args.disable.split(",") if r.strip()}
     unknown = enabled - set(RULES)
     if unknown:
-        print(f"{S.err} 未知規則:{', '.join(sorted(unknown))}")
+        print(f"{S.err} 未知規則：{', '.join(sorted(unknown))}")
         return 2
 
     cfg = {k: getattr(args, k.replace("-", "_")) for k in DEFAULTS}

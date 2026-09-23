@@ -1,4 +1,4 @@
-// 看板:同一份 status 的第二個渲染器。analyze() 算好的圖原樣吐成 JSON,再灌進 templates/status-board.html 成一個自帶資料的單檔網頁。
+// 看板：同一份 status 的第二個渲染器。analyze() 算好的圖原樣吐成 JSON，再灌進 templates/status-board.html 成一個自帶資料的單檔網頁。
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -10,7 +10,7 @@ import { analyze, buildKeyOf, counts, docState, globalView, invariantView, metWo
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
 const TOKEN = '__STATUS_JSON__';
 
-// 三行式原樣帶出去:forall、given(可以好幾行)、|-;還沒有三行式就是空陣列
+// 三行式原樣帶出去：forall、given（可以好幾行）、|-；還沒有三行式就是空陣列
 const threeLines = (l) => [l.forall, ...(l.given || []), l.conclusion].filter(Boolean);
 
 function lawsOf(x) {
@@ -98,22 +98,22 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     };
   });
 
-  // Cone.md「Constraint」那行「優先:1 = …;2 = …」拆成各級的意思,寫在需求的區塊上
+  // Cone.md「Constraint」那行「優先：1 = …；2 = …」拆成各級的意思，寫在需求的區塊上
   const tierMeaning = new Map();
   if (cone && cone.priorityNoteState === 'ok') for (const part of cone.priorityNote.split(/[;；]/)) {
     const m = /^\s*([1-4])\s*[=＝:：]\s*(.+?)[。.]?\s*$/.exec(part);
     if (m) tierMeaning.set(Number(m[1]), m[2].trim());
   }
-  // 看板的分法:一條需求一個區塊,區塊底下一條里程碑一欄(里程碑照表上的先後排);
+  // 看板的分法：一條需求一個區塊，區塊底下一條里程碑一欄（里程碑照表上的先後排）；
   // 沒被綁的 pipeline 自己成一個區塊
   const bound = new Set(ov.reqs.flatMap((q) => q.ms.flatMap((m) => m.binds)));
-  const columnsOf = (ms) => ms.map((m) => ({ title: `${m.fullName} ${m.title}${!m.binds.length ? '(還沒有切片)' : m.state === '待修訂' ? '(待修訂)' : ''}`, achieved: m.achieved, docs: m.binds }));
+  const columnsOf = (ms) => ms.map((m) => ({ title: `${m.fullName} ${m.title}${!m.binds.length ? '（還沒有切片）' : m.state === '待修訂' ? '（待修訂）' : ''}`, achieved: m.achieved, docs: m.binds }));
   const bands = ov.reqs.map((q) => ({
     id: q.id,
     title: `${q.id} ${q.title}`,
-    note: `審核:${q.state} · ${q.source}`,
+    note: `審核：${q.state} · ${q.source}`,
     notes: [
-      `優先 ${q.priorityRaw || '(沒填)'}${q.priority && tierMeaning.has(q.priority) ? `:${tierMeaning.get(q.priority)}` : ''}`,
+      `優先 ${q.priorityRaw || '（沒填）'}${q.priority && tierMeaning.has(q.priority) ? `:${tierMeaning.get(q.priority)}` : ''}`,
       `里程碑 ${q.done}/${q.ms.length} 達成 · 完成度 ${q.pct == null ? '-' : `${q.pct}%`}`,
     ],
     achieved: q.holds === true,
@@ -153,7 +153,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     visionFull: cone && cone.visionState === 'ok' ? cone.visionFull : null,
     visionState: cone ? cone.visionState : null,
     priorityNote: cone && cone.priorityNoteState === 'ok' ? cone.priorityNote : null,
-    // 名詞表(專案根目錄 CLAUDE.md 的「## 名詞」節)原樣帶出去:名詞、定義、型別(還沒有型別是 null)
+    // 名詞表（專案根目錄 CLAUDE.md 的「## 名詞」節）原樣帶出去：名詞、定義、型別（還沒有型別是 null）
     glossary: (design.glossary || []).map((g) => ({ term: g.term, definition: g.definition, type: g.type || null })),
     tests: resultNote,
     summary,
@@ -175,7 +175,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       priority: q.priority,
       priorityRaw: q.priorityRaw || null,
       law: lawJson(q.accept, q),
-      note: `審核:${q.state} · 里程碑 ${q.done}/${q.ms.length} 達成`,
+      note: `審核：${q.state} · 里程碑 ${q.done}/${q.ms.length} 達成`,
       dependsOn: q.dependsOn,
       built: q.built,
       state: q.state,
@@ -188,7 +188,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
       milestones: q.ms.map((m) => ({ id: m.id, name: m.fullName, title: m.title, achieved: m.achieved, state: m.state, byRevision: m.byRevision, binds: m.binds })),
     })),
     invariants: inv.map((v) => ({ id: v.id, kind: v.kind || null, title: v.title, formal: !!v.law.formal, lines: threeLines(v.law), holds: v.holds, source: v.source, tested: v.tested })),
-    // 全域 Law 另外兩類的每一列:四層(由內而外,各帶「裝什麼」那一句)與對外 I/O 表;gates 是三類各自那一道 lint 的結果,與報告的「全域 Law」表同源
+    // 全域 Law 另外兩類的每一列：四層（由內而外，各帶「裝什麼」那一句）與對外 I/O 表；gates 是三類各自那一道 lint 的結果，與報告的「全域 Law」表同源
     globalLaws: {
       gates: glob.map((g) => ({ kind: g.kind, where: g.where, gate: g.gate, red: g.red, result: g.result })),
       layers: cone ? ['types', 'effect', 'core', 'shell'].map((name) => ({ name, what: (cone.layerNotes || {})[name] || '' })) : [],
@@ -228,7 +228,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
   };
 }
 
-// 用系統預設的方式打開檔案;打不開不算失敗,網址還是印得出來
+// 用系統預設的方式打開檔案；打不開不算失敗，網址還是印得出來
 function openInBrowser(file) {
   const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', file]]
     : process.platform === 'darwin' ? ['open', [file]]
@@ -243,7 +243,7 @@ function openInBrowser(file) {
 
 export function statusBoard(design, source, adapter, results, resultNote, building, root, out, open, stale) {
   const data = statusJson(design, source, adapter, results, resultNote, building, stale);
-  // 沒指定檔名就寫暫存區:每次跑 status 都產一份,不在專案裡留檔
+  // 沒指定檔名就寫暫存區：每次跑 status 都產一份，不在專案裡留檔
   const file = typeof out === 'string'
     ? path.resolve(root, out)
     : path.join(os.tmpdir(), 'lawful-board', `${path.basename(root) || 'lawful'}-status.html`);
@@ -251,7 +251,7 @@ export function statusBoard(design, source, adapter, results, resultNote, buildi
   if (!fs.existsSync(TEMPLATE)) return { text: `找不到看板模板 ${TEMPLATE}`, exitCode: 1 };
   const html = fs.readFileSync(TEMPLATE, 'utf8');
   if (!html.includes(TOKEN)) return { text: `看板模板少了 ${TOKEN}`, exitCode: 1 };
-  // JSON 內嵌進 <script>:把 < 逃掉,文檔裡寫了 </script> 也不會把標籤提早關掉
+  // JSON 內嵌進 <script>：把 < 逃掉，文檔裡寫了 </script> 也不會把標籤提早關掉
   const json = JSON.stringify(data, null, 2).replace(/</g, '\\u003c');
   fs.writeFileSync(file, html.replace(TOKEN, json));
   const rel = path.relative(root, file);
@@ -260,11 +260,11 @@ export function statusBoard(design, source, adapter, results, resultNote, buildi
   const opened = open ? openInBrowser(file) : false;
   return {
     text: [
-      `看板寫到 ${shown}` + (opened ? ',已經叫瀏覽器打開' : ',點這個網址打開'),
+      `看板寫到 ${shown}` + (opened ? '，已經叫瀏覽器打開' : '，點這個網址打開'),
       url,
-      '樹從左上往下長,每深一層往右縮排一格:願景 → 需求 → 里程碑 → 便利貼;便利貼是 pipeline,虛線箭頭是引用,預設只畫選取那一份的',
-      '「相依」頁籤把需求排成先後:左邊先做、右邊後做,邊從 pipeline 的引用推出來,紅色的邊是高優先依賴低優先',
-      '「約束」頁籤把 law 全部攤開:上半是全域 Law 三類(領域不變量、層、對外 I/O),下半是每條 pipeline 自己的 Scope Law,顏色是測試結果,對外 I/O 的契約欄畫成指到那條 law 的箭頭',
+      '樹從左上往下長，每深一層往右縮排一格：願景 → 需求 → 里程碑 → 便利貼；便利貼是 pipeline，虛線箭頭是引用，預設只畫選取那一份的',
+      '「相依」頁籤把需求排成先後：左邊先做、右邊後做，邊從 pipeline 的引用推出來，紅色的邊是高優先依賴低優先',
+      '「約束」頁籤把 law 全部攤開：上半是全域 Law 三類（領域不變量、層、對外 I/O），下半是每條 pipeline 自己的 Scope Law，顏色是測試結果，對外 I/O 的契約欄畫成指到那條 law 的箭頭',
     ].join('\n'),
     exitCode: data.route.allDone && data.summary.docs ? 0 : 1,
   };

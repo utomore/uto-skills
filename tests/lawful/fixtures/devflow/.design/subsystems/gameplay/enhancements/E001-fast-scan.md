@@ -13,10 +13,10 @@ status: done
 |---|---|
 | `scanFast :: MapStatic -> [Coord]` | 快掃 |
 
-## Laws(行為性質)
+## Laws（行為性質）
 
-- LAW-1: 與慢掃一致
-  - 量詞:對所有 `ms`
-  - 定義域:`ms :: MapStatic`
-  - 前提:無
-  - 觀察點:`scanFast ms == scanSlow ms`
+- LAW-1：與慢掃一致
+  - 量詞：對所有 `ms`
+  - 定義域：`ms :: MapStatic`
+  - 前提：無
+  - 觀察點：`scanFast ms == scanSlow ms`

@@ -1,21 +1,21 @@
 $ devflow migrate requirements --date 2026-09-07
 # migrate requirements 帳本
 
-- .design/system.md:「## 需求」節刪掉,需求搬進 requirements/
-- .design/requirements/R-1-refund-correct.md:建(優先 1;里程碑 4 條,其中 1 條換自調整表;併自 R-1-O-2-refund-correct、R-1-O-1-money-correct)
-- .design/requirements/R-2-unnamed.md:建(優先 沒有;里程碑 0 條)
-- .design/objectives/R-1-O-2-refund-correct.md:刪
-- .design/objectives/R-1-O-1-money-correct.md:刪
+- .design/system.md：「## 需求」節刪掉，需求搬進 requirements/
+- .design/requirements/R-1-refund-correct.md：建（優先 1；里程碑 4 條，其中 1 條換自調整表；併自 R-1-O-2-refund-correct、R-1-O-1-money-correct）
+- .design/requirements/R-2-unnamed.md：建（優先 沒有；里程碑 0 條）
+- .design/objectives/R-1-O-2-refund-correct.md：刪
+- .design/objectives/R-1-O-1-money-correct.md：刪
 
 ## 調整表換成里程碑
-- RF-1 → M-5:手續費大過要退的金額也結得出來(R-1-refund-correct;綁定 F-001-checkout)
-- .design/features/F-001-checkout.md:修訂記錄依欄的 RF-1 改寫成 M-5
+- RF-1 → M-5：手續費大過要退的金額也結得出來（R-1-refund-correct；綁定 F-001-checkout）
+- .design/features/F-001-checkout.md：修訂記錄依欄的 RF-1 改寫成 M-5
 
 ## 人要判的
-- R-1:併了 2 個目標(O-2「退款的金額算對」:M-2-refund、M-3-partial-refund;O-1「結帳的金額算對」:M-1-checkout、M-5),里程碑照(優先、目標號)串接、換自調整表的排最後;順序不對就改表的列序,其實是兩件事就拆成兩條需求
-- R-2:沒有任何目標朝向它,檔名暫用 R-2-unnamed、沒有優先也沒有里程碑;dev-flow:require-design 補,改名要連檔名一起改
-- .design/objectives/R-9-O-3-loyalty.md:對到的 R-9 不存在,留著沒動(里程碑 M-4-points);決定它屬於哪條需求,併進那個需求檔之後刪掉
-- M-5(R-1-refund-correct,換自 RF-1「手續費大過要退的金額也結得出來」):補英文名,dev-flow:require-design 把第一格寫成 M-5-<slug>(kebab-case 英文),REV 依欄引用它的地方跟著寫成全名
+- R-1：併了 2 個目標（O-2「退款的金額算對」：M-2-refund、M-3-partial-refund;O-1「結帳的金額算對」：M-1-checkout、M-5），里程碑照（優先、目標號）串接、換自調整表的排最後；順序不對就改表的列序，其實是兩件事就拆成兩條需求
+- R-2：沒有任何目標朝向它，檔名暫用 R-2-unnamed、沒有優先也沒有里程碑；dev-flow:require-design 補，改名要連檔名一起改
+- .design/objectives/R-9-O-3-loyalty.md：對到的 R-9 不存在，留著沒動（里程碑 M-4-points）；決定它屬於哪條需求，併進那個需求檔之後刪掉
+- M-5（R-1-refund-correct，換自 RF-1「手續費大過要退的金額也結得出來」）：補英文名，dev-flow:require-design 把第一格寫成 M-5-<slug>（kebab-case 英文），REV 依欄引用它的地方跟著寫成全名
 
-以上只是帳本;devflow migrate requirements --write 才落地
+以上只是帳本；devflow migrate requirements --write 才落地
 exit 0

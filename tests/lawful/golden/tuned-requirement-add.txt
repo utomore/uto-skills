@@ -1,3 +1,3 @@
 $ lawful requirement add report-fast 報表一秒內印完 --priority 3
-這棵樹的需求檔不是「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」;先 lawful migrate requirements --write 換過來
+這棵樹的需求檔不是「requirements/ 一條需求一個檔、每個檔只有一張里程碑表」；先 lawful migrate requirements --write 換過來
 exit 1

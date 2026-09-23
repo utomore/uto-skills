@@ -1,34 +1,34 @@
 $ lawful status
-· 缺 .lawful/Cone.md;這棵樹只有 system.md,lawful migrate cone --write 換過來
+· 缺 .lawful/Cone.md；這棵樹只有 system.md，lawful migrate cone --write 換過來
 
 # lawful status
-需求 0 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · io pipeline 0 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
+需求 0 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條，成立 0 條 · 里程碑 0 條，達成 0 條 · io pipeline 0 條，達成 0 條 · pipeline 1 條，達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 需求
-- 沒有 Cone.md;lawful migrate cone --write
-- 沒有被任何里程碑綁定的 pipeline:P-001-save-write;它們不朝向任何需求
+- 沒有 Cone.md；lawful migrate cone --write
+- 沒有被任何里程碑綁定的 pipeline：P-001-save-write；它們不朝向任何需求
 
 ## 全域 Law
 - 沒有 Cone.md
 
-- 領域不變量:無
+- 領域不變量：無
 
 ## pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
 |---|---|---|---|---|---|---|---|---|
-| P-001-save-write | (沒填) | ready | 6 | 0 | 0 | 5 | 0/0 | 進行中 |
+| P-001-save-write | （沒填） | ready | 6 | 0 | 0 | 5 | 0/0 | 進行中 |
 
 ## 模組
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
 |---|---|---|---|---|---|---|
 | Game.World | 遊戲世界的不可變值與它的實體 | types | - | - | 0 | 0 |
 | Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、core、shell | - | P-001-save-write | 6 | 0 |
-| Game.FS | 檔案系統:原子寫檔 | shell | - | P-001-save-write | 1 | 0 |
-- 還沒有任何 stage 住進去的單元:Game.World
+| Game.FS | 檔案系統：原子寫檔 | shell | - | P-001-save-write | 1 | 0 |
+- 還沒有任何 stage 住進去的單元：Game.World
 
 ## 1. 今天能開幾條線
-- P-001-save-write:lawful:build P-001-save-write(沒有被任何里程碑綁定)
+- P-001-save-write：lawful:build P-001-save-write（沒有被任何里程碑綁定）
 
 ## 2. 卡住的
 - 無
@@ -39,18 +39,18 @@ $ lawful status
 ## 4. 牽動誰
 - 無
 
-## 5. 待實作(按模組單元)
+## 5. 待實作（按模組單元）
 - 無
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | Cone.md | 不存在 | lawful migrate cone --write |
-| CLAUDE.md | 沒有 ## 名詞 節,領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |
-| .lawful/ | 沒有任何需求 | lawful:require-design 談第一條需求(至少一條) |
-| P-001-save-write | 沒有被任何里程碑綁定 | 不朝向任何需求:lawful:require-design 綁進一條里程碑,或刪掉這條 pipeline |
+| CLAUDE.md | 沒有 ## 名詞 節，領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |
+| .lawful/ | 沒有任何需求 | lawful:require-design 談第一條需求（至少一條） |
+| P-001-save-write | 沒有被任何里程碑綁定 | 不朝向任何需求：lawful:require-design 綁進一條里程碑，或刪掉這條 pipeline |
 | .lawful/pipelines/P-001-save-write.md | 沒有 kind | frontmatter 補 kind: io 或 subflow |
 
 ## 7. 建議路線
-1. lawful:build P-001-save-write(沒有被任何里程碑綁定)
+1. lawful:build P-001-save-write（沒有被任何里程碑綁定）
 exit 1

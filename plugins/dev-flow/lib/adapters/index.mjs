@@ -12,7 +12,7 @@ export function pickAdapter(language) {
 
 export const adapterNames = [...new Set(Object.keys(ADAPTERS))];
 
-// [{dir, name}] → [{dir, name, adapter}];哪一個目錄沒有 adapter 就回 null 讓呼叫端講
+// [{dir, name}] → [{dir, name, adapter}]；哪一個目錄沒有 adapter 就回 null 讓呼叫端講
 export function pickSides(languages) {
   return languages.map((l) => ({ ...l, adapter: pickAdapter(l.name) }));
 }

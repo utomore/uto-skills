@@ -1,33 +1,33 @@
 $ devflow brief incident --args F-002-refund 退款金額多退了 --no-rules
-brief incident F-002-refund @doc:683a3084 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief incident F-002-refund @doc:b70f809a rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
 # 分支與工作樹
 
-(這個目錄不是 git repo 的根,也不是一棵工作樹)
+（這個目錄不是 git repo 的根，也不是一棵工作樹）
 
 # system.md「Constraint」
 
-硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(三道指令、追加清單、忽略目錄、號段、優先)。開發者定,`dev-flow:kickoff` 寫,之後隨時回 `dev-flow:kickoff` 補或改;限制的類別可以自己加。
-- 語言與版本:TypeScript 5.4,`strict` 全開
-- 編譯器與執行環境:Node 20
-- 套件與框架:測試只用 jest;金額運算不准引入浮點數的函式庫
-- 環境:無
-- 命名與寫法:型別 PascalCase、函數與變數 camelCase、檔名 kebab-case;讀出整數分的函數以 `Cents` 結尾
-- 建置:`npx tsc --noEmit`
-- 測試(整套):`npx jest`
-- 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
-- IO 模組追加:無
-- Laws 詞彙追加:無
-- 忽略目錄:無
-- 號段:無
-- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+硬性限制：寫程式之前就定得下來、每一行程式碼與測試都照做的規定，與工具要讀的那幾行（三道指令、追加清單、忽略目錄、號段、優先）。開發者定，`dev-flow:kickoff` 寫，之後隨時回 `dev-flow:kickoff` 補或改；限制的類別可以自己加。
+- 語言與版本：TypeScript 5.4，`strict` 全開
+- 編譯器與執行環境：Node 20
+- 套件與框架：測試只用 jest；金額運算不准引入浮點數的函式庫
+- 環境：無
+- 命名與寫法：型別 PascalCase、函數與變數 camelCase、檔名 kebab-case；讀出整數分的函數以 `Cents` 結尾
+- 建置：`npx tsc --noEmit`
+- 測試（整套）：`npx jest`
+- 測試（子集）：`npx jest test/<檔名>`（以一份文檔選）
+- IO 模組追加：無
+- Laws 詞彙追加：無
+- 忽略目錄：無
+- 號段：無
+- 優先：1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具
 
-# 目標文檔:.design/features/F-002-refund.md
+# 目標文檔：.design/features/F-002-refund.md
 
 ````markdown
 ---
@@ -36,30 +36,30 @@ description: 客服把一張訂單的部分品項退款給使用者
 status: verified
 updated: 2026-09-07
 ---
-# F-002-refund:客服把一張訂單的部分品項退款給使用者
+# F-002-refund：客服把一張訂單的部分品項退款給使用者
 
 ## Brief
-把一段請求文字解析成要退的品項,扣掉手續費,得到退款金額。
-input 是 POST /refund 的 RawBody,output 是 HttpRes。
-流向:解析 → 結算 → 產生退款。從對外 I/O 表的「POST /refund」進來,從「退款結果」出去。
+把一段請求文字解析成要退的品項，扣掉手續費，得到退款金額。
+input 是 POST /refund 的 RawBody，output 是 HttpRes。
+流向：解析 → 結算 → 產生退款。從對外 I/O 表的「POST /refund」進來，從「退款結果」出去。
 
 ## Steps
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `parseRefund(RawBody): RefundReq` | 解析並夾住請求裡的數字,不信任任何一段 | `src/app/refund.ts` | application |
-| 2 | `settle(MoneyList, Money): Settlement` | 扣掉手續費之後的退款金額 | `src/domain/money.ts`(見 F-001-checkout) | domain |
-| 3 | `toRefund(RefundReq, Settlement): RefundResult` | 結算成功就產生退款,失敗就帶回理由 | `src/app/refund.ts` | application |
-| o | `refundLines(RefundReq): MoneyList` | 觀察:這次要退哪些品項 | `src/app/refund.ts` | application |
-| o | `refundFee(RefundReq): Money` | 觀察:這次的手續費 | `src/app/refund.ts` | application |
-| o | `returnedCents(RefundResult): number` | 觀察:退了多少分,沒退成回 -1 | `src/app/refund.ts` | application |
-| = | `refund(RawBody): RefundResult` | 整條:解析 → 結算 → 產生退款 | `src/app/refund.ts` | application |
-| ! | `refundHandler(HttpReq): HttpRes` | 進入點:接到 POST /refund | `src/entry/routes.ts` | entry |
+| 1 | `parseRefund(RawBody): RefundReq` | 解析並夾住請求裡的數字，不信任任何一段 | `src/app/refund.ts` | application |
+| 2 | `settle(MoneyList, Money): Settlement` | 扣掉手續費之後的退款金額 | `src/domain/money.ts`（見 F-001-checkout） | domain |
+| 3 | `toRefund(RefundReq, Settlement): RefundResult` | 結算成功就產生退款，失敗就帶回理由 | `src/app/refund.ts` | application |
+| o | `refundLines(RefundReq): MoneyList` | 觀察：這次要退哪些品項 | `src/app/refund.ts` | application |
+| o | `refundFee(RefundReq): Money` | 觀察：這次的手續費 | `src/app/refund.ts` | application |
+| o | `returnedCents(RefundResult): number` | 觀察：退了多少分，沒退成回 -1 | `src/app/refund.ts` | application |
+| = | `refund(RawBody): RefundResult` | 整條：解析 → 結算 → 產生退款 | `src/app/refund.ts` | application |
+| ! | `refundHandler(HttpReq): HttpRes` | 進入點：接到 POST /refund | `src/entry/routes.ts` | entry |
 
 ## Laws
 - LAW-1 [relation] 退回的錢就是這些品項扣掉手續費的結算金額
   - forall raw in RawBody
   - |- returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
-- LAW-2 [total] 任何一段請求文字都得到一個結果,不拋例外
+- LAW-2 [total] 任何一段請求文字都得到一個結果，不拋例外
   - forall raw in RawBody
   - |- total(refund(raw))
 
@@ -70,18 +70,18 @@ input 是 POST /refund 的 RawBody,output 是 HttpRes。
 | EX-2 | `refund("o1\|10\|30")` | `returnedCents 是 -1` | LAW-1、LAW-2 |
 
 ## 決定
-- **手續費用同一條結算走,不另寫一條扣款。** 否決:退款自己寫扣手續費。settle 與它的 law 住在 F-001-checkout,這裡引用它,law 不重寫。
-- **重開一次**(2026-09-07):為了 REV-1 重開,由 build 重新 verified。
+- **手續費用同一條結算走，不另寫一條扣款。** 否決：退款自己寫扣手續費。settle 與它的 law 住在 F-001-checkout，這裡引用它，law 不重寫。
+- **重開一次**(2026-09-07)：為了 REV-1 重開，由 build 重新 verified。
 
 ## 修訂記錄
-- REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 settle
-  - 動到:第 2 步改成「見 F-001-checkout」
-  - 保護:LAW-1、LAW-2
-  - 重委派:qa(LAW-1)、refactor(`refund`)
-  - 連動:F-001-checkout 的 REV-1 替 settle 補了 total 的 law
+- REV-1（2026-09-07，依開發者：手續費不另寫一條扣款）：金額計算改成引用 F-001-checkout 的 settle
+  - 動到：第 2 步改成「見 F-001-checkout」
+  - 保護：LAW-1、LAW-2
+  - 重委派：qa(LAW-1)、refactor(`refund`)
+  - 連動：F-001-checkout 的 REV-1 替 settle 補了 total 的 law
 ````
 
-# 逐條狀態(文檔對程式碼;沒有給測試輸出,law 的紅綠不在這裡)
+# 逐條狀態（文檔對程式碼；沒有給測試輸出，law 的紅綠不在這裡）
 
 ### Steps
 - 1  parseRefund(RawBody): RefundReq  src/app/refund.ts/application  在
@@ -95,7 +95,7 @@ input 是 POST /refund 的 RawBody,output 是 HttpRes。
 
 ### Laws
 - LAW-1 [relation] 退回的錢就是這些品項扣掉手續費的結算金額  未跑
-- LAW-2 [total] 任何一段請求文字都得到一個結果,不拋例外  未跑
+- LAW-2 [total] 任何一段請求文字都得到一個結果，不拋例外  未跑
 - EX-1 覆蓋 LAW-1  未跑
 - EX-2 覆蓋 LAW-1、LAW-2  未跑
 
@@ -103,19 +103,19 @@ input 是 POST /refund 的 RawBody,output 是 HttpRes。
 - 無
 
 ### 引用
-- 引用了:F-001-checkout
-- 被引用:無
+- 引用了：F-001-checkout
+- 被引用：無
 
 ### 修訂
-- REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 settle
+- REV-1（2026-09-07，依開發者：手續費不另寫一條扣款）：金額計算改成引用 F-001-checkout 的 settle
 
-文檔寫了 5 條簽名,程式碼裡有 5 條,未實作的 0 條 · 觀察點 3 個,程式碼裡有 3 個 · 寫了 2 條 law,通過 nan 條 · 未達成
+文檔寫了 5 條簽名，程式碼裡有 5 條，未實作的 0 條 · 觀察點 3 個，程式碼裡有 3 個 · 寫了 2 條 law，通過 nan 條 · 未達成
 
 # 這份文檔朝向哪裡
 
-- R-1-money-correct 的里程碑 M-2-refund:退款走通(綁定 F-002-refund)
+- R-1-money-correct 的里程碑 M-2-refund：退款走通（綁定 F-002-refund）
 
-# 需求檔:.design/requirements/R-1-money-correct.md
+# 需求檔：.design/requirements/R-1-money-correct.md
 
 ````markdown
 ---
@@ -123,9 +123,9 @@ id: R-1
 priority: 1
 updated: 2026-09-07
 ---
-# R-1-money-correct:每一筆結帳與退款的金額都算對
+# R-1-money-correct：每一筆結帳與退款的金額都算對
 
-- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+- 驗收：任一筆請求，訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
@@ -139,25 +139,25 @@ updated: 2026-09-07
 
 | 日期 | 誰 | 憑據 | 結論 |
 |---|---|---|---|
-| 2026-09-07 | dev@example.com | R-1#ACCEPT 與三條里程碑的 demo 都跑過,金額與手算相同 | 已驗收 |
+| 2026-09-07 | dev@example.com | R-1#ACCEPT 與三條里程碑的 demo 都跑過，金額與手算相同 | 已驗收 |
 ````
 
-# system.md(全份)
+# system.md（全份）
 
 ````markdown
 ---
 language: typescript
 updated: 2026-09-07
 ---
-# shop:購物車結帳與退款
+# shop：購物車結帳與退款
 
 ## 願景
-小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
+小型電商的每一筆錢都算得對、查得到來源；結帳與退款之外再加路徑時，金額規則不必再寫一次。
 
-替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算,不做跨幣別換算。
+替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算，不做跨幣別換算。
 
 ## 全域 Law
-不得違反:整個專案任何一條切片、任何一份 feature 都要守。三類各住一區,各有一道 lint 自動確認(`devflow lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+不得違反：整個專案任何一條切片、任何一份 feature 都要守。三類各住一區，各有一道 lint 自動確認（`devflow lint global` 一次查完）；新增、修改、放寬、替換或刪除都要開發者明確批准。
 
 ### 領域不變量
 - INV-1 [bound] 任何一條路徑結算出來的金額都不為負
@@ -165,8 +165,8 @@ updated: 2026-09-07
   - given settled(settle(ls, d))
   - |- cents(settle(ls, d)) >= 0
 
-### 架構:層
-由內而外;內層不准 import 外層,最後一列是最外層,也是唯一能做對外 I/O 的層。
+### 架構：層
+由內而外；內層不准 import 外層，最後一列是最外層，也是唯一能做對外 I/O 的層。
 
 | 層 | 裝什麼 |
 |---|---|
@@ -174,7 +174,7 @@ updated: 2026-09-07
 | application | 把 domain 串成一條結帳或退款 |
 | entry | HTTP 路由 |
 
-### 契約:對外 I/O
+### 契約：對外 I/O
 | 名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約 |
 |---|---|---|---|---|---|---|---|
 | POST /checkout | in | `RawBody` | `src/entry/routes.ts` | F-001-checkout | untrusted | `parseCheckout` | F-001#LAW-2 |
@@ -183,20 +183,20 @@ updated: 2026-09-07
 | 退款結果 | out | `HttpRes` | `src/entry/routes.ts` | F-002-refund | trusted | - | INV-1 |
 
 ## Constraint
-硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(三道指令、追加清單、忽略目錄、號段、優先)。開發者定,`dev-flow:kickoff` 寫,之後隨時回 `dev-flow:kickoff` 補或改;限制的類別可以自己加。
-- 語言與版本:TypeScript 5.4,`strict` 全開
-- 編譯器與執行環境:Node 20
-- 套件與框架:測試只用 jest;金額運算不准引入浮點數的函式庫
-- 環境:無
-- 命名與寫法:型別 PascalCase、函數與變數 camelCase、檔名 kebab-case;讀出整數分的函數以 `Cents` 結尾
-- 建置:`npx tsc --noEmit`
-- 測試(整套):`npx jest`
-- 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
-- IO 模組追加:無
-- Laws 詞彙追加:無
-- 忽略目錄:無
-- 號段:無
-- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+硬性限制：寫程式之前就定得下來、每一行程式碼與測試都照做的規定，與工具要讀的那幾行（三道指令、追加清單、忽略目錄、號段、優先）。開發者定，`dev-flow:kickoff` 寫，之後隨時回 `dev-flow:kickoff` 補或改；限制的類別可以自己加。
+- 語言與版本：TypeScript 5.4，`strict` 全開
+- 編譯器與執行環境：Node 20
+- 套件與框架：測試只用 jest；金額運算不准引入浮點數的函式庫
+- 環境：無
+- 命名與寫法：型別 PascalCase、函數與變數 camelCase、檔名 kebab-case；讀出整數分的函數以 `Cents` 結尾
+- 建置：`npx tsc --noEmit`
+- 測試（整套）：`npx jest`
+- 測試（子集）：`npx jest test/<檔名>`（以一份文檔選）
+- IO 模組追加：無
+- Laws 詞彙追加：無
+- 忽略目錄：無
+- 號段：無
+- 優先：1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具
 
 ## Features
 | 全名 | 類別 |
@@ -224,26 +224,26 @@ updated: 2026-09-07
 # devflow status
 
 ### devflow status
-願景:小型電商的每一筆錢都算得對、查得到來源;結帳與退款之外再加路徑時,金額規則不必再寫一次。
-需求 1 條,已驗收 1 條 · 等人工審核 0 條 · 領域不變量 1 條,成立 1 條 · 里程碑 3 條,達成 3 條 · feature 2 份,達成 2 份 · 文檔共 2 份,達成 2 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+願景：小型電商的每一筆錢都算得對、查得到來源；結帳與退款之外再加路徑時，金額規則不必再寫一次。
+需求 1 條，已驗收 1 條 · 等人工審核 0 條 · 領域不變量 1 條，成立 1 條 · 里程碑 3 條，達成 3 條 · feature 2 份，達成 2 份 · 文檔共 2 份，達成 2 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 #### 需求
-- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+- 優先：1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具
 | 需求 | 優先 | 一句話 | 審核 | 上線 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|---|---|---|
-| R-1 | 1 | 每一筆結帳與退款的金額都算對 | 已驗收(2026-09-07 dev@example.com) | - | - | 3 | 3 | 100% |
+| R-1 | 1 | 每一筆結帳與退款的金額都算對 | 已驗收（2026-09-07 dev@example.com） | - | - | 3 | 3 | 100% |
 
 #### 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 3 層,通過 |
-| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 4 列,通過;契約欄指到的 law 3 條,成立 3 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 1 條,通過;成立 1 條 |
+| 架構 | 全域 Law › 架構：層 | devflow lint boundary | 3 層，通過 |
+| 契約 | 全域 Law › 契約：對外 I/O | devflow lint io | 4 列，通過；契約欄指到的 law 3 條，成立 3 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 1 條，通過；成立 1 條 |
 
 | 領域不變量 | 種類 | 一句話 | 成立 |
 |---|---|---|---|
-| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 成立(測試 INV-1#LAW green) |
+| INV-1 | bound | 任何一條路徑結算出來的金額都不為負 | 成立（測試 INV-1#LAW green） |
 
 #### 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -263,16 +263,16 @@ updated: 2026-09-07
 #### 4. 牽動誰
 - F-001-checkout ← F-002-refund
 
-#### 5. 待實作(按檔案)
+#### 5. 待實作（按檔案）
 - 無
 
 #### 6. 修訂熱點
-- F-001-checkout:REV 1 條,最後一條「REV-1(2026-09-07,依 M-3-settle-total:退款也走 settle,手續費可能大過要退的金額」
-- F-002-refund:REV 1 條,最後一條「REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 」
+- F-001-checkout：REV 1 條，最後一條「REV-1（2026-09-07，依 M-3-settle-total：退款也走 settle，手續費可能大過要退的金額」
+- F-002-refund：REV 1 條，最後一條「REV-1（2026-09-07，依開發者：手續費不另寫一條扣款）：金額計算改成引用 F-001-checkout 的 」
 
 #### 7. 警訊
 - 無
 
 #### 8. 建議路線
-- 目前功能全部正常運作:每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事,可以加新功能:dev-flow:require-design 談一條新需求,或替既有的需求加一條里程碑
+- 目前功能全部正常運作：每份文檔達成、每條需求都經開發者親自驗收、每條領域不變量成立、測試全綠、沒有 open GAP、沒有警訊。沒有非做不可的事，可以加新功能：dev-flow:require-design 談一條新需求，或替既有的需求加一條里程碑
 exit 0

@@ -1,69 +1,69 @@
 $ lawful migrate laws --write
 # migrate laws 帳本
 
-- .lawful/modules.md:「邊界」與「對外 I/O」兩節搬進 Cone.md 的全域 Law 區,這一檔只剩「模組單元」表
-- .lawful/Cone.md:需求的「- Law:」改成「- 驗收:」2 條;蘊含說明刪 1 條;補「## 全域 Law」區(領域不變量寫「無」、四層照搬、對外 I/O照搬並補契約欄)
-- .lawful/objectives/R-1-O-1-save-roundtrip.md:「- Law:」刪掉(里程碑不管理約束;需求達成與否由驗收判);里程碑補英文名:M-1-save-write;M-2 還沒綁 pipeline,英文名由 lawful:require-design 定
-- .lawful/objectives/R-1-O-2-save-list.md:「- Law:」刪掉(里程碑不管理約束;需求達成與否由驗收判)
-- .lawful/pipelines/P-001-save-write.md:status frozen 改成 verified
+- .lawful/modules.md：「邊界」與「對外 I/O」兩節搬進 Cone.md 的全域 Law 區，這一檔只剩「模組單元」表
+- .lawful/Cone.md：需求的「- Law：」改成「- 驗收：」2 條；蘊含說明刪 1 條；補「## 全域 Law」區（領域不變量寫「無」、四層照搬、對外 I/O照搬並補契約欄）
+- .lawful/objectives/R-1-O-1-save-roundtrip.md：「- Law：」刪掉（里程碑不管理約束；需求達成與否由驗收判）；里程碑補英文名：M-1-save-write；M-2 還沒綁 pipeline，英文名由 lawful:require-design 定
+- .lawful/objectives/R-1-O-2-save-list.md：「- Law：」刪掉（里程碑不管理約束；需求達成與否由驗收判）
+- .lawful/pipelines/P-001-save-write.md：status frozen 改成 verified
 
-人要判的:
-- .lawful/spikes/ 還有 1 份:這棵樹不讀它。結論值得留的寫成 ADR 或搬進那條 pipeline 的「決定」,其餘刪掉;根目錄的 spike/ 也一樣
-- test/SaveGameSpec.hs 的 "R-1#LAW":需求的驗收測試歸屬是 "R-1#ACCEPT",改字串
+人要判的：
+- .lawful/spikes/ 還有 1 份：這棵樹不讀它。結論值得留的寫成 ADR 或搬進那條 pipeline 的「決定」，其餘刪掉；根目錄的 spike/ 也一樣
+- test/SaveGameSpec.hs 的 "R-1#LAW"：需求的驗收測試歸屬是 "R-1#ACCEPT"，改字串
 
-都寫了;接著 lawful lint global 與 lawful status 看警訊,領域不變量與對外 I/O 的契約欄由 lawful:global-laws 對談補
+都寫了；接著 lawful lint global 與 lawful status 看警訊，領域不變量與對外 I/O 的契約欄由 lawful:global-laws 對談補
 exit 0
 --- .lawful/Cone.md
 ---
 language: haskell
 updated: 2026-09-05
 ---
-# save-game:把遊戲世界存成檔案再讀回來
+# save-game：把遊戲世界存成檔案再讀回來
 
 ## 願景
-玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
+玩家在任何時刻存檔，之後讀回來的世界和存檔那一刻一模一樣。
 
-替一個小型 2D 遊戲提供存檔與讀檔。玩家按存檔,當前世界寫成一個檔案;讀檔把檔案還原成同一個世界。不處理雲端同步,不處理跨版本升級。
+替一個小型 2D 遊戲提供存檔與讀檔。玩家按存檔，當前世界寫成一個檔案；讀檔把檔案還原成同一個世界。不處理雲端同步，不處理跨版本升級。
 
 ## 需求
-### R-1:玩家存檔後能讀回同一個世界
-- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
+### R-1：玩家存檔後能讀回同一個世界
+- 驗收：任一 World 存檔再讀回，可存檔的投影一模一樣
   - forall w in World
   - |- decode (saveBytes w) == Right (toSave w)
 
-### R-2:存檔壞了讀得出是哪裡壞
-- 驗收:任一壞掉的存檔,讀檔回報第一個壞掉的位置
+### R-2：存檔壞了讀得出是哪裡壞
+- 驗收：任一壞掉的存檔，讀檔回報第一個壞掉的位置
 
 ## 全域 Law
-不得違反:整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區,各有一道 lint 自動確認(`lawful lint global` 一次查完);新增、修改、放寬、替換或刪除都要開發者明確批准。
+不得違反：整個專案任何一條切片、任何一條 pipeline 都要守。三類各住一區，各有一道 lint 自動確認（`lawful lint global` 一次查完）；新增、修改、放寬、替換或刪除都要開發者明確批准。
 
 ### 領域不變量
 無
 
-### 架構:四層
-- types:`Game.World`(遊戲世界的不可變值,含渲染快取)、`Game.Save.State`(可存檔的投影)
-- effect:無
-- core:`Game.Save.Core.*`(投影與編解碼)
-- shell:`Game.Save.Host`(存檔進入點)、`Game.FS`(檔案系統)
+### 架構：四層
+- types:`Game.World`（遊戲世界的不可變值，含渲染快取）、`Game.Save.State`（可存檔的投影）
+- effect：無
+- core:`Game.Save.Core.*`（投影與編解碼）
+- shell:`Game.Save.Host`（存檔進入點）、`Game.FS`（檔案系統）
 
-### 契約:對外 I/O
+### 契約：對外 I/O
 | 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |
 |---|---|---|---|---|---|
 | 存檔檔案 | out | `ByteString` | `Game.FS` | P-001-save-write | - |
 
 ## 專案約束
-- 語言:haskell
-- 建置:`cabal build`
-- 測試(整套):`cabal test`
-- 測試(子集):`cabal test --test-options='-m "P-001"'`
-- 模組前綴:`Game`
-- 原始碼根目錄:`src-<層>`
-- IO 模組追加:無
-- 效果型別追加:無
-- 忽略目錄:`old`
-- 號段:無
-- 套件與框架:cborg(CBOR 編解碼);不引入其他序列化套件
-- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+- 語言：haskell
+- 建置：`cabal build`
+- 測試（整套）：`cabal test`
+- 測試（子集）：`cabal test --test-options='-m "P-001"'`
+- 模組前綴：`Game`
+- 原始碼根目錄：`src-<層>`
+- IO 模組追加：無
+- 效果型別追加：無
+- 忽略目錄：`old`
+- 號段：無
+- 套件與框架：cborg（CBOR 編解碼）；不引入其他序列化套件
+- 優先：1 = 讀寫的正確性；2 = 使用者看得到的；3 = 呈現；4 = 工具
 
 --- .lawful/modules.md
 # 模組表
@@ -73,7 +73,7 @@ updated: 2026-09-05
 |---|---|---|
 | `Game.World` | types | 遊戲世界的不可變值與它的實體 |
 | `Game.Save` | types、core、shell | 可存檔的投影、編解碼與存檔的進入點 |
-| `Game.FS` | shell | 檔案系統:原子寫檔 |
+| `Game.FS` | shell | 檔案系統：原子寫檔 |
 
 --- .lawful/objectives/R-1-O-1-save-roundtrip.md
 ---
@@ -82,7 +82,7 @@ requirement: R-1
 priority: 1
 updated: 2026-09-05
 ---
-# R-1-O-1-save-roundtrip:玩家存檔後能讀回同一個世界
+# R-1-O-1-save-roundtrip：玩家存檔後能讀回同一個世界
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
@@ -100,7 +100,7 @@ requirement: R-1
 priority: 2
 updated: 2026-09-05
 ---
-# R-1-O-2-save-list:玩家看得到自己有哪些存檔
+# R-1-O-2-save-list：玩家看得到自己有哪些存檔
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
@@ -114,22 +114,22 @@ kind: IO 介面
 status: verified
 updated: 2026-09-05
 ---
-# P-001-save-write:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+# P-001-save-write：把當前 World 投影成可存檔的狀態，編碼後寫到磁碟
 
 ## Brief
-玩家按存檔時,把當前不可變的 World 寫成一個檔案;讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取,不直接存;先投影成 SaveState,只留遊戲邏輯需要的欄位。
-流向:World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString;進入點把它接到檔案系統。它是 IO 介面,兩端碰到 shell。
+玩家按存檔時，把當前不可變的 World 寫成一個檔案；讀檔把檔案還原成同一個可存檔狀態。World 含渲染快取，不直接存；先投影成 SaveState，只留遊戲邏輯需要的欄位。
+流向：World → 投影 → SaveState → 編碼 → ByteString → 寫檔。純的整條是 World → ByteString；進入點把它接到檔案系統。它是 IO 介面，兩端碰到 shell。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `toSave :: World -> SaveState` | 去掉快取,留可存欄位 | `Game.Save.Project` | core |
+| 1 | `toSave :: World -> SaveState` | 去掉快取，留可存欄位 | `Game.Save.Project` | core |
 | 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
-| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態,壞檔回錯誤 | `Game.Save.Codec` | core |
+| 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態，壞檔回錯誤 | `Game.Save.Codec` | core |
 | 4 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
-| o | `savedIds :: SaveState -> [EntityId]` | 觀察:投影後的實體 id | `Game.Save.Project.Internal` | core |
-| = | `saveBytes :: World -> ByteString` | 純的整條:投影再編碼 | `Game.Save` | core |
-| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點:整條接到寫檔 | `Game.Save.Host` | shell |
+| o | `savedIds :: SaveState -> [EntityId]` | 觀察：投影後的實體 id | `Game.Save.Project.Internal` | core |
+| = | `saveBytes :: World -> ByteString` | 純的整條：投影再編碼 | `Game.Save` | core |
+| ! | `saveGame :: FilePath -> World -> IO ()` | 進入點：整條接到寫檔 | `Game.Save.Host` | shell |
 
 ## Laws
 - LAW-1 [roundtrip] 存了再讀回到同一個狀態
@@ -155,9 +155,9 @@ updated: 2026-09-05
 | EX-2 | `toSave emptyWorld` | `emptySave` | LAW-2 |
 
 ## 決定
-- **存 SaveState 不存 World。** 否決:直接編碼 World。渲染快取是衍生資料,存進去會讓 roundtrip 對不上。
-- **格式用 CBOR。** 否決:JSON。證據:ADR-001-save-format
+- **存 SaveState 不存 World。** 否決：直接編碼 World。渲染快取是衍生資料，存進去會讓 roundtrip 對不上。
+- **格式用 CBOR。** 否決：JSON。證據：ADR-001-save-format
 
 ## 修訂記錄
-- REV-1(2026-09-05,依 RF-1):存檔檔案壓縮後不超過 1 MB,補一條 bound 的 law
+- REV-1（2026-09-05，依 RF-1）：存檔檔案壓縮後不超過 1 MB，補一條 bound 的 law
 

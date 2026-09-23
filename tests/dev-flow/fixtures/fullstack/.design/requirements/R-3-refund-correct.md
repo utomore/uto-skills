@@ -3,9 +3,9 @@ id: R-3
 priority: 1
 updated: 2026-09-07
 ---
-# R-3-refund-correct:每一筆退款退回的錢都算對
+# R-3-refund-correct：每一筆退款退回的錢都算對
 
-- 驗收:任一筆請求,退回的錢都等於要退的品項加總減掉手續費的結算金額
+- 驗收：任一筆請求，退回的錢都等於要退的品項加總減掉手續費的結算金額
   - forall raw in RawBody
   - |- returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
@@ -17,4 +17,4 @@ updated: 2026-09-07
 
 | 日期 | 誰 | 憑據 | 結論 |
 |---|---|---|---|
-| 2026-09-07 | dev@example.com | 驗收測試 green,兩側的 demo 都跑過,金額與手算相同 | 已驗收 |
+| 2026-09-07 | dev@example.com | 驗收測試 green，兩側的 demo 都跑過，金額與手算相同 | 已驗收 |

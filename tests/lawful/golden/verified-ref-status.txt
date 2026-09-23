@@ -1,24 +1,24 @@
 $ lawful status
 # lawful status
-願景:一段文字丟進來,字數統計與報表一次算對。
-需求 1 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 4 條,達成 0 條 · io pipeline 2 條,達成 0 條 · pipeline 2 條,達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
-· 沒給測試輸出(--tests <log> 或 --run),幾條 law 通過測試未知
+願景：一段文字丟進來，字數統計與報表一次算對。
+需求 1 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條，成立 0 條 · 里程碑 4 條，達成 0 條 · io pipeline 2 條，達成 0 條 · pipeline 2 條，達成 0 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
+· 沒給測試輸出（--tests <log> 或 --run），幾條 law 通過測試未知
 
 ## 需求
-- 優先:1 = 讀寫的正確性;2 = 使用者看得到的;3 = 呈現;4 = 工具
+- 優先：1 = 讀寫的正確性；2 = 使用者看得到的；3 = 呈現；4 = 工具
 | 需求 | 優先 | 一句話 | 審核 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |
 |---|---|---|---|---|---|---|---|
-| R-1 | 1 | 一段文字進來,報表算對 | 建構中(M-1-count-tally、M-3-tally-one-pass、M-4-tally-unicode、M-2-report-render 還沒達成) | - | 4 | 0 | 0% |
-- R-1 下一個里程碑:M-1-count-tally 字數算得對(P-002-count-tally 進行中)
+| R-1 | 1 | 一段文字進來，報表算對 | 建構中（M-1-count-tally、M-3-tally-one-pass、M-4-tally-unicode、M-2-report-render 還沒達成） | - | 4 | 0 | 0% |
+- R-1 下一個里程碑：M-1-count-tally 字數算得對（P-002-count-tally 進行中）
 
 ## 全域 Law
 | 類別 | 住 Cone.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:四層 | lawful lint boundary | 四層,通過 |
-| 契約 | 全域 Law › 契約:對外 I/O | lawful lint io | 1 列,1 條不合規;契約欄指到的 law 0 條,成立 nan 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | lawful lint invariants | 0 條,通過;成立 nan 條 |
+| 架構 | 全域 Law › 架構：四層 | lawful lint boundary | 四層，通過 |
+| 契約 | 全域 Law › 契約：對外 I/O | lawful lint io | 1 列，1 條不合規；契約欄指到的 law 0 條，成立 nan 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | lawful lint invariants | 0 條，通過；成立 nan 條 |
 
-- 領域不變量:無
+- 領域不變量：無
 
 ## pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
@@ -32,14 +32,14 @@ $ lawful status
 | App.Token | 一個字 | types | - | - | 0 | 0 |
 | App.Count | 數一段文字裡的字數 | core | - | P-002-count-tally | 2 | 0 |
 | App.Report | 報表與命令列進入點 | core、shell | - | P-001-report-render | 2 | 1 |
-- 還沒有任何 stage 住進去的單元:App.Token
+- 還沒有任何 stage 住進去的單元：App.Token
 
 ## 1. 今天能開幾條線
 - 無
 
 ## 2. 卡住的
-- P-001-report-render 等 P-002-count-tally(達成與否未知,給測試輸出)
-- P-001-report-render 等 M-1-count-tally(R-1 的里程碑照順序走,M-2-report-render 排在它後面)
+- P-001-report-render 等 P-002-count-tally（達成與否未知，給測試輸出）
+- P-001-report-render 等 M-1-count-tally（R-1 的里程碑照順序走，M-2-report-render 排在它後面）
 
 ## 3. 等決定
 - 無
@@ -47,15 +47,15 @@ $ lawful status
 ## 4. 牽動誰
 - P-002-count-tally ← P-001-report-render
 
-## 5. 待實作(按模組單元)
+## 5. 待實作（按模組單元）
 - App.Report
-  - App.Report:P-001-report-render#report(未實作)
+  - App.Report：P-001-report-render#report（未實作）
 
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| 全域 Law:契約 | lint io 1 條不合規 | lawful lint io |
+| 全域 Law：契約 | lint io 1 條不合規 | lawful lint io |
 
 ## 7. 建議路線
-- 沒有可派的線,但 P-001-report-render、P-002-count-tally 的 laws 綠幾條未知:先給測試輸出(--tests <log> 或 --run),才知道功能是不是全部正常
+- 沒有可派的線，但 P-001-report-render、P-002-count-tally 的 laws 綠幾條未知：先給測試輸出（--tests <log> 或 --run），才知道功能是不是全部正常
 exit 1

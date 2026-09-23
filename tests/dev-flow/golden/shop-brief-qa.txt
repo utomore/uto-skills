@@ -1,12 +1,12 @@
 $ devflow brief qa F-001-checkout --no-rules
-brief qa F-001-checkout @doc:09ec92e0 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief qa F-001-checkout @doc:da4ec81d rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
-# 目標文檔:.design/features/F-001-checkout.md
+# 目標文檔：.design/features/F-001-checkout.md
 
 ````markdown
 ---
@@ -15,33 +15,33 @@ description: 使用者把購物車結成一張已付款的訂單
 status: verified
 updated: 2026-09-07
 ---
-# F-001-checkout:使用者把購物車結成一張已付款的訂單
+# F-001-checkout：使用者把購物車結成一張已付款的訂單
 
 ## Brief
-把一段請求文字解析成購物車,結算應付金額,產生一張訂單。
-input 是 POST /checkout 的 RawBody,output 是 HttpRes。
-流向:解析 → 結算 → 產生訂單。從對外 I/O 表的「POST /checkout」進來,從「結帳結果」出去。
-第 2 步的 settle 與它的 law 住在這一份;F-002-refund 的第 2 步引用它。
+把一段請求文字解析成購物車，結算應付金額，產生一張訂單。
+input 是 POST /checkout 的 RawBody，output 是 HttpRes。
+流向：解析 → 結算 → 產生訂單。從對外 I/O 表的「POST /checkout」進來，從「結帳結果」出去。
+第 2 步的 settle 與它的 law 住在這一份；F-002-refund 的第 2 步引用它。
 
 ## Steps
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `parseCheckout(RawBody): CheckoutReq` | 解析並夾住請求裡的數字,不信任任何一段 | `src/app/checkout.ts` | application |
-| 2 | `settle(MoneyList, Money): Settlement` | 結算應付金額:同幣別的品項相加再扣掉一筆金額,幣別不同或扣成負的就是錯誤 | `src/domain/money.ts` | domain |
-| 3 | `toOrder(CheckoutReq, Settlement): CheckoutResult` | 結算成功就產生訂單,失敗就帶回理由 | `src/app/checkout.ts` | application |
-| o | `reqLines(CheckoutReq): MoneyList` | 觀察:這張購物車有哪些品項 | `src/app/checkout.ts` | application |
-| o | `reqDiscount(CheckoutReq): Money` | 觀察:這張購物車的折扣 | `src/app/checkout.ts` | application |
-| o | `paidCents(CheckoutResult): number` | 觀察:訂單付了多少分,沒成單回 -1 | `src/app/checkout.ts` | application |
-| o | `cents(Settlement): number` | 觀察:結算出來是多少分,沒結算成回 -1 | `src/domain/money.ts` | domain |
-| o | `settled(Settlement): boolean` | 觀察:這次結算成功了沒 | `src/domain/money.ts` | domain |
-| = | `checkout(RawBody): CheckoutResult` | 整條:解析 → 結算 → 產生訂單 | `src/app/checkout.ts` | application |
-| ! | `checkoutHandler(HttpReq): HttpRes` | 進入點:接到 POST /checkout | `src/entry/routes.ts` | entry |
+| 1 | `parseCheckout(RawBody): CheckoutReq` | 解析並夾住請求裡的數字，不信任任何一段 | `src/app/checkout.ts` | application |
+| 2 | `settle(MoneyList, Money): Settlement` | 結算應付金額：同幣別的品項相加再扣掉一筆金額，幣別不同或扣成負的就是錯誤 | `src/domain/money.ts` | domain |
+| 3 | `toOrder(CheckoutReq, Settlement): CheckoutResult` | 結算成功就產生訂單，失敗就帶回理由 | `src/app/checkout.ts` | application |
+| o | `reqLines(CheckoutReq): MoneyList` | 觀察：這張購物車有哪些品項 | `src/app/checkout.ts` | application |
+| o | `reqDiscount(CheckoutReq): Money` | 觀察：這張購物車的折扣 | `src/app/checkout.ts` | application |
+| o | `paidCents(CheckoutResult): number` | 觀察：訂單付了多少分，沒成單回 -1 | `src/app/checkout.ts` | application |
+| o | `cents(Settlement): number` | 觀察：結算出來是多少分，沒結算成回 -1 | `src/domain/money.ts` | domain |
+| o | `settled(Settlement): boolean` | 觀察：這次結算成功了沒 | `src/domain/money.ts` | domain |
+| = | `checkout(RawBody): CheckoutResult` | 整條：解析 → 結算 → 產生訂單 | `src/app/checkout.ts` | application |
+| ! | `checkoutHandler(HttpReq): HttpRes` | 進入點：接到 POST /checkout | `src/entry/routes.ts` | entry |
 
 ## Laws
 - LAW-1 [relation] 訂單付的錢就是這張購物車的結算金額
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw))))
-- LAW-2 [total] 任何一段請求文字都得到一個結果,不拋例外
+- LAW-2 [total] 任何一段請求文字都得到一個結果，不拋例外
   - forall raw in RawBody
   - |- total(checkout(raw))
 - LAW-3 [bound] 成單時付款金額不為負
@@ -52,11 +52,11 @@ input 是 POST /checkout 的 RawBody,output 是 HttpRes。
   - forall ls in MoneyList, d in Money
   - given settled(settle(ls, d))
   - |- cents(settle(ls, d)) >= 0
-- LAW-5 [identity] 扣掉的金額是零時,結算金額等於各品項相加
+- LAW-5 [identity] 扣掉的金額是零時，結算金額等於各品項相加
   - forall ls in MoneyList
   - given settled(sumLines(ls))
   - |- cents(settle(ls, money(0, "TWD"))) == cents(sumLines(ls))
-- LAW-6 [total] 任何品項清單與任何一筆要扣的金額都得到一個 Settlement,不拋例外
+- LAW-6 [total] 任何品項清單與任何一筆要扣的金額都得到一個 Settlement，不拋例外
   - forall ls in MoneyList, d in Money
   - |- total(settle(ls, d))
 
@@ -70,19 +70,19 @@ input 是 POST /checkout 的 RawBody,output 是 HttpRes。
 | EX-5 | `settle([money(100,"TWD")], money(300,"TWD"))` | `cents 是 -1,error 是 negative-total` | LAW-4、LAW-6 |
 
 ## 決定
-- **解析階段就把數字夾成非負整數,而不是讓結算去擋。** 否決:原樣傳進 domain 再回錯誤。`parseCheckout` 是 untrusted 入口的驗證 step,不合法的輸入不該有機會走到 domain。
-- **金額只在同一個幣別內計算,跨幣別是錯誤不是換算。** 否決:內建匯率換算。匯率是會過期的外部事實,放進純的結算會讓它需要一個時鐘與一個來源。
-- **重開一次**(2026-09-07):為了 REV-1 重開,由 build 重新 verified。
+- **解析階段就把數字夾成非負整數，而不是讓結算去擋。** 否決：原樣傳進 domain 再回錯誤。`parseCheckout` 是 untrusted 入口的驗證 step，不合法的輸入不該有機會走到 domain。
+- **金額只在同一個幣別內計算，跨幣別是錯誤不是換算。** 否決：內建匯率換算。匯率是會過期的外部事實，放進純的結算會讓它需要一個時鐘與一個來源。
+- **重開一次**(2026-09-07)：為了 REV-1 重開，由 build 重新 verified。
 
 ## 修訂記錄
-- REV-1(2026-09-07,依 M-3-settle-total:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law
-  - 動到:新增 LAW-6、EX-5
-  - 保護:LAW-1、LAW-2、LAW-3、LAW-4、LAW-5
-  - 重委派:qa(LAW-6、EX-5)
-  - 連動:F-002-refund 的第 2 步引用本檔的 settle
+- REV-1（2026-09-07，依 M-3-settle-total：退款也走 settle，手續費可能大過要退的金額）：settle 補一條 total 的 law
+  - 動到：新增 LAW-6、EX-5
+  - 保護：LAW-1、LAW-2、LAW-3、LAW-4、LAW-5
+  - 重委派：qa（LAW-6、EX-5）
+  - 連動：F-002-refund 的第 2 步引用本檔的 settle
 ````
 
-# 逐條狀態(文檔對程式碼;沒有給測試輸出,law 的紅綠不在這裡)
+# 逐條狀態（文檔對程式碼；沒有給測試輸出，law 的紅綠不在這裡）
 
 ### Steps
 - 1  parseCheckout(RawBody): CheckoutReq  src/app/checkout.ts/application  在
@@ -98,11 +98,11 @@ input 是 POST /checkout 的 RawBody,output 是 HttpRes。
 
 ### Laws
 - LAW-1 [relation] 訂單付的錢就是這張購物車的結算金額  未跑
-- LAW-2 [total] 任何一段請求文字都得到一個結果,不拋例外  未跑
+- LAW-2 [total] 任何一段請求文字都得到一個結果，不拋例外  未跑
 - LAW-3 [bound] 成單時付款金額不為負  未跑
 - LAW-4 [invariant] 結算成功時金額不為負  未跑
-- LAW-5 [identity] 扣掉的金額是零時,結算金額等於各品項相加  未跑
-- LAW-6 [total] 任何品項清單與任何一筆要扣的金額都得到一個 Settlement,不拋例外  未跑
+- LAW-5 [identity] 扣掉的金額是零時，結算金額等於各品項相加  未跑
+- LAW-6 [total] 任何品項清單與任何一筆要扣的金額都得到一個 Settlement，不拋例外  未跑
 - EX-1 覆蓋 LAW-1、LAW-3  未跑
 - EX-2 覆蓋 LAW-1、LAW-2  未跑
 - EX-3 覆蓋 LAW-2、LAW-3  未跑
@@ -113,17 +113,17 @@ input 是 POST /checkout 的 RawBody,output 是 HttpRes。
 - 無
 
 ### 引用
-- 引用了:無
-- 被引用:F-002-refund
+- 引用了：無
+- 被引用：F-002-refund
 
 ### 修訂
-- REV-1(2026-09-07,依 M-3-settle-total:退款也走 settle,手續費可能大過要退的金額):settle 補一條 total 的 law
+- REV-1（2026-09-07，依 M-3-settle-total：退款也走 settle，手續費可能大過要退的金額）：settle 補一條 total 的 law
 
-文檔寫了 5 條簽名,程式碼裡有 5 條,未實作的 0 條 · 觀察點 5 個,程式碼裡有 5 個 · 寫了 6 條 law,通過 nan 條 · 未達成
+文檔寫了 5 條簽名，程式碼裡有 5 條，未實作的 0 條 · 觀察點 5 個，程式碼裡有 5 個 · 寫了 6 條 law，通過 nan 條 · 未達成
 
 # 宣告
 
-只有宣告,沒有本體:測試從這裡與文檔寫,不打開這些檔的本體。
+只有宣告，沒有本體：測試從這裡與文檔寫，不打開這些檔的本體。
 
 ### 1 `parseCheckout`  src/app/checkout.ts:7
 ```typescript
@@ -227,7 +227,7 @@ export type Settlement = { readonly total: Money | null; readonly error: MoneyEr
 
 # 最內層(domain)
 
-### src/domain/money.ts(38 行,全文)
+### src/domain/money.ts（38 行，全文）
 ```typescript
 export type Money = { readonly cents: number; readonly currency: string };
 export type MoneyList = Money[];
@@ -270,29 +270,29 @@ export function cents(s: Settlement): number {
 
 # system.md「Constraint」
 
-硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(三道指令、追加清單、忽略目錄、號段、優先)。開發者定,`dev-flow:kickoff` 寫,之後隨時回 `dev-flow:kickoff` 補或改;限制的類別可以自己加。
-- 語言與版本:TypeScript 5.4,`strict` 全開
-- 編譯器與執行環境:Node 20
-- 套件與框架:測試只用 jest;金額運算不准引入浮點數的函式庫
-- 環境:無
-- 命名與寫法:型別 PascalCase、函數與變數 camelCase、檔名 kebab-case;讀出整數分的函數以 `Cents` 結尾
-- 建置:`npx tsc --noEmit`
-- 測試(整套):`npx jest`
-- 測試(子集):`npx jest test/<檔名>`(以一份文檔選)
-- IO 模組追加:無
-- Laws 詞彙追加:無
-- 忽略目錄:無
-- 號段:無
-- 優先:1 = 錢算對;2 = 查得到來源;3 = 呈現;4 = 工具
+硬性限制：寫程式之前就定得下來、每一行程式碼與測試都照做的規定，與工具要讀的那幾行（三道指令、追加清單、忽略目錄、號段、優先）。開發者定，`dev-flow:kickoff` 寫，之後隨時回 `dev-flow:kickoff` 補或改；限制的類別可以自己加。
+- 語言與版本：TypeScript 5.4，`strict` 全開
+- 編譯器與執行環境：Node 20
+- 套件與框架：測試只用 jest；金額運算不准引入浮點數的函式庫
+- 環境：無
+- 命名與寫法：型別 PascalCase、函數與變數 camelCase、檔名 kebab-case；讀出整數分的函數以 `Cents` 結尾
+- 建置：`npx tsc --noEmit`
+- 測試（整套）：`npx jest`
+- 測試（子集）：`npx jest test/<檔名>`（以一份文檔選）
+- IO 模組追加：無
+- Laws 詞彙追加：無
+- 忽略目錄：無
+- 號段：無
+- 優先：1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具
 
 # 測試怎麼寫
 
-- 子集測試指令:npx jest test/<檔名>
-- 歸屬寫法:字串,"F-001#LAW-1"、"F-001#EX-1"
+- 子集測試指令：npx jest test/<檔名>
+- 歸屬寫法：字串，"F-001#LAW-1"、"F-001#EX-1"
 - 測試檔以 F-001-checkout 命名
-- 現有的測試檔:test/checkout.test.ts、test/invariants.test.ts、test/refund.test.ts、test/requirements.test.ts
+- 現有的測試檔：test/checkout.test.ts、test/invariants.test.ts、test/refund.test.ts、test/requirements.test.ts
 
-### 這個專案的測試長這樣:test/refund.test.ts 的開頭
+### 這個專案的測試長這樣：test/refund.test.ts 的開頭
 ```typescript
 import { refund, returnedCents } from '../src/app/refund';
 

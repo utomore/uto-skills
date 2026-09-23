@@ -1,7 +1,7 @@
 $ lawful requirement add save-upgrade 換了版本的存檔在新版讀得回來 --priority 2 --date 2026-09-05
-建了 .lawful/requirements/R-2-save-upgrade.md(R-2,優先 2)
-驗收還是佔位符,對談完填成可判定的一句
-下一步:lawful requirement milestone R-2 <slug> <一句話>
+建了 .lawful/requirements/R-2-save-upgrade.md（R-2，優先 2）
+驗收還是佔位符，對談完填成可判定的一句
+下一步：lawful requirement milestone R-2 <slug> <一句話>
 exit 0
 --- .lawful/requirements/R-2-save-upgrade.md
 ---
@@ -11,9 +11,9 @@ updated: 2026-09-05
 ---
 # R-2-save-upgrade:換了版本的存檔在新版讀得回來
 
-- 驗收:<一句可判定的話:這條需求達成時,什麼一定為真>
+- 驗收：<一句可判定的話：這條需求達成時，什麼一定為真>
   - forall <變數 in 定義域>
-  - |- <結論,識別字是某條 pipeline 的 Stages 簽名或 types 層的匯出;寫不成表達式就只留上面那一句>
+  - |- <結論，識別字是某條 pipeline 的 Stages 簽名或 types 層的匯出；寫不成表達式就只留上面那一句>
 
 | 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |
 |---|---|---|---|

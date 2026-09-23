@@ -1,4 +1,4 @@
-// 走原始碼樹,透過 adapter 讀出模組、簽名、import、測試標記。
+// 走原始碼樹，透過 adapter 讀出模組、簽名、import、測試標記。
 import fs from 'node:fs';
 import path from 'node:path';
 import { layerOfFile } from './design.mjs';
@@ -20,7 +20,7 @@ function walk(dir, exts, out, root, ignore) {
 }
 
 // { modules: Map<name, {module, file, layer, imports, signatures}>, testFiles: [{file, markers}], duplicates: [{module, files}] }
-// 層來自檔案住在哪一棵原始碼樹;同一個模組名出現在兩棵樹是 duplicates,編譯期會撞名。
+// 層來自檔案住在哪一棵原始碼樹；同一個模組名出現在兩棵樹是 duplicates，編譯期會撞名。
 // ignore:Cone.md「Constraint」的「忽略目錄」列的相對路徑或目錄名
 export function readSource(root, adapter, ignore = [], cone = null) {
   const files = [];
@@ -58,7 +58,7 @@ export function readSource(root, adapter, ignore = [], cone = null) {
   return { modules, testFiles, duplicates };
 }
 
-// 命中帶三個程式碼事實:exported(匯出清單有它;沒寫匯出清單算 true)、stub(本體還是未實作標記)。
+// 命中帶三個程式碼事實：exported（匯出清單有它；沒寫匯出清單算 true）、stub（本體還是未實作標記）。
 export function findSignature(source, name) {
   const hits = [];
   for (const m of source.modules.values()) {
@@ -73,7 +73,7 @@ export function findSignature(source, name) {
   return hits;
 }
 
-// 型別名住在哪個模組:[{ module, file }]
+// 型別名住在哪個模組：[{ module, file }]
 export function findType(source, typeName) {
   const hits = [];
   for (const m of source.modules.values()) if (m.typeNames.includes(typeName)) hits.push({ module: m.module, file: m.file });

@@ -1,15 +1,15 @@
-// 讀 .design/ 成一棵樹:system(願景、全域 Law 三區——領域不變量、架構的層、契約的對外 I/O——、Constraint、Features)、requirements(需求:驗收、優先、里程碑)、modules、features、abstracts、gaps、journals。只讀不判;判在 commands/。
+// 讀 .design/ 成一棵樹：system（願景、全域 Law 三區——領域不變量、架構的層、契約的對外 I/O——、Constraint、Features）、requirements（需求：驗收、優先、里程碑）、modules、features、abstracts、gaps、journals。只讀不判；判在 commands/。
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, sameTitle, parseTable, parseTables, parseList, stripTicks } from './markdown.mjs';
 
-// 指令欄只取第一個反引號區段;反引號外的文字是給人看的說明,不是指令的一部分。沒有反引號就整段當指令。
+// 指令欄只取第一個反引號區段；反引號外的文字是給人看的說明，不是指令的一部分。沒有反引號就整段當指令。
 function codeSpan(s) {
   const m = /`([^`]+)`/.exec(s);
   return m ? m[1].trim() : s.trim();
 }
 
-// 一道指令:單一 `指令` → 字串;多語言專案每側一段「<目錄> = `指令`」以 ; 分隔 → { 目錄: 指令 }
+// 一道指令：單一 `指令` → 字串；多語言專案每側一段「<目錄> = `指令`」以；分隔 → { 目錄：指令 }
 function sidedCommand(s) {
   const parts = s.split(/[;；]/).map((p) => p.trim()).filter(Boolean);
   const sided = parts.map((p) => /^([^=`]+?)\s*=\s*`([^`]+)`/.exec(p)).filter(Boolean);
@@ -17,10 +17,10 @@ function sidedCommand(s) {
   return codeSpan(s);
 }
 
-// 模板的佔位符:整格是 <…>。claim 建出來還沒寫的列不算 step / law / example,另計成「還是模板」。
+// 模板的佔位符：整格是 <…>。claim 建出來還沒寫的列不算 step / law / example，另計成「還是模板」。
 // 簽名欄不能用「含有 <」判定——泛型 Result<Money, Error> 是合法簽名。
 const isPlaceholder = (s) => /^<[^>]*>?$/.test((s || '').trim());
-// 名字、檔案路徑、層名裡永遠不會有角括號,所以這幾欄只要出現 <…> 就是還沒填。
+// 名字、檔案路徑、層名裡永遠不會有角括號，所以這幾欄只要出現 <…> 就是還沒填。
 export const hasPlaceholder = (s) => /<[^>]*>/.test(s || '');
 
 export const LAW_KINDS = ['invariant', 'identity', 'roundtrip', 'relation', 'bound', 'equiv', 'total', 'commute'];
@@ -32,8 +32,8 @@ function read(p) {
   return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
 }
 
-// 需求的「驗收」:清單項 `- 驗收:<一句可判定的話>`,子項可以是三行式(forall / given / |-)。需求是必須達成的事,不是 law。
-// 沒有這一項回 null;有一句話但沒有三行,由驗收測試或里程碑承接。`- Law:` 靜默當同一項讀。
+// 需求的「驗收」：清單項 `- 驗收:<一句可判定的話>`，子項可以是三行式 (forall / given / |-)。需求是必須達成的事，不是 law。
+// 沒有這一項回 null；有一句話但沒有三行，由驗收測試或里程碑承接。`- Law:` 靜默當同一項讀。
 function parseAcceptItem(items) {
   const it = items.find((i) => /^(驗收|Law)[:：]/.test(i.text));
   if (!it) return null;
@@ -53,7 +53,7 @@ function rel(root, p) {
 }
 
 // 正規化簽名文字 → { name, params: [type|null], ret: string|null, text }
-// 文檔與程式碼兩側都走這一支,比對才是同一把尺。
+// 文檔與程式碼兩側都走這一支，比對才是同一把尺。
 export function parseSignature(raw) {
   const s = (raw || '').replace(/\s+/g, ' ').trim();
   const open = s.indexOf('(');
@@ -103,7 +103,7 @@ export function renderSignature(sig) {
   return `${sig.name}(${ps})${sig.ret ? `: ${sig.ret}` : ''}`;
 }
 
-// 兩側簽名比對:名字與參數個數一律比;型別只在程式碼那一側有註記時才比。
+// 兩側簽名比對：名字與參數個數一律比；型別只在程式碼那一側有註記時才比。
 // 回 { ok, why, partial } —— partial 代表只對到名字與參數個數。
 export function compareSignature(doc, code) {
   if (doc.name !== code.name) return { ok: false, why: `名字 ${doc.name} vs ${code.name}` };
@@ -116,15 +116,15 @@ export function compareSignature(doc, code) {
       partial = true;
       continue;
     }
-    if (dp[i] == null) return { ok: false, why: `第 ${i + 1} 個參數文檔沒寫型別,程式碼有 ${cp[i]}` };
+    if (dp[i] == null) return { ok: false, why: `第 ${i + 1} 個參數文檔沒寫型別，程式碼有 ${cp[i]}` };
     if (dp[i] !== cp[i]) return { ok: false, why: `第 ${i + 1} 個參數 ${dp[i]} vs ${cp[i]}` };
   }
   if (code.ret == null) partial = partial || doc.ret != null;
-  else if (doc.ret !== code.ret) return { ok: false, why: `回傳 ${doc.ret || '(沒寫)'} vs ${code.ret}` };
+  else if (doc.ret !== code.ret) return { ok: false, why: `回傳 ${doc.ret || '（沒寫）'} vs ${code.ret}` };
   return { ok: true, partial };
 }
 
-// 號段行:「a@x.com = 000-099;b@x.com = 100-199」,以 git 的 user.email 為鍵。佔位符或「無」是沒有號段;讀不懂的段落進 errors,由 lint ids 報。
+// 號段行：「a@x.com = 000-099；b@x.com = 100-199」，以 git 的 user.email 為鍵。佔位符或「無」是沒有號段；讀不懂的段落進 errors，由 lint ids 報。
 export function parseRanges(raw) {
   const text = (raw || '').trim();
   const out = { ranges: [], errors: [] };
@@ -146,11 +146,11 @@ export function readSystem(designDir, root) {
   if (text == null) return null;
   const { fm, body } = parseFrontmatter(text);
   const secs = sections(body);
-  // 節的 start 是 body 內的行號;加回 frontmatter 佔的行數,訊息才指到檔案的真實行
+  // 節的 start 是 body 內的行號；加回 frontmatter 佔的行數，訊息才指到檔案的真實行
   const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
   for (const s of secs) s.start += offset;
 
-  // 硬性限制與工具要讀的那幾行住「## Constraint」;節名寫成「語言與工具」的樹靜默照讀
+  // 硬性限制與工具要讀的那幾行住「## Constraint」；節名寫成「語言與工具」的樹靜默照讀
   const tools = findSection(secs, 'Constraint') || findSection(secs, '語言與工具');
   const commands = {};
   const ioExtra = [];
@@ -163,20 +163,20 @@ export function readSystem(designDir, root) {
     for (const it of parseList(tools.lines)) {
       const m = /^(建置|測試[(（]整套[)）]|測試[(（]子集[)）]|IO 模組追加|Laws 詞彙追加|忽略目錄|優先|號段|發布)[:：]\s*(.*)$/.exec(it.text);
       if (!m) continue;
-      m[1] = m[1].replace('（', '(').replace('）', ')');   // 寫成全形括號也照讀；commands 的鍵一律用半形的「測試(整套)」
+      m[1] = m[1].replace('（', '(').replace('）', ')');   // 寫成全形括號也照讀；commands 的鍵一律是半形的 `測試(整套)`
       const list = () => m[2].split(/[、,，]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
       if (m[1] === 'IO 模組追加') ioExtra.push(...list());
       else if (m[1] === 'Laws 詞彙追加') vocab.push(...list());
       else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
-      else if (m[1] === '優先') priorityNote = m[2].trim();   // 一行「優先:1 = …;2 = …;3 = …;4 = …」宣告優先各級在這個專案代表什麼
-      // 一行「發布:`v*`」:哪些 git tag 算一次發布(git tag --list 的樣式);沒寫、「無」或佔位符 = 每個 tag 都算
+      else if (m[1] === '優先') priorityNote = m[2].trim();   // 一行「優先：1 = …；2 = …；3 = …；4 = …」宣告優先各級在這個專案代表什麼
+      // 一行「發布：`v*`」：哪些 git tag 算一次發布（git tag --list 的樣式）；沒寫、「無」或佔位符 = 每個 tag 都算
       else if (m[1] === '發布') { const v = stripTicks(m[2].trim()); releaseTags = !v || v === '無' || hasPlaceholder(v) ? '' : v; }
       else if (m[1] === '號段') ranges = { ...parseRanges(m[2]), line: tools.start + tools.lines.findIndex((l) => /^- 號段/.test(l)) + 2 };
       else commands[m[1]] = sidedCommand(m[2]);
     }
   }
 
-  // 全域 Law 的三區住「## 全域 Law」底下的 ###:領域不變量、架構:層、契約:對外 I/O;同名的 ## 節靜默當同一區讀。
+  // 全域 Law 的三區住「## 全域 Law」底下的 ###：領域不變量、架構：層、契約：對外 I/O；同名的 ## 節靜默當同一區讀。
   const globalSec = findSection(secs, '全域 Law');
   const globalPart = (h3, h2) => {
     if (globalSec) {
@@ -185,8 +185,8 @@ export function readSystem(designDir, root) {
     return findSection(secs, h2);
   };
 
-  // 架構:層。表的順序就是由內而外;最後一列是最外層(唯一能做對外 I/O 的層)
-  const layerSec = globalPart('架構:層', '層');
+  // 架構：層。表的順序就是由內而外；最後一列是最外層（唯一能做對外 I/O 的層）
+  const layerSec = globalPart('架構：層', '層');
   const layers = [];
   if (layerSec) {
     const t = parseTable(layerSec.lines);
@@ -196,8 +196,8 @@ export function readSystem(designDir, root) {
     });
   }
 
-  // 對外 I/O 表:名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約
-  const ioSec = globalPart('契約:對外 I/O', '對外 I/O');
+  // 對外 I/O 表：名稱 | 方向 | 型別 | 模組 | 進入哪份 feature | 信任 | 驗證 | 契約
+  const ioSec = globalPart('契約：對外 I/O', '對外 I/O');
   const io = [];
   if (ioSec) {
     const t = parseTable(ioSec.lines);
@@ -210,7 +210,7 @@ export function readSystem(designDir, root) {
         feature: stripTicks(r[4] || ''),
         trust: (r[5] || '').trim(),
         guard: stripTicks(r[6] || ''),
-        // 契約:守這一端的 law,寫 F-00x#LAW-n 或 INV-n,「、」分隔;沒有就「-」
+        // 契約：守這一端的 law，寫 F-00x#LAW-n 或 INV-n，「、」分隔；沒有就「-」
         contract: (r[7] || '').split(/[、,，]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x)),
         line: ioSec.start + t.rowLines[i] + 2,
       };
@@ -228,15 +228,15 @@ export function readSystem(designDir, root) {
     }
   }
 
-  // 願景:第一段是報告第一行印的那句;整節留給看板與 --json。沒有這一節是 missing,還留著 <…> 是 template
+  // 願景：第一段是報告第一行印的那句；整節留給看板與 --json。沒有這一節是 missing，還留著 <…> 是 template
   const visionSec = findSection(secs, '願景');
   const paragraphs = visionSec ? visionSec.lines.join('\n').split(/\n\s*\n/).map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean).join(' ')).filter(Boolean) : [];
   const visionFull = paragraphs.join(' ');
   const vision = paragraphs[0] || '';
   const visionState = !visionSec ? 'missing' : !visionFull || hasPlaceholder(visionFull) ? 'template' : 'ok';
 
-  // 需求住 requirements/ 一條一個檔(readRequirements)。這裡讀的是「## 需求」節的 ### R-n:<一句話>:
-  // 沒有 requirements/ 的樹靠它與 objectives/ 併成同一個形狀(mergeRequirements),migrate requirements 也從它寫檔。
+  // 需求住 requirements/ 一條一個檔 (readRequirements)。這裡讀的是「## 需求」節的 ### R-n:<一句話>:
+  // 沒有 requirements/ 的樹靠它與 objectives/ 併成同一個形狀 (mergeRequirements)，migrate requirements 也從它寫檔。
   const reqSec = findSection(secs, '需求');
   const requirements = [];
   if (reqSec) {
@@ -256,8 +256,8 @@ export function readSystem(designDir, root) {
     }
   }
 
-  // 領域不變量:「### 領域不變量」底下每條 `- INV-n [種類] 一句話`,子項可以是三行式;整個專案都不准違反,
-  // 三行的識別字只准是最內層的匯出與型別名(lint laws 對帳),測試歸屬 INV-n#LAW。
+  // 領域不變量：「### 領域不變量」底下每條 `- INV-n [種類] 一句話`，子項可以是三行式；整個專案都不准違反，
+  // 三行的識別字只准是最內層的匯出與型別名（lint laws 對帳），測試歸屬 INV-n#LAW。
   const invSec = globalPart('領域不變量', '領域不變量');
   const invariants = [];
   if (invSec) for (const it of parseList(invSec.lines)) {
@@ -301,12 +301,12 @@ export function readSystem(designDir, root) {
     ioExtra,
     vocab,
     ignoreDirs,
-    // 號段:多人平行 claim 時每人一段;沒有這一行就是空陣列,claim 從全部文檔的最大號往上配
+    // 號段：多人平行 claim 時每人一段；沒有這一行就是空陣列，claim 從全部文檔的最大號往上配
     ranges: ranges.ranges,
     rangesErrors: ranges.errors,
     rangesLine: ranges.line,
     layers,
-    // 層表沒有列是正常的:層是從第一條切片抽上去的;沒有這一小區才是 missing
+    // 層表沒有列是正常的：層是從第一條切片抽上去的；沒有這一小區才是 missing
     layersState: !layerSec ? 'missing' : 'ok',
     outermost: layers.length ? layers[layers.length - 1].name : null,
     io,
@@ -315,11 +315,11 @@ export function readSystem(designDir, root) {
   };
 }
 
-// 里程碑表(里程碑 | 做到什麼 | 綁定 | 怎麼驗):需求檔的里程碑表。
-// 綁定欄是 feature 全名,「、」分隔;綁定是里程碑對到文檔的唯一寫法,完成度從綁定的文檔推。里程碑表的列序就是先後。
-// 怎麼驗欄是一道跑起來看得到這條里程碑那一句話的指令;人工審核時 status 把它印成步驟。沒有這一欄或寫「-」都是還沒有。
-// 表頭第一格是「調整」的表(調整 | 做到什麼 | 動到)靜默照讀:每一列讀成一條里程碑,接在里程碑表之後——
-// 編號與全名都是 RF-n、沒有英文名、綁定 = 「動到」欄、fromRefinement 為真(做到什麼還是模板佔位符的列不算);hasRefinementTable 講這個檔有那張表(migrate requirements 換掉它)。
+// 里程碑表（里程碑 | 做到什麼 | 綁定 | 怎麼驗）：需求檔的里程碑表。
+// 綁定欄是 feature 全名，「、」分隔；綁定是里程碑對到文檔的唯一寫法，完成度從綁定的文檔推。里程碑表的列序就是先後。
+// 怎麼驗欄是一道跑起來看得到這條里程碑那一句話的指令；人工審核時 status 把它印成步驟。沒有這一欄或寫「-」都是還沒有。
+// 表頭第一格是「調整」的表（調整 | 做到什麼 | 動到）靜默照讀：每一列讀成一條里程碑，接在里程碑表之後——
+// 編號與全名都是 RF-n、沒有英文名、綁定 = 「動到」欄、fromRefinement 為真（做到什麼還是模板佔位符的列不算）；hasRefinementTable 講這個檔有那張表（migrate requirements 換掉它）。
 function routeTables(lines, offset) {
   const names = (cell) => (cell || '').split(/[、,，]/).map((x) => stripTicks(x.trim())).filter((x) => x && !/^[-—–]$/.test(x) && !hasPlaceholder(x));
   const one = (cell) => {
@@ -333,7 +333,7 @@ function routeTables(lines, offset) {
   for (const t of parseTables(lines)) {
     const kind = (t.header[0] || '').trim();
     if (kind === '調整') hasRefinementTable = true;
-    // 驗收記錄表(日期 | 誰 | 憑據 | 結論):人工審核的結果,一次審核一列,只由 devflow requirement accept 寫
+    // 驗收記錄表（日期 | 誰 | 憑據 | 結論）：人工審核的結果，一次審核一列，只由 devflow requirement accept 寫
     if (kind === '日期') {
       t.rows.forEach((r, i) => {
         const date = one(r[0]);
@@ -345,7 +345,7 @@ function routeTables(lines, offset) {
     t.rows.forEach((r, i) => {
       const cell = stripTicks((r[0] || '').trim());
       if (!cell || hasPlaceholder(cell)) return;
-      // 里程碑的第一格是全名 M-n-<slug>:M-n 是配號用的編號(全資料夾唯一),引用一條里程碑一律用全名;slug 是切片分支 build/M-n-<slug> 的鍵
+      // 里程碑的第一格是全名 M-n-<slug>:M-n 是配號用的編號（全資料夾唯一），引用一條里程碑一律用全名；slug 是切片分支 build/M-n-<slug> 的鍵
       const mm = kind === '里程碑' ? /^(M-\d+)(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?$/.exec(cell) : null;
       const id = mm ? mm[1] : cell;
       const rowTitle = (r[1] || '').trim();
@@ -362,8 +362,8 @@ const priorityOf = (fm) => {
   return { priority: /^[1-4]$/.test(raw) ? Number(raw) : null, priorityRaw: hasPlaceholder(raw) ? '' : raw };
 };
 
-// 需求:requirements/ 一條一個檔,檔名 R-n-<slug>.md;frontmatter id、priority、updated;標題 # <全名>:<一句話>;
-// 驗收是清單項;里程碑表在後面。需求是必須達成的事:里程碑依序走完,建置就走完。
+// 需求：requirements/ 一條一個檔，檔名 R-n-<slug>.md；frontmatter id、priority、updated；標題 # <全名>:<一句話>；
+// 驗收是清單項；里程碑表在後面。需求是必須達成的事：里程碑依序走完，建置就走完。
 export function readRequirements(designDir, root) {
   const dir = path.join(designDir, 'requirements');
   if (!fs.existsSync(dir)) return { dir: rel(root, dir), exists: false, requirements: [] };
@@ -400,7 +400,7 @@ export function readRequirements(designDir, root) {
   return { dir: rel(root, dir), exists: true, requirements };
 }
 
-// objectives/ 底下 R-x-O-y-<slug>.md 的讀法;只給 mergeRequirements 用。
+// objectives/ 底下 R-x-O-y-<slug>.md 的讀法；只給 mergeRequirements 用。
 export function readObjectives(designDir, root) {
   const dir = path.join(designDir, 'objectives');
   if (!fs.existsSync(dir)) return [];
@@ -421,8 +421,8 @@ export function readObjectives(designDir, root) {
   });
 }
 
-// 「## 需求」節的每條 R-n 加上朝向它的每個目標檔,併成與 readRequirements 同一個形狀:
-// slug 取第一個目標的,優先取最高的,里程碑依(優先、目標號)串接,從調整表讀來的那幾條同樣串接、排在最後。sources 是併進來的目標檔;orphans 是對不到需求的目標檔。
+// 「## 需求」節的每條 R-n 加上朝向它的每個目標檔，併成與 readRequirements 同一個形狀：
+// slug 取第一個目標的，優先取最高的，里程碑依（優先、目標號）串接，從調整表讀來的那幾條同樣串接、排在最後。sources 是併進來的目標檔；orphans 是對不到需求的目標檔。
 export function mergeRequirements(sectionRequirements, objectives, dir) {
   const byPriority = (a, b) => (a.priority || 5) - (b.priority || 5) || Number(a.id.slice(2)) - Number(b.id.slice(2));
   const ids = new Set(sectionRequirements.map((q) => q.id));
@@ -454,7 +454,7 @@ export function mergeRequirements(sectionRequirements, objectives, dir) {
   return { dir, exists: false, merged: true, requirements, orphans: objectives.filter((o) => !ids.has(o.requirement)) };
 }
 
-// 模組表:[{ pattern, layer, line }];pattern 是相對路徑,可用 ** 結尾通配。
+// 模組表：[{ pattern, layer, line }]；pattern 是相對路徑，可用 ** 結尾通配。
 export function readModules(designDir, root) {
   const file = path.join(designDir, 'modules.md');
   const text = read(file);
@@ -483,7 +483,7 @@ export function matchesPattern(pattern, filePath) {
   return pattern === filePath;
 }
 
-// 最長的樣式贏:src/domain/** 比 src/** 精確。
+// 最長的樣式贏：src/domain/** 比 src/** 精確。
 export function matchModule(entries, filePath) {
   let best = null;
   for (const e of entries) {
@@ -587,7 +587,7 @@ export function readDoc(file, root) {
     slug: idM ? idM[3] : null,
     fm,
     hasFrontmatter,
-    // verified:每條 law 都有會失敗、現在通過的測試守著;frozen 是同一格的另一種寫法,讀進來當 verified
+    // verified：每條 law 都有會失敗、現在通過的測試守著；frozen 是同一格的另一種寫法，讀進來當 verified
     status: fm.status === 'frozen' ? 'verified' : fm.status || null,
     description: fm.description || '',
     owner: typeof fm.owner === 'string' ? fm.owner.trim() : '',
@@ -600,8 +600,8 @@ export function readDoc(file, root) {
     template,
     decisions,
     thawed: decisions ? decisions.lines.some((l) => /重開|解凍/.test(l)) : false,
-    // 每條 REV 的第一行:依欄寫的來源(GAP、ADR、里程碑全名、開發者的話)都在這一行。cites 收它引用的里程碑編號:
-    // 全名 M-3-checkout-fast 取 M-3;RF-n 照同一套收
+    // 每條 REV 的第一行：依欄寫的來源（GAP、ADR、里程碑全名、開發者的話）都在這一行。cites 收它引用的里程碑編號：
+    // 全名 M-3-checkout-fast 取 M-3；RF-n 照同一套收
     revs: revItems.map((it) => ({ ...it, cites: [...new Set(it.text.match(/(?<![A-Za-z0-9])(?:M|RF)-\d+/g) || [])] })),
     lastRev: revItems.length ? revItems[revItems.length - 1].text : null,
   };
@@ -622,8 +622,8 @@ export function readGaps(designDir, root) {
   return { file: rel(root, file), exists: true, gaps };
 }
 
-// 決策紀錄:journal/<鍵>.md,一條 build 分支一份(鍵是里程碑全名 M-n-<slug>、文檔全名、或 R-n / O-n / INV-n)。
-// 只活在 build 分支,整合寫進 PR 後刪;status 靠「有沒有這一份」判切片完成了沒。
+// 決策紀錄：journal/<鍵>.md，一條 build 分支一份（鍵是里程碑全名 M-n-<slug>、文檔全名、或 R-n / O-n / INV-n）。
+// 只活在 build 分支，整合寫進 PR 後刪；status 靠「有沒有這一份」判切片完成了沒。
 export function readJournals(designDir, root) {
   const dir = path.join(designDir, 'journal');
   if (!fs.existsSync(dir)) return [];
@@ -634,8 +634,8 @@ export function readJournals(designDir, root) {
   });
 }
 
-// 名詞:專案根目錄 CLAUDE.md 的「## 名詞」節,一張表(名詞 | 定義 | 型別);領域名詞只在那裡定義,.design/ 裡不另寫一次。
-// 檔案不存在或沒有這一節是 missing;佔位符列不算;型別欄的「-」與佔位符讀成空字串。line 是 CLAUDE.md 裡的真實行號。
+// 名詞：專案根目錄 CLAUDE.md 的「## 名詞」節，一張表（名詞 | 定義 | 型別）；領域名詞只在那裡定義，.design/ 裡不另寫一次。
+// 檔案不存在或沒有這一節是 missing；佔位符列不算；型別欄的「-」與佔位符讀成空字串。line 是 CLAUDE.md 裡的真實行號。
 export function readGlossary(root) {
   const file = path.join(root, 'CLAUDE.md');
   const text = read(file);
@@ -656,7 +656,7 @@ export function readGlossary(root) {
   return out;
 }
 
-// 一檔一號的東西:feature、abstract、ADR、需求。只讀檔名與 frontmatter 的 owner,給 lint ids 抓同號與號段。
+// 一檔一號的東西：feature、abstract、ADR、需求。只讀檔名與 frontmatter 的 owner，給 lint ids 抓同號與號段。
 export function readNumbered(designDir, root) {
   const out = [];
   const scan = (sub, re) => {
@@ -691,7 +691,7 @@ export function readDesign(root) {
   const abstracts = readDir(abstractsDir, /^A-\d{3}-.+\.md$/, root);
   const system = readSystem(designDir, root);
   const glossary = readGlossary(root);
-  // 沒有 requirements/ 而 system.md 有「## 需求」節:與 objectives/ 併成同一個形狀照讀;status 指到 migrate requirements
+  // 沒有 requirements/ 而 system.md 有「## 需求」節：與 objectives/ 併成同一個形狀照讀；status 指到 migrate requirements
   let requirements = readRequirements(designDir, root);
   if (!requirements.exists && system && system.hasRequirementSection) {
     requirements = mergeRequirements(system.sectionRequirements.map((q) => ({ ...q, file: system.file })), readObjectives(designDir, root), requirements.dir);
@@ -702,12 +702,12 @@ export function readDesign(root) {
     featuresDir,
     abstractsDir,
     system,
-    // 名詞表住專案根目錄的 CLAUDE.md,不住 .design/
+    // 名詞表住專案根目錄的 CLAUDE.md，不住 .design/
     glossary: glossary.terms,
     glossaryState: glossary.state,
     glossaryFile: glossary.file,
     requirements,
-    // 里程碑還擠在一份 objectives.md 裡:devflow migrate requirements 讀它
+    // 里程碑還擠在一份 objectives.md 裡：devflow migrate requirements 讀它
     objectivesFile: fs.existsSync(path.join(designDir, 'objectives.md')),
     modules: readModules(designDir, root),
     features,
@@ -719,7 +719,7 @@ export function readDesign(root) {
   };
 }
 
-// language 欄:單一語言 → [{ dir: '', name }];清單「dir = adapter」→ 每個目錄一個 adapter。
+// language 欄：單一語言 → [{ dir: '', name }]；清單「dir = adapter」→ 每個目錄一個 adapter。
 export function parseLanguages(v) {
   if (!v) return [];
   const items = Array.isArray(v) ? v : String(v).split(',').map((x) => x.trim()).filter(Boolean);

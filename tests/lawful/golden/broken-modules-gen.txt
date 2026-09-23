@@ -1,5 +1,5 @@
 $ lawful modules --gen
-modules.md 補了 1 個模組單元,職責欄留白:
+modules.md 補了 1 個模組單元，職責欄留白：
 - Game.Util
 exit 0
 --- .lawful/modules.md

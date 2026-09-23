@@ -18,7 +18,7 @@ const STDLIB = [
   'Any', 'Optional', 'Union', 'List', 'Dict', 'Set', 'Tuple', 'Callable', 'Iterable', 'Iterator', 'Sequence', 'Mapping',
   'Literal', 'Protocol', 'TypedDict', 'Awaitable', 'Coroutine', 'Generator', 'Type', 'Path', 'Decimal', 'UUID',
 ];
-// 沒有形狀的型別:鍵名沒地方寫
+// 沒有形狀的型別：鍵名沒地方寫
 const SHAPELESS = /^(?:Any|object|dict|Dict|Mapping)$|^(?:dict|Dict|Mapping)\[.*\b(?:Any|object)\b.*\]$/;
 
 function stripStrings(src) {
@@ -27,7 +27,7 @@ function stripStrings(src) {
     .split(/\r?\n/).map((l) => l.replace(/#.*$/, '')).join('\n');
 }
 
-// `a: T`、`a: T = 1`、`*args: T`、`**kw: T` → 型別;沒有註記回 null
+// `a: T`、`a: T = 1`、`*args: T`、`**kw: T` → 型別；沒有註記回 null
 function paramType(p) {
   const s = p.replace(/^\*{1,2}/, '').trim();
   const i = s.indexOf(':');
@@ -57,7 +57,7 @@ function declarations(src) {
     const d = /^(\s*)(?:async\s+)?def\s+([A-Za-z_]\w*)\s*\(/.exec(line);
     if (!d) continue;
     const level = d[1].length;
-    // 只收頂層與 class 直屬的方法;巢狀在函數裡的是私有
+    // 只收頂層與 class 直屬的方法；巢狀在函數裡的是私有
     if (level !== 0 && !(klass !== null && level === klassIndent + 4)) continue;
     let text = line;
     let j = i;
@@ -103,7 +103,7 @@ export const python = {
     return declarations(src).map((d) => ({ name: d.name, params: d.params, ret: d.ret, line: d.line }));
   },
 
-  // `__all__` 是權威;沒寫就是「不以底線開頭的都算公開」
+  // `__all__` 是權威；沒寫就是「不以底線開頭的都算公開」
   exports(src) {
     const clean = stripStrings(src);
     const all = /^__all__\s*=\s*[[(]([\s\S]*?)[\])]/m.exec(clean);
@@ -118,7 +118,7 @@ export const python = {
     return [...new Set(out)];
   },
 
-  // class、TypeVar / NewType / TypeAlias,以及 Enum 子類別的成員
+  // class、TypeVar / NewType / TypeAlias，以及 Enum 子類別的成員
   typeNames(src) {
     const clean = stripStrings(src);
     const out = [];

@@ -1,5 +1,5 @@
 $ devflow modules --gen
-modules.md 補了 1 個檔案,層欄留白;可以合併成 `目錄/**` 一列:
+modules.md 補了 1 個檔案，層欄留白；可以合併成 `目錄/**` 一列：
 - src/helper.ts
 exit 0
 --- .design/modules.md

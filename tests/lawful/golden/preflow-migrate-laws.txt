@@ -1,15 +1,15 @@
 $ lawful migrate laws
 # migrate laws 帳本
 
-- .lawful/modules.md:「邊界」與「對外 I/O」兩節搬進 Cone.md 的全域 Law 區,這一檔只剩「模組單元」表
-- .lawful/Cone.md:需求的「- Law:」改成「- 驗收:」2 條;蘊含說明刪 1 條;補「## 全域 Law」區(領域不變量寫「無」、四層照搬、對外 I/O照搬並補契約欄)
-- .lawful/objectives/R-1-O-1-save-roundtrip.md:「- Law:」刪掉(里程碑不管理約束;需求達成與否由驗收判);里程碑補英文名:M-1-save-write;M-2 還沒綁 pipeline,英文名由 lawful:require-design 定
-- .lawful/objectives/R-1-O-2-save-list.md:「- Law:」刪掉(里程碑不管理約束;需求達成與否由驗收判)
-- .lawful/pipelines/P-001-save-write.md:status frozen 改成 verified
+- .lawful/modules.md：「邊界」與「對外 I/O」兩節搬進 Cone.md 的全域 Law 區，這一檔只剩「模組單元」表
+- .lawful/Cone.md：需求的「- Law：」改成「- 驗收：」2 條；蘊含說明刪 1 條；補「## 全域 Law」區（領域不變量寫「無」、四層照搬、對外 I/O照搬並補契約欄）
+- .lawful/objectives/R-1-O-1-save-roundtrip.md：「- Law：」刪掉（里程碑不管理約束；需求達成與否由驗收判）；里程碑補英文名：M-1-save-write；M-2 還沒綁 pipeline，英文名由 lawful:require-design 定
+- .lawful/objectives/R-1-O-2-save-list.md：「- Law：」刪掉（里程碑不管理約束；需求達成與否由驗收判）
+- .lawful/pipelines/P-001-save-write.md：status frozen 改成 verified
 
-人要判的:
-- .lawful/spikes/ 還有 1 份:這棵樹不讀它。結論值得留的寫成 ADR 或搬進那條 pipeline 的「決定」,其餘刪掉;根目錄的 spike/ 也一樣
-- test/SaveGameSpec.hs 的 "R-1#LAW":需求的驗收測試歸屬是 "R-1#ACCEPT",改字串
+人要判的：
+- .lawful/spikes/ 還有 1 份：這棵樹不讀它。結論值得留的寫成 ADR 或搬進那條 pipeline 的「決定」，其餘刪掉；根目錄的 spike/ 也一樣
+- test/SaveGameSpec.hs 的 "R-1#LAW"：需求的驗收測試歸屬是 "R-1#ACCEPT"，改字串
 
-以上只是帳本;lawful migrate laws --write 才落地
+以上只是帳本；lawful migrate laws --write 才落地
 exit 0

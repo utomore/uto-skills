@@ -2,7 +2,7 @@ $ devflow status --module api/cart/basket.py --tests web=web.log,api=api.log
 # api/cart/basket.py  domain 層
 · 測試結果來自 web.log 與 api.log
 
-- F-003-basket#add_item  在  掛在上面的 law 1 條,通過 1 條
-- F-003-basket#Basket.size  在  掛在上面的 law 0 條,通過 0 條
-- F-003-basket#total_cents  在  掛在上面的 law 1 條,通過 1 條
+- F-003-basket#add_item  在  掛在上面的 law 1 條，通過 1 條
+- F-003-basket#Basket.size  在  掛在上面的 law 0 條，通過 0 條
+- F-003-basket#total_cents  在  掛在上面的 law 1 條，通過 1 條
 exit 0

@@ -1,3 +1,3 @@
 $ devflow requirement add Money_Traceable 每一筆錢都查得到來源 --priority 2
-需求要一個 kebab-case 英文名:devflow requirement add <slug> <一句話> --priority <1-4>(拿到的是「Money_Traceable」)
+需求要一個 kebab-case 英文名：devflow requirement add <slug> <一句話> --priority <1-4>（拿到的是「Money_Traceable」）
 exit 1

@@ -1,16 +1,16 @@
 $ lawful brief scope-revise P-002-count-tally --tests test.log --no-rules
-brief scope-revise P-002-count-tally @doc:58b5b3e4 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief scope-revise P-002-count-tally @doc:2ba5e2d2 rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
 # 分支與工作樹
 
-(這個目錄不是 git repo 的根,也不是一棵工作樹)
+（這個目錄不是 git repo 的根，也不是一棵工作樹）
 
-# 目標 pipeline:.lawful/pipelines/P-002-count-tally.md
+# 目標 pipeline：.lawful/pipelines/P-002-count-tally.md
 
 ````markdown
 ---
@@ -20,7 +20,7 @@ kind: io
 status: verified
 updated: 2026-09-06
 ---
-# P-002-count-tally:數一段文字的字數
+# P-002-count-tally：數一段文字的字數
 
 ## Brief
 io。文字 → 切字 → 數個數。
@@ -42,16 +42,16 @@ io。文字 → 切字 → 數個數。
 | EX-1 | `count ""` | `0` | LAW-1 |
 
 ## 決定
-- **重開一次**(2026-09-06):為了 REV-1 重開,由 build 重新 verified。
+- **重開一次**(2026-09-06)：為了 REV-1 重開，由 build 重新 verified。
 
 ## 修訂記錄
-- REV-1(2026-09-06,依 M-3-tally-one-pass):切字改成一趟掃描
-  - 動到:切字的做法,簽名與 law 不動
-  - 保護:LAW-1
-  - 重委派:impl
+- REV-1（2026-09-06，依 M-3-tally-one-pass）：切字改成一趟掃描
+  - 動到：切字的做法，簽名與 law 不動
+  - 保護：LAW-1
+  - 重委派：impl
 ````
 
-# 逐條狀態(文檔對程式碼;沒有給測試輸出,law 的紅綠不在這裡)
+# 逐條狀態（文檔對程式碼；沒有給測試輸出，law 的紅綠不在這裡）
 
 ### Stages
 - 1  tokens :: Text -> [Token]  App.Count/core  在
@@ -65,10 +65,10 @@ io。文字 → 切字 → 數個數。
 - 無
 
 ### 引用
-- 引用了:無
-- 被引用:P-001-report-render
+- 引用了：無
+- 被引用：P-001-report-render
 
-文檔寫了 2 條簽名,程式碼裡有 2 條,未實作的 0 條 · 寫了 1 條 law,通過 nan 條 · 未達成
+文檔寫了 2 條簽名，程式碼裡有 2 條，未實作的 0 條 · 寫了 1 條 law，通過 nan 條 · 未達成
 
 # 宣告
 
@@ -90,17 +90,17 @@ newtype Token = Token Text
   deriving (Eq, Show)
 ```
 
-# 引用這條的 pipeline:.lawful/pipelines/P-001-report-render.md(ready;只印它引用的列與提到它們的 law)
+# 引用這條的 pipeline：.lawful/pipelines/P-001-report-render.md（ready；只印它引用的列與提到它們的 law）
 
 - 1  `count :: Text -> Int`  App.Count/core
 
 # 這條 pipeline 朝向哪裡
 
-- R-1-report-correct 的里程碑 M-1-count-tally:字數算得對(綁定 P-002-count-tally)
-- R-1-report-correct 的里程碑 M-3-tally-one-pass:切字改成一趟掃描(綁定 P-002-count-tally;靠修訂這一條達成,REV 的依欄已經引用它)
-- R-1-report-correct 的里程碑 M-4-tally-unicode:全形字也算一個字(綁定 P-002-count-tally;靠修訂這一條達成,還沒有 REV 的依欄引用它:REV 的依欄寫 M-4-tally-unicode)
+- R-1-report-correct 的里程碑 M-1-count-tally：字數算得對（綁定 P-002-count-tally）
+- R-1-report-correct 的里程碑 M-3-tally-one-pass：切字改成一趟掃描（綁定 P-002-count-tally；靠修訂這一條達成，REV 的依欄已經引用它）
+- R-1-report-correct 的里程碑 M-4-tally-unicode：全形字也算一個字（綁定 P-002-count-tally；靠修訂這一條達成，還沒有 REV 的依欄引用它：REV 的依欄寫 M-4-tally-unicode）
 
-# 需求檔:.lawful/requirements/R-1-report-correct.md
+# 需求檔：.lawful/requirements/R-1-report-correct.md
 
 ````markdown
 ---
@@ -108,9 +108,9 @@ id: R-1
 priority: 1
 updated: 2026-09-05
 ---
-# R-1-report-correct:一段文字進來,報表算對
+# R-1-report-correct：一段文字進來，報表算對
 
-- 驗收:任一段文字的報表字數等於逐字計數
+- 驗收：任一段文字的報表字數等於逐字計數
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|
@@ -135,23 +135,23 @@ updated: 2026-09-05
 
 # gaps.md
 
-(還沒有 .lawful/gaps.md)
+（還沒有 .lawful/gaps.md）
 
-# 對帳:lint sig 與 lint laws 裡講到這條 pipeline 的
+# 對帳：lint sig 與 lint laws 裡講到這條 pipeline 的
 
-### lint sig:這條 pipeline 1 條不合規(全專案 1 條)
-- ✗ .lawful/pipelines/P-002-count-tally.md kind 是 io 的 pipeline 要恰好一列 ! 列(shell 的進入點),現在 0 列
-### lint laws:這條 pipeline 0 條不合規(全專案 0 條)
+### lint sig：這條 pipeline 1 條不合規（全專案 1 條）
+- ✗ .lawful/pipelines/P-002-count-tally.md kind 是 io 的 pipeline 要恰好一列 ! 列（shell 的進入點），現在 0 列
+### lint laws：這條 pipeline 0 條不合規（全專案 0 條）
 
-# lawful status 裡講到 P-002-count-tally 的每一行(整份報告要看再跑 lawful status)
+# lawful status 裡講到 P-002-count-tally 的每一行（整份報告要看再跑 lawful status）
 
 ### lawful status
-願景:一段文字丟進來,字數統計與報表一次算對。
-需求 1 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 4 條,達成 2 條 · io pipeline 2 條,達成 1 條 · pipeline 2 條,達成 1 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
+願景：一段文字丟進來，字數統計與報表一次算對。
+需求 1 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條，成立 0 條 · 里程碑 4 條，達成 2 條 · io pipeline 2 條，達成 1 條 · pipeline 2 條，達成 1 條 · 模組單元 3 個 · 還沒實作的 stage 1 個 · 還開著的 GAP 0 條
 · 測試結果來自 test.log
 
 #### 需求
-- R-1 下一個里程碑:M-4-tally-unicode 全形字也算一個字(P-002-count-tally 待修訂);待修訂:lawful:scope-revise P-002-count-tally(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 lawful:scope-laws),REV 的依欄寫 M-4-tally-unicode
+- R-1 下一個里程碑：M-4-tally-unicode 全形字也算一個字（P-002-count-tally 待修訂）；待修訂：lawful:scope-revise P-002-count-tally（既有的 law 不動、新的承諾用新增的 law 表達；要調整既有的 law 就 lawful:scope-laws），REV 的依欄寫 M-4-tally-unicode
 
 #### pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
@@ -164,11 +164,11 @@ updated: 2026-09-05
 | App.Count | 數一段文字裡的字數 | core | - | P-002-count-tally | 2 | 0 |
 
 #### 1. 今天能開幾條線
-- M-4-tally-unicode:lawful:scope-revise P-002-count-tally(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 lawful:scope-laws),REV 的依欄寫 M-4-tally-unicode(R-1 優先 1 · 全形字也算一個字)
+- M-4-tally-unicode：lawful:scope-revise P-002-count-tally（既有的 law 不動、新的承諾用新增的 law 表達；要調整既有的 law 就 lawful:scope-laws），REV 的依欄寫 M-4-tally-unicode（R-1 優先 1 · 全形字也算一個字）
 
 #### 4. 牽動誰
 - P-002-count-tally ← P-001-report-render
 
 #### 7. 建議路線
-1. lawful:scope-revise P-002-count-tally(既有的 law 不動、新的承諾用新增的 law 表達;要調整既有的 law 就 lawful:scope-laws),REV 的依欄寫 M-4-tally-unicode(R-1 優先 1 · M-4-tally-unicode 全形字也算一個字),之後自動接上 build
+1. lawful:scope-revise P-002-count-tally（既有的 law 不動、新的承諾用新增的 law 表達；要調整既有的 law 就 lawful:scope-laws），REV 的依欄寫 M-4-tally-unicode（R-1 優先 1 · M-4-tally-unicode 全形字也算一個字），之後自動接上 build
 exit 0

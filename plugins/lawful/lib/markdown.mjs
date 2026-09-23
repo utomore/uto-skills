@@ -1,4 +1,4 @@
-// Markdown 讀取:frontmatter、## 節、表格、清單。不認識任何 lawful 概念。
+// Markdown 讀取：frontmatter、## 節、表格、清單。不認識任何 lawful 概念。
 
 export function parseFrontmatter(text) {
   const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
@@ -17,7 +17,7 @@ export function parseFrontmatter(text) {
   return { fm, body: text.slice(m[0].length), hasFrontmatter: true };
 }
 
-// 回傳 [{ title, level, lines, start }];圍欄裡的 # 不算標題。
+// 回傳 [{ title, level, lines, start }]；圍欄裡的 # 不算標題。
 export function sections(body) {
   const lines = body.split(/\r?\n/);
   const out = [];
@@ -37,7 +37,7 @@ export function sections(body) {
   return out;
 }
 
-// 節名比對不分全形半形標點：「架構:層」與「架構：層」是同一節。
+// 節名比對不分全形半形標點：「架構：層」與「架構：層」是同一節。
 const HALF = { '：': ':', '（': '(', '）': ')', '，': ',', '；': ';' };
 export const titleKey = (t) => String(t).replace(/[：（），；]/g, (c) => HALF[c]).trim();
 export const sameTitle = (a, b) => titleKey(a) === titleKey(b);
@@ -46,7 +46,7 @@ export function findSection(secs, title, level = 2) {
   return secs.find((s) => s.level === level && sameTitle(s.title, title)) || null;
 }
 
-// 切一列表格:認 \| 跳脫,反引號裡的 | 不切。
+// 切一列表格：認 \| 跳脫，反引號裡的 | 不切。
 export function splitRow(line) {
   const cells = [];
   let cur = '';
@@ -73,7 +73,7 @@ export function splitRow(line) {
   return cells;
 }
 
-// 從第 from 行起的第一張表:{ header, rows, rowLines, headerLine };沒有表回 null。
+// 從第 from 行起的第一張表：{ header, rows, rowLines, headerLine }；沒有表回 null。
 function tableFrom(lines, from) {
   let i = lines.findIndex((l, k) => k >= from && /^\s*\|/.test(l));
   if (i < 0) return null;
@@ -90,12 +90,12 @@ function tableFrom(lines, from) {
   return { header, rows, rowLines, headerLine, end: i };
 }
 
-// 第一張表:{ header, rows, rowLines }。沒有表回 null。
+// 第一張表：{ header, rows, rowLines }。沒有表回 null。
 export function parseTable(lines) {
   return tableFrom(lines, 0);
 }
 
-// 全部的表,照出現順序。
+// 全部的表，照出現順序。
 export function parseTables(lines) {
   const out = [];
   let from = 0;
@@ -111,7 +111,7 @@ export function stripTicks(s) {
   return s.replace(/^`|`$/g, '').trim();
 }
 
-// 頂層清單項與其子項:[{ text, children: [text] }]
+// 頂層清單項與其子項：[{ text, children: [text] }]
 export function parseList(lines) {
   const items = [];
   for (const line of lines) {

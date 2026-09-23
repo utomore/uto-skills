@@ -1,9 +1,9 @@
 $ lawful lint io
-## lint io:6 條不合規
-- ✗ .lawful/Cone.md:32 存檔檔案 的契約 P-001#LAW-9 不存在;契約欄寫守這一端的 law
+## lint io：6 條不合規
+- ✗ .lawful/Cone.md:32 存檔檔案 的契約 P-001#LAW-9 不存在；契約欄寫守這一端的 law
 - ✗ .lawful/Cone.md:32 存檔檔案 的契約 INV-7 不在 Cone.md 的領域不變量裡
-- ✗ .lawful/Cone.md:32 存檔檔案 的契約「roundtrip」要是 P-00x#LAW-n 或 INV-n;沒有就寫 -
+- ✗ .lawful/Cone.md:32 存檔檔案 的契約「roundtrip」要是 P-00x#LAW-n 或 INV-n；沒有就寫 -
 - ✗ .lawful/Cone.md:33 讀檔 的方向「inn」要是 in 或 out
 - ✗ .lawful/Cone.md:33 讀檔 指到的 P-002-load-game 不存在
-- ✗ .lawful/Cone.md:33 讀檔 的模組 Game.Save.Codec 的檔不在 src-shell/ 底下;對外 I/O 只從 shell 進出
+- ✗ .lawful/Cone.md:33 讀檔 的模組 Game.Save.Codec 的檔不在 src-shell/ 底下；對外 I/O 只從 shell 進出
 exit 1

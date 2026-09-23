@@ -1,6 +1,6 @@
 $ lawful requirement add report-print 報表印得出來 --priority 1 --accept 任一段文字都印得出一份報表 --date 2026-09-05
-建了 .lawful/requirements/R-1-report-print.md(R-1,優先 1)
-下一步:lawful requirement milestone R-1 <slug> <一句話>
+建了 .lawful/requirements/R-1-report-print.md（R-1，優先 1）
+下一步：lawful requirement milestone R-1 <slug> <一句話>
 exit 0
 --- .lawful/requirements/R-1-report-print.md
 ---
@@ -10,7 +10,7 @@ updated: 2026-09-05
 ---
 # R-1-report-print:報表印得出來
 
-- 驗收:任一段文字都印得出一份報表
+- 驗收：任一段文字都印得出一份報表
 
 | 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |
 |---|---|---|---|

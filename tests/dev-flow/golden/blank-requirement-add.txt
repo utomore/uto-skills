@@ -1,8 +1,8 @@
 $ devflow requirement add login-sees-own 使用者登入後看得到自己的東西 --priority 1 --accept 任一使用者登入後列出的東西都是自己的 --date 2026-09-07
-· system.md 的 language 還是模板(<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>),填成 typescript / javascript / python / go / rust 其中一個
+· system.md 的 language 還是模板 (<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>)，填成 typescript / javascript / python / go / rust 其中一個
 
-建了 .design/requirements/R-1-login-sees-own.md(R-1,優先 1)
-下一步:devflow requirement milestone R-1 <slug> <一句話>
+建了 .design/requirements/R-1-login-sees-own.md（R-1，優先 1）
+下一步：devflow requirement milestone R-1 <slug> <一句話>
 exit 0
 --- .design/requirements/R-1-login-sees-own.md
 ---
@@ -12,7 +12,7 @@ updated: 2026-09-07
 ---
 # R-1-login-sees-own:使用者登入後看得到自己的東西
 
-- 驗收:任一使用者登入後列出的東西都是自己的
+- 驗收：任一使用者登入後列出的東西都是自己的
 
 | 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |
 |---|---|---|---|

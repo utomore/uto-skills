@@ -1,6 +1,6 @@
 $ lawful requirement milestone R-1 save-load 讀檔還原世界 --bind P-001-save-write
-M-4-save-load 寫進 R-1-save-roundtrip,綁定 P-001-save-write
-下一步:lawful:scope-revise P-001-save-write,REV 的依欄寫 M-4-save-load
+M-4-save-load 寫進 R-1-save-roundtrip，綁定 P-001-save-write
+下一步：lawful:scope-revise P-001-save-write，REV 的依欄寫 M-4-save-load
 exit 0
 --- .lawful/requirements/R-1-save-roundtrip.md
 ---
@@ -8,9 +8,9 @@ id: R-1
 priority: 1
 updated: 2026-09-05
 ---
-# R-1-save-roundtrip:玩家存檔後能讀回同一個世界
+# R-1-save-roundtrip：玩家存檔後能讀回同一個世界
 
-- 驗收:任一 World 存檔再讀回,可存檔的投影一模一樣
+- 驗收：任一 World 存檔再讀回，可存檔的投影一模一樣
   - forall w in World
   - |- decode (saveBytes w) == Right (toSave w)
 

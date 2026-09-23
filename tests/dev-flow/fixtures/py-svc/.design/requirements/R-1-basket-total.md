@@ -3,9 +3,9 @@ id: R-1
 priority: 1
 updated: 2026-09-07
 ---
-# R-1-basket-total:任何一籃子都算得出不為負的總金額
+# R-1-basket-total：任何一籃子都算得出不為負的總金額
 
-- 驗收:任一品項清單的總金額不為負
+- 驗收：任一品項清單的總金額不為負
   - forall items in list
   - |- total_cents(items) >= 0
 
@@ -17,4 +17,4 @@ updated: 2026-09-07
 
 | 日期 | 誰 | 憑據 | 結論 |
 |---|---|---|---|
-| 2026-09-07 | dev@example.com | R-1#ACCEPT green,demo 加了三個品項總額與手算相同 | 已驗收 |
+| 2026-09-07 | dev@example.com | R-1#ACCEPT green，demo 加了三個品項總額與手算相同 | 已驗收 |

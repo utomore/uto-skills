@@ -1,21 +1,21 @@
 $ devflow status
-· system.md 的 language 還是模板(<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>),填成 typescript / javascript / python / go / rust 其中一個
+· system.md 的 language 還是模板 (<typescript | javascript | python | go | rust;前後端各一種語言就寫 [web = typescript, api = python]>)，填成 typescript / javascript / python / go / rust 其中一個
 
 # devflow status
-需求 0 條,已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條,成立 0 條 · 里程碑 0 條,達成 0 條 · feature 0 份,達成 0 份 · 文檔共 0 份,達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
+需求 0 條，已驗收 0 條 · 等人工審核 0 條 · 領域不變量 0 條，成立 0 條 · 里程碑 0 條，達成 0 條 · feature 0 份，達成 0 份 · 文檔共 0 份，達成 0 份 · 還沒實作的 step 0 個 · 還開著的 GAP 0 條
 · 此 adapter 不解析測試輸出
 
 ## 需求
-- 沒有任何需求;dev-flow:require-design 談第一條
+- 沒有任何需求；dev-flow:require-design 談第一條
 
 ## 全域 Law
 | 類別 | 住 system.md 的哪一區 | 自動確認 | 結果 |
 |---|---|---|---|
-| 架構 | 全域 Law › 架構:層 | devflow lint boundary | 0 層,沒有程式碼可對 |
-| 契約 | 全域 Law › 契約:對外 I/O | devflow lint io | 0 列,通過;契約欄指到的 law 0 條,成立 0 條 |
-| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 0 條,通過;成立 0 條 |
+| 架構 | 全域 Law › 架構：層 | devflow lint boundary | 0 層，沒有程式碼可對 |
+| 契約 | 全域 Law › 契約：對外 I/O | devflow lint io | 0 列，通過；契約欄指到的 law 0 條，成立 0 條 |
+| 領域不變量 | 全域 Law › 領域不變量 | devflow lint invariants | 0 條，通過；成立 0 條 |
 
-- 領域不變量:無
+- 領域不變量：無
 
 ## 文檔
 | 文檔 | 類別 | status | 文檔簽名數 | 程式碼對到 | 未實作 | law 條數 | law 綠/翻 | REV | 狀態 |
@@ -33,18 +33,18 @@ $ devflow status
 ## 4. 牽動誰
 - 無
 
-## 5. 待實作(按檔案)
+## 5. 待實作（按檔案）
 - 無
 
 ## 6. 修訂熱點
-- 無(還沒有任何 REV)
+- 無（還沒有任何 REV）
 
 ## 7. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | system.md | 願景還是模板 | dev-flow:kickoff 訂願景 |
-| .design/ | 沒有任何需求 | dev-flow:require-design 談第一條需求(至少一條) |
+| .design/ | 沒有任何需求 | dev-flow:require-design 談第一條需求（至少一條） |
 
 ## 8. 建議路線
-- 還沒有任何文檔;先 dev-flow:require-design 談需求、切里程碑,再 dev-flow:spike-impl <M-n-slug>
+- 還沒有任何文檔；先 dev-flow:require-design 談需求、切里程碑，再 dev-flow:spike-impl <M-n-slug>
 exit 1

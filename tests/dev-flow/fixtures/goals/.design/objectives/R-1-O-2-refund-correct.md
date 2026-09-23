@@ -4,7 +4,7 @@ requirement: R-1
 priority: 1
 updated: 2026-09-07
 ---
-# R-1-O-2-refund-correct:退款的金額算對
+# R-1-O-2-refund-correct：退款的金額算對
 
 | 里程碑 | 做到什麼 | 綁定 |
 |---|---|---|

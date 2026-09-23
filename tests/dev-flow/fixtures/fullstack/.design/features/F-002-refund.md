@@ -4,30 +4,30 @@ description: 客服把一張訂單的部分品項退款給使用者
 status: verified
 updated: 2026-09-07
 ---
-# F-002-refund:客服把一張訂單的部分品項退款給使用者
+# F-002-refund：客服把一張訂單的部分品項退款給使用者
 
 ## Brief
-把一段請求文字解析成要退的品項,扣掉手續費,得到退款金額。
-input 是 POST /refund 的 RawBody,output 是 HttpRes。
-流向:解析 → 結算 → 產生退款。從對外 I/O 表的「POST /refund」進來,從「退款結果」出去。
+把一段請求文字解析成要退的品項，扣掉手續費，得到退款金額。
+input 是 POST /refund 的 RawBody，output 是 HttpRes。
+流向：解析 → 結算 → 產生退款。從對外 I/O 表的「POST /refund」進來，從「退款結果」出去。
 
 ## Steps
 | # | 簽名 | 做什麼 | 模組 | 層 |
 |---|---|---|---|---|
-| 1 | `parseRefund(RawBody): RefundReq` | 解析並夾住請求裡的數字,不信任任何一段 | `web/src/app/refund.ts` | application |
-| 2 | `settle(MoneyList, Money): Settlement` | 扣掉手續費之後的退款金額 | `web/src/domain/money.ts`(見 F-001-checkout) | domain |
-| 3 | `toRefund(RefundReq, Settlement): RefundResult` | 結算成功就產生退款,失敗就帶回理由 | `web/src/app/refund.ts` | application |
-| o | `refundLines(RefundReq): MoneyList` | 觀察:這次要退哪些品項 | `web/src/app/refund.ts` | application |
-| o | `refundFee(RefundReq): Money` | 觀察:這次的手續費 | `web/src/app/refund.ts` | application |
-| o | `returnedCents(RefundResult): number` | 觀察:退了多少分,沒退成回 -1 | `web/src/app/refund.ts` | application |
-| = | `refund(RawBody): RefundResult` | 整條:解析 → 結算 → 產生退款 | `web/src/app/refund.ts` | application |
-| ! | `refundHandler(HttpReq): HttpRes` | 進入點:接到 POST /refund | `web/src/entry/routes.ts` | entry |
+| 1 | `parseRefund(RawBody): RefundReq` | 解析並夾住請求裡的數字，不信任任何一段 | `web/src/app/refund.ts` | application |
+| 2 | `settle(MoneyList, Money): Settlement` | 扣掉手續費之後的退款金額 | `web/src/domain/money.ts`（見 F-001-checkout） | domain |
+| 3 | `toRefund(RefundReq, Settlement): RefundResult` | 結算成功就產生退款，失敗就帶回理由 | `web/src/app/refund.ts` | application |
+| o | `refundLines(RefundReq): MoneyList` | 觀察：這次要退哪些品項 | `web/src/app/refund.ts` | application |
+| o | `refundFee(RefundReq): Money` | 觀察：這次的手續費 | `web/src/app/refund.ts` | application |
+| o | `returnedCents(RefundResult): number` | 觀察：退了多少分，沒退成回 -1 | `web/src/app/refund.ts` | application |
+| = | `refund(RawBody): RefundResult` | 整條：解析 → 結算 → 產生退款 | `web/src/app/refund.ts` | application |
+| ! | `refundHandler(HttpReq): HttpRes` | 進入點：接到 POST /refund | `web/src/entry/routes.ts` | entry |
 
 ## Laws
 - LAW-1 [relation] 退回的錢就是這些品項扣掉手續費的結算金額
   - forall raw in RawBody
   - |- returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
-- LAW-2 [total] 任何一段請求文字都得到一個結果,不拋例外
+- LAW-2 [total] 任何一段請求文字都得到一個結果，不拋例外
   - forall raw in RawBody
   - |- total(refund(raw))
 
@@ -38,12 +38,12 @@ input 是 POST /refund 的 RawBody,output 是 HttpRes。
 | EX-2 | `refund("o1\|10\|30")` | `returnedCents 是 -1` | LAW-1、LAW-2 |
 
 ## 決定
-- **手續費用同一條結算走,不另寫一條扣款。** 否決:退款自己寫扣手續費。settle 與它的 law 住在 F-001-checkout,這裡引用它,law 不重寫。
-- **重開一次**(2026-09-07):為了 REV-1 重開,由 build 重新 verified。
+- **手續費用同一條結算走，不另寫一條扣款。** 否決：退款自己寫扣手續費。settle 與它的 law 住在 F-001-checkout，這裡引用它，law 不重寫。
+- **重開一次**(2026-09-07)：為了 REV-1 重開，由 build 重新 verified。
 
 ## 修訂記錄
-- REV-1(2026-09-07,依開發者:手續費不另寫一條扣款):金額計算改成引用 F-001-checkout 的 settle
-  - 動到:第 2 步改成「見 F-001-checkout」
-  - 保護:LAW-1、LAW-2
-  - 重委派:qa(LAW-1)、refactor(`refund`)
-  - 連動:F-001-checkout 的 REV-1 替 settle 補了 total 的 law
+- REV-1（2026-09-07，依開發者：手續費不另寫一條扣款）：金額計算改成引用 F-001-checkout 的 settle
+  - 動到：第 2 步改成「見 F-001-checkout」
+  - 保護：LAW-1、LAW-2
+  - 重委派：qa(LAW-1)、refactor(`refund`)
+  - 連動：F-001-checkout 的 REV-1 替 settle 補了 total 的 law

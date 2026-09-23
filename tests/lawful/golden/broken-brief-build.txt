@@ -1,27 +1,27 @@
 $ lawful brief build P-001-game-save --tests stale.log --no-rules
-brief build P-001-game-save @doc:97e45071 rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+brief build P-001-game-save @doc:9faaea4a rules:<雜湊>
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
 # 分支與工作樹
 
-(這個目錄不是 git repo 的根,也不是一棵工作樹)
+（這個目錄不是 git repo 的根，也不是一棵工作樹）
 
 # Cone.md「Constraint」
 
-硬性限制:寫程式之前就定得下來、每一行程式碼與測試都照做的規定,與工具要讀的那幾行(語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先)。開發者定,`lawful:kickoff` 寫,之後隨時回 `lawful:kickoff` 補或改;限制的類別可以自己加。
-- 套件與框架:無
-- 語言:haskell
-- 建置:`cabal build`
-- 測試(整套):`cabal test`
-- 測試(子集):`cabal test --test-options='-m "P-001"'`
-- 模組前綴:`Game`
-- 原始碼根目錄:`src-<層>`
-- IO 模組追加:無
-- 號段:amy@corp.com = 000-099;bob@corp.com = 050-149;carol@corp.com = 1x0-199
+硬性限制：寫程式之前就定得下來、每一行程式碼與測試都照做的規定，與工具要讀的那幾行（語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先）。開發者定，`lawful:kickoff` 寫，之後隨時回 `lawful:kickoff` 補或改；限制的類別可以自己加。
+- 套件與框架：無
+- 語言：haskell
+- 建置：`cabal build`
+- 測試（整套）：`cabal test`
+- 測試（子集）：`cabal test --test-options='-m "P-001"'`
+- 模組前綴：`Game`
+- 原始碼根目錄：`src-<層>`
+- IO 模組追加：無
+- 號段：amy@corp.com = 000-099；bob@corp.com = 050-149；carol@corp.com = 1x0-199
 
 # modules.md
 
@@ -41,9 +41,9 @@ brief build P-001-game-save @doc:97e45071 rules:<雜湊>
 
 # 決策紀錄
 
-(.lawful/journal/ 裡沒有 P-001-game-save 或 M-1-game-save 或 M-6 的決策紀錄)
+（.lawful/journal/ 裡沒有 P-001-game-save 或 M-1-game-save 或 M-6 的決策紀錄）
 
-# 目標 pipeline:.lawful/pipelines/P-001-game-save.md
+# 目標 pipeline：.lawful/pipelines/P-001-game-save.md
 
 ````markdown
 ---
@@ -54,10 +54,10 @@ kind: io
 status: ready
 updated: 2026-09-05
 ---
-# P-001-game-save:把當前 World 投影成可存檔的狀態,編碼後寫到磁碟
+# P-001-game-save：把當前 World 投影成可存檔的狀態，編碼後寫到磁碟
 
 ## Brief
-壞掉的版本,給 lint 的 golden 用。
+壞掉的版本，給 lint 的 golden 用。
 
 ## Stages
 | # | 簽名 | 做什麼 | 模組 | 層 |
@@ -65,17 +65,17 @@ updated: 2026-09-05
 | 1 | `toSave :: World -> SaveState` | 去掉快取 | `Game.Save.Project` | core |
 | 2 | `encode :: SaveState -> ByteString` | 編成 CBOR | `Game.Save.Codec` | core |
 | 3 | `decode :: ByteString -> Either DecodeError SaveState` | 解回狀態 | `Game.Save.Codec` | core |
-| 4 | `compress :: Ghost -> Value` | 壓縮;Ghost 沒宣告過、Value 沒有名字 | `Game.Save.Zip`(見 P-002-compression) | core |
+| 4 | `compress :: Ghost -> Value` | 壓縮；Ghost 沒宣告過、Value 沒有名字 | `Game.Save.Zip`（見 P-002-compression） | core |
 | 5 | `writeSave :: FilePath -> ByteString -> IO ()` | 原子寫檔 | `Game.FS` | shell |
 | 6 | `checksum :: ByteString -> Int` | 校驗 | `Game.FS` | core |
-| 7 | `persistEncode :: a -> ByteString` | class 方法,要抓得到 | `Game.Save.Class` | core |
+| 7 | `persistEncode :: a -> ByteString` | class 方法，要抓得到 | `Game.Save.Class` | core |
 | 8 | `(<+>) :: SaveState -> SaveState -> SaveState` | 運算子簽名 | `Game.Save.Class` | core |
-| 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數,不該抓到 | `Game.Save.Class` | core |
-| 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位,型別含逗號 | `Game.Save.State` | types |
-| 11 | `route :: SomeTypeRep -> Some 'Command -> Lane` | 升格的建構子與 SomeTypeRep,不該紅 | `Game.Save.State` | types |
-| 12 | `misroute :: Some 'Commnad -> Lane` | 升格的建構子打錯字,要紅 | `Game.Save.State` | types |
-| 13 | `stampAll :: Stamped ss => Proxy ss -> Tick -> [Int]` | class 的 context 是沒括號的多參數約束、Tick 只在 import 清單裡點名,不該紅 | `Game.Save.State` | types |
-| o | `ghostView :: SaveState -> Int` | 觀察點,程式碼沒有,要紅 | `Game.Save.State` | types |
+| 9 | `go :: [SaveState] -> SaveState` | where 區塊裡的私有函數，不該抓到 | `Game.Save.Class` | core |
+| 10 | `savedDropped :: SaveState -> [(String, Int)]` | record 欄位，型別含逗號 | `Game.Save.State` | types |
+| 11 | `route :: SomeTypeRep -> Some 'Command -> Lane` | 升格的建構子與 SomeTypeRep，不該紅 | `Game.Save.State` | types |
+| 12 | `misroute :: Some 'Commnad -> Lane` | 升格的建構子打錯字，要紅 | `Game.Save.State` | types |
+| 13 | `stampAll :: Stamped ss => Proxy ss -> Tick -> [Int]` | class 的 context 是沒括號的多參數約束、Tick 只在 import 清單裡點名，不該紅 | `Game.Save.State` | types |
+| o | `ghostView :: SaveState -> Int` | 觀察點，程式碼沒有，要紅 | `Game.Save.State` | types |
 | = | `saveGame :: FilePath -> World -> IO ()` | 整條 | `Game.Save.Host` | shell |
 
 ## Laws
@@ -93,11 +93,11 @@ updated: 2026-09-05
   - |- crc32 (encode s) == checksum (encode s)
 - LAW-5 [identity] 缺結論行
   - forall s in SaveState
-- LAW-6 [relation] given 行寫成散文,要紅
+- LAW-6 [relation] given 行寫成散文，要紅
   - forall s in SaveState
   - given s 這一步有發出至少一個事件
   - |- length (savedEntities s) >= 0
-- LAW-8 [relation] 字串字面值不是識別字,不該紅
+- LAW-8 [relation] 字串字面值不是識別字，不該紅
   - forall s in SaveState
   - |- show (checksum (encode s)) /= "missing marker"
 
@@ -115,7 +115,7 @@ updated: 2026-09-05
 無
 ````
 
-# 逐條狀態(文檔對程式碼;沒有給測試輸出,law 的紅綠不在這裡)
+# 逐條狀態（文檔對程式碼；沒有給測試輸出，law 的紅綠不在這裡）
 
 ### Stages
 - 1  toSave :: World -> SaveState  Game.Save.Project/core  搬家 → Game.Save.Codec
@@ -140,8 +140,8 @@ updated: 2026-09-05
 - LAW-3 [linear] 檔案大小跟實體數線性  未翻譯
 - LAW-4 [invariant] 校驗碼穩定  未翻譯
 - LAW-5 [identity] 缺結論行  未翻譯
-- LAW-6 [relation] given 行寫成散文,要紅  未翻譯
-- LAW-8 [relation] 字串字面值不是識別字,不該紅  未翻譯
+- LAW-6 [relation] given 行寫成散文，要紅  未翻譯
+- LAW-8 [relation] 字串字面值不是識別字，不該紅  未翻譯
 - EX-1 覆蓋 LAW-1  未跑
 - EX-2 覆蓋 LAW-9  未翻譯
 - EX-3 覆蓋   未翻譯
@@ -151,78 +151,78 @@ updated: 2026-09-05
 - GAP-1(P-001#toSave / impl)
 
 ### 引用
-- 引用了:P-002-compression
-- 被引用:無
+- 引用了：P-002-compression
+- 被引用：無
 
-文檔寫了 14 條簽名,程式碼裡有 9 條,未實作的 5 條 · 觀察點 1 個,程式碼裡有 0 個 · 寫了 7 條 law,通過 nan 條 · 未達成
+文檔寫了 14 條簽名，程式碼裡有 9 條，未實作的 5 條 · 觀察點 1 個，程式碼裡有 0 個 · 寫了 7 條 law，通過 nan 條 · 未達成
 
-# 引用的 pipeline:P-002-compression
+# 引用的 pipeline：P-002-compression
 
-(pipelines/ 裡沒有這一條)
+（pipelines/ 裡沒有這一條）
 
-# 對帳:lint sig 與 lint laws 裡講到這條 pipeline 的
+# 對帳：lint sig 與 lint laws 裡講到這條 pipeline 的
 
-### lint sig:這條 pipeline 15 條不合規(全專案 15 條)
-- ✗ .lawful/pipelines/P-001-game-save.md kind 是 io 的 pipeline 要恰好一列 ! 列(shell 的進入點),現在 0 列
+### lint sig：這條 pipeline 15 條不合規（全專案 15 條）
+- ✗ .lawful/pipelines/P-001-game-save.md kind 是 io 的 pipeline 要恰好一列 ! 列（shell 的進入點），現在 0 列
 - ✗ .lawful/pipelines/P-001-game-save.md:19 P-001-game-save#decode 簽名不一致
-    文檔:decode :: ByteString -> Either DecodeError SaveState
-    程式碼:decode :: ByteString -> Maybe SaveState(src-core/Game/Save/Codec.hs:21)
+    文檔：decode :: ByteString -> Either DecodeError SaveState
+    程式碼：decode :: ByteString -> Maybe SaveState(src-core/Game/Save/Codec.hs:21)
 - ✗ .lawful/pipelines/P-001-game-save.md:20 compress 引用的 P-002-compression 不存在
-- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 簽名裡的型別 Ghost 在程式碼、import 清單與標準函式庫都找不到;型別住程式碼,Stages 的簽名照程式碼抄
-- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 回傳的型別 Value 沒有名字;stage 之間傳遞的值用有名字的型別,形狀才有地方住
-- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
-- ✗ .lawful/pipelines/P-001-game-save.md:22 checksum 寫 core 層,模組表的 Game.FS 只宣告了 shell 層
-- ✗ .lawful/pipelines/P-001-game-save.md:22 checksum 寫 core 層,Game.FS 的檔在 src-shell/ 底下
-- ✗ .lawful/pipelines/P-001-game-save.md:22 P-001-game-save#checksum 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
-- ✗ .lawful/pipelines/P-001-game-save.md:25 P-001-game-save#go 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
-- ✗ src-types/Game/Save/State.hs:47 P-001-game-save#savedDropped 程式碼裡有,但 Game.Save.State 沒有匯出它;stage 與觀察點都要是匯出的簽名
-- ✗ .lawful/pipelines/P-001-game-save.md:28 P-001-game-save#misroute 簽名裡升格的建構子 'Commnad 在程式碼找不到;升格的名字要是 data 的建構子
+- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 簽名裡的型別 Ghost 在程式碼、import 清單與標準函式庫都找不到；型別住程式碼，Stages 的簽名照程式碼抄
+- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 回傳的型別 Value 沒有名字；stage 之間傳遞的值用有名字的型別，形狀才有地方住
+- ✗ .lawful/pipelines/P-001-game-save.md:20 P-001-game-save#compress 程式碼裡找不到；Stages 的簽名是從程式碼抄來的，先有程式碼（修訂新增的 stage 先宣告，本體是未實作標記）
+- ✗ .lawful/pipelines/P-001-game-save.md:22 checksum 寫 core 層，模組表的 Game.FS 只宣告了 shell 層
+- ✗ .lawful/pipelines/P-001-game-save.md:22 checksum 寫 core 層，Game.FS 的檔在 src-shell/ 底下
+- ✗ .lawful/pipelines/P-001-game-save.md:22 P-001-game-save#checksum 程式碼裡找不到；Stages 的簽名是從程式碼抄來的，先有程式碼（修訂新增的 stage 先宣告，本體是未實作標記）
+- ✗ .lawful/pipelines/P-001-game-save.md:25 P-001-game-save#go 程式碼裡找不到；Stages 的簽名是從程式碼抄來的，先有程式碼（修訂新增的 stage 先宣告，本體是未實作標記）
+- ✗ src-types/Game/Save/State.hs:47 P-001-game-save#savedDropped 程式碼裡有，但 Game.Save.State 沒有匯出它；stage 與觀察點都要是匯出的簽名
+- ✗ .lawful/pipelines/P-001-game-save.md:28 P-001-game-save#misroute 簽名裡升格的建構子 'Commnad 在程式碼找不到；升格的名字要是 data 的建構子
 - ✗ .lawful/pipelines/P-001-game-save.md:28 P-001-game-save#misroute 簽名不一致
-    文檔:misroute :: Some 'Commnad -> Lane
-    程式碼:misroute :: Some 'Command -> Lane(src-types/Game/Save/State.hs:41)
-- ✗ .lawful/pipelines/P-001-game-save.md:30 P-001-game-save#ghostView 程式碼裡找不到;Stages 的簽名是從程式碼抄來的,先有程式碼(修訂新增的 stage 先宣告,本體是未實作標記)
-- ✗ .lawful/pipelines/P-001-game-save.md:31 = 列 saveGame 在 shell 層;= 列是純的整條(core 或 effect),shell 的進入點另列成 ! 列
-- · P-001-game-save#toSave 搬家:文檔 Game.Save.Project → 程式碼 Game.Save.Codec(lawful sync 可改)
-### lint laws:這條 pipeline 7 條不合規(全專案 10 條)
+    文檔：misroute :: Some 'Commnad -> Lane
+    程式碼：misroute :: Some 'Command -> Lane(src-types/Game/Save/State.hs:41)
+- ✗ .lawful/pipelines/P-001-game-save.md:30 P-001-game-save#ghostView 程式碼裡找不到；Stages 的簽名是從程式碼抄來的，先有程式碼（修訂新增的 stage 先宣告，本體是未實作標記）
+- ✗ .lawful/pipelines/P-001-game-save.md:31 = 列 saveGame 在 shell 層；= 列是純的整條（core 或 effect），shell 的進入點另列成 ! 列
+- · P-001-game-save#toSave 搬家：文檔 Game.Save.Project → 程式碼 Game.Save.Codec（lawful sync 可改）
+### lint laws：這條 pipeline 7 條不合規（全專案 10 條）
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-3 種類「linear」不在 invariant / identity / roundtrip / relation / bound / equiv / total / commute
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-4 |- 行的 crc32 對不到 Stages 簽名、types 層匯出或標準函式庫
 - ✗ .lawful/pipelines/P-001-game-save.md LAW-5 缺 |- 行
-- ✗ .lawful/pipelines/P-001-game-save.md LAW-6 given 行含非 ASCII 字元,三行只准表達式,不准散文:given s 這一步有發出至少一個事件
-- ✗ .lawful/pipelines/P-001-game-save.md:31 = 列 saveGame 沒有任何 law 引用;整條至少一條 law
+- ✗ .lawful/pipelines/P-001-game-save.md LAW-6 given 行含非 ASCII 字元，三行只准表達式，不准散文：given s 這一步有發出至少一個事件
+- ✗ .lawful/pipelines/P-001-game-save.md:31 = 列 saveGame 沒有任何 law 引用；整條至少一條 law
 - ✗ .lawful/pipelines/P-001-game-save.md EX-2 指到的 LAW-9 不存在
 - ✗ .lawful/pipelines/P-001-game-save.md EX-3 沒有指到任何 law
 
-# gaps.md(2 條,open 的 2 條:GAP-1、GAP-1)
+# gaps.md（2 條，open 的 2 條:GAP-1、GAP-1）
 
 ````markdown
 # GAP
 
 ## GAP-1(P-001#LAW-1 / qa)
-- 模糊點:SaveState 的相等要不要忽略順序
-- 卡住的項目:P-001#LAW-1 的 property test 寫不出斷言
-- 需要回答什麼:兩個實體順序不同的 SaveState 算不算同一個
-- 狀態:open
+- 模糊點：SaveState 的相等要不要忽略順序
+- 卡住的項目：P-001#LAW-1 的 property test 寫不出斷言
+- 需要回答什麼：兩個實體順序不同的 SaveState 算不算同一個
+- 狀態：open
 
 ## GAP-1(P-001#toSave / impl)
-- 模糊點:toSave 要不要保留幽靈實體
-- 卡住的項目:P-001#toSave 的本體
-- 需要回答什麼:ghostView 為空的實體要不要進 SaveState
-- 狀態:open
+- 模糊點：toSave 要不要保留幽靈實體
+- 卡住的項目：P-001#toSave 的本體
+- 需要回答什麼：ghostView 為空的實體要不要進 SaveState
+- 狀態：open
 ````
 
 # 專案根目錄的測試輸出
 
-(根目錄沒有看起來像測試輸出的檔;先跑整套留檔,或用 status --run)
+（根目錄沒有看起來像測試輸出的檔；先跑整套留檔，或用 status --run）
 
-# lawful status 裡講到 P-001-game-save 的每一行(整份報告要看再跑 lawful status)
+# lawful status 裡講到 P-001-game-save 的每一行（整份報告要看再跑 lawful status）
 
 ### lawful status
-願景:玩家在任何時刻存檔,之後讀回來的世界和存檔那一刻一模一樣。
-需求 5 條,已驗收 0 條 · 等人工審核 1 條 · 待重審 1 條 · 領域不變量 4 條,成立 0 條 · 里程碑 7 條,達成 0 條 · io pipeline 1 條,達成 0 條 · pipeline 1 條,達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
+願景：玩家在任何時刻存檔，之後讀回來的世界和存檔那一刻一模一樣。
+需求 5 條，已驗收 0 條 · 等人工審核 1 條 · 待重審 1 條 · 領域不變量 4 條，成立 0 條 · 里程碑 7 條，達成 0 條 · io pipeline 1 條，達成 0 條 · pipeline 1 條，達成 0 條 · 模組單元 6 個 · 還沒實作的 stage 9 個 · 還開著的 GAP 2 條
 · 測試結果來自 stale.log
 
 #### 需求
-- R-1 下一個里程碑:M-1-game-save 存檔寫得出檔案(P-001-game-save 卡 GAP-1、GAP-1)
+- R-1 下一個里程碑：M-1-game-save 存檔寫得出檔案（P-001-game-save 卡 GAP-1、GAP-1）
 
 #### pipelines
 | pipeline | 類別 | status | 文檔簽名數量 | Code 簽名數量 | 未實作的數量 | Law 條數 | Law 通過數/測試數 | 狀態 |
@@ -233,33 +233,33 @@ updated: 2026-09-05
 | 模組單元 | 職責 | 宣告的層 | 還沒有程式碼的層 | 住在這裡的 pipeline | stage | 待實作 |
 |---|---|---|---|---|---|---|
 | Game.Save | 可存檔的投影、編解碼與存檔的進入點 | types、effect、core、shell | effect | P-001-game-save | 12 | 6 |
-| Game.FS | (沒填) | shell | - | P-001-game-save | 2 | 2 |
+| Game.FS | （沒填） | shell | - | P-001-game-save | 2 | 2 |
 
 #### 2. 卡住的
-- P-001#LAW-1 停在 GAP-1(qa 提)
-- P-001#toSave 停在 GAP-1(impl 提)
-- P-001-game-save 的 decode(不一致)、compress(找不到)、checksum(找不到)、go(找不到)、misroute(不一致)、ghostView(找不到) 與程式碼對不上:寫這條的 skill 補宣告(切片那一波 lawful:scope-laws;修訂新增的 stage lawful:scope-revise,本體標成未實作)
+- P-001#LAW-1 停在 GAP-1（qa 提）
+- P-001#toSave 停在 GAP-1（impl 提）
+- P-001-game-save 的 decode（不一致）、compress（找不到）、checksum（找不到）、go（找不到）、misroute（不一致）、ghostView（找不到） 與程式碼對不上：寫這條的 skill 補宣告（切片那一波 lawful:scope-laws；修訂新增的 stage lawful:scope-revise，本體標成未實作）
 
 #### 3. 等決定
-- GAP-1(P-001#LAW-1 / qa):答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws
-- GAP-1(P-001#toSave / impl):答案要調整既有的 law 走 lawful:scope-laws,既有的 law 不動走 lawful:scope-revise,問的是全域 Law 走 lawful:global-laws
+- GAP-1(P-001#LAW-1 / qa)：答案要調整既有的 law 走 lawful:scope-laws，既有的 law 不動走 lawful:scope-revise，問的是全域 Law 走 lawful:global-laws
+- GAP-1(P-001#toSave / impl)：答案要調整既有的 law 走 lawful:scope-laws，既有的 law 不動走 lawful:scope-revise，問的是全域 Law 走 lawful:global-laws
 
-#### 5. 待實作(按模組單元)
-  - Game.FS:P-001-game-save#writeSave(未實作)、P-001-game-save#checksum
-  - Game.Save.Class:P-001-game-save#(<+>)(未實作)、P-001-game-save#go
-  - Game.Save.Codec:P-001-game-save#encode(未實作)、P-001-game-save#decode(未實作)
-  - Game.Save.Project:P-001-game-save#toSave(未實作)
-  - Game.Save.State:P-001-game-save#ghostView(觀察點)
-  - Game.Save.Zip:P-001-game-save#compress
+#### 5. 待實作（按模組單元）
+  - Game.FS：P-001-game-save#writeSave（未實作）、P-001-game-save#checksum
+  - Game.Save.Class：P-001-game-save#(<+>)（未實作）、P-001-game-save#go
+  - Game.Save.Codec：P-001-game-save#encode（未實作）、P-001-game-save#decode（未實作）
+  - Game.Save.Project：P-001-game-save#toSave（未實作）
+  - Game.Save.State：P-001-game-save#ghostView（觀察點）
+  - Game.Save.Zip：P-001-game-save#compress
 
 #### 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| P-001-game-save#decode | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
-| P-001-game-save#misroute | 簽名與程式碼不一致 | lawful lint sig 看兩邊;誰對就改另一邊,改文檔走 lawful:scope-revise |
+| P-001-game-save#decode | 簽名與程式碼不一致 | lawful lint sig 看兩邊；誰對就改另一邊，改文檔走 lawful:scope-revise |
+| P-001-game-save#misroute | 簽名與程式碼不一致 | lawful lint sig 看兩邊；誰對就改另一邊，改文檔走 lawful:scope-revise |
 | P-001-game-save#toSave | 程式碼在 Game.Save.Codec | lawful sync |
-| P-001-game-save | 測試輸出裡有 1 條結果(LAW-3)在這棵樹裡沒有測試承接,不算數 | 測試輸出與這棵樹對不上:重跑整套留檔再跑 status;測試真的不在就 lawful:build P-001-game-save |
+| P-001-game-save | 測試輸出裡有 1 條結果（LAW-3）在這棵樹裡沒有測試承接，不算數 | 測試輸出與這棵樹對不上：重跑整套留檔再跑 status；測試真的不在就 lawful:build P-001-game-save |
 
 #### 7. 建議路線
-2. P-001-game-save 的 decode(不一致)、compress(找不到)、checksum(找不到)、go(找不到)、misroute(不一致)、ghostView(找不到) 與程式碼對不上:寫這條的 skill 補宣告(切片那一波 lawful:scope-laws;修訂新增的 stage lawful:scope-revise,本體標成未實作);補上才 lawful:build P-001-game-save
+2. P-001-game-save 的 decode（不一致）、compress（找不到）、checksum（找不到）、go（找不到）、misroute（不一致）、ghostView（找不到） 與程式碼對不上：寫這條的 skill 補宣告（切片那一波 lawful:scope-laws；修訂新增的 stage lawful:scope-revise，本體標成未實作）；補上才 lawful:build P-001-game-save
 exit 0

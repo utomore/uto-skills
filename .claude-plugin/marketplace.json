@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "dev-flow",
-      "description": "一般程式語言專案的需求導向開發(TypeScript / JavaScript、Python、Go、Rust):需求(必須達成,各有一句驗收)先講好,spike-impl 先用實作貫通一條垂直切片,scope-laws 對著跑得通的東西與開發者談 Law(不得違反),整個專案都該守的由 global-laws 經開發者批准抽成全域 Law(領域不變量、層、對外 I/O),build 帶 qa 與 refactor 兩個互不可見的角色讓每條 law 都有一條會失敗而現在通過的測試守著,integrate 是唯一發 PR 的出口;合進主線之後,上線與否從 git tag 推,線上壞了由 incident 在使用者手上的那一版重現、歸因到一條 law 再交棒。文檔住 .design/:system.md、requirements/、features/;進度一律由 CLI devflow 從程式碼與測試推導(status、release、lint、claim、brief、migrate)。skills:kickoff、require-design、global-laws、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、incident、status、audit、study。",
+      "description": "一般程式語言專案的需求導向開發（TypeScript / JavaScript、Python、Go、Rust）：需求（必須達成，各有一句驗收）先講好，spike-impl 先用實作貫通一條垂直切片，scope-laws 對著跑得通的東西與開發者談 Law（不得違反），整個專案都該守的由 global-laws 經開發者批准抽成全域 Law（領域不變量、層、對外 I/O），build 帶 qa 與 refactor 兩個互不可見的角色讓每條 law 都有一條會失敗而現在通過的測試守著，integrate 是唯一發 PR 的出口；合進主線之後，上線與否從 git tag 推，線上壞了由 incident 在使用者手上的那一版重現、歸因到一條 law 再交棒。文檔住 .design/:system.md、requirements/、features/；進度一律由 CLI devflow 從程式碼與測試推導（status、release、lint、claim、brief、migrate）。skills:kickoff、require-design、global-laws、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、incident、status、audit、study。",
       "author": {
         "name": "utomore"
       },
@@ -15,7 +15,7 @@
     },
     {
       "name": "lawful",
-      "description": "Haskell 這類純函數式專案(functional core / imperative shell)的需求導向開發,流程與 skill 名稱同 dev-flow:需求(必須達成,各有一句驗收)先講好,spike-impl 先貫通一條切片,scope-laws 對著它談 Law(不得違反),整個專案都該守的由 global-laws 經開發者批准抽成全域 Law(領域不變量、四層 types ← effect ← core ← shell 各裝什麼、對外 I/O),build 帶 qa 與 refactor 讓每條 law 成立,integrate 是唯一發 PR 的出口。文檔住 .lawful/:Cone.md、requirements/、modules.md(模組單元)、pipelines/(input → 純轉換 → output 的資料流,kind 是 io 或 subflow);進度一律由 CLI lawful 從程式碼與測試推導(status、lint、claim、module、brief、migrate)。skills:kickoff、require-design、global-laws、module、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、status、audit、study。",
+      "description": "Haskell 這類純函數式專案 (functional core / imperative shell) 的需求導向開發，流程與 skill 名稱同 dev-flow：需求（必須達成，各有一句驗收）先講好，spike-impl 先貫通一條切片，scope-laws 對著它談 Law（不得違反），整個專案都該守的由 global-laws 經開發者批准抽成全域 Law（領域不變量、四層 types ← effect ← core ← shell 各裝什麼、對外 I/O），build 帶 qa 與 refactor 讓每條 law 成立，integrate 是唯一發 PR 的出口。文檔住 .lawful/:Cone.md、requirements/、modules.md（模組單元）、pipelines/（input → 純轉換 → output 的資料流，kind 是 io 或 subflow）；進度一律由 CLI lawful 從程式碼與測試推導（status、lint、claim、module、brief、migrate）。skills:kickoff、require-design、global-laws、module、spike-impl、scope-laws、scope-revise、build、qa、refactor、integrate、status、audit、study。",
       "author": {
         "name": "utomore"
       },
@@ -23,7 +23,7 @@
     },
     {
       "name": "talk-flow",
-      "description": "演講內容產生流程 skills:主軸設計(含風格基底選定、前景/背景分層、Marp 鷹架與文字規範)、段落設計(含 status 掃描與文字技法選用)、段落實作(Marp 排版 + 視覺引導 + 逐頁背景 + SVG 圖形 + 頁內備註)、頁面調整、整體審查(build 後逐頁目視 + 十四項指標含文案語感,產出 review/ 報告)、架構圖排版量測(svg-layout),投影片以 marp-cli 建置輸出;全流程禁對比翻轉句與人稱代名詞(wording.md)",
+      "description": "演講內容產生流程 skills：主軸設計（含風格基底選定、前景/背景分層、Marp 鷹架與文字規範）、段落設計（含 status 掃描與文字技法選用）、段落實作（Marp 排版 + 視覺引導 + 逐頁背景 + SVG 圖形 + 頁內備註）、頁面調整、整體審查（build 後逐頁目視 + 十四項指標含文案語感，產出 review/ 報告）、架構圖排版量測 (svg-layout)，投影片以 marp-cli 建置輸出；全流程禁對比翻轉句與人稱代名詞 (wording.md)",
       "author": {
         "name": "utomore"
       },

@@ -1,12 +1,12 @@
 $ devflow brief qa F-009-nope --no-rules
 brief qa F-009-nope @doc:- rules:<雜湊>
-這一行是指紋:被委派的角色在回報的第一項照抄它。以下是開工要的全部,不必再去找規章、文檔或宣告。
+這一行是指紋：被委派的角色在回報的第一項照抄它。以下是開工要的全部，不必再去找規章、文檔或宣告。
 
 # 規章
 
-(--no-rules:規章的節這一場已經給過,不重印)
+（--no-rules：規章的節這一場已經給過，不重印）
 
 # 目標
 
-這棵樹沒有 F-009-nope。文檔:F-001-checkout、F-002-refund;里程碑:M-1-checkout、M-2-refund、M-3-settle-total。停下,回報。
+這棵樹沒有 F-009-nope。文檔：F-001-checkout、F-002-refund；里程碑：M-1-checkout、M-2-refund、M-3-settle-total。停下，回報。
 exit 0

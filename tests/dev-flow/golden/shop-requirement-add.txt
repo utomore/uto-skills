@@ -1,6 +1,6 @@
 $ devflow requirement add money-traceable 每一筆錢都查得到來源 --priority 2 --accept 任一筆訂單都查得到它的每一筆金額從哪一列品項來 --date 2026-09-07
-建了 .design/requirements/R-2-money-traceable.md(R-2,優先 2)
-下一步:devflow requirement milestone R-2 <slug> <一句話>
+建了 .design/requirements/R-2-money-traceable.md（R-2，優先 2）
+下一步：devflow requirement milestone R-2 <slug> <一句話>
 exit 0
 --- .design/requirements/R-2-money-traceable.md
 ---
@@ -10,7 +10,7 @@ updated: 2026-09-07
 ---
 # R-2-money-traceable:每一筆錢都查得到來源
 
-- 驗收:任一筆訂單都查得到它的每一筆金額從哪一列品項來
+- 驗收：任一筆訂單都查得到它的每一筆金額從哪一列品項來
 
 | 里程碑 | 做到什麼 | 綁定 | 怎麼驗 |
 |---|---|---|---|

@@ -25,7 +25,7 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow:hidden;
   font:14px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI",sans-serif;}
 h1,h2,h3{margin:0;font-weight:600}
 
-/* 上方:一行標頭 + 一行工具列,其餘全給畫布 */
+/* 上方：一行標頭 + 一行工具列，其餘全給畫布 */
 #top{position:relative;z-index:10;background:var(--panel);border-bottom:1px solid var(--rule)}
 #head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:10px 16px 0}
 #head h1{font-size:15px;letter-spacing:.02em;white-space:nowrap}
@@ -49,7 +49,7 @@ h1,h2,h3{margin:0;font-weight:600}
 .legend span{cursor:help}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
 
-/* 畫布:平移縮放的無限平面 */
+/* 畫布：平移縮放的無限平面 */
 #stage{position:absolute;inset:0;top:var(--topH,108px);overflow:hidden;cursor:grab;
   background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:26px 26px}
 #stage.grabbing{cursor:grabbing}
@@ -80,7 +80,7 @@ h1,h2,h3{margin:0;font-weight:600}
 body:not(.view-tree) .tree-only{display:none}
 body:not(.view-dag) .dag-only{display:none}
 
-/* 約束:上半全域 Law 三類,下半每份文檔自己的 Scope Law;一條 law 一張卡,顏色是測試結果 */
+/* 約束：上半全域 Law 三類，下半每份文檔自己的 Scope Law；一條 law 一張卡，顏色是測試結果 */
 .lcard{background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--edge, var(--rule));
   box-shadow:0 3px 10px rgba(0,0,0,.1);cursor:pointer;padding:9px 12px 8px}
 .lcard[data-tone=done]{--edge:var(--done)}
@@ -92,7 +92,7 @@ body:not(.view-dag) .dag-only{display:none}
 .lcard .n{font-size:12px;margin-top:4px;color:var(--edge, var(--faint));font-weight:600}
 .lcard .w{font-size:12px;margin-top:3px;color:var(--faint);line-height:1.5;word-break:break-word}
 
-/* 相依:一條需求一張卡,左邊先做、右邊後做 */
+/* 相依：一條需求一張卡，左邊先做、右邊後做 */
 .dnode{background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--edge, var(--rule));
   box-shadow:0 3px 10px rgba(0,0,0,.1);cursor:pointer;padding:10px 13px 9px}
 .dnode[data-tone=done]{--edge:var(--done)}
@@ -113,7 +113,7 @@ body:not(.view-dag) .dag-only{display:none}
 .card.rel{outline:2px dashed var(--going);outline-offset:3px}
 .card.path{outline:1px solid var(--going);outline-offset:2px}
 
-/* 根:願景 */
+/* 根：願景 */
 .vision{background:var(--panel);border:1px solid var(--rule);box-shadow:0 4px 14px rgba(0,0,0,.1)}
 .vision h2{font-size:13px;color:var(--faint);letter-spacing:.08em;font-weight:500}
 .vision p{margin:6px 0 0;font-size:13.5px;line-height:1.75}
@@ -125,7 +125,7 @@ body:not(.view-dag) .dag-only{display:none}
 .band .n,.lband .n{font-size:11.5px;margin-top:4px;opacity:.72;line-height:1.5}
 .band[data-done=y]{background:var(--done);border-color:var(--done)}
 
-/* 里程碑;約束頁的一類全域 Law 或一份文檔也是這個樣子 */
+/* 里程碑；約束頁的一類全域 Law 或一份文檔也是這個樣子 */
 .group,.lgroup{background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--edge, var(--rule));
   box-shadow:0 3px 10px rgba(0,0,0,.08)}
 .group[data-done=y],.lgroup[data-done=y]{--edge:var(--done)}
@@ -155,7 +155,7 @@ body:not(.view-dag) .dag-only{display:none}
 .note.ghost{background:transparent;border:1px dashed var(--stuck);border-top-width:4px;color:var(--stuck);box-shadow:none}
 .note.ghost::after{display:none}
 
-/* 右邊那一欄:沒選東西時是派工,選了便利貼就換成那一份的細節 */
+/* 右邊那一欄：沒選東西時是派工，選了便利貼就換成那一份的細節 */
 aside{position:absolute;right:0;top:var(--topH,108px);bottom:0;width:var(--sideW);z-index:8;overflow:auto;
   background:var(--panel);border-left:1px solid var(--rule);padding:16px 14px}
 aside[hidden]{display:none}
@@ -288,13 +288,13 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 const tone = (d) => (d.achieved ? 'done' : d.gaps.length ? 'stuck' : d.blockedBy.length ? 'wait' : d.status === 'draft' ? 'idle' : 'going');
 const dotOf = (r) => (r === 'green' ? 'g' : r === 'red' ? 'r' : r === '未跑' ? 'y' : 'n');
 
-// 便利貼的五個顏色各是什麼判定出來的:圖例、說明面板與細節面板講的是同一句
+// 便利貼的五個顏色各是什麼判定出來的：圖例、說明面板與細節面板講的是同一句
 const TERMS = [
-  ['done', '達成', `簽名全部對得上、一個骨架都不剩、laws 與 examples 全綠、沒有還開著的 GAP,而且它引用的${D.labels.unit}也都達成`],
-  ['stuck', '卡住', '有還開著的 GAP。GAP 是 qa 或 impl 寫不下去時開的問題,等的是一個決定;回答之前這一份誰都推不動'],
-  ['wait', '等別人', `它引用的${D.labels.unit}還沒達成。等的是別份${D.labels.unit}把自己做完,不是等人回答;那一份達成了這一份才輪得到`],
-  ['going', '進行中', `契約已經 ready,沒有 GAP 也沒有在等別人,只是還沒全綠——${D.labels.steps}、測試或實作還缺東西。今天就能派`],
-  ['idle', 'draft', '契約還是 draft:規格還沒定案,還不能派測試也還不能派實作'],
+  ['done', '達成', `簽名全部對得上、一個骨架都不剩、laws 與 examples 全綠、沒有還開著的 GAP，而且它引用的${D.labels.unit}也都達成`],
+  ['stuck', '卡住', '有還開著的 GAP。GAP 是 qa 或 impl 寫不下去時開的問題，等的是一個決定；回答之前這一份誰都推不動'],
+  ['wait', '等別人', `它引用的${D.labels.unit}還沒達成。等的是別份${D.labels.unit}把自己做完，不是等人回答；那一份達成了這一份才輪得到`],
+  ['going', '進行中', `契約已經 ready，沒有 GAP 也沒有在等別人，只是還沒全綠——${D.labels.steps}、測試或實作還缺東西。今天就能派`],
+  ['idle', 'draft', '契約還是 draft：規格還沒定案，還不能派測試也還不能派實作'],
 ];
 
 // 標頭
@@ -303,17 +303,17 @@ document.getElementById('title').textContent = `${D.tool} 看板`;
 document.getElementById('chips').innerHTML = D.headline
   .map((c) => `<span class="chip">${esc(c.label)} <b>${esc(c.value)}</b></span>`).join('');
 document.getElementById('tests').textContent = `${D.tests} ·`;
-// 約束頁的卡是 law,顏色講的是測試結果,圖例跟著換
+// 約束頁的卡是 law，顏色講的是測試結果，圖例跟著換
 const LAW_TERMS = [
-  ['done', '成立', '測試跑過而且是綠的;對外 I/O 的一列是綠的,代表它契約欄寫的 law 全部成立'],
-  ['stuck', '不成立', '測試是紅的;對外 I/O 的一列是紅的,代表它契約欄寫的 law 有一條不成立或找不到'],
-  ['wait', '還沒跑', '翻成測試了但這一次沒有結果,或領域不變量寫了三行卻沒有測試'],
-  ['idle', '還沒翻成測試', '還沒有測試承接這條 law,或領域不變量沒有三行;對外 I/O 的一列是灰的,代表契約欄沒有寫 law'],
+  ['done', '成立', '測試跑過而且是綠的；對外 I/O 的一列是綠的，代表它契約欄寫的 law 全部成立'],
+  ['stuck', '不成立', '測試是紅的；對外 I/O 的一列是紅的，代表它契約欄寫的 law 有一條不成立或找不到'],
+  ['wait', '還沒跑', '翻成測試了但這一次沒有結果，或領域不變量寫了三行卻沒有測試'],
+  ['idle', '還沒翻成測試', '還沒有測試承接這條 law，或領域不變量沒有三行；對外 I/O 的一列是灰的，代表契約欄沒有寫 law'],
 ];
 function fillLegend(laws) {
   const [terms, wireName, wireWhy] = laws
-    ? [LAW_TERMS, '契約', '虛線箭頭:從對外 I/O 的一列指到它契約欄寫的那條 law']
-    : [TERMS, '引用', '虛線箭頭:箭頭那一端是被引用的那一份'];
+    ? [LAW_TERMS, '契約', '虛線箭頭：從對外 I/O 的一列指到它契約欄寫的那條 law']
+    : [TERMS, '引用', '虛線箭頭：箭頭那一端是被引用的那一份'];
   document.getElementById('legend').innerHTML = terms
     .map(([t, name, why]) => `<span title="${esc(why)}"><i style="background:var(--${t})"></i>${esc(name)}</span>`).join('')
     + `<span title="${esc(wireWhy)}"><i style="background:var(--wire)"></i>${esc(wireName)}</span>`;
@@ -321,36 +321,36 @@ function fillLegend(laws) {
 fillLegend(false);
 helpEl.innerHTML = `<button class="close">關閉</button><h3>便利貼的顏色</h3><dl>${
   TERMS.map(([t, name, why]) => `<dt><i style="background:var(--${t})"></i>${esc(name)}</dt><dd>${esc(why)}</dd>`).join('')
-}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用:箭頭那一端是被引用的那一份,一條弧線從右邊繞過去。預設只畫選取那一份的,工具列可以改成全部顯示。實線是樹的骨架(願景 → 需求 → 里程碑 → ${esc(D.labels.unit)}),每深一層往右縮排一格</dd>
-<dt><i style="background:var(--wire)"></i>相依頁籤</dt><dd>需求排成先後:左邊那一條達成了,右邊那一條才做得到。邊不是人寫的,是從${esc(D.labels.unit)}的引用推出來的:綁在需求甲的里程碑底下的一份引用了綁在需求乙的里程碑底下的一份,甲就依賴乙;沒被任何里程碑綁的那份自成一張「共用」卡。紅色的邊是優先倒掛:高優先的需求依賴低優先的需求。虛線的邊是互相依賴</dd>
-<dt><i style="background:var(--wire)"></i>約束頁籤</dt><dd>law 全部攤開,一條一張卡。上半是全域 Law 三類:領域不變量、層(由內而外)、對外 I/O 表的每一列;下半是 Scope Law,一${esc(D.labels.measure)}一叢。卡的顏色是測試結果:${LAW_TERMS.map(([, name, why]) => `${esc(name)}——${esc(why)}`).join(';')}。層的卡沒有顏色,層守不守得住看那一叢上 lint boundary 的結果。虛線箭頭從對外 I/O 的一列指到它契約欄寫的那條 law</dd></dl>`;
+}<dt><i style="background:var(--wire)"></i>虛線箭頭</dt><dd>引用：箭頭那一端是被引用的那一份，一條弧線從右邊繞過去。預設只畫選取那一份的，工具列可以改成全部顯示。實線是樹的骨架（願景 → 需求 → 里程碑 → ${esc(D.labels.unit)}），每深一層往右縮排一格</dd>
+<dt><i style="background:var(--wire)"></i>相依頁籤</dt><dd>需求排成先後：左邊那一條達成了，右邊那一條才做得到。邊不是人寫的，是從${esc(D.labels.unit)}的引用推出來的：綁在需求甲的里程碑底下的一份引用了綁在需求乙的里程碑底下的一份，甲就依賴乙；沒被任何里程碑綁的那份自成一張「共用」卡。紅色的邊是優先倒掛：高優先的需求依賴低優先的需求。虛線的邊是互相依賴</dd>
+<dt><i style="background:var(--wire)"></i>約束頁籤</dt><dd>law 全部攤開，一條一張卡。上半是全域 Law 三類：領域不變量、層（由內而外）、對外 I/O 表的每一列；下半是 Scope Law，一${esc(D.labels.measure)}一叢。卡的顏色是測試結果：${LAW_TERMS.map(([, name, why]) => `${esc(name)}——${esc(why)}`).join(';')}。層的卡沒有顏色，層守不守得住看那一叢上 lint boundary 的結果。虛線箭頭從對外 I/O 的一列指到它契約欄寫的那條 law</dd></dl>`;
 const setTopHeight = () => document.body.style.setProperty('--topH', document.getElementById('top').offsetHeight + 'px');
 
-// 側欄的首頁:派工
+// 側欄的首頁：派工
 document.getElementById('route').innerHTML = D.route.steps.length
   ? `<ol>${D.route.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>`
   : `<p class="empty">${esc(D.route.note || '')}</p>`;
 const lineItems = [
   ...D.lines.openable.map((x) => `<li><b>${esc(x.name)}</b><br><span class="empty">${esc(x.tag)}</span></li>`),
-  ...D.lines.building.map((x) => `<li><b>${esc(x.name)}</b><br><span class="empty">建構中,分支 build/${esc(x.name)}</span></li>`),
-  ...D.lines.shared.map((x) => `<li class="empty">${esc(x.a)} 與 ${esc(x.b)} 的 ${esc(D.labels.steps)} 都住 ${(x.units || x.files || []).map((f) => `<code>${esc(f)}</code>`).join('、')},可以同時開</li>`),
+  ...D.lines.building.map((x) => `<li><b>${esc(x.name)}</b><br><span class="empty">建構中，分支 build/${esc(x.name)}</span></li>`),
+  ...D.lines.shared.map((x) => `<li class="empty">${esc(x.a)} 與 ${esc(x.b)} 的 ${esc(D.labels.steps)} 都住 ${(x.units || x.files || []).map((f) => `<code>${esc(f)}</code>`).join('、')}，可以同時開</li>`),
 ];
 document.getElementById('lines').innerHTML = lineItems.length ? lineItems.join('') : '<li class="empty">一條都開不了</li>';
 document.getElementById('warnings').innerHTML = D.warnings.length
   ? D.warnings.map((w) => `<div class="warn"><b>${esc(w.where)}</b>${esc(w.what)}<i>${esc(w.fix)}</i></div>`).join('')
   : '<p class="empty">無</p>';
 
-// 模組:一個模組單元一列,層是它在原始碼樹裡的落點,pipeline 點得進去。沒有這份資料就整段不出現。
+// 模組：一個模組單元一列，層是它在原始碼樹裡的落點，pipeline 點得進去。沒有這份資料就整段不出現。
 if (D.modules && (D.modules.units.length || D.modules.unregistered.length)) {
   const mods = D.modules;
   document.getElementById('modules-section').hidden = false;
-  document.getElementById('modules-title').textContent = `模組(${mods.units.length} 個單元)`;
+  document.getElementById('modules-title').textContent = `模組（${mods.units.length} 個單元）`;
   const layerCell = (u) => u.layerState.map((l) => `<span class="layer${l.empty ? ' none' : ''}" title="${esc(l.root)}/">${esc(l.layer)}</span>`).join('');
   const rows = mods.units.map((u) => `<div class="unit" data-unit="${esc(u.unit)}">
     <span class="dot ${u.achieved ? 'g' : u.idle ? 'e' : 'y'}"></span><b>${esc(u.unit)}</b>
     <div class="layers">${layerCell(u)}</div>
-    <div class="sub">${esc(u.responsibility || '(職責沒填)')}</div>
-    <div class="sub">${u.idle ? '還沒有任何 ' + esc(D.labels.steps) + ' 住進去' : `${esc(D.labels.steps)} ${u.stages} 個,待實作 ${u.todo}`}${u.pipelines.length ? ' · ' + u.pipelines.map((n) => `<a href="#" data-go="${esc(n)}">${esc(n)}</a>`).join('、') : ''}</div>
+    <div class="sub">${esc(u.responsibility || '（職責沒填）')}</div>
+    <div class="sub">${u.idle ? '還沒有任何 ' + esc(D.labels.steps) + ' 住進去' : `${esc(D.labels.steps)} ${u.stages} 個，待實作 ${u.todo}`}${u.pipelines.length ? ' · ' + u.pipelines.map((n) => `<a href="#" data-go="${esc(n)}">${esc(n)}</a>`).join('、') : ''}</div>
   </div>`).join('');
   const stray = mods.unregistered.length ? `<div class="unit"><b>不在模組表</b><div class="sub">${mods.unregistered.map((m) => `<code>${esc(m.module)}</code>`).join('、')}</div></div>` : '';
   document.getElementById('modules').innerHTML = rows + stray;
@@ -362,12 +362,12 @@ if (D.modules && (D.modules.units.length || D.modules.unregistered.length)) {
   });
 }
 
-// ── 這棵樹:從左上往下長,每深一層往右縮排一格 ──
-// 願景 → 需求的區塊 → 里程碑 → 便利貼;便利貼在里程碑右邊折成方陣往右鋪
+// ── 這棵樹：從左上往下長，每深一層往右縮排一格 ──
+// 願景 → 需求的區塊 → 里程碑 → 便利貼；便利貼在里程碑右邊折成方陣往右鋪
 const NOTE_W = 236, GROUP_W = 360, BAND_W = 420, VISION_W = 660;
-const LEFT = 40;          // 願景的左緣,也是整張圖的最左邊
+const LEFT = 40;          // 願景的左緣，也是整張圖的最左邊
 const IND = 36;           // 每深一層往右縮排這麼多
-const STUB = 22;          // 接線從子卡片上緣往下這麼多,接進它的左緣
+const STUB = 22;          // 接線從子卡片上緣往下這麼多，接進它的左緣
 const GAP_DROP = 18;      // 父卡片底下到第一個子卡片
 const GAP_NOTE = 16;      // 同一排的便利貼之間
 const GAP_NOTE_ROW = 18;  // 便利貼折行之間
@@ -378,7 +378,7 @@ const MAX_GRID = 1800;    // 便利貼一排最寬到這裡就折行
 
 function noteHtml(name) {
   const d = byName.get(name);
-  if (!d) return `<div class="card note ghost" data-kind="note" data-name="${esc(name)}" data-tone="stuck"><div class="name">${esc(name)}</div><div class="state">綁定了,${esc(D.labels.unit)}裡沒有這一份</div></div>`;
+  if (!d) return `<div class="card note ghost" data-kind="note" data-name="${esc(name)}" data-tone="stuck"><div class="name">${esc(name)}</div><div class="state">綁定了，${esc(D.labels.unit)}裡沒有這一份</div></div>`;
   const law = d.laws.total ? `law ${d.laws.green === null ? 'nan' : d.laws.green}/${d.laws.total}` : 'law 0 條';
   const meta = [
     `<span>${esc(d.status || '沒有 status')}</span>`,
@@ -395,11 +395,11 @@ function noteHtml(name) {
     <div class="meta">${meta}</div></div>`;
 }
 
-// 先把每張牌放進畫布量高度,再算位置:內容多高就佔多高,不猜
+// 先把每張牌放進畫布量高度，再算位置：內容多高就佔多高，不猜
 const html = [];
 html.push(`<div class="card vision" data-kind="vision" style="width:${VISION_W}px"><h2>願景</h2>${
-  D.vision ? `<p>${esc(D.vision)}</p>` : '<p class="none">還沒訂,或還是模板</p>'}</div>`);
-const drawn = new Set();   // 一份文檔綁到兩條里程碑也只畫一張,第一條里程碑收著它
+  D.vision ? `<p>${esc(D.vision)}</p>` : '<p class="none">還沒訂，或還是模板</p>'}</div>`);
+const drawn = new Set();   // 一份文檔綁到兩條里程碑也只畫一張，第一條里程碑收著它
 D.bands.forEach((band, bi) => {
   html.push(`<div class="card band" data-kind="band" data-band="${bi}" data-done="${band.achieved ? 'y' : 'n'}" style="width:${BAND_W}px">
     <div class="t">${esc(band.title)}</div><div class="n">${esc(band.note)}</div>
@@ -420,11 +420,11 @@ for (const el of cards) if (!el.style.width) el.style.width = NOTE_W + 'px';
 const H = new Map(cards.map((el) => [el, el.offsetHeight]));
 const noteEls = new Map();
 for (const el of cards) if (el.dataset.kind === 'note') noteEls.set(el.dataset.name, el);
-const box = new Map();       // 元素 → {x,y,w,h}
+const box = new Map();       // 元素 → {x，y，w，h}
 const pick = (sel) => world.querySelector(sel);
 const bandEl = (bi) => pick(`.band[data-band="${bi}"]`);
 const groupEl = (bi, ci) => pick(`.group[data-band="${bi}"][data-col="${ci}"]`);
-// into 是那片畫布自己的位置表:樹與約束頁各一張
+// into 是那片畫布自己的位置表：樹與約束頁各一張
 function place(el, x, y, w, into = box) {
   el.style.left = x + 'px';
   el.style.top = y + 'px';
@@ -444,7 +444,7 @@ const zoneOf = new Map();    // 卡片 → 點它要縮放到的範圍
 const ancestors = new Map(); // 便利貼 → 它上面那一串卡片
 const trees = [];            // 每一組「父卡片 → 它的子卡片進線點」
 
-// 便利貼方陣:一排排滿了就往下折,每一排從左緣接一條線進來
+// 便利貼方陣：一排排滿了就往下折，每一排從左緣接一條線進來
 function grid(els, x0, yTop, w = NOTE_W, into = box, maxW = MAX_GRID) {
   const perRow = Math.max(1, Math.floor((maxW + GAP_NOTE) / (w + GAP_NOTE)));
   const rows = [];
@@ -472,7 +472,7 @@ D.bands.forEach((band, bi) => {
   const mine = [bBox];
   y += bBox.h + GAP_DROP;
 
-  // 一條里程碑:卡片一張,便利貼在它右邊鋪成方陣,排滿了才往下折
+  // 一條里程碑：卡片一張，便利貼在它右邊鋪成方陣，排滿了才往下折
   const colKids = [];
   band.columns.forEach((col, ci) => {
     if (ci) y += GAP_GROUP;
@@ -496,13 +496,13 @@ D.bands.forEach((band, bi) => {
 });
 if (visionEl && bandEntries.length) trees.push({ from: box.get(visionEl), kids: bandEntries });
 
-// ── 連線:骨架是縮排樹的直角線,一條線最長只走一格縮排 ──
+// ── 連線：骨架是縮排樹的直角線，一條線最長只走一格縮排 ──
 const paths = [`<defs>
   <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--wire)"></path></marker>
   <marker id="arrowWait" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--wait)"></path></marker>
   <marker id="arrowLit" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--going)"></path></marker>
 </defs>`];
-// 父卡片垂一條下來,每個子卡片各自從那條橫過來接進自己的左緣;便利貼掛在里程碑右邊,就從右緣垂
+// 父卡片垂一條下來，每個子卡片各自從那條橫過來接進自己的左緣；便利貼掛在里程碑右邊，就從右緣垂
 function treeWires(ts) {
   const out = [];
   const wire = (d) => out.push(`<path class="tree" d="${d}"></path>`);
@@ -523,7 +523,7 @@ function treeWires(ts) {
 }
 paths.push(...treeWires(trees));
 
-// ── 引用:一條弧線,從引用者的右緣出去,繞到右邊,再接進被引用那一份的右緣 ──
+// ── 引用：一條弧線，從引用者的右緣出去，繞到右邊，再接進被引用那一份的右緣 ──
 const contentRight = Math.max(...[...box.values()].map((b) => b.x + b.w));
 const outs = new Map();
 for (const e of D.edges) outs.set(e.from, (outs.get(e.from) || 0) + 1);
@@ -534,18 +534,18 @@ for (const e of D.edges) {
   const ba = box.get(a); const bb = box.get(b);
   const i = used.get(e.from) || 0; used.set(e.from, i + 1);
   const n = outs.get(e.from);
-  // 同一張便利貼出去好幾條就把出口錯開,不然幾條線疊在一起看不出有幾條
+  // 同一張便利貼出去好幾條就把出口錯開，不然幾條線疊在一起看不出有幾條
   const y1 = Math.round(ba.y + ba.h / 2 + (i - (n - 1) / 2) * 9);
   const y2 = Math.round(bb.y + bb.h / 2);
   const x1 = ba.x + ba.w; const x2 = bb.x + bb.w;
-  // 弧度跟著兩份的距離走:離得越遠鼓得越開,線與線才不會黏成一團
+  // 弧度跟著兩份的距離走：離得越遠鼓得越開，線與線才不會黏成一團
   const bulge = Math.min(460, Math.max(70, Math.abs(y2 - y1) * 0.34 + Math.abs(x2 - x1) * 0.2));
   const d = `M ${x1} ${y1} C ${x1 + bulge} ${y1}, ${x2 + bulge} ${y2}, ${x2} ${y2}`;
   const t = byName.get(e.to);
   paths.push(`<path class="ref${t && !t.achieved ? ' blocking' : ''}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" d="${d}"></path>`);
 }
 
-// 弧線鼓出去的那一段不算進畫布:它平常沒在畫,算進來只會讓全景永遠縮太小。畫到界外照樣看得見
+// 弧線鼓出去的那一段不算進畫布：它平常沒在畫，算進來只會讓全景永遠縮太小。畫到界外照樣看得見
 const totalW = contentRight + 80;
 const maxY = Math.max(0, ...[...box.values()].map((b) => b.y + b.h)) + 60;
 links.setAttribute('viewBox', `0 0 ${totalW} ${maxY}`);
@@ -555,14 +555,14 @@ links.innerHTML = paths.join('');
 world.style.width = totalW + 'px';
 world.style.height = maxY + 'px';
 
-// ── 相依:需求排成先後順序的圖 ──
-// 邊全部從引用推出來:綁在需求甲的里程碑底下的一份引用了綁在需求乙的里程碑底下的一份,甲就依賴乙。
-// 沒被任何里程碑綁、卻被別份引用的那一份自成一張共用卡,不然那條依賴就沒地方落。
+// ── 相依：需求排成先後順序的圖 ──
+// 邊全部從引用推出來：綁在需求甲的里程碑底下的一份引用了綁在需求乙的里程碑底下的一份，甲就依賴乙。
+// 沒被任何里程碑綁、卻被別份引用的那一份自成一張共用卡，不然那條依賴就沒地方落。
 const world2 = document.getElementById('world2');
 const links2 = document.getElementById('links2');
 const DN_W = 300, DAG_LEFT = 40, DAG_TOP = 40, DAG_COL_GAP = 120, DAG_ROW_GAP = 22;
 const reqById = new Map(D.requirements.map((q) => [q.id, q]));
-// 底下有里程碑、卻不是任何一條需求的區塊(里程碑對不到需求):它綁的文檔也要有卡可落
+// 底下有里程碑、卻不是任何一條需求的區塊（里程碑對不到需求）：它綁的文檔也要有卡可落
 const UNBOUND_BANDS = new Set(['loose', 'shared', 'empty']);
 const strayById = new Map(D.bands.filter((b) => !reqById.has(b.id) && !UNBOUND_BANDS.has(b.id)).map((b) => [b.id, b]));
 const ownersOf = new Map();   // 文檔 → 綁它的需求
@@ -580,7 +580,7 @@ function deriveGraph() {
     let n;
     if (reqById.has(id)) {
       const q = reqById.get(id);
-      n = { id, kind: 'requirement', title: q.title, sub: `需求 · 優先 ${q.priorityRaw || '(沒填)'}`, note: q.note, priority: q.priority || null,
+      n = { id, kind: 'requirement', title: q.title, sub: `需求 · 優先 ${q.priorityRaw || '（沒填）'}`, note: q.note, priority: q.priority || null,
         tone: q.achieved ? 'done' : q.law.tested && q.law.holds === false ? 'stuck' : q.milestones.length ? 'going' : 'idle', achieved: q.achieved };
     } else if (strayById.has(id)) {
       const b = strayById.get(id);
@@ -616,7 +616,7 @@ function deriveGraph() {
     e.inverted = a.priority != null && b.priority != null && a.priority < b.priority;
     a.deps.push(e); b.dependents.push(e);
   }
-  // 互相依賴:深度優先走一遍,回到還在走的那一個就是繞回去了;那條邊不算進分層,畫成虛線
+  // 互相依賴：深度優先走一遍，回到還在走的那一個就是繞回去了；那條邊不算進分層，畫成虛線
   const seen = new Map();
   const walk = (id) => {
     seen.set(id, 1);
@@ -644,7 +644,7 @@ function buildDag() {
     <div class="n">${esc(n.note)}${n.deps.some((e) => e.inverted) ? ' · <b>優先倒掛</b>' : ''}</div></div>`).join(''));
   for (const el of world2.querySelectorAll('.dnode')) dagNodeEls.set(el.dataset.id, el);
 
-  // 分層:沒有依賴的排第 0 欄,其餘排在它所有依賴的右邊一欄;繞回去的邊不算
+  // 分層：沒有依賴的排第 0 欄，其餘排在它所有依賴的右邊一欄；繞回去的邊不算
   const layer = new Map();
   const depth = (id, trail = new Set()) => {
     if (layer.has(id)) return layer.get(id);
@@ -660,7 +660,7 @@ function buildDag() {
   for (const [id, l] of layer) (cols[l] = cols[l] || []).push(id);
   const byPrio = (a, b) => ((nodes.get(a).priority || 5) - (nodes.get(b).priority || 5)) || a.localeCompare(b);
   for (const c of cols) c.sort(byPrio);
-  // 同一欄的順序照它鄰居的重心排幾輪,線才不會交叉成一團
+  // 同一欄的順序照它鄰居的重心排幾輪，線才不會交叉成一團
   const pos = new Map();
   const rank = () => cols.forEach((c) => c.forEach((id, i) => pos.set(id, i)));
   const center = (id, side) => {
@@ -692,7 +692,7 @@ function buildDag() {
     }
   });
 
-  // 邊:從依賴那一張的右緣出去,接進依賴它那一張的左緣;箭頭指向後做的那一個
+  // 邊：從依賴那一張的右緣出去，接進依賴它那一張的左緣；箭頭指向後做的那一個
   const outs = new Map(); const used = new Map();
   for (const e of edges) outs.set(e.to, (outs.get(e.to) || 0) + 1);
   const ps = [`<defs>
@@ -720,28 +720,28 @@ function buildDag() {
 }
 buildDag();
 
-// 側欄首頁的相依段:需求之間的優先倒掛與互相依賴;一條都沒有就整段不出現
+// 側欄首頁的相依段：需求之間的優先倒掛與互相依賴；一條都沒有就整段不出現
 {
   const g = dagGraph;
   const bad = g.edges.filter((e) => e.inverted || e.cycle);
   if (bad.length) {
     document.getElementById('dep-section').hidden = false;
     document.getElementById('deps').innerHTML = bad.map((e) => `<div class="warn"><b>${e.inverted ? '優先倒掛' : '互相依賴'}:${esc(e.from)} → ${esc(e.to)}</b>${
-      e.inverted ? `${esc(e.from)}(優先 ${esc(g.nodes.get(e.from).priority)})要先有 ${esc(e.to)}(優先 ${esc(g.nodes.get(e.to).priority)})` : `${esc(e.from)} 與 ${esc(e.to)} 互相引用對方底下的${esc(D.labels.unit)}`
+      e.inverted ? `${esc(e.from)}（優先 ${esc(g.nodes.get(e.from).priority)}）要先有 ${esc(e.to)}（優先 ${esc(g.nodes.get(e.to).priority)}）` : `${esc(e.from)} 與 ${esc(e.to)} 互相引用對方底下的${esc(D.labels.unit)}`
     }<i>經由 ${esc(e.via.join('、'))}</i></div>`).join('');
   }
 }
 
-// ── 約束:law 全部攤開。上半是全域 Law 三類,下半是每一份自己的 Scope Law ──
-// 版面與樹同一套:區塊 → 一類(或一份)→ 右邊鋪成方陣的卡,一條 law 一張;對外 I/O 的契約欄畫成指到那條 law 的弧線
+// ── 約束：law 全部攤開。上半是全域 Law 三類，下半是每一份自己的 Scope Law ──
+// 版面與樹同一套：區塊 → 一類（或一份）→ 右邊鋪成方陣的卡，一條 law 一張；對外 I/O 的契約欄畫成指到那條 law 的弧線
 const world3 = document.getElementById('world3');
 const links3 = document.getElementById('links3');
 const LC_W = 264;
-const LAW_GRID = 1110;        // law 的卡一排四張就折行:這一頁是拿來讀字的,開頁不能縮到看不見
+const LAW_GRID = 1110;        // law 的卡一排四張就折行：這一頁是拿來讀字的，開頁不能縮到看不見
 const lawBox = new Map();
 const lawEls = new Map();     // 鍵 → 卡
 const lawInfo = new Map();    // 鍵 → 這張卡講的是什麼
-const lawKeyOf = new Map();   // 「文檔全名#第幾條」→ 鍵:樹那一頁的細節面板靠它跳過來
+const lawKeyOf = new Map();   // 「文檔全名#第幾條」→ 鍵：樹那一頁的細節面板靠它跳過來
 const lawZone = new Map();    // 區塊或一叢 → 點它要縮放到的範圍
 const lawZones = [];
 const lawCites = [];          // 對外 I/O 的一列 → 它契約欄寫的那條 law
@@ -756,8 +756,8 @@ function buildLaws() {
   const G = D.globalLaws || { gates: [], layers: [], io: [] };
   const gate = (kind) => G.gates.find((g) => g.kind === kind) || null;
   const gateNote = (kind) => (gate(kind) ? `lint ${gate(kind).gate}:${gate(kind).result}` : '');
-  // 同一個編號寫了兩次也各畫一張,不讓後一條蓋掉前一條
-  const fresh = (key) => { let k = key; for (let i = 2; lawInfo.has(k); i++) k = `${key}(第 ${i} 條)`; return k; };
+  // 同一個編號寫了兩次也各畫一張，不讓後一條蓋掉前一條
+  const fresh = (key) => { let k = key; for (let i = 2; lawInfo.has(k); i++) k = `${key}（第 ${i} 條）`; return k; };
   const add = (key, info) => { const k = fresh(key); lawInfo.set(k, { ...info, key: k }); return k; };
 
   const scopeGroups = D.docs.map((d) => {
@@ -771,7 +771,7 @@ function buildLaws() {
   });
   const invKeys = D.invariants.map((v) => add(v.id, { type: 'inv', inv: v, tone: invTone(v),
     k: `${v.id}${v.kind ? ` [${v.kind}]` : ''}`, name: v.title, n: `${invWord(v)} · ${v.source}` }));
-  const layerKeys = G.layers.map((l, i) => add(`層:${l.name}`, { type: 'layer', layer: l, tone: null,
+  const layerKeys = G.layers.map((l, i) => add(`層：${l.name}`, { type: 'layer', layer: l, tone: null,
     k: `由內而外第 ${i + 1} 層`, name: l.name, w: l.what || '這一層裝什麼還沒寫' }));
   const ioKeys = G.io.map((r, i) => {
     const cited = r.contract.map((c) => lawInfo.get(c));
@@ -788,14 +788,14 @@ function buildLaws() {
       notes: [`領域不變量 ${invKeys.length} 條 · 層 ${layerKeys.length} 層 · 對外 I/O ${ioKeys.length} 列`],
       groups: [
         { title: title('領域不變量', '領域不變量'), note: gateNote('領域不變量'), keys: invKeys, red: gate('領域不變量') ? gate('領域不變量').red : 0, empty: '一條都還沒有' },
-        { title: title('架構', '架構:層'), note: gateNote('架構'), keys: layerKeys, red: gate('架構') ? gate('架構').red : 0, empty: '層表還沒有列' },
-        { title: title('契約', '契約:對外 I/O'), note: gateNote('契約'), keys: ioKeys, red: gate('契約') ? gate('契約').red : 0, empty: '對外 I/O 表還沒有列' },
+        { title: title('架構', '架構：層'), note: gateNote('架構'), keys: layerKeys, red: gate('架構') ? gate('架構').red : 0, empty: '層表還沒有列' },
+        { title: title('契約', '契約：對外 I/O'), note: gateNote('契約'), keys: ioKeys, red: gate('契約') ? gate('契約').red : 0, empty: '對外 I/O 表還沒有列' },
       ] },
     { title: 'Scope Law', note: `只約束它住的那一${D.labels.measure}`,
       notes: [`${D.docs.length} ${D.labels.measure} · law ${D.docs.reduce((s, d) => s + d.laws.total, 0)} 條`],
       groups: scopeGroups, empty: `還沒有任何${D.labels.unit}` },
   ];
-  // 一叢的顏色:那道 lint 紅了、或有一張紅的就是紅;有卡而且有顏色的全綠才是綠
+  // 一叢的顏色：那道 lint 紅了、或有一張紅的就是紅；有卡而且有顏色的全綠才是綠
   const doneOf = (g) => {
     const tones = g.keys.map((k) => lawInfo.get(k).tone).filter(Boolean);
     return g.red || tones.includes('stuck') ? 'n' : tones.length && tones.every((t) => t === 'done') ? 'y' : '-';
@@ -852,7 +852,7 @@ function buildLaws() {
     y = zone.y2 + GAP_BAND;
   });
 
-  // 契約欄的弧線:從對外 I/O 那一列的右緣出去,繞到右邊,接進那條 law 的右緣
+  // 契約欄的弧線：從對外 I/O 那一列的右緣出去，繞到右邊，接進那條 law 的右緣
   const ps = [`<defs>
     <marker id="arrow3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--wire)"></path></marker>
     <marker id="arrowLit3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--going)"></path></marker>
@@ -880,11 +880,11 @@ function buildLaws() {
 }
 buildLaws();
 
-// 三個視圖共用同一片畫布與同一套平移縮放;切換時各自記住自己的鏡頭
+// 三個視圖共用同一片畫布與同一套平移縮放；切換時各自記住自己的鏡頭
 const views = {
   tree: { world, links, box, totalW, maxY, zones, cam: null, hint: '拖曳平移 · 滾輪上下、Ctrl 滾輪縮放 · 點便利貼看細節 · 點區塊或里程碑縮放到那一叢 · 0 回到全景' },
-  dag: { world: world2, links: links2, box: dagBox, totalW: dagTotalW, maxY: dagMaxY, zones: [], cam: null, hint: '左邊先做,右邊後做 · 點卡片看它依賴誰、誰等它 · 0 回到全景' },
-  laws: { world: world3, links: links3, box: lawBox, totalW: lawTotalW, maxY: lawMaxY, zones: lawZones, cam: null, hint: '上半是全域 Law,下半是 Scope Law · 點卡片看三行式與它守哪個對外 I/O · 點區塊或一叢縮放過去 · 0 回到全景' },
+  dag: { world: world2, links: links2, box: dagBox, totalW: dagTotalW, maxY: dagMaxY, zones: [], cam: null, hint: '左邊先做，右邊後做 · 點卡片看它依賴誰、誰等它 · 0 回到全景' },
+  laws: { world: world3, links: links3, box: lawBox, totalW: lawTotalW, maxY: lawMaxY, zones: lawZones, cam: null, hint: '上半是全域 Law，下半是 Scope Law · 點卡片看三行式與它守哪個對外 I/O · 點區塊或一叢縮放過去 · 0 回到全景' },
 };
 let cur = views.tree;
 world2.hidden = true;
@@ -951,7 +951,7 @@ jump.addEventListener('change', () => {
 // ── 平移縮放 ──
 let k = 1, tx = 0, ty = 0;
 const sideW = () => (asideEl.hidden ? 0 : asideEl.offsetWidth);
-// 手在動的時候把畫布交給合成器,手一停就交還:交還了瀏覽器才會用現在這個倍率重畫,字才是清的
+// 手在動的時候把畫布交給合成器，手一停就交還：交還了瀏覽器才會用現在這個倍率重畫，字才是清的
 let restT = 0;
 function moving() { cur.world.style.willChange = 'transform'; clearTimeout(restT); }
 function resting() {
@@ -974,7 +974,7 @@ function fit() {
   ty = pad;
   apply();
 }
-// 一打開停在樹的最上面,寬度剛好:這棵樹是往下長的,一開始就全景只會小到看不見字
+// 一打開停在樹的最上面，寬度剛好：這棵樹是往下長的，一開始就全景只會小到看不見字
 function home() {
   const r = stage.getBoundingClientRect();
   const pad = 32;
@@ -1013,9 +1013,9 @@ stage.addEventListener('wheel', (ev) => {
   else { tx -= ev.deltaX; ty -= ev.deltaY; apply(); }
 }, { passive: false });
 
-// 點選認的是「按下去的時候手指底下那張卡片」,不靠瀏覽器發的 click:
-// 拖曳要吃 pointermove,而吃了就得指標鎖定,指標鎖定會把 click 的 target 換成整個畫布,
-// 那時候 closest('.note') 永遠是 null,點便利貼就一點反應都沒有。
+// 點選認的是「按下去的時候手指底下那張卡片」，不靠瀏覽器發的 click:
+// 拖曳要吃 pointermove，而吃了就得指標鎖定，指標鎖定會把 click 的 target 換成整個畫布，
+// 那時候 closest('.note') 永遠是 null，點便利貼就一點反應都沒有。
 let drag = null, moved = 0, pressed = null;
 stage.addEventListener('dragstart', (ev) => ev.preventDefault());
 stage.addEventListener('pointerdown', (ev) => {
@@ -1040,13 +1040,13 @@ function letGo(ev) {
   stage.classList.remove('grabbing');
   drag = null;
   resting();
-  // 拖曳歸拖曳、點選歸點選:拖過的那一下不算點到
+  // 拖曳歸拖曳、點選歸點選：拖過的那一下不算點到
   if (moved < 5 && pressed) hit(pressed);
   pressed = null;
 }
 stage.addEventListener('pointerup', letGo);
 stage.addEventListener('pointercancel', letGo);
-// 手在畫面外放開、或視窗被切走:沒收到 pointerup 也要收尾,不然畫布會卡在拖曳狀態
+// 手在畫面外放開、或視窗被切走：沒收到 pointerup 也要收尾，不然畫布會卡在拖曳狀態
 addEventListener('pointerup', letGo);
 addEventListener('blur', letGo);
 function hit(t) {
@@ -1111,7 +1111,7 @@ function paint() {
     if (name === selected) el.classList.add('sel');
     else if (rel && rel.has(name)) el.classList.add('rel');
   }
-  // 選了一份就把它頭上那一串也點亮:一眼看得出它掛在哪條需求、哪條里程碑底下
+  // 選了一份就把它頭上那一串也點亮：一眼看得出它掛在哪條需求、哪條里程碑底下
   if (selected && noteEls.has(selected)) for (const el of (ancestors.get(noteEls.get(selected)) || [])) el.classList.add('path');
   for (const p of links.querySelectorAll('.ref')) {
     p.classList.toggle('lit', !!selected && (p.dataset.from === selected || p.dataset.to === selected));
@@ -1136,10 +1136,10 @@ function openDoc(name) {
   docEl.scrollTop = 0;
   asideEl.scrollTop = 0;
   if (!d) {
-    // 里程碑綁了這個名字,但這一份根本不在樹裡
+    // 里程碑綁了這個名字，但這一份根本不在樹裡
     docEl.innerHTML = `<button class="back">返回</button><h2>${esc(name)}</h2>
-      <p class="sub">有里程碑綁了這個名字,${esc(D.labels.unit)}裡沒有這一份</p>
-      <p class="sub">要嘛把綁定改掉,要嘛建出這一份</p>`;
+      <p class="sub">有里程碑綁了這個名字，${esc(D.labels.unit)}裡沒有這一份</p>
+      <p class="sub">要嘛把綁定改掉，要嘛建出這一份</p>`;
     return;
   }
   const why = (TERMS.find(([t]) => t === tone(d)) || [])[2] || '';
@@ -1149,21 +1149,21 @@ function openDoc(name) {
     <p class="sub">${esc(d.kind || '')} · ${esc(d.status || '沒有 status')}${d.milestone ? ` · ${d.requirement ? `${esc(d.requirement)} 優先 ${esc(d.priority ?? '?')}` : '沒有對到需求'} · ${esc(d.milestone)}` : ' · 沒有被任何里程碑綁定'}</p>
     <p class="sub"><span class="dot" style="background:var(--${tone(d)})"></span><b>${esc(d.state)}</b> — ${esc(why)}</p>
     <p class="sub">${esc(d.description)}</p>
-    <section><h3>${esc(D.labels.steps)}(簽名 ${d.signatures.matched}/${d.signatures.total} 對到,骨架 ${d.signatures.stub}${d.observations.total ? ` · 觀察點 ${d.observations.matched}/${d.observations.total}` : ''})</h3>
+    <section><h3>${esc(D.labels.steps)}（簽名 ${d.signatures.matched}/${d.signatures.total} 對到，骨架 ${d.signatures.stub}${d.observations.total ? ` · 觀察點 ${d.observations.matched}/${d.observations.total}` : ''}）</h3>
       <table><thead><tr><th>列</th><th>簽名 / 模組</th><th>狀態</th></tr></thead><tbody>${stepRows(d)}</tbody></table></section>
-    <section><h3>Laws(通過 ${d.laws.green === null ? 'nan' : d.laws.green} / ${d.laws.total},翻成測試 ${d.laws.traced})</h3>
+    <section><h3>Laws（通過 ${d.laws.green === null ? 'nan' : d.laws.green} / ${d.laws.total}，翻成測試 ${d.laws.traced}）</h3>
       ${d.laws.total ? `<ul>${d.laws.items.map((l, i) => `<li><span class="dot ${dotOf(l.result)}"></span>${lawLink(lawKeyOf.get(`${d.name}#${i}`), l.id)} [${esc(l.kind)}] ${esc(l.title)} — ${esc(l.result)}</li>`).join('')}</ul>` : '<p class="empty">一條 law 都沒寫</p>'}</section>
     ${d.examples.total ? `<section><h3>Examples</h3><ul>${d.examples.items.map((e) => `<li><span class="dot ${dotOf(e.result)}"></span>${esc(e.id)} 覆蓋 ${esc(e.covers.join('、'))} — ${esc(e.result)}</li>`).join('')}</ul></section>` : ''}
     <section><h3>關係</h3><ul>
-      <li>引用了:${d.refs.length ? d.refs.map(linkTo).join('、') : '無'}</li>
-      <li>被引用:${d.referrers.length ? d.referrers.map(linkTo).join('、') : '無'}</li>
-      <li>等誰:${d.blockedBy.length ? d.blockedBy.map(linkTo).join('、') : '無'}</li>
-      <li>住哪個模組單元:${(d.units && d.units.length) ? d.units.map((m) => `<code>${esc(m)}</code>`).join('、') : '無'}</li>
-      <li>住哪些模組:${d.modules.length ? d.modules.map((m) => `<code>${esc(m)}</code>`).join('、') : '無'}</li>
+      <li>引用了：${d.refs.length ? d.refs.map(linkTo).join('、') : '無'}</li>
+      <li>被引用：${d.referrers.length ? d.referrers.map(linkTo).join('、') : '無'}</li>
+      <li>等誰：${d.blockedBy.length ? d.blockedBy.map(linkTo).join('、') : '無'}</li>
+      <li>住哪個模組單元：${(d.units && d.units.length) ? d.units.map((m) => `<code>${esc(m)}</code>`).join('、') : '無'}</li>
+      <li>住哪些模組：${d.modules.length ? d.modules.map((m) => `<code>${esc(m)}</code>`).join('、') : '無'}</li>
     </ul></section>
     ${d.gaps.length ? `<section><h3>GAP</h3><ul>${d.gaps.map((g) => `<li>${esc(g)}</li>`).join('')}</ul></section>` : ''}
     ${warns.length ? `<section><h3>警訊</h3>${warns.map((w) => `<div class="warn"><b>${esc(w.where)}</b>${esc(w.what)}<i>${esc(w.fix)}</i></div>`).join('')}</section>` : ''}
-    ${d.revisions.count ? `<section><h3>修訂</h3><p class="sub">REV ${d.revisions.count} 條,最後一條:${esc(d.revisions.last || '')}</p></section>` : ''}`;
+    ${d.revisions.count ? `<section><h3>修訂</h3><p class="sub">REV ${d.revisions.count} 條，最後一條：${esc(d.revisions.last || '')}</p></section>` : ''}`;
 }
 function select(name) {
   selected = name;
@@ -1192,7 +1192,7 @@ function dagPaint() {
   const g = dagGraph;
   const n = dagSelected ? g.nodes.get(dagSelected) : null;
   const near = new Set(n ? [dagSelected, ...n.deps.map((e) => e.to), ...n.dependents.map((e) => e.from)] : []);
-  // 上下游全部點亮:選一條需求,看得到它牽動整條鏈
+  // 上下游全部點亮：選一條需求，看得到它牽動整條鏈
   const far = new Set();
   if (n) {
     const go = (id, side) => { for (const e of g.nodes.get(id)[side]) { const t = side === 'deps' ? e.to : e.from; if (!far.has(t)) { far.add(t); go(t, side); } } };
@@ -1226,9 +1226,9 @@ function openDagNode(id) {
     <h2>${esc(id)}${n.title ? ` ${esc(n.title)}` : ''}</h2>
     <p class="sub">${esc(n.sub)}</p>
     <p class="sub"><span class="dot" style="background:var(--${n.tone})"></span>${esc(n.note)}</p>
-    <section><h3>先要有(它依賴 ${n.deps.length} 個)</h3>${n.deps.length ? `<ul>${n.deps.map((e) => edgeRow(e, e.to)).join('')}</ul>` : '<p class="empty">不依賴任何一個,可以先做</p>'}</section>
-    <section><h3>誰等它(${n.dependents.length} 個)</h3>${n.dependents.length ? `<ul>${n.dependents.map((e) => edgeRow(e, e.from)).join('')}</ul>` : '<p class="empty">沒有人等它</p>'}</section>
-    ${q ? `<section><h3>里程碑</h3>${q.milestones.length ? `<ul>${q.milestones.map((m) => `<li><span class="dot ${m.achieved ? 'g' : 'n'}"></span>${esc(m.name)} ${esc(m.title)}${m.state === '待修訂' ? '(待修訂)' : ''}${m.binds.length ? ` — ${m.binds.map(linkTo).join('、')}` : '(還沒有切片)'}</li>`).join('')}</ul>` : '<p class="empty">沒有任何里程碑</p>'}</section>` : ''}
+    <section><h3>先要有（它依賴 ${n.deps.length} 個）</h3>${n.deps.length ? `<ul>${n.deps.map((e) => edgeRow(e, e.to)).join('')}</ul>` : '<p class="empty">不依賴任何一個，可以先做</p>'}</section>
+    <section><h3>誰等它（${n.dependents.length} 個）</h3>${n.dependents.length ? `<ul>${n.dependents.map((e) => edgeRow(e, e.from)).join('')}</ul>` : '<p class="empty">沒有人等它</p>'}</section>
+    ${q ? `<section><h3>里程碑</h3>${q.milestones.length ? `<ul>${q.milestones.map((m) => `<li><span class="dot ${m.achieved ? 'g' : 'n'}"></span>${esc(m.name)} ${esc(m.title)}${m.state === '待修訂' ? '（待修訂）' : ''}${m.binds.length ? ` — ${m.binds.map(linkTo).join('、')}` : '（還沒有切片）'}</li>`).join('')}</ul>` : '<p class="empty">沒有任何里程碑</p>'}</section>` : ''}
     ${n.kind === 'shared' ? `<section><h3>${esc(D.labels.unit)}</h3><p class="sub">${linkTo(id)}</p></section>` : ''}`;
 }
 function dagSelect(id) {
@@ -1289,12 +1289,12 @@ function openLaw(key) {
       return `<li>${t ? `<span class="dot" style="background:var(--${t.tone})"></span>${lawLink(x)} ${esc(t.name)}` : `<span class="dot r"></span>${esc(x)} — 找不到這條 law`}</li>`;
     });
     body = `<h2>${esc(r.name)}</h2>
-      <p class="sub">全域 Law · 契約:對外 I/O</p>${gateLine('契約')}
+      <p class="sub">全域 Law · 契約：對外 I/O</p>${gateLine('契約')}
       <section><h3>這一列</h3><table><tbody>
         ${row('方向', esc(r.direction))}${row('型別', r.type ? `<code>${esc(r.type)}</code>` : '')}${row('模組', r.module ? `<code>${esc(r.module)}</code>` : '')}
         ${row('進入', r.entry ? linkTo(r.entry) : '')}${row('信任', esc(r.trust || ''))}${row('驗證', r.guard ? `<code>${esc(r.guard)}</code>` : '')}
       </tbody></table></section>
-      <section><h3>契約(守這一端的 law)</h3>${contract.length ? `<ul>${contract.join('')}</ul>` : '<p class="empty">契約欄沒有寫 law</p>'}</section>`;
+      <section><h3>契約（守這一端的 law）</h3>${contract.length ? `<ul>${contract.join('')}</ul>` : '<p class="empty">契約欄沒有寫 law</p>'}</section>`;
   }
   docEl.innerHTML = `<button class="back">返回</button>${body}`;
 }

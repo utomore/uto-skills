@@ -1,5 +1,5 @@
 $ devflow requirement verify M-2-refund npx ts-node demo/refund.ts --verbose
-M-2-refund 的怎麼驗欄寫成 `npx ts-node demo/refund.ts --verbose`(.design/requirements/R-1-money-correct.md);人工審核這條需求時 status 會把它印成步驟
+M-2-refund 的怎麼驗欄寫成 `npx ts-node demo/refund.ts --verbose`(.design/requirements/R-1-money-correct.md)；人工審核這條需求時 status 會把它印成步驟
 exit 0
 --- .design/requirements/R-1-money-correct.md
 ---
@@ -7,9 +7,9 @@ id: R-1
 priority: 1
 updated: 2026-09-07
 ---
-# R-1-money-correct:每一筆結帳與退款的金額都算對
+# R-1-money-correct：每一筆結帳與退款的金額都算對
 
-- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+- 驗收：任一筆請求，訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 
@@ -23,5 +23,5 @@ updated: 2026-09-07
 
 | 日期 | 誰 | 憑據 | 結論 |
 |---|---|---|---|
-| 2026-09-07 | dev@example.com | R-1#ACCEPT 與三條里程碑的 demo 都跑過,金額與手算相同 | 已驗收 |
+| 2026-09-07 | dev@example.com | R-1#ACCEPT 與三條里程碑的 demo 都跑過，金額與手算相同 | 已驗收 |
 

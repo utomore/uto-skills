@@ -3,9 +3,9 @@ id: R-1
 priority: 1
 updated: 2026-09-07
 ---
-# R-1-money-correct:每一筆結帳與退款的金額都算對
+# R-1-money-correct：每一筆結帳與退款的金額都算對
 
-- 驗收:任一筆請求,訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
+- 驗收：任一筆請求，訂單付的錢與退回的錢都等於品項加總減掉折扣或手續費的結算金額
   - forall raw in RawBody
   - |- paidCents(checkout(raw)) == cents(settle(reqLines(parseCheckout(raw)), reqDiscount(parseCheckout(raw)))) and returnedCents(refund(raw)) == cents(settle(refundLines(parseRefund(raw)), refundFee(parseRefund(raw))))
 

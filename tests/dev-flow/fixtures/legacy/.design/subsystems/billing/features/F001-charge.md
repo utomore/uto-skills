@@ -11,11 +11,11 @@ updated: 2026-08-15
 depends-on: [auth/F001]
 code-paths: []
 ---
-# F001: 收款
+# F001：收款
 
 ## 契約
-- **核心判準**:少了它,billing 就無法「向使用者收款」
-- **驗收標準**:金額非負才收得成
+- **核心判準**：少了它，billing 就無法「向使用者收款」
+- **驗收標準**：金額非負才收得成
 
 ## 介面
 | 簽名 | 語意 | 骨架位置 |
@@ -24,11 +24,11 @@ code-paths: []
 | `rotate(id: string): string` | 換發收款代碼 | `src/billing/charge.ts#rotate` |
 
 ## Laws
-- LAW-1: 負金額收不成
-  - 量詞:對所有 a
-  - 定義域:a ∈ Cents
-  - 前提:a < 0
-  - 觀察點:charge(a) == false
+- LAW-1：負金額收不成
+  - 量詞：對所有 a
+  - 定義域：a ∈ Cents
+  - 前提：a < 0
+  - 觀察點：charge(a) == false
 
 ## Examples
 | # | 輸入 | 預期輸出 | 覆蓋的邊界 |

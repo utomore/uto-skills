@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * scan-coherence.mjs — 演講一致性機械檢查(供 /review 使用,唯讀,不寫任何檔案)
+ * scan-coherence.mjs — 演講一致性機械檢查（供 /review 使用，唯讀，不寫任何檔案）
  *
- * 讀 docs/topic.md、docs/section-*.md、talk/src/(deck-header、section-*.md、theme.css)、
- * talk/assets/diagram-*.svg,交叉比對:段落覆蓋、deck↔docs 對應與頁數同步、圖形引用完整性、
- * 先備知識順序、時間帳,並輸出頁面地圖(版型/內文形式/圖/備註)與圖形 SVG 分析表。
+ * 讀 docs/topic.md、docs/section-*.md、talk/src/（deck-header、section-*.md、theme.css）、
+ * talk/assets/diagram-*.svg，交叉比對：段落覆蓋、deck↔docs 對應與頁數同步、圖形引用完整性、
+ * 先備知識順序、時間帳，並輸出頁面地圖（版型/內文形式/圖/備註）與圖形 SVG 分析表。
  *
- * 清單欄位一律行內陣列 `[a, b]`(見 _shared/conventions.md);寫成 YAML 區塊列表會被列為格式不合規。
+ * 清單欄位一律行內陣列 `[a, b]`（見 _shared/conventions.md）；寫成 YAML 區塊列表會被列為格式不合規。
  *
- * 用法: node scan-coherence.mjs [專案根目錄]   (預設 .)
+ * 用法：node scan-coherence.mjs [專案根目錄]（預設 .）
  * Exit code: 0 = 無硬性不一致 / 1 = 有硬性不一致、缺檔或格式不合規
  */
 import { readdirSync, readFileSync, openSync, readSync, closeSync, existsSync, statSync } from "node:fs";
@@ -21,8 +21,8 @@ const SRC = join(TALK, "src");
 const ASSETS = join(TALK, "assets");
 const DIST = join(TALK, "dist");
 const HEAD_BYTES = 4096;
-const SEC_PER_PAGE_MIN = 20; // 每頁停留過短門檻(秒)
-const SEC_PER_PAGE_MAX = 180; // 每頁停留過長門檻(秒)
+const SEC_PER_PAGE_MIN = 20; // 每頁停留過短門檻（秒）
+const SEC_PER_PAGE_MAX = 180; // 每頁停留過長門檻（秒）
 const NOTE_MAX_CHARS = 200; // 備註超過此字數視為逐字稿化候選
 const TEXT_DIGEST_WIDTH = 80; // 頁面文字摘要顯示寬度上限
 
@@ -39,7 +39,7 @@ const problem = (msg) => { hard++; console.log(`✗ ${msg}`); };
 const warn = (msg) => console.log(`△ ${msg}`);
 const ok = (msg) => console.log(`✓ ${msg}`);
 const okUnless = (unreliable, msg) =>
-  unreliable ? warn("清單欄位格式不合規,本節結果不可信 — 先修格式再重跑") : ok(msg);
+  unreliable ? warn("清單欄位格式不合規，本節結果不可信 — 先修格式再重跑") : ok(msg);
 
 // ---------- 通用工具 ----------
 
@@ -156,7 +156,7 @@ function printTable(headers, rows) {
 
 const pageNo = (n) => String(n).padStart(2, "0");
 
-// ---------- 色值 / SVG 分析(圖形 SVG 用)----------
+// ---------- 色值 / SVG 分析（圖形 SVG 用）----------
 
 function normColor(raw) {
   const v = raw.trim().toLowerCase();
@@ -256,7 +256,7 @@ function findConnectors(body) {
   return out;
 }
 
-/** 圖形 SVG 分析:viewBox、字級、色票、節點候選、連接線轉折、外部資源、相對自身 viewBox 的溢出 */
+/** 圖形 SVG 分析：viewBox、字級、色票、節點候選、連接線轉折、外部資源、相對自身 viewBox 的溢出 */
 function analyzeDiagram(body) {
   const svgTag = body.match(/<svg\b[^>]*>/)?.[0] ?? "";
   const viewBox = svgTag.match(/viewBox\s*=\s*["']([^"']+)["']/)?.[1]?.trim().replace(/\s+/g, " ") ?? "";
@@ -296,21 +296,21 @@ function analyzeDiagram(body) {
   return { viewBox, fontSizes, fontFamilies, colors, nodes, emoji, external, hasImage, overflow, connectors: findConnectors(body), texts: textNodes.map((t) => t.value).filter(Boolean) };
 }
 
-// ---------- 文案語感規則(基準 _shared/wording.md)----------
+// ---------- 文案語感規則（基準 _shared/wording.md）----------
 
-/** 禁用句型:對比翻轉句、人稱代名詞、空泛詞。命中是「證據」,是否成立要開檔確認 */
+/** 禁用句型：對比翻轉句、人稱代名詞、空泛詞。命中是「證據」，是否成立要開檔確認 */
 const WORDING_RULES = [
-  { id: "翻轉句", eg: "不是 A,而是 B", pat: /不[是為][^。;；!?！？\n]{0,24}?(?:[,，、]\s*)?(?:而是|才是|反而是)/ },
-  { id: "翻轉句", eg: "不是 A,是 B", pat: /不是[^。;；!?！？\n]{1,24}[,，]\s*(?:是|就是)/ },
-  { id: "翻轉句", eg: "是 A,不是 B", pat: /[是為][^。;；!?！？\n]{1,24}[,，]\s*(?:而不是|並不是|不是)/ },
-  { id: "翻轉句", eg: "A,不等於 B", pat: /不(?:等於|代表|意味著?|見得)/ },
-  { id: "翻轉句", eg: "不只 A,更 B", pat: /不[只僅止][^。\n]{0,24}[,，]?\s*(?:更|還|也|甚至)/ },
-  { id: "翻轉句", eg: "與其 A,不如 B", pat: /與其[^。\n]{0,24}[,，]?\s*不如/ },
-  { id: "翻轉句", eg: "不在 A,而在 B", pat: /不在[^。\n]{0,20}[,，]?\s*(?:而在|在於)/ },
-  { id: "翻轉句", eg: "看似 A,其實 B", pat: /(?:看似|表面上|乍看|表面看)[^。\n]{0,24}[,，]?\s*(?:其實|實際上|事實上|真正)/ },
-  { id: "翻轉句", eg: "並非 A,而是 B", pat: /並非[^。\n]{0,24}[,，]?\s*(?:而是|而)/ },
+  { id: "翻轉句", eg: "不是 A，而是 B", pat: /不[是為][^。;；!?！？\n]{0,24}?(?:[,，、]\s*)?(?:而是|才是|反而是)/ },
+  { id: "翻轉句", eg: "不是 A，是 B", pat: /不是[^。;；!?！？\n]{1,24}[,，]\s*(?:是|就是)/ },
+  { id: "翻轉句", eg: "是 A，不是 B", pat: /[是為][^。;；!?！？\n]{1,24}[,，]\s*(?:而不是|並不是|不是)/ },
+  { id: "翻轉句", eg: "A，不等於 B", pat: /不(?:等於|代表|意味著?|見得)/ },
+  { id: "翻轉句", eg: "不只 A，更 B", pat: /不[只僅止][^。\n]{0,24}[,，]?\s*(?:更|還|也|甚至)/ },
+  { id: "翻轉句", eg: "與其 A，不如 B", pat: /與其[^。\n]{0,24}[,，]?\s*不如/ },
+  { id: "翻轉句", eg: "不在 A，而在 B", pat: /不在[^。\n]{0,20}[,，]?\s*(?:而在|在於)/ },
+  { id: "翻轉句", eg: "看似 A，其實 B", pat: /(?:看似|表面上|乍看|表面看)[^。\n]{0,24}[,，]?\s*(?:其實|實際上|事實上|真正)/ },
+  { id: "翻轉句", eg: "並非 A，而是 B", pat: /並非[^。\n]{0,24}[,，]?\s*(?:而是|而)/ },
   { id: "翻轉句", eg: "A —— 其實是 B", pat: /[—–]{1,2}\s*(?:其實|而是|真正|反而)/ },
-  { id: "翻轉句", eg: "A 重要,B 更重要", pat: /重要[,，][^。\n]{0,12}(?:更重要|才重要|更關鍵)/ },
+  { id: "翻轉句", eg: "A 重要，B 更重要", pat: /重要[,，][^。\n]{0,12}(?:更重要|才重要|更關鍵)/ },
   { id: "翻轉句", eg: "Not X, but Y", pat: /\bnot\s+(?:just\s+)?[^.,\n]{1,30},\s*but\b/i },
   { id: "翻轉句", eg: "It's not about X, it's about Y", pat: /\bit['’]?s\s+not\s+about\b[\s\S]{0,60}?\bit['’]?s\s+about\b/i },
   { id: "翻轉句", eg: "less X, more Y", pat: /\bless\s+\w+,\s*more\s+\w+/i },
@@ -320,14 +320,14 @@ const WORDING_RULES = [
 
 const EMPTY_TITLE = /^(概述|總結|摘要|簡介|介紹|背景|前言|結語|結論|內容|大綱|關於.{0,10}|overview|summary|introduction|background|conclusion|agenda)$/i;
 
-/** 標題專屬規則(wording.md 禁區四):一句話講完、寫重點主軸而不是描述 */
+/** 標題專屬規則（wording.md 禁區四）：一句話講完、寫重點主軸而不是描述 */
 const TITLE_RULES = [
-  { id: "標題串兩件事", eg: "標題一句話講完,非必要不用逗號", pat: /[,，]/ },
-  { id: "描述式標題", eg: "標題寫這頁的結論,不寫「介紹/說明什麼」", pat: /^(?:介紹|說明|解析|剖析|淺談|漫談|概述|概觀|探討|分享|認識|了解|瞭解|回顧|盤點|比較)|(?:說明|介紹|解析|概觀|總覽|一覽|簡介|分析|流程|方法)$/ },
+  { id: "標題串兩件事", eg: "標題一句話講完，非必要不用逗號", pat: /[,，]/ },
+  { id: "描述式標題", eg: "標題寫這頁的結論，不寫「介紹/說明什麼」", pat: /^(?:介紹|說明|解析|剖析|淺談|漫談|概述|概觀|探討|分享|認識|了解|瞭解|回顧|盤點|比較)|(?:說明|介紹|解析|概觀|總覽|一覽|簡介|分析|流程|方法)$/ },
   { id: "標題帶前提", eg: "前提/範圍/方法留給內文", pat: /^(?:在|當|如果|若|針對|對於)[^\n]{2,}?(?:時|下|的情況|的情境|來說)/ },
 ];
 
-/** 回傳這段文字命中的規則(同一類只回一次);kind = 標題 / 小標 / 內文 / 備註 / 圖形標籤 */
+/** 回傳這段文字命中的規則（同一類只回一次）；kind = 標題 / 小標 / 內文 / 備註 / 圖形標籤 */
 function scanWording(text, kind = "內文") {
   const t = String(text).replace(/`[^`]*`/g, " ").replace(/\s+/g, " ").trim();
   if (!t) return [];
@@ -352,7 +352,7 @@ function scanWording(text, kind = "內文") {
 
 // ---------- Marp deck 解析 ----------
 
-/** 判斷 HTML 註解是 Marp 指令(全是 directive 行)還是備註 */
+/** 判斷 HTML 註解是 Marp 指令（全是 directive 行）還是備註 */
 function isDirectiveComment(inner) {
   const lines = inner.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   if (!lines.length) return false;
@@ -362,7 +362,7 @@ function isDirectiveComment(inner) {
   });
 }
 
-/** 拆一個 deck 檔(已剝 frontmatter)成頁,抽每頁的版型/內文形式/圖/備註/文字摘要 */
+/** 拆一個 deck 檔（已剝 frontmatter）成頁，抽每頁的版型/內文形式/圖/備註/文字摘要 */
 function parseSlides(content) {
   const body = content.replace(/\r\n/g, "\n").trim();
   const chunks = body ? body.split(/\n---\n/) : [];
@@ -375,7 +375,7 @@ function parseSlides(content) {
     const classTokens = classDirective.split(/\s+/).filter(Boolean);
     const bgClasses = classTokens.filter((c) => BG_CLASSES.has(c));
     const unknownClasses = classTokens.filter((c) => !PAGE_CLASSES.has(c) && !BG_CLASSES.has(c));
-    // 頁內 scoped style 覆寫背景(一次性特例;`--bg-image: url(...)` 的引用要能找到檔案)
+    // 頁內 scoped style 覆寫背景（一次性特例；`--bg-image: url(...)` 的引用要能找到檔案）
     const scopedBg = [...chunk.matchAll(/<style[^>]*scoped[^>]*>([\s\S]*?)<\/style>/gi)]
       .flatMap((m) => [...m[1].matchAll(/--bg-image[^:]*:\s*([^;}]+)/g)].map((x) => x[1].trim()));
     const layouts = [...new Set([...chunk.matchAll(/<div\s+class="([^"]+)"/g)]
@@ -399,7 +399,7 @@ function parseSlides(content) {
     if (hasBullets) forms.push("條列");
     if (hasTable) forms.push("表格");
     if (!hasBullets && !hasTable && digest) forms.push("段落");
-    // 逐行文字(文案語感掃描用):標題 / 副標 / 小標 / 內文
+    // 逐行文字（文案語感掃描用）：標題 / 副標 / 小標 / 內文
     const textLines = noComments
       .replace(/```[\s\S]*?```/g, " ")
       .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
@@ -424,7 +424,7 @@ function parseSlides(content) {
 // ---------- 讀取素材 ----------
 
 if (!existsSync(DOCS)) {
-  console.error(`找不到 docs 目錄:${DOCS}(請在演講專案根目錄執行,或帶入根目錄路徑)`);
+  console.error(`找不到 docs 目錄：${DOCS}（請在演講專案根目錄執行，或帶入根目錄路徑）`);
   process.exit(1);
 }
 
@@ -512,45 +512,45 @@ if (existsSync(ASSETS)) {
   const strays = readdirSync(ASSETS).filter((f) =>
     f.endsWith(".svg") &&
     !/^diagram-\d{2,}-\d+-.*\.svg$/.test(f) &&
-    !/^bg-.*\.svg$/.test(f) &&          // 背景資產(全簡報共用,不帶 section 編號)
+    !/^bg-.*\.svg$/.test(f) &&          // 背景資產（全簡報共用，不帶 section 編號）
     !/^logo\.svg$/.test(f));            // 前景固定角標
-  for (const f of strays) warn(`talk/assets/${f} 不符合 diagram-<section>-<序號>-<slug>.svg 命名(背景請用 bg-<slug>.svg、角標用 logo.svg)`);
+  for (const f of strays) warn(`talk/assets/${f} 不符合 diagram-<section>-<序號>-<slug>.svg 命名（背景請用 bg-<slug>.svg、角標用 logo.svg）`);
 }
 
 const totalPages = decks.reduce((n, d) => n + d.slides.length, 0);
-console.log(`topic.md:${topic ? "有" : "缺"}  section 文檔:${sections.length} 份(非 rejected ${live.length})`);
-console.log(`deck 檔:${decks.length} 份、共 ${totalPages} 頁  圖形 SVG:${diagrams.length} 張`);
-if (!hasSrc) warn("talk/src/ 尚未建立 — 只能審查設計文檔,投影片相關檢查全部略過(建議先跑 /topic-design 與 /section-impl)");
+console.log(`topic.md:${topic ? "有" : "缺"}  section 文檔：${sections.length} 份（非 rejected ${live.length}）`);
+console.log(`deck 檔：${decks.length} 份、共 ${totalPages} 頁  圖形 SVG:${diagrams.length} 張`);
+if (!hasSrc) warn("talk/src/ 尚未建立 — 只能審查設計文檔，投影片相關檢查全部略過（建議先跑 /topic-design 與 /section-impl）");
 
 // ---------- 格式 ----------
 
 if (badFormat.length) {
-  console.log("\n=== frontmatter 格式不合規:清單欄位請用行內陣列 ===");
+  console.log("\n=== frontmatter 格式不合規：清單欄位請用行內陣列 ===");
   for (const b of badFormat) {
     problem(`${b.file}:${b.keys.join("、")} 寫成 YAML 區塊列表 → 改成 ${b.keys[0]}: [item-a, item-b]`);
   }
-  console.log("(清單欄位讀不到內容時,下面的比對結果不可信 — 先修格式再重跑)");
+  console.log("（清單欄位讀不到內容時，下面的比對結果不可信 — 先修格式再重跑）");
 }
 const unreliable = badFormat.length > 0;
 
 // ---------- 段落覆蓋 ----------
 
-console.log("\n=== 段落覆蓋(topic.sections ↔ docs ↔ talk/src)===");
+console.log("\n=== 段落覆蓋 (topic.sections ↔ docs ↔ talk/src)===");
 const beforeCover = hard;
 const sectionIds = sections.map((s) => s.id);
-for (const id of topicSections) if (!sectionIds.includes(id)) problem(`topic.md 的 sections 有 ${id},但找不到對應檔案`);
-for (const s of sections) if (topicSections.length && !topicSections.includes(s.id)) problem(`${s.file} 存在,但 topic.md 的 sections 未列 ${s.id}`);
+for (const id of topicSections) if (!sectionIds.includes(id)) problem(`topic.md 的 sections 有 ${id}，但找不到對應檔案`);
+for (const s of sections) if (topicSections.length && !topicSections.includes(s.id)) problem(`${s.file} 存在，但 topic.md 的 sections 未列 ${s.id}`);
 for (const s of sections) if (s.status === "⚠ missing") problem(`${s.file} 缺 frontmatter 或 status`);
-for (const s of live) if (!s.description) problem(`${s.id} 缺 description(主軸)— 無法判斷它對核心訊息的貢獻`);
+for (const s of live) if (!s.description) problem(`${s.id} 缺 description（主軸）— 無法判斷它對核心訊息的貢獻`);
 
 if (hasSrc) {
   const byBase = new Map(sections.map((s) => [s.base, s]));
   for (const d of decks) {
     if (!d.hasMeta) problem(`${d.file} 缺 frontmatter metadata`);
     const doc = byBase.get(d.base);
-    if (!doc) problem(`${d.file} 沒有對應的 docs/${d.base}.md(deck 與設計文件必須同編號同 slug)`);
+    if (!doc) problem(`${d.file} 沒有對應的 docs/${d.base}.md（deck 與設計文件必須同編號同 slug）`);
     else {
-      if (doc.status === "rejected") problem(`${doc.id} 已 rejected,但 talk/src/ 還留著 ${d.name}`);
+      if (doc.status === "rejected") problem(`${doc.id} 已 rejected，但 talk/src/ 還留著 ${d.name}`);
       if (d.section && d.section !== doc.id) problem(`${d.file} frontmatter 的 section: ${d.section} 與對應設計文件 ${doc.id} 不符`);
     }
     if (d.hasMeta && !d.description) problem(`${d.file} 缺 description`);
@@ -558,13 +558,13 @@ if (hasSrc) {
   const deckBases = new Set(decks.map((d) => d.base));
   for (const s of live) {
     if (!deckBases.has(s.base)) {
-      if (s.status === "done") problem(`${s.id} 標記 done,但 talk/src/ 沒有對應 deck 檔(純口述段落 slides 應為 0 且不標 done 於 deck 缺席的矛盾狀態)`);
-      else if (s.slides > 0) problem(`${s.id} 的 slides: ${s.slides},但 talk/src/ 沒有對應 deck 檔`);
-      else warn(`${s.id}(${s.status})尚未有 deck 檔(純口述段落可忽略)`);
+      if (s.status === "done") problem(`${s.id} 標記 done，但 talk/src/ 沒有對應 deck 檔（純口述段落 slides 應為 0 且不標 done 於 deck 缺席的矛盾狀態）`);
+      else if (s.slides > 0) problem(`${s.id} 的 slides: ${s.slides}，但 talk/src/ 沒有對應 deck 檔`);
+      else warn(`${s.id}(${s.status}) 尚未有 deck 檔（純口述段落可忽略）`);
     }
   }
   for (const need of ["deck-header.md", "theme.css", "build.mjs"]) {
-    if (!existsSync(join(SRC, need))) problem(`talk/src/${need} 不存在 — Marp 鷹架不完整,無法 build`);
+    if (!existsSync(join(SRC, need))) problem(`talk/src/${need} 不存在 — Marp 鷹架不完整，無法 build`);
   }
 }
 if (hard === beforeCover) okUnless(unreliable, "段落覆蓋一致");
@@ -572,20 +572,20 @@ if (hard === beforeCover) okUnless(unreliable, "段落覆蓋一致");
 // ---------- 頁數同步與頁面地圖 ----------
 
 if (hasSrc && decks.length) {
-  console.log("\n=== 頁數同步(deck 實際張數 ↔ deck.slides ↔ docs.slides)===");
+  console.log("\n=== 頁數同步（deck 實際張數 ↔ deck.slides ↔ docs.slides）===");
   const beforeSync = hard;
   const byId = new Map(sections.map((s) => [s.id, s]));
   for (const d of decks) {
     const actual = d.slides.length;
     if (d.declaredSlides === null) problem(`${d.file} frontmatter 缺 slides`);
-    else if (d.declaredSlides !== actual) problem(`${d.file} frontmatter 寫 slides: ${d.declaredSlides},實際 ${actual} 頁`);
+    else if (d.declaredSlides !== actual) problem(`${d.file} frontmatter 寫 slides: ${d.declaredSlides}，實際 ${actual} 頁`);
     const doc = byId.get(d.section) ?? sections.find((s) => s.base === d.base);
     if (doc && doc.slides !== actual) problem(`${doc.id} 的 docs slides: ${doc.slides} 與 deck 實際 ${actual} 頁不符`);
-    if (actual === 0) problem(`${d.file} 沒有任何頁(空 deck 檔)`);
+    if (actual === 0) problem(`${d.file} 沒有任何頁（空 deck 檔）`);
   }
   if (hard === beforeSync) okUnless(unreliable, "頁數三處同步");
 
-  console.log("\n=== 頁面地圖(逐頁開 dist 檢視時對照;版型見 _shared/layouts.md)===");
+  console.log("\n=== 頁面地圖（逐頁開 dist 檢視時對照；版型見 _shared/layouts.md）===");
   let page = 0;
   const rows = [];
   for (const d of decks) {
@@ -605,12 +605,12 @@ if (hasSrc && decks.length) {
         page: pageNo(page),
         section: d.section || d.base,
         idx: `${i + 1}/${d.slides.length}`,
-        layout: sl.pageClass || sl.layouts.join("+") || "(無)",
+        layout: sl.pageClass || sl.layouts.join("+") || "（無）",
         bg: sl.scopedBg.length ? "scoped" : sl.bgClasses.join("+") || "預設",
         forms: sl.forms.join("+") || "-",
         img: sl.images.length ? String(sl.images.length) : "-",
         note: sl.notes.length ? `${sl.noteChars}字` : "✗",
-        digest: truncate(sl.digest, TEXT_DIGEST_WIDTH) || "(無文字)",
+        digest: truncate(sl.digest, TEXT_DIGEST_WIDTH) || "（無文字）",
         flags: flags.join(" "),
       });
     }
@@ -623,29 +623,29 @@ if (hasSrc && decks.length) {
   // 版型收斂度
   const layoutCount = new Map();
   for (const r of rows) layoutCount.set(r.layout, (layoutCount.get(r.layout) ?? 0) + 1);
-  console.log("版型使用:" + [...layoutCount.entries()].sort((a, b) => b[1] - a[1]).map(([l, n]) => `${l}(${n})`).join(" "));
+  console.log("版型使用：" + [...layoutCount.entries()].sort((a, b) => b[1] - a[1]).map(([l, n]) => `${l}(${n})`).join(" "));
 
   // ---------- 備註 ----------
-  console.log("\n=== 備註(講稿已簡化為頁內提醒)===");
+  console.log("\n=== 備註（講稿已簡化為頁內提醒）===");
   const beforeNotes = hard;
   for (const d of decks) {
     const missing = d.slides.map((sl, i) => (sl.notes.length ? null : i + 1)).filter(Boolean);
     if (missing.length) {
-      if (d.status === "done") problem(`${d.file} 第 ${missing.join("、")} 頁(段內)沒有備註 — 每頁都要有提醒`);
-      else warn(`${d.file}(${d.status})第 ${missing.join("、")} 頁(段內)尚無備註`);
+      if (d.status === "done") problem(`${d.file} 第 ${missing.join("、")} 頁（段內）沒有備註 — 每頁都要有提醒`);
+      else warn(`${d.file}(${d.status}) 第 ${missing.join("、")} 頁（段內）尚無備註`);
     }
     const first = d.slides[0];
     const last = d.slides[d.slides.length - 1];
-    if (first?.notes.length && !/銜接/.test(first.notes.join(" "))) warn(`${d.file} 第 1 頁備註沒有「銜接:」提醒(怎麼接上一段)`);
-    if (last?.notes.length && !/交棒/.test(last.notes.join(" "))) warn(`${d.file} 末頁備註沒有「交棒:」提醒(怎麼帶到下一段)`);
+    if (first?.notes.length && !/銜接/.test(first.notes.join(" "))) warn(`${d.file} 第 1 頁備註沒有「銜接：」提醒（怎麼接上一段）`);
+    if (last?.notes.length && !/交棒/.test(last.notes.join(" "))) warn(`${d.file} 末頁備註沒有「交棒：」提醒（怎麼帶到下一段）`);
     for (let i = 0; i < d.slides.length; i++) {
-      if (d.slides[i].noteChars > NOTE_MAX_CHARS) warn(`${d.file} 第 ${i + 1} 頁備註 ${d.slides[i].noteChars} 字 — 備註是提醒不是逐字稿,超過 ${NOTE_MAX_CHARS} 字就該精簡`);
+      if (d.slides[i].noteChars > NOTE_MAX_CHARS) warn(`${d.file} 第 ${i + 1} 頁備註 ${d.slides[i].noteChars} 字 — 備註是提醒不是逐字稿，超過 ${NOTE_MAX_CHARS} 字就該精簡`);
     }
   }
-  if (hard === beforeNotes) ok("備註覆蓋合格(△ 項仍請逐條確認)");
+  if (hard === beforeNotes) ok("備註覆蓋合格（△ 項仍請逐條確認）");
 
-  // ---------- 文案語感(禁用句型與人稱)----------
-  console.log("\n=== 文案語感(禁用句型、人稱與標題寫法;基準 _shared/wording.md)===");
+  // ---------- 文案語感（禁用句型與人稱）----------
+  console.log("\n=== 文案語感（禁用句型、人稱與標題寫法；基準 _shared/wording.md）===");
   const wordRows = [];
   const pushHits = (page, where, text, kind = "內文") => {
     for (const h of scanWording(text, kind)) {
@@ -671,16 +671,16 @@ if (hasSrc && decks.length) {
     const titleFormHits = wordRows.filter((r) => TITLE_RULE_IDS.has(r.rule));
     const byRule = new Map();
     for (const r of wordRows) byRule.set(r.rule, (byRule.get(r.rule) ?? 0) + 1);
-    console.log("命中分布:" + [...byRule.entries()].map(([k, n]) => `${k}(${n})`).join(" "));
+    console.log("命中分布：" + [...byRule.entries()].map(([k, n]) => `${k}(${n})`).join(" "));
     if (titleHits.length) {
-      warn(`標題/副標命中禁用句型或人稱 ${titleHits.length} 條(第 ${[...new Set(titleHits.map((r) => r.page))].join("、")} 頁)— /review 判定為阻斷項,逐句改成直述句`);
+      warn(`標題/副標命中禁用句型或人稱 ${titleHits.length} 條（第 ${[...new Set(titleHits.map((r) => r.page))].join("、")} 頁）— /review 判定為阻斷項，逐句改成直述句`);
     }
     if (titleFormHits.length) {
-      warn(`標題寫法命中 ${titleFormHits.length} 條(第 ${[...new Set(titleFormHits.map((r) => r.page))].join("、")} 頁)— 標題要一句話講完並寫出這頁的重點主軸;逗號串兩件事先確認該拆頁還是砍一半,計入第 14 項`);
+      warn(`標題寫法命中 ${titleFormHits.length} 條（第 ${[...new Set(titleFormHits.map((r) => r.page))].join("、")} 頁）— 標題要一句話講完並寫出這頁的重點主軸；逗號串兩件事先確認該拆頁還是砍一半，計入第 14 項`);
     }
-    warn(`文案語感候選 ${wordRows.length} 條 — 逐條開檔確認是真命中還是正則誤判(「是不是」「不是…就是…」等並列不算),確認後計入第 14 項`);
+    warn(`文案語感候選 ${wordRows.length} 條 — 逐條開檔確認是真命中還是正則誤判（「是不是」「不是…就是…」等並列不算），確認後計入第 14 項`);
   } else {
-    ok("投影片文字、備註與圖形標籤都沒有命中禁用句型,標題也都是一句話(仍以逐頁目視為準)");
+    ok("投影片文字、備註與圖形標籤都沒有命中禁用句型，標題也都是一句話（仍以逐頁目視為準）");
   }
 
   // ---------- 圖形引用 ----------
@@ -694,10 +694,10 @@ if (hasSrc && decks.length) {
       for (const src of sl.images) {
         if (/^https?:\/\//.test(src)) { problem(`第 ${pageNo(pg)} 頁引用外部圖片 ${truncate(src, 40)} — 離線必掛`); continue; }
         const base = src.replace(/^(\.\.\/)?assets\//, "");
-        if (!src.includes("assets/")) warn(`第 ${pageNo(pg)} 頁圖片路徑 ${src} 不在 ../assets/ 下,確認是否刻意`);
+        if (!src.includes("assets/")) warn(`第 ${pageNo(pg)} 頁圖片路徑 ${src} 不在 ../assets/ 下，確認是否刻意`);
         if (!referenced.has(base)) referenced.set(base, []);
         referenced.get(base).push(pg);
-        if (src.includes("assets/") && !existsSync(join(ASSETS, base))) problem(`第 ${pageNo(pg)} 頁引用 ${src},但檔案不存在`);
+        if (src.includes("assets/") && !existsSync(join(ASSETS, base))) problem(`第 ${pageNo(pg)} 頁引用 ${src}，但檔案不存在`);
       }
     }
   }
@@ -709,24 +709,24 @@ if (hasSrc && decks.length) {
       if (!dg.section) problem(`${dg.file} metadata 缺 section`);
       if (!dg.description) problem(`${dg.file} 缺 description`);
       const numInName = dg.name.match(/^diagram-(\d+)-/)[1];
-      if (dg.section && dg.section !== `section-${numInName}`) problem(`${dg.file} 檔名屬 section-${numInName},metadata 卻寫 ${dg.section}`);
+      if (dg.section && dg.section !== `section-${numInName}`) problem(`${dg.file} 檔名屬 section-${numInName}，metadata 卻寫 ${dg.section}`);
     }
   }
   // docs.diagrams ↔ 檔案
   for (const s of live) {
     for (const id of s.diagrams) {
-      if (!diagrams.some((dg) => dg.id === id)) problem(`${s.id} 的 diagrams 列了 ${id},但 talk/assets/ 沒有這張圖`);
+      if (!diagrams.some((dg) => dg.id === id)) problem(`${s.id} 的 diagrams 列了 ${id}，但 talk/assets/ 沒有這張圖`);
     }
   }
   for (const dg of diagrams) {
     const owner = sections.find((s) => s.id === dg.section);
-    if (owner && !owner.diagrams.includes(dg.id)) problem(`${dg.file} 自稱屬於 ${dg.section},但該 section 的 diagrams 沒有列 ${dg.id}`);
+    if (owner && !owner.diagrams.includes(dg.id)) problem(`${dg.file} 自稱屬於 ${dg.section}，但該 section 的 diagrams 沒有列 ${dg.id}`);
   }
   if (hard === beforeDia) okUnless(unreliable, diagrams.length || referenced.size ? "圖形引用一致" : "本簡報沒有圖形");
 
   // ---------- 圖形 SVG 分析 ----------
   if (diagrams.length) {
-    console.log("\n=== 圖形 SVG 分析(可讀性證據;是否成立要開檔/開頁目視)===");
+    console.log("\n=== 圖形 SVG 分析（可讀性證據；是否成立要開檔/開頁目視）===");
     const drows = diagrams.map((dg) => {
       const v = dg.style;
       const maxTurns = v.connectors.length ? Math.max(...v.connectors.map((c) => c.turns)) : 0;
@@ -737,7 +737,7 @@ if (hasSrc && decks.length) {
       if (v.external.length) flags.push("外部資源");
       if (v.hasImage) flags.push("點陣圖");
       if (v.emoji) flags.push(`emoji${v.emoji}`);
-      if (v.overflow.length) flags.push(`溢出?${v.overflow.length}`);
+      if (v.overflow.length) flags.push(`溢出？${v.overflow.length}`);
       if (!v.texts.length) flags.push("無文字");
       return {
         id: dg.id,
@@ -752,15 +752,15 @@ if (hasSrc && decks.length) {
       };
     });
     printTable({ id: "id", type: "類型", st: "status", viewBox: "viewBox", size: "字級", colors: "色數", nodes: "節點候選", lines: "連線/最大折", flags: "旗標" }, drows);
-    console.log("(字級是 SVG 座標系的名目值;實際可讀性取決於嵌入格大小,逐頁開 dist 目視確認)");
+    console.log("（字級是 SVG 座標系的名目值；實際可讀性取決於嵌入格大小，逐頁開 dist 目視確認）");
     for (const dg of diagrams) {
       const v = dg.style;
-      if (v.external.length) problem(`${dg.file} 引用外部資源(${truncate(v.external[0], 40)})— 離線必掛`);
+      if (v.external.length) problem(`${dg.file} 引用外部資源 (${truncate(v.external[0], 40)})— 離線必掛`);
       for (const c of v.connectors.filter((c) => c.turns >= 3).sort((a, b) => b.turns - a.turns)) {
         const where = `(${c.from[0]},${c.from[1]})→(${c.to[0]},${c.to[1]})`;
-        warn(`${dg.id} 有 ${c.turns} 折的線條 ${where}${c.arrow ? "(有箭頭,確定是連接線)" : "(開檔確認是否連接線)"} — 兩折是人眼極限,要靠重排節點解決`);
+        warn(`${dg.id} 有 ${c.turns} 折的線條 ${where}${c.arrow ? "（有箭頭，確定是連接線）" : "（開檔確認是否連接線）"} — 兩折是人眼極限，要靠重排節點解決`);
       }
-      for (const o of v.overflow) warn(`${dg.id} 文字可能超出 viewBox:${o}(粗估,開檔確認)`);
+      for (const o of v.overflow) warn(`${dg.id} 文字可能超出 viewBox:${o}（粗估，開檔確認）`);
     }
 
     // 圖形配色收斂
@@ -769,24 +769,24 @@ if (hasSrc && decks.length) {
       if (!colorMap.has(c)) colorMap.set(c, []);
       colorMap.get(c).push(dg.id);
     }
-    if (colorMap.size) console.log(`圖形色票 ${colorMap.size} 種:` + [...colorMap.entries()].map(([c, ids]) => `${c}(${ids.length})`).join(" "));
-    if (colorMap.size > 8) warn(`圖形色票 ${colorMap.size} 種,發散 — 圖形應沿用 theme.css tokens 的色值`);
+    if (colorMap.size) console.log(`圖形色票 ${colorMap.size} 種：` + [...colorMap.entries()].map(([c, ids]) => `${c}(${ids.length})`).join(" "));
+    if (colorMap.size > 8) warn(`圖形色票 ${colorMap.size} 種，發散 — 圖形應沿用 theme.css tokens 的色值`);
   }
 
-  // ---------- 分層(前景 / 背景)----------
-  console.log("\n=== 分層(前景 / 背景;詞彙見 _shared/layers.md)===");
+  // ---------- 分層（前景 / 背景）----------
+  console.log("\n=== 分層（前景 / 背景；詞彙見 _shared/layers.md）===");
   const beforeLayer = hard;
   const stripCssComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, " "); // 註解裡的範例不算宣告
   const themeCss = existsSync(join(SRC, "theme.css")) ? stripCssComments(readFileSync(join(SRC, "theme.css"), "utf8")) : "";
   const headerMd = existsSync(join(SRC, "deck-header.md")) ? readFileSync(join(SRC, "deck-header.md"), "utf8") : "";
-  // theme.css 分層機制是否還在(被改壞的話所有背景都不會出現)
+  // theme.css 分層機制是否還在（被改壞的話所有背景都不會出現）
   if (themeCss && !/section::before/.test(themeCss)) {
-    problem("theme.css 沒有 section::before 分層機制 — 背景層不會被畫出來(從 topic-design 的 theme.css 補回分層區)");
+    problem("theme.css 沒有 section::before 分層機制 — 背景層不會被畫出來（從 topic-design 的 theme.css 補回分層區）");
   }
   if (/section::before[\s\S]{0,400}?inset\s*:/.test(themeCss)) {
-    problem("theme.css 的 section::before 用了 inset — marp 渲染下不生效,改成 top/left/width/height");
+    problem("theme.css 的 section::before 用了 inset — marp 渲染下不生效，改成 top/left/width/height");
   }
-  // 背景槽位:theme tokens + 頁內 scoped 覆寫,逐一確認引用的檔案存在
+  // 背景槽位：theme tokens + 頁內 scoped 覆寫，逐一確認引用的檔案存在
   const slotDefs = [...themeCss.matchAll(/--(bg-image(?:-\d)?)\s*:\s*([^;]+);/g)].map((m) => ({ slot: m[1], value: m[2].trim().replace(/\s+/g, " ") }));
   const usedSlots = new Set(slotDefs.filter((s) => s.value !== "none").map((s) => s.slot));
   if (!slotDefs.length && themeCss) warn("theme.css 沒有 --bg-image token — 確認是刻意不用背景還是鷹架過舊");
@@ -803,15 +803,15 @@ if (hasSrc && decks.length) {
     }
   };
   collectUrls(themeCss, "theme.css");
-  collectUrls(headerMd, "deck-header.md(角標)");
+  collectUrls(headerMd, "deck-header.md（角標）");
   let pgL = 0;
   for (const d of decks) for (const sl of d.slides) {
     pgL++;
     for (const v of sl.scopedBg) collectUrls(v, `第 ${pageNo(pgL)} 頁 scoped style`);
   }
   for (const [base, wheres] of bgRefs) {
-    if (existsSync(join(ASSETS, base))) ok(`背景/角標資產 ${base} 存在(${[...new Set(wheres)].join("、")})`);
-    else problem(`${[...new Set(wheres)].join("、")} 引用 ${base},但 talk/assets/ 沒有這個檔 — build 不會報錯,該頁會只剩底色`);
+    if (existsSync(join(ASSETS, base))) ok(`背景/角標資產 ${base} 存在 (${[...new Set(wheres)].join("、")})`);
+    else problem(`${[...new Set(wheres)].join("、")} 引用 ${base}，但 talk/assets/ 沒有這個檔 — build 不會報錯，該頁會只剩底色`);
   }
   // 逐頁背景類別分布
   const bgUse = new Map();
@@ -826,18 +826,18 @@ if (hasSrc && decks.length) {
     for (const c of sl.bgClasses) {
       const slot = c === "bg-2" ? "bg-image-2" : c === "bg-3" ? "bg-image-3" : null;
       if (slot && themeCss && !usedSlots.has(slot)) {
-        problem(`第 ${pageNo(pgB)} 頁用了 ${c},但 theme.css 的 --${slot} 是 none/未定義 — 這頁會退回預設背景`);
+        problem(`第 ${pageNo(pgB)} 頁用了 ${c}，但 theme.css 的 --${slot} 是 none/未定義 — 這頁會退回預設背景`);
       }
     }
   }
-  if (bgUse.size) console.log("背景類別使用:" + [...bgUse.entries()].map(([k, ps]) => `${k}(${ps.length})`).join(" "));
-  for (const [k, ps] of bgUse) if (k !== "預設") console.log(`  ${k}:第 ${ps.join("、")} 頁`);
-  if (scopedPages.length > 3) warn(`有 ${scopedPages.length} 頁用 scoped style 覆寫背景(第 ${scopedPages.join("、")} 頁)— 一次性特例應是少數,超過就該進 theme.css 的背景槽`);
+  if (bgUse.size) console.log("背景類別使用：" + [...bgUse.entries()].map(([k, ps]) => `${k}(${ps.length})`).join(" "));
+  for (const [k, ps] of bgUse) if (k !== "預設") console.log(`  ${k}：第 ${ps.join("、")} 頁`);
+  if (scopedPages.length > 3) warn(`有 ${scopedPages.length} 頁用 scoped style 覆寫背景（第 ${scopedPages.join("、")} 頁）— 一次性特例應是少數，超過就該進 theme.css 的背景槽`);
   const topicBody = existsSync(topicPath) ? readFileSync(topicPath, "utf8") : "";
   if (topic && !/##\s*投影片分層/.test(topicBody)) {
-    warn("topic.md 沒有「投影片分層」章節 — 逐頁背景的語意無從比對,建議補跑 /topic-design");
+    warn("topic.md 沒有「投影片分層」章節 — 逐頁背景的語意無從比對，建議補跑 /topic-design");
   }
-  if (hard === beforeLayer) okUnless(unreliable, bgRefs.size || usedSlots.size ? "分層資產與槽位一致" : "本簡報沒有背景層(純色底)");
+  if (hard === beforeLayer) okUnless(unreliable, bgRefs.size || usedSlots.size ? "分層資產與槽位一致" : "本簡報沒有背景層（純色底）");
 
   // ---------- theme 與寫死色值 ----------
   console.log("\n=== 主題與色彩紀律 ===");
@@ -845,7 +845,7 @@ if (hasSrc && decks.length) {
   if (existsSync(themePath)) {
     const css = readFileSync(themePath, "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
     const tokens = [...css.matchAll(/--([a-z-]+)\s*:\s*([^;]+);/g)].map((m) => `--${m[1]}=${m[2].trim()}`);
-    console.log(`theme tokens:${tokens.join("  ") || "(無)"}`);
+    console.log(`theme tokens:${tokens.join("  ") || "（無）"}`);
     const themeColors = new Set([...css.matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((m) => normColor(m[0])).filter(Boolean));
     const tokenColors = new Set(tokens.map((t) => normColor(t.split("=")[1] ?? "")).filter(Boolean));
     const deckHex = new Map();
@@ -856,17 +856,17 @@ if (hasSrc && decks.length) {
       deckHex.get(n).push(d.base);
     }
     for (const [c, files] of deckHex) {
-      warn(`deck 內寫死色值 ${c}(${[...new Set(files)].join(", ")})— 色值應只住在 theme.css tokens${tokenColors.has(c) ? "(且與 token 重複)" : ""}`);
+      warn(`deck 內寫死色值 ${c}(${[...new Set(files)].join(", ")})— 色值應只住在 theme.css tokens${tokenColors.has(c) ? "（且與 token 重複）" : ""}`);
     }
     const diaColors = new Set(diagrams.flatMap((dg) => dg.style.colors));
     const offTheme = [...diaColors].filter((c) => c.startsWith("#") && !themeColors.has(c));
-    if (offTheme.length) warn(`圖形用了 theme.css 沒有的色值:${offTheme.join(" ")} — 確認是刻意語意色還是隨手挑的`);
+    if (offTheme.length) warn(`圖形用了 theme.css 沒有的色值：${offTheme.join(" ")} — 確認是刻意語意色還是隨手挑的`);
   } else if (hasSrc) {
     problem("talk/src/theme.css 不存在");
   }
   if (hasSrc) {
     const cssFiles = readdirSync(SRC).filter((f) => f.endsWith(".css"));
-    if (cssFiles.length > 1) problem(`talk/src/ 有 ${cssFiles.length} 份 .css(${cssFiles.join(", ")})— build 會把整個目錄當 theme set 載入,同名 theme 會讓 marp-cli 卡住不結束,備份請移出 src/`);
+    if (cssFiles.length > 1) problem(`talk/src/ 有 ${cssFiles.length} 份 .css(${cssFiles.join(", ")})— build 會把整個目錄當 theme set 載入，同名 theme 會讓 marp-cli 卡住不結束，備份請移出 src/`);
   }
 
   // ---------- 產物新鮮度 ----------
@@ -878,25 +878,25 @@ if (hasSrc && decks.length) {
   if (!outs.length) warn("talk/dist/ 沒有任何輸出 — 逐頁檢視前先在 talk/src/ 跑 node build.mjs");
   for (const o of outs) {
     const m = statSync(join(DIST, o)).mtimeMs;
-    if (m < newestSrc) warn(`talk/dist/${o} 比原始碼舊 — 重 build 後再逐頁檢視,別審過期產物`);
+    if (m < newestSrc) warn(`talk/dist/${o} 比原始碼舊 — 重 build 後再逐頁檢視，別審過期產物`);
     else ok(`talk/dist/${o} 是最新的`);
   }
 }
 
 // ---------- 先備知識順序 ----------
 
-console.log("\n=== 先備知識順序(depends-on)===");
+console.log("\n=== 先備知識順序 (depends-on)===");
 const beforeDep = hard;
 const byId2 = new Map(sections.map((s) => [s.id, s]));
 for (const s of live) {
   for (const dep of s.dependsOn) {
     const d = byId2.get(dep);
-    if (!d) problem(`${s.id} 依賴 ${dep},但找不到該 section`);
-    else if (d.status === "rejected") problem(`${s.id} 依賴 ${dep},但 ${dep} 已 rejected — 先備知識沒人鋪陳`);
-    else if (d.order >= s.order) problem(`${s.id}(order ${s.order})依賴 ${dep}(order ${d.order})— 先備知識排在後面,順序倒置`);
+    if (!d) problem(`${s.id} 依賴 ${dep}，但找不到該 section`);
+    else if (d.status === "rejected") problem(`${s.id} 依賴 ${dep}，但 ${dep} 已 rejected — 先備知識沒人鋪陳`);
+    else if (d.order >= s.order) problem(`${s.id}(order ${s.order}) 依賴 ${dep}(order ${d.order})— 先備知識排在後面，順序倒置`);
   }
 }
-if (hard === beforeDep) okUnless(unreliable, live.some((s) => s.dependsOn.length) ? "依賴都在前面且存在" : "沒有段落宣告 depends-on(確認是真的沒有先備知識依賴)");
+if (hard === beforeDep) okUnless(unreliable, live.some((s) => s.dependsOn.length) ? "依賴都在前面且存在" : "沒有段落宣告 depends-on（確認是真的沒有先備知識依賴）");
 
 // ---------- 節奏與時間帳 ----------
 
@@ -925,22 +925,22 @@ for (const s of live) {
 if (paceRows.length) {
   printTable({ id: "id", desc: "主軸", st: "status", est: "est分", pages: "頁", perPage: "每頁", flags: "旗標" }, paceRows);
 }
-console.log(`\nest-minutes 合計 ${estTotal} 分` + (duration ? ` / 總時長 ${duration} 分` : "(topic.md 缺 duration-minutes)"));
+console.log(`\nest-minutes 合計 ${estTotal} 分` + (duration ? ` / 總時長 ${duration} 分` : "（topic.md 缺 duration-minutes）"));
 if (duration) {
   const ratio = estTotal / duration;
-  if (ratio > 1) problem(`段落時間合計超出總時長 ${(estTotal - duration).toFixed(0)} 分(${Math.round(ratio * 100)}%)— 一定講不完`);
-  else if (ratio > 0.95) warn(`段落時間吃掉總時長 ${Math.round(ratio * 100)}%,沒有留 5–10% 緩衝給開場與 Q&A 銜接`);
-  else if (ratio < 0.8) warn(`段落時間只佔總時長 ${Math.round(ratio * 100)}%,有 ${(duration - estTotal).toFixed(0)} 分未規劃`);
-  else ok(`時間帳健康(佔 ${Math.round(ratio * 100)}%,留了緩衝)`);
+  if (ratio > 1) problem(`段落時間合計超出總時長 ${(estTotal - duration).toFixed(0)} 分 (${Math.round(ratio * 100)}%)— 一定講不完`);
+  else if (ratio > 0.95) warn(`段落時間吃掉總時長 ${Math.round(ratio * 100)}%，沒有留 5–10% 緩衝給開場與 Q&A 銜接`);
+  else if (ratio < 0.8) warn(`段落時間只佔總時長 ${Math.round(ratio * 100)}%，有 ${(duration - estTotal).toFixed(0)} 分未規劃`);
+  else ok(`時間帳健康（佔 ${Math.round(ratio * 100)}%，留了緩衝）`);
 }
 
 // ---------- 結論 ----------
 
 console.log("\n=== 機械檢查結論 ===");
-if (hard > 0) console.log(`硬性不一致 ${hard} 項(上面標 ✗ 的項目)。這些先修掉,再談判斷題。`);
+if (hard > 0) console.log(`硬性不一致 ${hard} 項（上面標 ✗ 的項目）。這些先修掉，再談判斷題。`);
 else console.log("無硬性不一致。");
 const bendy = diagrams.reduce((n, dg) => n + dg.style.connectors.filter((c) => c.turns >= 3).length, 0);
-if (bendy) console.log(`連接線轉折 ≥3 的線條共 ${bendy} 條 — 開檔確認哪些真的是連接線,計入圖解可讀性扣分。`);
-console.log(`版面、配色統一、用語/概念一致、AI 感、備註品質算不出來 — /review 必須 build 後逐頁開 ${totalPages} 頁目視判斷,上表只是證據與檢查清單。`);
-console.log("文案語感的命中清單是正則證據:每條都要開檔確認(誤判要排除),確認後逐條列進報告的「文案語感」段並計入第 14 項;標題/副標出現翻轉句或人稱是阻斷項,標題寫法(逗號串兩件事/描述式/帶前提)計入扣分並在報告寫出這頁真正的重點。")
+if (bendy) console.log(`連接線轉折 ≥3 的線條共 ${bendy} 條 — 開檔確認哪些真的是連接線，計入圖解可讀性扣分。`);
+console.log(`版面、配色統一、用語/概念一致、AI 感、備註品質算不出來 — /review 必須 build 後逐頁開 ${totalPages} 頁目視判斷，上表只是證據與檢查清單。`);
+console.log("文案語感的命中清單是正則證據：每條都要開檔確認（誤判要排除），確認後逐條列進報告的「文案語感」段並計入第 14 項；標題/副標出現翻轉句或人稱是阻斷項，標題寫法（逗號串兩件事/描述式/帶前提）計入扣分並在報告寫出這頁真正的重點。")
 process.exit(hard > 0 ? 1 : 0);

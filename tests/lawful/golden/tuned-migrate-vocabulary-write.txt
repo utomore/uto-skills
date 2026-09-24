@@ -1,0 +1,22 @@
+$ lawful migrate vocabulary --write
+# migrate vocabulary 帳本
+
+- .lawful/vocabulary.md：建，CLAUDE.md 的「## 名詞」節整節搬過來（名詞 2 個）
+- CLAUDE.md：「## 名詞」節換成一行 @.lawful/vocabulary.md，其餘不動
+
+都寫了；接著 lawful status 看警訊
+exit 0
+--- CLAUDE.md
+# frozen-ref
+
+@.lawful/vocabulary.md
+
+--- .lawful/vocabulary.md
+# 名詞
+名詞只住這一節：新增或調整任何一個領域名詞的定義，一律改這張表，不寫在別處。需求的一句話、驗收、里程碑那一句與 law 的第一句用到的領域名詞，都在這張表上。
+
+| 名詞 | 定義 | 型別 |
+|---|---|---|
+| 字 | 一段文字切出來、拿來計數的最小單位 | `Token` |
+| 報表 | 一段文字的字數統計結果 | - |
+

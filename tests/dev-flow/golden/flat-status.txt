@@ -46,7 +46,7 @@ $ devflow status
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | system.md | 沒有 ## 全域 Law 區，看不出約束住在哪裡 | devflow migrate laws --write |
-| CLAUDE.md | 沒有 ## 名詞 節，領域名詞沒有地方定義 | dev-flow:kickoff 補上這一節 |
+| .design/vocabulary.md | 沒有名詞表，領域名詞沒有地方定義 | dev-flow:kickoff 從模板建 .design/vocabulary.md，並在專案根目錄的 CLAUDE.md 加一行 @.design/vocabulary.md |
 | objectives.md | 里程碑還擠在一份 objectives.md 裡 | devflow migrate requirements --write 換成 requirements/ 一條需求一個檔 |
 | .design/ | 沒有任何需求 | dev-flow:require-design 談第一條需求（至少一條） |
 | F-001-checkout | 沒有被任何里程碑綁定 | 不朝向任何需求：dev-flow:require-design 綁進一條里程碑，或刪掉這份 feature |

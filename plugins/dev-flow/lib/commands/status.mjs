@@ -2,7 +2,7 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { matchModule, matchesPattern, PRIORITY_LINE, STATUSES, compareSignature as cmpSig } from '../design.mjs';
+import { matchModule, matchesPattern, PRIORITY_LINE, STATUSES, VOCABULARY_IMPORT, compareSignature as cmpSig } from '../design.mjs';
 import { findSignature } from '../source.mjs';
 import { lintBoundary, lintInvariants, lintIo } from './lint.mjs';
 import { worktrees } from './edit.mjs';
@@ -473,8 +473,11 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
     else if (sys.visionState === 'template') warn('system.md', '願景還是模板', 'dev-flow:kickoff 訂願景');
     if (sys.globalState === 'missing') warn('system.md', '沒有 ## 全域 Law 區，看不出約束住在哪裡', 'devflow migrate laws --write');
   }
-  // 名詞只定義一次、只住專案根目錄 CLAUDE.md 的「## 名詞」節：沒有這一節（檔案不存在也算）、或同一個名詞出現兩列，都是警訊；節在而表是空的不算
-  if (design.glossaryState === 'missing') warn(design.glossaryFile, '沒有 ## 名詞 節，領域名詞沒有地方定義', 'dev-flow:kickoff 補上這一節');
+  // 名詞只定義一次、只住 .design/vocabulary.md，專案根目錄的 CLAUDE.md 匯入它：沒有名詞表、名詞表還住 CLAUDE.md、
+  // CLAUDE.md 沒有匯入、同一個名詞出現兩列，都是警訊；表是空的不算
+  if (design.glossaryState === 'missing') warn(design.glossaryFile, '沒有名詞表，領域名詞沒有地方定義', `dev-flow:kickoff 從模板建 .design/vocabulary.md，並在專案根目錄的 CLAUDE.md 加一行 ${VOCABULARY_IMPORT}`);
+  else if (design.glossaryWhere === 'claude') warn(design.glossaryFile, '名詞表還住在 CLAUDE.md 的「## 名詞」節', 'devflow migrate vocabulary --write 搬進 .design/vocabulary.md');
+  else if (!design.glossaryImported) warn('CLAUDE.md', `沒有一行 ${VOCABULARY_IMPORT}，session 開場看不到名詞表`, `dev-flow:kickoff 在專案根目錄的 CLAUDE.md 加這一行（單獨一行，不加反引號）`);
   const termRows = new Map();
   for (const g of design.glossary) termRows.set(g.term, [...(termRows.get(g.term) || []), g.line]);
   for (const [term, rows] of termRows) if (rows.length > 1) warn(`${design.glossaryFile}:${rows[1]}`, `名詞「${term}」出現 ${rows.length} 列，名詞只定義一次`, 'dev-flow:require-design 與開發者講定哪一句是它的定義，留一列');

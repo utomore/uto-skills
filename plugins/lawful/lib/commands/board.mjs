@@ -147,7 +147,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     vision: cone && cone.visionState === 'ok' ? cone.vision : null,
     visionFull: cone && cone.visionState === 'ok' ? cone.visionFull : null,
     visionState: cone ? cone.visionState : null,
-    // 名詞表（專案根目錄 CLAUDE.md 的「## 名詞」節）原樣帶出去：名詞、定義、型別（還沒有型別是 null）
+    // 名詞表（.lawful/vocabulary.md）原樣帶出去：名詞、定義、型別（還沒有型別是 null）
     glossary: (design.glossary || []).map((g) => ({ term: g.term, definition: g.definition, type: g.type || null })),
     tests: resultNote,
     summary,

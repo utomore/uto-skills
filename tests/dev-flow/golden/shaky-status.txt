@@ -74,7 +74,7 @@ $ devflow status
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | system.md | 願景還是模板 | dev-flow:kickoff 訂願景 |
-| CLAUDE.md:10 | 名詞「分數」出現 2 列，名詞只定義一次 | dev-flow:require-design 與開發者講定哪一句是它的定義，留一列 |
+| .design/vocabulary.md:8 | 名詞「分數」出現 2 列，名詞只定義一次 | dev-flow:require-design 與開發者講定哪一句是它的定義，留一列 |
 | R-2 | 驗收寫了三行卻沒有驗收測試，證據不齊，還不能請人審核 | dev-flow:build R-2（只派 qa 寫一條歸屬 "R-2#ACCEPT" 的測試）；不能自動化就只留一句，證據改由里程碑全部達成承接 |
 | R-2 | 沒有任何里程碑 | dev-flow:require-design 切里程碑（devflow requirement milestone R-2 <slug> <一句話>） |
 | R-3 | 2026-09-07 已驗收，證據現在翻掉了（里程碑 0 / 1 達成） | 先把紅的修回來，再 devflow requirement accept R-3 重簽一次；人簽過的是當時那份證據，不是永久的 |

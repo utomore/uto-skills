@@ -312,7 +312,7 @@ export function lintLaws(design, source, adapter) {
     for (const n of mentioned) if (entries.has(n)) r.red.push(`${where} 的 |- 行引用了進入點 ${n}；進入點只接線，它做的事由對外 I/O 表承接`);
   };
   for (const q of design.requirements.requirements) if (!q.placeholder) checkTop(q.file, q.id, q.accept, q.line);
-  // 名詞表（專案根目錄 CLAUDE.md 的「## 名詞」節）的型別欄：填了就要是程式碼裡真的有的型別；名詞對到哪個型別只寫在這一欄。沒有程式碼可對就不查
+  // 名詞表（.design/vocabulary.md）的型別欄：填了就要是程式碼裡真的有的型別；名詞對到哪個型別只寫在這一欄。沒有程式碼可對就不查
   if (source) for (const g of design.glossary || []) {
     if (g.type && !findType(source, g.type).length) r.red.push(`${at(design.glossaryFile, g.line)} 名詞「${g.term}」的型別 \`${g.type}\` 在程式碼裡找不到；型別欄寫程式碼裡真的有的型別名，還沒有就寫 -`);
   }

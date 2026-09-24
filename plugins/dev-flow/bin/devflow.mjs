@@ -12,7 +12,7 @@ import { branchState, loadResults, docDetail, moduleDetail, slicePhase, statusRe
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
 import { releaseReport } from '../lib/commands/release.mjs';
 import { claim, invariantAdd, milestoneAdd, milestoneVerify, modulesGen, requirementAccept, requirementAdd, sync } from '../lib/commands/edit.mjs';
-import { migrate, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
+import { migrate, migrateLaws, migrateRequirements, migrateVocabulary } from '../lib/commands/migrate.mjs';
 
 const HELP = `devflow <子命令> [選項]
 
@@ -47,7 +47,7 @@ const HELP = `devflow <子命令> [選項]
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
                                        ids：兩個檔案同號、號段行讀不懂或重疊、owner 的號不在自己的號段內；
                                        boundary:import 方向 vs 層、IO 模組、未登記與幽靈；sig:Steps 簽名 vs 程式碼，含 = / o / ! 列與引用別份文檔的 step；
-                                       laws：文檔的 law 三行、種類、識別字、= 列有 law，與需求的驗收，名詞表（專案根目錄 CLAUDE.md 的「## 名詞」節）型別欄的型別在程式碼裡；trace:laws 與驗收 ↔ 測試歸屬；io：對外 I/O 表、信任與驗證、契約、秘密字面值；
+                                       laws：文檔的 law 三行、種類、識別字、= 列有 law，與需求的驗收，名詞表（.design/vocabulary.md）型別欄的型別在程式碼裡；trace:laws 與驗收 ↔ 測試歸屬；io：對外 I/O 表、信任與驗證、契約、秘密字面值；
                                        invariants：領域不變量的編號、種類、三行齊全而且只引用最內層、有 INV-n#LAW 測試；
                                        global：全域 Law 三類一次查完 = boundary（架構）+ io（契約）+ invariants（領域不變量）
   sync                                 同層搬家的 step，模組欄改成程式碼裡的實際檔案
@@ -66,6 +66,8 @@ const HELP = `devflow <子命令> [選項]
                                        併成 requirements/R-n-<slug>.md 一條一個檔，「## 需求」節與 objectives/ 刪掉；
                                        需求檔或目標檔有調整表的樹：調整表的每一列換成里程碑表的一列（配新的 M-n，綁定 = 動到欄），調整表刪掉，
                                        文檔修訂記錄依欄引用的調整編號改寫成新的 M-n；要人判的列在帳本裡；先印帳本，--write 才落地
+  migrate vocabulary [--write]         名詞表住在專案根目錄 CLAUDE.md「## 名詞」節的樹：整節搬進 .design/vocabulary.md，
+                                       CLAUDE.md 那一節換成一行 @.design/vocabulary.md；先印帳本，--write 才落地
   migrate <.design> [--language <adapter>] [--ignore <dir,dir>]
                                        盤點 subsystems/ 體系的 .design：每份舊文檔的介面在程式碼裡對到幾條、
                                        四格 law 翻成三行草稿、共用的簽名列出來（只住一份文檔，別份引用）、退場清單；只印帳本，不改任何檔
@@ -141,6 +143,7 @@ function main() {
 
   if (cmd === 'migrate' && sub === 'laws') return emit(migrateLaws(root, { write: !!args.flags.write }));
   if (cmd === 'migrate' && sub === 'requirements') return emit(migrateRequirements(root, { write: !!args.flags.write, date: args.flags.date || undefined }));
+  if (cmd === 'migrate' && sub === 'vocabulary') return emit(migrateVocabulary(root, { write: !!args.flags.write }));
   if (cmd === 'migrate') {
     if (!sub) {
       console.error('用法：devflow migrate <.design 路徑> [--language <adapter>] [--ignore <dir,dir>]');

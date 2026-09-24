@@ -57,6 +57,7 @@ $ devflow status --tests test.log
 ## 7. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
+| CLAUDE.md | 名詞表還住在 CLAUDE.md 的「## 名詞」節 | devflow migrate vocabulary --write 搬進 .design/vocabulary.md |
 | .design/requirements/R-1-money-correct.md | 還有調整表；調整就是一條綁既有文檔的里程碑，需求檔只有一張里程碑表 | devflow migrate requirements --write |
 | R-1 | 等人工審核，M-1-checkout、M-2-refund、RF-1、RF-2 沒有「怎麼驗」欄，審的人沒有手段可以跑 | 切片收尾時 dev-flow:integrate 會把決策紀錄的 Entry 那道指令寫進怎麼驗欄；現在補：devflow requirement verify <M-n-slug> "<指令>" |
 | .design/requirements/R-2-money-traceable.md | 還有調整表；調整就是一條綁既有文檔的里程碑，需求檔只有一張里程碑表 | devflow migrate requirements --write |

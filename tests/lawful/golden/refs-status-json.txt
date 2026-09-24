@@ -11,7 +11,6 @@ $ lawful status --json
   "vision": "輸入檔解析、正規化後跑完整條。",
   "visionFull": "輸入檔解析、正規化後跑完整條。 三條 pipeline：里程碑 P-001 引用 P-002 的 = 列（有註明見）；P-002 與 P-003 都把 shared 列成步驟而沒註明見。",
   "visionState": "ok",
-  "priorityNote": "1 = 讀寫的正確性；2 = 使用者看得到的；3 = 呈現；4 = 工具",
   "glossary": [
     {
       "term": "文件",
@@ -238,7 +237,7 @@ $ lawful status --json
       "title": "R-1 輸入檔跑完整條",
       "note": "審核：建構中 · M-2-cli-run、M-3-parse-line-number 還沒達成",
       "notes": [
-        "優先 1:讀寫的正確性",
+        "優先 1：地基",
         "里程碑 0/2 達成 · 完成度 0%"
       ],
       "achieved": false,
@@ -265,7 +264,7 @@ $ lawful status --json
       "title": "R-2 一段文字讀得成一份正規化的文件",
       "note": "審核：建構中 · M-1-syntax-parse 還沒達成",
       "notes": [
-        "優先 2:使用者看得到的",
+        "優先 2：核心",
         "里程碑 0/1 達成 · 完成度 0%"
       ],
       "achieved": false,

@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks, splitRow } from '../markdown.mjs';
 import os from 'node:os';
-import { parseSignature, renderSignature, readDesign } from '../design.mjs';
+import { parseSignature, renderSignature, readDesign, PRIORITY_LINE } from '../design.mjs';
 import { readSource, findSignature } from '../source.mjs';
 import { pickAdapter, adapterNames } from '../adapters/index.mjs';
 
@@ -177,7 +177,7 @@ export function migrate(designPath, root, { language = null, ignore = [] } = {})
 
 // 一份 objectives.md 的樹先拆開（splitObjectivesFile，只在 migrate requirements 的暫存複本上跑）：
 // 每個 ## O-n → 一條需求（一句話照抄、判準當驗收）寫進 system.md「需求」，並拆成 objectives/R-x-O-n-<slug>.md(需求、優先進 frontmatter；
-// slug 從第一條綁定的 feature 推)；開頭的優先各級那行搬進「Constraint」；「目的」併成「願景」第二段；刪 objectives.md。
+// slug 從第一條綁定的 feature 推)；開頭的優先各級那行不搬；「目的」併成「願景」第二段；刪 objectives.md。
 function sectionRange(lines, title) {
   const from = lines.findIndex((l) => new RegExp(`^## ${title}\\s*$`).test(l));
   if (from < 0) return null;
@@ -269,16 +269,6 @@ function splitObjectivesFile(root, { write = false, date = new Date().toISOStrin
     }
     notes.push(`需求 ${split.objs.length} 條 (${split.objs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : '，驗收留佔位符'}`).join('、') || '沒有目標，留一條模板'})`);
   }
-  // 「Constraint」補一行優先
-  if (split.priorityNote && !/^- 優先[:：]/m.test(lines.join('\n'))) {
-    const t = sectionRange(lines, 'Constraint') || sectionRange(lines, '語言與工具');
-    if (t) {
-      let end = t.to;
-      while (end > t.from + 1 && !lines[end - 1].trim()) end--;
-      lines.splice(end, 0, `- 優先：${split.priorityNote}`);
-      notes.push(`優先各級那行搬進「${lines[t.from].replace(/^## /, '').trim()}」`);
-    }
-  }
   const next = lines.join('\n').replace(/\n{3,}/g, '\n\n');
   out.push(`- ${rel(sysFile)}：${notes.length ? notes.join('、') : '不動'}`);
   for (const o of split.objs) {
@@ -286,7 +276,8 @@ function splitObjectivesFile(root, { write = false, date = new Date().toISOStrin
     out.push(`- ${rel(path.join(objDir, o.file))}：建（${o.id}；${n.join('；')}）`);
   }
   if (!split.objs.length) out.push(`- ${rel(objFile)}：沒有任何目標`);
-  out.push(`- ${rel(objFile)}：刪`);
+  // 優先各級的意思由規章固定，開頭那行跟著 objectives.md 一起刪
+  out.push(`- ${rel(objFile)}：刪${split.priorityNote ? `（開頭的優先各級那行不搬，各級的意思固定是 ${PRIORITY_LINE}）` : ''}`);
   if (!write) {
     out.push('', '以上只是帳本；devflow migrate objectives --write 才落地');
     return { text: out.join('\n'), exitCode: 0 };

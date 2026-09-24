@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { KIND_ALIASES, kindOf, readDesign } from '../design.mjs';
+import { KIND_ALIASES, kindOf, readDesign, PRIORITY_LINE } from '../design.mjs';
 import { parseFrontmatter, sections, sameTitle, parseTable, parseList, stripTicks, splitRow } from '../markdown.mjs';
 import { pickAdapter } from '../adapters/index.mjs';
 import { readSource, findSignature } from '../source.mjs';
@@ -289,10 +289,10 @@ export function migrateFromDevFlow(designDir, root, { write = null, language = n
 }
 
 // migrate cone [--write]：兩種不合規的樹換成 Cone.md 與 objectives/ 體系。先印帳本，--write 才落地。
-// 只有 system.md 的樹：願景與目的 → Cone.md「願景」（目的接成第二段）；「語言與工具」與優先各級 → 「Constraint」；
+// 只有 system.md 的樹：願景與目的 → Cone.md「願景」（目的接成第二段）；「語言與工具」 → 「Constraint」（優先各級那行不搬）；
 // 每個目標 → 一條需求（一句話照抄、判準當 Law）；邊界與對外 I/O 表 → modules.md 的兩節；Pipelines 表的類別 → 各 pipeline frontmatter 的 kind；刪 system.md。
 // 目標還擠在 objectives.md 的樹：每個 ## O-n 拆成 objectives/R-x-O-n-<slug>.md（需求、優先進 frontmatter，判準變成「Law：繼承 R-x」），
-// 開頭的優先各級那行搬進 Cone.md「Constraint」；刪 objectives.md。
+// 開頭的優先各級那行不搬（各級的意思由規章固定）；刪 objectives.md。
 // 「## 全域 Law」區：領域不變量、架構：四層、契約：對外 I/O。boundary 是四層各一句的那幾行，ioTable 是對外 I/O 表（補上契約欄）。
 const LAYER_TEMPLATE = '- types:<裝什麼，一句>\n- effect:<指令 ADT 叫什麼，一句；沒有 effect 層寫「無」>\n- core:<純轉換住哪，一句>\n- shell:<進入點，一句>';
 const IO_HEAD = '| 名稱 | 方向 | 型別 / 效果 ADT | shell 模組 | 進入哪條 pipeline | 契約 |\n|---|---|---|---|---|---|';
@@ -405,19 +405,6 @@ function splitObjectives(text, { assignRequirements = false, date } = {}) {
   return { priorityNote, objs };
 }
 
-// Cone.md「Constraint」補一行「- 優先：…」；已經有就不動
-function withPriorityNote(coneText, priorityNote) {
-  if (!priorityNote || /^- 優先[:：]/m.test(coneText)) return coneText;
-  const lines = coneText.split(/\r?\n/);
-  const h = lines.findIndex((l) => /^## (?:Constraint|專案約束)\s*$/.test(l));
-  if (h < 0) return coneText;
-  let end = h + 1;
-  while (end < lines.length && !/^## /.test(lines[end])) end++;
-  while (end > h + 1 && !lines[end - 1].trim()) end--;
-  lines.splice(end, 0, `- 優先：${priorityNote}`);
-  return lines.join('\n');
-}
-
 export function migrateCone(root, { write = false, date = new Date().toISOString().slice(0, 10) } = {}) {
   const lawfulDir = path.join(root, '.lawful');
   const sysFile = path.join(lawfulDir, 'system.md');
@@ -467,15 +454,14 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
       '',
       ...globalZone(boundary, ioText),
       '## Constraint',
-      '硬性限制：寫程式之前就定得下來、每一行程式碼與測試都照做的規定，與工具要讀的那幾行（語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先）。開發者定，`lawful:kickoff` 寫，之後隨時回 `lawful:kickoff` 補或改；限制的類別可以自己加。',
+      '硬性限制：寫程式之前就定得下來、每一行程式碼與測試都照做的規定，與工具要讀的那幾行（語言、三道指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段）。開發者定，`lawful:kickoff` 寫，之後隨時回 `lawful:kickoff` 補或改；限制的類別可以自己加。',
       '- 語言與版本：<例如 Haskell GHC2021；無則「無」>',
       '- 編譯器與執行環境：<例如 GHC 9.6、cabal 3.10；無則「無」>',
       '- 套件與框架：<硬性要求或禁用的套件、框架與版本，效果的寫法（直接 IO、mtl、effectful）；無則「無」>',
       '- 環境：<作業系統、部署目標、容器；無則「無」>',
       '- 命名與寫法：<變數、函數、模組怎麼命名，格式與風格；無則「無」>',
       `- 語言：${language || '<haskell | …>'}`,
-      ...tools.split(/\r?\n/).filter((l) => l.trim() && !/^- 語言[:：]/.test(l)),
-      ...(split.priorityNote ? [`- 優先：${split.priorityNote}`] : []),
+      ...tools.split(/\r?\n/).filter((l) => l.trim() && !/^- (語言|優先)[:：]/.test(l)),
       '',
     ].join('\n');
     const modFile = path.join(lawfulDir, 'modules.md');
@@ -501,7 +487,7 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
       const next = text.replace(/^(description:.*\r?\n)/m, `$1kind: ${kind}\n`);
       kindEdits.push({ abs, rel: rel(abs), kind, next, changed: next !== text });
     }
-    out.push(`- ${rel(coneFile)}：建，願景${purpose ? '（目的接成第二段）' : ''}、需求 ${reqs.length} 條（${reqs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : '，驗收留佔位符'}`).join('、') || '沒有目標，留一條模板'}）、全域 Law 區（四層${boundary ? '' : '是模板'}、對外 I/O${ioText ? '' : '是模板'}、領域不變量寫「無」）、Constraint（「語言與工具」那幾行照搬，限制那幾行留模板${split.priorityNote ? '，優先各級那行搬進來' : ''}）`);
+    out.push(`- ${rel(coneFile)}：建，願景${purpose ? '（目的接成第二段）' : ''}、需求 ${reqs.length} 條（${reqs.map((r) => `${r.requirement} ← ${r.id}${r.law ? '' : '，驗收留佔位符'}`).join('、') || '沒有目標，留一條模板'}）、全域 Law 區（四層${boundary ? '' : '是模板'}、對外 I/O${ioText ? '' : '是模板'}、領域不變量寫「無」）、Constraint（「語言與工具」那幾行照搬，限制那幾行留模板）`);
     out.push(`- ${rel(modFile)}：${modules === null ? '已經有「模組單元」節，不動' : '整理成只有「模組單元」表'}`);
     for (const e of kindEdits) out.push(`- ${e.rel}：frontmatter 補 kind: ${e.kind}${e.changed ? '' : '（找不到 description 行，要自己補）'}`);
     writes.push([coneFile, cone]);
@@ -509,13 +495,6 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
     for (const e of kindEdits) if (e.changed) writes.push([e.abs, e.next]);
   } else {
     split = splitObjectives(objText, { assignRequirements: false, date });
-    const cone = fs.readFileSync(coneFile, 'utf8');
-    const next = withPriorityNote(cone, split.priorityNote);
-    if (next !== cone) {
-      const secName = (/^## (Constraint|專案約束)\s*$/m.exec(cone) || [])[1] || 'Constraint';
-      out.push(`- ${rel(coneFile)}：「${secName}」補一行「- 優先：${split.priorityNote}」`);
-      writes.push([coneFile, next]);
-    }
   }
   if (hasObjFile) {
     for (const o of split.objs) {
@@ -524,7 +503,8 @@ export function migrateCone(root, { write = false, date = new Date().toISOString
       writes.push([path.join(objDir, o.file), o.content]);
     }
     if (!split.objs.length) out.push(`- ${rel(objFile)}：沒有任何目標`);
-    out.push(`- ${rel(objFile)}：刪`);
+    // 優先各級的意思由規章固定，開頭那行跟著 objectives.md 一起刪
+    out.push(`- ${rel(objFile)}：刪${split.priorityNote ? `（開頭的優先各級那行不搬，各級的意思固定是 ${PRIORITY_LINE}）` : ''}`);
   }
   if (hasSys) out.push(`- ${rel(sysFile)}：刪`);
   if (!write) {

@@ -2,7 +2,7 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { layerRoot, unitOf, STATUSES, KINDS } from '../design.mjs';
+import { layerRoot, unitOf, PRIORITY_LINE, STATUSES, KINDS } from '../design.mjs';
 import { findSignature } from '../source.mjs';
 import { lintBoundary, lintInvariants, lintIo } from './lint.mjs';
 import { worktrees } from './edit.mjs';
@@ -474,9 +474,7 @@ export function warnings(design, a, ov, source, adapter, stale = new Set(), inv 
   if (design.requirements.merged) warn('Cone.md', '需求還住在「## 需求」節，看不出每條需求的優先與里程碑', 'lawful migrate requirements --write 換成 requirements/ 一條需求一個檔');
   else if (design.objectivesFile && cone) warn('objectives.md', '里程碑還擠在一份 objectives.md 裡', 'lawful migrate requirements --write 換成 requirements/ 一條需求一個檔');
   for (const o of design.requirements.orphans || []) warn(o.file, `對到的需求 ${o.requirement} 不存在，它的里程碑沒有算進任何需求`, 'lawful migrate requirements 的帳本會列出它；決定它屬於哪條需求');
-  if (!ov.reqs.length) warn(design.requirements.exists ? 'requirements/' : '.lawful/', '沒有任何需求', 'lawful:require-design 談第一條需求（至少一條）');
-  else if (cone && cone.priorityNoteState !== 'ok') warn('Cone.md', cone.priorityNoteState === 'template' ? '優先各級代表什麼還是模板' : '沒有宣告優先 1 到 4 各代表什麼', 'lawful:require-design 在「Constraint」寫一行「- 優先：1 = …；2 = …；3 = …；4 = …」');
-  const seenM = new Set();
+  if (!ov.reqs.length) warn(design.requirements.exists ? 'requirements/' : '.lawful/', '沒有任何需求', 'lawful:require-design 談第一條需求（至少一條）');  const seenM = new Set();
   for (const q of ov.reqs) {
     if (q.hasRefinementTable && !design.requirements.merged) warn(q.file, '還有調整表；調整就是一條綁既有 pipeline 的里程碑，需求檔只有一張里程碑表', 'lawful migrate requirements --write');
     if (!q.hasFrontmatter) warn(q.file, '沒有 frontmatter', '照 templates/requirement.md 補 id、priority、updated');
@@ -669,7 +667,7 @@ export function statusReport(design, source, adapter, results, resultNote, build
   if (!cone) out.push(`- 沒有 Cone.md；${design.legacySystem ? 'lawful migrate cone --write' : 'lawful:kickoff 建它'}`);
   else if (!ov.reqs.length) out.push('- 沒有任何需求；lawful:require-design 談第一條');
   else {
-    if (cone.priorityNoteState === 'ok') out.push(`- 優先：${cone.priorityNote}`);
+    out.push(`- 優先：${PRIORITY_LINE}`);
     out.push('| 需求 | 優先 | 一句話 | 審核 | 依賴 | 里程碑總數 | 里程碑達成 | 完成度 |', '|---|---|---|---|---|---|---|---|');
     for (const q of ov.reqs) out.push(`| ${q.id} | ${q.priorityRaw || '（沒填）'} | ${q.title} | ${q.state}（${q.source}） | ${q.dependsOn.join('、') || '-'} | ${q.ms.length} | ${q.done} | ${q.pct == null ? '-' : `${q.pct}%`} |`);
     for (const q of ov.reqs) {

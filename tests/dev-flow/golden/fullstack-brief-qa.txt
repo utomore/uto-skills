@@ -200,7 +200,6 @@ export function cents(s: Settlement): number {
 - IO 模組追加：無
 - Laws 詞彙追加：無
 - 忽略目錄：無
-- 優先：1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具
 
 # 測試怎麼寫
 

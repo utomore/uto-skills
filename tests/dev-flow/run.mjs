@@ -634,7 +634,7 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/claim feature/
     const devflow = (cwd, ...a) => spawnSync(process.execPath, [bin, ...a, '--root', cwd], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } });
     fs.cpSync(path.join(here, 'fixtures', 'shop'), main, { recursive: true });
     const sysFile = path.join(main, '.design', 'system.md');
-    fs.writeFileSync(sysFile, fs.readFileSync(sysFile, 'utf8').replace(/^- 優先[:：]/m, '- 發布：`v*`\n- 優先：'));
+    fs.writeFileSync(sysFile, fs.readFileSync(sysFile, 'utf8').replace(/^- 號段[:：].*$/m, '$&\n- 發布：`v*`'));
     git(main, 'init', '-b', 'main');
     git(main, 'add', '-A');
     git(main, 'commit', '-m', 'base');

@@ -76,4 +76,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/lawful.mjs":*)
 
 ## 邊界
 
-需求只准透過這裡寫：一句話、驗收、優先與里程碑都不由別的 skill 改（`lawful:scope-laws` 只把既有的驗收那一句寫成三行、把它 claim 出來的 pipeline 填進自己那條里程碑的綁定欄；靠修訂達成的里程碑，綁定欄在這裡當場填）。不寫 pipeline 的 Stages 與 laws；不劃模組單元 (`lawful:module`)；不寫程式碼；不改願景 (`lawful:kickoff`)，不碰「全域 Law」區 (`lawful:global-laws`)，只在「Constraint」補優先那一行；專案根目錄的 `CLAUDE.md` 只寫它的「## 名詞」節（加一列名詞、改一列的定義），這一節以外的內容一個字都不准動，名詞的定義不替開發者決定；里程碑不帶 law、不帶測試標記；不替開發者答任何一題。開發者只說，檔一律由這裡寫；配號只走 CLI。
+需求只准透過這裡寫：一句話、驗收、優先與里程碑都不由別的 skill 改（`lawful:scope-laws` 只把既有的驗收那一句寫成三行、把它 claim 出來的 pipeline 填進自己那條里程碑的綁定欄；靠修訂達成的里程碑，綁定欄在這裡當場填）。不寫 pipeline 的 Stages 與 laws；不劃模組單元 (`lawful:module`)；不寫程式碼；不改願景 (`lawful:kickoff`)，不碰「全域 Law」區 (`lawful:global-laws`) 與「Constraint」節；專案根目錄的 `CLAUDE.md` 只寫它的「## 名詞」節（加一列名詞、改一列的定義），這一節以外的內容一個字都不准動，名詞的定義不替開發者決定；里程碑不帶 law、不帶測試標記；不替開發者答任何一題。開發者只說，檔一律由這裡寫；配號只走 CLI。

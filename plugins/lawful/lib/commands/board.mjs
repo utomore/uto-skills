@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { PRIORITY_TIERS } from '../design.mjs';
 import { analyze, buildKeyOf, counts, docState, globalView, invariantView, metWord, moduleView, openLines, requirementView, reviseLines, sliceLines, suggestRoutes, verifySteps, warnings } from './status.mjs';
 
 const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'status-board.html');
@@ -98,12 +99,6 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     };
   });
 
-  // Cone.md「Constraint」那行「優先：1 = …；2 = …」拆成各級的意思，寫在需求的區塊上
-  const tierMeaning = new Map();
-  if (cone && cone.priorityNoteState === 'ok') for (const part of cone.priorityNote.split(/[;；]/)) {
-    const m = /^\s*([1-4])\s*[=＝:：]\s*(.+?)[。.]?\s*$/.exec(part);
-    if (m) tierMeaning.set(Number(m[1]), m[2].trim());
-  }
   // 看板的分法：一條需求一個區塊，區塊底下一條里程碑一欄（里程碑照表上的先後排）；
   // 沒被綁的 pipeline 自己成一個區塊
   const bound = new Set(ov.reqs.flatMap((q) => q.ms.flatMap((m) => m.binds)));
@@ -113,7 +108,7 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     title: `${q.id} ${q.title}`,
     note: `審核：${q.state} · ${q.source}`,
     notes: [
-      `優先 ${q.priorityRaw || '（沒填）'}${q.priority && tierMeaning.has(q.priority) ? `:${tierMeaning.get(q.priority)}` : ''}`,
+      `優先 ${q.priorityRaw || '（沒填）'}${PRIORITY_TIERS[q.priority] ? `：${PRIORITY_TIERS[q.priority]}` : ''}`,   // 優先那一級的意思寫在需求的區塊上
       `里程碑 ${q.done}/${q.ms.length} 達成 · 完成度 ${q.pct == null ? '-' : `${q.pct}%`}`,
     ],
     achieved: q.holds === true,
@@ -152,7 +147,6 @@ export function statusJson(design, source, adapter, results, resultNote, buildin
     vision: cone && cone.visionState === 'ok' ? cone.vision : null,
     visionFull: cone && cone.visionState === 'ok' ? cone.visionFull : null,
     visionState: cone ? cone.visionState : null,
-    priorityNote: cone && cone.priorityNoteState === 'ok' ? cone.priorityNote : null,
     // 名詞表（專案根目錄 CLAUDE.md 的「## 名詞」節）原樣帶出去：名詞、定義、型別（還沒有型別是 null）
     glossary: (design.glossary || []).map((g) => ({ term: g.term, definition: g.definition, type: g.type || null })),
     tests: resultNote,

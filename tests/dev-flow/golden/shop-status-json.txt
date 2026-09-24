@@ -9,7 +9,6 @@ $ devflow status --json --tests test.log
   "vision": "小型電商的每一筆錢都算得對、查得到來源；結帳與退款之外再加路徑時，金額規則不必再寫一次。",
   "visionFull": "小型電商的每一筆錢都算得對、查得到來源；結帳與退款之外再加路徑時，金額規則不必再寫一次。 替小型電商做結帳與退款兩條路徑。金額一律以分為單位、單一幣別內計算，不做跨幣別換算。",
   "visionState": "ok",
-  "priorityNote": "1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具",
   "glossary": [
     {
       "term": "金額",
@@ -260,7 +259,7 @@ $ devflow status --json --tests test.log
       "title": "R-1 每一筆結帳與退款的金額都算對",
       "note": "審核：已驗收 · 2026-09-07 dev@example.com",
       "notes": [
-        "優先 1:錢算對",
+        "優先 1：地基",
         "里程碑 3/3 達成 · 完成度 100%"
       ],
       "achieved": true,

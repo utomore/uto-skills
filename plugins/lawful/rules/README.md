@@ -35,9 +35,9 @@
 
 | 名詞 | 在哪 |
 |---|---|
-| 願景、優先各級、Constraint（硬性限制與工具要讀的那幾行） | pipelines.md「Cone.md」 |
+| 願景、Constraint（硬性限制與工具要讀的那幾行） | pipelines.md「Cone.md」 |
 | 專案的名詞表（專案根目錄 `CLAUDE.md` 的「## 名詞」節）、型別欄、誰寫 | pipelines.md「名詞」 |
-| 需求、`R-n`、驗收、`R-n#ACCEPT`、優先、里程碑、`M-n`、全名 `M-n-<slug>`、綁定、還沒有切片、需求的依賴 | pipelines.md「願景、需求與里程碑」 |
+| 需求、`R-n`、驗收、`R-n#ACCEPT`、優先與它的四級、里程碑、`M-n`、全名 `M-n-<slug>`、綁定、還沒有切片、需求的依賴 | pipelines.md「願景、需求與里程碑」 |
 | 階段性使用者驗收、里程碑怎麼切、新需求的衝突檢查 | pipelines.md「談需求」 |
 | 靠修訂達成的里程碑、做出文檔的里程碑、`--bind`、待修訂 | pipelines.md「靠修訂達成的里程碑」 |
 | 必須達成與不得違反、全域 Law 與 scope law、law 住哪裡、里程碑不管理約束 | laws.md「Law 與需求」 |

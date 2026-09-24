@@ -9,7 +9,6 @@ $ devflow status --json
   "vision": null,
   "visionFull": null,
   "visionState": "template",
-  "priorityNote": null,
   "glossary": [
     {
       "term": "分數",
@@ -450,7 +449,7 @@ $ devflow status --json
       "title": "R-2 寫了三行卻沒有驗收測試，也沒有里程碑",
       "note": "審核：未知 · 寫了三行卻沒有 R-2#ACCEPT 測試",
       "notes": [
-        "優先 2",
+        "優先 2：核心",
         "里程碑 0/0 達成 · 完成度 -"
       ],
       "achieved": false,
@@ -462,7 +461,7 @@ $ devflow status --json
       "title": "R-3 里程碑編號撞到別條需求的",
       "note": "審核：待重審 · 2026-09-07 已驗收，證據翻掉：里程碑 0 / 1 達成",
       "notes": [
-        "優先 2",
+        "優先 2：核心",
         "里程碑 0/1 達成 · 完成度 0%"
       ],
       "achieved": false,
@@ -480,7 +479,7 @@ $ devflow status --json
       "title": "R-5 驗收引用了進入點與不存在的東西",
       "note": "審核：未知 · 寫了三行卻沒有 R-5#ACCEPT 測試",
       "notes": [
-        "優先 3",
+        "優先 3：錦上添花",
         "里程碑 0/1 達成 · 完成度 0%"
       ],
       "achieved": false,
@@ -498,7 +497,7 @@ $ devflow status --json
       "title": "R-9 檔名與 frontmatter 對不上的需求",
       "note": "審核：建構中 · M-5-third 還沒達成",
       "notes": [
-        "優先 4",
+        "優先 4：開發工具",
         "里程碑 0/1 達成 · 完成度 0%"
       ],
       "achieved": false,
@@ -946,11 +945,6 @@ $ devflow status --json
       "where": "CLAUDE.md:10",
       "what": "名詞「分數」出現 2 列，名詞只定義一次",
       "fix": "dev-flow:require-design 與開發者講定哪一句是它的定義，留一列"
-    },
-    {
-      "where": "system.md",
-      "what": "沒有宣告優先 1 到 4 各代表什麼",
-      "fix": "dev-flow:require-design 在「Constraint」寫一行「- 優先：1 = …；2 = …；3 = …；4 = …」"
     },
     {
       "where": "R-2",

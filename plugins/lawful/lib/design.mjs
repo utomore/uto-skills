@@ -57,6 +57,9 @@ export const ALLOWED_IMPORTS = {
 };
 export const LAW_KINDS = ['invariant', 'identity', 'roundtrip', 'relation', 'bound', 'equiv', 'total', 'commute'];
 export const STATUSES = ['draft', 'ready', 'verified'];
+// 需求優先各級的意思，每個專案都一樣（pipelines.md「願景、需求與里程碑」）
+export const PRIORITY_TIERS = { 1: '地基', 2: '核心', 3: '錦上添花', 4: '開發工具' };
+export const PRIORITY_LINE = Object.entries(PRIORITY_TIERS).map(([k, v]) => `${k} = ${v}`).join('；');
 // kind:io（跨過 shell 的資料流，有進入點）或 subflow（被別條 pipeline 引用的純資料流）。KIND_ALIASES 是照讀的另一種寫法。
 export const KINDS = ['io', 'subflow'];
 export const KIND_ALIASES = { 'IO 介面': 'io', '子流': 'subflow' };
@@ -132,7 +135,7 @@ export function parseRanges(raw) {
   return out;
 }
 
-// Constraint的清單項：指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段、優先各級代表什麼。其餘的列是給人看的硬性要求，不機械讀。
+// Constraint的清單項：指令、模組前綴、原始碼根目錄、追加清單、忽略目錄、號段。其餘的列是給人看的硬性要求，不機械讀。
 function parseConstraints(lines, start) {
   const ioExtra = [];
   const effectExtra = [];
@@ -140,11 +143,10 @@ function parseConstraints(lines, start) {
   const commands = {};
   let modulePrefix = '';
   let srcRoot = '';
-  let priorityNote = '';
   let ranges = { ranges: [], errors: [], line: 0 };
   const one = (v) => (!v || v === '無' || /^<[^>]*>$/.test(v) ? '' : v);
   for (const it of parseList(lines)) {
-    const m = /^(建置|測試[(（]整套[)）]|測試[(（]子集[)）]|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄|優先|號段)[:：]\s*(.*)$/.exec(it.text);
+    const m = /^(建置|測試[(（]整套[)）]|測試[(（]子集[)）]|IO 模組追加|效果型別追加|忽略目錄|模組前綴|原始碼根目錄|號段)[:：]\s*(.*)$/.exec(it.text);
     if (!m) continue;
     m[1] = m[1].replace('（', '(').replace('）', ')');   // 寫成全形括號也照讀；commands 的鍵一律是半形的 `測試(整套)`
     const list = () => m[2].split(/[、,，]/).map((s) => stripTicks(s.trim()).replace(/\/$/, '')).filter((v) => v && v !== '無');
@@ -153,13 +155,11 @@ function parseConstraints(lines, start) {
     else if (m[1] === '忽略目錄') ignoreDirs.push(...list());
     else if (m[1] === '模組前綴') modulePrefix = one(codeSpan(m[2]));
     else if (m[1] === '原始碼根目錄') srcRoot = one(codeSpan(m[2])).replace(/[/]$/, '');
-    else if (m[1] === '優先') priorityNote = m[2].trim();
     else if (m[1] === '號段') ranges = { ...parseRanges(m[2]), line: start + lines.findIndex((l) => /^- 號段/.test(l)) + 2 };
     else commands[m[1]] = codeSpan(m[2]);
   }
-  // 一行「優先：1 = …；2 = …；3 = …；4 = …」宣告優先各級在這個專案代表什麼
   // 號段：多人平行 claim 時每人一段；沒有這一行就是空陣列，claim 從全部 pipeline 的最大號往上配
-  return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>', priorityNote, priorityNoteState: !priorityNote ? 'missing' : hasPlaceholder(priorityNote) ? 'template' : 'ok', ranges: ranges.ranges, rangesErrors: ranges.errors, rangesLine: ranges.line };
+  return { ioExtra, effectExtra, ignoreDirs, commands, modulePrefix, srcRoot: srcRoot || 'src-<層>', ranges: ranges.ranges, rangesErrors: ranges.errors, rangesLine: ranges.line };
 }
 
 // Cone.md:frontmatter（language、updated）與三節：願景、全域 Law、Constraint。

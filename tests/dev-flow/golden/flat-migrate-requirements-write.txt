@@ -1,7 +1,7 @@
 $ devflow migrate requirements --write --date 2026-09-07
 # migrate requirements 帳本
 
-- .design/system.md：「目的」併成「願景」第二段、需求 1 條 (R-1 ← O-1)、優先各級那行搬進「語言與工具」；「## 需求」節刪掉，需求搬進 requirements/
+- .design/system.md：「目的」併成「願景」第二段、需求 1 條 (R-1 ← O-1)；「## 需求」節刪掉，需求搬進 requirements/
 - .design/requirements/R-1-checkout.md：建（優先 1；里程碑 2 條；併自 R-1-O-1-checkout）
 - .design/objectives.md：刪（先照每個 ## O-n 拆開，再併進它的需求）
 
@@ -29,7 +29,6 @@ updated: 2026-09-07
 - IO 模組追加：無
 - Laws 詞彙追加：無
 - 忽略目錄：無
-- 優先：1 = 錢算對；2 = 查得到來源；3 = 呈現；4 = 工具
 
 ## 層
 由內而外；內層不准 import 外層，最後一列是最外層，也是唯一能做對外 I/O 的層。

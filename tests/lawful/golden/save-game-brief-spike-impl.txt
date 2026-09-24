@@ -20,6 +20,7 @@ brief spike-impl M-2-save-inspect @doc:14636e37 rules:<雜湊>
   - P-001-save-write.md
 - requirements/
   - R-1-save-roundtrip.md
+- vocabulary.md
 
 # 需求檔：.lawful/requirements/R-1-save-roundtrip.md
 

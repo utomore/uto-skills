@@ -11,7 +11,7 @@ import { briefCommand, briefSkills, parseBriefArgs, testLogs } from '../lib/comm
 import { branchState, loadResults, moduleDetail, pipelineDetail, slicePhase, statusReport } from '../lib/commands/status.mjs';
 import { statusBoard, statusJson } from '../lib/commands/board.mjs';
 import { claim, invariantAdd, milestoneAdd, milestoneVerify, moduleAdd, modulesGen, requirementAccept, requirementAdd, sync } from '../lib/commands/edit.mjs';
-import { migrateCone, migrateFromDevFlow, migrateLaws, migrateRequirements } from '../lib/commands/migrate.mjs';
+import { migrateCone, migrateFromDevFlow, migrateLaws, migrateRequirements, migrateVocabulary } from '../lib/commands/migrate.mjs';
 
 const HELP = `lawful <子命令> [選項]
 
@@ -47,7 +47,7 @@ const HELP = `lawful <子命令> [選項]
   invariant add <一句話> [--kind <種類>]
                                        鑄 INV-n 寫進 Cone.md「全域 Law」的領域不變量；種類預設 invariant
   lint ids | boundary | sig | laws | trace | io | invariants | global | all
-                                       一檔一號與號段 / 邊界 / 簽名 / laws（含名詞表——專案根目錄 CLAUDE.md 的「## 名詞」節——型別欄的型別在程式碼裡）/ 測試歸屬 / 對外 I/O 與契約欄 / 領域不變量的對帳；
+                                       一檔一號與號段 / 邊界 / 簽名 / laws（含名詞表——.lawful/vocabulary.md——型別欄的型別在程式碼裡）/ 測試歸屬 / 對外 I/O 與契約欄 / 領域不變量的對帳；
                                        global = 全域 Law 三類一次查完：boundary（架構）+ io（契約）+ invariants（領域不變量）
   sync [--date <YYYY-MM-DD>]            把「搬家」的 stage 模組欄改成程式碼的實際模組（同層才改）
   modules --gen                        從程式碼的模組名推出模組單元與層，補進模組表，職責欄留白
@@ -67,6 +67,8 @@ const HELP = `lawful <子命令> [選項]
                                        pipeline 修訂記錄依欄引用的調整編號改寫成新的 M-n；
                                        要人判的列在帳本裡；先印帳本，--write 才落地
   migrate cone [--write]               只有 system.md 的樹、或里程碑還擠在一份 objectives.md 的樹：建 Cone.md、objectives.md 拆成 objectives/ 一個檔一份；先印帳本，--write 才落地；之後接 migrate requirements
+  migrate vocabulary [--write]         名詞表住在專案根目錄 CLAUDE.md「## 名詞」節的樹：整節搬進 .lawful/vocabulary.md，
+                                       CLAUDE.md 那一節換成一行 @.lawful/vocabulary.md；先印帳本，--write 才落地
   migrate from-dev-flow <.design> [--write <file>] [--ignore <dir,dir>]
                                        盤點 subsystems/ 體系的 .design，印一份帳本，不改任何檔
 
@@ -141,8 +143,9 @@ function main() {
     if (sub === 'cone') return emit(migrateCone(root, { write: !!args.flags.write, date: str(args.flags.date) || undefined }));
     if (sub === 'laws') return emit(migrateLaws(root, { write: !!args.flags.write }));
     if (sub === 'requirements') return emit(migrateRequirements(root, { write: !!args.flags.write, date: str(args.flags.date) || undefined }));
+    if (sub === 'vocabulary') return emit(migrateVocabulary(root, { write: !!args.flags.write }));
     if (sub !== 'from-dev-flow' || !rest[0]) {
-      console.error('用法：lawful migrate laws [--write]\n      lawful migrate requirements [--write]\n      lawful migrate cone [--write]\n      lawful migrate from-dev-flow <.design 路徑> [--write <file>] [--root <專案根目錄>]');
+      console.error('用法：lawful migrate laws [--write]\n      lawful migrate requirements [--write]\n      lawful migrate cone [--write]\n      lawful migrate vocabulary [--write]\n      lawful migrate from-dev-flow <.design 路徑> [--write <file>] [--root <專案根目錄>]');
       return 1;
     }
     const ignore = str(args.flags.ignore).split(',').map((s) => s.trim()).filter(Boolean);

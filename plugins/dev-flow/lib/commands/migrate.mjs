@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseFrontmatter, sections, findSection, parseTable, parseList, stripTicks, splitRow } from '../markdown.mjs';
 import os from 'node:os';
-import { parseSignature, renderSignature, readDesign, PRIORITY_LINE } from '../design.mjs';
+import { parseSignature, renderSignature, readDesign, readGlossary, PRIORITY_LINE, VOCABULARY_IMPORT } from '../design.mjs';
 import { readSource, findSignature } from '../source.mjs';
 import { pickAdapter, adapterNames } from '../adapters/index.mjs';
 
@@ -605,5 +605,42 @@ export function migrateLaws(root, { write = false } = {}) {
   if (next !== sysText) fs.writeFileSync(sysFile, next);
   for (const [file, text] of objWrites) fs.writeFileSync(file, text);
   out.push('', '都寫了；接著 devflow lint global 與 devflow status 看警訊');
+  return { text: out.join('\n'), exitCode: 0 };
+}
+
+// migrate vocabulary [--write]：名詞表住在專案根目錄 CLAUDE.md「## 名詞」節的樹 → .design/vocabulary.md。
+// 那一節（標題到下一個標題之前）整節搬走，標題寫成「# 名詞」、內容照抄；CLAUDE.md 在原位換成一行 @.design/vocabulary.md
+// （已經有這一行就只刪那一節）。CLAUDE.md 其餘的內容一個字都不動，行尾照原檔。
+export function migrateVocabulary(root, { write = false } = {}) {
+  const designDir = path.join(root, '.design');
+  const claudeFile = path.join(root, 'CLAUDE.md');
+  const vocabFile = path.join(designDir, 'vocabulary.md');
+  const rel = (p) => path.relative(root, p).split(path.sep).join('/');
+  if (!fs.existsSync(designDir)) return { text: '沒有 .design/；dev-flow:kickoff 建它', exitCode: 1 };
+  const raw = fs.existsSync(claudeFile) ? fs.readFileSync(claudeFile, 'utf8') : null;
+  const eol = raw && raw.includes('\r\n') ? '\r\n' : '\n';
+  const lines = raw == null ? [] : raw.replace(/\r\n/g, '\n').split('\n');
+  const from = lines.findIndex((l) => /^##\s+名詞\s*$/.test(l));
+  if (from < 0) return { text: `${rel(claudeFile)} 沒有「## 名詞」節，這棵樹不用換`, exitCode: 0 };
+  if (fs.existsSync(vocabFile)) return { text: `${rel(vocabFile)} 已經存在，${rel(claudeFile)} 卻還有「## 名詞」節：兩邊各寫了什麼由人判，合成 ${rel(vocabFile)} 一份之後，刪掉 ${rel(claudeFile)} 那一節、換成一行 ${VOCABULARY_IMPORT}`, exitCode: 1 };
+  let to = from + 1;
+  while (to < lines.length && !/^#{1,6}\s/.test(lines[to])) to++;
+  const body = lines.slice(from + 1, to);
+  while (body.length && !body[body.length - 1].trim()) body.pop();
+  const vocab = ['# 名詞', ...body].join(eol) + eol;
+  const imported = lines.some((l) => l.trim() === VOCABULARY_IMPORT);
+  const rest = [...lines.slice(0, from), ...(imported ? [] : [VOCABULARY_IMPORT, '']), ...lines.slice(to)];
+  const next = rest.join('\n').replace(/\n{3,}/g, '\n\n').replace(/\n/g, eol);
+  const terms = readGlossary(root).terms.length;
+  const out = ['# migrate vocabulary 帳本', ''];
+  out.push(`- ${rel(vocabFile)}：建，${rel(claudeFile)} 的「## 名詞」節整節搬過來（名詞 ${terms} 個）`);
+  out.push(`- ${rel(claudeFile)}：「## 名詞」節${imported ? '刪掉（已經有一行 ' + VOCABULARY_IMPORT + '）' : '換成一行 ' + VOCABULARY_IMPORT}，其餘不動`);
+  if (!write) {
+    out.push('', '以上只是帳本；devflow migrate vocabulary --write 才落地');
+    return { text: out.join('\n'), exitCode: 0 };
+  }
+  fs.writeFileSync(vocabFile, vocab);
+  fs.writeFileSync(claudeFile, next);
+  out.push('', '都寫了；接著 devflow status 看警訊');
   return { text: out.join('\n'), exitCode: 0 };
 }

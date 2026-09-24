@@ -46,7 +46,7 @@ $ lawful status
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
 | Cone.md | 不存在 | lawful migrate cone --write |
-| CLAUDE.md | 沒有 ## 名詞 節，領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |
+| .lawful/vocabulary.md | 沒有名詞表，領域名詞沒有地方定義 | lawful:kickoff 從模板建 .lawful/vocabulary.md，並在專案根目錄的 CLAUDE.md 加一行 @.lawful/vocabulary.md |
 | .lawful/ | 沒有任何需求 | lawful:require-design 談第一條需求（至少一條） |
 | P-001-save-write | 沒有被任何里程碑綁定 | 不朝向任何需求：lawful:require-design 綁進一條里程碑，或刪掉這條 pipeline |
 | .lawful/pipelines/P-001-save-write.md | 沒有 kind | frontmatter 補 kind: io 或 subflow |

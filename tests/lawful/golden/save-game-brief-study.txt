@@ -16,6 +16,7 @@ brief study （沒有目標） @doc:- rules:<雜湊>
   - P-001-save-write.md
 - requirements/
   - R-1-save-roundtrip.md
+- vocabulary.md
 
 # Cone.md「Constraint」
 

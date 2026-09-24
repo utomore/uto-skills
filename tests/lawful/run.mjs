@@ -96,6 +96,8 @@ const CASES = [
   ['tuned-requirement-add', 'tuned', ['requirement', 'add', 'report-fast', '報表一秒內印完', '--priority', '3']],
   ['tuned-claim', 'tuned', ['claim', 'report-export', '--description', '把報表匯成 CSV', '--milestone', 'M-2-report-render', '--date', DATE]],
   ['tuned-migrate-requirements', 'tuned', ['migrate', 'requirements']],
+  ['tuned-migrate-vocabulary', 'tuned', ['migrate', 'vocabulary']],
+  ['tuned-migrate-vocabulary-write', 'tuned', ['migrate', 'vocabulary', '--write'], ['CLAUDE.md', '.lawful/vocabulary.md']],
   ['tuned-migrate-requirements-write', 'tuned', ['migrate', 'requirements', '--write'], ['.lawful/requirements/R-1-report-correct.md', '.lawful/pipelines/P-002-count-tally.md', '.lawful/pipelines/P-001-report-render.md']],
   ['legacy-migrate-cone', 'legacy', ['migrate', 'cone']],
   ['legacy-migrate-cone-write', 'legacy', ['migrate', 'cone', '--write', '--date', DATE], ['.lawful/Cone.md', '.lawful/objectives/R-1-O-1-save-write.md', '.lawful/objectives.md', '.lawful/modules.md', '.lawful/pipelines/P-001-save-write.md', '.lawful/system.md']],
@@ -382,29 +384,55 @@ if (h.status !== 0 || !/lint ids \| boundary/.test(h.stdout) || !/status/.test(h
   } else console.log('✓ migrate 的先後');
 }
 
-// 名詞住專案根目錄 CLAUDE.md 的「## 名詞」節：檔案在而沒有這一節，與檔案不存在是同一條警訊；這一節以外寫什麼都不影響讀表
+// 名詞住 .lawful/vocabulary.md，專案根目錄的 CLAUDE.md 用一行裸的 @.lawful/vocabulary.md 匯入它：
+// CLAUDE.md 裡別的表不會被當成名詞表；匯入寫在反引號裡、或 CLAUDE.md 不存在，是同一條警訊；
+// 名詞表還住 CLAUDE.md「## 名詞」節的照讀並指到 migrate vocabulary，搬完之後 CLAUDE.md 其餘的內容不動；兩處都沒有是另一條警訊
 {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lawful-glossary-'));
   fs.cpSync(path.join(here, 'fixtures', 'save-game'), tmp, { recursive: true });
   const run = (...argv) => spawnSync(process.execPath, [bin, ...argv, '--root', tmp], { encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_EMAIL: '' } }).stdout;
-  const file = path.join(tmp, 'CLAUDE.md');
-  const WARN = '| CLAUDE.md | 沒有 ## 名詞 節，領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |';
-  const whole = fs.readFileSync(file, 'utf8');
-  const withSection = run('status', '--tests', 'test.log');
-  fs.writeFileSync(file, `# save-game\n\n## 開發須知\n| 名詞 | 定義 | 型別 |\n|---|---|---|\n| 不是名詞表 | 這張表不住「## 名詞」節 | \`Nope\` |\n\n${whole.replace(/^# save-game\r?\n/, '')}\n## 其他\n開發者自己寫的東西。\n`);
+  const claude = path.join(tmp, 'CLAUDE.md');
+  const vocab = path.join(tmp, '.lawful', 'vocabulary.md');
+  const MISSING = '沒有名詞表，領域名詞沒有地方定義';
+  const MOVE = '名詞表還住在 CLAUDE.md 的「## 名詞」節';
+  const IMPORT = '沒有一行 @.lawful/vocabulary.md';
+  const none = (s) => ![MISSING, MOVE, IMPORT].some((w) => s.includes(w));
+  const base = run('status', '--tests', 'test.log');
+  const vocabText = fs.readFileSync(vocab, 'utf8');
+  fs.writeFileSync(claude, '# save-game\n\n## 開發須知\n| 名詞 | 定義 | 型別 |\n|---|---|---|\n| 不是名詞表 | 這張表不是名詞表 | `Nope` |\n\n@.lawful/vocabulary.md\n\n## 其他\n開發者自己寫的東西。\n');
   const surrounded = run('status', '--json', '--tests', 'test.log');
+  const surroundedText = run('status', '--tests', 'test.log');
   const lint = run('lint', 'laws');
-  fs.writeFileSync(file, '# save-game\n\n開發者自己寫的東西，沒有名詞節。\n');
-  const noSection = run('status', '--tests', 'test.log');
-  fs.rmSync(file);
-  const noFile = run('status', '--tests', 'test.log');
+  fs.writeFileSync(claude, '# save-game\n\n`@.lawful/vocabulary.md`\n');
+  const ticked = run('status', '--tests', 'test.log');
+  fs.rmSync(claude);
+  const noClaude = run('status', '--tests', 'test.log');
+  fs.rmSync(vocab);
+  const nothing = run('status', '--tests', 'test.log');
+  fs.writeFileSync(claude, `# save-game\n\n開發者自己寫的東西。\n\n${vocabText.replace(/^# 名詞/, '## 名詞')}\n## 其他\n還是開發者的。\n`);
+  const inClaude = run('status', '--json', '--tests', 'test.log');
+  const inClaudeText = run('status', '--tests', 'test.log');
+  run('migrate', 'vocabulary', '--write');
+  const moved = run('status', '--tests', 'test.log');
+  const claudeAfter = fs.readFileSync(claude, 'utf8');
+  const vocabAfter = fs.existsSync(vocab) ? fs.readFileSync(vocab, 'utf8') : '';
   fs.rmSync(tmp, { recursive: true, force: true });
-  const ok = !withSection.includes(WARN) && noSection.includes(WARN) && noFile.includes(WARN)
-    && /"term": "解碼錯誤"/.test(surrounded) && !/不是名詞表/.test(surrounded) && /## lint laws[:：]通過/.test(lint);
-  if (!ok) {
+  const checks = {
+    '夾具沒有名詞表的警訊': none(base),
+    'CLAUDE.md 別的表不算名詞表': /"term": "解碼錯誤"/.test(surrounded) && !/不是名詞表/.test(surrounded) && none(surroundedText),
+    'lint laws 讀得到型別欄': /## lint laws[:：]通過/.test(lint),
+    '反引號裡的匯入不算': ticked.includes(IMPORT),
+    '沒有 CLAUDE.md 是同一條': noClaude.includes(IMPORT),
+    '兩處都沒有': nothing.includes(MISSING) && !nothing.includes(IMPORT),
+    '還住 CLAUDE.md 照讀': /"term": "解碼錯誤"/.test(inClaude) && inClaudeText.includes(MOVE) && !inClaudeText.includes(IMPORT),
+    'migrate vocabulary 搬完': none(moved) && vocabAfter.startsWith('# 名詞') && vocabAfter.includes('解碼錯誤')
+      && claudeAfter.includes('@.lawful/vocabulary.md') && !claudeAfter.includes('## 名詞') && claudeAfter.includes('開發者自己寫的東西。') && claudeAfter.includes('還是開發者的。'),
+  };
+  const bad = Object.entries(checks).filter(([, v]) => !v).map(([k]) => k);
+  if (bad.length) {
     failed++;
-    console.log('✗ CLAUDE.md 的名詞節');
-  } else console.log('✓ CLAUDE.md 的名詞節');
+    console.log(`✗ 名詞表的讀法：${bad.join('、')}`);
+  } else console.log('✓ 名詞表的讀法');
 }
 
 // --html：一個自帶資料的單檔網頁，佔位符要被換掉、資料要灌得進去。檔太大不收 golden，只檢查這幾件事

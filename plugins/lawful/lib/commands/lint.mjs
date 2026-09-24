@@ -332,7 +332,7 @@ export function lintLaws(design, source, adapter) {
     const mentioned = checkLawBody(r, where, q.accept, allStages, typesExports, stdlib, 'Stages 簽名（任何一條 pipeline 的）');
     for (const n of mentioned) if (runners.has(n)) r.red.push(`${where} 的 |- 行引用了進入點 ${n}；驗收只講純的量`);
   }
-  // 名詞表（專案根目錄 CLAUDE.md 的「## 名詞」節）的型別欄：填了就要是程式碼裡真的有的型別；名詞對到哪個型別只寫在這一欄。沒有程式碼可對就不查
+  // 名詞表（.lawful/vocabulary.md）的型別欄：填了就要是程式碼裡真的有的型別；名詞對到哪個型別只寫在這一欄。沒有程式碼可對就不查
   if (source) for (const g of design.glossary || []) {
     if (g.type && !findType(source, g.type).length) r.red.push(`${at(design.glossaryFile, g.line)} 名詞「${g.term}」的型別 \`${g.type}\` 在程式碼裡找不到；型別欄寫程式碼裡真的有的型別名，還沒有就寫 -`);
   }

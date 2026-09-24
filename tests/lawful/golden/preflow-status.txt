@@ -62,7 +62,7 @@ $ lawful status --tests test.log
 |---|---|---|
 | Cone.md | 沒有 ## 全域 Law 區，看不出約束住在哪裡 | lawful migrate laws --write |
 | Cone.md | 「## 需求」節或 objectives/ 底下的檔寫著「- Law：」或蘊含說明；需求附的是驗收 | lawful migrate laws --write |
-| CLAUDE.md | 沒有 ## 名詞 節，領域名詞沒有地方定義 | lawful:kickoff 補上這一節 |
+| .lawful/vocabulary.md | 沒有名詞表，領域名詞沒有地方定義 | lawful:kickoff 從模板建 .lawful/vocabulary.md，並在專案根目錄的 CLAUDE.md 加一行 @.lawful/vocabulary.md |
 | Cone.md | 需求還住在「## 需求」節，看不出每條需求的優先與里程碑 | lawful migrate requirements --write 換成 requirements/ 一條需求一個檔 |
 | .lawful/objectives/R-9-O-3-save-cloud.md | 對到的需求 R-9 不存在，它的里程碑沒有算進任何需求 | lawful migrate requirements 的帳本會列出它；決定它屬於哪條需求 |
 | R-1 | 等人工審核，M-1、M-2、M-3-save-list、RF-1 沒有「怎麼驗」欄，審的人沒有手段可以跑 | 切片收尾時 lawful:integrate 會把決策紀錄的 Entry 那道指令寫進怎麼驗欄；現在補：lawful requirement verify <M-n-slug> "<指令>" |

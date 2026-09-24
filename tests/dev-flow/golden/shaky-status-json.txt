@@ -942,7 +942,7 @@ $ devflow status --json
       "fix": "dev-flow:kickoff 訂願景"
     },
     {
-      "where": "CLAUDE.md:10",
+      "where": ".design/vocabulary.md:8",
       "what": "名詞「分數」出現 2 列，名詞只定義一次",
       "fix": "dev-flow:require-design 與開發者講定哪一句是它的定義，留一列"
     },

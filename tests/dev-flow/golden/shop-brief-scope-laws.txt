@@ -19,6 +19,7 @@ brief scope-laws M-2-refund @doc:53c3bcdf rules:<雜湊>
 - requirements/
   - R-1-money-correct.md
 - system.md
+- vocabulary.md
 
 # 需求檔：.design/requirements/R-1-money-correct.md
 

@@ -19,7 +19,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 !`node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief require-design --args '$ARGUMENTS' --part 4 --of 4`
 
-上面這幾段（一份輸出切成幾段，每段一道指令）是載入 skill 時跑 `devflow brief require-design` 的輸出：規章、`system.md` 全份（願景在裡面）、`requirements/` 底下每個需求檔、status 報告（需求表與警訊）。開工要讀的規章與專案現況都在這裡，不再另外讀。名詞表不在 brief 裡：它住專案根目錄 `CLAUDE.md` 的「## 名詞」節，`CLAUDE.md` 每一場 session 都已經載入。
+上面這幾段（一份輸出切成幾段，每段一道指令）是載入 skill 時跑 `devflow brief require-design` 的輸出：規章、`system.md` 全份（願景在裡面）、`requirements/` 底下每個需求檔、status 報告（需求表與警訊）。開工要讀的規章與專案現況都在這裡，不再另外讀。名詞表不在 brief 裡：它住 `.design/vocabulary.md`，專案根目錄的 `CLAUDE.md` 匯入它，每一場 session 開場都已經載入。
 
 目標：不必給；有最近一次測試輸出就加 `--tests <log>`。專案現況在這一場裡變過、要重看，再跑一次 `node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs" brief require-design --no-rules`。看到的若是那道指令的原文而不是它的輸出，自己跑一次（不加 `--no-rules`）。下面步驟裡的 `<D>` 就是 `${CLAUDE_PLUGIN_ROOT}`。
 
@@ -27,13 +27,13 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 | 輸入 | 產出 |
 |---|---|
-| 開發者要得到什麼、既有的需求與 feature、專案根目錄 `CLAUDE.md` 的名詞表 | `CLAUDE.md`「## 名詞」節裡新講定的名詞與改過的定義；以及 `requirements/` 裡一條需求一個檔 `R-n-<slug>.md`：一句話、驗收、優先、照先後排好的里程碑（全名 `M-n-<slug>`，綁定欄填它做出來的 feature、或它靠修訂達成的既有 feature，還沒有切片的留「-」） |
+| 開發者要得到什麼、既有的需求與 feature、`.design/vocabulary.md` 的名詞表 | `.design/vocabulary.md` 裡新講定的名詞與改過的定義；以及 `requirements/` 裡一條需求一個檔 `R-n-<slug>.md`：一句話、驗收、優先、照先後排好的里程碑（全名 `M-n-<slug>`，綁定欄填它做出來的 feature、或它靠修訂達成的既有 feature，還沒有切片的留「-」） |
 
 ## 前置
 
 - 沒有 `.design/system.md`、或願景還是模板 → 停，先跑 `dev-flow:kickoff`。
 - `devflow status` 警訊說需求不住 `requirements/`、或 `system.md` 沒有「## 全域 Law」區 → 停，回 `dev-flow:kickoff` 的前置處理。
-- `devflow status` 警訊說專案根目錄的 `CLAUDE.md` 沒有「## 名詞」節 → 停，回 `dev-flow:kickoff` 補上這一節。
+- `devflow status` 警訊說沒有名詞表、名詞表還住在 `CLAUDE.md`、或 `CLAUDE.md` 沒有匯入它的那一行 → 停，回 `dev-flow:kickoff` 的前置處理。
 - 開發者講的是一件**沒有做完的一天、永遠要守**的事（金額不為負、內層不准碰 IO）→ 那不是需求，是 law（`laws.md`「Law 與需求」）：law 只從實作裡抽出來，碰到它的那條切片做出來之後由 `dev-flow:scope-laws` 對著程式碼談，整個專案都要守的再由 `dev-flow:global-laws` 抽上去，不在這裡寫；既有文檔的，要調整既有的 law 走 `dev-flow:scope-laws`，只是替 `verified` 的文檔新增一條走 `dev-flow:scope-revise`。
 
 ## 步驟
@@ -44,10 +44,10 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 2. **一句話**：誰在什麼情況下要得到什麼——使用者做得到什麼、或世界變成什麼樣；不寫「做完 X 模組」這種實作句。
 3. **驗收**：它達成時什麼一定為真，一句可判定的話（數字、現象、使用者做得到的動作）。寫不出驗收的不是需求，回到第 2 步。程式碼還不在時驗收先只留一句話；切片做出簽名之後，能自動化的由 `dev-flow:scope-laws` 補成三行、build 派 qa 寫歸屬 `R-n#ACCEPT` 的驗收測試（`roles.md`「驗收測試」）。簽名已經在的，當場寫成三行式（識別字是 Steps 的簽名，不含 `!` 列）。
 4. **優先**：照第 1 步的四級問「這條需求落在哪一級、它的直接前提是誰」；直接前提還不在就先立它，它的級數不比這一條大（比這一條大就是優先倒掛，看板的「相依」頁籤畫成紅邊）。順序來自依賴與必要性，不來自離願景多近，也不來自編號：`R-n` 是流水號，永不重排，只是身分。哪條需求疊在哪條上面不寫進需求檔，由文檔的引用推出來，`devflow status` 需求表的「依賴」欄印它（`features.md`「願景、需求與里程碑」）。
-5. **名詞**（寫檔之前必做；名詞只住專案根目錄 `CLAUDE.md` 的「## 名詞」節，`features.md`「`.design/`」）：把這條需求的一句話與驗收裡的領域名詞逐個對名詞表。
+5. **名詞**（寫檔之前必做；名詞只住 `.design/vocabulary.md`，`features.md`「名詞」）：把這條需求的一句話與驗收裡的領域名詞逐個對名詞表。
    - **表上沒有的名詞** → **先**問開發者「它是什麼、不是什麼」，一句話講定，在表上加一列（名詞照需求裡的寫法；「型別」欄：程式碼裡已經有對應的型別就寫型別名，還沒有就寫 `-`），**才**往下寫需求檔。同一個東西表上已經有另一個叫法 → 需求的句子改用表上的那個詞，不加同義的第二列。第 8 步里程碑那一句裡出現的新名詞照同一套：先進表，才 `devflow requirement milestone`。
    - **開發者要改一個既有名詞的定義** → 先攤影響範圍，逐項列，查過而沒有的寫「無」（`laws.md`「影響範圍與選項」）：哪幾條需求的一句話、驗收、里程碑那一句用到這個詞；哪幾份文檔的 law 第一句用到這個詞、或三行引用了這一列「型別」欄的型別；定義改了之後，其中哪幾句的意思會跟著變。再給選項 **改** / **不改**，各附當下成本、之後的代價、可不可逆。開發者對著一個選項明確說了要，才改表上那一列；沉默、「你決定」不算。因此要調整的 law 各自走 `dev-flow:scope-laws <全名>`、要改的需求句子照第 10 步，都列成給開發者的下一步；law 不在這裡動。牽動很多文檔而且回不了頭的，回報裡註明這是一個決定：名詞表照改，理由由 `dev-flow:integrate` 寫成 ADR。
-   - 名詞的定義只寫在這張表，不寫進需求檔、不寫進 `system.md`。既有列的「型別」欄不在這裡補（型別第一次出現時由 `dev-flow:scope-laws` 填）。`CLAUDE.md` 裡「## 名詞」節以外的內容一個字都不准動。
+   - 名詞的定義只寫在這張表，不寫進需求檔、不寫進 `system.md`。既有列的「型別」欄不在這裡補（型別第一次出現時由 `dev-flow:scope-laws` 填）。專案根目錄的 `CLAUDE.md` 一個字都不准動。
 6. **衝突檢查**（新需求、或改了既有需求的驗收，寫檔之前必做）：把這條需求的驗收逐條對既有每一條需求的驗收，問「兩者有沒有無法同時達成的」（一條要「送出就成立」，另一條要「審核過才成立」）。
    - **有衝突** → 先攤影響範圍，逐項列，查過而沒有的寫「無」：哪條既有需求的一句話或驗收要改；它的 `R-n#ACCEPT` 驗收測試作廢，要 `dev-flow:build R-n` 重派 qa；哪幾份 feature 的 law 因此要調整（各自走 `dev-flow:scope-laws <全名>`）；哪幾條里程碑的那一句要改。再給選項，各附當下成本、之後的代價、可不可逆：**改既有的那一條**、**改新的這一條**、**不收新的**。開發者對著一個選項明確說了要，才落筆；沉默、「你決定」不算。選了「改既有的那一條」，那一條照第 10 步改，它牽動的 law 列成給開發者的下一步，不在這裡動。
    - **沒有衝突** → 在回報裡寫一句「與 R-x…R-y 逐條對過，無衝突」，寫明對過哪幾條。
@@ -71,4 +71,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/devflow.mjs":*)
 
 ## 邊界
 
-需求只准透過這裡寫：一句話、驗收、優先與里程碑都不由別的 skill 改（`dev-flow:scope-laws` 只把既有的驗收那一句寫成三行、把它 claim 出來的 feature 填進自己那條里程碑的綁定欄；靠修訂達成的里程碑，綁定欄在這裡當場填）。不寫 feature 的 Steps 與 laws；不寫程式碼；不改願景 (`dev-flow:kickoff`)，不碰「全域 Law」區 (`dev-flow:global-laws`) 與「Constraint」節；專案根目錄的 `CLAUDE.md` 只寫它的「## 名詞」節（加一列名詞、改一列的定義），這一節以外的內容一個字都不准動，名詞的定義不替開發者決定；里程碑不帶 law、不帶測試標記；不替開發者答任何一題。開發者只說，檔一律由這裡寫；配號只走 CLI。
+需求只准透過這裡寫：一句話、驗收、優先與里程碑都不由別的 skill 改（`dev-flow:scope-laws` 只把既有的驗收那一句寫成三行、把它 claim 出來的 feature 填進自己那條里程碑的綁定欄；靠修訂達成的里程碑，綁定欄在這裡當場填）。不寫 feature 的 Steps 與 laws；不寫程式碼；不改願景 (`dev-flow:kickoff`)，不碰「全域 Law」區 (`dev-flow:global-laws`) 與「Constraint」節；名詞表只加一列名詞、改一列的定義，專案根目錄的 `CLAUDE.md` 一個字都不准動，名詞的定義不替開發者決定；里程碑不帶 law、不帶測試標記；不替開發者答任何一題。開發者只說，檔一律由這裡寫；配號只走 CLI。

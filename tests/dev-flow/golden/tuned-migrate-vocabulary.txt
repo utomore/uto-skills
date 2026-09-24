@@ -1,0 +1,8 @@
+$ devflow migrate vocabulary
+# migrate vocabulary 帳本
+
+- .design/vocabulary.md：建，CLAUDE.md 的「## 名詞」節整節搬過來（名詞 4 個）
+- CLAUDE.md：「## 名詞」節換成一行 @.design/vocabulary.md，其餘不動
+
+以上只是帳本；devflow migrate vocabulary --write 才落地
+exit 0

@@ -15,6 +15,7 @@ brief study （沒有目標） @doc:- rules:<雜湊>
 - requirements/
   - R-1-money-correct.md
 - system.md
+- vocabulary.md
 
 # system.md「Constraint」
 

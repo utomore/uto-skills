@@ -53,6 +53,7 @@ $ lawful status --tests test.log
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
+| CLAUDE.md | 名詞表還住在 CLAUDE.md 的「## 名詞」節 | lawful migrate vocabulary --write 搬進 .lawful/vocabulary.md |
 | .lawful/requirements/R-1-report-correct.md | 還有調整表；調整就是一條綁既有 pipeline 的里程碑，需求檔只有一張里程碑表 | lawful migrate requirements --write |
 | 全域 Law：契約 | lint io 1 條不合規 | lawful lint io |
 

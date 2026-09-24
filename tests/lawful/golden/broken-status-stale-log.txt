@@ -89,7 +89,7 @@ $ lawful status --tests stale.log
 ## 6. 警訊
 | 哪裡 | 什麼事 | 怎麼辦 |
 |---|---|---|
-| CLAUDE.md:10 | 名詞「存檔」出現 2 列，名詞只定義一次 | lawful:require-design 與開發者講定哪一句是它的定義，留一列 |
+| .lawful/vocabulary.md:8 | 名詞「存檔」出現 2 列，名詞只定義一次 | lawful:require-design 與開發者講定哪一句是它的定義，留一列 |
 | R-1 | 驗收寫了三行卻沒有驗收測試，證據不齊，還不能請人審核 | lawful:build R-1（只派 qa 寫一條歸屬 "R-1#ACCEPT" 的測試）；不能自動化就只留一句，證據改由里程碑全部達成承接 |
 | M-2-load-game | 綁定的 P-002-load-game 不存在 | 改成 pipelines/ 裡有的全名，或刪這個綁定 |
 | M-6 | 沒有英文名，REV 的依欄寫不出它的全名 | lawful:require-design 把第一格寫成 M-6-<slug>（kebab-case 英文）；引用一條里程碑一律用全名 |

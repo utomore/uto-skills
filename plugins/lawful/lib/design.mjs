@@ -582,25 +582,40 @@ export function readJournals(lawfulDir, root) {
   });
 }
 
-// 名詞：專案根目錄 CLAUDE.md 的「## 名詞」節，一張表（名詞 | 定義 | 型別）；領域名詞只在那裡定義，.lawful/ 裡不另寫一次。
-// 檔案不存在或沒有這一節是 missing；佔位符列不算；型別欄的「-」與佔位符讀成空字串。line 是 CLAUDE.md 裡的真實行號。
+// 名詞：.lawful/vocabulary.md，標題「名詞」底下一張表（名詞 | 定義 | 型別）；領域名詞只在那裡定義。
+// 專案根目錄的 CLAUDE.md 有一行裸的 `@.lawful/vocabulary.md` 把它匯入，每一場 session 開場就載入（寫在反引號裡不算匯入）。
+// 沒有 vocabulary.md 而 CLAUDE.md 有「## 名詞」節：照讀那一節，where 是 'claude'，status 指到 migrate vocabulary。
+// 兩處都沒有是 missing；佔位符列不算；型別欄的「-」與佔位符讀成空字串。line 是那個檔裡的真實行號。
+export const VOCABULARY_IMPORT = '@.lawful/vocabulary.md';
 export function readGlossary(root) {
-  const file = path.join(root, 'CLAUDE.md');
-  const text = read(file);
-  const out = { file: rel(root, file), state: 'missing', terms: [] };
-  if (text == null) return out;
-  const { body } = parseFrontmatter(text);
-  const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
-  const sec = findSection(sections(body), '名詞');
-  if (!sec) return out;
-  out.state = 'ok';
-  const t = parseTable(sec.lines);
-  if (t) t.rows.forEach((r, i) => {
-    const term = stripTicks(r[0] || '');
-    if (!term || hasPlaceholder(term)) return;
-    const type = stripTicks(r[2] || '');
-    out.terms.push({ term, definition: (r[1] || '').trim(), type: /^[-—–]?$/.test(type) || isPlaceholder(type) ? '' : type, line: offset + sec.start + t.rowLines[i] + 2 });
-  });
+  const claudeText = read(path.join(root, 'CLAUDE.md'));
+  const vocabFile = path.join(root, '.lawful', 'vocabulary.md');
+  const vocabText = read(vocabFile);
+  const out = {
+    file: rel(root, vocabFile),
+    state: 'missing',
+    where: null,
+    imported: claudeText != null && claudeText.split(/\r?\n/).some((l) => l.trim() === VOCABULARY_IMPORT),
+    terms: [],
+  };
+  const parse = (text, file, where) => {
+    const { body } = parseFrontmatter(text);
+    const offset = (text.slice(0, text.length - body.length).match(/\n/g) || []).length;
+    // vocabulary.md 的「名詞」是一級標題，CLAUDE.md 裡的是二級
+    const sec = findSection(sections(body), '名詞', where === 'vocabulary' ? 1 : 2);
+    if (!sec) return false;
+    Object.assign(out, { file: rel(root, file), state: 'ok', where });
+    const t = parseTable(sec.lines);
+    if (t) t.rows.forEach((r, i) => {
+      const term = stripTicks(r[0] || '');
+      if (!term || hasPlaceholder(term)) return;
+      const type = stripTicks(r[2] || '');
+      out.terms.push({ term, definition: (r[1] || '').trim(), type: /^[-—–]?$/.test(type) || isPlaceholder(type) ? '' : type, line: offset + sec.start + t.rowLines[i] + 2 });
+    });
+    return true;
+  };
+  if (vocabText != null) parse(vocabText, vocabFile, 'vocabulary');
+  else if (claudeText != null) parse(claudeText, path.join(root, 'CLAUDE.md'), 'claude');
   return out;
 }
 
@@ -646,10 +661,12 @@ export function readDesign(root) {
     lawfulDir,
     pipelinesDir,
     cone,
-    // 名詞表住專案根目錄的 CLAUDE.md，不住 .lawful/
+    // 名詞表住 .lawful/vocabulary.md，專案根目錄的 CLAUDE.md 匯入它
     glossary: glossary.terms,
     glossaryState: glossary.state,
     glossaryFile: glossary.file,
+    glossaryWhere: glossary.where,
+    glossaryImported: glossary.imported,
     io: ioFrom ? ioFrom.io : [],
     ioState: ioFrom ? 'ok' : 'missing',
     ioFile: ioFrom === modules && modules ? modules.file : cone ? cone.file : '.lawful/Cone.md',

@@ -13,7 +13,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/scaffold.mjs":*), Bash(make 
 
 | 輸入 | 產出 |
 |---|---|
-| 架構師的意圖、既有程式碼（有的話）、型錄 `${CLAUDE_PLUGIN_ROOT}/catalog/README.md` | 整個框架落地：`CLAUDE.md`、`README.md`、`docs/adr/`（ADR-001、002、006 與索引）、`docs/glossary.md`（空表）、`docs/plan/README.md`、`src/<套件>/` 四層與 `_shared`、`scripts/`（六支檢查與 `_layout.py`）、`pyproject.toml`（六條依賴契約、ruff、pyright strict、pytest 的 `law` 標記）、`Makefile`、`.pre-commit-config.yaml`、`CODEOWNERS`、CI（GitHub Actions 與 Cloud Build）、`tests/test_ops.py`；`make check` 與 `make test` 綠；然後接上 `rigid:plan` |
+| 架構師的意圖、既有程式碼（有的話）、型錄 `${CLAUDE_PLUGIN_ROOT}/catalog/README.md` | 整個框架落地：`CLAUDE.md`、`README.md`、`docs/adr/`（ADR-001、002、006 與索引）、`docs/glossary.md`（空表）、`docs/plan/README.md`、`src/<套件>/` 四層與 `_shared`、`scripts/`（六支檢查、`_layout.py`、AI review 的 `ai_review.py` 與提示詞）、`pyproject.toml`（六條依賴契約、ruff、pyright strict、pytest 的 `law` 標記）、`Makefile`、`.pre-commit-config.yaml`、`CODEOWNERS`、CI（GitHub Actions 與 Cloud Build）、`tests/test_ops.py`；`make check` 與 `make test` 綠；然後接上 `rigid:plan` |
 
 ## 分流
 

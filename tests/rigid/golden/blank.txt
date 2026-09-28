@@ -1,5 +1,5 @@
 ## scaffold
-# 建了（42）
+# 建了（44）
   .github/workflows/ci.yml
   .gitignore
   .pre-commit-config.yaml
@@ -36,6 +36,8 @@
   scripts/__init__.py
   scripts/_common.py
   scripts/_layout.py
+  scripts/ai_review.py
+  scripts/ai_review_prompt.md
   scripts/check_entries.py
   scripts/check_errors.py
   scripts/check_evidence.py
@@ -52,7 +54,7 @@ exit 0
 All checks passed!
 exit 0
 ## ruff format
-35 files already formatted
+37 files already formatted
 exit 0
 ## lint-imports
 

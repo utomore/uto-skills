@@ -57,14 +57,30 @@ out="$tmp/blank.txt"
 ) > "$out"
 compare blank "$out"
 
+py=$(uv run -q --no-project python -c 'import sys; print(sys.executable)' | sed 's/\r$//')
+review=$(command -v cygpath >/dev/null && cygpath -m "$here/fixtures/review" || echo "$here/fixtures/review")
 for fx in shop broken; do
   work="$tmp/$fx"
   cp -r "fixtures/$fx" "$work"
-  for f in "$catalog"/*.py; do
-    [ "$(basename "$f")" = "_layout.py" ] || cp "$f" "$work/scripts/"
+  for f in "$catalog"/*; do
+    case "$(basename "$f")" in _layout.py|__pycache__) ;; *) cp "$f" "$work/scripts/" ;; esac
   done
   out="$tmp/$fx.txt"
-  ( cd "$work"; export PYTHONPATH=src; checks ) > "$out"
+  (
+    cd "$work"; export PYTHONPATH=src; checks
+    if [ "$fx" = shop ]; then
+      # ai_review：提示詞裡有 ADR-002 的分層表與標了行號的 diff、沒有 src 以外的檔；假模型回三個發現，只留落在新增行上的那一個
+      echo "## ai_review prompt"
+      run python -m scripts.ai_review prompt --diff "$here/fixtures/review/diff.patch" | grep -n -E '^\| 層 |^\| `(domains|application|platform|api)|^ +[0-9]+\|\+|docs/plan|^diff --git'
+      echo "exit ${PIPESTATUS[0]}"
+      echo "## ai_review run"
+      run python -m scripts.ai_review run --diff "$here/fixtures/review/diff.patch" --cmd "\"$py\" \"$review/fake_llm.py\""; echo "exit $?"
+      echo "## ai_review run (no src change)"
+      run python -m scripts.ai_review run --diff "$here/fixtures/review/docs-only.patch" --cmd "false"; echo "exit $?"
+      echo "## ai_review run (cmd fails)"
+      run python -m scripts.ai_review run --diff "$here/fixtures/review/diff.patch" --cmd "\"$py\" -c \"import sys; sys.exit(3)\""; echo "exit $?"
+    fi
+  ) > "$out"
   compare "$fx" "$out"
 done
 exit $fail

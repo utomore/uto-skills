@@ -31,7 +31,7 @@ compare() {
   local fx=$1 out=$2
   if [ "$update" = 1 ]; then
     mkdir -p golden; cp "$out" "golden/$fx.txt"; echo "updated golden/$fx.txt"
-  elif ! diff -u "golden/$fx.txt" "$out"; then
+  elif ! diff -u --strip-trailing-cr "golden/$fx.txt" "$out"; then
     echo "FAIL $fx"; fail=1
   else
     echo "ok $fx"

@@ -1,0 +1,108 @@
+## scaffold
+# 建了（42）
+  .github/workflows/ci.yml
+  .gitignore
+  .pre-commit-config.yaml
+  CLAUDE.md
+  CODEOWNERS
+  Makefile
+  README.md
+  cloudbuild/ci.yaml
+  docs/adr/ADR-001-project-architecture.md
+  docs/adr/ADR-002-code-design.md
+  docs/adr/ADR-006-development-plan.md
+  docs/adr/README.md
+  docs/glossary.md
+  docs/plan/README.md
+  pyproject.toml
+  src/blank/__init__.py
+  src/blank/api/__init__.py
+  src/blank/api/app.py
+  src/blank/api/errors.py
+  src/blank/application/__init__.py
+  src/blank/cli/__init__.py
+  src/blank/cli/errors.py
+  src/blank/cli/main.py
+  src/blank/domains/__init__.py
+  src/blank/domains/_shared/__init__.py
+  src/blank/domains/_shared/context.py
+  src/blank/domains/_shared/errors.py
+  src/blank/platform/README.md
+  src/blank/platform/__init__.py
+  src/blank/platform/laws.md
+  tests/__init__.py
+  tests/integration/__init__.py
+  tests/test_ops.py
+  scripts/__init__.py
+  scripts/_common.py
+  scripts/_layout.py
+  scripts/check_entries.py
+  scripts/check_errors.py
+  scripts/check_evidence.py
+  scripts/check_glossary.py
+  scripts/check_laws.py
+  scripts/report_progress.py
+# 已存在、沒動（0）
+# 接下來
+  cd blank && make sync && make check && make test
+  docs/adr/ADR-001 與 ADR-002 的「背景」還是佔位符，架構師填
+  已存在、沒動的檔：逐一比對模板，該併的段落手動併進去
+exit 0
+## ruff check
+All checks passed!
+exit 0
+## ruff format
+35 files already formatted
+exit 0
+## lint-imports
+
+╔══╗─────────▶╔╗ ╔╗      ╔╗◀───┐
+╚╣╠╝◀─────┐  ╔╝╚╗║║────▶╔╝╚╗   │
+ ║║   ╔══╦══╦╩╗╔╝║║  ╔╦═╩╗╔╝╔═╦══╗
+ ║║╔══╣╔╗║╔╗║╔╣║ ║║ ╔╬╣╔╗║║ ║│║╔═╝
+╔╣╠╣║║║╚╝║╚╝║║║╚╗║╚═╝║║║║║╚╗║═╣║
+╚══╩╩╩╣╔═╩══╩╝╚═╝╚═══╩╩╝╚╩═╩╩═╩╝
+  └──▶║║                    ▲ 
+      ╚╝────────────────────┘
+
+
+---------
+Contracts
+---------
+
+Analyzed 18 files, 7 dependencies.
+----------------------------------
+
+domains 只依賴自己與 _shared，不碰 application、入口、platform 與任何對外套件 KEPT
+領域之間互不 import KEPT (2 ignored imports)
+platform 不碰 application 與入口 KEPT
+application 不碰入口 KEPT
+api 與 cli 不呼叫領域函數：只拿領域的型別（types.py）、錯誤（errors.py）與 
+_shared KEPT
+api 與 cli 互不 import KEPT
+
+Contracts: 6 kept, 0 broken.
+exit 0
+## pyright
+0 errors, 0 warnings, 0 informations
+exit 0
+## check_laws
+exit 0
+## check_glossary
+exit 0
+## check_errors
+exit 0
+## check_entries
+exit 0
+## check_evidence
+exit 0
+## report_progress
+| 階段 | 里程碑 | 單元 | 完成 | 進行中 | 未開始 |
+|---|---|---|---|---|---|
+exit 0
+## report_progress M1
+| id | 狀態 | 有證據的驗收 | domains | 單元 |
+|---|---|---|---|---|
+exit 0
+## pytest
+exit 0

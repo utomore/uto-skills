@@ -1,0 +1,111 @@
+[project]
+name = "__PROJECT__"
+version = "0.1.0"
+description = "__TAGLINE__"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi",
+    "typer",
+]
+
+[project.scripts]
+__PROJECT__ = "__PACKAGE__.cli.main:app"
+
+[dependency-groups]
+dev = [
+    "import-linter",
+    "pre-commit",
+    "pyright",
+    "pytest",
+    "ruff",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/__PACKAGE__"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "scripts", "tests"]
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B"]
+
+[tool.pyright]
+include = ["src", "scripts", "tests"]
+strict = ["src", "scripts"]
+pythonVersion = "3.13"
+extraPaths = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["src", "tests"]
+markers = [
+    "law(*ids): 這個測試驗證所屬領域 laws.md 的哪幾條 law，例如 law(\"LAW-1\")",
+    "integration: 要連真的資料庫或服務的測試，make integration 才跑",
+]
+
+[tool.importlinter]
+root_packages = ["__PACKAGE__"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "domains 只依賴自己與 _shared，不碰 application、入口、platform 與任何對外套件"
+type = "forbidden"
+source_modules = ["__PACKAGE__.domains"]
+forbidden_modules = [
+    "__PACKAGE__.application",
+    "__PACKAGE__.api",
+    "__PACKAGE__.cli",
+    "__PACKAGE__.platform",
+    "fastapi",
+    "typer",
+]
+
+[[tool.importlinter.contracts]]
+name = "領域之間互不 import"
+type = "independence"
+modules = ["__PACKAGE__.domains.*"]
+ignore_imports = [
+    "__PACKAGE__.domains.** -> __PACKAGE__.domains._shared",
+    "__PACKAGE__.domains.** -> __PACKAGE__.domains._shared.**",
+]
+unmatched_ignore_imports_alerting = "none"
+
+[[tool.importlinter.contracts]]
+name = "platform 不碰 application 與入口"
+type = "forbidden"
+source_modules = ["__PACKAGE__.platform"]
+forbidden_modules = ["__PACKAGE__.application", "__PACKAGE__.api", "__PACKAGE__.cli"]
+
+[[tool.importlinter.contracts]]
+name = "application 不碰入口"
+type = "forbidden"
+source_modules = ["__PACKAGE__.application"]
+forbidden_modules = ["__PACKAGE__.api", "__PACKAGE__.cli"]
+
+[[tool.importlinter.contracts]]
+name = "api 與 cli 不呼叫領域函數：只拿領域的型別（types.py）、錯誤（errors.py）與 _shared"
+type = "forbidden"
+source_modules = ["__PACKAGE__.api", "__PACKAGE__.cli"]
+forbidden_modules = ["__PACKAGE__.domains"]
+allow_indirect_imports = true
+ignore_imports = [
+    "__PACKAGE__.api.** -> __PACKAGE__.domains._shared",
+    "__PACKAGE__.api.** -> __PACKAGE__.domains._shared.**",
+    "__PACKAGE__.api.** -> __PACKAGE__.domains.*.types",
+    "__PACKAGE__.api.** -> __PACKAGE__.domains.*.errors",
+    "__PACKAGE__.cli.** -> __PACKAGE__.domains._shared",
+    "__PACKAGE__.cli.** -> __PACKAGE__.domains._shared.**",
+    "__PACKAGE__.cli.** -> __PACKAGE__.domains.*.types",
+    "__PACKAGE__.cli.** -> __PACKAGE__.domains.*.errors",
+]
+unmatched_ignore_imports_alerting = "none"
+
+[[tool.importlinter.contracts]]
+name = "api 與 cli 互不 import"
+type = "independence"
+modules = ["__PACKAGE__.api", "__PACKAGE__.cli"]

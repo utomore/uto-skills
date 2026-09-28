@@ -22,6 +22,14 @@
       "source": "./plugins/lawful"
     },
     {
+      "name": "rigid",
+      "description": "架構師搭框架、開發者在框裡做事的開發方式：規則給機器守（ruff、pyright、import-linter、scripts/check_*、pre-commit、CI、CODEOWNERS），LLM 只在框裡做事。scaffold 從型錄選一格（每一格來自一個真專案，附帶目錄、依賴契約、檢查腳本、CI 與 CODEOWNERS）把整個框架一次鋪好，plan 把需求切成一到五天的可開發單元、驗收行尾寫證據，review 在本機審機器判不了的分層語意。日常做單元不需要 skill：讀專案的 CLAUDE.md 與一份里程碑檔就開工，過不了 make check 就進不了主線。型錄第一格：Python、ports and adapters、api 與 cli 兩個對等入口。skills:scaffold、plan、review。",
+      "author": {
+        "name": "utomore"
+      },
+      "source": "./plugins/rigid"
+    },
+    {
       "name": "talk-flow",
       "description": "演講內容產生流程 skills：主軸設計（含風格基底選定、前景/背景分層、Marp 鷹架與文字規範）、段落設計（含 status 掃描與文字技法選用）、段落實作（Marp 排版 + 視覺引導 + 逐頁背景 + SVG 圖形 + 頁內備註）、頁面調整、整體審查（build 後逐頁目視 + 十四項指標含文案語感，產出 review/ 報告）、架構圖排版量測 (svg-layout)，投影片以 marp-cli 建置輸出；全流程禁對比翻轉句與人稱代名詞 (wording.md)",
       "author": {

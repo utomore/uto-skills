@@ -1,0 +1,12 @@
+# PR 檢查（Cloud Build 的 GitHub 觸發器指到這份）。步驟的 id 固定：docs/plan 驗收行尾的證據 `ci:<id>` 對到這裡。
+steps:
+  - id: check
+    name: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+    entrypoint: sh
+    args: ["-c", "apt-get update -qq && apt-get install -y -qq make >/dev/null && uv sync && make check"]
+  - id: unit
+    name: ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+    entrypoint: sh
+    args: ["-c", "apt-get update -qq && apt-get install -y -qq make >/dev/null && uv sync && make test"]
+options:
+  logging: CLOUD_LOGGING_ONLY

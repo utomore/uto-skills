@@ -1,0 +1,8 @@
+{
+  "name": "rigid",
+  "description": "架構師搭框架、開發者在框裡做事的開發方式：規則給機器守（ruff、pyright、import-linter、scripts/check_*、pre-commit、CI、CODEOWNERS），LLM 只在框裡做事。scaffold 從型錄選一格（每一格來自一個真專案，附帶目錄、依賴契約、檢查腳本、CI 與 CODEOWNERS）把整個框架一次鋪好，plan 把需求切成一到五天的可開發單元、驗收行尾寫證據，review 在本機審機器判不了的分層語意。日常做單元不需要 skill：讀專案的 CLAUDE.md 與一份里程碑檔就開工，過不了 make check 就進不了主線。型錄第一格：Python、ports and adapters、api 與 cli 兩個對等入口。skills:scaffold、plan、review。",
+  "author": {
+    "name": "utomore"
+  },
+  "homepage": "https://github.com/utomore/uto-skills"
+}

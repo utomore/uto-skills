@@ -1,0 +1,13 @@
+# 這些地方改了會影響所有人，要經過 owner review。
+# 領域資料夾不在這裡：它們由做那個單元的人負責，隊友互相 review 即可；只有 laws.md 例外。
+
+/src/__PACKAGE__/platform/          @__OWNER__
+/src/__PACKAGE__/domains/_shared/   @__OWNER__
+/src/__PACKAGE__/domains/**/laws.md @__OWNER__
+/docs/glossary.md                   @__OWNER__
+/docs/adr/                          @__OWNER__
+/scripts/                           @__OWNER__
+/pyproject.toml                     @__OWNER__
+/.pre-commit-config.yaml            @__OWNER__
+/cloudbuild/                        @__OWNER__
+/.github/                           @__OWNER__

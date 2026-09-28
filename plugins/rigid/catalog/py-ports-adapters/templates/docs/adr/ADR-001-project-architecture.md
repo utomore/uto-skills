@@ -22,7 +22,8 @@ scripts/          CI 與 pre-commit 用的檢查
 tests/            腳本的測試、整合測試
 docs/             plan/、glossary.md、adr/
 cloudbuild/       ci.yaml
-.github/          workflows/ci.yml、CODEOWNERS
+.github/          workflows/ci.yml
+CODEOWNERS        會影響所有人的路徑，改動要 owner review（GitHub 從根目錄讀）
 ```
 
 後端放在 `src/__PACKAGE__/` 底下，不放在根目錄：根目錄的 `platform/` 會蓋掉 Python 標準函式庫的 `platform` 模組。

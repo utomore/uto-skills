@@ -31,6 +31,7 @@ cli ─┘        │
 | 目錄與 `_shared`（`Context`、`DomainError`）、兩個入口的骨架、`platform/` 的說明 | `templates/src/__PACKAGE__/` |
 | 六條依賴契約（import-linter）、ruff、pyright strict、pytest 的 `law` 標記 | `templates/pyproject.toml` |
 | 檢查腳本：`check_laws`、`check_glossary`、`check_errors`、`check_entries`、`check_evidence`、`report_progress` | `scripts/`（原樣複製）；專案的形狀在 `scripts/_layout.py`（scaffold 寫） |
+| AI review：`ai_review.py` 與提示詞 `ai_review_prompt.md`，只審 ADR-002 的分層表；不進 `make check`、不進 CI 範本，`rigid:review` 在本機用，接 CI 由架構師決定 | `scripts/`（原樣複製） |
 | `make check`（與 CI 的檢測階段同一道）、`make test`、`make progress`、pre-commit | `templates/Makefile`、`templates/.pre-commit-config.yaml` |
 | CI：GitHub Actions 與 Cloud Build 各一份，步驟 id 固定（`check`、`unit`），證據行的 `ci:<id>` 才對得到 | `templates/.github/workflows/ci.yml`、`templates/cloudbuild/ci.yaml` |
 | CODEOWNERS：會影響所有人的路徑 | `templates/CODEOWNERS` |

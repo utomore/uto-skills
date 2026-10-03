@@ -4,6 +4,7 @@
 #   鋪出來的檔案清單進 golden（模板多一個檔、少一個檔都會紅）。
 # - shop：一個領域、一條 REQ、兩條 law、兩個入口的全綠樹。
 # - broken：每一道紅各出現一次。
+# - labels：bin/labels.mjs 對一個假的 gh 把標籤對到標籤表，計畫、--apply、--delete、中途失敗再重跑。
 # shop 與 broken 先複製到暫存目錄，再把型錄的腳本複製進它的 scripts/（夾具自己的 _layout.py 留著）。
 # 輸出與 golden/<夾具>.txt 比對，行為刻意改了才 --update。
 set -u
@@ -83,4 +84,39 @@ for fx in shop broken; do
   ) > "$out"
   compare "$fx" "$out"
 done
+
+# labels：bin/labels.mjs 對一個假的 gh，標籤存在暫存目錄的一個 JSON 檔
+out="$tmp/labels.txt"
+(
+  export RIGID_GH="$here/fixtures/labels/fake_gh.mjs" FAKE_GH_STATE="$tmp/labels.json" FAKE_GH_LOG="$tmp/gh.log"
+  labels() { node "$plugin/bin/labels.mjs" "$@" 2>&1 | sed 's/\r$//'; echo "exit ${PIPESTATUS[0]}"; }
+  ghlog() { echo "# gh 跑了"; sed 's/^/  /' "$FAKE_GH_LOG"; : > "$FAKE_GH_LOG"; }
+  names() { node -e 'for (const l of JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))) console.log(`  ${l.name} ${l.color} ${l.description}`)' "$FAKE_GH_STATE"; }
+  : > "$FAKE_GH_LOG"
+
+  echo "## --help"; labels --help
+  echo "## 標籤表與 SKILL.md 的表一致"
+  node "$plugin/bin/labels.mjs" --help 2>&1 | sed 's/\r$//' | sed -n '/^標籤表：/,$p' | tail -n +2 | while read -r name desc; do
+    grep -q -F "| \`$name\` | $desc |" "$plugin/skills/labels/SKILL.md" || echo "SKILL.md 少了 $name"
+  done
+  echo "exit 0"
+
+  # fresh：GitHub 替新 repo 建的九個標籤
+  cp fixtures/labels/fresh.json "$FAKE_GH_STATE"
+  echo "## fresh：計畫"; labels; ghlog
+  echo "## fresh：--delete 表裡的"; labels --delete bug
+  echo "## fresh：--delete 會改名的"; labels --delete enhancement
+  echo "## fresh：--delete 沒有的"; labels --delete nothing
+  echo "## fresh：讀標籤失敗"; FAKE_GH_FAIL=list labels
+  echo "## fresh：--apply 中途失敗"; FAKE_GH_FAIL=refactor labels --delete "good first issue" --delete invalid --apply; ghlog
+  echo "## fresh：--apply 重跑"; labels --delete "good first issue" --delete invalid --apply; ghlog
+  echo "## fresh：驗"; labels; ghlog; names
+
+  # mixed：大小寫不同、顏色與說明不同、enhancement 與 feature 都在、有一個表以外的
+  cp fixtures/labels/mixed.json "$FAKE_GH_STATE"
+  echo "## mixed：計畫"; labels --repo someone/shop
+  echo "## mixed：--apply"; labels --repo someone/shop --apply; ghlog
+  echo "## mixed：驗"; labels --repo someone/shop; ghlog
+) > "$out"
+compare labels "$out"
 exit $fail

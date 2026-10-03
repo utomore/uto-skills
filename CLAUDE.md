@@ -31,7 +31,7 @@ bash tests/lawful/run.sh                  # lawful:九個夾具的 golden 回歸
 改了 `plugins/rigid/{bin,catalog}/` 之後：
 
 ```
-bash tests/rigid/run.sh                   # rigid:bin/scaffold.mjs 在空目錄鋪一次型錄第一格(blank),鋪出來的檔案清單進 golden,ruff、import-linter 六條契約、pyright strict、五道檢查、pytest 都要綠;shop 是一個領域、一條 REQ、兩條 law、api 與 cli 兩個入口的全綠樹,另外在它上面驗 ai_review(提示詞裡有 ADR-002 的分層表與標了行號的 diff、沒有 src 以外的檔;假模型回三個發現只留落在新增行上的那一個;只改 docs 不審;模型指令失敗只印 AI_REVIEW_FAILED 而 exit 0);broken 讓每一道紅各出現一次(含 FastAPI 孤兒路由、Typer 孤兒指令、guards 的權限項對不上、證據的每一種寫錯法)。要 uv 與網路(fastapi、typer、ruff、import-linter、pyright 由 uv 臨時裝)
+bash tests/rigid/run.sh                   # rigid:bin/scaffold.mjs 在空目錄鋪一次型錄第一格(blank),鋪出來的檔案清單進 golden,ruff、import-linter 六條契約、pyright strict、五道檢查、pytest 都要綠;shop 是一個領域、一條 REQ、兩條 law、api 與 cli 兩個入口的全綠樹,另外在它上面驗 ai_review(提示詞裡有 ADR-002 的分層表與標了行號的 diff、沒有 src 以外的檔;假模型回三個發現只留落在新增行上的那一個;只改 docs 不審;模型指令失敗只印 AI_REVIEW_FAILED 而 exit 0);broken 讓每一道紅各出現一次(含 FastAPI 孤兒路由、Typer 孤兒指令、guards 的權限項對不上、證據的每一種寫錯法);labels 是 bin/labels.mjs 對一個假的 gh(標籤存在一個 JSON 檔)把標籤對到標籤表:GitHub 替新 repo 建的九個標籤的計畫、--apply 中途失敗再重跑、--delete 點名才刪、大小寫與顏色說明不同的改回來、表以外的不動,腳本的標籤表與 SKILL.md 的表一字不差。要 uv 與網路(fastapi、typer、ruff、import-linter、pyright 由 uv 臨時裝)
 ```
 
 改了 `ci/dev-flow/contract.mjs` 或 `ci/lawful/contract.mjs`:

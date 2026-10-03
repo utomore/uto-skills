@@ -20,6 +20,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/scaffold.mjs":*), Bash(make 
 - 已經有 `scripts/_layout.py` → 更新模式：只動架構師點名的那一部分（加一道檢查、加一層、換 CI、改 CODEOWNERS），其餘不動；`bin/scaffold.mjs` 不覆蓋任何既有檔，要換的檔先由架構師決定再手動改。
 - 要談的是需求、里程碑、驗收 → 不在這裡，走 `rigid:plan`。
 - 要審一條分支有沒有把業務規則放錯層 → 不在這裡，走 `rigid:review`。
+- 要設 GitHub repo 的標籤 → 不在這裡，走 `rigid:labels`。
 
 ## 步驟
 

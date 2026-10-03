@@ -1,0 +1,200 @@
+## --help
+用法：node labels.mjs [--repo <OWNER/REPO>] [--delete <標籤>]... [--apply]
+  --repo    要設標籤的 repo，預設是目前目錄的 repo
+  --delete  刪掉一個標籤表以外的標籤（它會從所有 issue 與 PR 上消失），可以寫多次
+  --apply   真的動 GitHub；不加只印計畫
+標籤表：
+  feature   新增的能力或 API
+  bug       修正壞掉的行為
+  refactor  不改行為的重構、搬家、改名
+  docs      只動文件、ADR、計畫或設計稿
+  test      只動測試或驗證
+  chore     建置、CI、腳本、依賴、工具設定
+  decision  待決題（只用在 issue）
+  duplicate 關 issue 時用：重複
+  wontfix   關 issue 時用：不處理
+exit 2
+## 標籤表與 SKILL.md 的表一致
+exit 0
+## fresh：計畫
+# repo：someone/blank
+# 會建（4）
+  refactor  不改行為的重構、搬家、改名
+  test  只動測試或驗證
+  chore  建置、CI、腳本、依賴、工具設定
+  decision  待決題（只用在 issue）
+# 會改名（2）
+  enhancement → feature  新增的能力或 API
+  documentation → docs  只動文件、ADR、計畫或設計稿
+# 會改顏色或說明（3）
+  bug  修正壞掉的行為
+  duplicate  關 issue 時用：重複
+  wontfix  關 issue 時用：不處理
+# 會刪（0）
+# 已經一致、沒動（0）
+# 不在標籤表、沒動（4）
+  good first issue
+  help wanted
+  invalid
+  question
+# 接下來
+  加 --apply 才會動 GitHub
+exit 0
+# gh 跑了
+## fresh：--delete 表裡的
+labels: --delete bug：它在標籤表裡，不刪
+exit 2
+## fresh：--delete 會改名的
+labels: --delete enhancement：它會改名成 feature，不刪
+exit 2
+## fresh：--delete 沒有的
+labels: --delete nothing：repo 沒有這個標籤
+exit 2
+## fresh：讀標籤失敗
+labels: 讀標籤失敗
+  To get started with GitHub CLI, please run:  gh auth login
+exit 1
+## fresh：--apply 中途失敗
+labels: 建 refactor 失敗
+  HTTP 403: Resource not accessible (refactor)
+前面 5 道已經做完；修好之後重跑，做完的不會重做
+exit 1
+# gh 跑了
+  gh label edit enhancement --name feature --color a2eeef --description 新增的能力或 API
+  gh label edit documentation --name docs --color 0075ca --description 只動文件、ADR、計畫或設計稿
+  gh label edit bug --color d73a4a --description 修正壞掉的行為
+  gh label edit duplicate --color cfd3d7 --description 關 issue 時用：重複
+  gh label edit wontfix --color ffffff --description 關 issue 時用：不處理
+  gh label create refactor --color fbca04 --description 不改行為的重構、搬家、改名
+## fresh：--apply 重跑
+# repo：someone/blank
+# 建（4）
+  refactor  不改行為的重構、搬家、改名
+  test  只動測試或驗證
+  chore  建置、CI、腳本、依賴、工具設定
+  decision  待決題（只用在 issue）
+# 改名（0）
+# 改顏色或說明（0）
+# 刪（2）
+  good first issue
+  invalid
+# 已經一致、沒動（5）
+  feature
+  bug
+  docs
+  duplicate
+  wontfix
+# 不在標籤表、沒動（2）
+  help wanted
+  question
+exit 0
+# gh 跑了
+  gh label create refactor --color fbca04 --description 不改行為的重構、搬家、改名
+  gh label create test --color 0e8a16 --description 只動測試或驗證
+  gh label create chore --color c5def5 --description 建置、CI、腳本、依賴、工具設定
+  gh label create decision --color d876e3 --description 待決題（只用在 issue）
+  gh label delete good first issue --yes
+  gh label delete invalid --yes
+## fresh：驗
+# repo：someone/blank
+# 會建（0）
+# 會改名（0）
+# 會改顏色或說明（0）
+# 會刪（0）
+# 已經一致、沒動（9）
+  feature
+  bug
+  refactor
+  docs
+  test
+  chore
+  decision
+  duplicate
+  wontfix
+# 不在標籤表、沒動（2）
+  help wanted
+  question
+exit 0
+# gh 跑了
+  bug d73a4a 修正壞掉的行為
+  docs 0075ca 只動文件、ADR、計畫或設計稿
+  duplicate cfd3d7 關 issue 時用：重複
+  feature a2eeef 新增的能力或 API
+  help wanted 008672 Extra attention is needed
+  question d876e3 Further information is requested
+  wontfix ffffff 關 issue 時用：不處理
+  refactor fbca04 不改行為的重構、搬家、改名
+  test 0e8a16 只動測試或驗證
+  chore c5def5 建置、CI、腳本、依賴、工具設定
+  decision d876e3 待決題（只用在 issue）
+## mixed：計畫
+# repo：someone/shop
+# 會建（5）
+  refactor  不改行為的重構、搬家、改名
+  test  只動測試或驗證
+  decision  待決題（只用在 issue）
+  duplicate  關 issue 時用：重複
+  wontfix  關 issue 時用：不處理
+# 會改名（0）
+# 會改顏色或說明（2）
+  Bug → bug  修正壞掉的行為
+  docs  只動文件、ADR、計畫或設計稿
+# 會刪（0）
+# 已經一致、沒動（2）
+  feature
+  chore
+# 不在標籤表、沒動（2）
+  enhancement
+  priority/high
+# 接下來
+  加 --apply 才會動 GitHub
+exit 0
+## mixed：--apply
+# repo：someone/shop
+# 建（5）
+  refactor  不改行為的重構、搬家、改名
+  test  只動測試或驗證
+  decision  待決題（只用在 issue）
+  duplicate  關 issue 時用：重複
+  wontfix  關 issue 時用：不處理
+# 改名（0）
+# 改顏色或說明（2）
+  Bug → bug  修正壞掉的行為
+  docs  只動文件、ADR、計畫或設計稿
+# 刪（0）
+# 已經一致、沒動（2）
+  feature
+  chore
+# 不在標籤表、沒動（2）
+  enhancement
+  priority/high
+exit 0
+# gh 跑了
+  gh label edit Bug --repo someone/shop --name bug --color d73a4a --description 修正壞掉的行為
+  gh label edit docs --repo someone/shop --color 0075ca --description 只動文件、ADR、計畫或設計稿
+  gh label create refactor --repo someone/shop --color fbca04 --description 不改行為的重構、搬家、改名
+  gh label create test --repo someone/shop --color 0e8a16 --description 只動測試或驗證
+  gh label create decision --repo someone/shop --color d876e3 --description 待決題（只用在 issue）
+  gh label create duplicate --repo someone/shop --color cfd3d7 --description 關 issue 時用：重複
+  gh label create wontfix --repo someone/shop --color ffffff --description 關 issue 時用：不處理
+## mixed：驗
+# repo：someone/shop
+# 會建（0）
+# 會改名（0）
+# 會改顏色或說明（0）
+# 會刪（0）
+# 已經一致、沒動（9）
+  feature
+  bug
+  refactor
+  docs
+  test
+  chore
+  decision
+  duplicate
+  wontfix
+# 不在標籤表、沒動（2）
+  enhancement
+  priority/high
+exit 0
+# gh 跑了

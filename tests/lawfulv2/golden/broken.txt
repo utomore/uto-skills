@@ -1,0 +1,28 @@
+## check_laws
+[check_laws] carts：缺少 laws.md
+[check_laws] orders：候選不能用 LAW 編號，實作時連同測試搬進 ## Laws 才編號
+[check_laws] orders：laws.md 的 LAW-1 重複
+[check_laws] orders：測試檔 test_checkout.py 要叫 test_orders.py 或 test_orders_<主題>.py
+[check_laws] orders：test_checkout.py 標了 laws.md 裡沒有的 LAW-7
+[check_laws] orders：test_checkout.py 標了格式不對的 law「law-x」
+[check_laws] orders：LAW-3 沒有任何測試
+exit 1
+## check_glossary
+[check_glossary] 領域 carts 不在 glossary.md 的識別名欄；先登記名詞再建資料夾
+exit 1
+## check_errors
+[check_errors] shop.domains.orders.errors.OutOfStock 沒有在 cli/errors.py 的 TRANSLATIONS 裡
+exit 1
+## check_entries
+[check_entries] orders：place_order 的權限項表上寫「登入即可」，use case 宣告的是「orders.place」
+[check_entries] orders：list_orders 的權限項表上寫「orders.view」，use case 宣告的是「（沒宣告）」
+[check_entries] orders：list_orders 沒有 cli 入口；每個 use case 都要能從 cli 執行（ADR-003）
+[check_entries] orders：feature.md 的 use case cancel_order 不是 shop.application 匯出的名字
+[check_entries] application.list_orders 沒有宣告權限項：用 guards.py 的裝飾器宣告它要什麼
+[check_entries] feature.md 宣告了 api「DELETE /orders/{order_id}」，但沒有註冊
+[check_entries] api「GET /orders/{order_id}」有註冊，但沒有任何 feature.md 宣告
+[check_entries] feature.md 宣告了 cli「order cancel」，但沒有註冊
+[check_entries] cli「order list」有註冊，但沒有任何 feature.md 宣告
+exit 1
+## pytest
+exit 0

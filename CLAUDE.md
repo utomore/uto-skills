@@ -28,10 +28,10 @@ bash tests/dev-flow/run.sh                # dev-flow:夾具的 golden 回歸 + -
 bash tests/lawful/run.sh                  # lawful:九個夾具的 golden 回歸 + --help,brief 點名的規章節都在、每個 skill 載到的規章都在字數上限以內、規章與 SKILL.md 的交叉引用都指得到那一節、brief 每一段都在一道注入指令的大小上限以內而且接起來一個字不少、十四份 SKILL.md 與 brief 的 skill 名單一一對上而且 frontmatter 讀得成、六道注入行與 allowed-tools 寫對、三道 migrate(cone、laws、requirements)以任何先後接連跑落地的樹都相同、名詞表的讀法（同 dev-flow，住 `.lawful/vocabulary.md`）,另外真的開一個 repo 驗靠修訂達成的里程碑的工作樹與專案的第一條切片單獨走完(直接拿模板 Cone 開樹,空的全域 Law 區不紅、不列警訊)、`.lawful/` 的標點寫全形與寫半形讀出同一棵樹(brief 的 golden 一樣用 --no-rules);fixtures/save-game 同時是 .lawful 的完整範例
 ```
 
-改了 `plugins/rigid/{bin,catalog}/` 之後：
+改了 `plugins/lawfulv2/{bin,catalog,templates}/` 之後：
 
 ```
-bash tests/rigid/run.sh                   # rigid:bin/scaffold.mjs 在空目錄鋪一次型錄第一格(blank),鋪出來的檔案清單進 golden,ruff、import-linter 六條契約、pyright strict、五道檢查、pytest 都要綠;shop 是一個領域、一條 REQ、兩條 law、api 與 cli 兩個入口的全綠樹,另外在它上面驗 ai_review(提示詞裡有 ADR-002 的分層表與標了行號的 diff、沒有 src 以外的檔;假模型回三個發現只留落在新增行上的那一個;只改 docs 不審;模型指令失敗只印 AI_REVIEW_FAILED 而 exit 0);broken 讓每一道紅各出現一次(含 FastAPI 孤兒路由、Typer 孤兒指令、guards 的權限項對不上、證據的每一種寫錯法);labels 是 bin/labels.mjs 對一個假的 gh(標籤存在一個 JSON 檔)把標籤對到標籤表:GitHub 替新 repo 建的九個標籤的計畫、--apply 中途失敗再重跑、--delete 點名才刪、大小寫與顏色說明不同的改回來、表以外的不動,腳本的標籤表與 SKILL.md 的表一字不差。要 uv 與網路(fastapi、typer、ruff、import-linter、pyright 由 uv 臨時裝)
+bash tests/lawfulv2/run.sh                # lawfulv2:docs 是 bin/scaffold.mjs 不給 --catalog、在空目錄只鋪文件層(CLAUDE.md、README.md、五份 ADR 與索引、名詞表、guide、backlog),鋪出來的檔案清單進 golden、佔位符都換掉、再鋪一次全部是已存在沒動、參數配錯各有一句,另外兩份 SKILL.md 的 frontmatter 讀得成(description 裡沒有冒號加空白);blank 是文件層加型錄第一格鋪一次,檔案清單進 golden,ruff、import-linter 六條契約、pyright strict、四道檢查、pytest 都要綠;shop 是一個領域、兩條 law、api 與 cli 兩個入口的全綠樹;broken 讓每一道紅各出現一次(含 FastAPI 孤兒路由、Typer 孤兒指令、guards 的權限項對不上);labels 是 bin/labels.mjs 對一個假的 gh(標籤存在一個 JSON 檔)把標籤對到標籤表:GitHub 替新 repo 建的九個標籤的計畫、--apply 中途失敗再重跑、--delete 點名才刪、大小寫與顏色說明不同的改回來、表以外的不動,腳本的標籤表與 SKILL.md 的表一字不差。要 uv 與網路(fastapi、typer、ruff、import-linter、pyright 由 uv 臨時裝)
 ```
 
 改了 `ci/dev-flow/contract.mjs` 或 `ci/lawful/contract.mjs`:

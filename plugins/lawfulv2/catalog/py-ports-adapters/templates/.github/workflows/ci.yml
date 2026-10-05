@@ -1,0 +1,19 @@
+# PR 檢查（ADR-005）。兩步的 id 固定：check 是 make check，unit 是 make test。
+name: ci
+on:
+  pull_request:
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - id: sync
+        run: uv sync
+      - id: check
+        run: make check
+      - id: unit
+        run: make test

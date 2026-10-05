@@ -22,12 +22,12 @@
       "source": "./plugins/lawful"
     },
     {
-      "name": "rigid",
-      "description": "架構師搭框架、開發者在框裡做事的開發方式：規則給機器守（ruff、pyright、import-linter、scripts/check_*、pre-commit、CI、CODEOWNERS），LLM 只在框裡做事。scaffold 從型錄選一格（每一格來自一個真專案，附帶目錄、依賴契約、檢查腳本、CI 與 CODEOWNERS）把整個框架一次鋪好，plan 把需求切成一到五天的可開發單元、驗收行尾寫證據，review 在本機審機器判不了的分層語意，labels 把 GitHub repo 的標籤設成固定的九個（feature、bug、refactor、docs、test、chore、decision、duplicate、wontfix）。日常做單元不需要 skill：讀專案的 CLAUDE.md 與一份里程碑檔就開工，過不了 make check 就進不了主線。型錄第一格：Python、ports and adapters、api 與 cli 兩個對等入口。skills:scaffold、plan、review、labels。",
+      "name": "lawfulv2",
+      "description": "專案的規範者：從零把一個專案的規範定下來，之後怎麼開發交給使用者與 LLM（前置要求是已經連上原始碼庫與專案管理工具）。kickoff 先把整個專案會怎麼建講一遍，再一題一題追問、每一題給選項與代價，由使用者抉擇，寫成五份 ADR（目標與技術基礎、專案管理、軟體架構、本地檢查、CI 與 CD），並產出 CLAUDE.md、README.md、docs/glossary.md、docs/guide/、docs/backlog.md；工作項目與進度交給使用者選的專案管理工具，不寫進 repo 的文件。架構從型錄選一格（每一格來自一個真專案）時，連目錄、依賴契約、檢查腳本、pre-commit、CI 與 CODEOWNERS 一起鋪好；型錄沒有的架構只記決策、不發明檢查。labels 把 GitHub repo 的標籤設成固定的九個（feature、bug、refactor、docs、test、chore、decision、duplicate、wontfix）。型錄第一格：Python、ports and adapters、api 與 cli 兩個對等入口。skills:kickoff、labels。",
       "author": {
         "name": "utomore"
       },
-      "source": "./plugins/rigid"
+      "source": "./plugins/lawfulv2"
     },
     {
       "name": "talk-flow",

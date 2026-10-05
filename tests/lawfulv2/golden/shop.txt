@@ -1,0 +1,10 @@
+## check_laws
+exit 0
+## check_glossary
+exit 0
+## check_errors
+exit 0
+## check_entries
+exit 0
+## pytest
+exit 0

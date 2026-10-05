@@ -1,0 +1,33 @@
+## scaffold（只有文件層）
+# 只有文件層
+# 建了（11）
+  CLAUDE.md
+  README.md
+  docs/adr/ADR-001-foundation.md
+  docs/adr/ADR-002-project-management.md
+  docs/adr/ADR-003-software-architecture.md
+  docs/adr/ADR-004-local-checks.md
+  docs/adr/ADR-005-ci-cd.md
+  docs/adr/README.md
+  docs/backlog.md
+  docs/glossary.md
+  docs/guide/README.md
+# 已存在、沒動（0）
+# 接下來
+  檔案裡 <…> 的地方還是佔位符：照跟使用者談定的內容填，沒談到的回去問
+  已存在、沒動的檔：逐一比對模板，該併的段落跟使用者確認之後手動併進去
+exit 0
+## 佔位符都換掉了
+exit 1
+## 再鋪一次
+# 只有文件層
+# 建了（0）
+# 已存在、沒動（11）
+# 接下來
+## 參數
+scaffold: --package 是型錄的一格才用得到的，要先給 --catalog
+scaffold: 選了 --catalog 就要給 --package
+scaffold: 型錄沒有 nothing 這一格
+## SKILL.md 的 frontmatter
+kickoff ok
+labels ok

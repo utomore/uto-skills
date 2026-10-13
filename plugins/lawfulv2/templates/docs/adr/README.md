@@ -4,8 +4,8 @@
 
 | 編號 | 決策 |
 |---|---|
-| [ADR-001](ADR-001-foundation.md) | 目標與技術基礎：這個專案替誰做什麼、用什麼語言、原始碼庫、執行環境、套件與版本 |
-| [ADR-002](ADR-002-project-management.md) | 專案管理：用什麼工具管工作項目、里程碑、進度與狀態，怎麼和 PR 連起來 |
+| [ADR-001](ADR-001-foundation.md) | 目標與技術基礎：北極星、不做清單、用什麼語言、原始碼庫、執行環境、套件與版本 |
+| [ADR-002](ADR-002-project-management.md) | 專案管理：用什麼工具管工作項目、里程碑、進度與狀態，怎麼和 PR 連起來；種類的待遇、第二把尺 |
 | [ADR-003](ADR-003-software-architecture.md) | 軟體架構：程式碼怎麼切、依賴方向、law 住在哪裡 |
 | [ADR-004](ADR-004-local-checks.md) | 本地檢查：pre-commit、linter、檢查腳本與 AI review 怎麼守住架構 |
 | [ADR-005](ADR-005-ci-cd.md) | CI 與 CD：用什麼跑、自動化到哪裡 |

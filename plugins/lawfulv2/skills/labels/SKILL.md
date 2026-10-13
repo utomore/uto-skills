@@ -1,6 +1,6 @@
 ---
 name: labels
-description: lawfulv2 的標籤表，把一個 GitHub repo 的標籤設成固定的九個（feature、bug、refactor、docs、test、chore 分類一個改動，decision 只用在待決題的 issue，duplicate、wontfix 關 issue 時用）：一道指令先印計畫（會建、會改名、會改顏色或說明、會刪），架構師確認之後才動 GitHub；GitHub 替每個新 repo 建的 enhancement、documentation 改名成 feature、docs，標籤表以外的標籤由架構師逐一決定刪或留。不替 issue 與 PR 貼標籤、不加第十個。觸發詞：標籤、label、labels、初始化標籤、設標籤、issue 標籤、PR 標籤、gh label。Use when initializing or re-aligning the GitHub labels of a repo to the fixed lawfulv2 label table.
+description: lawfulv2 的標籤表，把一個 GitHub repo 的標籤設成固定的兩組，改動類型九個加種類六個（feature、bug、refactor、docs、test、chore 分類一個改動，decision 只用在待決題的 issue，duplicate、wontfix 關 issue 時用；種類:目的、種類:延伸、種類:工程保證、種類:效能、種類:開發工具、種類:維護每張 issue 恰好一個）：一道指令先印計畫（會建、會改名、會改顏色或說明、會刪），架構師確認之後才動 GitHub；GitHub 替每個新 repo 建的 enhancement、documentation 改名成 feature、docs，標籤表以外的標籤由架構師逐一決定刪或留。不替 issue 與 PR 貼標籤、不加兩張表以外的標籤。觸發詞：標籤、label、labels、初始化標籤、設標籤、issue 標籤、PR 標籤、gh label。Use when initializing or re-aligning the GitHub labels of a repo to the fixed lawfulv2 label table.
 user-invocable: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/labels.mjs":*)
 ---
@@ -13,9 +13,13 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/labels.mjs":*)
 
 | 輸入 | 產出 |
 |---|---|
-| 一個 GitHub repo（目前目錄的，或 `OWNER/REPO`）、登入過而且對它有寫入權限的 `gh` | repo 上有標籤表的九個標籤，名稱、顏色、說明都一致；表以外的標籤每一個都有架構師的決定（刪或留）；repo 裡沒有任何檔案被改 |
+| 一個 GitHub repo（目前目錄的，或 `OWNER/REPO`）、登入過而且對它有寫入權限的 `gh` | repo 上有標籤表的十五個標籤（改動類型九個、種類六個），名稱、顏色、說明都一致；表以外的標籤每一個都有架構師的決定（刪或留）；repo 裡沒有任何檔案被改 |
 
 ## 標籤表
+
+標籤表分兩組。
+
+**改動類型**：分類一個改動，以及 issue 的處理方式。
 
 | 標籤 | 用在 |
 |---|---|
@@ -28,6 +32,17 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/labels.mjs":*)
 | `decision` | 待決題（只用在 issue） |
 | `duplicate` | 關 issue 時用：重複 |
 | `wontfix` | 關 issue 時用：不處理 |
+
+**種類**：這件工作跟專案北極星的關係（判準見專案 `CLAUDE.md` 的「工作的種類」）。每張 issue 恰好一個；PR 不貼，`decision` 的 issue 也不貼。
+
+| 標籤 | 用在 |
+|---|---|
+| `種類:目的` | 少了它，北極星做不到 |
+| `種類:延伸` | 北極星已經做得到，多一種方式或更方便 |
+| `種類:工程保證` | 可靠性與正確性，出事會壞資料或壞狀態 |
+| `種類:效能` | 做得到，但太慢、太大或太耗資源 |
+| `種類:開發工具` | 服務開發的人 |
+| `種類:維護` | 既有的債 |
 
 「用在」寫進 GitHub 標籤的說明欄，貼標籤的人在選單上就看得到。
 
@@ -55,7 +70,7 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/labels.mjs":*)
    node "${CLAUDE_PLUGIN_ROOT}/bin/labels.mjs" [--repo <OWNER/REPO>] [--delete <標籤>]... --apply
    ```
 
-5. **驗。** 不加 `--apply`、不帶 `--delete` 再跑一次：會建、會改名、會改顏色或說明、會刪都是 0，九個都在「已經一致、沒動」。
+5. **驗。** 不加 `--apply`、不帶 `--delete` 再跑一次：會建、會改名、會改顏色或說明、會刪都是 0，十五個都在「已經一致、沒動」。
 
 ## 收尾
 
@@ -63,4 +78,4 @@ allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/bin/labels.mjs":*)
 
 ## 邊界
 
-不替任何 issue 或 PR 貼、換、拿掉標籤；不刪架構師沒有點名的標籤、不替他決定刪或留；不改標籤表的名稱、顏色與說明，不加第十個；不動 repo 的其他設定（分支保護、協作者、CODEOWNERS）；沒有印過計畫、沒有架構師確認，不加 `--apply`。
+不替任何 issue 或 PR 貼、換、拿掉標籤；不刪架構師沒有點名的標籤、不替他決定刪或留；不改標籤表的名稱、顏色與說明，不加兩張表以外的標籤；不動 repo 的其他設定（分支保護、協作者、CODEOWNERS）；沒有印過計畫、沒有架構師確認，不加 `--apply`。

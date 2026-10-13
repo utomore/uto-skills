@@ -2,7 +2,7 @@
 
 - 宣告了、沒註冊：功能沒接上入口。
 - 註冊了、沒宣告：沒有文件的孤兒入口。維運的技術入口（_layout.OPS_ROUTE_PREFIX 底下的路由與
-  _layout.OPS_COMMAND 群組的指令）除外（ADR-003）。
+  _layout.OPS_COMMAND 群組的指令）除外（P-003）。
 - 表裡的 use case 必須是 <PACKAGE>.application 匯出的名字；_layout.REQUIRED_ENTRY 指定的入口一定要有，
   其他入口可以是 `-`。
 - 有 <PACKAGE>.application.guards 的專案：application 匯出的每一個函數都用它的裝飾器宣告了要什麼，
@@ -99,7 +99,7 @@ def declared(domains_dir: Path = DOMAINS_DIR) -> tuple[dict[str, set[str]], list
                 if value == "-":
                     if entry == REQUIRED_ENTRY:
                         problems.append(
-                            f"{d}：{fn} 沒有 {entry} 入口；每個 use case 都要能從 {entry} 執行（ADR-003）"
+                            f"{d}：{fn} 沒有 {entry} 入口；每個 use case 都要能從 {entry} 執行（P-003）"
                         )
                 else:
                     declared_by_entry[entry].add(value)

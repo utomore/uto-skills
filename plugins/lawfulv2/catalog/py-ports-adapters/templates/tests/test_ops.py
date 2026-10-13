@@ -1,4 +1,4 @@
-"""兩個入口建得起來、維運的技術入口在：create_app() 與 cli 的 app 建立時不做任何 I/O（ADR-003）。"""
+"""兩個入口建得起來、維運的技術入口在：create_app() 與 cli 的 app 建立時不做任何 I/O（P-003）。"""
 
 from typer.testing import CliRunner
 

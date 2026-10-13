@@ -1,4 +1,4 @@
-# PR 檢查（ADR-005；Cloud Build 的 GitHub 觸發器指到這份）。兩步的 id 固定：check 是 make check，unit 是 make test。
+# PR 檢查（P-004；Cloud Build 的 GitHub 觸發器指到這份）。兩步的 id 固定：check 是 make check，unit 是 make test。
 steps:
   - id: check
     name: ghcr.io/astral-sh/uv:python3.13-bookworm-slim

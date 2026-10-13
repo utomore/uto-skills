@@ -1,6 +1,6 @@
 # orders 的 Laws
 
-寫法見 docs/adr/ADR-003-software-architecture.md 的「law 與測試」。
+寫法見 docs/adr/process/P-003-architecture-rules.md 的「law 與測試」。
 
 ## Laws
 

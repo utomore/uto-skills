@@ -1,4 +1,4 @@
-# PR 檢查（ADR-005）。兩步的 id 固定：check 是 make check，unit 是 make test。
+# PR 檢查（P-004）。兩步的 id 固定：check 是 make check，unit 是 make test。
 name: ci
 on:
   pull_request:

@@ -36,10 +36,10 @@ cli ─┘        │
 | CI：GitHub Actions 與 Cloud Build 各一份，兩步的 id 固定（`check`、`unit`） | `templates/.github/workflows/ci.yml`、`templates/cloudbuild/ci.yaml` |
 | CODEOWNERS：會影響所有人的路徑 | `templates/CODEOWNERS` |
 | `CLAUDE.md`（這一格的協作規則）、`README.md`（結構、依賴方向、檢查表、指令表） | `templates/` |
-| 寫好決策的 ADR-003 軟體架構（含分層表、law 住在領域的 `laws.md`）、ADR-004 本地檢查、ADR-005 CI 與 CD；背景與 CD 由 `lawfulv2:kickoff` 照使用者講的填 | `templates/docs/adr/` |
+| 寫好決策的 D-003 軟體架構、D-004 工具、P-003 架構規範（含分層表、law 住在領域的 `laws.md`）、P-004 檢查與合併的關卡；當前情境、專案管理工具、CI 平台與 CD 由 `lawfulv2:kickoff` 照使用者講的填 | `templates/docs/adr/` |
 | 名詞表（空表，`check_glossary` 讀它的識別名欄） | `templates/docs/glossary.md` |
 
-ADR-001 目標與技術基礎、ADR-002 專案管理、`docs/guide/`、`docs/backlog.md` 與 ADR 索引不屬於這一格，來自 plugin 的文件層 `templates/`。
+D-001 語言與執行環境、D-002 資料放哪裡、P-001 北極星與不做清單、P-002 工作流程、`docs/guide/`、`docs/backlog.md` 與 ADR 索引不屬於這一格，來自 plugin 的文件層 `templates/`。
 
 ## 鋪的順序
 

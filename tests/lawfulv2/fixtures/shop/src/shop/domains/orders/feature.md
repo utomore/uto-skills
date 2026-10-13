@@ -7,7 +7,7 @@
 
 ## 入口
 
-一列一個 use case。函數名稱是 `application` 匯出的名字（ADR-003）；沒有該入口填 `-`。
+一列一個 use case。函數名稱是 `application` 匯出的名字（P-003）；沒有該入口填 `-`。
 
 | use case | api | cli |
 |---|---|---|

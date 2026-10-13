@@ -1,6 +1,6 @@
 ## scaffold
 # 文件層加型錄的 py-ports-adapters
-# 建了（43）
+# 建了（46）
   .github/workflows/ci.yml
   .gitignore
   .pre-commit-config.yaml
@@ -9,12 +9,15 @@
   Makefile
   README.md
   cloudbuild/ci.yaml
-  docs/adr/ADR-001-foundation.md
-  docs/adr/ADR-002-project-management.md
-  docs/adr/ADR-003-software-architecture.md
-  docs/adr/ADR-004-local-checks.md
-  docs/adr/ADR-005-ci-cd.md
   docs/adr/README.md
+  docs/adr/design/D-001-runtime.md
+  docs/adr/design/D-002-storage.md
+  docs/adr/design/D-003-architecture.md
+  docs/adr/design/D-004-tools.md
+  docs/adr/process/P-001-north-star.md
+  docs/adr/process/P-002-workflow.md
+  docs/adr/process/P-003-architecture-rules.md
+  docs/adr/process/P-004-gates.md
   docs/backlog.md
   docs/glossary.md
   docs/guide/README.md
@@ -54,7 +57,7 @@ exit 0
 All checks passed!
 exit 0
 ## ruff format
-36 files already formatted
+39 files already formatted
 exit 0
 ## lint-imports
 

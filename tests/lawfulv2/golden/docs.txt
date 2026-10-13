@@ -1,14 +1,17 @@
 ## scaffold（只有文件層）
 # 只有文件層
-# 建了（11）
+# 建了（14）
   CLAUDE.md
   README.md
-  docs/adr/ADR-001-foundation.md
-  docs/adr/ADR-002-project-management.md
-  docs/adr/ADR-003-software-architecture.md
-  docs/adr/ADR-004-local-checks.md
-  docs/adr/ADR-005-ci-cd.md
   docs/adr/README.md
+  docs/adr/design/D-001-runtime.md
+  docs/adr/design/D-002-storage.md
+  docs/adr/design/D-003-architecture.md
+  docs/adr/design/D-004-tools.md
+  docs/adr/process/P-001-north-star.md
+  docs/adr/process/P-002-workflow.md
+  docs/adr/process/P-003-architecture-rules.md
+  docs/adr/process/P-004-gates.md
   docs/backlog.md
   docs/glossary.md
   docs/guide/README.md
@@ -22,7 +25,7 @@ exit 1
 ## 再鋪一次
 # 只有文件層
 # 建了（0）
-# 已存在、沒動（11）
+# 已存在、沒動（14）
 # 接下來
 ## 參數
 scaffold: --package 是型錄的一格才用得到的，要先給 --catalog

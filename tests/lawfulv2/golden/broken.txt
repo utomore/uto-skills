@@ -16,7 +16,7 @@ exit 1
 ## check_entries
 [check_entries] orders：place_order 的權限項表上寫「登入即可」，use case 宣告的是「orders.place」
 [check_entries] orders：list_orders 的權限項表上寫「orders.view」，use case 宣告的是「（沒宣告）」
-[check_entries] orders：list_orders 沒有 cli 入口；每個 use case 都要能從 cli 執行（ADR-003）
+[check_entries] orders：list_orders 沒有 cli 入口；每個 use case 都要能從 cli 執行（P-003）
 [check_entries] orders：feature.md 的 use case cancel_order 不是 shop.application 匯出的名字
 [check_entries] application.list_orders 沒有宣告權限項：用 guards.py 的裝飾器宣告它要什麼
 [check_entries] feature.md 宣告了 api「DELETE /orders/{order_id}」，但沒有註冊

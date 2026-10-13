@@ -31,7 +31,7 @@ bash tests/lawful/run.sh                  # lawful:九個夾具的 golden 回歸
 改了 `plugins/lawfulv2/{bin,catalog,templates}/` 之後：
 
 ```
-bash tests/lawfulv2/run.sh                # lawfulv2:docs 是 bin/scaffold.mjs 不給 --catalog、在空目錄只鋪文件層(CLAUDE.md、README.md、五份 ADR 與索引、名詞表、guide、backlog),鋪出來的檔案清單進 golden、佔位符都換掉、再鋪一次全部是已存在沒動、參數配錯各有一句,另外兩份 SKILL.md 的 frontmatter 讀得成(description 裡沒有冒號加空白);blank 是文件層加型錄第一格鋪一次,檔案清單進 golden,ruff、import-linter 六條契約、pyright strict、四道檢查、pytest 都要綠;shop 是一個領域、兩條 law、api 與 cli 兩個入口的全綠樹;broken 讓每一道紅各出現一次(含 FastAPI 孤兒路由、Typer 孤兒指令、guards 的權限項對不上);labels 是 bin/labels.mjs 對一個假的 gh(標籤存在一個 JSON 檔)把標籤對到標籤表:GitHub 替新 repo 建的九個標籤的計畫、--apply 中途失敗再重跑、--delete 點名才刪、大小寫與顏色說明不同的改回來、表以外的不動,腳本的標籤表與 SKILL.md 的表一字不差。要 uv 與網路(fastapi、typer、ruff、import-linter、pyright 由 uv 臨時裝)
+bash tests/lawfulv2/run.sh                # lawfulv2:docs 是 bin/scaffold.mjs 不給 --catalog、在空目錄只鋪文件層(CLAUDE.md、README.md、ADR 索引與設計、流程各四份、名詞表、guide、backlog),鋪出來的檔案清單進 golden、佔位符都換掉、再鋪一次全部是已存在沒動、參數配錯各有一句,另外兩份 SKILL.md 的 frontmatter 讀得成(description 裡沒有冒號加空白);blank 是文件層加型錄第一格鋪一次,檔案清單進 golden,ruff、import-linter 六條契約、pyright strict、四道檢查、pytest 都要綠;shop 是一個領域、兩條 law、api 與 cli 兩個入口的全綠樹;broken 讓每一道紅各出現一次(含 FastAPI 孤兒路由、Typer 孤兒指令、guards 的權限項對不上);labels 是 bin/labels.mjs 對一個假的 gh(標籤存在一個 JSON 檔)把標籤對到標籤表:GitHub 替新 repo 建的九個標籤的計畫、--apply 中途失敗再重跑、--delete 點名才刪、大小寫與顏色說明不同的改回來、表以外的不動,腳本的標籤表與 SKILL.md 的表一字不差。要 uv 與網路(fastapi、typer、ruff、import-linter、pyright 由 uv 臨時裝)
 ```
 
 改了 `ci/dev-flow/contract.mjs` 或 `ci/lawful/contract.mjs`:

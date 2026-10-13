@@ -13,16 +13,28 @@
   decision  待決題（只用在 issue）
   duplicate 關 issue 時用：重複
   wontfix   關 issue 時用：不處理
+  種類:目的     少了它，北極星做不到
+  種類:延伸     北極星已經做得到，多一種方式或更方便
+  種類:工程保證   可靠性與正確性，出事會壞資料或壞狀態
+  種類:效能     做得到，但太慢、太大或太耗資源
+  種類:開發工具   服務開發的人
+  種類:維護     既有的債
 exit 2
 ## 標籤表與 SKILL.md 的表一致
 exit 0
 ## fresh：計畫
 # repo：someone/blank
-# 會建（4）
+# 會建（10）
   refactor  不改行為的重構、搬家、改名
   test  只動測試或驗證
   chore  建置、CI、腳本、依賴、工具設定
   decision  待決題（只用在 issue）
+  種類:目的  少了它，北極星做不到
+  種類:延伸  北極星已經做得到，多一種方式或更方便
+  種類:工程保證  可靠性與正確性，出事會壞資料或壞狀態
+  種類:效能  做得到，但太慢、太大或太耗資源
+  種類:開發工具  服務開發的人
+  種類:維護  既有的債
 # 會改名（2）
   enhancement → feature  新增的能力或 API
   documentation → docs  只動文件、ADR、計畫或設計稿
@@ -68,11 +80,17 @@ exit 1
   gh label create refactor --color fbca04 --description 不改行為的重構、搬家、改名
 ## fresh：--apply 重跑
 # repo：someone/blank
-# 建（4）
+# 建（10）
   refactor  不改行為的重構、搬家、改名
   test  只動測試或驗證
   chore  建置、CI、腳本、依賴、工具設定
   decision  待決題（只用在 issue）
+  種類:目的  少了它，北極星做不到
+  種類:延伸  北極星已經做得到，多一種方式或更方便
+  種類:工程保證  可靠性與正確性，出事會壞資料或壞狀態
+  種類:效能  做得到，但太慢、太大或太耗資源
+  種類:開發工具  服務開發的人
+  種類:維護  既有的債
 # 改名（0）
 # 改顏色或說明（0）
 # 刪（2）
@@ -93,6 +111,12 @@ exit 0
   gh label create test --color 0e8a16 --description 只動測試或驗證
   gh label create chore --color c5def5 --description 建置、CI、腳本、依賴、工具設定
   gh label create decision --color d876e3 --description 待決題（只用在 issue）
+  gh label create 種類:目的 --color b60205 --description 少了它，北極星做不到
+  gh label create 種類:延伸 --color 1d76db --description 北極星已經做得到，多一種方式或更方便
+  gh label create 種類:工程保證 --color 5319e7 --description 可靠性與正確性，出事會壞資料或壞狀態
+  gh label create 種類:效能 --color f9d0c4 --description 做得到，但太慢、太大或太耗資源
+  gh label create 種類:開發工具 --color bfdadc --description 服務開發的人
+  gh label create 種類:維護 --color e4e669 --description 既有的債
   gh label delete good first issue --yes
   gh label delete invalid --yes
 ## fresh：驗
@@ -101,7 +125,7 @@ exit 0
 # 會改名（0）
 # 會改顏色或說明（0）
 # 會刪（0）
-# 已經一致、沒動（9）
+# 已經一致、沒動（15）
   feature
   bug
   refactor
@@ -111,6 +135,12 @@ exit 0
   decision
   duplicate
   wontfix
+  種類:目的
+  種類:延伸
+  種類:工程保證
+  種類:效能
+  種類:開發工具
+  種類:維護
 # 不在標籤表、沒動（2）
   help wanted
   question
@@ -127,14 +157,26 @@ exit 0
   test 0e8a16 只動測試或驗證
   chore c5def5 建置、CI、腳本、依賴、工具設定
   decision d876e3 待決題（只用在 issue）
+  種類:目的 b60205 少了它，北極星做不到
+  種類:延伸 1d76db 北極星已經做得到，多一種方式或更方便
+  種類:工程保證 5319e7 可靠性與正確性，出事會壞資料或壞狀態
+  種類:效能 f9d0c4 做得到，但太慢、太大或太耗資源
+  種類:開發工具 bfdadc 服務開發的人
+  種類:維護 e4e669 既有的債
 ## mixed：計畫
 # repo：someone/shop
-# 會建（5）
+# 會建（11）
   refactor  不改行為的重構、搬家、改名
   test  只動測試或驗證
   decision  待決題（只用在 issue）
   duplicate  關 issue 時用：重複
   wontfix  關 issue 時用：不處理
+  種類:目的  少了它，北極星做不到
+  種類:延伸  北極星已經做得到，多一種方式或更方便
+  種類:工程保證  可靠性與正確性，出事會壞資料或壞狀態
+  種類:效能  做得到，但太慢、太大或太耗資源
+  種類:開發工具  服務開發的人
+  種類:維護  既有的債
 # 會改名（0）
 # 會改顏色或說明（2）
   Bug → bug  修正壞掉的行為
@@ -151,12 +193,18 @@ exit 0
 exit 0
 ## mixed：--apply
 # repo：someone/shop
-# 建（5）
+# 建（11）
   refactor  不改行為的重構、搬家、改名
   test  只動測試或驗證
   decision  待決題（只用在 issue）
   duplicate  關 issue 時用：重複
   wontfix  關 issue 時用：不處理
+  種類:目的  少了它，北極星做不到
+  種類:延伸  北極星已經做得到，多一種方式或更方便
+  種類:工程保證  可靠性與正確性，出事會壞資料或壞狀態
+  種類:效能  做得到，但太慢、太大或太耗資源
+  種類:開發工具  服務開發的人
+  種類:維護  既有的債
 # 改名（0）
 # 改顏色或說明（2）
   Bug → bug  修正壞掉的行為
@@ -177,13 +225,19 @@ exit 0
   gh label create decision --repo someone/shop --color d876e3 --description 待決題（只用在 issue）
   gh label create duplicate --repo someone/shop --color cfd3d7 --description 關 issue 時用：重複
   gh label create wontfix --repo someone/shop --color ffffff --description 關 issue 時用：不處理
+  gh label create 種類:目的 --repo someone/shop --color b60205 --description 少了它，北極星做不到
+  gh label create 種類:延伸 --repo someone/shop --color 1d76db --description 北極星已經做得到，多一種方式或更方便
+  gh label create 種類:工程保證 --repo someone/shop --color 5319e7 --description 可靠性與正確性，出事會壞資料或壞狀態
+  gh label create 種類:效能 --repo someone/shop --color f9d0c4 --description 做得到，但太慢、太大或太耗資源
+  gh label create 種類:開發工具 --repo someone/shop --color bfdadc --description 服務開發的人
+  gh label create 種類:維護 --repo someone/shop --color e4e669 --description 既有的債
 ## mixed：驗
 # repo：someone/shop
 # 會建（0）
 # 會改名（0）
 # 會改顏色或說明（0）
 # 會刪（0）
-# 已經一致、沒動（9）
+# 已經一致、沒動（15）
   feature
   bug
   refactor
@@ -193,6 +247,12 @@ exit 0
   decision
   duplicate
   wontfix
+  種類:目的
+  種類:延伸
+  種類:工程保證
+  種類:效能
+  種類:開發工具
+  種類:維護
 # 不在標籤表、沒動（2）
   enhancement
   priority/high

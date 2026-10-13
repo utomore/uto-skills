@@ -1,11 +1,20 @@
 #!/usr/bin/env node
-// lawfulv2 的標籤表：把一個 GitHub repo 的標籤對到固定的九個（名稱、顏色、說明）。
+// lawfulv2 的標籤表：把一個 GitHub repo 的標籤對到固定的兩組（改動類型九個、種類六個；名稱、顏色、說明）。
 // 不加 --apply 只印計畫；標籤表以外的標籤不動，除非用 --delete 點名。
 //
 // node labels.mjs [--repo <OWNER/REPO>] [--delete <標籤>]... [--apply]
 import { spawnSync } from 'node:child_process';
 
 // 說明欄就是「用在」：GitHub 的標籤清單與選單會顯示它。
+// 改動類型分類一個改動；種類每張 issue 恰好一個（PR 與 decision 的 issue 不貼），判準見專案 CLAUDE.md 的「工作的種類」。
+const KINDS = [
+  { name: '種類:目的', color: 'b60205', description: '少了它，北極星做不到' },
+  { name: '種類:延伸', color: '1d76db', description: '北極星已經做得到，多一種方式或更方便' },
+  { name: '種類:工程保證', color: '5319e7', description: '可靠性與正確性，出事會壞資料或壞狀態' },
+  { name: '種類:效能', color: 'f9d0c4', description: '做得到，但太慢、太大或太耗資源' },
+  { name: '種類:開發工具', color: 'bfdadc', description: '服務開發的人' },
+  { name: '種類:維護', color: 'e4e669', description: '既有的債' },
+];
 const LABELS = [
   { name: 'feature', color: 'a2eeef', description: '新增的能力或 API' },
   { name: 'bug', color: 'd73a4a', description: '修正壞掉的行為' },
@@ -16,6 +25,7 @@ const LABELS = [
   { name: 'decision', color: 'd876e3', description: '待決題（只用在 issue）' },
   { name: 'duplicate', color: 'cfd3d7', description: '關 issue 時用：重複' },
   { name: 'wontfix', color: 'ffffff', description: '關 issue 時用：不處理' },
+  ...KINDS,
 ];
 
 // GitHub 替每個新 repo 建的標籤裡，意思與標籤表某一個相同的：改名，issue 與 PR 上的標籤跟著走。

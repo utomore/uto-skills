@@ -1,6 +1,6 @@
 # __PROJECT__
 
-這是什麼、結構、依賴方向與檢查見 @README.md；名詞見 @docs/glossary.md；決策見 docs/adr/（技術的抉擇在 `design/`，開發流程與架構規範在 `process/`，索引見 docs/adr/README.md）；還沒定的點子見 docs/backlog.md。
+這是什麼、結構、依賴方向與檢查見 README.md；名詞見 docs/glossary.md；決策見 docs/adr/（技術的抉擇在 `design/`，開發流程與架構規範在 `process/`，索引見 docs/adr/README.md）；還沒定的點子見 docs/backlog.md。
 工作項目、里程碑、進度與狀態在 D-004 定的專案管理工具裡，不在這個 repo 的文件裡。
 新的技術抉擇寫成一份設計 ADR，新的流程規則寫成一份流程 ADR（格式與什麼才寫成一份，見 docs/adr/README.md）。
 
@@ -56,7 +56,7 @@
 
 ## 協作規則
 
-- 對外用使用者語言，對內用領域的語言。領域裡的命名只用 `docs/glossary.md` 登記過的識別名；要用新名詞，先登記再命名。
+- 對外用使用者語言，對內用領域的語言。取新名字（型別、函數、模組、資料夾）之前，先讀 `docs/glossary.md`；領域裡的命名只用登記過的識別名，表上沒有的，先登記再命名。
 - 還沒有人實作的領域不預先建立、不預先命名。
 - 領域的資料夾是業務領域（名詞）；裡面的函數以動詞_名詞命名。
 - 四層：api、cli → application → domains ← platform（P-003）。platform 只提供工具，沒有入口、不放業務規則。api 與 cli 是兩個對等的入口，每個入口都呼叫 `application/` 的一個 use case，use case 是唯一的接線處；use case 在它服務的領域 `feature.md` 的入口表宣告，每個 use case 都要有 cli 指令（cli 不經 api，直接呼叫 use case）。

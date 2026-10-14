@@ -1,6 +1,6 @@
 # __PROJECT__
 
-這是什麼見 @README.md；名詞見 @docs/glossary.md；決策見 docs/adr/（技術的抉擇在 `design/`，開發流程與架構規範在 `process/`，索引見 docs/adr/README.md）；還沒定的點子見 docs/backlog.md。
+這是什麼見 README.md；名詞見 docs/glossary.md；決策見 docs/adr/（技術的抉擇在 `design/`，開發流程與架構規範在 `process/`，索引見 docs/adr/README.md）；還沒定的點子見 docs/backlog.md。
 工作項目、里程碑、進度與狀態在 D-004 定的專案管理工具裡，不在這個 repo 的文件裡。
 新的技術抉擇寫成一份設計 ADR，新的流程規則寫成一份流程 ADR（格式與什麼才寫成一份，見 docs/adr/README.md）。
 
@@ -56,7 +56,7 @@
 
 ## 協作規則
 
-- 命名只用 `docs/glossary.md` 登記過的名詞；要用新名詞，先登記再命名。
+- 取新名字（型別、函數、模組、資料夾）之前，先讀 `docs/glossary.md`；命名只用登記過的名詞，表上沒有的，先登記再命名。
 - 測試不是越多越好，也不設數量上限：功能的輪廓由 law 定（住哪見 P-003），測試是證明輪廓成立的證據。
   - 每條測試都要有歸屬：`<package>/LAW-n`、`<package>/EX-n`，或修 bug 的回歸測試（名字帶工作項目的編號）。歸屬不了的，抽成 law、改成例子，或刪掉。
   - 一條 law 原則上一條性質測試，產生器涵蓋 law 寫的定義域；拆成多條要說得出理由。

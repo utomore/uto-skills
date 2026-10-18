@@ -1,0 +1,3 @@
+{"type":"user","timestamp":"2026-10-05T01:00:00.000Z","gitBranch":"feat/old","message":{"role":"user","content":"整個 session 都在期間之前"}}
+{"type":"assistant","timestamp":"2026-10-05T01:00:10.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"o1","name":"Bash","input":{"command":"false"}}]}}
+{"type":"user","timestamp":"2026-10-05T01:00:20.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"o1","is_error":true,"content":"exit 1"}]}}

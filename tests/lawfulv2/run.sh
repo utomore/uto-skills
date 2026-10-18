@@ -7,6 +7,8 @@
 # - shop：一個領域、兩條 law、兩個入口的全綠樹。
 # - broken：每一道紅各出現一次。
 # - labels：bin/labels.mjs 對一個假的 gh 把標籤對到標籤表，計畫、--apply、--delete、中途失敗再重跑。
+# - retro：bin/retro.mjs 對手造的對話紀錄夾具與暫存目錄裡造的小 repo，抽出使用者訊息、打斷、工具失敗、拒絕、PR、合併與合併之後的補修，
+#   另驗 --since 的邊界、壞掉的行、不是 git repo、對話紀錄目錄不存在、不認得的參數。
 # shop 與 broken 先複製到暫存目錄，再把型錄的腳本複製進它的 scripts/（夾具自己的 _layout.py 留著）。
 # 輸出與 golden/<夾具>.txt 比對，行為刻意改了才 --update。
 set -u
@@ -129,4 +131,59 @@ out="$tmp/labels.txt"
   echo "## mixed：驗"; labels --repo someone/shop; ghlog
 ) > "$out"
 compare labels "$out"
+
+# retro：bin/retro.mjs 對手造的對話紀錄夾具與暫存目錄裡造的小 repo；時間固定，暫存路徑換成固定字串
+out="$tmp/retro.txt"
+(
+  export TZ=UTC
+  repo="$tmp/retro-repo"
+  mkdir -p "$repo" "$tmp/retro-plain"
+  g() {
+    GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
+      GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.test GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@example.test \
+      GIT_AUTHOR_DATE="$1T09:00:00+0000" GIT_COMMITTER_DATE="$1T09:00:00+0000" git -C "$repo" "${@:2}" > /dev/null 2>&1
+  }
+  g 2026-10-01 init -q -b main
+  echo a > "$repo/a.txt"; echo b > "$repo/b.txt"; g 2026-10-01 add .; g 2026-10-01 commit -q -m "初始"
+  # 期間開頭之前的一次合併，只當比對基準
+  g 2026-10-05 checkout -q -b feat/pre
+  echo b2 > "$repo/b.txt"; g 2026-10-05 commit -q -am "feat: 改 b"
+  g 2026-10-05 checkout -q main
+  g 2026-10-05 merge -q --no-ff feat/pre -m "Merge pull request #0 from x/feat/pre"
+  echo b3 > "$repo/b.txt"; g 2026-10-11 commit -q -am "fix: 補修 b"
+  g 2026-10-12 checkout -q -b feat/x
+  echo a2 > "$repo/a.txt"; g 2026-10-12 commit -q -am "feat: 改 a"
+  g 2026-10-12 checkout -q main
+  echo e > "$repo/e.txt"; g 2026-10-12 add .; g 2026-10-12 commit -q -m "docs: 加 e"
+  g 2026-10-13 merge -q --no-ff feat/x -m "Merge pull request #1 from x/feat/x"
+  echo a3 > "$repo/a.txt"; echo d > "$repo/d.txt"; g 2026-10-14 add .; g 2026-10-14 commit -q -m "fix: 補修 a"
+  # squash 合併：單一 parent，subject 結尾 (#數字)
+  echo s > "$repo/s.txt"; g 2026-10-15 add .; g 2026-10-15 commit -q -m "feat: 加 s (#2)"
+  echo e2 > "$repo/e.txt"; g 2026-10-16 commit -q -am "docs: 改 e"
+  echo s2 > "$repo/s.txt"; g 2026-10-16 commit -q -am "fix: 補修 s"
+
+  real=$(cygpath -w "$repo" 2>/dev/null || echo "$repo")
+  folder=$(printf '%s' "$real" | sed 's/[^a-zA-Z0-9]/-/g')
+  retro() {
+    node "$plugin/bin/retro.mjs" "$@" 2>&1 | sed -e 's/\r$//' -e "s#$folder#FOLDER#g" -e "s#$tmp#TMP#g" \
+      -e "s#$(cygpath -m "$tmp" 2>/dev/null || echo "$tmp")#TMP#g"
+    echo "exit ${PIPESTATUS[0]}"
+  }
+  fx=fixtures/retro/transcripts
+
+  echo "## --help"; retro --help
+  echo "## 夾具加小 repo"; retro --since 2026-10-11 --project "$repo" --transcripts "$fx"
+  echo "## --since 在 10-12：起始日之前的紀錄與 commit 被排除"; retro --since 2026-10-12 --project "$repo" --transcripts "$fx"
+  echo "## --since 把整個夾具排除"; retro --since 2026-10-20 --project "$repo" --transcripts "$fx"
+  echo "## 不是 git repo"; retro --since 2026-10-11 --project "$tmp/retro-plain" --transcripts "$fx" | sed -n '/^## git/,$p'
+  echo "## 對話紀錄目錄不存在"; retro --since 2026-10-11 --project "$repo" --transcripts "$tmp/nothing" | head -4
+  echo "## --ref 不存在"; retro --since 2026-10-11 --project "$repo" --transcripts "$fx" --ref nothing | sed -n '/^## git/,$p'
+  echo "## 預設的對話紀錄目錄由 --project 推算"
+  mkdir -p "$tmp/cfg/projects/$folder"; cp -r fixtures/retro/transcripts/. "$tmp/cfg/projects/$folder/"
+  CLAUDE_CONFIG_DIR="$tmp/cfg" retro --since 2026-10-11 --project "$repo" | head -3
+  echo "## 不認得的參數"; retro --nothing | head -2
+  echo "## --since 格式錯"; retro --since yesterday | head -2
+  echo "## --since 不是有效日期"; retro --since 2026-13-45 | head -2
+) > "$out"
+compare retro "$out"
 exit $fail

@@ -1,0 +1,26 @@
+{"type":"user","timestamp":"2026-10-10T23:59:59.000Z","gitBranch":"feat/old","message":{"role":"user","content":"期間之前的訊息，不該出現"}}
+{"type":"user","timestamp":"2026-10-11T00:00:00.000Z","gitBranch":"feat/demo","message":{"role":"user","content":"請幫我加一個   檢查，\n要擋掉內嵌腳本"}}
+{"type":"assistant","timestamp":"2026-10-11T00:00:05.000Z","gitBranch":"feat/demo","message":{"role":"assistant","content":[{"type":"text","text":"好，我用 node -e 來改檔。"},{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"node -e \"fs.writeFileSync('a.md','x')\""}}]}}
+{"type":"user","timestamp":"2026-10-11T00:00:10.000Z","gitBranch":"feat/demo","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","is_error":true,"content":"Exit code 1\nError: SyntaxError: unexpected token\n  at line 1"}]}}
+{"type":"assistant","timestamp":"2026-10-11T00:00:20.000Z","gitBranch":"feat/demo","message":{"role":"assistant","content":[{"type":"text","text":"我改用 Edit。"},{"type":"tool_use","id":"t2","name":"Edit","input":{"file_path":"docs/a.md","old_string":"x","new_string":"y"}}]}}
+{"type":"user","timestamp":"2026-10-11T00:00:30.000Z","gitBranch":"feat/demo","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t2","is_error":true,"content":[{"type":"text","text":"File has not been read yet. Read it first before writing to it."}]},{"type":"tool_result","tool_use_id":"t2","is_error":false,"content":"fine"}]}}
+{"type":"user","timestamp":"2026-10-11T00:01:00.000Z","isMeta":true,"message":{"role":"user","content":"meta 訊息，不算"}}
+{"type":"user","timestamp":"2026-10-11T00:01:30.000Z","isCompactSummary":true,"isVisibleInTranscriptOnly":true,"message":{"role":"user","content":"This session is being continued from a previous conversation. 壓縮摘要，不算"}}
+{"type":"user","timestamp":"2026-10-11T00:02:00.000Z","message":{"role":"user","content":"<command-name>/model</command-name>\n<command-message>model</command-message>"}}
+{"type":"user","timestamp":"2026-10-11T00:02:10.000Z","message":{"role":"user","content":"<local-command-stdout>ok</local-command-stdout>"}}
+{"type":"user","timestamp":"2026-10-11T00:02:20.000Z","message":{"role":"user","content":"<system-reminder>只有提醒</system-reminder>"}}
+{"type":"user","timestamp":"2026-10-12T03:00:00.000Z","gitBranch":"feat/demo","message":{"role":"user","content":"<system-reminder>隱藏的提醒</system-reminder>不是這樣，我說過改檔要用 Edit"}}
+{"type":"assistant","timestamp":"2026-10-12T03:00:30.000Z","gitBranch":"feat/demo","message":{"role":"assistant","content":[{"type":"text","text":"了解，我重新來。先清掉 build 目錄。"},{"type":"tool_use","id":"t3","name":"Bash","input":{"command":"rm -rf build"}}]}}
+{"type":"user","timestamp":"2026-10-12T03:00:40.000Z","gitBranch":"feat/demo","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t3","is_error":true,"content":"The user doesn't want to proceed with this tool use. The tool use was rejected."}]}}
+{"type":"user","timestamp":"2026-10-12T03:01:00.000Z","gitBranch":"feat/demo","message":{"role":"user","content":[{"type":"text","text":"[Request interrupted by user for tool use]"}]}}
+{"type":"user","timestamp":"2026-10-12T03:02:00.000Z","gitBranch":"feat/demo","interruptedMessageId":"m-9","message":{"role":"user","content":"又錯了"}}
+{"type":"assistant","timestamp":"2026-10-12T03:03:00.000Z","gitBranch":"feat/demo","message":{"role":"assistant","content":[{"type":"text","text":"這是一段很長的 assistant 說明，用來測試截斷：一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十。"}]}}
+{"type":"user","timestamp":"2026-10-12T03:04:00.000Z","gitBranch":"feat/demo","message":{"role":"user","content":"長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長"}}
+{"type":"assistant","timestamp":"2026-10-12T03:05:00.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"t4","name":"Bash","input":{"command":"false"}},{"type":"tool_use","id":"t5","name":"Read","input":{"file_path":"docs/missing.md"}}]}}
+{"type":"user","timestamp":"2026-10-12T03:05:10.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t4","is_error":true,"content":"Exit code 1"},{"type":"tool_result","tool_use_id":"t5","is_error":true,"content":"<tool_use_error>File does not exist.</tool_use_error>"}]}}
+{"type":"user","timestamp":"2026-10-12T03:06:00.000Z","message":{"role":"user","content":"<task-notification>背景工作完成</task-notification>"}}
+{"type":"pr-link","sessionId":"a1b2c3d4","prNumber":99,"prUrl":"https://example.test/pull/99","timestamp":"2026-10-10T08:00:00.000Z"}
+{"type":"pr-link","sessionId":"a1b2c3d4","prNumber":12,"prUrl":"https://example.test/pull/12"}
+{"type":"pr-link","sessionId":"a1b2c3d4","prNumber":13,"prUrl":"https://example.test/pull/13","timestamp":"2026-10-12T04:00:00.000Z"}
+{"type":"pr-link","sessionId":"a1b2c3d4","prNumber":12,"prUrl":"https://example.test/pull/12","timestamp":"2026-10-12T04:30:00.000Z"}
+{這不是 JSON

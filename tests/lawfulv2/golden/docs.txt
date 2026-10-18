@@ -34,3 +34,4 @@ scaffold: 型錄沒有 nothing 這一格
 ## SKILL.md 的 frontmatter
 kickoff ok
 labels ok
+retro ok

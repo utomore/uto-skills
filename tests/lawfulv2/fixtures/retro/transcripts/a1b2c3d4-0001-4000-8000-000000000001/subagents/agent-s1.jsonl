@@ -1,0 +1,5 @@
+{"type":"user","timestamp":"2026-10-12T05:00:00.000Z","message":{"role":"user","content":"你是子代理，請去搜尋 foo 的用法（派工內容，不是人的話）"}}
+{"type":"assistant","timestamp":"2026-10-12T05:00:10.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"s1","name":"Bash","input":{"command":"grep foo missing.txt"}}]}}
+{"type":"user","timestamp":"2026-10-12T05:00:20.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"s1","is_error":true,"content":"grep: missing.txt: No such file or directory"}]}}
+{"type":"assistant","timestamp":"2026-10-12T05:00:30.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"s2","name":"Write","input":{"file_path":"notes/x.md","content":"x"}}]}}
+{"type":"user","timestamp":"2026-10-12T05:00:40.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"s2","is_error":true,"content":"The user doesn't want to proceed with this tool use."}]}}

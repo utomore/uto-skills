@@ -1,0 +1,129 @@
+## --help
+用法：node retro.mjs [--since <YYYY-MM-DD>] [--project <dir>] [--transcripts <dir>] [--ref <git ref>]
+  --since       只收這一天 00:00（本地時間）以後的紀錄與 commit，預設是今天往前 7 天
+  --project     專案目錄，git 指令在這裡跑，預設是目前目錄
+  --transcripts 對話紀錄目錄，預設是 <CLAUDE_CONFIG_DIR 或 ~/.claude>/projects/<專案的絕對路徑，非英數字元換成 ->
+  --ref         看哪一條線的 git 歷史，預設依序試 origin/HEAD、main、master
+只讀不寫；抽出使用者訊息、打斷、工具失敗、拒絕、session 對應的 PR、合併與合併之後的 commit，不歸類。
+exit 2
+## 夾具加小 repo
+# 回顧訊號：2026-10-11 起
+對話紀錄：fixtures/retro/transcripts
+session 3 個、subagent 2 個、略過 1 行
+
+## session a1b2c3d4（分支 feat/demo，PR #12、#13）
+### 使用者訊息
+- 2026-10-11 00:00 「請幫我加一個 檢查， 要擋掉內嵌腳本」
+- 2026-10-12 03:00 「不是這樣，我說過改檔要用 Edit」
+  前一則：「我改用 Edit。」
+- 2026-10-12 03:01 [打斷] 「[Request interrupted by user for tool use]」
+  前一則：「了解，我重新來。先清掉 build 目錄。」
+- 2026-10-12 03:02 [打斷] 「又錯了」
+  前一則：「了解，我重新來。先清掉 build 目錄。」
+- 2026-10-12 03:04 「長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長…」
+  前一則：「這是一段很長的 assistant 說明，用來測試截斷：一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十。」
+### 工具失敗
+- 2026-10-11 00:00 Bash `node -e "fs.writeFileSync('a.md','x')"` → Error: SyntaxError: unexpected token
+- 2026-10-11 00:00 Edit `docs/a.md` → File has not been read yet. Read it first before writing to it.
+- 2026-10-12 03:05 Bash `false` → Exit code 1
+- 2026-10-12 03:05 Read `docs/missing.md` → File does not exist.
+### 拒絕
+- 2026-10-12 03:00 Bash `rm -rf build`
+### subagent 搜尋 foo 的用法（sonnet）
+- 2026-10-12 05:00 工具失敗 Bash `grep foo missing.txt` → grep: missing.txt: No such file or directory
+- 2026-10-12 05:00 拒絕 Write `notes/x.md`
+
+## session d4e5f6a7（分支不明）
+### subagent 只有 subagent 落在期間內（haiku）
+- 2026-10-12 06:00 工具失敗 Grep `{"pattern":"foo","path":"nowhere"}` → nowhere: No such file or directory
+
+## session 0c9d8e7f（分支不明）
+### 使用者訊息
+- 2026-10-12 08:00 「第二個 session，id 排在前面、時間排在後面」
+
+## git main
+### 合併
+- 889a896 2026-10-13 Merge pull request #1 from x/feat/x
+- 9ca1c35 2026-10-15 feat: 加 s (#2)
+### 直接進 main 的 commit
+- 499982b 2026-10-11 fix: 補修 b（合併 b1c1a92 之後第 1 個，重疊的檔：b.txt）
+- 3b785d7 2026-10-12 docs: 加 e
+- 3df4f46 2026-10-14 fix: 補修 a（合併 889a896 之後第 1 個，重疊的檔：a.txt）
+- 89bfa47 2026-10-16 docs: 改 e
+- 686649f 2026-10-16 fix: 補修 s（合併 9ca1c35 之後第 2 個，重疊的檔：s.txt）
+exit 0
+## --since 在 10-12：起始日之前的紀錄與 commit 被排除
+# 回顧訊號：2026-10-12 起
+對話紀錄：fixtures/retro/transcripts
+session 3 個、subagent 2 個、略過 1 行
+
+## session a1b2c3d4（分支 feat/demo，PR #12、#13）
+### 使用者訊息
+- 2026-10-12 03:00 「不是這樣，我說過改檔要用 Edit」
+  前一則：「我改用 Edit。」
+- 2026-10-12 03:01 [打斷] 「[Request interrupted by user for tool use]」
+  前一則：「了解，我重新來。先清掉 build 目錄。」
+- 2026-10-12 03:02 [打斷] 「又錯了」
+  前一則：「了解，我重新來。先清掉 build 目錄。」
+- 2026-10-12 03:04 「長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長長…」
+  前一則：「這是一段很長的 assistant 說明，用來測試截斷：一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十。」
+### 工具失敗
+- 2026-10-12 03:05 Bash `false` → Exit code 1
+- 2026-10-12 03:05 Read `docs/missing.md` → File does not exist.
+### 拒絕
+- 2026-10-12 03:00 Bash `rm -rf build`
+### subagent 搜尋 foo 的用法（sonnet）
+- 2026-10-12 05:00 工具失敗 Bash `grep foo missing.txt` → grep: missing.txt: No such file or directory
+- 2026-10-12 05:00 拒絕 Write `notes/x.md`
+
+## session d4e5f6a7（分支不明）
+### subagent 只有 subagent 落在期間內（haiku）
+- 2026-10-12 06:00 工具失敗 Grep `{"pattern":"foo","path":"nowhere"}` → nowhere: No such file or directory
+
+## session 0c9d8e7f（分支不明）
+### 使用者訊息
+- 2026-10-12 08:00 「第二個 session，id 排在前面、時間排在後面」
+
+## git main
+### 合併
+- 889a896 2026-10-13 Merge pull request #1 from x/feat/x
+- 9ca1c35 2026-10-15 feat: 加 s (#2)
+### 直接進 main 的 commit
+- 3b785d7 2026-10-12 docs: 加 e
+- 3df4f46 2026-10-14 fix: 補修 a（合併 889a896 之後第 1 個，重疊的檔：a.txt）
+- 89bfa47 2026-10-16 docs: 改 e
+- 686649f 2026-10-16 fix: 補修 s（合併 9ca1c35 之後第 2 個，重疊的檔：s.txt）
+exit 0
+## --since 把整個夾具排除
+# 回顧訊號：2026-10-20 起
+對話紀錄：fixtures/retro/transcripts
+session 0 個、subagent 0 個、略過 1 行
+
+## git main
+exit 0
+## 不是 git repo
+## git
+讀不到 git 歷史：fatal: not a git repository (or any of the parent directories): .git
+exit 0
+## 對話紀錄目錄不存在
+# 回顧訊號：2026-10-11 起
+對話紀錄：TMP/nothing
+對話紀錄目錄不存在，略過這一段。
+
+## --ref 不存在
+## git
+讀不到 git 歷史：找不到 ref nothing
+exit 0
+## 預設的對話紀錄目錄由 --project 推算
+# 回顧訊號：2026-10-11 起
+對話紀錄：TMP/cfg/projects/FOLDER
+session 3 個、subagent 2 個、略過 1 行
+## 不認得的參數
+retro: 不認得的參數 --nothing
+用法：node retro.mjs [--since <YYYY-MM-DD>] [--project <dir>] [--transcripts <dir>] [--ref <git ref>]
+## --since 格式錯
+retro: --since 要寫成 YYYY-MM-DD，收到 yesterday
+用法：node retro.mjs [--since <YYYY-MM-DD>] [--project <dir>] [--transcripts <dir>] [--ref <git ref>]
+## --since 不是有效日期
+retro: --since 不是有效的日期：2026-13-45
+用法：node retro.mjs [--since <YYYY-MM-DD>] [--project <dir>] [--transcripts <dir>] [--ref <git ref>]
